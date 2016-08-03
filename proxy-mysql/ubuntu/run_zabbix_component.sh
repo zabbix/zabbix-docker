@@ -307,8 +307,6 @@ create_db_schema_mysql() {
     if [ -z "${ZBX_DB_VERSION}" ]; then
         echo "** Creating '${DB_SERVER_DBNAME}' schema in MySQL"
 
-        [ -n "${DB_SERVER_ROOT_PASS}" ] && DB_TMP_PASSWORD=--password=\"${DB_SERVER_ROOT_PASS}\"
-
         cat /usr/share/doc/zabbix-$type-mysql/schema.sql | mysql --silent --skip-column-names \
                     -h ${DB_SERVER_HOST} -P ${DB_SERVER_PORT} \
                     -u ${DB_SERVER_ROOT_USER} --password="${DB_SERVER_ROOT_PASS}"  \
@@ -331,7 +329,7 @@ create_db_schema_postgresql() {
     local type=$1
 
     DBVERSION_TABLE_EXISTS=$(psql_query "SELECT 1 FROM pg_catalog.pg_class c JOIN pg_catalog.pg_namespace n ON n.oid = 
-                                         c.relnamespace WHERE  n.nspname = '${DB_SERVER_DBNAME}' AND c.relname = 'dbversion'")
+                                         c.relnamespace WHERE  n.nspname = 'public' AND c.relname = 'dbversion'")
 
     if [ -n "${DBVERSION_TABLE_EXISTS}" ]; then
         echo "** Table '${DB_SERVER_DBNAME}.dbversion' already exists."
