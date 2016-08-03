@@ -131,7 +131,6 @@ VOLUME ["/usr/lib/zabbix/alertscripts", "/usr/lib/zabbix/externalscripts", "/var
 VOLUME ["/var/lib/zabbix/ssl/certs", "/var/lib/zabbix/ssl/keys", "/var/lib/zabbix/ssl/ssl_ca", "/var/lib/zabbix/snmptraps", "/var/lib/zabbix/mibs"]
     
 ADD conf/etc/supervisor/ /etc/supervisor/
-ADD conf/etc/logrotate.d/logrotate_zabbix.conf /etc/logrotate.d/
 ADD run_zabbix_component.sh /data/
 
 ENTRYPOINT ["/bin/bash"]
