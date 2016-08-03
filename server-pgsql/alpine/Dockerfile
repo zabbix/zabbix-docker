@@ -6,6 +6,7 @@ ARG APK_FLAGS_PERSISTANT="${APK_FLAGS_COMMON} --clean-protected --no-cache"
 ARG APK_FLAGS_DEV="${APK_FLAGS_COMMON} --no-cache"
 ARG DB_TYPE=postgresql
 ENV TERM=xterm
+ENV MIBDIRS=/var/lib/zabbix/mibs MIBS=+ALL
 
 RUN addgroup zabbix && \
     adduser -S \
@@ -23,6 +24,8 @@ RUN addgroup zabbix && \
     mkdir -p /var/lib/zabbix/ssl/ssl_ca && \
     mkdir -p /usr/lib/zabbix/externalscripts && \
     mkdir -p /usr/lib/zabbix/alertscripts && \
+    mkdir -p /var/lib/zabbix/mibs && \
+    mkdir -p /var/lib/zabbix/snmptraps && \
     chown --quiet -R zabbix:root /var/lib/zabbix && \
     mkdir -p /usr/share/doc/zabbix-server-${DB_TYPE} && \
     apk update && \
@@ -41,8 +44,8 @@ RUN addgroup zabbix && \
             libssh2 && \
     rm -rf /var/cache/apk/*
 
-ARG MAJOR_VERSION=master
-ARG ZBX_VERSION=${MAJOR_VERSION}
+ARG MAJOR_VERSION=3.0
+ARG ZBX_VERSION=${MAJOR_VERSION}.4
 ARG ZBX_SOURCES=svn://svn.zabbix.com/tags/${ZBX_VERSION}/
 ENV ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES} DB_TYPE=${DB_TYPE}
 
@@ -103,7 +106,7 @@ EXPOSE 10051/TCP 162/UDP
 WORKDIR /var/lib/zabbix
 
 VOLUME ["/usr/lib/zabbix/alertscripts", "/usr/lib/zabbix/externalscripts", "/var/lib/zabbix/enc", "/var/lib/zabbix/modules", "/var/lib/zabbix/ssh_keys"]
-VOLUME ["/var/lib/zabbix/ssl/certs", "/var/lib/zabbix/ssl/keys", "/var/lib/zabbix/ssl/ssl_ca"]
+VOLUME ["/var/lib/zabbix/ssl/certs", "/var/lib/zabbix/ssl/keys", "/var/lib/zabbix/ssl/ssl_ca", "/var/lib/zabbix/snmptraps", "/var/lib/zabbix/mibs"]
 
 ADD conf/etc/supervisor/ /etc/supervisor/
 ADD run_zabbix_component.sh /data/

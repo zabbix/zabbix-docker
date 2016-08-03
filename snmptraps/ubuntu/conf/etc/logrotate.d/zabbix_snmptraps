@@ -1,5 +1,5 @@
 # https://support.zabbix.com/browse/ZBX-9858
-/tmp/snmptrapfmt.log {
+/var/lib/zabbix/snmotraps/snmptraps.log {
     missingok
     daily
     rotate 0

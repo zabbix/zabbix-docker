@@ -6,11 +6,10 @@ ARG APT_FLAGS_PERSISTANT="${APT_FLAGS_COMMON} --no-install-recommends"
 ARG APT_FLAGS_DEV="${APT_FLAGS_COMMON} --no-install-recommends"
 ARG DB_TYPE=mysql
 ENV LANG=en_US.UTF-8 LANGUAGE=en_US:en LC_ALL=en_US.UTF-8 DEBIAN_FRONTEND=noninteractive TERM=xterm
+ENV MIBDIRS=/var/lib/zabbix/mibs MIBS=+ALL
 
-RUN DISTRIB_CODENAME=$(/bin/bash -c 'source /etc/lsb-release && echo $DISTRIB_CODENAME') && \
-    locale-gen $LC_ALL && \
+RUN locale-gen $LC_ALL && \
     echo "#!/bin/sh\nexit 0" > /usr/sbin/policy-rc.d && \
-    echo "deb http://us.archive.ubuntu.com/ubuntu/ $DISTRIB_CODENAME multiverse" >> /etc/apt/sources.list && \
     addgroup --system --quiet zabbix && \
     adduser --quiet \
             --system --disabled-login \
@@ -26,6 +25,8 @@ RUN DISTRIB_CODENAME=$(/bin/bash -c 'source /etc/lsb-release && echo $DISTRIB_CO
     mkdir -p /var/lib/zabbix/ssl/certs && \
     mkdir -p /var/lib/zabbix/ssl/keys && \
     mkdir -p /var/lib/zabbix/ssl/ssl_ca && \
+    mkdir -p /var/lib/zabbix/mibs && \
+    mkdir -p /var/lib/zabbix/snmptraps && \
     mkdir -p /usr/lib/zabbix/externalscripts && \
     chown --quiet -R zabbix:root /var/lib/zabbix && \
     mkdir -p /usr/share/doc/zabbix-proxy-${DB_TYPE} && \
@@ -35,21 +36,20 @@ RUN DISTRIB_CODENAME=$(/bin/bash -c 'source /etc/lsb-release && echo $DISTRIB_CO
             mysql-client \
             libmysqlclient18 \
             libiksemel3 \
+            libsnmp30 \
             libcurl3 \
             unixodbc \
             libssh2-1 \
             libssl1.0.0 \
             libxml2 \
             fping \
-            libopenipmi0 \
-            snmptrapfmt \
-            snmp-mibs-downloader 1>/dev/null && \
+            libopenipmi0 1>/dev/null && \
     apt-get ${APT_FLAGS_COMMON} autoremove && \
     apt-get ${APT_FLAGS_COMMON} clean && \
     rm -rf /var/lib/apt/lists/*
 
-ARG MAJOR_VERSION=master
-ARG ZBX_VERSION=${MAJOR_VERSION}
+ARG MAJOR_VERSION=3.0
+ARG ZBX_VERSION=${MAJOR_VERSION}.4
 ARG ZBX_SOURCES=svn://svn.zabbix.com/tags/${ZBX_VERSION}/
 ENV ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES} DB_TYPE=${DB_TYPE}
 
@@ -117,8 +117,6 @@ RUN apt-get ${APT_FLAGS_COMMON} update && \
             make \
             automake \
             subversion 1>/dev/null && \
-    apt-get ${APT_FLAGS_PERSISTANT} install \
-            snmp-mibs-downloader 1>/dev/null && \
     apt-get ${APT_FLAGS_COMMON} autoremove 1>/dev/null && \
     rm -rf /var/lib/apt/lists/*
 
@@ -127,10 +125,9 @@ EXPOSE 10051/TCP 162/UDP
 WORKDIR /var/lib/zabbix
 
 VOLUME ["/usr/lib/zabbix/externalscripts", "/var/lib/zabbix/enc", "/var/lib/zabbix/modules", "/var/lib/zabbix/ssh_keys"]
-VOLUME ["/var/lib/zabbix/ssl/certs", "/var/lib/zabbix/ssl/keys", "/var/lib/zabbix/ssl/ssl_ca"]
+VOLUME ["/var/lib/zabbix/ssl/certs", "/var/lib/zabbix/ssl/keys", "/var/lib/zabbix/ssl/ssl_ca", "/var/lib/zabbix/snmptraps", "/var/lib/zabbix/mibs"]
 
 ADD conf/etc/supervisor/ /etc/supervisor/
-ADD conf/etc/logrotate.d/logrotate_zabbix.conf /etc/logrotate.d/
 ADD run_zabbix_component.sh /data/
 
 ENTRYPOINT ["/bin/bash"]

@@ -21,8 +21,6 @@ ZBX_SERVER_HOST=${ZBX_SERVER_HOST:-"zabbix-server"}
 # Default Zabbix server port number
 ZBX_SERVER_PORT=${ZBX_SERVER_PORT:-"10051"}
 
-ZBX_ENABLE_SNMP_TRAPS=${ZBX_ENABLE_SNMP_TRAPS:-"false"}
-
 TZ=${TZ:-"Europe/Riga"}
 
 # Default directories
@@ -135,7 +133,7 @@ check_variables_mysql() {
 
     # If root password is not specified use provided credentials
     DB_SERVER_ROOT_USER=${DB_SERVER_ROOT_USER:-${MYSQL_USER}}
-    DB_SERVER_ROOT_PASS=${DB_SERVER_ROOT_PASS:-${MYSQL_PASSWORD}}
+    [ "${MYSQL_ALLOW_EMPTY_PASSWORD}" == "true" ] || DB_SERVER_ROOT_PASS=${DB_SERVER_ROOT_PASS:-${MYSQL_PASSWORD}}
     DB_SERVER_ZBX_USER=${MYSQL_USER:-"zabbix"}
     DB_SERVER_ZBX_PASS=${MYSQL_PASSWORD:-"zabbix"}
 
@@ -309,21 +307,21 @@ create_db_schema_mysql() {
     if [ -z "${ZBX_DB_VERSION}" ]; then
         echo "** Creating '${DB_SERVER_DBNAME}' schema in MySQL"
 
-        [ -n "${DB_SERVER_ROOT_PASS}" ] && DB_TMP_PASSWORD="--password=\"${DB_SERVER_ROOT_PASS}\""
+        [ -n "${DB_SERVER_ROOT_PASS}" ] && DB_TMP_PASSWORD=--password=\"${DB_SERVER_ROOT_PASS}\"
 
         cat /usr/share/doc/zabbix-$type-mysql/schema.sql | mysql --silent --skip-column-names \
                     -h ${DB_SERVER_HOST} -P ${DB_SERVER_PORT} \
-                    -u ${DB_SERVER_ROOT_USER} $DB_TMP_PASSWORD  \
+                    -u ${DB_SERVER_ROOT_USER} --password="${DB_SERVER_ROOT_PASS}"  \
                     ${DB_SERVER_DBNAME} 1>/dev/null
         if [ "$type" == "server" ]; then
             echo "** Fill the schema with initial data"
             cat /usr/share/doc/zabbix-$type-mysql/images.sql | mysql --silent --skip-column-names \
                     -h ${DB_SERVER_HOST} -P ${DB_SERVER_PORT} \
-                    -u ${DB_SERVER_ROOT_USER} $DB_TMP_PASSWORD  \
+                    -u ${DB_SERVER_ROOT_USER} --password="${DB_SERVER_ROOT_PASS}" \
                     ${DB_SERVER_DBNAME} 1>/dev/null
             cat /usr/share/doc/zabbix-$type-mysql/data.sql | mysql --silent --skip-column-names \
                     -h ${DB_SERVER_HOST} -P ${DB_SERVER_PORT} \
-                    -u ${DB_SERVER_ROOT_USER} $DB_TMP_PASSWORD \
+                    -u ${DB_SERVER_ROOT_USER} --password="${DB_SERVER_ROOT_PASS}" \
                     ${DB_SERVER_DBNAME} 1>/dev/null
         fi
     fi
@@ -482,46 +480,6 @@ prepare_web_server_nginx() {
     ln -sf /dev/fd/2 /var/log/php5-fpm.log
 }
 
-prepare_snmptrapd() {
-    SNMPTRAPD_CONF="/etc/snmp/snmptrapd.conf"
-    SNMPTRAPFMT_CONF="/etc/snmp/snmptrapfmt.conf"
-
-    if [ ! -d "/etc/snmp/" ] || [ ! -f "/usr/sbin/snmptrapd" ]; then
-        echo "**** Impossible to enable SNMP traps feature"
-        ZBX_ENABLE_SNMP_TRAPS=false
-        return
-    fi
-
-    echo "** Updating SNMP traps related configuration files"
-
-    echo "** Updating snmptrapd"
-    echo "disableAuthorization yes" >> "$SNMPTRAPD_CONF"
-
-    if [ -f "/usr/sbin/snmptrapfmt" ]; then
-        echo "traphandle default /usr/sbin/snmptrapfmthdlr" >> "$SNMPTRAPD_CONF"
-
-        echo "** Updating snmptrapfmt"
-
-        sed -i \
-            -e "/^VARFMT=/s/=.*/=\"%n %v \"/" \
-            -e '/^LOGFMT=/s/=.*/=\"$x ZBXTRAP $R $G $S $e $*\"/' \
-            -e "/^LOGFILE=/s/=.*/=\"\/tmp\/snmptraps.log\"/" \
-        "$SNMPTRAPFMT_CONF"
-    elif [ -f "/usr/sbin/zabbix_trap_receiver.pl" ]; then
-        echo "perl do \"/usr/sbin/zabbix_trap_receiver.pl\";" >> "$SNMPTRAPD_CONF"
-        update_config_var "/usr/sbin/zabbix_trap_receiver.pl" "\$SNMPTrapperFile " "/tmp/snmptraps.log"
-    fi
-
-    if [ -f "/usr/sbin/logrotate" ]; then
-        if [ ! -f "/etc/logrotate.d/logrotate_zabbix.conf" ]; then
-            echo "**** Impossible to manage SNMP traps log file. Zabbix logrotate configuration file not found"
-        fi
-    else
-        rm -f "/etc/logrotate.d/logrotate_zabbix.conf"
-        echo "**** Impossible to manage SNMP traps log file. Logrotate not found"
-    fi
-}
-
 clear_deploy() {
     local type=$1
     echo "** Cleaning the system"
@@ -610,8 +568,9 @@ update_zbx_config() {
     update_config_var $ZBX_CONFIG "VMwareCacheSize" "${ZBX_VMWARECACHESIZE}"
     update_config_var $ZBX_CONFIG "VMwareTimeout" "${ZBX_VMWARETIMEOUT}"
 
+    ZBX_ENABLE_SNMP_TRAPS=${ZBX_ENABLE_SNMP_TRAPS:-"false"}
     if [ "${ZBX_ENABLE_SNMP_TRAPS}" == "true" ]; then
-        update_config_var $ZBX_CONFIG "SNMPTrapperFile" "/tmp/snmptraps.log"
+        update_config_var $ZBX_CONFIG "SNMPTrapperFile" "${ZABBIX_USER_HOME_DIR}/snmptraps/snmptraps.log"
         update_config_var $ZBX_CONFIG "StartSNMPTrapper" "1"
     else
         update_config_var $ZBX_CONFIG "SNMPTrapperFile"
@@ -834,12 +793,6 @@ prepare_server() {
     create_db_database_$db_type
     create_db_schema_$db_type "server"
 
-    if [ "${ZBX_ENABLE_SNMP_TRAPS}" == "true" ]; then 
-        prepare_snmptrapd
-    else
-        rm -f $SUPERVISOR_CONFD/supervisord_snmptraps.conf
-    fi
-
     update_zbx_config "server" "$db_type"
 }
 prepare_proxy() {
@@ -853,12 +806,6 @@ prepare_proxy() {
         create_db_user_$db_type
         create_db_database_$db_type
         create_db_schema_$db_type "proxy"
-    fi
-
-    if [ "${ZBX_ENABLE_SNMP_TRAPS}" == "true" ]; then
-        prepare_snmptrapd
-    else
-        rm -f $SUPERVISOR_CONFD/supervisord_snmptraps.conf
     fi
 
     update_zbx_config "proxy" $db_type

@@ -6,6 +6,7 @@ ARG APK_FLAGS_PERSISTANT="${APK_FLAGS_COMMON} --clean-protected --no-cache"
 ARG APK_FLAGS_DEV="${APK_FLAGS_COMMON} --no-cache"
 ARG DB_TYPE=sqlite3
 ENV TERM=xterm
+ENV MIBDIRS=/var/lib/zabbix/mibs MIBS=+ALL
 
 RUN addgroup zabbix && \
     adduser -S \
@@ -38,8 +39,8 @@ RUN addgroup zabbix && \
             libssh2 && \
     rm -rf /var/cache/apk/*
 
-ARG MAJOR_VERSION=master
-ARG ZBX_VERSION=${MAJOR_VERSION}
+ARG MAJOR_VERSION=3.0
+ARG ZBX_VERSION=${MAJOR_VERSION}.4
 ARG ZBX_SOURCES=svn://svn.zabbix.com/tags/${ZBX_VERSION}/
 ENV ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES} DB_TYPE=${DB_TYPE}
 
@@ -86,7 +87,6 @@ RUN apk add ${APK_FLAGS_DEV} --virtual build-dependencies \
     cp src/zabbix_proxy/zabbix_proxy /usr/sbin/zabbix_proxy && \
     cp conf/zabbix_proxy.conf /etc/zabbix/zabbix_proxy.conf && \
     chown --quiet -R zabbix:root /etc/zabbix && \
-    cp misc/snmptrap/zabbix_trap_receiver.pl /usr/sbin/zabbix_trap_receiver.pl && \
     cd /tmp/ && \
     rm -rf /tmp/zabbix-${ZBX_VERSION}/ && \
     apk del ${APK_FLAGS_COMMON} --purge \
@@ -98,7 +98,7 @@ EXPOSE 10051/TCP 162/UDP
 WORKDIR /var/lib/zabbix
 
 VOLUME ["/usr/lib/zabbix/externalscripts", "/var/lib/zabbix/enc", "/var/lib/zabbix/modules", "/var/lib/zabbix/ssh_keys"]
-VOLUME ["/var/lib/zabbix/ssl/certs", "/var/lib/zabbix/ssl/keys", "/var/lib/zabbix/ssl/ssl_ca"]
+VOLUME ["/var/lib/zabbix/ssl/certs", "/var/lib/zabbix/ssl/keys", "/var/lib/zabbix/ssl/ssl_ca", "/var/lib/zabbix/snmptraps", "/var/lib/zabbix/mibs"]
 
 ADD conf/etc/supervisor/ /etc/supervisor/
 ADD run_zabbix_component.sh /data/
