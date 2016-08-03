@@ -44,7 +44,7 @@ RUN locale-gen $LC_ALL && \
             libssl1.0.0 \
             libxml2 \
             fping \
-            libopenipmi0 1>/dev/null
+            libopenipmi0 1>/dev/null \
     apt-get ${APT_FLAGS_COMMON} autoremove && \
     apt-get ${APT_FLAGS_COMMON} clean && \
     rm -rf /var/lib/apt/lists/*
