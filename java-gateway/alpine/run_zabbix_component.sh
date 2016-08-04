@@ -515,7 +515,7 @@ update_zbx_config() {
     update_config_var $ZBX_CONFIG "LogFileSize"
     update_config_var $ZBX_CONFIG "PidFile"
 
-    update_config_var $ZBX_CONFIG "DebugLevel" "${ZBX_DEBUG_LEVEL}"
+    update_config_var $ZBX_CONFIG "DebugLevel" "${ZBX_DEBUGLEVEL}"
 
     if [ "$db_type" == "sqlite3" ]; then
         update_config_var $ZBX_CONFIG "DBHost"
