@@ -39,11 +39,11 @@ Where `some-zabbix-web-nginx-pgsql` is the name you want to assign to your conta
 
 ## Linking the container to Zabbix server
 
-docker run --name some-zabbix-web-nginx-pgsql --link some-zabbix-server:zabbix-server -e POSTGRES_USER="some-user" -e POSTGRES_PASSWORD="some-password" -e ZBX_SERVER_HOST="some-zabbix-server" -e TZ="some-timezone" -d zabbix/zabbix-web-nginx-pgsql:tag
+    docker run --name some-zabbix-web-nginx-pgsql --link some-zabbix-server:zabbix-server -e POSTGRES_USER="some-user" -e POSTGRES_PASSWORD="some-password" -e ZBX_SERVER_HOST="some-zabbix-server" -e TZ="some-timezone" -d zabbix/zabbix-web-nginx-pgsql:tag
 
 ## Linking the container to PostgreSQL database
 
-docker run --name some-zabbix-web-nginx-pgsql --link some-postgres-server:postgres -e POSTGRES_USER="some-user" -e POSTGRES_PASSWORD="some-password" -e ZBX_SERVER_HOST="some-zabbix-server" -e TZ="some-timezone" -d zabbix/zabbix-web-nginx-pgsql:tag
+    docker run --name some-zabbix-web-nginx-pgsql --link some-postgres-server:postgres -e POSTGRES_USER="some-user" -e POSTGRES_PASSWORD="some-password" -e ZBX_SERVER_HOST="some-zabbix-server" -e TZ="some-timezone" -d zabbix/zabbix-web-nginx-pgsql:tag
 
 ## Container shell access and viewing Zabbix web interface logs
 

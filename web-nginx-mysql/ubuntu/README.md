@@ -39,11 +39,11 @@ Where `some-zabbix-web-nginx-mysql` is the name you want to assign to your conta
 
 ## Linking the container to Zabbix server
 
-docker run --name some-zabbix-web-nginx-mysql --link some-zabbix-server:zabbix-server -e MYSQL_USER="some-user" -e MYSQL_PASSWORD="some-password" -e ZBX_SERVER_HOST="some-zabbix-server" -e TZ="some-timezone" -d zabbix/zabbix-web-nginx-mysql:tag
+    docker run --name some-zabbix-web-nginx-mysql --link some-zabbix-server:zabbix-server -e MYSQL_USER="some-user" -e MYSQL_PASSWORD="some-password" -e ZBX_SERVER_HOST="some-zabbix-server" -e TZ="some-timezone" -d zabbix/zabbix-web-nginx-mysql:tag
 
 ## Linking the container to MySQL database
 
-docker run --name some-zabbix-web-nginx-mysql --link some-mysql-server:mysql -e MYSQL_USER="some-user" -e MYSQL_PASSWORD="some-password" -e ZBX_SERVER_HOST="some-zabbix-server" -e TZ="some-timezone" -d zabbix/zabbix-web-nginx-mysql:tag
+    docker run --name some-zabbix-web-nginx-mysql --link some-mysql-server:mysql -e MYSQL_USER="some-user" -e MYSQL_PASSWORD="some-password" -e ZBX_SERVER_HOST="some-zabbix-server" -e TZ="some-timezone" -d zabbix/zabbix-web-nginx-mysql:tag
 
 ## Container shell access and viewing Zabbix web interface logs
 
