@@ -92,8 +92,8 @@ ADD conf/etc/zabbix/apache.conf /etc/zabbix/
 ADD conf/etc/zabbix/apache_ssl.conf /etc/zabbix/
 ADD conf/etc/zabbix/web/zabbix.conf.php /etc/zabbix/web/
 ADD conf/etc/php5/apache2/conf.d/99-zabbix.ini /etc/php5/apache2/conf.d/
-ADD run_zabbix_component.sh /data/
+ADD run_zabbix_component.sh /
 
 ENTRYPOINT ["/bin/bash"]
 
-CMD ["/data/run_zabbix_component.sh", "frontend", "mysql", "apache"]
+CMD ["/run_zabbix_component.sh", "frontend", "mysql", "apache"]
