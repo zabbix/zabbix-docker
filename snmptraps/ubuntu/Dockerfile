@@ -42,7 +42,7 @@ EXPOSE 162/UDP
 
 WORKDIR /var/lib/zabbix/snmptraps/
 
-VOLUME ["/usr/lib/zabbix/snmptraps", "/var/lib/zabbix/mibs"]
+VOLUME ["/var/lib/zabbix/snmptraps", "/var/lib/zabbix/mibs"]
 
 ADD conf/etc/supervisor/ /etc/supervisor/
 ADD conf/etc/logrotate.d/zabbix_snmptraps /etc/logrotate.d/

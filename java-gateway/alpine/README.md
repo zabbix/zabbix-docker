@@ -26,7 +26,7 @@ Images are updated when new releases are published. The image with ``latest`` ta
 
 ## Start `zabbix-java-gateway`
 
-Start a Zabbix web-interface container as follows:
+Start a Zabbix Java Gateway container as follows:
 
     docker run --name some-zabbix-java-gateway -d zabbix/zabbix-java-gateway:tag
 
@@ -34,7 +34,7 @@ Where `some-zabbix-java-gateway` is the name you want to assign to your containe
 
 ## Linking the container to Zabbix server or Zabbix proxy
 
-docker run --name some-zabbix-java-gateway --link some-zabbix-server:zabbix-server -d zabbix/zabbix-java-gateway:tag
+    docker run --name some-zabbix-java-gateway --link some-zabbix-server:zabbix-server -d zabbix/zabbix-java-gateway:tag
 
 ## Container shell access and viewing Zabbix Java Gateway logs
 
