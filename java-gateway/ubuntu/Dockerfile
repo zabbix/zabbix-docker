@@ -79,8 +79,8 @@ WORKDIR /usr/sbin/zabbix_java/
 ADD conf/etc/supervisor/ /etc/supervisor/
 ADD conf/etc/zabbix/zabbix_java_gateway_logback.xml /etc/zabbix/
 ADD conf/usr/sbin/zabbix_java_gateway /usr/sbin/
-ADD run_zabbix_component.sh /data/
+ADD run_zabbix_component.sh /
 
 ENTRYPOINT ["/bin/bash"]
 
-CMD ["/data/run_zabbix_component.sh", "java-gateway", "none"]
+CMD ["/run_zabbix_component.sh", "java-gateway", "none"]

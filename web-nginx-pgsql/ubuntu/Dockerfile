@@ -98,8 +98,8 @@ ADD conf/etc/zabbix/nginx_ssl.conf /etc/zabbix/
 ADD conf/etc/zabbix/web/zabbix.conf.php /etc/zabbix/web/
 ADD conf/etc/nginx/nginx.conf /etc/nginx/
 ADD conf/etc/php5/fpm/conf.d/99-zabbix.ini /etc/php5/fpm/conf.d/
-ADD run_zabbix_component.sh /data/
+ADD run_zabbix_component.sh /
 
 ENTRYPOINT ["/bin/bash"]
 
-CMD ["/data/run_zabbix_component.sh", "frontend", "postgresql", "nginx"]
+CMD ["/run_zabbix_component.sh", "frontend", "postgresql", "nginx"]

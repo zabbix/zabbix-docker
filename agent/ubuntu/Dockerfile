@@ -83,8 +83,8 @@ WORKDIR /var/lib/zabbix
 VOLUME ["/etc/zabbix/zabbix_agentd.d", "/var/lib/zabbix/enc", "/var/lib/zabbix/modules"]
 
 ADD conf/etc/supervisor/ /etc/supervisor/
-ADD run_zabbix_component.sh /data/
+ADD run_zabbix_component.sh /
 
 ENTRYPOINT ["/bin/bash"]
 
-CMD ["/data/run_zabbix_component.sh", "agentd", "none"]
+CMD ["/run_zabbix_component.sh", "agentd", "none"]

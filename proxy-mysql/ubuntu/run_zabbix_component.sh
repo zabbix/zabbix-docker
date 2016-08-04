@@ -1,7 +1,10 @@
 #!/bin/bash
 
 set +e
-#set -o xtrace
+
+if [ "${DEBUG_MODE}" == "true" ]; then
+    set -o xtrace
+fi
 
 # Type of Zabbix component
 # Possible values: [server, proxy, agent, web, dev]
@@ -648,6 +651,10 @@ prepare_zbx_web_config() {
 
     ZBX_WEB_CONFIG="$ZABBIX_ETC_DIR/web/zabbix.conf.php"
 
+    if [ -f "/usr/share/zabbix/conf/zabbix.conf.php" ]; then
+        rm -f "/usr/share/zabbix/conf/zabbix.conf.php"
+    fi
+
     ln -s "$ZBX_WEB_CONFIG" "/usr/share/zabbix/conf/zabbix.conf.php"
 
     if [ -f "/etc/php5/conf.d/99-zabbix.ini" ]; then
@@ -695,16 +702,16 @@ prepare_zbx_agent_config() {
 
     ZBX_AGENT_CONFIG=$ZABBIX_ETC_DIR/zabbix_agentd.conf
 
-    ZBX_PASSIVE_SERVERS=${ZBX_PASSIVE_SERVERS:-""}
-    ZBX_ACTIVE_SERVERS=${ZBX_ACTIVE_SERVERS:-""}
+    ZBX_PASSIVESERVERS=${ZBX_PASSIVESERVERS:-""}
+    ZBX_ACTIVESERVERS=${ZBX_ACTIVESERVERS:-""}
 
-    [ -n "$ZBX_PASSIVE_SERVERS" ] && ZBX_PASSIVE_SERVERS=","$ZBX_PASSIVE_SERVERS
+    [ -n "$ZBX_PASSIVESERVERS" ] && ZBX_PASSIVESERVERS=","$ZBX_PASSIVESERVERS
 
-    ZBX_PASSIVE_SERVERS=$ZBX_SERVER_HOST$ZBX_PASSIVE_SERVERS
+    ZBX_PASSIVESERVERS=$ZBX_SERVER_HOST$ZBX_PASSIVESERVERS
 
-    [ -n "$ZBX_ACTIVE_SERVERS" ] && ZBX_ACTIVE_SERVERS=","$ZBX_ACTIVE_SERVERS
+    [ -n "$ZBX_ACTIVESERVERS" ] && ZBX_ACTIVESERVERS=","$ZBX_ACTIVESERVERS
 
-    ZBX_ACTIVE_SERVERS=$ZBX_SERVER_HOST":"$ZBX_SERVER_PORT$ZBX_ACTIVE_SERVERS
+    ZBX_ACTIVESERVERS=$ZBX_SERVER_HOST":"$ZBX_SERVER_PORT$ZBX_ACTIVESERVERS
 
     update_config_var $ZBX_AGENT_CONFIG "PidFile"
     update_config_var $ZBX_AGENT_CONFIG "LogType" "console"
@@ -712,13 +719,13 @@ prepare_zbx_agent_config() {
     update_config_var $ZBX_AGENT_CONFIG "LogFileSize"
     update_config_var $ZBX_AGENT_CONFIG "DebugLevel" "${ZBX_DEBUGLEVEL}"
     update_config_var $ZBX_AGENT_CONFIG "SourceIP"
-    update_config_var $ZBX_AGENT_CONFIG "EnableRemoteCommands" "${ZBX_ENABLE_REMOTE_COMMANDS}"
+    update_config_var $ZBX_AGENT_CONFIG "EnableRemoteCommands" "${ZBX_ENABLEREMOTECOMMANDS}"
     update_config_var $ZBX_AGENT_CONFIG "LogRemoteCommands" "${ZBX_LOGREMOTECOMMANDS}"
 
     ZBX_PASSIVE_ALLOW=${ZBX_PASSIVE_ALLOW:-"true"}
     if [ "$ZBX_PASSIVE_ALLOW" == "true" ]; then
-        echo "** Using '$ZBX_PASSIVE_SERVERS' servers for passive checks"
-        update_config_var $ZBX_AGENT_CONFIG "Server" "${ZBX_PASSIVE_SERVERS}"
+        echo "** Using '$ZBX_PASSIVESERVERS' servers for passive checks"
+        update_config_var $ZBX_AGENT_CONFIG "Server" "${ZBX_PASSIVESERVERS}"
     else
         update_config_var $ZBX_AGENT_CONFIG "Server"
     fi
@@ -729,8 +736,8 @@ prepare_zbx_agent_config() {
 
     ZBX_ACTIVE_ALLOW=${ZBX_ACTIVE_ALLOW:-"true"}
     if [ "$ZBX_ACTIVE_ALLOW" == "true" ]; then
-        echo "** Using '$ZBX_ACTIVE_SERVERS' servers for active checks"
-        update_config_var $ZBX_AGENT_CONFIG "ServerActive" "${ZBX_ACTIVE_SERVERS}"
+        echo "** Using '$ZBX_ACTIVESERVERS' servers for active checks"
+        update_config_var $ZBX_AGENT_CONFIG "ServerActive" "${ZBX_ACTIVESERVERS}"
     else
         update_config_var $ZBX_AGENT_CONFIG "ServerActive"
     fi
@@ -756,7 +763,7 @@ prepare_zbx_agent_config() {
     update_config_var $ZBX_AGENT_CONFIG "TLSServerCertIssuer" "${ZBX_TLSSERVERCERTISSUER}"
     update_config_var $ZBX_AGENT_CONFIG "TLSServerCertSubject" "${ZBX_TLSSERVERCERTSUBJECT}"
     update_config_var $ZBX_AGENT_CONFIG "TLSCertFile" "${ZBX_TLSCERTFILE}"
-    update_config_var $ZBX_AGENT_CONFIG "TLSKeyFile" "${ZBX_TLSKEY_FILE}"
+    update_config_var $ZBX_AGENT_CONFIG "TLSKeyFile" "${ZBX_TLSKEYFILE}"
     update_config_var $ZBX_AGENT_CONFIG "TLSPSKIdentity" "${ZBX_TLSPSKIDENTITY}"
     update_config_var $ZBX_AGENT_CONFIG "TLSPSKFile" "${ZBX_TLSPSKFILE}"
 }
