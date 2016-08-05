@@ -62,7 +62,7 @@ This variable is specified amount of pollers. By default, value is `5`.
 
 This variable is used to specify timeout for outgoing connections. By default, value is `3`.
 
-### ``ZBX_DEBUGLEVEL``
+### `ZBX_DEBUGLEVEL`
 
 This variable is used to specify log level. By default, value is `info`. The variable allows next values: ``trace``, ``debug``, ``info``, ``want``, ``error``, ``all``, ``off``
 

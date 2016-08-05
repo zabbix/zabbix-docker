@@ -26,6 +26,7 @@ Images are updated when new releases are published. The image with ``latest`` ta
 
 The image uses MySQL database. It uses the next procedure to start:
 - Checking database availability
+- If ``MYSQL_ROOT_PASSWORD`` or ``MYSQL_ALLOW_EMPTY_PASSWORD`` are specified, the instance tries to create ``MYSQL_USER`` user with ``MYSQL_PASSWORD`` to use these credentials then for Zabbix server.
 - Checking of having `MYSQL_DATABASE` database. Creating `MYSQL_DATABASE` database name if it does not exist
 - Checking of having `dbversion` table. Creating Zabbix server database schema and upload initial data sample if no `dbversion` table
 
@@ -35,9 +36,9 @@ The image uses MySQL database. It uses the next procedure to start:
 
 Start a Zabbix server container as follows:
 
-    docker run --name some-zabbix-server-mysql -e MYSQL_USER="some-user" -e MYSQL_PASSWORD="some-password" -d zabbix/zabbix-server-mysql:tag
+    docker run --name some-zabbix-server-mysql -e DB_SERVER_HOST="some-mysql-server" -e MYSQL_USER="some-user" -e MYSQL_PASSWORD="some-password" -d zabbix/zabbix-server-mysql:tag
 
-Where `some-zabbix-server-mysql` is the name you want to assign to your container, `some-user` is user to connect to Zabbix database on MySQL server, `some-password` is the password to connect to MySQL server and `tag` is the tag specifying the version you want. See the list above for relevant tags, or look at the [full list of tags](https://hub.docker.com/r/zabbix/zabbix-server-mysql/tags/).
+Where `some-zabbix-server-mysql` is the name you want to assign to your container, `some-mysql-server` is IP or DNS name of MySQL server, `some-user` is user to connect to Zabbix database on MySQL server, `some-password` is the password to connect to MySQL server and `tag` is the tag specifying the version you want. See the list above for relevant tags, or look at the [full list of tags](https://hub.docker.com/r/zabbix/zabbix-server-mysql/tags/).
 
 ## Container shell access and viewing Zabbix server logs
 
@@ -57,11 +58,11 @@ $ docker logs some-zabbix-server-mysql
 
 When you start the `zabbix-server-mysql` image, you can adjust the configuration of the Zabbix server by passing one or more environment variables on the `docker run` command line.
 
-### ``DB_SERVER_HOST``
+### `DB_SERVER_HOST`
 
 This variable is IP or DNS name of MySQL server. By default, value is 'mysql-server'
 
-### ``DB_SERVER_PORT``
+### `DB_SERVER_PORT`
     
 This variable is port of MySQL server. By default, value is '3306'.
 
@@ -77,15 +78,21 @@ The variable is Zabbix database name. By default, value is `zabbix`.
 
 The variable is list of comma separated loadable Zabbix modules. It works with  volume ``/var/lib/zabbix/modules``. The syntax of the variable is ``dummy1.so,dummy2.so``.
 
-### ``ZBX_DEBUGLEVEL``
+### `ZBX_DEBUGLEVEL`
 
-The variable is used to specify debug level. By default, value is ``3``. Allowed values are ``0`` - basic information about starting and stopping of Zabbix processes, ``1`` - critical information,``2`` - error information,``3`` - warnings,``4`` -  for debugging (produces lots of information), ``5`` - extended debugging (produces even more information). It is ``DebugLevel`` parameter in zabbix_server.conf.
+The variable is used to specify debug level. By default, value is ``3``. It is ``DebugLevel`` parameter in ``zabbix_server.conf``. Allowed values are listed below:
+- ``0`` - basic information about starting and stopping of Zabbix processes;
+- ``1`` - critical information
+- ``2`` - error information
+- ``3`` - warnings
+- ``4`` - for debugging (produces lots of information)
+- ``5`` - extended debugging (produces even more information)
 
-### ``ZBX_TIMEOUT``
+### `ZBX_TIMEOUT`
 
 The variable is used to specify timeout for processing checks. By default, value is ``4``.
 
-### ``ZBX_JAVAGATEWAY_ENABLE``
+### `ZBX_JAVAGATEWAY_ENABLE`
 
 The variable enable communication with Zabbix Java Gateway to collect Java related checks. By default, value is `false`.
 
@@ -140,17 +147,17 @@ Default values of these variables are specified after equal sign.
 
 The allowed variables are identical of parameters in official ``zabbix_server.conf``. For example, ``ZBX_LOGSLOWQUERIES`` = ``LogSlowQueries``.
 
-Please use official documentation for [`zabbix_server.conf`](https://www.zabbix.com/documentation/3.0/manual/appendix/config/zabbix_server) to get more information about the variables.
+Please use official documentation for [``zabbix_server.conf``](https://www.zabbix.com/documentation/3.0/manual/appendix/config/zabbix_server) to get more information about the variables.
 
 ## Allowed volumes for the Zabbix server container
 
 ### ``/usr/lib/zabbix/alertscripts``
 
-The volume is used for custom alert scripts. It is `AlertScriptsPath` parameter in `zabbix_server.conf`.
+The volume is used for custom alert scripts. It is `AlertScriptsPath` parameter in ``zabbix_server.conf``.
 
 ### ``/usr/lib/zabbix/externalscripts``
 
-The volume is used by External checks (type of items). It is `ExternalScripts` parameter in `zabbix_server.conf`.
+The volume is used by External checks (type of items). It is `ExternalScripts` parameter in ``zabbix_server.conf``.
 
 ### ``/var/lib/zabbix/modules``
 
@@ -162,19 +169,19 @@ The volume is used to store TLS related files. These file names are specified us
 
 ### ``/var/lib/zabbix/ssh_keys``
 
-The volume is used as location of public and private keys for SSH checks and actions. It is `SSHKeyLocation` parameter in `zabbix_server.conf`.
+The volume is used as location of public and private keys for SSH checks and actions. It is `SSHKeyLocation` parameter in ``zabbix_server.conf``.
 
 ### ``/var/lib/zabbix/ssl/certs``
 
-The volume is used as location of of SSL client certificate files for client authentication. It is `SSLCertLocation` parameter in `zabbix_server.conf`.
+The volume is used as location of of SSL client certificate files for client authentication. It is `SSLCertLocation` parameter in ``zabbix_server.conf``.
 
 ### ``/var/lib/zabbix/ssl/keys``
 
-The volume is used as location of SSL private key files for client authentication. It is `SSLKeyLocation` parameter in `zabbix_server.conf`.
+The volume is used as location of SSL private key files for client authentication. It is `SSLKeyLocation` parameter in ``zabbix_server.conf``.
 
 ### ``/var/lib/zabbix/ssl/ssl_ca``
 
-The volume is used as location of certificate authority (CA) files for SSL server certificate verification. It is `SSLCALocation` parameter in `zabbix_server.conf`.
+The volume is used as location of certificate authority (CA) files for SSL server certificate verification. It is `SSLCALocation` parameter in ``zabbix_server.conf``.
 
 ### ``/var/lib/zabbix/snmptraps``
 

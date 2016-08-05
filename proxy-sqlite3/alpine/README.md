@@ -74,7 +74,7 @@ The variable allows to switch Zabbix proxy mode. Bu default, value is `0` - acti
 
 ### `ZBX_HOSTNAME`
 
-This variable is unique, case sensitive hostname. By default, value is `zabbix-proxy-sqlite3` of the container. It is ``Hostname`` parameter in zabbix_proxy.conf.
+This variable is unique, case sensitive hostname. By default, value is `zabbix-proxy-sqlite3` of the container. It is ``Hostname`` parameter in ``zabbix_proxy.conf``.
 
 ### `ZBX_SERVER_HOST`
 
@@ -88,15 +88,21 @@ This variable is port Zabbix server listening on. By default, value is `10051`.
 
 The variable is list of comma separated loadable Zabbix modules. It works with  volume ``/var/lib/zabbix/modules``. The syntax of the variable is ``dummy1.so,dummy2.so``.
 
-### ``ZBX_DEBUGLEVEL``
+### `ZBX_DEBUGLEVEL`
 
-The variable is used to specify debug level. By default, value is ``3``. Allowed values are ``0`` - basic information about starting and stopping of Zabbix processes, ``1`` - critical information,``2`` - error information,``3`` - warnings,``4`` -  for debugging (produces lots of information), ``5`` - extended debugging (produces even more information). It is ``DebugLevel`` parameter in zabbix_proxy.conf.
+The variable is used to specify debug level. By default, value is ``3``. It is ``DebugLevel`` parameter in ``zabbix_server.conf``. Allowed values are listed below:
+- ``0`` - basic information about starting and stopping of Zabbix processes;
+- ``1`` - critical information
+- ``2`` - error information
+- ``3`` - warnings
+- ``4`` - for debugging (produces lots of information)
+- ``5`` - extended debugging (produces even more information)
 
-### ``ZBX_TIMEOUT``
+### `ZBX_TIMEOUT`
 
 The variable is used to specify timeout for processing checks. By default, value is ``4``.
 
-### ``ZBX_JAVAGATEWAY_ENABLE``
+### `ZBX_JAVAGATEWAY_ENABLE`
 
 The variable enable communication with Zabbix Java Gateway to collect Java related checks. By default, value is `false`.
 
@@ -153,13 +159,13 @@ Default values of these variables are specified after equal sign.
 
 The allowed variables are identical of parameters in official ``zabbix_proxy.conf``. For example, ``ZBX_LOGSLOWQUERIES`` = ``LogSlowQueries``.
 
-Please use official documentation for [`zabbix_proxy.conf`](https://www.zabbix.com/documentation/3.0/manual/appendix/config/zabbix_proxy) to get more information about the variables.
+Please use official documentation for [``zabbix_proxy.conf``](https://www.zabbix.com/documentation/3.0/manual/appendix/config/zabbix_proxy) to get more information about the variables.
 
 ## Allowed volumes for the Zabbix proxy container
 
 ### ``/usr/lib/zabbix/externalscripts``
 
-The volume is used by External checks (type of items). It is `ExternalScripts` parameter in `zabbix_proxy.conf`.
+The volume is used by External checks (type of items). It is `ExternalScripts` parameter in ``zabbix_proxy.conf``.
 
 ### ``/var/lib/zabbix/modules``
 
@@ -171,19 +177,19 @@ The volume is used to store TLS related files. These file names are specified us
 
 ### ``/var/lib/zabbix/ssh_keys``
 
-The volume is used as location of public and private keys for SSH checks and actions. It is `SSHKeyLocation` parameter in `zabbix_proxy.conf`.
+The volume is used as location of public and private keys for SSH checks and actions. It is `SSHKeyLocation` parameter in ``zabbix_proxy.conf``.
 
 ### ``/var/lib/zabbix/ssl/certs``
 
-The volume is used as location of of SSL client certificate files for client authentication. It is `SSLCertLocation` parameter in `zabbix_proxy.conf`.
+The volume is used as location of of SSL client certificate files for client authentication. It is `SSLCertLocation` parameter in ``zabbix_proxy.conf``.
 
 ### ``/var/lib/zabbix/ssl/keys``
 
-The volume is used as location of SSL private key files for client authentication. It is `SSLKeyLocation` parameter in `zabbix_proxy.conf`.
+The volume is used as location of SSL private key files for client authentication. It is `SSLKeyLocation` parameter in ``zabbix_proxy.conf``.
 
 ### ``/var/lib/zabbix/ssl/ssl_ca``
 
-The volume is used as location of certificate authority (CA) files for SSL server certificate verification. It is `SSLCALocation` parameter in `zabbix_proxy.conf`.
+The volume is used as location of certificate authority (CA) files for SSL server certificate verification. It is `SSLCALocation` parameter in ``zabbix_proxy.conf``.
 
 ### ``/var/lib/zabbix/snmptraps``
 
