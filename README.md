@@ -10,7 +10,7 @@ For more information and related downloads for Zabbix components, please visit h
 
 ## Zabbix version
 
-The branch is used to store Zabbix version 3.0 Dockerfile.
+The branch is used to store Zabbix version 3.0 Dockerfiles.
 
 ## Zabbix Dockerfiles
 
