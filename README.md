@@ -8,6 +8,9 @@ Zabbix is software that monitors numerous parameters of a network and the health
 
 For more information and related downloads for Zabbix components, please visit https://hub.docker.com/u/zabbix/ and https://zabbix.com
 
+## Zabbix version
+
+The branch is used to store Zabbix version 3.0 Dockerfile.
 
 ## Zabbix Dockerfiles
 
