@@ -10,7 +10,7 @@ For more information and related downloads for Zabbix components, please visit h
 
 # What is the image?
 
-The image is used to receive SNMP traps and provide access to Zabbix to collected SNMP trap messsages.
+The image is used to receive SNMP traps, store them to a log file and provide access to Zabbix to collected SNMP trap messsages.
 
 # Zabbix snmptraps images
 

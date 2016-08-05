@@ -24,6 +24,7 @@ Images are updated when new releases are published. The image with ``latest`` ta
 
 The image uses MySQL database to store collected data before sending it to Zabbix server. It uses the next procedure to start:
 - Checking database availability
+- If ``MYSQL_ROOT_PASSWORD`` or ``MYSQL_ALLOW_EMPTY_PASSWORD`` are specified, the instance tries to create ``MYSQL_USER`` user with ``MYSQL_PASSWORD`` to use these credentials then for Zabbix server.
 - Checking of having `MYSQL_DATABASE` database. Creating `MYSQL_DATABASE` database name if it does not exist
 - Checking of having `dbversion` table. Creating Zabbix proxy database schema if no `dbversion` table
 
@@ -33,9 +34,9 @@ The image uses MySQL database to store collected data before sending it to Zabbi
 
 Start a Zabbix proxy container as follows:
 
-    docker run --name some-zabbix-proxy-mysql -e ZBX_HOSTNAME=some-hostname -e ZBX_SERVER_HOST=some-zabbix-server -d zabbix/zabbix-proxy-mysql:tag
+    docker run --name some-zabbix-proxy-mysql -e DB_SERVER_HOST="some-mysql-server" -e MYSQL_USER="some-user" -e MYSQL_PASSWORD="some-password" -e ZBX_HOSTNAME=some-hostname -e ZBX_SERVER_HOST=some-zabbix-server -d zabbix/zabbix-proxy-mysql:tag
 
-Where `some-zabbix-proxy-mysql` is the name you want to assign to your container, `some-hostname` is the hostname, it is Hostname parameter in Zabbix proxy configuration file, `some-zabbix-server` is IP or DNS name of Zabbix server and `tag` is the tag specifying the version you want. See the list above for relevant tags, or look at the [full list of tags](https://hub.docker.com/r/zabbix/zabbix-proxy-mysql/tags/).
+Where `some-zabbix-proxy-mysql` is the name you want to assign to your container, `some-mysql-server` is IP or DNS name of MySQL server, `some-user` is user to connect to Zabbix database on MySQL server, `some-password` is the password to connect to MySQL server, `some-hostname` is the hostname, it is Hostname parameter in Zabbix proxy configuration file, `some-zabbix-server` is IP or DNS name of Zabbix server and `tag` is the tag specifying the version you want. See the list above for relevant tags, or look at the [full list of tags](https://hub.docker.com/r/zabbix/zabbix-proxy-mysql/tags/).
 
 ## Connects from Zabbix server (Passive proxy)
 
@@ -77,7 +78,7 @@ The variable allows to switch Zabbix proxy mode. Bu default, value is `0` - acti
 
 ### `ZBX_HOSTNAME`
 
-This variable is unique, case sensitive hostname. By default, value is `zabbix-proxy-mysql` of the container. It is ``Hostname`` parameter in zabbix_proxy.conf.
+This variable is unique, case sensitive hostname. By default, value is `zabbix-proxy-mysql` of the container. It is ``Hostname`` parameter in ``zabbix_proxy.conf``.
 
 ### `ZBX_SERVER_HOST`
 
@@ -87,11 +88,11 @@ This variable is IP or DNS name of Zabbix server or Zabbix proxy. By default, va
 
 This variable is port Zabbix server listening on. By default, value is `10051`.
 
-### ``DB_SERVER_HOST``
+### `DB_SERVER_HOST`
 
 This variable is IP or DNS name of MySQL server. By default, value is 'mysql-server'
 
-### ``DB_SERVER_PORT``
+### `DB_SERVER_PORT`
     
 This variable is port of MySQL server. By default, value is '3306'.
 
@@ -109,13 +110,19 @@ The variable is list of comma separated loadable Zabbix modules. It works with  
 
 ### ``ZBX_DEBUGLEVEL``
 
-The variable is used to specify debug level. By default, value is ``3``. Allowed values are ``0`` - basic information about starting and stopping of Zabbix processes, ``1`` - critical information,``2`` - error information,``3`` - warnings,``4`` -  for debugging (produces lots of information), ``5`` - extended debugging (produces even more information). It is ``DebugLevel`` parameter in zabbix_proxy.conf.
+The variable is used to specify debug level. By default, value is ``3``. It is ``DebugLevel`` parameter in ``zabbix_server.conf``. Allowed values are listed below:
+- ``0`` - basic information about starting and stopping of Zabbix processes;
+- ``1`` - critical information
+- ``2`` - error information
+- ``3`` - warnings
+- ``4`` - for debugging (produces lots of information)
+- ``5`` - extended debugging (produces even more information)
 
-### ``ZBX_TIMEOUT``
+### `ZBX_TIMEOUT`
 
 The variable is used to specify timeout for processing checks. By default, value is ``4``.
 
-### ``ZBX_JAVAGATEWAY_ENABLE``
+### `ZBX_JAVAGATEWAY_ENABLE`
 
 The variable enable communication with Zabbix Java Gateway to collect Java related checks. By default, value is `false`.
 
@@ -172,13 +179,13 @@ Default values of these variables are specified after equal sign.
 
 The allowed variables are identical of parameters in official ``zabbix_proxy.conf``. For example, ``ZBX_LOGSLOWQUERIES`` = ``LogSlowQueries``.
 
-Please use official documentation for [`zabbix_proxy.conf`](https://www.zabbix.com/documentation/3.0/manual/appendix/config/zabbix_proxy) to get more information about the variables.
+Please use official documentation for [``zabbix_proxy.conf``](https://www.zabbix.com/documentation/3.0/manual/appendix/config/zabbix_proxy) to get more information about the variables.
 
 ## Allowed volumes for the Zabbix proxy container
 
 ### ``/usr/lib/zabbix/externalscripts``
 
-The volume is used by External checks (type of items). It is `ExternalScripts` parameter in `zabbix_proxy.conf`.
+The volume is used by External checks (type of items). It is `ExternalScripts` parameter in ``zabbix_proxy.conf``.
 
 ### ``/var/lib/zabbix/modules``
 
@@ -190,19 +197,19 @@ The volume is used to store TLS related files. These file names are specified us
 
 ### ``/var/lib/zabbix/ssh_keys``
 
-The volume is used as location of public and private keys for SSH checks and actions. It is `SSHKeyLocation` parameter in `zabbix_proxy.conf`.
+The volume is used as location of public and private keys for SSH checks and actions. It is `SSHKeyLocation` parameter in ``zabbix_proxy.conf``.
 
 ### ``/var/lib/zabbix/ssl/certs``
 
-The volume is used as location of of SSL client certificate files for client authentication. It is `SSLCertLocation` parameter in `zabbix_proxy.conf`.
+The volume is used as location of of SSL client certificate files for client authentication. It is `SSLCertLocation` parameter in ``zabbix_proxy.conf``.
 
 ### ``/var/lib/zabbix/ssl/keys``
 
-The volume is used as location of SSL private key files for client authentication. It is `SSLKeyLocation` parameter in `zabbix_proxy.conf`.
+The volume is used as location of SSL private key files for client authentication. It is `SSLKeyLocation` parameter in ``zabbix_proxy.conf``.
 
 ### ``/var/lib/zabbix/ssl/ssl_ca``
 
-The volume is used as location of certificate authority (CA) files for SSL server certificate verification. It is `SSLCALocation` parameter in `zabbix_proxy.conf`.
+The volume is used as location of certificate authority (CA) files for SSL server certificate verification. It is `SSLCALocation` parameter in ``zabbix_proxy.conf``.
 
 ### ``/var/lib/zabbix/snmptraps``
 

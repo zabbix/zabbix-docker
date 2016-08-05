@@ -27,7 +27,7 @@ Please follow usage instructions of each Zabbix component image:
 * [zabbix-server-pgsql](https://hub.docker.com/r/zabbix/zabbix-server-pgsql/) - Zabbix server with PostgreSQL database support
 * [zabbix-web-apache-mysql](https://hub.docker.com/r/zabbix/zabbix-web-apache-mysql/) - Zabbix web interface on Apache2 web server with MySQL database support
 * [zabbix-web-nginx-mysql](https://hub.docker.com/r/zabbix/zabbix-web-nginx-mysql/) - Zabbix web interface on Nginx web server with MySQL database support
-* [zabbix-web-nginx-pgsql](https://hub.docker.com/r/zabbix/zabbix-server-pgsql/) - Zabbix web interface on Apache2 web server with PostgreSQL database support
+* [zabbix-web-nginx-pgsql](https://hub.docker.com/r/zabbix/zabbix-server-pgsql/) - Zabbix web interface on Nginx web server with PostgreSQL database support
 * [zabbix-proxy-sqlite3](https://hub.docker.com/r/zabbix/zabbix-proxy-sqlite3/) - Zabbix proxy with SQLite3 database support
 * [zabbix-proxy-mysql](https://hub.docker.com/r/zabbix/zabbix-proxy-mysql/) - Zabbix proxy with MySQL database support
 * [zabbix-java-gateway](https://hub.docker.com/r/zabbix/zabbix-java-gateway/) - Zabbix Java Gateway

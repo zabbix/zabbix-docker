@@ -28,19 +28,19 @@ Images are updated when new releases are published. The image with ``latest`` ta
 
 Start a Zabbix agent container as follows:
 
-    docker run --name some-zabbix-agent -e ZBX_HOSTNAME=some-hostname -e ZBX_SERVER_HOST=some-zabbix-server -d zabbix/zabbix-agent:tag
+    docker run --name some-zabbix-agent -e ZBX_HOSTNAME="some-hostname" -e ZBX_SERVER_HOST="some-zabbix-server" -d zabbix/zabbix-agent:tag
 
 Where `some-zabbix-agent` is the name you want to assign to your container, `some-hostname` is the hostname, it is Hostname parameter in Zabbix agent configuration file, `some-zabbix-server` is IP or DNS name of Zabbix server or proxy and `tag` is the tag specifying the version you want. See the list above for relevant tags, or look at the [full list of tags](https://hub.docker.com/r/zabbix/zabbix-agent/tags/).
 
-## Connects from Zabbix server or Zabbix proxy in other containers
+## Connects from Zabbix server or Zabbix proxy in other containers (Passive checks)
 
-This image exposes the standard Zabbix agent port (10050) to perform passive checks, so container linking makes Zabbix agent instance available to Zabbix server and Zabbix proxy containers. Start your application container like this in order to link it to the Zabbix agent container:
+This image exposes the standard Zabbix agent port (``10050``) to perform passive checks, so container linking makes Zabbix agent instance available to Zabbix server and Zabbix proxy containers. Start your application container like this in order to link it to the Zabbix agent container:
 
 ```console
 $ docker run --name some-zabbix-server --link some-zabbix-agent:zabbix-agent -d zabbix/zabbix-server:latest
 ```
 
-## Connect to Zabbix server or Zabbix proxy containers
+## Connect to Zabbix server or Zabbix proxy containers (Active checks)
 
 This image supports perform active checks, so container linking makes Zabbix server and Zabbix proxy containers available to Zabbix agent instance. Start your application container like this in order to link Zabbix agent to Zabbix server or Zabbix proxy containterns:
 
@@ -79,7 +79,7 @@ When you start the `zabbix-agent` image, you can adjust the configuration of the
 
 ### `ZBX_HOSTNAME`
 
-This variable is unique, case sensitive hostname. By default, value is `hostname` of the container. It is ``Hostname`` parameter in zabbix_agentd.conf.
+This variable is unique, case sensitive hostname. By default, value is `hostname` of the container. It is ``Hostname`` parameter in ``zabbix_agentd.conf``.
 
 ### `ZBX_SERVER_HOST`
 
@@ -105,11 +105,17 @@ The variable is comma separated list of allowed Zabbix server or proxy hosts for
 
 The variable is list of comma separated loadable Zabbix modules. It works with  volume ``/var/lib/zabbix/modules``. The syntax of the variable is ``dummy1.so,dummy2.so``.
 
-### ``ZBX_DEBUGLEVEL``
+### `ZBX_DEBUGLEVEL`
 
-The variable is used to specify debug level. By default, value is ``3``. Allowed values are ``0`` - basic information about starting and stopping of Zabbix processes, ``1`` - critical information,``2`` - error information,``3`` - warnings,``4`` -  for debugging (produces lots of information), ``5`` - extended debugging (produces even more information). It is ``DebugLevel`` parameter in zabbix_agentd.conf.
+The variable is used to specify debug level. By default, value is ``3``. It is ``DebugLevel`` parameter in ``zabbix_agentd.conf``. Allowed values are listed below:
+- ``0`` - basic information about starting and stopping of Zabbix processes;
+- ``1`` - critical information
+- ``2`` - error information
+- ``3`` - warnings
+- ``4`` -  for debugging (produces lots of information)
+- ``5`` - extended debugging (produces even more information)
 
-### ``ZBX_TIMEOUT``
+### `ZBX_TIMEOUT`
 
 The variable is used to specify timeout for processing checks. By default, value is ``3``.
 
@@ -143,9 +149,9 @@ ZBX_TLSPSKFILE=
 
 Default values of these variables are specified after equal sign.
 
-The allowed variables are identical of parameters in official ``zabbix_agentd.conf``. For example, ``ZBX_REFRESHACTIVECHECKS`` = ``RefreshActiveChecks``.
+The allowed variables are identical of parameters in official ``zabbix_agentd.conf`` configuration file. For example, ``ZBX_REFRESHACTIVECHECKS`` = ``RefreshActiveChecks``.
 
-Please use official documentation for [`zabbix_agentd.conf`](https://www.zabbix.com/documentation/3.0/manual/appendix/config/zabbix_agentd) to get more information about the variables.
+Please use official documentation for [``zabbix_agentd.conf``](https://www.zabbix.com/documentation/3.0/manual/appendix/config/zabbix_agentd) to get more information about the variables.
 
 ## Allowed volumes for the Zabbix agent container
 
@@ -197,7 +203,7 @@ If you have any problems with or questions about this image, please contact us t
 
 ### Known issues
 
-Currently it is not allowed to specify ``ZBX_ALIAS`` environment variable.
+Currently it is not allowed to specify ``ZBX_ALIAS`` environment variable. Please use ``/etc/zabbix/zabbix_agent.d`` volume with additional configuration files with ``Alias`` options.
 
 ## Contributing
 

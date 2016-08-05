@@ -23,9 +23,11 @@ These are the only official Zabbix web interface Docker images. They are based o
 Images are updated when new releases are published. The image with ``latest`` tag is based on Alpine Linux.
 
 Zabbix web interface available in three editions:
-- Zabbix web-interface based on Apache web server with MySQL database support
+- Zabbix web-interface based on Apache2 web server with MySQL database support
 - Zabbix web-interface based on Nginx web server with MySQL database support
-- Zabbix web-interface based on Nginx web server with PostgreSQL database support 
+- Zabbix web-interface based on Nginx web server with PostgreSQL database support
+
+The image based on Apache2 web server with MySQL database support.
 
 # How to use this image
 
@@ -33,17 +35,17 @@ Zabbix web interface available in three editions:
 
 Start a Zabbix web-interface container as follows:
 
-    docker run --name some-zabbix-web-apache-mysql -e MYSQL_USER="some-user" -e MYSQL_PASSWORD="some-password" -e ZBX_SERVER_HOST="some-zabbix-server" -e TZ="some-timezone" -d zabbix/zabbix-web-apache-mysql:tag
+    docker run --name some-zabbix-web-apache-mysql -e DB_SERVER_HOST="some-mysql-server" -e MYSQL_USER="some-user" -e MYSQL_PASSWORD="some-password" -e ZBX_SERVER_HOST="some-zabbix-server" -e TZ="some-timezone" -d zabbix/zabbix-web-apache-mysql:tag
 
-Where `some-zabbix-web-apache-mysql` is the name you want to assign to your container, `some-user` is user to connect to Zabbix database on MySQL server, `some-password` is the password to connect to MySQL server, `some-zabbix-server` is IP or DNS name of Zabbix server or proxy, `some-timezone` is PHP like timezone name and `tag` is the tag specifying the version you want. See the list above for relevant tags, or look at the [full list of tags](https://hub.docker.com/r/zabbix/zabbix-web-apache-mysql/tags/).
+Where `some-zabbix-web-apache-mysql` is the name you want to assign to your container, `some-mysql-server` is IP or DNS name of MySQL server, `some-user` is user to connect to Zabbix database on MySQL server, `some-password` is the password to connect to MySQL server, `some-zabbix-server` is IP or DNS name of Zabbix server or proxy, `some-timezone` is PHP like timezone name and `tag` is the tag specifying the version you want. See the list above for relevant tags, or look at the [full list of tags](https://hub.docker.com/r/zabbix/zabbix-web-apache-mysql/tags/).
 
 ## Linking the container to Zabbix server
 
-    docker run --name some-zabbix-web-apache-mysql --link some-zabbix-server:zabbix-server -e MYSQL_USER="some-user" -e MYSQL_PASSWORD="some-password" -e ZBX_SERVER_HOST="some-zabbix-server" -e TZ="some-timezone" -d zabbix/zabbix-web-apache-mysql:tag
+    docker run --name some-zabbix-web-apache-mysql --link some-zabbix-server:zabbix-server -e DB_SERVER_HOST="some-mysql-server" -e MYSQL_USER="some-user" -e MYSQL_PASSWORD="some-password" -e ZBX_SERVER_HOST="some-zabbix-server" -e TZ="some-timezone" -d zabbix/zabbix-web-apache-mysql:tag
 
 ## Linking the container to MySQL database
 
-    docker run --name some-zabbix-web-apache-mysql --link some-mysql-server:mysql -e MYSQL_USER="some-user" -e MYSQL_PASSWORD="some-password" -e ZBX_SERVER_HOST="some-zabbix-server" -e TZ="some-timezone" -d zabbix/zabbix-web-apache-mysql:tag
+    docker run --name some-zabbix-web-apache-mysql --link some-mysql-server:mysql -e DB_SERVER_HOST="some-mysql-server" -e MYSQL_USER="some-user" -e MYSQL_PASSWORD="some-password" -e ZBX_SERVER_HOST="some-zabbix-server" -e TZ="some-timezone" -d zabbix/zabbix-web-apache-mysql:tag
 
 ## Container shell access and viewing Zabbix web interface logs
 
@@ -71,11 +73,11 @@ This variable is IP or DNS name of Zabbix server. By default, value is `zabbix-s
 
 This variable is port Zabbix server listening on. By default, value is `10051`.
 
-### ``DB_SERVER_HOST``
+### `DB_SERVER_HOST`
 
 This variable is IP or DNS name of MySQL server. By default, value is 'mysql-server'
 
-### ``DB_SERVER_PORT``
+### `DB_SERVER_PORT`
 
 This variable is port of MySQL server. By default, value is '3306'.
 
