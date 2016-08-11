@@ -98,7 +98,7 @@ This variable is port of MySQL server. By default, value is '3306'.
 
 ### `MYSQL_USER`, `MYSQL_PASSWORD`
 
-These variables are used by Zabbix web interface to connect to Zabbix database. By default, values are `zabbix`, `zabbix`.
+These variables are used by Zabbix proxy to connect to Zabbix database. By default, values are `zabbix`, `zabbix`.
 
 ### `MYSQL_DATABASE`
 
