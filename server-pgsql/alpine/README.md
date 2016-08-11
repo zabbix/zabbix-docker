@@ -67,7 +67,7 @@ This variable is port of PostgreSQL server. By default, value is '5432'.
 
 ### `POSTGRES_USER`, `POSTGRES_PASSWORD`
 
-These variables are used by Zabbix web interface to connect to Zabbix database. By default, values are `zabbix`, `zabbix`.
+These variables are used by Zabbix server to connect to Zabbix database. By default, values are `zabbix`, `zabbix`.
 
 ### `POSTGRES_DB`
 

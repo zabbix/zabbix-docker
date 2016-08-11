@@ -2,6 +2,7 @@
 
 set +e
 
+# Script trace mode
 if [ "${DEBUG_MODE}" == "true" ]; then
     set -o xtrace
 fi
@@ -24,13 +25,15 @@ ZBX_SERVER_HOST=${ZBX_SERVER_HOST:-"zabbix-server"}
 # Default Zabbix server port number
 ZBX_SERVER_PORT=${ZBX_SERVER_PORT:-"10051"}
 
+# Default timezone for web interface
 TZ=${TZ:-"Europe/Riga"}
 
 # Default directories
+# User 'zabbix' home directory
 ZABBIX_USER_HOME_DIR="/var/lib/zabbix"
+# Configuration files directory
 ZABBIX_ETC_DIR="/etc/zabbix"
-ZBX_SOURCES_PATH="/usr/src"
-ZBX_SOURCES_DIR_NAME="zbx_sources"
+# Web interface www-root directory
 ZBX_FRONTEND_PATH="/usr/share/zabbix"
 
 prepare_system() {
@@ -108,6 +111,7 @@ update_config_multiple_var() {
     done
 }
 
+# Check prerequisites for MySQL database
 check_variables_mysql() {
     local type=$1
 
@@ -147,6 +151,7 @@ check_variables_mysql() {
     fi
 }
 
+# Check prerequisites for PostgreSQL database
 check_variables_postgresql() {
     local type=$1
 
@@ -657,6 +662,7 @@ prepare_zbx_web_config() {
 
     ln -s "$ZBX_WEB_CONFIG" "/usr/share/zabbix/conf/zabbix.conf.php"
 
+    # Different places of PHP configuration file
     if [ -f "/etc/php5/conf.d/99-zabbix.ini" ]; then
         PHP_CONFIG_FILE="/etc/php5/conf.d/99-zabbix.ini"
     elif [ -f "/etc/php5/fpm/conf.d/99-zabbix.ini" ]; then
@@ -787,6 +793,7 @@ prepare_agent() {
     echo "** Preparing Zabbix agent"
     prepare_zbx_agent_config
 }
+
 prepare_server() {
     local db_type=$1
 
@@ -800,6 +807,7 @@ prepare_server() {
 
     update_zbx_config "server" "$db_type"
 }
+
 prepare_proxy() {
     local db_type=$1
 
@@ -815,6 +823,7 @@ prepare_proxy() {
 
     update_zbx_config "proxy" $db_type
 }
+
 prepare_web() {
     local web_server=$1
     local db_type=$2
@@ -826,6 +835,7 @@ prepare_web() {
     prepare_web_server_$web_server
     prepare_zbx_web_config $db_type
 }
+
 prepare_java_gateway() {
     echo "** Preparing Zabbix Java Gateway"
 

@@ -7,6 +7,8 @@ ARG APT_FLAGS_DEV="${APT_FLAGS_COMMON} --no-install-recommends"
 ARG DB_TYPE=mysql
 ENV LANG=en_US.UTF-8 LANGUAGE=en_US:en LC_ALL=en_US.UTF-8 DEBIAN_FRONTEND=noninteractive TERM=xterm
 
+ADD snmptrapfmt_1.14+nmu1ubuntu2_amd64.deb /tmp/
+
 RUN locale-gen $LC_ALL && \
     echo "#!/bin/sh\nexit 0" > /usr/sbin/policy-rc.d && \
     DISTRIB_CODENAME=$(/bin/bash -c 'source /etc/lsb-release && echo $DISTRIB_CODENAME') && \
@@ -21,8 +23,8 @@ RUN locale-gen $LC_ALL && \
     apt-get ${APT_FLAGS_PERSISTANT} install \
             supervisor \
             snmpd \
-            snmptrapfmt \
             snmp-mibs-downloader && \
+    dpkg -i /tmp/snmptrapfmt_1.14+nmu1ubuntu2_amd64.deb && \
     mkdir -p /var/lib/zabbix && \
     mkdir -p /var/lib/zabbix/snmptraps && \
     mkdir -p /var/lib/zabbix/mibs && \
@@ -34,6 +36,7 @@ RUN locale-gen $LC_ALL && \
             -e '/^LOGFMT=/s/=.*/=\"$x ZBXTRAP $R $G $S $e $*\"/' \
             -e "/^LOGFILE=/s/=.*/=\"\/var\/lib\/zabbix\/snmptraps\/snmptraps.log\"/" \
         "/etc/snmp/snmptrapfmt.conf" && \
+    rm -rf /tmp/snmptrapfmt_1.14+nmu1ubuntu2_amd64.deb && \
     apt-get ${APT_FLAGS_COMMON} autoremove && \
     apt-get ${APT_FLAGS_COMMON} clean && \
     rm -rf /var/lib/apt/lists/*
