@@ -91,7 +91,10 @@ RUN apk add ${APK_FLAGS_DEV} --virtual build-dependencies \
     rm -rf /tmp/zabbix-${ZBX_VERSION}/ && \
     apk del ${APK_FLAGS_COMMON} --purge \
             build-dependencies && \
-    rm -rf /var/cache/apk/*
+    rm -rf /var/cache/apk/* && \
+    # Fix missing path of fping and fping6.
+    ln -s /usr/sbin/fping /usr/bin/ && \
+    ln -s /usr/sbin/fping6 /usr/bin/
 
 EXPOSE 10051/TCP 162/UDP
 
