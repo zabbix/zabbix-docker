@@ -91,6 +91,8 @@ RUN apk add ${APK_FLAGS_DEV} --virtual build-dependencies \
     make -j"$(nproc)" -s 1>/dev/null && \
     cp src/zabbix_server/zabbix_server /usr/sbin/zabbix_server && \
     cp conf/zabbix_server.conf /etc/zabbix/zabbix_server.conf && \
+    sed -i -e "/^FpingLocation=/s/=.*/=\/usr\/sbin\/fping/" "/etc/zabbix/zabbix_server.conf" && \
+    sed -i -e "/^Fping6Location=/s/=.*/=\/usr\/sbin\/fping6/" "/etc/zabbix/zabbix_server.conf" && \
     chown --quiet -R zabbix:root /etc/zabbix && \
     cp database/${DB_TYPE}/schema.sql /usr/share/doc/zabbix-server-${DB_TYPE}/ && \
     cp database/${DB_TYPE}/images.sql /usr/share/doc/zabbix-server-${DB_TYPE}/ && \
