@@ -16,9 +16,11 @@ The image is used to receive SNMP traps, store them to a log file and provide ac
 
 These are the only official Zabbix snmptraps Docker images. They are based on trusty Ubuntu. The available versions of Zabbix snmptraps are:
 
-    Zabbix snmptraps 3.0 (tags: ubuntu-3.0-latest, ubuntu-latest, latest)
+    Zabbix snmptraps 3.0 (tags: ubuntu-3.0-latest)
     Zabbix snmptraps 3.0.* (tags: ubuntu-3.0.*)
-    Zabbix snmptraps 3.1 (tags: ubuntu-trunk)
+    Zabbix snmptraps 3.2 (tags: ubuntu-3.2-latest, ubuntu-latest, latest)
+    Zabbix snmptraps 3.2.* (tags: ubuntu-3.2.*)
+    Zabbix snmptraps 3.4 (tags: ubuntu-trunk)
 
 Images are updated when new releases are published.
 
