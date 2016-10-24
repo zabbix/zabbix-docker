@@ -888,6 +888,6 @@ clear_deploy "$zbx_type"
 echo "########################################################"
 
 echo "** Executing supervisord"
-/usr/bin/supervisord -c /etc/supervisor/supervisord.conf
+exec /usr/bin/supervisord -c /etc/supervisor/supervisord.conf
 
 #################################################
