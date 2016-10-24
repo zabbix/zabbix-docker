@@ -39,6 +39,8 @@ RUN DISTRIB_CODENAME=$(/bin/bash -c 'source /etc/lsb-release && echo $DISTRIB_CO
             ttf-dejavu-core 1>/dev/null && \
     apt-get ${APT_FLAGS_COMMON} autoremove && \
     apt-get ${APT_FLAGS_COMMON} clean && \
+    mkdir -p /var/lib/php5 && \
+    chown --quiet -R www-data:www-data /var/lib/php5 && \
     rm -rf /var/lib/apt/lists/*
 
 ARG MAJOR_VERSION=master
