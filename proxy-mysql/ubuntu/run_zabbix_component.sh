@@ -609,8 +609,19 @@ update_zbx_config() {
     update_config_var $ZBX_CONFIG "UnreachablePeriod" "${ZBX_UNREACHABLEPERIOD}"
     update_config_var $ZBX_CONFIG "UnavailableDelay" "${ZBX_UNAVAILABLEDELAY}"
     update_config_var $ZBX_CONFIG "UnreachableDelay" "${ZBX_UNREACHABLEDELAY}"
-    update_config_var $ZBX_CONFIG "FpingLocation" "/usr/bin/fping"
-    update_config_var $ZBX_CONFIG "Fping6Location" "/usr/bin/fping6"
+
+    # Possible few fping locations
+    if [ -f "/usr/bin/fping" ]; then
+        update_config_var $ZBX_CONFIG "FpingLocation" "/usr/bin/fping"
+    else
+        update_config_var $ZBX_CONFIG "FpingLocation" "/usr/sbin/fping"
+    fi
+    if [ -f "/usr/bin/fping6" ]; then
+        update_config_var $ZBX_CONFIG "Fping6Location" "/usr/bin/fping6"
+    else
+        update_config_var $ZBX_CONFIG "Fping6Location" "/usr/sbin/fping6"
+    fi
+
     update_config_var $ZBX_CONFIG "SSHKeyLocation" "$ZABBIX_USER_HOME_DIR/ssh_keys"
     update_config_var $ZBX_CONFIG "LogSlowQueries" "${ZBX_LOGSLOWQUERIES}"
 
