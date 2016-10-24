@@ -46,6 +46,7 @@ RUN apk add ${APK_FLAGS_DEV} --virtual build-dependencies \
             --silent \
             --sysconfdir=/etc/zabbix \
             --libdir=/usr/lib/zabbix \
+            --datadir=/usr/lib \
             --enable-java && \
     make -j"$(nproc)" -s 1>/dev/null && \
     mkdir -p /usr/sbin/zabbix_java/ && \

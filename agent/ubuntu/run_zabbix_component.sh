@@ -610,6 +610,9 @@ update_zbx_config() {
     update_config_var $ZBX_CONFIG "UnavailableDelay" "${ZBX_UNAVAILABLEDELAY}"
     update_config_var $ZBX_CONFIG "UnreachableDelay" "${ZBX_UNREACHABLEDELAY}"
 
+    update_config_var $ZBX_CONFIG "AlertScriptsPath" "/usr/lib/zabbix/alertscripts"
+    update_config_var $ZBX_CONFIG "ExternalScripts" "/usr/lib/zabbix/externalscripts"
+
     # Possible few fping locations
     if [ -f "/usr/bin/fping" ]; then
         update_config_var $ZBX_CONFIG "FpingLocation" "/usr/bin/fping"

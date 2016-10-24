@@ -82,6 +82,7 @@ RUN apt-get ${APT_FLAGS_COMMON} update && \
             --silent \
             --sysconfdir=/etc/zabbix \
             --libdir=/usr/lib/zabbix \
+            --datadir=/usr/lib \
             --enable-server \
             --enable-ipv6 \
             --with-jabber \

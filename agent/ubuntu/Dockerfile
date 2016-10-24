@@ -55,6 +55,7 @@ RUN apt-get ${APT_FLAGS_COMMON} update && \
             --silent \
             --sysconfdir=/etc/zabbix \
             --libdir=/usr/lib/zabbix \
+            --datadir=/usr/lib \
             --enable-agent \
             --enable-ipv6 \
             --with-openssl && \

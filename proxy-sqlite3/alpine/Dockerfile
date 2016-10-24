@@ -69,6 +69,7 @@ RUN apk add ${APK_FLAGS_DEV} --virtual build-dependencies \
             --silent \
             --sysconfdir=/etc/zabbix \
             --libdir=/usr/lib/zabbix \
+            --datadir=/usr/lib \
             --enable-proxy \
             --enable-ipv6 \
 # Does not support stable iksemel library
