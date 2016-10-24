@@ -48,6 +48,7 @@ RUN apk update && \
             --silent \
             --sysconfdir=/etc/zabbix \
             --libdir=/usr/lib/zabbix \
+            --datadir=/usr/lib \
             --enable-agent \
             --enable-ipv6 \
             --with-openssl && \

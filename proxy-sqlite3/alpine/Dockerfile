@@ -69,6 +69,7 @@ RUN apk add ${APK_FLAGS_DEV} --virtual build-dependencies \
             --silent \
             --sysconfdir=/etc/zabbix \
             --libdir=/usr/lib/zabbix \
+            --datadir=/usr/lib \
             --enable-proxy \
             --enable-ipv6 \
 # Does not support stable iksemel library
@@ -86,8 +87,6 @@ RUN apk add ${APK_FLAGS_DEV} --virtual build-dependencies \
     make -j"$(nproc)" -s 1>/dev/null && \
     cp src/zabbix_proxy/zabbix_proxy /usr/sbin/zabbix_proxy && \
     cp conf/zabbix_proxy.conf /etc/zabbix/zabbix_proxy.conf && \
-    sed -i -e "/^FpingLocation=/s/=.*/=\/usr\/sbin\/fping/" "/etc/zabbix/zabbix_proxy.conf" && \
-    sed -i -e "/^Fping6Location=/s/=.*/=\/usr\/sbin\/fping6/" "/etc/zabbix/zabbix_proxy.conf" && \
     chown --quiet -R zabbix:root /etc/zabbix && \
     cd /tmp/ && \
     rm -rf /tmp/zabbix-${ZBX_VERSION}/ && \
