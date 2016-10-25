@@ -234,6 +234,8 @@ mysql_query() {
 
 psql_query() {
     query=$1
+    db=$2
+
     local result=""
 
     if [ -n "${DB_SERVER_ZBX_PASS}" ]; then
@@ -241,7 +243,7 @@ psql_query() {
     fi
 
     result=$(psql -A -q -t  -h ${DB_SERVER_HOST} -p ${DB_SERVER_PORT} \
-             -U ${DB_SERVER_ROOT_USER} -c "$query" 2>/dev/null);
+             -U ${DB_SERVER_ROOT_USER} -c "$query" $db 2>/dev/null);
 
     unset PGPASSWORD
 
@@ -337,11 +339,11 @@ create_db_schema_postgresql() {
     local type=$1
 
     DBVERSION_TABLE_EXISTS=$(psql_query "SELECT 1 FROM pg_catalog.pg_class c JOIN pg_catalog.pg_namespace n ON n.oid = 
-                                         c.relnamespace WHERE  n.nspname = 'public' AND c.relname = 'dbversion'")
+                                         c.relnamespace WHERE  n.nspname = 'public' AND c.relname = 'dbversion'" "${DB_SERVER_DBNAME}")
 
     if [ -n "${DBVERSION_TABLE_EXISTS}" ]; then
         echo "** Table '${DB_SERVER_DBNAME}.dbversion' already exists."
-        ZBX_DB_VERSION=$(psql_query "SELECT mandatory FROM ${DB_SERVER_DBNAME}.dbversion")
+        ZBX_DB_VERSION=$(psql_query "SELECT mandatory FROM public.dbversion" "${DB_SERVER_DBNAME}")
     fi
 
     if [ -z "${ZBX_DB_VERSION}" ]; then
