@@ -6,7 +6,7 @@ ARG APK_FLAGS_PERSISTANT="${APK_FLAGS_COMMON} --clean-protected --no-cache"
 ARG APK_FLAGS_DEV="${APK_FLAGS_COMMON} --no-cache"
 ARG DB_TYPE=sqlite3
 ENV TERM=xterm
-ENV MIBDIRS=/var/lib/zabbix/mibs MIBS=+ALL
+ENV MIBDIRS=/usr/share/snmp/mibs:/var/lib/zabbix/mibs MIBS=+ALL
 
 RUN addgroup zabbix && \
     adduser -S \
