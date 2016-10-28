@@ -123,6 +123,38 @@ services:
    com.zabbix.dbtype: "mysql"
    com.zabbix.os: "ubuntu"
 
+ zabbix-web-apache-pgsql:
+  image: zabbix/zabbix-web-apache-pgsql:ubuntu-trunk
+  ports:
+   - "80:80"
+   - "443:443"
+  links:
+   - postgres-server:postgres-server
+   - zabbix-server:zabbix-server
+  mem_limit: 512m
+  volumes:
+   - /etc/localtime:/etc/localtime:ro
+   - /etc/timezone:/etc/timezone:ro
+   - ./zbx_env/etc/ssl/apache2:/etc/ssl/apache2:ro
+  env_file:
+   - .env_db_pgsql
+   - .env_web
+  user: root
+  networks:
+   zbx_net:
+    aliases:
+     - zabbix-web-apache-pgsql
+     - zabbix-web-apache-ubuntu-pgsql
+     - zabbix-web-apache-pgsql-ubuntu
+  labels:
+   com.zabbix.description: "Zabbix frontend on Apache web-server with PostgreSQL database support"
+   com.zabbix.company: "Zabbix SIA"
+   com.zabbix.component: "zabbix-frontend"
+   com.zabbix.webserver: "apache2"
+   com.zabbix.dbtype: "pgsql"
+   com.zabbix.os: "ubuntu"
+
+
  zabbix-web-nginx-pgsql:
   image: zabbix/zabbix-web-nginx-pgsql:ubuntu-trunk
   ports:
