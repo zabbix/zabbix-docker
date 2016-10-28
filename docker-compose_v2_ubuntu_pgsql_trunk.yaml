@@ -1,8 +1,7 @@
 version: '2'
 services:
  zabbix-server:
-  build: ./server-pgsql/alpine
-  image: zabbix-server-pgsql:alpine-local
+  image: zabbix/zabbix-server-pgsql:ubuntu-trunk
   ports:
    - "10051:10051"
   volumes:
@@ -34,18 +33,17 @@ services:
     aliases:
      - zabbix-server
      - zabbix-server-pgsql
-     - zabbix-server-alpine-pgsql
-     - zabbix-server-pgsql-alpine
+     - zabbix-server-ubuntu-pgsql
+     - zabbix-server-pgsql-ubuntu
   labels:
    com.zabbix.description: "Zabbix server with PostgreSQL database support"
    com.zabbix.company: "Zabbix SIA"
    com.zabbix.component: "zabbix-server"
    com.zabbix.dbtype: "pgsql"
-   com.zabbix.os: "alpine"
+   com.zabbix.os: "ubuntu"
 
  zabbix-proxy-sqlite3:
-  build: ./proxy-sqlite3/alpine
-  image: zabbix-proxy-sqlite3:alpine-local
+  image: zabbix/zabbix-proxy-sqlite3:ubuntu-trunk
   ports:
    - "10061:10051"
   volumes:
@@ -75,18 +73,17 @@ services:
    zbx_net:
     aliases:
      - zabbix-proxy-sqlite3
-     - zabbix-proxy-alpine-sqlite3
-     - zabbix-proxy-sqlite3-alpine
+     - zabbix-proxy-ubuntu-sqlite3
+     - zabbix-proxy-sqlite3-ubuntu
   labels:
    com.zabbix.description: "Zabbix proxy with SQLite3 database support"
    com.zabbix.company: "Zabbix SIA"
    com.zabbix.component: "zabbix-proxy"
    com.zabbix.dbtype: "sqlite3"
-   com.zabbix.os: "alpine"
+   com.zabbix.os: "ubuntu"
 
  zabbix-proxy-mysql:
-  build: ./proxy-mysql/alpine
-  image: zabbix-proxy-mysql:alpine-local
+  image: zabbix/zabbix-proxy-mysql:ubuntu-trunk
   ports:
    - "10071:10051"
   volumes:
@@ -117,19 +114,17 @@ services:
    zbx_net:
     aliases:
      - zabbix-proxy-mysql
-     - zabbix-proxy-alpine-mysql
-     - zabbix-proxy-mysql-alpine
+     - zabbix-proxy-ubuntu-mysql
+     - zabbix-proxy-mysql-ubuntu
   labels:
    com.zabbix.description: "Zabbix proxy with MySQL database support"
    com.zabbix.company: "Zabbix SIA"
    com.zabbix.component: "zabbix-proxy"
    com.zabbix.dbtype: "mysql"
-   com.zabbix.os: "alpine"
-
+   com.zabbix.os: "ubuntu"
 
  zabbix-web-apache-pgsql:
-  build: ./web-apache-pgsql/alpine
-  image: zabbix-web-apache-pgsql:alpine-local
+  image: zabbix/zabbix-web-apache-pgsql:ubuntu-trunk
   ports:
    - "80:80"
    - "443:443"
@@ -149,19 +144,19 @@ services:
    zbx_net:
     aliases:
      - zabbix-web-apache-pgsql
-     - zabbix-web-apache-alpine-pgsql
-     - zabbix-web-apache-pgsql-alpine
+     - zabbix-web-apache-ubuntu-pgsql
+     - zabbix-web-apache-pgsql-ubuntu
   labels:
    com.zabbix.description: "Zabbix frontend on Apache web-server with PostgreSQL database support"
    com.zabbix.company: "Zabbix SIA"
    com.zabbix.component: "zabbix-frontend"
    com.zabbix.webserver: "apache2"
    com.zabbix.dbtype: "pgsql"
-   com.zabbix.os: "alpine"
+   com.zabbix.os: "ubuntu"
+
 
  zabbix-web-nginx-pgsql:
-  build: ./web-nginx-pgsql/alpine
-  image: zabbix-web-nginx-pgsql:alpine-local
+  image: zabbix/zabbix-web-nginx-pgsql:ubuntu-trunk
   ports:
    - "8081:80"
    - "8443:443"
@@ -181,19 +176,18 @@ services:
    zbx_net:
     aliases:
      - zabbix-web-nginx-pgsql
-     - zabbix-web-nginx-alpine-pgsql
-     - zabbix-web-nginx-pgsql-alpine
+     - zabbix-web-nginx-ubuntu-pgsql
+     - zabbix-web-nginx-pgsql-ubuntu
   labels:
    com.zabbix.description: "Zabbix frontend on Nginx web-server with PostgreSQL database support"
    com.zabbix.company: "Zabbix SIA"
    com.zabbix.component: "zabbix-frontend"
    com.zabbix.webserver: "nginx"
    com.zabbix.dbtype: "pgsql"
-   com.zabbix.os: "alpine"
+   com.zabbix.os: "ubuntu"
 
  zabbix-agent:
-  build: ./agent/alpine
-  image: zabbix-agent:alpine-local
+  image: zabbix/zabbix-agent:ubuntu-trunk
   ports:
    - "10050:10050"
   volumes:
@@ -215,16 +209,15 @@ services:
     aliases:
      - zabbix-agent
      - zabbix-agent-passive
-     - zabbix-agent-alpine
+     - zabbix-agent-ubuntu
   labels:
    com.zabbix.description: "Zabbix agent"
    com.zabbix.company: "Zabbix SIA"
    com.zabbix.component: "zabbix-agentd"
-   com.zabbix.os: "alpine"
+   com.zabbix.os: "ubuntu"
 
  zabbix-java-gateway:
-  build: ./java-gateway/alpine
-  image: zabbix-java-gateway:alpine-local
+  image: zabbix/zabbix-java-gateway:ubuntu-trunk
   ports:
    - "10052:10052"
   env_file:
@@ -234,16 +227,15 @@ services:
    zbx_net:
     aliases:
      - zabbix-java-gateway
-     - zabbix-java-gateway-alpine
+     - zabbix-java-gateway-ubuntu
   labels:
    com.zabbix.description: "Zabbix Java Gateway"
    com.zabbix.company: "Zabbix SIA"
    com.zabbix.component: "java-gateway"
-   com.zabbix.os: "alpine"
+   com.zabbix.os: "ubuntu"
 
  zabbix-snmptraps:
-  build: ./snmptraps/ubuntu
-  image: zabbix-snmptraps:ubuntu-local
+  image: zabbix/zabbix-snmptraps:ubuntu-trunk
   ports:
    - "162:162/udp"
   volumes:
