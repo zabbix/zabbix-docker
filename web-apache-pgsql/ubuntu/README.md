@@ -24,48 +24,49 @@ These are the only official Zabbix web interface Docker images. They are based o
 
 Images are updated when new releases are published. The image with ``latest`` tag is based on Alpine Linux.
 
-Zabbix web interface available in three editions:
+Zabbix web interface available in four editions:
 - Zabbix web-interface based on Apache2 web server with MySQL database support
+- Zabbix web-interface based on Apache2 web server with PostgreSQL database support
 - Zabbix web-interface based on Nginx web server with MySQL database support
 - Zabbix web-interface based on Nginx web server with PostgreSQL database support
 
-The image based on Apache2 web server with MySQL database support.
+The image based on Apache2 web server with PostgreSQL database support.
 
 # How to use this image
 
-## Start `zabbix-web-apache-mysql`
+## Start `zabbix-web-apache-pgsql`
 
 Start a Zabbix web-interface container as follows:
 
-    docker run --name some-zabbix-web-apache-mysql -e DB_SERVER_HOST="some-mysql-server" -e MYSQL_USER="some-user" -e MYSQL_PASSWORD="some-password" -e ZBX_SERVER_HOST="some-zabbix-server" -e TZ="some-timezone" -d zabbix/zabbix-web-apache-mysql:tag
+    docker run --name some-zabbix-web-apache-pgsql -e DB_SERVER_HOST="some-postgres-server" -e POSTGRES_USER="some-user" -e POSTGRES_PASSWORD="some-password" -e ZBX_SERVER_HOST="some-zabbix-server" -e TZ="some-timezone" -d zabbix/zabbix-web-apache-pgsql:tag
 
-Where `some-zabbix-web-apache-mysql` is the name you want to assign to your container, `some-mysql-server` is IP or DNS name of MySQL server, `some-user` is user to connect to Zabbix database on MySQL server, `some-password` is the password to connect to MySQL server, `some-zabbix-server` is IP or DNS name of Zabbix server or proxy, `some-timezone` is PHP like timezone name and `tag` is the tag specifying the version you want. See the list above for relevant tags, or look at the [full list of tags](https://hub.docker.com/r/zabbix/zabbix-web-apache-mysql/tags/).
+Where `some-zabbix-web-apache-pgsql` is the name you want to assign to your container, `some-postgres-server` is IP or DNS name of PostgreSQL server, `some-user` is user to connect to Zabbix database on PostgreSQL server, `some-password` is the password to connect to PostgreSQL server, `some-zabbix-server` is IP or DNS name of Zabbix server or proxy, `some-timezone` is PHP like timezone name and `tag` is the tag specifying the version you want. See the list above for relevant tags, or look at the [full list of tags](https://hub.docker.com/r/zabbix/zabbix-web-apache-pgsql/tags/).
 
 ## Linking the container to Zabbix server
 
-    docker run --name some-zabbix-web-apache-mysql --link some-zabbix-server:zabbix-server -e DB_SERVER_HOST="some-mysql-server" -e MYSQL_USER="some-user" -e MYSQL_PASSWORD="some-password" -e ZBX_SERVER_HOST="some-zabbix-server" -e TZ="some-timezone" -d zabbix/zabbix-web-apache-mysql:tag
+    docker run --name some-zabbix-web-apache-pgsql --link some-zabbix-server:zabbix-server -e DB_SERVER_HOST="some-postgres-server" -e POSTGRES_USER="some-user" -e POSTGRES_PASSWORD="some-password" -e ZBX_SERVER_HOST="some-zabbix-server" -e TZ="some-timezone" -d zabbix/zabbix-web-apache-pgsql:tag
 
-## Linking the container to MySQL database
+## Linking the container to PostgreSQL database
 
-    docker run --name some-zabbix-web-apache-mysql --link some-mysql-server:mysql -e DB_SERVER_HOST="some-mysql-server" -e MYSQL_USER="some-user" -e MYSQL_PASSWORD="some-password" -e ZBX_SERVER_HOST="some-zabbix-server" -e TZ="some-timezone" -d zabbix/zabbix-web-apache-mysql:tag
+    docker run --name some-zabbix-web-apache-pgsql --link some-postgres-server:postgres -e DB_SERVER_HOST="some-postgres-server" -e POSTGRES_USER="some-user" -e POSTGRES_PASSWORD="some-password" -e ZBX_SERVER_HOST="some-zabbix-server" -e TZ="some-timezone" -d zabbix/zabbix-web-apache-pgsql:tag
 
 ## Container shell access and viewing Zabbix web interface logs
 
-The `docker exec` command allows you to run commands inside a Docker container. The following command line will give you a bash shell inside your `zabbix-web-apache-mysql` container:
+The `docker exec` command allows you to run commands inside a Docker container. The following command line will give you a bash shell inside your `zabbix-web-apache-pgsql` container:
 
 ```console
-$ docker exec -ti some-zabbix-web-apache-mysql /bin/bash/
+$ docker exec -ti some-zabbix-web-apache-pgsql /bin/bash/
 ```
 
 The Zabbix web interface log is available through Docker's container log:
 
 ```console
-$ docker logs  some-zabbix-web-apache-mysql
+$ docker logs  some-zabbix-web-apache-pgsql
 ```
 
 ## Environment Variables
 
-When you start the `zabbix-web-apache-mysql` image, you can adjust the configuration of the Zabbix web interface by passing one or more environment variables on the `docker run` command line.
+When you start the `zabbix-web-apache-pgsql` image, you can adjust the configuration of the Zabbix web interface by passing one or more environment variables on the `docker run` command line.
 
 ### `ZBX_SERVER_HOST`
 
@@ -77,17 +78,17 @@ This variable is port Zabbix server listening on. By default, value is `10051`.
 
 ### `DB_SERVER_HOST`
 
-This variable is IP or DNS name of MySQL server. By default, value is 'mysql-server'
+This variable is IP or DNS name of PostgreSQL server. By default, value is 'postgres-server'
 
 ### `DB_SERVER_PORT`
 
-This variable is port of MySQL server. By default, value is '3306'.
+This variable is port of PostgreSQL server. By default, value is '5432'.
 
-### `MYSQL_USER`, `MYSQL_PASSWORD`
+### `POSTGRES_USER`, `POSTGRES_PASSWORD`
 
 These variables are used by Zabbix web interface to connect to Zabbix database. By default, values are `zabbix`, `zabbix`.
 
-### `MYSQL_DATABASE`
+### `POSTGRES_DB`
 
 The variable is Zabbix database name. By default, value is `zabbix`.
 
@@ -129,13 +130,13 @@ Please follow official Apache2 [documentation](https://httpd.apache.org/docs/2.4
 
 # The image variants
 
-The `zabbix-web-apache-mysql` images come in many flavors, each designed for a specific use case.
+The `zabbix-web-apache-pgsql` images come in many flavors, each designed for a specific use case.
 
-## `zabbix-web-apache-mysql:ubuntu-<version>`
+## `zabbix-web-apache-pgsql:ubuntu-<version>`
 
 This is the defacto image. If you are unsure about what your needs are, you probably want to use this one. It is designed to be used both as a throw away container (mount your source code and start the container to start your app), as well as the base to build other images off of.
 
-## `zabbix-web-apache-mysql:alpine-<version>`
+## `zabbix-web-apache-pgsql:alpine-<version>`
 
 This image is based on the popular [Alpine Linux project](http://alpinelinux.org), available in [the `alpine` official image](https://hub.docker.com/_/alpine). Alpine Linux is much smaller than most distribution base images (~5MB), and thus leads to much slimmer images in general.
 
@@ -155,7 +156,7 @@ Please see [the Docker installation documentation](https://docs.docker.com/insta
 
 ## Documentation
 
-Documentation for this image is stored in the [`web-apache-mysql/` directory](https://github.com/zabbix/zabbix-docker/tree/3.0/web-apache-mysql) of the [`zabbix/zabbix-docker` GitHub repo](https://github.com/zabbix/zabbix-docker/). Be sure to familiarize yourself with the [repository's `README.md` file](https://github.com/zabbix/zabbix-docker/blob/master/README.md) before attempting a pull request.
+Documentation for this image is stored in the [`web-apache-pgsql/` directory](https://github.com/zabbix/zabbix-docker/tree/3.0/web-apache-pgsql) of the [`zabbix/zabbix-docker` GitHub repo](https://github.com/zabbix/zabbix-docker/). Be sure to familiarize yourself with the [repository's `README.md` file](https://github.com/zabbix/zabbix-docker/blob/master/README.md) before attempting a pull request.
 
 ## Issues
 
