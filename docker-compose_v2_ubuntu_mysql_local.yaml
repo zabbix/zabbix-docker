@@ -149,8 +149,8 @@ services:
    zbx_net:
     aliases:
      - zabbix-web-apache-mysql
-     - zabbix-web-apache-alpine-mysql
-     - zabbix-web-apache-mysql-alpine
+     - zabbix-web-apache-ubuntu-mysql
+     - zabbix-web-apache-mysql-ubuntu
   labels:
    com.zabbix.description: "Zabbix frontend on Apache web-server with MySQL database support"
    com.zabbix.company: "Zabbix SIA"
