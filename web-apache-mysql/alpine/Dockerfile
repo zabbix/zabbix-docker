@@ -34,6 +34,8 @@ RUN addgroup zabbix && \
             php5-xmlreader \
             php5-ldap \
             php5-json \
+            ca-certificates \
+            openldap-clients \
             ttf-dejavu && \
     rm -rf /var/cache/apk/*
 
@@ -73,6 +75,8 @@ ADD conf/etc/zabbix/apache.conf /etc/zabbix/
 ADD conf/etc/zabbix/apache_ssl.conf /etc/zabbix/
 ADD conf/etc/zabbix/web/zabbix.conf.php /etc/zabbix/web/
 ADD conf/etc/php5/conf.d/99-zabbix.ini /etc/php5/conf.d/
+ADD conf/etc/openldap/ldap.conf /etc/openldap/ldap.conf
+ADD conf/etc/openldap/certs /etc/openldap/certs
 ADD run_zabbix_component.sh /
 
 ENTRYPOINT ["/bin/bash"]
