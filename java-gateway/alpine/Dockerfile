@@ -1,4 +1,4 @@
-FROM alpine:latest
+FROM alpine:3.4
 MAINTAINER Alexey Pustovalov <alexey.pustovalov@zabbix.com>
 
 ARG APK_FLAGS_COMMON="-q"
