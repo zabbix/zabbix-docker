@@ -43,6 +43,7 @@ RUN locale-gen $LC_ALL && \
             libssh2-1 \
             libssl1.0.0 \
             libxml2 \
+            libevent-2.0 \
             fping \
             libopenipmi0 1>/dev/null && \
     apt-get ${APT_FLAGS_COMMON} autoremove && \
@@ -70,6 +71,7 @@ RUN apt-get ${APT_FLAGS_COMMON} update && \
             libssh2-1-dev \
             unixodbc-dev \
             libxml2-dev \
+            libevent-dev \
             subversion 1>/dev/null && \
     cd /tmp/ && \
     svn --quiet export ${ZBX_SOURCES} zabbix-${ZBX_VERSION} && \
@@ -120,6 +122,7 @@ RUN apt-get ${APT_FLAGS_COMMON} update && \
             libssh2-1-dev \
             unixodbc-dev \
             libxml2-dev \
+            libevent-dev \
             subversion 1>/dev/null && \
     apt-get ${APT_FLAGS_COMMON} autoremove 1>/dev/null && \
     rm -rf /var/lib/apt/lists/*

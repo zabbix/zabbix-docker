@@ -40,6 +40,7 @@ RUN addgroup zabbix && \
             libldap \
             libcurl \
             openipmi-libs \
+            libevent \
             libssh2 && \
     rm -rf /var/cache/apk/*
 
@@ -61,6 +62,7 @@ RUN apk add ${APK_FLAGS_DEV} --virtual build-dependencies \
             openipmi-dev \
             openldap-dev \
             curl-dev \
+            libevent-dev \
             subversion && \
     cd /tmp/ && \
     svn --quiet export ${ZBX_SOURCES} zabbix-${ZBX_VERSION} 1>/dev/null && \
