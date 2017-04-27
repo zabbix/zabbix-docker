@@ -50,6 +50,7 @@ RUN apt-get ${APT_FLAGS_COMMON} update && \
     zabbix_revision=`svn info ${ZBX_SOURCES} |grep "Last Changed Rev"|awk '{print $4;}'` && \
     sed -i "s/{ZABBIX_REVISION}/$zabbix_revision/g" include/version.h && \
     ./bootstrap.sh 1>/dev/null && \
+    export CFLAGS="-fPIC -pie -Wl,-z,relro -Wl,-z,now" && \
     ./configure \
             --prefix=/usr \
             --silent \
