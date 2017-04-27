@@ -57,7 +57,7 @@ $ docker run --name some-zabbix-proxy-sqlite3 --link some-zabbix-server:zabbix-s
 The `docker exec` command allows you to run commands inside a Docker container. The following command line will give you a bash shell inside your `zabbix-proxy-sqlite3` container:
 
 ```console
-$ docker exec -ti some-zabbix-proxy-sqlite3 /bin/bash/
+$ docker exec -ti some-zabbix-proxy-sqlite3 /bin/bash
 ```
 
 The Zabbix proxy log is available through Docker's container log:

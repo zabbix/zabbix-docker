@@ -47,7 +47,7 @@ Where `some-zabbix-server-mysql` is the name you want to assign to your containe
 The `docker exec` command allows you to run commands inside a Docker container. The following command line will give you a bash shell inside your `zabbix-server-mysql` container:
 
 ```console
-$ docker exec -ti some-zabbix-server-mysql /bin/bash/
+$ docker exec -ti some-zabbix-server-mysql /bin/bash
 ```
 
 The Zabbix server log is available through Docker's container log:

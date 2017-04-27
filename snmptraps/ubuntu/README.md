@@ -43,7 +43,7 @@ Where `some-zabbix-snmptraps` is the name you want to assign to your container a
 The `docker exec` command allows you to run commands inside a Docker container. The following command line will give you a bash shell inside your `zabbix-snmptraps` container:
 
 ```console
-$ docker exec -ti some-zabbix-snmptraps /bin/bash/
+$ docker exec -ti some-zabbix-snmptraps /bin/bash
 ```
 
 The Zabbix snmptraps log is available through Docker's container log:
