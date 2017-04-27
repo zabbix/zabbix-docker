@@ -1,5 +1,5 @@
 FROM alpine:3.4
-MAINTAINER Alexey Pustovalov <alexey.pustovalov@zabbix.com>
+LABEL maintainer "Alexey Pustovalov <alexey.pustovalov@zabbix.com>"
 
 ARG APK_FLAGS_COMMON="-q"
 ARG APK_FLAGS_PERSISTANT="${APK_FLAGS_COMMON} --clean-protected --no-cache"

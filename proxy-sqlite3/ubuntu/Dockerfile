@@ -1,5 +1,5 @@
 FROM ubuntu:trusty
-MAINTAINER Alexey Pustovalov <alexey.pustovalov@zabbix.com>
+LABEL maintainer "Alexey Pustovalov <alexey.pustovalov@zabbix.com>"
 
 ARG APT_FLAGS_COMMON="-qq -y"
 ARG APT_FLAGS_PERSISTANT="${APT_FLAGS_COMMON} --no-install-recommends"
