@@ -41,6 +41,7 @@ RUN DISTRIB_CODENAME=$(/bin/bash -c 'source /etc/lsb-release && echo $DISTRIB_CO
     apt-get ${APT_FLAGS_COMMON} clean && \
     mkdir -p /var/lib/php5 && \
     chown --quiet -R www-data:www-data /var/lib/php5 && \
+    rm -rf /var/cache/nginx/* && \
     rm -rf /var/lib/apt/lists/*
 
 ARG MAJOR_VERSION=master
