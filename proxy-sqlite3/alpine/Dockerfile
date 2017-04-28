@@ -66,6 +66,7 @@ RUN apk add ${APK_FLAGS_DEV} --virtual build-dependencies \
     zabbix_revision=`svn info ${ZBX_SOURCES} |grep "Last Changed Rev"|awk '{print $4;}'` && \
     sed -i "s/{ZABBIX_REVISION}/$zabbix_revision/g" include/version.h && \
     ./bootstrap.sh 1>/dev/null && \
+    export CFLAGS="-fPIC -pie -Wl,-z,relro -Wl,-z,now" && \
     ./configure \
             --prefix=/usr \
             --silent \
