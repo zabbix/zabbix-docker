@@ -61,7 +61,7 @@ $ docker run --name some-zabbix-proxy-mysql --link some-zabbix-server:zabbix-ser
 The `docker exec` command allows you to run commands inside a Docker container. The following command line will give you a bash shell inside your `zabbix-proxy-mysql` container:
 
 ```console
-$ docker exec -ti some-zabbix-proxy-mysql /bin/bash/
+$ docker exec -ti some-zabbix-proxy-mysql /bin/bash
 ```
 
 The Zabbix proxy log is available through Docker's container log:

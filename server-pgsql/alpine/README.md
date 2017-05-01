@@ -46,7 +46,7 @@ Where `some-zabbix-server-pgsql` is the name you want to assign to your containe
 The `docker exec` command allows you to run commands inside a Docker container. The following command line will give you a bash shell inside your `zabbix-server-pgsql` container:
 
 ```console
-$ docker exec -ti some-zabbix-server-pgsql /bin/bash/
+$ docker exec -ti some-zabbix-server-pgsql /bin/bash
 ```
 
 The Zabbix server log is available through Docker's container log:

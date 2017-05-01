@@ -55,7 +55,7 @@ $ docker run --name some-zabbix-agent --link some-zabbix-server:zabbix-server -d
 The `docker exec` command allows you to run commands inside a Docker container. The following command line will give you a bash shell inside your `zabbix-agent` container:
 
 ```console
-$ docker exec -ti some-zabbix-agent /bin/bash/
+$ docker exec -ti some-zabbix-agent /bin/bash
 ```
 
 The Zabbix agent log is available through Docker's container log:

@@ -43,7 +43,7 @@ Where `some-zabbix-java-gateway` is the name you want to assign to your containe
 The `docker exec` command allows you to run commands inside a Docker container. The following command line will give you a bash shell inside your `zabbix-java-gateway` container:
 
 ```console
-$ docker exec -ti some-zabbix-java-gateway /bin/bash/
+$ docker exec -ti some-zabbix-java-gateway /bin/bash
 ```
 
 The Zabbix Java Gateway log is available through Docker's container log:
