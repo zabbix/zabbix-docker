@@ -55,7 +55,7 @@ Where `some-zabbix-web-apache-mysql` is the name you want to assign to your cont
 The `docker exec` command allows you to run commands inside a Docker container. The following command line will give you a bash shell inside your `zabbix-web-apache-mysql` container:
 
 ```console
-$ docker exec -ti some-zabbix-web-apache-mysql /bin/bash/
+$ docker exec -ti some-zabbix-web-apache-mysql /bin/bash
 ```
 
 The Zabbix web interface log is available through Docker's container log:
