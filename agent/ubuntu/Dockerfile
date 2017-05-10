@@ -25,6 +25,7 @@ RUN DISTRIB_CODENAME=$(/bin/bash -c 'source /etc/lsb-release && echo $DISTRIB_CO
     apt-get ${APT_FLAGS_COMMON} update && \
     apt-get ${APT_FLAGS_PERSISTANT} install \
             supervisor \
+            libpcre3 \
             libssl1.0.0 1>/dev/null && \
     apt-get ${APT_FLAGS_COMMON} autoremove && \
     apt-get ${APT_FLAGS_COMMON} clean && \
@@ -43,6 +44,7 @@ RUN apt-get ${APT_FLAGS_COMMON} update && \
             libc6-dev \
             pkg-config \
             libssl-dev \
+            libpcre3-dev \
             subversion 1>/dev/null && \
     cd /tmp/ && \
     svn --quiet export ${ZBX_SOURCES} zabbix-${ZBX_VERSION} && \
@@ -73,6 +75,7 @@ RUN apt-get ${APT_FLAGS_COMMON} update && \
             libc6-dev \
             pkg-config \
             libssl-dev \
+            libpcre3-dev \
             subversion 1>/dev/null && \
     apt-get ${APT_FLAGS_COMMON} autoremove && \
     apt-get ${APT_FLAGS_COMMON} clean && \

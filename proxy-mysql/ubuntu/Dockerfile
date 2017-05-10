@@ -44,6 +44,7 @@ RUN locale-gen $LC_ALL && \
             libxml2 \
             fping \
             libevent-2.0 \
+            libpcre3 \
             libopenipmi0 1>/dev/null && \
     apt-get ${APT_FLAGS_COMMON} autoremove && \
     apt-get ${APT_FLAGS_COMMON} clean && \
@@ -71,6 +72,7 @@ RUN apt-get ${APT_FLAGS_COMMON} update && \
             unixodbc-dev \
             libxml2-dev \
             libevent-dev \
+            libpcre3-dev \
             subversion 1>/dev/null && \
     cd /tmp/ && \
     svn --quiet export ${ZBX_SOURCES} zabbix-${ZBX_VERSION} && \
@@ -117,6 +119,7 @@ RUN apt-get ${APT_FLAGS_COMMON} update && \
             unixodbc-dev \
             libxml2-dev \
             libevent-dev \
+            libpcre3-dev \
             gcc \
             libc6-dev \
             make \
