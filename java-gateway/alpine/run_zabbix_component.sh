@@ -519,7 +519,7 @@ update_zbx_config() {
     else
         update_config_var $ZBX_CONFIG "ListenPort"
     fi
-    update_config_var $ZBX_CONFIG "SourceIP"
+    update_config_var $ZBX_CONFIG "SourceIP" "${ZBX_SOURCEIP}"
     update_config_var $ZBX_CONFIG "LogType" "console"
     update_config_var $ZBX_CONFIG "LogFile"
     update_config_var $ZBX_CONFIG "LogFileSize"
@@ -756,7 +756,7 @@ prepare_zbx_agent_config() {
     fi
 
     update_config_var $ZBX_AGENT_CONFIG "ListenPort"
-    update_config_var $ZBX_AGENT_CONFIG "ListenIP"
+    update_config_var $ZBX_AGENT_CONFIG "ListenIP" "{$ZBX_LISTENIP}"
     update_config_var $ZBX_AGENT_CONFIG "StartAgents" "${ZBX_STARTAGENTS}"
 
     ZBX_ACTIVE_ALLOW=${ZBX_ACTIVE_ALLOW:-"true"}
