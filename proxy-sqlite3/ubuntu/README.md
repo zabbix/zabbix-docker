@@ -113,6 +113,7 @@ The variable enable communication with Zabbix Java Gateway to collect Java relat
 Additionally the image allows to specify many other environment variables listed below:
 
 ```
+ZBX_SOURCEIP=
 ZBX_HOSTNAMEITEM=system.hostname
 ZBX_PROXYLOCALBUFFER=0
 ZBX_PROXYOFFLINEBUFFER=1
@@ -135,6 +136,7 @@ ZBX_VMWAREPERFFREQUENCY=60
 ZBX_VMWARECACHESIZE=8M
 ZBX_VMWARETIMEOUT=10
 ZBX_ENABLE_SNMP_TRAPS=false
+ZBX_LISTENIP=
 ZBX_HOUSEKEEPINGFREQUENCY=1
 ZBX_CACHESIZE=8M
 ZBX_STARTDBSYNCERS=4
