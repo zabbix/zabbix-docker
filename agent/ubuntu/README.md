@@ -126,6 +126,7 @@ The variable is used to specify timeout for processing checks. By default, value
 Additionally the image allows to specify many other environment variables listed below:
 
 ```
+ZBX_SOURCEIP=
 ZBX_ENABLEREMOTECOMMANDS=0
 ZBX_LOGREMOTECOMMANDS=0
 ZBX_STARTAGENTS=3
@@ -136,6 +137,7 @@ ZBX_REFRESHACTIVECHECKS=120
 ZBX_BUFFERSEND=5
 ZBX_BUFFERSIZE=100
 ZBX_MAXLINESPERSECOND=20
+ZBX_LISTENIP=
 ZBX_UNSAFEUSERPARAMETERS=0
 ZBX_TLSCONNECT=unencrypted
 ZBX_TLSACCEPT=unencrypted
