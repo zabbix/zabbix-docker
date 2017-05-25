@@ -32,6 +32,7 @@ RUN addgroup zabbix && \
     apk add ${APK_FLAGS_PERSISTANT} \
             supervisor \
             bash \
+            curl \
             postgresql-client \
             postgresql-libs \
             fping \
