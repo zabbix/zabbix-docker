@@ -30,6 +30,7 @@ RUN addgroup zabbix && \
     mkdir -p /usr/share/doc/zabbix-server-${DB_TYPE} && \
     apk update && \
     apk add ${APK_FLAGS_PERSISTANT} \
+            iputils \
             supervisor \
             bash \
             mariadb-client-libs \
