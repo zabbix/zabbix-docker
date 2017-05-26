@@ -26,6 +26,7 @@ RUN addgroup zabbix && \
     mkdir -p /usr/lib/zabbix/externalscripts && \
     apk update && \
     apk add ${APK_FLAGS_PERSISTANT} \
+            iputils \
             supervisor \
             bash \
             sqlite-libs \

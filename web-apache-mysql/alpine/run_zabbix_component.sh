@@ -26,7 +26,7 @@ ZBX_SERVER_HOST=${ZBX_SERVER_HOST:-"zabbix-server"}
 ZBX_SERVER_PORT=${ZBX_SERVER_PORT:-"10051"}
 
 # Default timezone for web interface
-TZ=${TZ:-"Europe/Riga"}
+PHP_TZ=${PHP_TZ:-"Europe/Riga"}
 
 # Default directories
 # User 'zabbix' home directory
@@ -700,7 +700,7 @@ prepare_zbx_web_config() {
         update_config_var "$PHP_CONFIG_FILE" "post_max_size" "${ZBX_POSTMAXSIZE:-"16M"}"
         update_config_var "$PHP_CONFIG_FILE" "upload_max_filesize" "${ZBX_UPLOADMAXFILESIZE:-"2M"}"
         update_config_var "$PHP_CONFIG_FILE" "max_input_time" "${ZBX_MAXINPUTTIME:-"300"}"
-        update_config_var "$PHP_CONFIG_FILE" "date.timezone" "${TZ}"
+        update_config_var "$PHP_CONFIG_FILE" "date.timezone" "${PHP_TZ}"
     else
         echo "**** Zabbix related PHP configuration file not found"
     fi
