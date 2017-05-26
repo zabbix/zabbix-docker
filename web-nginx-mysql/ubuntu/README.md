@@ -38,17 +38,17 @@ The image based on Nginx web server with MySQL database support.
 
 Start a Zabbix web-interface container as follows:
 
-    docker run --name some-zabbix-web-nginx-mysql -e DB_SERVER_HOST="some-mysql-server" -e MYSQL_USER="some-user" -e MYSQL_PASSWORD="some-password" -e ZBX_SERVER_HOST="some-zabbix-server" -e TZ="some-timezone" -d zabbix/zabbix-web-nginx-mysql:tag
+    docker run --name some-zabbix-web-nginx-mysql -e DB_SERVER_HOST="some-mysql-server" -e MYSQL_USER="some-user" -e MYSQL_PASSWORD="some-password" -e ZBX_SERVER_HOST="some-zabbix-server" -e PHP_TZ="some-timezone" -d zabbix/zabbix-web-nginx-mysql:tag
 
 Where `some-zabbix-web-nginx-mysql` is the name you want to assign to your container, `some-mysql-server` is IP or DNS name of MySQL server, `some-user` is user to connect to Zabbix database on MySQL server, `some-password` is the password to connect to MySQL server, `some-zabbix-server` is IP or DNS name of Zabbix server or proxy, `some-timezone` is PHP like timezone name and `tag` is the tag specifying the version you want. See the list above for relevant tags, or look at the [full list of tags](https://hub.docker.com/r/zabbix/zabbix-web-nginx-mysql/tags/).
 
 ## Linking the container to Zabbix server
 
-    docker run --name some-zabbix-web-nginx-mysql --link some-zabbix-server:zabbix-server -e DB_SERVER_HOST="some-mysql-server" -e MYSQL_USER="some-user" -e MYSQL_PASSWORD="some-password" -e ZBX_SERVER_HOST="some-zabbix-server" -e TZ="some-timezone" -d zabbix/zabbix-web-nginx-mysql:tag
+    docker run --name some-zabbix-web-nginx-mysql --link some-zabbix-server:zabbix-server -e DB_SERVER_HOST="some-mysql-server" -e MYSQL_USER="some-user" -e MYSQL_PASSWORD="some-password" -e ZBX_SERVER_HOST="some-zabbix-server" -e PHP_TZ="some-timezone" -d zabbix/zabbix-web-nginx-mysql:tag
 
 ## Linking the container to MySQL database
 
-    docker run --name some-zabbix-web-nginx-mysql --link some-mysql-server:mysql -e DB_SERVER_HOST="some-mysql-server" -e MYSQL_USER="some-user" -e MYSQL_PASSWORD="some-password" -e ZBX_SERVER_HOST="some-zabbix-server" -e TZ="some-timezone" -d zabbix/zabbix-web-nginx-mysql:tag
+    docker run --name some-zabbix-web-nginx-mysql --link some-mysql-server:mysql -e DB_SERVER_HOST="some-mysql-server" -e MYSQL_USER="some-user" -e MYSQL_PASSWORD="some-password" -e ZBX_SERVER_HOST="some-zabbix-server" -e PHP_TZ="some-timezone" -d zabbix/zabbix-web-nginx-mysql:tag
 
 ## Container shell access and viewing Zabbix web interface logs
 
@@ -92,7 +92,7 @@ These variables are used by Zabbix web interface to connect to Zabbix database. 
 
 The variable is Zabbix database name. By default, value is `zabbix`.
 
-### `TZ`
+### `PHP_TZ`
 
 The variable is timezone in PHP format. Full list of supported timezones are available on [`php.net`](http://php.net/manual/en/timezones.php). By default, value is 'Europe/Riga'.
 

@@ -19,6 +19,7 @@ RUN addgroup zabbix && \
     chown --quiet -R zabbix:root /var/lib/zabbix && \
     apk update && \
     apk add ${APK_FLAGS_PERSISTANT} \
+            iputils \
             supervisor \
             bash \
             coreutils \
