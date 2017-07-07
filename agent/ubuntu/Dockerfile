@@ -4,18 +4,31 @@ LABEL maintainer "Alexey Pustovalov <alexey.pustovalov@zabbix.com>"
 ARG APT_FLAGS_COMMON="-qq -y"
 ARG APT_FLAGS_PERSISTANT="${APT_FLAGS_COMMON} --no-install-recommends"
 ARG APT_FLAGS_DEV="${APT_FLAGS_COMMON} --no-install-recommends"
+ARG ZABBIX_UID=20000
+ARG ZABBIX_GID=20000
+ARG DOCKER_GID=999
 ENV LANG=en_US.UTF-8 LANGUAGE=en_US:en LC_ALL=en_US.UTF-8 DEBIAN_FRONTEND=noninteractive TERM=xterm
 
 RUN DISTRIB_CODENAME=$(/bin/bash -c 'source /etc/lsb-release && echo $DISTRIB_CODENAME') && \
     locale-gen $LC_ALL && \
     echo "#!/bin/sh\nexit 0" > /usr/sbin/policy-rc.d && \
     echo "deb http://us.archive.ubuntu.com/ubuntu/ $DISTRIB_CODENAME multiverse" >> /etc/apt/sources.list && \
-    addgroup --system --quiet zabbix && \
-    adduser --quiet \
-            --system --disabled-login \
+    addgroup --system \
+             --quiet \
+             --gid $ZABBIX_GID \
+        zabbix && \
+    addgroup --system \
+             --quiet \
+             --gid $DOCKER_GID \
+        docker && \
+    adduser --system \
+            --quiet \
+            --disabled-login \
             --ingroup zabbix \
+            --uid $ZABBIX_UID \
             --home /var/lib/zabbix/ \
         zabbix && \
+    usermod -aG docker zabbix && \
     mkdir -p /etc/zabbix && \
     mkdir -p /etc/zabbix/zabbix_agentd.d && \
     mkdir -p /var/lib/zabbix && \
