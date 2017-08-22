@@ -49,8 +49,8 @@ RUN locale-gen $LC_ALL && \
     rm -rf /var/lib/apt/lists/*
 
 ARG MAJOR_VERSION=3.4
-ARG ZBX_VERSION=${MAJOR_VERSION}
-ARG ZBX_SOURCES=svn://svn.zabbix.com/trunk/
+ARG ZBX_VERSION=${MAJOR_VERSION}.0
+ARG ZBX_SOURCES=svn://svn.zabbix.com/tags/${ZBX_VERSION}/
 ENV ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES} DB_TYPE=${DB_TYPE}
 
 RUN apt-get ${APT_FLAGS_COMMON} update && \
