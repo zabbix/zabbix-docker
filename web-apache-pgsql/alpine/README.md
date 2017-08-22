@@ -16,11 +16,13 @@ Zabbix web interface is a part of Zabbix software. It is used to manage resource
 
 These are the only official Zabbix web interface Docker images. They are based on latest Alpine and trusty Ubuntu images. The available versions of Zabbix web interface are:
 
-    Zabbix web interface 3.0 (tags: alpine-3.0-latest, ubuntu-3.0-latest)
-    Zabbix web interface 3.0.* (tags: alpine-3.0.*, ubuntu-3.0.*)
-    Zabbix web interface 3.2 (tags: alpine-3.2-latest, ubuntu-3.2-latest, alpine-latest, ubuntu-latest, latest)
-    Zabbix web interface 3.2.* (tags: alpine-3.2.*, ubuntu-3.2.*)
-    Zabbix web interface 3.4 (tags: alpine-trunk, ubuntu-trunk)
+    Zabbix server 3.0 (tags: alpine-3.0-latest, ubuntu-3.0-latest)
+    Zabbix server 3.0.* (tags: alpine-3.0.*, ubuntu-3.0.*)
+    Zabbix server 3.2 (tags: alpine-3.2-latest, ubuntu-3.2-latest)
+    Zabbix server 3.2.* (tags: alpine-3.2.*, ubuntu-3.2.*)
+    Zabbix server 3.4 (tags: alpine-3.4-latest, ubuntu-3.4-latest, alpine-latest, ubuntu-latest, latest)
+    Zabbix server 3.4.* (tags: alpine-3.4.*, ubuntu-3.4.*)
+    Zabbix server 4.0 (tags: alpine-trunk, ubuntu-trunk)
 
 Images are updated when new releases are published. The image with ``latest`` tag is based on Alpine Linux.
 
