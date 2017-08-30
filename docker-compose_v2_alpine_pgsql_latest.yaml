@@ -124,7 +124,7 @@ services:
    com.zabbix.os: "alpine"
 
  zabbix-web-apache-pgsql:
-  image: zabbix/zabbix-web-apache-pgsql:alpine-latest
+  image: zabbix/zabbix-web-apache-pgsql:alpine-3.4-latest
   ports:
    - "80:80"
    - "443:443"
