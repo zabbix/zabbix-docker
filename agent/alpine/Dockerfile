@@ -72,7 +72,7 @@ WORKDIR /var/lib/zabbix
 
 VOLUME ["/etc/zabbix/zabbix_agentd.d", "/var/lib/zabbix/enc", "/var/lib/zabbix/modules"]
 
-ADD conf/etc/supervisor/ /etc/supervisor/
+ADD /agent/alpine/conf/etc/supervisor/ /etc/supervisor/
 ADD run_zabbix_component.sh /
 
 ENTRYPOINT ["/bin/bash"]
