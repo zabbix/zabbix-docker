@@ -97,6 +97,8 @@ RUN apk add ${APK_FLAGS_DEV} --virtual build-dependencies \
     make -j"$(nproc)" -s dbschema 1>/dev/null && \
     make -j"$(nproc)" -s 1>/dev/null && \
     cp src/zabbix_server/zabbix_server /usr/sbin/zabbix_server && \
+    cp src/zabbix_get/zabbix_get /usr/bin/zabbix_get && \
+    cp src/zabbix_sender/zabbix_sender /usr/bin/zabbix_sender && \
     cp conf/zabbix_server.conf /etc/zabbix/zabbix_server.conf && \
     chown --quiet -R zabbix:root /etc/zabbix && \
     cp database/${DB_TYPE}/schema.sql /usr/share/doc/zabbix-server-${DB_TYPE}/ && \

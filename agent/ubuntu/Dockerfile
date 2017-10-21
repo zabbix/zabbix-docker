@@ -64,6 +64,8 @@ RUN apt-get ${APT_FLAGS_COMMON} update && \
             --with-openssl && \
     make -j"$(nproc)" -s 1>/dev/null && \
     cp src/zabbix_agent/zabbix_agentd /usr/sbin/zabbix_agentd && \
+    cp src/zabbix_get/zabbix_get /usr/bin/zabbix_get && \
+    cp src/zabbix_sender/zabbix_sender /usr/bin/zabbix_sender && \
     cp conf/zabbix_agentd.conf /etc/zabbix/ && \
     chown --quiet -R zabbix:root /etc/zabbix && \
     cd /tmp/ && \

@@ -252,6 +252,7 @@ services:
 
  mysql-server:
   image: mysql:5.7
+  command: [mysqld, --character-set-server=utf8, --collation-server=utf8_bin]
   volumes_from:
     - db_data_mysql
   volume_driver: local
