@@ -33,6 +33,7 @@ RUN addgroup zabbix && \
             iputils \
             supervisor \
             bash \
+            curl \
             postgresql-client \
             postgresql-libs \
             fping \
