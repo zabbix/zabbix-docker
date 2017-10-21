@@ -124,7 +124,7 @@ services:
    com.zabbix.os: "ubuntu"
 
  zabbix-web-apache-pgsql:
-  image: zabbix/zabbix-web-apache-pgsql:ubuntu-latest
+  image: zabbix/zabbix-web-apache-pgsql:ubuntu-3.4-latest
   ports:
    - "80:80"
    - "443:443"
