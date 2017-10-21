@@ -88,6 +88,7 @@ RUN apt-get ${APT_FLAGS_COMMON} update && \
             --libdir=/usr/lib/zabbix \
             --datadir=/usr/lib \
             --enable-proxy \
+            --enable-agent \
             --enable-ipv6 \
             --with-jabber \
             --with-ldap \
