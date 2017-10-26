@@ -6,10 +6,12 @@ ARG APT_FLAGS_PERSISTANT="${APT_FLAGS_COMMON} --no-install-recommends"
 ARG APT_FLAGS_DEV="${APT_FLAGS_COMMON} --no-install-recommends"
 ARG DB_TYPE=mysql
 ENV LANG=en_US.UTF-8 LANGUAGE=en_US:en LC_ALL=en_US.UTF-8 DEBIAN_FRONTEND=noninteractive TERM=xterm
-ENV MIBDIRS=/usr/share/snmp/mibs:/var/lib/zabbix/mibs MIBS=+ALL
+ENV MIBDIRS=/usr/share/mibs/iana:/usr/share/mibs/ietf:/usr/share/snmp/mibs:/var/lib/zabbix/mibs MIBS=+ALL
 
 RUN locale-gen $LC_ALL && \
     echo "#!/bin/sh\nexit 0" > /usr/sbin/policy-rc.d && \
+    DISTRIB_CODENAME=$(/bin/bash -c 'source /etc/lsb-release && echo $DISTRIB_CODENAME') && \
+    echo "deb http://us.archive.ubuntu.com/ubuntu/ $DISTRIB_CODENAME multiverse" >> /etc/apt/sources.list && \
     addgroup --system --quiet zabbix && \
     adduser --quiet \
             --system --disabled-login \
@@ -34,6 +36,7 @@ RUN locale-gen $LC_ALL && \
     apt-get ${APT_FLAGS_COMMON} update && \
     apt-get ${APT_FLAGS_PERSISTANT} install \
             supervisor \
+            snmp-mibs-downloader \
             mysql-client \
             libmysqlclient18 \
             libiksemel3 \
