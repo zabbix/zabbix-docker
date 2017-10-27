@@ -21,9 +21,9 @@ RUN addgroup zabbix && \
             openjdk8-jre-base && \
     rm -rf /var/cache/apk/*
 
-ARG MAJOR_VERSION=master
+ARG MAJOR_VERSION=4.0
 ARG ZBX_VERSION=${MAJOR_VERSION}
-ARG ZBX_SOURCES=svn://svn.zabbix.com/tags/${ZBX_VERSION}/
+ARG ZBX_SOURCES=svn://svn.zabbix.com/trunk/
 ENV ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES}
 
 RUN apk add ${APK_FLAGS_DEV} --virtual build-dependencies \
