@@ -23,6 +23,7 @@ RUN addgroup zabbix && \
             supervisor \
             bash \
             coreutils \
+            pcre \
             libssl1.0  && \
     rm -rf /var/cache/apk/*
 
@@ -37,6 +38,7 @@ RUN apk update && \
             automake \
             autoconf \
             openssl-dev \
+            pcre-dev \
             subversion && \
     cd /tmp/ && \
     svn --quiet export ${ZBX_SOURCES} zabbix-${ZBX_VERSION} 1>/dev/null && \

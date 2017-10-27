@@ -40,6 +40,7 @@ RUN apt-get ${APT_FLAGS_COMMON} update && \
             libc6-dev \
             pkg-config \
             openjdk-7-jdk \
+            libpcre3-dev \
             subversion 1>/dev/null && \
     cd /tmp/ && \
     svn --quiet export ${ZBX_SOURCES} zabbix-${ZBX_VERSION} 1>/dev/null && \
@@ -68,6 +69,7 @@ RUN apt-get ${APT_FLAGS_COMMON} update && \
             libc6-dev \
             pkg-config \
             openjdk-7-jdk \
+            libpcre3-dev \
             subversion 1>/dev/null && \
     apt-get ${APT_FLAGS_COMMON} autoremove && \
     apt-get ${APT_FLAGS_COMMON} clean && \

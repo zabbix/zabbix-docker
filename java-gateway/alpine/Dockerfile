@@ -32,6 +32,7 @@ RUN apk add ${APK_FLAGS_DEV} --virtual build-dependencies \
             automake \
             autoconf \
             openjdk8 \
+            pcre-dev \
             subversion && \
     cd /tmp/ && \
     svn --quiet export ${ZBX_SOURCES} zabbix-${ZBX_VERSION} 1>/dev/null && \
