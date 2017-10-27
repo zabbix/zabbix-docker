@@ -136,7 +136,7 @@ check_variables_mysql() {
         DB_SERVER_ROOT_PASS=${MYSQL_ROOT_PASSWORD:-""}
     fi
 
-    [ -n "${MYSQL_USER}" ] || CREATE_ZBX_DB_USER=true
+    [ -n "${MYSQL_USER}" ] && CREATE_ZBX_DB_USER=true
 
     # If root password is not specified use provided credentials
     DB_SERVER_ROOT_USER=${DB_SERVER_ROOT_USER:-${MYSQL_USER}}
