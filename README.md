@@ -1,4 +1,4 @@
-![logo](http://www.zabbix.com/img/logo/zabbix_logo_150x39.png)
+![logo](https://www.zabbix.com/img/logo.svg)
 
 # What is Zabbix?
 
