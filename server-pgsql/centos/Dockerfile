@@ -48,6 +48,7 @@ RUN groupadd --system zabbix && \
             fping \
             iksemel \
             libcurl \
+            libevent \
             libxml2 \
             net-snmp-libs \
             OpenIPMI-libs \
@@ -78,6 +79,7 @@ RUN yum --quiet makecache && \
             gcc \
             iksemel-devel \
             libcurl-devel \
+            libevent-devel \
             libssh2-devel \
             libxml2-devel \
             make \

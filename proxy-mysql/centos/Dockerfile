@@ -45,6 +45,7 @@ RUN groupadd --system zabbix && \
     yum ${YUM_FLAGS_PERSISTANT} install \
             fping \
             libcurl \
+            libevent \
             libxml2 \
             mariadb \
             net-snmp-libs \
@@ -73,6 +74,7 @@ RUN yum --quiet makecache && \
             automake \
             gcc \
             libcurl-devel \
+            libevent-devel \
             libssh2-devel \
             libxml2-devel \
             make \
