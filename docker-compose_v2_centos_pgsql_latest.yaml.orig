@@ -1,7 +1,7 @@
 version: '2'
 services:
  zabbix-server:
-  image: zabbix/zabbix-server-mysql:ubuntu-3.4-latest
+  image: zabbix/zabbix-server-pgsql:centos-3.4-latest
   ports:
    - "10051:10051"
   volumes:
@@ -16,9 +16,8 @@ services:
   volumes_from:
    - zabbix-snmptraps:ro
   links:
-   - mysql-server:mysql-server
+   - postgres-server:postgres-server
    - zabbix-java-gateway:zabbix-java-gateway
-   - zabbix-snmptraps:zabbix-snmptraps
   ulimits:
    nproc: 65535
    nofile:
@@ -26,25 +25,25 @@ services:
     hard: 40000
    mem_limit: 512m
   env_file:
-   - .env_db_mysql
+   - .env_db_pgsql
    - .env_srv
   user: root
   networks:
    zbx_net:
     aliases:
      - zabbix-server
-     - zabbix-server-mysql
-     - zabbix-server-ubuntu-mysql
-     - zabbix-server-mysql-ubuntu
+     - zabbix-server-pgsql
+     - zabbix-server-centos-pgsql
+     - zabbix-server-pgsql-centos
   labels:
-   com.zabbix.description: "Zabbix server with MySQL database support"
+   com.zabbix.description: "Zabbix server with PostgreSQL database support"
    com.zabbix.company: "Zabbix SIA"
    com.zabbix.component: "zabbix-server"
-   com.zabbix.dbtype: "mysql"
-   com.zabbix.os: "ubuntu"
+   com.zabbix.dbtype: "pgsql"
+   com.zabbix.os: "centos"
 
  zabbix-proxy-sqlite3:
-  image: zabbix/zabbix-proxy-sqlite3:ubuntu-3.4-latest
+  image: zabbix/zabbix-proxy-sqlite3:centos-3.4-latest
   ports:
    - "10061:10051"
   volumes:
@@ -74,17 +73,17 @@ services:
    zbx_net:
     aliases:
      - zabbix-proxy-sqlite3
-     - zabbix-proxy-ubuntu-sqlite3
-     - zabbix-proxy-sqlite3-ubuntu
+     - zabbix-proxy-centos-sqlite3
+     - zabbix-proxy-sqlite3-centos
   labels:
    com.zabbix.description: "Zabbix proxy with SQLite3 database support"
    com.zabbix.company: "Zabbix SIA"
    com.zabbix.component: "zabbix-proxy"
    com.zabbix.dbtype: "sqlite3"
-   com.zabbix.os: "ubuntu"
+   com.zabbix.os: "centos"
 
  zabbix-proxy-mysql:
-  image: zabbix/zabbix-proxy-mysql:ubuntu-3.4-latest
+  image: zabbix/zabbix-proxy-mysql:centos-3.4-latest
   ports:
    - "10071:10051"
   volumes:
@@ -115,22 +114,22 @@ services:
    zbx_net:
     aliases:
      - zabbix-proxy-mysql
-     - zabbix-proxy-ubuntu-mysql
-     - zabbix-proxy-mysql-ubuntu
+     - zabbix-proxy-centos-mysql
+     - zabbix-proxy-mysql-centos
   labels:
    com.zabbix.description: "Zabbix proxy with MySQL database support"
    com.zabbix.company: "Zabbix SIA"
    com.zabbix.component: "zabbix-proxy"
    com.zabbix.dbtype: "mysql"
-   com.zabbix.os: "ubuntu"
+   com.zabbix.os: "centos"
 
- zabbix-web-apache-mysql:
-  image: zabbix/zabbix-web-apache-mysql:ubuntu-3.4-latest
+ zabbix-web-apache-pgsql:
+  image: zabbix/zabbix-web-apache-pgsql:centos-3.4-latest
   ports:
    - "80:80"
    - "443:443"
   links:
-   - mysql-server:mysql-server
+   - postgres-server:postgres-server
    - zabbix-server:zabbix-server
   mem_limit: 512m
   volumes:
@@ -138,30 +137,30 @@ services:
    - /etc/timezone:/etc/timezone:ro
    - ./zbx_env/etc/ssl/apache2:/etc/ssl/apache2:ro
   env_file:
-   - .env_db_mysql
+   - .env_db_pgsql
    - .env_web
   user: root
   networks:
    zbx_net:
     aliases:
-     - zabbix-web-apache-mysql
-     - zabbix-web-apache-ubuntu-mysql
-     - zabbix-web-apache-mysql-ubuntu
+     - zabbix-web-apache-pgsql
+     - zabbix-web-apache-centos-pgsql
+     - zabbix-web-apache-pgsql-centos
   labels:
-   com.zabbix.description: "Zabbix frontend on Apache web-server with MySQL database support"
+   com.zabbix.description: "Zabbix frontend on Apache web-server with PostgreSQL database support"
    com.zabbix.company: "Zabbix SIA"
    com.zabbix.component: "zabbix-frontend"
    com.zabbix.webserver: "apache2"
-   com.zabbix.dbtype: "mysql"
-   com.zabbix.os: "ubuntu"
+   com.zabbix.dbtype: "pgsql"
+   com.zabbix.os: "centos"
 
- zabbix-web-nginx-mysql:
-  image: zabbix/zabbix-web-nginx-mysql:ubuntu-3.4-latest
+ zabbix-web-nginx-pgsql:
+  image: zabbix/zabbix-web-nginx-pgsql:centos-3.4-latest
   ports:
    - "8081:80"
    - "8443:443"
   links:
-   - mysql-server:mysql-server
+   - postgres-server:postgres-server
    - zabbix-server:zabbix-server
   mem_limit: 512m
   volumes:
@@ -169,25 +168,25 @@ services:
    - /etc/timezone:/etc/timezone:ro
    - ./zbx_env/etc/ssl/nginx:/etc/ssl/nginx:ro
   env_file:
-   - .env_db_mysql
+   - .env_db_pgsql
    - .env_web
   user: root
   networks:
    zbx_net:
     aliases:
-     - zabbix-web-nginx-mysql
-     - zabbix-web-nginx-ubuntu-mysql
-     - zabbix-web-nginx-mysql-ubuntu
+     - zabbix-web-nginx-pgsql
+     - zabbix-web-nginx-centos-pgsql
+     - zabbix-web-nginx-pgsql-centos
   labels:
-   com.zabbix.description: "Zabbix frontend on Nginx web-server with MySQL database support"
+   com.zabbix.description: "Zabbix frontend on Nginx web-server with PostgreSQL database support"
    com.zabbix.company: "Zabbix SIA"
    com.zabbix.component: "zabbix-frontend"
    com.zabbix.webserver: "nginx"
-   com.zabbix.dbtype: "mysql"
-   com.zabbix.os: "ubuntu"
+   com.zabbix.dbtype: "pgsql"
+   com.zabbix.os: "centos"
 
  zabbix-agent:
-  image: zabbix/zabbix-agent:ubuntu-3.4-latest
+  image: zabbix/zabbix-agent:centos-3.4-latest
   ports:
    - "10050:10050"
   volumes:
@@ -209,15 +208,15 @@ services:
     aliases:
      - zabbix-agent
      - zabbix-agent-passive
-     - zabbix-agent-ubuntu
+     - zabbix-agent-centos
   labels:
    com.zabbix.description: "Zabbix agent"
    com.zabbix.company: "Zabbix SIA"
    com.zabbix.component: "zabbix-agentd"
-   com.zabbix.os: "ubuntu"
+   com.zabbix.os: "centos"
 
  zabbix-java-gateway:
-  image: zabbix/zabbix-java-gateway:ubuntu-3.4-latest
+  image: zabbix/zabbix-java-gateway:centos-3.4-latest
   ports:
    - "10052:10052"
   env_file:
@@ -227,12 +226,12 @@ services:
    zbx_net:
     aliases:
      - zabbix-java-gateway
-     - zabbix-java-gateway-ubuntu
+     - zabbix-java-gateway-centos
   labels:
    com.zabbix.description: "Zabbix Java Gateway"
    com.zabbix.company: "Zabbix SIA"
    com.zabbix.component: "java-gateway"
-   com.zabbix.os: "ubuntu"
+   com.zabbix.os: "centos"
 
  zabbix-snmptraps:
   image: zabbix/zabbix-snmptraps:ubuntu-3.4-latest
@@ -264,13 +263,32 @@ services:
    zbx_net:
     aliases:
      - mysql-server
-     - zabbix-database
      - mysql-database
+
+ postgres-server:
+  image: postgres:latest
+  volumes_from:
+   - db_data_pgsql
+  volume_driver: local
+  env_file:
+   - .env_db_pgsql
+  user: root
+  networks:
+   zbx_net:
+    aliases:
+     - postgres-server
+     - pgsql-server
+     - pgsql-database
 
  db_data_mysql:
     image: busybox
     volumes:
     - ./zbx_env/var/lib/mysql:/var/lib/mysql:rw
+
+ db_data_pgsql:
+    image: busybox
+    volumes:
+    - ./zbx_env/var/lib/postgresql/data:/var/lib/postgresql/data:rw
 
 networks:
   zbx_net:

@@ -1,7 +1,7 @@
 version: '2'
 services:
  zabbix-server:
-  image: zabbix/zabbix-server-mysql:ubuntu-3.4-latest
+  image: zabbix/zabbix-server-mysql:centos-3.4-latest
   ports:
    - "10051:10051"
   volumes:
@@ -18,7 +18,6 @@ services:
   links:
    - mysql-server:mysql-server
    - zabbix-java-gateway:zabbix-java-gateway
-   - zabbix-snmptraps:zabbix-snmptraps
   ulimits:
    nproc: 65535
    nofile:
@@ -34,17 +33,17 @@ services:
     aliases:
      - zabbix-server
      - zabbix-server-mysql
-     - zabbix-server-ubuntu-mysql
-     - zabbix-server-mysql-ubuntu
+     - zabbix-server-centos-mysql
+     - zabbix-server-mysql-centos
   labels:
    com.zabbix.description: "Zabbix server with MySQL database support"
    com.zabbix.company: "Zabbix SIA"
    com.zabbix.component: "zabbix-server"
    com.zabbix.dbtype: "mysql"
-   com.zabbix.os: "ubuntu"
+   com.zabbix.os: "centos"
 
  zabbix-proxy-sqlite3:
-  image: zabbix/zabbix-proxy-sqlite3:ubuntu-3.4-latest
+  image: zabbix/zabbix-proxy-sqlite3:centos-3.4-latest
   ports:
    - "10061:10051"
   volumes:
@@ -74,17 +73,17 @@ services:
    zbx_net:
     aliases:
      - zabbix-proxy-sqlite3
-     - zabbix-proxy-ubuntu-sqlite3
-     - zabbix-proxy-sqlite3-ubuntu
+     - zabbix-proxy-centos-sqlite3
+     - zabbix-proxy-sqlite3-centos
   labels:
    com.zabbix.description: "Zabbix proxy with SQLite3 database support"
    com.zabbix.company: "Zabbix SIA"
    com.zabbix.component: "zabbix-proxy"
    com.zabbix.dbtype: "sqlite3"
-   com.zabbix.os: "ubuntu"
+   com.zabbix.os: "centos"
 
  zabbix-proxy-mysql:
-  image: zabbix/zabbix-proxy-mysql:ubuntu-3.4-latest
+  image: zabbix/zabbix-proxy-mysql:centos-3.4-latest
   ports:
    - "10071:10051"
   volumes:
@@ -115,17 +114,17 @@ services:
    zbx_net:
     aliases:
      - zabbix-proxy-mysql
-     - zabbix-proxy-ubuntu-mysql
-     - zabbix-proxy-mysql-ubuntu
+     - zabbix-proxy-centos-mysql
+     - zabbix-proxy-mysql-centos
   labels:
    com.zabbix.description: "Zabbix proxy with MySQL database support"
    com.zabbix.company: "Zabbix SIA"
    com.zabbix.component: "zabbix-proxy"
    com.zabbix.dbtype: "mysql"
-   com.zabbix.os: "ubuntu"
+   com.zabbix.os: "centos"
 
  zabbix-web-apache-mysql:
-  image: zabbix/zabbix-web-apache-mysql:ubuntu-3.4-latest
+  image: zabbix/zabbix-web-apache-mysql:centos-3.4-latest
   ports:
    - "80:80"
    - "443:443"
@@ -145,18 +144,18 @@ services:
    zbx_net:
     aliases:
      - zabbix-web-apache-mysql
-     - zabbix-web-apache-ubuntu-mysql
-     - zabbix-web-apache-mysql-ubuntu
+     - zabbix-web-apache-centos-mysql
+     - zabbix-web-apache-mysql-centos
   labels:
    com.zabbix.description: "Zabbix frontend on Apache web-server with MySQL database support"
    com.zabbix.company: "Zabbix SIA"
    com.zabbix.component: "zabbix-frontend"
    com.zabbix.webserver: "apache2"
    com.zabbix.dbtype: "mysql"
-   com.zabbix.os: "ubuntu"
+   com.zabbix.os: "centos"
 
  zabbix-web-nginx-mysql:
-  image: zabbix/zabbix-web-nginx-mysql:ubuntu-3.4-latest
+  image: zabbix/zabbix-web-nginx-mysql:centos-3.4-latest
   ports:
    - "8081:80"
    - "8443:443"
@@ -176,18 +175,18 @@ services:
    zbx_net:
     aliases:
      - zabbix-web-nginx-mysql
-     - zabbix-web-nginx-ubuntu-mysql
-     - zabbix-web-nginx-mysql-ubuntu
+     - zabbix-web-nginx-centos-mysql
+     - zabbix-web-nginx-mysql-centos
   labels:
    com.zabbix.description: "Zabbix frontend on Nginx web-server with MySQL database support"
    com.zabbix.company: "Zabbix SIA"
    com.zabbix.component: "zabbix-frontend"
    com.zabbix.webserver: "nginx"
    com.zabbix.dbtype: "mysql"
-   com.zabbix.os: "ubuntu"
+   com.zabbix.os: "centos"
 
  zabbix-agent:
-  image: zabbix/zabbix-agent:ubuntu-3.4-latest
+  image: zabbix/zabbix-agent:centos-3.4-latest
   ports:
    - "10050:10050"
   volumes:
@@ -209,15 +208,15 @@ services:
     aliases:
      - zabbix-agent
      - zabbix-agent-passive
-     - zabbix-agent-ubuntu
+     - zabbix-agent-centos
   labels:
    com.zabbix.description: "Zabbix agent"
    com.zabbix.company: "Zabbix SIA"
    com.zabbix.component: "zabbix-agentd"
-   com.zabbix.os: "ubuntu"
+   com.zabbix.os: "centos"
 
  zabbix-java-gateway:
-  image: zabbix/zabbix-java-gateway:ubuntu-3.4-latest
+  image: zabbix/zabbix-java-gateway:centos-3.4-latest
   ports:
    - "10052:10052"
   env_file:
@@ -227,12 +226,12 @@ services:
    zbx_net:
     aliases:
      - zabbix-java-gateway
-     - zabbix-java-gateway-ubuntu
+     - zabbix-java-gateway-centos
   labels:
    com.zabbix.description: "Zabbix Java Gateway"
    com.zabbix.company: "Zabbix SIA"
    com.zabbix.component: "java-gateway"
-   com.zabbix.os: "ubuntu"
+   com.zabbix.os: "centos"
 
  zabbix-snmptraps:
   image: zabbix/zabbix-snmptraps:ubuntu-3.4-latest
