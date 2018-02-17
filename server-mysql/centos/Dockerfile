@@ -47,6 +47,7 @@ RUN groupadd --system zabbix && \
             fping \
             iksemel \
             libcurl \
+            libevent \
             libxml2 \
             mariadb \
             net-snmp-libs \
@@ -76,6 +77,7 @@ RUN yum --quiet makecache && \
             gcc \
             iksemel-devel \
             libcurl-devel \
+            libevent-devel \
             libssh2-devel \
             libxml2-devel \
             make \
