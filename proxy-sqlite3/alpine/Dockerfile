@@ -45,19 +45,21 @@ RUN addgroup zabbix && \
             fping \
             iputils \
             libcurl \
+            libevent \
             libldap \
             libssh2 \
             libxml2 \
             net-snmp-agent-libs \
             openipmi-libs \
+            pcre \
             sqlite-libs \
             supervisor \
             unixodbc && \
     rm -rf /var/cache/apk/*
 
-ARG MAJOR_VERSION=master
+ARG MAJOR_VERSION=4.0
 ARG ZBX_VERSION=${MAJOR_VERSION}
-ARG ZBX_SOURCES=svn://svn.zabbix.com/tags/${ZBX_VERSION}/
+ARG ZBX_SOURCES=svn://svn.zabbix.com/trunk/
 ENV ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES} DB_TYPE=${DB_TYPE}
 
 LABEL org.label-schema.usage="https://www.zabbix.com/documentation/${MAJOR_VERSION}/manual/installation/containers" \
@@ -71,11 +73,13 @@ RUN apk add ${APK_FLAGS_DEV} --virtual build-dependencies \
             automake \
             coreutils \
             curl-dev \
+            libevent-dev \
             libssh2-dev \
             libxml2-dev \
             net-snmp-dev \
             openipmi-dev \
             openldap-dev \
+            pcre-dev \
             sqlite-dev \
             subversion \
             unixodbc-dev && \
