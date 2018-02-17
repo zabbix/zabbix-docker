@@ -51,7 +51,7 @@ RUN locale-gen $LC_ALL && \
     apt-get ${APT_FLAGS_COMMON} update && \
     apt-get ${APT_FLAGS_PERSISTANT} install \
             fping \
-            libcurl3 
+            libcurl3 \
             libevent-2.0 \
             libiksemel3 \
             libmysqlclient18 \
