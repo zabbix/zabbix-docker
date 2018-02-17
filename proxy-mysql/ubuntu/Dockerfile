@@ -50,7 +50,7 @@ RUN locale-gen $LC_ALL && \
     apt-get ${APT_FLAGS_PERSISTANT} install \
             fping \
             libcurl3 \
-            libevent-2.0
+            libevent-2.0 \
             libmysqlclient18 \
             libopenipmi0 \
             libpcre3 \
