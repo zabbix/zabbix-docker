@@ -56,8 +56,9 @@ RUN apk update && \
             autoconf \
             automake \
             openssl-dev \
-            pcre-dev \
-            subversion && \
+            openldap-dev \
+            subversion \
+            coreutils && \
     cd /tmp/ && \
     svn --quiet export ${ZBX_SOURCES} zabbix-${ZBX_VERSION} 1>/dev/null && \
     cd /tmp/zabbix-${ZBX_VERSION} && \
