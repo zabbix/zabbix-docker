@@ -48,6 +48,7 @@ RUN addgroup zabbix && \
             fping \
             iputils \
             libcurl \
+            libevent \
             libldap \
             libssh2 \
             libxml2 \
@@ -55,12 +56,13 @@ RUN addgroup zabbix && \
             mariadb-client-libs \
             net-snmp-agent-libs \
             openipmi-libs \
+            pcre \
             supervisor \
             unixodbc && \
     rm -rf /var/cache/apk/*
 
-ARG MAJOR_VERSION=master
-ARG ZBX_VERSION=${MAJOR_VERSION}
+ARG MAJOR_VERSION=3.4
+ARG ZBX_VERSION=${MAJOR_VERSION}.6
 ARG ZBX_SOURCES=svn://svn.zabbix.com/tags/${ZBX_VERSION}/
 ENV ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES} DB_TYPE=${DB_TYPE}
 
@@ -75,12 +77,14 @@ RUN apk add ${APK_FLAGS_DEV} --virtual build-dependencies \
             automake \
             coreutils \
             curl-dev \
+            libevent-dev \
             libssh2-dev \
             libxml2-dev \
             mysql-dev \
             net-snmp-dev \
             openipmi-dev \
             openldap-dev \
+            pcre-dev \
             subversion \
             unixodbc-dev && \
     cd /tmp/ && \
