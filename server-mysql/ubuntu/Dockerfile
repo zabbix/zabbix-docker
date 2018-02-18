@@ -51,7 +51,7 @@ RUN locale-gen $LC_ALL && \
     apt-get ${APT_FLAGS_COMMON} update && \
     apt-get ${APT_FLAGS_PERSISTANT} install \
             fping \
-            libcurl3 
+            libcurl3 \
             libiksemel3 \
             libmysqlclient18 \
             libopenipmi0 \
