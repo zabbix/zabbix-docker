@@ -48,7 +48,6 @@ RUN groupadd --system zabbix && \
             fping \
             iksemel \
             libcurl \
-            libevent \
             libxml2 \
             net-snmp-libs \
             OpenIPMI-libs \
@@ -62,9 +61,9 @@ RUN groupadd --system zabbix && \
     yum ${YUM_FLAGS_PERSISTANT} clean all && \
     rm -rf /var/cache/yum/
 
-ARG MAJOR_VERSION=4.0
+ARG MAJOR_VERSION=master
 ARG ZBX_VERSION=${MAJOR_VERSION}
-ARG ZBX_SOURCES=svn://svn.zabbix.com/trunk/
+ARG ZBX_SOURCES=svn://svn.zabbix.com/tags/${ZBX_VERSION}/
 ENV ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES} DB_TYPE=${DB_TYPE}
 
 LABEL org.label-schema.usage="https://www.zabbix.com/documentation/${MAJOR_VERSION}/manual/installation/containers" \
@@ -79,7 +78,6 @@ RUN yum --quiet makecache && \
             gcc \
             iksemel-devel \
             libcurl-devel \
-            libevent-devel \
             libssh2-devel \
             libxml2-devel \
             make \
