@@ -57,6 +57,7 @@ RUN apk update && \
             automake \
             openssl-dev \
             openldap-dev \
+            pcre-dev \
             subversion \
             coreutils && \
     cd /tmp/ && \
