@@ -1,15 +1,27 @@
 FROM ubuntu:trusty
-LABEL maintainer "Alexey Pustovalov <alexey.pustovalov@zabbix.com>"
+LABEL maintainer="Alexey Pustovalov <alexey.pustovalov@zabbix.com>"
+
+ARG BUILD_DATE
+ARG VCS_REF
 
 ARG APT_FLAGS_COMMON="-qq -y"
 ARG APT_FLAGS_PERSISTANT="${APT_FLAGS_COMMON} --no-install-recommends"
 ARG APT_FLAGS_DEV="${APT_FLAGS_COMMON} --no-install-recommends"
 ENV LANG=en_US.UTF-8 LANGUAGE=en_US:en LC_ALL=en_US.UTF-8 DEBIAN_FRONTEND=noninteractive TERM=xterm
 
-RUN DISTRIB_CODENAME=$(/bin/bash -c 'source /etc/lsb-release && echo $DISTRIB_CODENAME') && \
-    locale-gen $LC_ALL && \
+LABEL org.label-schema.name="zabbix-agent-ubuntu" \
+      org.label-schema.vendor="Zabbix LLC" \
+      org.label-schema.url="https://zabbix.com/" \
+      org.label-schema.description="Zabbix agent is deployed on a monitoring target to actively monitor local resources and applications" \
+      org.label-schema.vcs-ref="${VCS_REF}" \
+      org.label-schema.build-date="${BUILD_DATE}" \
+      org.label-schema.schema-version="1.0" \
+      org.label-schema.license="GPL 2.0"
+
+STOPSIGNAL SIGTERM
+
+RUN locale-gen $LC_ALL && \
     echo "#!/bin/sh\nexit 0" > /usr/sbin/policy-rc.d && \
-    echo "deb http://us.archive.ubuntu.com/ubuntu/ $DISTRIB_CODENAME multiverse" >> /etc/apt/sources.list && \
     addgroup --system --quiet zabbix && \
     adduser --quiet \
             --system --disabled-login \
@@ -24,9 +36,8 @@ RUN DISTRIB_CODENAME=$(/bin/bash -c 'source /etc/lsb-release && echo $DISTRIB_CO
     chown --quiet -R zabbix:root /var/lib/zabbix && \
     apt-get ${APT_FLAGS_COMMON} update && \
     apt-get ${APT_FLAGS_PERSISTANT} install \
-            supervisor \
             libpcre3 \
-            libssl1.0.0 1>/dev/null && \
+            supervisor 1>/dev/null && \
     apt-get ${APT_FLAGS_COMMON} autoremove && \
     apt-get ${APT_FLAGS_COMMON} clean && \
     rm -rf /var/lib/apt/lists/*
@@ -36,16 +47,23 @@ ARG ZBX_VERSION=${MAJOR_VERSION}
 ARG ZBX_SOURCES=svn://svn.zabbix.com/trunk/
 ENV ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES}
 
+LABEL org.label-schema.usage="https://www.zabbix.com/documentation/${MAJOR_VERSION}/manual/installation/containers" \
+      org.label-schema.version="${ZBX_VERSION}" \
+      org.label-schema.vcs-url="${ZBX_SOURCES}" \
+      org.label-schema.docker.cmd="docker run --name zabbix-agent --link zabbix-server:zabbix-server -p 10050:10050 -d zabbix-agent:ubuntu-${ZBX_VERSION}"
+
 RUN apt-get ${APT_FLAGS_COMMON} update && \
     apt-get ${APT_FLAGS_DEV} install \
-            gcc \
-            make \
+            autoconf \
             automake \
             libc6-dev \
-            pkg-config \
-            libssl-dev \
+            libldap2-dev \
             libpcre3-dev \
-            subversion 1>/dev/null && \
+            libssl-dev \
+            make \
+            pkg-config \
+            subversion \
+            gcc 1>/dev/null && \
     cd /tmp/ && \
     svn --quiet export ${ZBX_SOURCES} zabbix-${ZBX_VERSION} && \
     cd /tmp/zabbix-${ZBX_VERSION} && \
@@ -54,34 +72,37 @@ RUN apt-get ${APT_FLAGS_COMMON} update && \
     ./bootstrap.sh 1>/dev/null && \
     export CFLAGS="-fPIC -pie -Wl,-z,relro -Wl,-z,now" && \
     ./configure \
-            --prefix=/usr \
-            --silent \
-            --sysconfdir=/etc/zabbix \
-            --libdir=/usr/lib/zabbix \
             --datadir=/usr/lib \
+            --libdir=/usr/lib/zabbix \
+            --sysconfdir=/etc/zabbix \
+            --prefix=/usr \
             --enable-agent \
+            --with-ldap \
+            --with-openssl \
             --enable-ipv6 \
-            --with-openssl && \
+            --silent && \
     make -j"$(nproc)" -s 1>/dev/null && \
     cp src/zabbix_agent/zabbix_agentd /usr/sbin/zabbix_agentd && \
     cp src/zabbix_get/zabbix_get /usr/bin/zabbix_get && \
     cp src/zabbix_sender/zabbix_sender /usr/bin/zabbix_sender && \
-    cp conf/zabbix_agentd.conf /etc/zabbix/ && \
+    cp conf/zabbix_agentd.conf /etc/zabbix/zabbix_agentd.conf && \
     chown --quiet -R zabbix:root /etc/zabbix && \
     cd /tmp/ && \
     rm -rf /tmp/zabbix-${ZBX_VERSION}/ && \
     apt-get ${APT_FLAGS_COMMON} purge \
-            gcc \
-            make \
+            autoconf \
             automake \
             libc6-dev \
-            pkg-config \
-            libssl-dev \
             libpcre3-dev \
-            subversion 1>/dev/null && \
+            libssl-dev \
+            make \
+            pkg-config \
+            subversion \
+            gcc 1>/dev/null && \
     apt-get ${APT_FLAGS_COMMON} autoremove && \
     apt-get ${APT_FLAGS_COMMON} clean && \
-    rm -rf /var/lib/apt/lists/*
+    rm -rf /var/lib/apt/lists/* && \
+    rm -rf /root/.subversion
 
 EXPOSE 10050/TCP
 
@@ -89,9 +110,9 @@ WORKDIR /var/lib/zabbix
 
 VOLUME ["/etc/zabbix/zabbix_agentd.d", "/var/lib/zabbix/enc", "/var/lib/zabbix/modules"]
 
-ADD conf/etc/supervisor/ /etc/supervisor/
-ADD run_zabbix_component.sh /
+COPY ["conf/etc/supervisor/", "/etc/supervisor/"]
+COPY ["docker-entrypoint.sh", "/usr/bin/"]
 
-ENTRYPOINT ["/bin/bash"]
+ENTRYPOINT ["docker-entrypoint.sh"]
 
-CMD ["/run_zabbix_component.sh", "agentd", "none"]
+CMD ["agentd", "none"]
