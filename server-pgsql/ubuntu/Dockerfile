@@ -52,10 +52,8 @@ RUN locale-gen $LC_ALL && \
     apt-get ${APT_FLAGS_PERSISTANT} install \
             fping \
             libcurl3 \
-            libevent-2.0 \
             libiksemel3 \
             libopenipmi0 \
-            libpcre3 \
             libpq5 \
             libsnmp30 \
             libssh2-1 \
@@ -69,8 +67,8 @@ RUN locale-gen $LC_ALL && \
     apt-get ${APT_FLAGS_COMMON} clean && \
     rm -rf /var/lib/apt/lists/*
 
-ARG MAJOR_VERSION=3.4
-ARG ZBX_VERSION=${MAJOR_VERSION}.6
+ARG MAJOR_VERSION=master
+ARG ZBX_VERSION=${MAJOR_VERSION}
 ARG ZBX_SOURCES=svn://svn.zabbix.com/tags/${ZBX_VERSION}/
 ENV ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES} DB_TYPE=${DB_TYPE}
 
@@ -86,11 +84,9 @@ RUN apt-get ${APT_FLAGS_COMMON} update && \
             gcc \
             libc6-dev \
             libcurl4-openssl-dev \
-            libevent-dev \
             libiksemel-dev \
             libldap2-dev \
             libopenipmi-dev \
-            libpcre3-dev \
             libpq-dev \
             libsnmp-dev \
             libssh2-1-dev \
@@ -145,11 +141,9 @@ RUN apt-get ${APT_FLAGS_COMMON} update && \
             gcc \
             libc6-dev \
             libcurl4-openssl-dev \
-            libevent-dev \
             libiksemel-dev \
             libldap2-dev \
             libopenipmi-dev \
-            libpcre3-dev \
             libpq-dev \
             libsnmp-dev \
             libssh2-1-dev \
