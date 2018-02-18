@@ -1,4 +1,4 @@
-![logo](http://www.zabbix.com/ru/img/logo/zabbix_logo_500x131.png)
+![logo](https://assets.zabbix.com/img/logo/zabbix_logo_500x131.png)
 
 # What is Zabbix?
 
@@ -14,15 +14,15 @@ Zabbix Java Gateway performs native support for monitoring JMX applications. Jav
 
 # Zabbix Java Gateway images
 
-These are the only official Zabbix Java Gateway Docker images. They are based on latest Alpine and trusty Ubuntu images. The available versions of Zabbix Java Gateway are:
+These are the only official Zabbix Java Gateway Docker images. They are based on Alpine Linux v3.4, Ubuntu 14.04 (trusty) and CentOS 7 images. The available versions of Zabbix Java Gateway are:
 
-    Zabbix server 3.0 (tags: alpine-3.0-latest, ubuntu-3.0-latest)
-    Zabbix server 3.0.* (tags: alpine-3.0.*, ubuntu-3.0.*)
-    Zabbix server 3.2 (tags: alpine-3.2-latest, ubuntu-3.2-latest)
-    Zabbix server 3.2.* (tags: alpine-3.2.*, ubuntu-3.2.*)
-    Zabbix server 3.4 (tags: alpine-3.4-latest, ubuntu-3.4-latest, alpine-latest, ubuntu-latest, latest)
-    Zabbix server 3.4.* (tags: alpine-3.4.*, ubuntu-3.4.*)
-    Zabbix server 4.0 (tags: alpine-trunk, ubuntu-trunk)
+    Zabbix Java Gateway 3.0 (tags: alpine-3.0-latest, ubuntu-3.0-latest, centos-3.0-latest)
+    Zabbix Java Gateway 3.0.* (tags: alpine-3.0.*, ubuntu-3.0.*, centos-3.0.*)
+    Zabbix Java Gateway 3.2 (tags: alpine-3.2-latest, ubuntu-3.2-latest, centos-3.2-latest)
+    Zabbix Java Gateway 3.2.* (tags: alpine-3.2.*, ubuntu-3.2.*, centos-3.2.*)
+    Zabbix Java Gateway 3.4 (tags: alpine-3.4-latest, ubuntu-3.4-latest, centos-3.4-centos, alpine-latest, ubuntu-latest, centos-latest, latest)
+    Zabbix Java Gateway 3.4.* (tags: alpine-3.4.*, ubuntu-3.4.*, centos-3.4.*)
+    Zabbix Java Gateway 4.0 (tags: alpine-trunk, ubuntu-trunk, centos-trunk)
 
 Images are updated when new releases are published. The image with ``latest`` tag is based on Alpine Linux.
 

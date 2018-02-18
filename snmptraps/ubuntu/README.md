@@ -1,4 +1,4 @@
-![logo](http://www.zabbix.com/ru/img/logo/zabbix_logo_500x131.png)
+![logo](https://assets.zabbix.com/img/logo/zabbix_logo_500x131.png)
 
 # What is Zabbix?
 
@@ -16,13 +16,11 @@ The image is used to receive SNMP traps, store them to a log file and provide ac
 
 These are the only official Zabbix snmptraps Docker images. They are based on trusty Ubuntu. The available versions of Zabbix snmptraps are:
 
-    Zabbix server 3.0 (tags: alpine-3.0-latest, ubuntu-3.0-latest)
-    Zabbix server 3.0.* (tags: alpine-3.0.*, ubuntu-3.0.*)
-    Zabbix server 3.2 (tags: alpine-3.2-latest, ubuntu-3.2-latest)
-    Zabbix server 3.2.* (tags: alpine-3.2.*, ubuntu-3.2.*)
-    Zabbix server 3.4 (tags: alpine-3.4-latest, ubuntu-3.4-latest, alpine-latest, ubuntu-latest, latest)
-    Zabbix server 3.4.* (tags: alpine-3.4.*, ubuntu-3.4.*)
-    Zabbix server 4.0 (tags: alpine-trunk, ubuntu-trunk)
+    Zabbix snmptraps 3.0 (tags: ubuntu-3.0-latest)
+    Zabbix snmptraps 3.0.* (tags: ubuntu-3.0.*)
+    Zabbix snmptraps 3.2 (tags: ubuntu-3.2-latest, ubuntu-latest, latest)
+    Zabbix snmptraps 3.2.* (tags: ubuntu-3.2.*)
+    Zabbix snmptraps 3.4 (tags: ubuntu-trunk)
 
 Images are updated when new releases are published.
 

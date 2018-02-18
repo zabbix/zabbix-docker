@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -eo pipefail
+
 set +e
 
 # Script trace mode
@@ -126,7 +128,7 @@ check_variables_mysql() {
     fi
 
     if [ ! -n "${MYSQL_USER}" ] && [ ! -n "${MYSQL_ROOT_PASSWORD}" ] && [ "${MYSQL_ALLOW_EMPTY_PASSWORD}" != "true" ]; then
-        echo "*** Impossible to use MySQL server because 'root' password is not defined and not empty"
+        echo "*** Impossible to use MySQL server because 'root' password is not defined and it is not empty"
         exit 1
     fi
 
@@ -216,7 +218,7 @@ check_db_connect_postgresql() {
 
     WAIT_TIMEOUT=5
 
-    while [ ! "$(psql -h ${DB_SERVER_HOST} -p ${DB_SERVER_PORT} -U ${DB_SERVER_ROOT_USER} -l -q 2>/dev/null)" ]; do
+    while [ ! "$(psql -h ${DB_SERVER_HOST} -p ${DB_SERVER_PORT} -U ${DB_SERVER_ROOT_USER} -d ${DB_SERVER_DBNAME} -l -q 2>/dev/null)" ]; do
         echo "**** PostgreSQL server is not available. Waiting $WAIT_TIMEOUT seconds..."
         sleep $WAIT_TIMEOUT
     done
@@ -320,21 +322,10 @@ create_db_schema_mysql() {
     if [ -z "${ZBX_DB_VERSION}" ]; then
         echo "** Creating '${DB_SERVER_DBNAME}' schema in MySQL"
 
-        cat /usr/share/doc/zabbix-$type-mysql/schema.sql | mysql --silent --skip-column-names \
+        zcat /usr/share/doc/zabbix-$type-mysql/create.sql.gz | mysql --silent --skip-column-names \
                     -h ${DB_SERVER_HOST} -P ${DB_SERVER_PORT} \
                     -u ${DB_SERVER_ROOT_USER} --password="${DB_SERVER_ROOT_PASS}"  \
                     ${DB_SERVER_DBNAME} 1>/dev/null
-        if [ "$type" == "server" ]; then
-            echo "** Fill the schema with initial data"
-            cat /usr/share/doc/zabbix-$type-mysql/images.sql | mysql --silent --skip-column-names \
-                    -h ${DB_SERVER_HOST} -P ${DB_SERVER_PORT} \
-                    -u ${DB_SERVER_ROOT_USER} --password="${DB_SERVER_ROOT_PASS}" \
-                    ${DB_SERVER_DBNAME} 1>/dev/null
-            cat /usr/share/doc/zabbix-$type-mysql/data.sql | mysql --silent --skip-column-names \
-                    -h ${DB_SERVER_HOST} -P ${DB_SERVER_PORT} \
-                    -u ${DB_SERVER_ROOT_USER} --password="${DB_SERVER_ROOT_PASS}" \
-                    ${DB_SERVER_DBNAME} 1>/dev/null
-        fi
     fi
 }
 
@@ -356,18 +347,9 @@ create_db_schema_postgresql() {
             export PGPASSWORD="${DB_SERVER_ZBX_PASS}"
         fi
 
-        cat /usr/share/doc/zabbix-$type-postgresql/schema.sql | psql -q \
+        zcat /usr/share/doc/zabbix-$type-postgresql/create.sql.gz | psql -q \
                 -h ${DB_SERVER_HOST} -p ${DB_SERVER_PORT} \
                 -U ${DB_SERVER_ZBX_USER} ${DB_SERVER_DBNAME} 1>/dev/null
-        if [ "$type" == "server" ]; then
-            echo "** Fill the schema with initial data"
-            cat /usr/share/doc/zabbix-$type-postgresql/images.sql | psql -q \
-                -h ${DB_SERVER_HOST} -p ${DB_SERVER_PORT} \
-                -U ${DB_SERVER_ZBX_USER} ${DB_SERVER_DBNAME} 1>/dev/null
-            cat /usr/share/doc/zabbix-$type-postgresql/data.sql | psql -q \
-                -h ${DB_SERVER_HOST} -p ${DB_SERVER_PORT} \
-                -U ${DB_SERVER_ZBX_USER} ${DB_SERVER_DBNAME} 1>/dev/null
-        fi
 
         unset PGPASSWORD
     fi
@@ -378,6 +360,8 @@ prepare_web_server_apache() {
         APACHE_SITES_DIR=/etc/apache2/sites-available
     elif [ -d "/etc/apache2/conf.d" ]; then
         APACHE_SITES_DIR=/etc/apache2/conf.d
+    elif [ -d "/etc/httpd/conf.d" ]; then
+        APACHE_SITES_DIR=/etc/httpd/conf.d
     else
         echo "**** Apache is not available"
         exit 1
@@ -390,6 +374,7 @@ prepare_web_server_apache() {
     elif [ -f "/etc/apache2/conf.d/default.conf" ]; then
         echo "** Disable default site"
         rm -f "/etc/apache2/conf.d/default.conf"
+        rm -f "/etc/httpd/conf.d/welcome.conf"
     fi
 
     echo "** Adding Zabbix virtual host (HTTP)"
@@ -433,6 +418,13 @@ prepare_web_server_apache() {
             "/etc/apache2/apache2.conf"
     fi
 
+    if [ -f "/etc/httpd/conf/httpd.conf" ]; then
+        sed -ri \
+            -e 's!^(\s*CustomLog)\s+\S+!\1 /proc/self/fd/1!g' \
+            -e 's!^(\s*ErrorLog)\s+\S+!\1 /proc/self/fd/2!g' \
+            "/etc/httpd/conf/httpd.conf"
+    fi
+
     if [ -f "/etc/apache2/httpd.conf" ]; then
         sed -ri \
             -e 's!^(\s*CustomLog)\s+\S+!\1 /proc/self/fd/1!g' \
@@ -455,6 +447,10 @@ prepare_web_server_apache() {
 
     if [ -f "/var/run/apache2/apache2.pid" ]; then
         rm -f "/var/run/apache2/apache2.pid"
+    fi
+
+    if [ -f "/var/run/httpd/httpd.pid" ]; then
+        rm -f "/var/run/httpd/httpd.pid"
     fi
 }
 
@@ -692,6 +688,8 @@ prepare_zbx_web_config() {
         PHP_CONFIG_FILE="/etc/php/7.0/apache2/conf.d/99-zabbix.ini"
     elif [ -f "/etc/php/7.0/fpm/conf.d/99-zabbix.ini" ]; then
         PHP_CONFIG_FILE="/etc/php/7.0/fpm/conf.d/99-zabbix.ini"
+    elif [ -f "/etc/php.d/99-zabbix.ini" ]; then
+        PHP_CONFIG_FILE="/etc/php.d/99-zabbix.ini"
     fi
 
     if [ -n "$PHP_CONFIG_FILE" ]; then

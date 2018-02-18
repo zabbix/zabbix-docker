@@ -1,12 +1,26 @@
 FROM ubuntu:trusty
-LABEL maintainer "Alexey Pustovalov <alexey.pustovalov@zabbix.com>"
+LABEL maintainer="Alexey Pustovalov <alexey.pustovalov@zabbix.com>"
+
+ARG BUILD_DATE
+ARG VCS_REF
 
 ARG APT_FLAGS_COMMON="-qq -y"
 ARG APT_FLAGS_PERSISTANT="${APT_FLAGS_COMMON} --no-install-recommends"
 ARG APT_FLAGS_DEV="${APT_FLAGS_COMMON} --no-install-recommends"
 ARG DB_TYPE=mysql
-ENV LANG=en_US.UTF-8 LANGUAGE=en_US:en LC_ALL=en_US.UTF-8 DEBIAN_FRONTEND=noninteractive TERM=xterm
-ENV MIBDIRS=/usr/share/mibs/iana:/usr/share/mibs/ietf:/usr/share/snmp/mibs:/var/lib/zabbix/mibs MIBS=+ALL
+ENV LANG=en_US.UTF-8 LANGUAGE=en_US:en LC_ALL=en_US.UTF-8 DEBIAN_FRONTEND=noninteractive TERM=xterm \
+    MIBDIRS=/var/lib/mibs/iana:/var/lib/mibs/ietf:/usr/share/snmp/mibs:/var/lib/zabbix/mibs MIBS=+ALL
+
+LABEL org.label-schema.name="zabbix-proxy-${DB_TYPE}-ubuntu" \
+      org.label-schema.vendor="Zabbix LLC" \
+      org.label-schema.url="https://zabbix.com/" \
+      org.label-schema.description="Zabbix proxy with MySQL database support" \
+      org.label-schema.vcs-ref="${VCS_REF}" \
+      org.label-schema.build-date="${BUILD_DATE}" \
+      org.label-schema.schema-version="1.0" \
+      org.label-schema.license="GPL 2.0"
+
+STOPSIGNAL SIGTERM
 
 RUN locale-gen $LC_ALL && \
     echo "#!/bin/sh\nexit 0" > /usr/sbin/policy-rc.d && \
@@ -18,35 +32,34 @@ RUN locale-gen $LC_ALL && \
             --ingroup zabbix \
             --home /var/lib/zabbix/ \
         zabbix && \
-    mkdir -p /etc/zabbix/ && \
+    mkdir -p /etc/zabbix && \
     mkdir -p /var/lib/zabbix && \
     mkdir -p /var/lib/zabbix/enc && \
+    mkdir -p /usr/lib/zabbix/externalscripts && \
+    mkdir -p /var/lib/zabbix/mibs && \
     mkdir -p /var/lib/zabbix/modules && \
+    mkdir -p /var/lib/zabbix/snmptraps && \
     mkdir -p /var/lib/zabbix/ssh_keys && \
     mkdir -p /var/lib/zabbix/ssl && \
     mkdir -p /var/lib/zabbix/ssl/certs && \
     mkdir -p /var/lib/zabbix/ssl/keys && \
     mkdir -p /var/lib/zabbix/ssl/ssl_ca && \
-    mkdir -p /var/lib/zabbix/mibs && \
-    mkdir -p /var/lib/zabbix/snmptraps && \
-    mkdir -p /usr/lib/zabbix/externalscripts && \
     chown --quiet -R zabbix:root /var/lib/zabbix && \
     mkdir -p /usr/share/doc/zabbix-proxy-${DB_TYPE} && \
     apt-get ${APT_FLAGS_COMMON} update && \
     apt-get ${APT_FLAGS_PERSISTANT} install \
-            supervisor \
-            snmp-mibs-downloader \
-            mysql-client \
-            libmysqlclient18 \
-            libiksemel3 \
-            libsnmp30 \
+            fping \
             libcurl3 \
-            unixodbc \
+            libmysqlclient18 \
+            libopenipmi0 \
+            libsnmp30 \
             libssh2-1 \
             libssl1.0.0 \
             libxml2 \
-            fping \
-            libopenipmi0 1>/dev/null && \
+            mysql-client \
+            snmp-mibs-downloader \
+            supervisor \
+            unixodbc 1>/dev/null && \
     apt-get ${APT_FLAGS_COMMON} autoremove && \
     apt-get ${APT_FLAGS_COMMON} clean && \
     rm -rf /var/lib/apt/lists/*
@@ -56,23 +69,28 @@ ARG ZBX_VERSION=${MAJOR_VERSION}
 ARG ZBX_SOURCES=svn://svn.zabbix.com/tags/${ZBX_VERSION}/
 ENV ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES} DB_TYPE=${DB_TYPE}
 
+LABEL org.label-schema.usage="https://www.zabbix.com/documentation/${MAJOR_VERSION}/manual/installation/containers" \
+      org.label-schema.version="${ZBX_VERSION}" \
+      org.label-schema.vcs-url="${ZBX_SOURCES}" \
+      org.label-schema.docker.cmd="docker run --name zabbix-proxy-${DB_TYPE} --link mysql-server:mysql --link zabbix-server:zabbix-server -p 10051:10051 -d zabbix-proxy-${DB_TYPE}:ubuntu-${ZBX_VERSION}"
+
 RUN apt-get ${APT_FLAGS_COMMON} update && \
     apt-get ${APT_FLAGS_DEV} install \
-            gcc \
-            make \
+            autoconf \
             automake \
+            gcc \
             libc6-dev \
-            pkg-config \
-            libmysqlclient-dev \
-            libsnmp-dev \
             libcurl4-openssl-dev \
             libldap2-dev \
-            libiksemel-dev \
+            libmysqlclient-dev \
             libopenipmi-dev \
+            libsnmp-dev \
             libssh2-1-dev \
-            unixodbc-dev \
             libxml2-dev \
-            subversion 1>/dev/null && \
+            make \
+            pkg-config \
+            subversion \
+            unixodbc-dev 1>/dev/null && \
     cd /tmp/ && \
     svn --quiet export ${ZBX_SOURCES} zabbix-${ZBX_VERSION} && \
     cd /tmp/zabbix-${ZBX_VERSION} && \
@@ -81,24 +99,23 @@ RUN apt-get ${APT_FLAGS_COMMON} update && \
     ./bootstrap.sh 1>/dev/null && \
     export CFLAGS="-fPIC -pie -Wl,-z,relro -Wl,-z,now" && \
     ./configure \
-            --prefix=/usr \
-            --silent \
-            --sysconfdir=/etc/zabbix \
-            --libdir=/usr/lib/zabbix \
             --datadir=/usr/lib \
-            --enable-proxy \
+            --libdir=/usr/lib/zabbix \
+            --sysconfdir=/etc/zabbix \
+            --prefix=/usr \
             --enable-agent \
-            --enable-ipv6 \
-            --with-jabber \
+            --enable-proxy \
+            --with-${DB_TYPE} \
             --with-ldap \
+            --with-libcurl \
+            --with-libxml2 \
             --with-net-snmp \
             --with-openipmi \
-            --with-ssh2 \
-            --with-libcurl \
-            --with-unixodbc \
-            --with-libxml2 \
             --with-openssl \
-            --with-${DB_TYPE} && \
+            --with-ssh2 \
+            --with-unixodbc \
+            --enable-ipv6 \
+            --silent && \
     make -j"$(nproc)" -s dbschema 1>/dev/null && \
     make -j"$(nproc)" -s 1>/dev/null && \
     cp src/zabbix_proxy/zabbix_proxy /usr/sbin/zabbix_proxy && \
@@ -106,38 +123,41 @@ RUN apt-get ${APT_FLAGS_COMMON} update && \
     cp src/zabbix_sender/zabbix_sender /usr/bin/zabbix_sender && \
     cp conf/zabbix_proxy.conf /etc/zabbix/zabbix_proxy.conf && \
     chown --quiet -R zabbix:root /etc/zabbix && \
-    cp database/${DB_TYPE}/schema.sql /usr/share/doc/zabbix-proxy-${DB_TYPE}/ && \
+    cat database/${DB_TYPE}/schema.sql > database/${DB_TYPE}/create.sql && \
+    gzip database/${DB_TYPE}/create.sql && \
+    cp database/${DB_TYPE}/create.sql.gz /usr/share/doc/zabbix-proxy-${DB_TYPE}/ && \
     cd /tmp/ && \
     rm -rf /tmp/zabbix-${ZBX_VERSION}/ && \
     apt-get ${APT_FLAGS_COMMON} purge \
-            pkg-config \
-            libsnmp-dev \
-            libmysqlclient-dev \
-            libcurl4-openssl-dev \
-            libldap2-dev \
-            libiksemel-dev \
-            libopenipmi-dev \
-            libssh2-1-dev \
-            unixodbc-dev \
-            libxml2-dev \
+            autoconf \
+            automake \
             gcc \
             libc6-dev \
+            libcurl4-openssl-dev \
+            libldap2-dev \
+            libmysqlclient-dev \
+            libopenipmi-dev \
+            libsnmp-dev \
+            libssh2-1-dev \
+            libxml2-dev \
             make \
-            automake \
-            subversion 1>/dev/null && \
+            pkg-config \
+            subversion \
+            unixodbc-dev 1>/dev/null && \
     apt-get ${APT_FLAGS_COMMON} autoremove 1>/dev/null && \
-    rm -rf /var/lib/apt/lists/*
+    rm -rf /var/lib/apt/lists/* && \
+    rm -rf /root/.subversion
 
-EXPOSE 10051/TCP 162/UDP
+EXPOSE 10051/TCP
 
 WORKDIR /var/lib/zabbix
 
-VOLUME ["/usr/lib/zabbix/externalscripts", "/var/lib/zabbix/enc", "/var/lib/zabbix/modules", "/var/lib/zabbix/ssh_keys"]
-VOLUME ["/var/lib/zabbix/ssl/certs", "/var/lib/zabbix/ssl/keys", "/var/lib/zabbix/ssl/ssl_ca", "/var/lib/zabbix/snmptraps", "/var/lib/zabbix/mibs"]
+VOLUME ["/usr/lib/zabbix/externalscripts", "/var/lib/zabbix/enc", "/var/lib/zabbix/modules", "/var/lib/zabbix/snmptraps"]
+VOLUME ["/var/lib/zabbix/ssh_keys", "/var/lib/zabbix/ssl/certs", "/var/lib/zabbix/ssl/keys", "/var/lib/zabbix/ssl/ssl_ca"]
+      
+COPY ["conf/etc/supervisor/", "/etc/supervisor/"]
+COPY ["docker-entrypoint.sh", "/usr/bin/"]
 
-ADD conf/etc/supervisor/ /etc/supervisor/
-ADD run_zabbix_component.sh /
+ENTRYPOINT ["docker-entrypoint.sh"]
 
-ENTRYPOINT ["/bin/bash"]
-
-CMD ["/run_zabbix_component.sh", "proxy", "mysql"]
+CMD ["proxy", "mysql"]

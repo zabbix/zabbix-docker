@@ -1,4 +1,4 @@
-![logo](https://www.zabbix.com/img/logo.svg)
+![logo](https://assets.zabbix.com/img/logo/zabbix_logo_500x131.png)
 
 # What is Zabbix?
 
@@ -15,8 +15,9 @@ This repository contains **Dockerfile** of [Zabbix](https://zabbix.com/) for [Do
 
 ### Base Docker Image
 
-* [ubuntu](https://hub.docker.com/_/ubuntu/)
 * [alpine](https://hub.docker.com/_/alpine/)
+* [centos](https://hub.docker.com/_/centos/)
+* [ubuntu](https://hub.docker.com/_/ubuntu/)
 
 ### Usage
 
