@@ -45,6 +45,7 @@ RUN groupadd --system zabbix && \
     yum ${YUM_FLAGS_PERSISTANT} install \
             fping \
             libcurl \
+            libevent \
             libxml2 \
             net-snmp-libs \
             OpenIPMI-libs \
@@ -56,8 +57,8 @@ RUN groupadd --system zabbix && \
     yum ${YUM_FLAGS_PERSISTANT} clean all && \
     rm -rf /var/cache/yum/
 
-ARG MAJOR_VERSION=master
-ARG ZBX_VERSION=${MAJOR_VERSION}
+ARG MAJOR_VERSION=3.4
+ARG ZBX_VERSION=${MAJOR_VERSION}.6
 ARG ZBX_SOURCES=svn://svn.zabbix.com/tags/${ZBX_VERSION}/
 ENV ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES} DB_TYPE=${DB_TYPE}
 
@@ -72,6 +73,7 @@ RUN yum --quiet makecache && \
             automake \
             gcc \
             libcurl-devel \
+            libevent-devel \
             libssh2-devel \
             libxml2-devel \
             make \
