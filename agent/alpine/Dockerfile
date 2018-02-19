@@ -36,12 +36,13 @@ RUN addgroup zabbix && \
             bash \
             iputils \
             libldap \
+            pcre \
             supervisor && \
     rm -rf /var/cache/apk/*
 
-ARG MAJOR_VERSION=master
+ARG MAJOR_VERSION=4.0
 ARG ZBX_VERSION=${MAJOR_VERSION}
-ARG ZBX_SOURCES=svn://svn.zabbix.com/tags/${ZBX_VERSION}/
+ARG ZBX_SOURCES=svn://svn.zabbix.com/trunk/
 ENV ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES}
 
 LABEL org.label-schema.usage="https://www.zabbix.com/documentation/${MAJOR_VERSION}/manual/installation/containers" \
@@ -55,9 +56,8 @@ RUN apk update && \
             autoconf \
             automake \
             openssl-dev \
-            openldap-dev \
-            subversion \
-            coreutils && \
+            pcre-dev \
+            subversion && \
     cd /tmp/ && \
     svn --quiet export ${ZBX_SOURCES} zabbix-${ZBX_VERSION} 1>/dev/null && \
     cd /tmp/zabbix-${ZBX_VERSION} && \
