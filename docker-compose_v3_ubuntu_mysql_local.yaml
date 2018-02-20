@@ -5,7 +5,7 @@ services:
    context: ./server-mysql/ubuntu
    cache_from:
     - ubuntu:trusty
-  image: zabbix-server-mysql:ubuntu-local
+  image: zabbix-server-mysql:ubuntu-3.0-local
   ports:
    - "10051:10051"
   volumes:
@@ -70,7 +70,7 @@ services:
    context: ./proxy-sqlite3/ubuntu
    cache_from:
     - ubuntu:trusty
-  image: zabbix-proxy-sqlite3:ubuntu-local
+  image: zabbix-proxy-sqlite3:ubuntu-3.0-local
   ports:
    - "10061:10051"
   volumes:
@@ -125,7 +125,7 @@ services:
    context: ./proxy-mysql/ubuntu
    cache_from:
     - ubuntu:trusty
-  image: zabbix-proxy-mysql:ubuntu-local
+  image: zabbix-proxy-mysql:ubuntu-3.0-local
   ports:
    - "10071:10051"
   volumes:
@@ -182,7 +182,7 @@ services:
    context: ./web-apache-mysql/ubuntu
    cache_from:
     - ubuntu:trusty
-  image: zabbix-web-apache-mysql:ubuntu-local
+  image: zabbix-web-apache-mysql:ubuntu-3.0-local
   ports:
    - "80:80"
    - "443:443"
@@ -237,7 +237,7 @@ services:
    context: ./web-nginx-mysql/ubuntu
    cache_from:
     - ubuntu:trusty
-  image: zabbix-web-nginx-mysql:ubuntu-local
+  image: zabbix-web-nginx-mysql:ubuntu-3.0-local
   ports:
    - "8081:80"
    - "8443:443"
@@ -292,7 +292,7 @@ services:
    context: ./agent/ubuntu
    cache_from:
     - ubuntu:trusty
-  image: zabbix-agent:ubuntu-local
+  image: zabbix-agent:ubuntu-3.0-local
   ports:
    - "10050:10050"
   volumes:
@@ -336,7 +336,7 @@ services:
    context: ./java-gateway/ubuntu
    cache_from:
     - ubuntu:trusty
-  image: zabbix-java-gateway:ubuntu-local
+  image: zabbix-java-gateway:ubuntu-3.0-local
   ports:
    - "10052:10052"
   deploy:
@@ -367,7 +367,7 @@ services:
    context: ./snmptraps/ubuntu
    cache_from:
     - ubuntu:trusty
-  image: zabbix-snmptraps:ubuntu-local
+  image: zabbix-snmptraps:ubuntu-3.0-local
   ports:
    - "162:162/udp"
   volumes:

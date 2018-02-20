@@ -2,7 +2,7 @@ version: '2'
 services:
  zabbix-server:
   build: ./server-mysql/ubuntu
-  image: zabbix-server-mysql:ubuntu-local
+  image: zabbix-server-mysql:ubuntu-3.0-local
   ports:
    - "10051:10051"
   volumes:
@@ -46,7 +46,7 @@ services:
 
  zabbix-proxy-sqlite3:
   build: ./proxy-sqlite3/ubuntu
-  image: zabbix-proxy-sqlite3:ubuntu-local
+  image: zabbix-proxy-sqlite3:ubuntu-3.0-local
   ports:
    - "10061:10051"
   volumes:
@@ -87,7 +87,7 @@ services:
 
  zabbix-proxy-mysql:
   build: ./proxy-mysql/ubuntu
-  image: zabbix-proxy-mysql:ubuntu-local
+  image: zabbix-proxy-mysql:ubuntu-3.0-local
   ports:
    - "10071:10051"
   volumes:
@@ -129,7 +129,7 @@ services:
 
  zabbix-web-apache-mysql:
   build: ./web-apache-mysql/ubuntu
-  image: zabbix-web-apache-mysql:ubuntu-local
+  image: zabbix-web-apache-mysql:ubuntu-3.0-local
   ports:
    - "80:80"
    - "443:443"
@@ -161,7 +161,7 @@ services:
 
  zabbix-web-nginx-mysql:
   build: ./web-nginx-mysql/ubuntu
-  image: zabbix-web-nginx-mysql:ubuntu-local
+  image: zabbix-web-nginx-mysql:ubuntu-3.0-local
   ports:
    - "8081:80"
    - "8443:443"
@@ -193,7 +193,7 @@ services:
 
  zabbix-agent:
   build: ./agent/ubuntu
-  image: zabbix-agent:ubuntu-local
+  image: zabbix-agent:ubuntu-3.0-local
   ports:
    - "10050:10050"
   volumes:
@@ -224,7 +224,7 @@ services:
 
  zabbix-java-gateway:
   build: ./java-gateway/ubuntu
-  image: zabbix-java-gateway:ubuntu-local
+  image: zabbix-java-gateway:ubuntu-3.0-local
   ports:
    - "10052:10052"
   env_file:
@@ -243,7 +243,7 @@ services:
 
  zabbix-snmptraps:
   build: ./snmptraps/ubuntu
-  image: zabbix-snmptraps:ubuntu-local
+  image: zabbix-snmptraps:ubuntu-3.0-local
   ports:
    - "162:162/udp"
   volumes:
