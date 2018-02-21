@@ -64,7 +64,7 @@ update_config_var() {
 
     # Remove configuration parameter definition in case of unset parameter value
     if [ -z "$var_value" ]; then
-        sed -i -e "/$var_name=/d" "$config_path"
+        sed -i -e "/^$var_name=/d" "$config_path"
         echo "removed"
         return
     fi
