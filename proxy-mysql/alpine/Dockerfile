@@ -7,13 +7,13 @@ ARG VCS_REF
 ARG APK_FLAGS_COMMON="-q"
 ARG APK_FLAGS_PERSISTANT="${APK_FLAGS_COMMON} --clean-protected --no-cache"
 ARG APK_FLAGS_DEV="${APK_FLAGS_COMMON} --no-cache"
-ARG DB_TYPE=mysql
-ENV TERM=xterm MIBDIRS=/usr/share/snmp/mibs:/var/lib/zabbix/mibs MIBS=+ALL
+ENV TERM=xterm MIBDIRS=/usr/share/snmp/mibs:/var/lib/zabbix/mibs MIBS=+ALL \
+    ZBX_TYPE=proxy ZBX_DB_TYPE=mysql ZBX_OPT_TYPE=none
 
-LABEL org.label-schema.name="zabbix-proxy-${DB_TYPE}-alpine" \
+LABEL org.label-schema.name="zabbix-${ZBX_TYPE}-${ZBX_DB_TYPE}-alpine" \
       org.label-schema.vendor="Zabbix LLC" \
       org.label-schema.url="https://zabbix.com/" \
-      org.label-schema.description="Zabbix proxy with MySQL database support" \
+      org.label-schema.description="Zabbix ${ZBX_TYPE} with MySQL database support" \
       org.label-schema.vcs-ref="${VCS_REF}" \
       org.label-schema.build-date="${BUILD_DATE}" \
       org.label-schema.schema-version="1.0" \
@@ -39,7 +39,7 @@ RUN addgroup zabbix && \
     mkdir -p /var/lib/zabbix/ssl/keys && \
     mkdir -p /var/lib/zabbix/ssl/ssl_ca && \
     chown --quiet -R zabbix:root /var/lib/zabbix && \
-    mkdir -p /usr/share/doc/zabbix-proxy-${DB_TYPE} && \
+    mkdir -p /usr/share/doc/zabbix-${ZBX_TYPE}-${ZBX_DB_TYPE} && \
     apk update && \
     apk add ${APK_FLAGS_PERSISTANT} \
             bash \
@@ -52,7 +52,6 @@ RUN addgroup zabbix && \
             mariadb-client-libs \
             net-snmp-agent-libs \
             openipmi-libs \
-            supervisor \
             unixodbc \
             fping && \
     rm -rf /var/cache/apk/*
@@ -60,12 +59,12 @@ RUN addgroup zabbix && \
 ARG MAJOR_VERSION=master
 ARG ZBX_VERSION=${MAJOR_VERSION}
 ARG ZBX_SOURCES=svn://svn.zabbix.com/tags/${ZBX_VERSION}/
-ENV ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES} DB_TYPE=${DB_TYPE}
+ENV ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES}
 
 LABEL org.label-schema.usage="https://www.zabbix.com/documentation/${MAJOR_VERSION}/manual/installation/containers" \
       org.label-schema.version="${ZBX_VERSION}" \
       org.label-schema.vcs-url="${ZBX_SOURCES}" \
-      org.label-schema.docker.cmd="docker run --name zabbix-proxy-${DB_TYPE} --link mysql-server:mysql --link zabbix-server:zabbix-server -p 10051:10051 -d zabbix-proxy-${DB_TYPE}:alpine-${ZBX_VERSION}"
+      org.label-schema.docker.cmd="docker run --name zabbix-${ZBX_TYPE}-${ZBX_DB_TYPE} --link mysql-server:mysql --link zabbix-server:zabbix-server -p 10051:10051 -d zabbix-${ZBX_TYPE}-${ZBX_DB_TYPE}:alpine-${ZBX_VERSION}"
 
 RUN apk add ${APK_FLAGS_DEV} --virtual build-dependencies \
             autoconf \
@@ -94,8 +93,8 @@ RUN apk add ${APK_FLAGS_DEV} --virtual build-dependencies \
             --sysconfdir=/etc/zabbix \
             --prefix=/usr \
             --enable-agent \
-            --enable-proxy \
-            --with-${DB_TYPE} \
+            --enable-${ZBX_TYPE} \
+            --with-${ZBX_DB_TYPE} \
             --with-ldap \
             --with-libcurl \
             --with-libxml2 \
@@ -108,14 +107,14 @@ RUN apk add ${APK_FLAGS_DEV} --virtual build-dependencies \
             --silent && \
     make -j"$(nproc)" -s dbschema 1>/dev/null && \
     make -j"$(nproc)" -s 1>/dev/null && \
-    cp src/zabbix_proxy/zabbix_proxy /usr/sbin/zabbix_proxy && \
+    cp src/zabbix_${ZBX_TYPE}/zabbix_${ZBX_TYPE} /usr/sbin/zabbix_${ZBX_TYPE} && \
     cp src/zabbix_get/zabbix_get /usr/bin/zabbix_get && \
     cp src/zabbix_sender/zabbix_sender /usr/bin/zabbix_sender && \
-    cp conf/zabbix_proxy.conf /etc/zabbix/zabbix_proxy.conf && \
+    cp conf/zabbix_${ZBX_TYPE}.conf /etc/zabbix/zabbix_${ZBX_TYPE}.conf && \
     chown --quiet -R zabbix:root /etc/zabbix && \
-    cat database/${DB_TYPE}/schema.sql > database/${DB_TYPE}/create.sql && \
-    gzip database/${DB_TYPE}/create.sql && \
-    cp database/${DB_TYPE}/create.sql.gz /usr/share/doc/zabbix-proxy-${DB_TYPE}/ && \
+    cat database/${ZBX_DB_TYPE}/schema.sql > database/${ZBX_DB_TYPE}/create.sql && \
+    gzip database/${ZBX_DB_TYPE}/create.sql && \
+    cp database/${ZBX_DB_TYPE}/create.sql.gz /usr/share/doc/zabbix-${ZBX_TYPE}-${ZBX_DB_TYPE}/ && \
     cd /tmp/ && \
     rm -rf /tmp/zabbix-${ZBX_VERSION}/ && \
     apk del ${APK_FLAGS_COMMON} --purge \
@@ -130,9 +129,6 @@ WORKDIR /var/lib/zabbix
 VOLUME ["/usr/lib/zabbix/externalscripts", "/var/lib/zabbix/enc", "/var/lib/zabbix/modules", "/var/lib/zabbix/snmptraps"]
 VOLUME ["/var/lib/zabbix/ssh_keys", "/var/lib/zabbix/ssl/certs", "/var/lib/zabbix/ssl/keys", "/var/lib/zabbix/ssl/ssl_ca"]
 
-COPY ["conf/etc/supervisor/", "/etc/supervisor/"]
 COPY ["docker-entrypoint.sh", "/usr/bin/"]
 
 ENTRYPOINT ["docker-entrypoint.sh"]
-
-CMD ["proxy", "mysql"]

@@ -122,7 +122,7 @@ services:
 
  zabbix-proxy-mysql:
   build:
-   context: ./proxy-pgsql/alpine
+   context: ./proxy-mysql/alpine
    cache_from:
     - alpine:3.4
   image: zabbix-proxy-mysql:alpine-local

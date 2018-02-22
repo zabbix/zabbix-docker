@@ -7,10 +7,10 @@ ARG VCS_REF
 ARG APK_FLAGS_COMMON="-q"
 ARG APK_FLAGS_PERSISTANT="${APK_FLAGS_COMMON} --clean-protected --no-cache"
 ARG APK_FLAGS_DEV="${APK_FLAGS_COMMON} --no-cache"
-ARG DB_TYPE=mysql
-ENV TERM=xterm
+ENV TERM=xterm \
+    ZBX_TYPE=frontend ZBX_DB_TYPE=mysql ZBX_OPT_TYPE=nginx
 
-LABEL org.label-schema.name="zabbix-web-nginx-${DB_TYPE}-alpine" \
+LABEL org.label-schema.name="zabbix-web-${ZBX_OPT_TYPE}-${ZBX_DB_TYPE}-alpine" \
       org.label-schema.vendor="Zabbix LLC" \
       org.label-schema.url="https://zabbix.com/" \
       org.label-schema.description="Zabbix web-interface based on Nginx web server with MySQL database support" \
@@ -53,12 +53,12 @@ RUN addgroup zabbix && \
 ARG MAJOR_VERSION=master
 ARG ZBX_VERSION=${MAJOR_VERSION}
 ARG ZBX_SOURCES=svn://svn.zabbix.com/tags/${ZBX_VERSION}/
-ENV ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES} DB_TYPE=${DB_TYPE}
+ENV ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES}
 
 LABEL org.label-schema.usage="https://www.zabbix.com/documentation/${MAJOR_VERSION}/manual/installation/containers" \
       org.label-schema.version="${ZBX_VERSION}" \
       org.label-schema.vcs-url="${ZBX_SOURCES}" \
-      org.label-schema.docker.cmd="docker run --name zabbix-web-nginx-${DB_TYPE} --link mysql-server:mysql --link zabbix-server:zabbix-server -p 80:80 -d zabbix-web-nginx-${DB_TYPE}:alpine-${ZBX_VERSION}"
+      org.label-schema.docker.cmd="docker run --name zabbix-web-${ZBX_OPT_TYPE}-${ZBX_DB_TYPE} --link mysql-server:mysql --link zabbix-server:zabbix-server -p 80:80 -d zabbix-web-${ZBX_OPT_TYPE}-${ZBX_DB_TYPE}:alpine-${ZBX_VERSION}"
 
 COPY ["conf/tmp/font-config", "/tmp/font-config"]
 
@@ -98,5 +98,3 @@ COPY ["conf/etc/php5/conf.d/99-zabbix.ini", "/etc/php5/conf.d/"]
 COPY ["docker-entrypoint.sh", "/usr/bin/"]
 
 ENTRYPOINT ["docker-entrypoint.sh"]
-
-CMD ["frontend", "mysql", "nginx"]

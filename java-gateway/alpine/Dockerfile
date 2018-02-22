@@ -7,9 +7,10 @@ ARG VCS_REF
 ARG APK_FLAGS_COMMON="-q"
 ARG APK_FLAGS_PERSISTANT="${APK_FLAGS_COMMON} --clean-protected --no-cache"
 ARG APK_FLAGS_DEV="${APK_FLAGS_COMMON} --no-cache"
-ENV TERM=xterm PATH=${PATH}:/usr/lib/jvm/default-jvm/bin/ JAVA_HOME=/usr/lib/jvm/default-jvm
+ENV TERM=xterm PATH=${PATH}:/usr/lib/jvm/default-jvm/bin/ JAVA_HOME=/usr/lib/jvm/default-jvm \
+    ZBX_TYPE=java-gateway ZBX_DB_TYPE=none ZBX_OPT_TYPE=none
 
-LABEL org.label-schema.name="zabbix-java-gateway-alpine" \
+LABEL org.label-schema.name="zabbix-${ZBX_TYPE}-alpine" \
       org.label-schema.vendor="Zabbix LLC" \
       org.label-schema.url="https://zabbix.com/" \
       org.label-schema.description="Zabbix Java Gateway performs native support for monitoring JMX applications" \
@@ -30,8 +31,7 @@ RUN addgroup zabbix && \
     apk update && \
     apk add ${APK_FLAGS_COMMON} \
             bash \
-            openjdk8-jre-base \
-            supervisor && \
+            openjdk8-jre-base && \
     rm -rf /var/cache/apk/*
 
 ARG MAJOR_VERSION=master
@@ -42,7 +42,7 @@ ENV ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES}
 LABEL org.label-schema.usage="https://www.zabbix.com/documentation/${MAJOR_VERSION}/manual/installation/containers" \
       org.label-schema.version="${ZBX_VERSION}" \
       org.label-schema.vcs-url="${ZBX_SOURCES}" \
-      org.label-schema.docker.cmd="docker run --name zabbix-java-gateway --link zabbix-server:zabbix-server -p 10052:10052 -d zabbix-java-gateway:alpine-${ZBX_VERSION}"
+      org.label-schema.docker.cmd="docker run --name zabbix-${ZBX_TYPE} --link zabbix-server:zabbix-server -p 10052:10052 -d zabbix-${ZBX_TYPE}:alpine-${ZBX_VERSION}"
 
 RUN apk add ${APK_FLAGS_DEV} --virtual build-dependencies \
             autoconf \
@@ -82,11 +82,8 @@ EXPOSE 10052/TCP
 
 WORKDIR /var/lib/zabbix
 
-COPY ["conf/etc/supervisor/", "/etc/supervisor/"]
 COPY ["conf/etc/zabbix/zabbix_java_gateway_logback.xml", "/etc/zabbix/"]
 COPY ["conf/usr/sbin/zabbix_java_gateway", "/usr/sbin/"]
 COPY ["docker-entrypoint.sh", "/usr/bin/"]
 
 ENTRYPOINT ["docker-entrypoint.sh"]
-
-CMD ["java-gateway", "none"]

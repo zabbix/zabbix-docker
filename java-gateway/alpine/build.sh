@@ -20,5 +20,5 @@ fi
 
 docker build -t zabbix-$app_component:$os-$version --build-arg VCS_REF="$VCS_REF" --build-arg BUILD_DATE=`date -u +"%Y-%m-%dT%H:%M:%SZ"` -f Dockerfile .
 
-#docker rm -f zabbix-$app_component
-#docker run --name zabbix-$app_component -t -d --link zabbix-server:zabbix-server zabbix-$app_component:$os-$version
+docker rm -f zabbix-$app_component
+docker run --name zabbix-$app_component -t -d zabbix-$app_component:$os-$version
