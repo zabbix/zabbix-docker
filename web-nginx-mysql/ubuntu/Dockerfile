@@ -7,10 +7,10 @@ ARG VCS_REF
 ARG APT_FLAGS_COMMON="-qq -y"
 ARG APT_FLAGS_PERSISTANT="${APT_FLAGS_COMMON} --no-install-recommends"
 ARG APT_FLAGS_DEV="${APT_FLAGS_COMMON} --no-install-recommends"
-ARG DB_TYPE=mysql
-ENV LANG=en_US.UTF-8 LANGUAGE=en_US:en LC_ALL=en_US.UTF-8 DEBIAN_FRONTEND=noninteractive TERM=xterm
+ENV LANG=en_US.UTF-8 LANGUAGE=en_US:en LC_ALL=en_US.UTF-8 DEBIAN_FRONTEND=noninteractive TERM=xterm \
+    ZBX_TYPE=frontend ZBX_DB_TYPE=mysql ZBX_OPT_TYPE=nginx
 
-LABEL org.label-schema.name="zabbix-web-nginx-${DB_TYPE}-ubuntu" \
+LABEL org.label-schema.name="zabbix-web-${ZBX_OPT_TYPE}-${ZBX_DB_TYPE}-ubuntu" \
       org.label-schema.vendor="Zabbix LLC" \
       org.label-schema.url="https://zabbix.com/" \
       org.label-schema.description="Zabbix web-interface based on Nginx web server with MySQL database support" \
@@ -37,8 +37,8 @@ RUN locale-gen $LC_ALL && \
     apt-get ${APT_FLAGS_COMMON} install \
             wget 1>/dev/null && \
     DISTRIB_CODENAME=$(/bin/bash -c 'source /etc/lsb-release && echo $DISTRIB_CODENAME') && \
-    wget -q http://nginx.org/keys/nginx_signing.key -O- | apt-key add - && \
-    echo "deb http://nginx.org/packages/ubuntu/ $DISTRIB_CODENAME nginx" >> /etc/apt/sources.list.d/nginx.list && \
+    wget -q https://nginx.org/keys/nginx_signing.key -O- | apt-key add - && \
+    echo "deb https://nginx.org/packages/ubuntu/ $DISTRIB_CODENAME nginx" >> /etc/apt/sources.list.d/nginx.list && \
     apt-get ${APT_FLAGS_COMMON} update && \
     apt-get ${APT_FLAGS_PERSISTANT} install \
             mysql-client \
@@ -62,12 +62,12 @@ RUN locale-gen $LC_ALL && \
 ARG MAJOR_VERSION=4.0
 ARG ZBX_VERSION=${MAJOR_VERSION}
 ARG ZBX_SOURCES=svn://svn.zabbix.com/trunk/
-ENV ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES} DB_TYPE=${DB_TYPE}
+ENV ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES}
 
 LABEL org.label-schema.usage="https://www.zabbix.com/documentation/${MAJOR_VERSION}/manual/installation/containers" \
       org.label-schema.version="${ZBX_VERSION}" \
       org.label-schema.vcs-url="${ZBX_SOURCES}" \
-      org.label-schema.docker.cmd="docker run --name zabbix-web-nginx-${DB_TYPE} --link mysql-server:mysql --link zabbix-server:zabbix-server -p 80:80 -d zabbix-web-nginx-${DB_TYPE}:ubuntu-${ZBX_VERSION}"
+      org.label-schema.docker.cmd="docker run --name zabbix-web-${ZBX_OPT_TYPE}-${ZBX_DB_TYPE} --link mysql-server:mysql --link zabbix-server:zabbix-server -p 80:80 -d zabbix-web-${ZBX_OPT_TYPE}-${ZBX_DB_TYPE}:ubuntu-${ZBX_VERSION}"
 
 COPY ["conf/tmp/font-config", "/tmp/font-config"]
 
@@ -119,5 +119,3 @@ COPY ["conf/etc/php5/fpm/conf.d/99-zabbix.ini", "/etc/php5/fpm/conf.d/"]
 COPY ["docker-entrypoint.sh", "/usr/bin/"]
 
 ENTRYPOINT ["docker-entrypoint.sh"]
-
-CMD ["frontend", "mysql", "nginx"]

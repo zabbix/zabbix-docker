@@ -7,14 +7,14 @@ ARG VCS_REF
 ARG APT_FLAGS_COMMON="-qq -y"
 ARG APT_FLAGS_PERSISTANT="${APT_FLAGS_COMMON} --no-install-recommends"
 ARG APT_FLAGS_DEV="${APT_FLAGS_COMMON} --no-install-recommends"
-ARG DB_TYPE=postgresql
 ENV LANG=en_US.UTF-8 LANGUAGE=en_US:en LC_ALL=en_US.UTF-8 DEBIAN_FRONTEND=noninteractive TERM=xterm \
-    MIBDIRS=/var/lib/mibs/iana:/var/lib/mibs/ietf:/usr/share/snmp/mibs:/var/lib/zabbix/mibs MIBS=+ALL
+    MIBDIRS=/var/lib/mibs/iana:/var/lib/mibs/ietf:/usr/share/snmp/mibs:/var/lib/zabbix/mibs MIBS=+ALL \
+    ZBX_TYPE=server ZBX_DB_TYPE=postgresql ZBX_OPT_TYPE=none
 
-LABEL org.label-schema.name="zabbix-proxy-${DB_TYPE}-ubuntu" \
+LABEL org.label-schema.name="zabbix-${ZBX_TYPE}-${ZBX_DB_TYPE}-ubuntu" \
       org.label-schema.vendor="Zabbix LLC" \
       org.label-schema.url="https://zabbix.com/" \
-      org.label-schema.description="Zabbix server with PostgreSQL database support" \
+      org.label-schema.description="Zabbix ${ZBX_TYPE} with PostgreSQL database support" \
       org.label-schema.vcs-ref="${VCS_REF}" \
       org.label-schema.build-date="${BUILD_DATE}" \
       org.label-schema.schema-version="1.0" \
@@ -47,7 +47,7 @@ RUN locale-gen $LC_ALL && \
     mkdir -p /var/lib/zabbix/ssl/keys && \
     mkdir -p /var/lib/zabbix/ssl/ssl_ca && \
     chown --quiet -R zabbix:root /var/lib/zabbix && \
-    mkdir -p /usr/share/doc/zabbix-server-${DB_TYPE} && \
+    mkdir -p /usr/share/doc/zabbix-${ZBX_TYPE}-${ZBX_DB_TYPE} && \
     apt-get ${APT_FLAGS_COMMON} update && \
     apt-get ${APT_FLAGS_PERSISTANT} install \
             fping \
@@ -63,7 +63,6 @@ RUN locale-gen $LC_ALL && \
             libxml2 \
             postgresql-client \
             snmp-mibs-downloader \
-            supervisor \
             unixodbc 1>/dev/null && \
     apt-get ${APT_FLAGS_COMMON} autoremove && \
     apt-get ${APT_FLAGS_COMMON} clean && \
@@ -72,12 +71,12 @@ RUN locale-gen $LC_ALL && \
 ARG MAJOR_VERSION=4.0
 ARG ZBX_VERSION=${MAJOR_VERSION}
 ARG ZBX_SOURCES=svn://svn.zabbix.com/trunk/
-ENV ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES} DB_TYPE=${DB_TYPE}
+ENV ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES}
 
 LABEL org.label-schema.usage="https://www.zabbix.com/documentation/${MAJOR_VERSION}/manual/installation/containers" \
       org.label-schema.version="${ZBX_VERSION}" \
       org.label-schema.vcs-url="${ZBX_SOURCES}" \
-      org.label-schema.docker.cmd="docker run --name zabbix-server-${DB_TYPE} --link postgres-server:postgres -p 10051:10051 -d zabbix-server-${DB_TYPE}:ubuntu-${ZBX_VERSION}"
+      org.label-schema.docker.cmd="docker run --name zabbix-${ZBX_TYPE}-pgsql --link postgres-server:postgres -p 10051:10051 -d zabbix-${ZBX_TYPE}-pgsql:ubuntu-${ZBX_VERSION}"
 
 RUN apt-get ${APT_FLAGS_COMMON} update && \
     apt-get ${APT_FLAGS_DEV} install \
@@ -112,8 +111,8 @@ RUN apt-get ${APT_FLAGS_COMMON} update && \
             --prefix=/usr \
             --sysconfdir=/etc/zabbix \
             --enable-agent \
-            --enable-server \
-            --with-${DB_TYPE} \
+            --enable-${ZBX_TYPE} \
+            --with-${ZBX_DB_TYPE} \
             --with-jabber \
             --with-ldap \
             --with-libcurl \
@@ -127,16 +126,16 @@ RUN apt-get ${APT_FLAGS_COMMON} update && \
             --silent && \
     make -j"$(nproc)" -s dbschema 1>/dev/null && \
     make -j"$(nproc)" -s 1>/dev/null && \
-    cp src/zabbix_server/zabbix_server /usr/sbin/zabbix_server && \
+    cp src/zabbix_${ZBX_TYPE}/zabbix_${ZBX_TYPE} /usr/sbin/zabbix_${ZBX_TYPE} && \
     cp src/zabbix_get/zabbix_get /usr/bin/zabbix_get && \
     cp src/zabbix_sender/zabbix_sender /usr/bin/zabbix_sender && \
-    cp conf/zabbix_server.conf /etc/zabbix/zabbix_server.conf && \
+    cp conf/zabbix_${ZBX_TYPE}.conf /etc/zabbix/zabbix_${ZBX_TYPE}.conf && \
     chown --quiet -R zabbix:root /etc/zabbix && \
-    cat database/${DB_TYPE}/schema.sql > database/${DB_TYPE}/create.sql && \
-    cat database/${DB_TYPE}/images.sql >> database/${DB_TYPE}/create.sql && \
-    cat database/${DB_TYPE}/data.sql >> database/${DB_TYPE}/create.sql && \
-    gzip database/${DB_TYPE}/create.sql && \
-    cp database/${DB_TYPE}/create.sql.gz /usr/share/doc/zabbix-server-${DB_TYPE}/ && \
+    cat database/${ZBX_DB_TYPE}/schema.sql > database/${ZBX_DB_TYPE}/create.sql && \
+    cat database/${ZBX_DB_TYPE}/images.sql >> database/${ZBX_DB_TYPE}/create.sql && \
+    cat database/${ZBX_DB_TYPE}/data.sql >> database/${ZBX_DB_TYPE}/create.sql && \
+    gzip database/${ZBX_DB_TYPE}/create.sql && \
+    cp database/${ZBX_DB_TYPE}/create.sql.gz /usr/share/doc/zabbix-${ZBX_TYPE}-${ZBX_DB_TYPE}/ && \
     cd /tmp/ && \
     rm -rf /tmp/zabbix-${ZBX_VERSION}/ && \
     apt-get ${APT_FLAGS_COMMON} purge \
@@ -168,9 +167,6 @@ WORKDIR /var/lib/zabbix
 VOLUME ["/usr/lib/zabbix/alertscripts", "/usr/lib/zabbix/externalscripts", "/var/lib/zabbix/enc", "/var/lib/zabbix/mibs", "/var/lib/zabbix/modules"]
 VOLUME ["/var/lib/zabbix/snmptraps", "/var/lib/zabbix/ssh_keys", "/var/lib/zabbix/ssl/certs", "/var/lib/zabbix/ssl/keys", "/var/lib/zabbix/ssl/ssl_ca"]
       
-COPY ["conf/etc/supervisor/", "/etc/supervisor/"]
 COPY ["docker-entrypoint.sh", "/usr/bin/"]
 
 ENTRYPOINT ["docker-entrypoint.sh"]
-
-CMD ["server", "postgresql"]

@@ -7,10 +7,10 @@ ARG VCS_REF
 ARG APT_FLAGS_COMMON="-qq -y"
 ARG APT_FLAGS_PERSISTANT="${APT_FLAGS_COMMON} --no-install-recommends"
 ARG APT_FLAGS_DEV="${APT_FLAGS_COMMON} --no-install-recommends"
-ARG DB_TYPE=mysql
-ENV LANG=en_US.UTF-8 LANGUAGE=en_US:en LC_ALL=en_US.UTF-8 DEBIAN_FRONTEND=noninteractive TERM=xterm
+ENV LANG=en_US.UTF-8 LANGUAGE=en_US:en LC_ALL=en_US.UTF-8 DEBIAN_FRONTEND=noninteractive TERM=xterm \
+    ZBX_TYPE=frontend ZBX_DB_TYPE=mysql ZBX_OPT_TYPE=apache
 
-LABEL org.label-schema.name="zabbix-web-apache-${DB_TYPE}-ubuntu" \
+LABEL org.label-schema.name="zabbix-web-${ZBX_OPT_TYPE}-${DB_TYPE}-ubuntu" \
       org.label-schema.vendor="Zabbix LLC" \
       org.label-schema.url="https://zabbix.com/" \
       org.label-schema.description="Zabbix web-interface based on Apache2 web server with MySQL database support" \
@@ -42,7 +42,6 @@ RUN locale-gen $LC_ALL && \
             php5-json \
             php5-ldap \
             php5-mysql \
-            supervisor \
             ttf-dejavu-core 1>/dev/null && \
     apt-get ${APT_FLAGS_COMMON} autoremove && \
     apt-get ${APT_FLAGS_COMMON} clean && \
@@ -51,12 +50,12 @@ RUN locale-gen $LC_ALL && \
 ARG MAJOR_VERSION=4.0
 ARG ZBX_VERSION=${MAJOR_VERSION}
 ARG ZBX_SOURCES=svn://svn.zabbix.com/trunk/
-ENV ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES} DB_TYPE=${DB_TYPE}
+ENV ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES}
 
 LABEL org.label-schema.usage="https://www.zabbix.com/documentation/${MAJOR_VERSION}/manual/installation/containers" \
       org.label-schema.version="${ZBX_VERSION}" \
       org.label-schema.vcs-url="${ZBX_SOURCES}" \
-      org.label-schema.docker.cmd="docker run --name zabbix-web-apache-${DB_TYPE} --link mysql-server:mysql --link zabbix-server:zabbix-server -p 80:80 -d zabbix-web-apache-${DB_TYPE}:ubuntu-${ZBX_VERSION}"
+      org.label-schema.docker.cmd="docker run --name zabbix-web-${ZBX_OPT_TYPE}-${ZBX_DB_TYPE} --link mysql-server:mysql --link zabbix-server:zabbix-server -p 80:80 -d zabbix-web-${ZBX_OPT_TYPE}-${ZBX_DB_TYPE}:ubuntu-${ZBX_VERSION}"
 
 COPY ["conf/tmp/font-config", "/tmp/font-config"]
 
@@ -99,7 +98,6 @@ WORKDIR /usr/share/zabbix
 
 VOLUME ["/etc/ssl/apache2"]
 
-COPY ["conf/etc/supervisor/", "/etc/supervisor/"]
 COPY ["conf/etc/zabbix/apache.conf", "/etc/zabbix/"]
 COPY ["conf/etc/zabbix/apache_ssl.conf", "/etc/zabbix/"]
 COPY ["conf/etc/zabbix/web/zabbix.conf.php", "/etc/zabbix/web/"]
@@ -107,5 +105,3 @@ COPY ["conf/etc/php5/apache2/conf.d/99-zabbix.ini", "/etc/php5/apache2/conf.d/"]
 COPY ["docker-entrypoint.sh", "/usr/bin/"]
 
 ENTRYPOINT ["docker-entrypoint.sh"]
-
-CMD ["frontend", "mysql", "apache"]

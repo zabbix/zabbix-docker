@@ -7,9 +7,10 @@ ARG VCS_REF
 ARG YUM_FLAGS_COMMON="--quiet -y"
 ARG YUM_FLAGS_PERSISTANT="${YUM_FLAGS_COMMON}"
 ARG YUM_FLAGS_DEV="${YUM_FLAGS_COMMON}"
-ENV TERM=xterm
+ENV TERM=xterm \
+    ZBX_TYPE=agent ZBX_DB_TYPE=none ZBX_OPT_TYPE=none
 
-LABEL org.label-schema.name="zabbix-agent-centos" \
+LABEL org.label-schema.name="zabbix-${ZBX_TYPE}-centos" \
       org.label-schema.vendor="Zabbix LLC" \
       org.label-schema.url="https://zabbix.com/" \
       org.label-schema.description="Zabbix agent is deployed on a monitoring target to actively monitor local resources and applications" \
@@ -32,11 +33,9 @@ RUN groupadd --system zabbix && \
     mkdir -p /var/lib/zabbix/modules && \
     chown --quiet -R zabbix:root /var/lib/zabbix && \
     yum ${YUM_FLAGS_COMMON} makecache && \
-    yum ${YUM_FLAGS_DEV} install epel-release && \
     yum ${YUM_FLAGS_PERSISTANT} install \
             libldap \
-            openssl-libs \
-            supervisor && \
+            openssl-libs && \
     yum ${YUM_FLAGS_PERSISTANT} clean all && \
     rm -rf /var/cache/yum/
 
@@ -48,7 +47,7 @@ ENV ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES}
 LABEL org.label-schema.usage="https://www.zabbix.com/documentation/${MAJOR_VERSION}/manual/installation/containers" \
       org.label-schema.version="${ZBX_VERSION}" \
       org.label-schema.vcs-url="${ZBX_SOURCES}" \
-      org.label-schema.docker.cmd="docker run --name zabbix-agent --link zabbix-server:zabbix-server -p 10050:10050 -d zabbix-agent:centos-${ZBX_VERSION}"
+      org.label-schema.docker.cmd="docker run --name zabbix-${ZBX_TYPE} --link zabbix-server:zabbix-server -p 10050:10050 -d zabbix-${ZBX_TYPE}:centos-${ZBX_VERSION}"
 
 RUN yum --quiet makecache && \
     yum ${YUM_FLAGS_DEV} install \
@@ -100,9 +99,6 @@ WORKDIR /var/lib/zabbix
 
 VOLUME ["/etc/zabbix/zabbix_agentd.d", "/var/lib/zabbix/enc", "/var/lib/zabbix/modules"]
 
-COPY ["conf/etc/supervisor/", "/etc/supervisor/"]
 COPY ["docker-entrypoint.sh", "/usr/bin/"]
 
 ENTRYPOINT ["docker-entrypoint.sh"]
-
-CMD ["agentd", "none"]

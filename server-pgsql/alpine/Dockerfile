@@ -7,13 +7,13 @@ ARG VCS_REF
 ARG APK_FLAGS_COMMON="-q"
 ARG APK_FLAGS_PERSISTANT="${APK_FLAGS_COMMON} --clean-protected --no-cache"
 ARG APK_FLAGS_DEV="${APK_FLAGS_COMMON} --no-cache"
-ARG DB_TYPE=postgresql
-ENV TERM=xterm MIBDIRS=/usr/share/snmp/mibs:/var/lib/zabbix/mibs MIBS=+ALL
+ENV TERM=xterm MIBDIRS=/usr/share/snmp/mibs:/var/lib/zabbix/mibs MIBS=+ALL \
+    ZBX_TYPE=server ZBX_DB_TYPE=postgresql ZBX_OPT_TYPE=none
 
-LABEL org.label-schema.name="zabbix-server-${DB_TYPE}-alpine" \
+LABEL org.label-schema.name="zabbix-${ZBX_TYPE}-${ZBX_DB_TYPE}-alpine" \
       org.label-schema.vendor="Zabbix LLC" \
       org.label-schema.url="https://zabbix.com/" \
-      org.label-schema.description="Zabbix server with PostgreSQL database support" \
+      org.label-schema.description="Zabbix ${ZBX_TYPE} with PostgreSQL database support" \
       org.label-schema.vcs-ref="${VCS_REF}" \
       org.label-schema.build-date="${BUILD_DATE}" \
       org.label-schema.schema-version="1.0" \
@@ -41,7 +41,7 @@ RUN addgroup zabbix && \
     mkdir -p /var/lib/zabbix/ssl/keys && \
     mkdir -p /var/lib/zabbix/ssl/ssl_ca && \
     chown --quiet -R zabbix:root /var/lib/zabbix && \
-    mkdir -p /usr/share/doc/zabbix-server-${DB_TYPE} && \
+    mkdir -p /usr/share/doc/zabbix-${ZBX_TYPE}-${ZBX_DB_TYPE} && \
     apk update && \
     apk add ${APK_FLAGS_PERSISTANT} \
             bash \
@@ -57,19 +57,18 @@ RUN addgroup zabbix && \
             pcre \
             postgresql-client \
             postgresql-libs \
-            supervisor \
             unixodbc && \
     rm -rf /var/cache/apk/*
 
 ARG MAJOR_VERSION=4.0
 ARG ZBX_VERSION=${MAJOR_VERSION}
 ARG ZBX_SOURCES=svn://svn.zabbix.com/trunk/
-ENV ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES} DB_TYPE=${DB_TYPE}
+ENV ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES}
 
 LABEL org.label-schema.usage="https://www.zabbix.com/documentation/${MAJOR_VERSION}/manual/installation/containers" \
       org.label-schema.version="${ZBX_VERSION}" \
       org.label-schema.vcs-url="${ZBX_SOURCES}" \
-      org.label-schema.docker.cmd="docker run --name zabbix-server-${DB_TYPE} --link postgres-server:postgres -p 10051:10051 -d zabbix-server-${DB_TYPE}:alpine-${ZBX_VERSION}"
+      org.label-schema.docker.cmd="docker run --name zabbix-${ZBX_TYPE}-pgsql --link postgres-server:postgres -p 10051:10051 -d zabbix-${ZBX_TYPE}-pgsql:alpine-${ZBX_VERSION}"
 
 RUN apk add ${APK_FLAGS_DEV} --virtual build-dependencies \
             alpine-sdk \
@@ -100,8 +99,8 @@ RUN apk add ${APK_FLAGS_DEV} --virtual build-dependencies \
             --prefix=/usr \
             --sysconfdir=/etc/zabbix \
             --enable-agent \
-            --enable-server \
-            --with-${DB_TYPE} \
+            --enable-${ZBX_TYPE} \
+            --with-${ZBX_DB_TYPE} \
 # Does not support stable iksemel library
 #            --with-jabber \
             --with-ldap \
@@ -116,16 +115,16 @@ RUN apk add ${APK_FLAGS_DEV} --virtual build-dependencies \
             --silent && \
     make -j"$(nproc)" -s dbschema 1>/dev/null && \
     make -j"$(nproc)" -s 1>/dev/null && \
-    cp src/zabbix_server/zabbix_server /usr/sbin/zabbix_server && \
+    cp src/zabbix_${ZBX_TYPE}/zabbix_${ZBX_TYPE} /usr/sbin/zabbix_${ZBX_TYPE} && \
     cp src/zabbix_get/zabbix_get /usr/bin/zabbix_get && \
     cp src/zabbix_sender/zabbix_sender /usr/bin/zabbix_sender && \
-    cp conf/zabbix_server.conf /etc/zabbix/zabbix_server.conf && \
+    cp conf/zabbix_${ZBX_TYPE}.conf /etc/zabbix/zabbix_${ZBX_TYPE}.conf && \
     chown --quiet -R zabbix:root /etc/zabbix && \
-    cat database/${DB_TYPE}/schema.sql > database/${DB_TYPE}/create.sql && \
-    cat database/${DB_TYPE}/images.sql >> database/${DB_TYPE}/create.sql && \
-    cat database/${DB_TYPE}/data.sql >> database/${DB_TYPE}/create.sql && \
-    gzip database/${DB_TYPE}/create.sql && \
-    cp database/${DB_TYPE}/create.sql.gz /usr/share/doc/zabbix-server-${DB_TYPE}/ && \
+    cat database/${ZBX_DB_TYPE}/schema.sql > database/${ZBX_DB_TYPE}/create.sql && \
+    cat database/${ZBX_DB_TYPE}/images.sql >> database/${ZBX_DB_TYPE}/create.sql && \
+    cat database/${ZBX_DB_TYPE}/data.sql >> database/${ZBX_DB_TYPE}/create.sql && \
+    gzip database/${ZBX_DB_TYPE}/create.sql && \
+    cp database/${ZBX_DB_TYPE}/create.sql.gz /usr/share/doc/zabbix-${ZBX_TYPE}-${ZBX_DB_TYPE}/ && \
     cd /tmp/ && \
     rm -rf /tmp/zabbix-${ZBX_VERSION}/ && \
     apk del ${APK_FLAGS_COMMON} --purge \
@@ -140,9 +139,6 @@ WORKDIR /var/lib/zabbix
 VOLUME ["/usr/lib/zabbix/alertscripts", "/usr/lib/zabbix/externalscripts", "/var/lib/zabbix/enc", "/var/lib/zabbix/mibs", "/var/lib/zabbix/modules"]
 VOLUME ["/var/lib/zabbix/snmptraps", "/var/lib/zabbix/ssh_keys", "/var/lib/zabbix/ssl/certs", "/var/lib/zabbix/ssl/keys", "/var/lib/zabbix/ssl/ssl_ca"]
 
-COPY ["conf/etc/supervisor/", "/etc/supervisor/"]
 COPY ["docker-entrypoint.sh", "/usr/bin/"]
 
 ENTRYPOINT ["docker-entrypoint.sh"]
-
-CMD ["server", "postgresql"]

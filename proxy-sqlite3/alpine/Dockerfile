@@ -7,13 +7,13 @@ ARG VCS_REF
 ARG APK_FLAGS_COMMON="-q"
 ARG APK_FLAGS_PERSISTANT="${APK_FLAGS_COMMON} --clean-protected --no-cache"
 ARG APK_FLAGS_DEV="${APK_FLAGS_COMMON} --no-cache"
-ARG DB_TYPE=sqlite3
-ENV TERM=xterm MIBDIRS=/usr/share/snmp/mibs:/var/lib/zabbix/mibs MIBS=+ALL
+ENV TERM=xterm MIBDIRS=/usr/share/snmp/mibs:/var/lib/zabbix/mibs MIBS=+ALL \
+    ZBX_TYPE=proxy ZBX_DB_TYPE=sqlite3 ZBX_OPT_TYPE=none
 
-LABEL org.label-schema.name="zabbix-proxy-${DB_TYPE}-alpine" \
+LABEL org.label-schema.name="zabbix-${ZBX_TYPE}-${ZBX_DB_TYPE}-alpine" \
       org.label-schema.vendor="Zabbix LLC" \
       org.label-schema.url="https://zabbix.com/" \
-      org.label-schema.description="Zabbix proxy with SQLite3 database support" \
+      org.label-schema.description="Zabbix ${ZBX_TYPE} with SQLite3 database support" \
       org.label-schema.vcs-ref="${VCS_REF}" \
       org.label-schema.build-date="${BUILD_DATE}" \
       org.label-schema.schema-version="1.0" \
@@ -53,19 +53,18 @@ RUN addgroup zabbix && \
             openipmi-libs \
             pcre \
             sqlite-libs \
-            supervisor \
             unixodbc && \
     rm -rf /var/cache/apk/*
 
 ARG MAJOR_VERSION=4.0
 ARG ZBX_VERSION=${MAJOR_VERSION}
 ARG ZBX_SOURCES=svn://svn.zabbix.com/trunk/
-ENV ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES} DB_TYPE=${DB_TYPE}
+ENV ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES}
 
 LABEL org.label-schema.usage="https://www.zabbix.com/documentation/${MAJOR_VERSION}/manual/installation/containers" \
       org.label-schema.version="${ZBX_VERSION}" \
       org.label-schema.vcs-url="${ZBX_SOURCES}" \
-      org.label-schema.docker.cmd="docker run --name zabbix-proxy-${DB_TYPE} --link zabbix-server:zabbix-server -p 10051:10051 -d zabbix-proxy-${DB_TYPE}:alpine-${ZBX_VERSION}"
+      org.label-schema.docker.cmd="docker run --name zabbix-${ZBX_TYPE}-${ZBX_DB_TYPE} --link zabbix-server:zabbix-server -p 10051:10051 -d zabbix-${ZBX_TYPE}-${ZBX_DB_TYPE}:alpine-${ZBX_VERSION}"
 
 RUN apk add ${APK_FLAGS_DEV} --virtual build-dependencies \
             alpine-sdk \
@@ -96,8 +95,8 @@ RUN apk add ${APK_FLAGS_DEV} --virtual build-dependencies \
             --sysconfdir=/etc/zabbix \
             --prefix=/usr \
             --enable-agent \
-            --enable-proxy \
-            --with-${DB_TYPE} \
+            --enable-${ZBX_TYPE} \
+            --with-${ZBX_DB_TYPE} \
             --with-ldap \
             --with-libcurl \
             --with-libxml2 \
@@ -110,10 +109,10 @@ RUN apk add ${APK_FLAGS_DEV} --virtual build-dependencies \
             --silent && \
     make -j"$(nproc)" -s dbschema 1>/dev/null && \
     make -j"$(nproc)" -s 1>/dev/null && \
-    cp src/zabbix_proxy/zabbix_proxy /usr/sbin/zabbix_proxy && \
+    cp src/zabbix_${ZBX_TYPE}/zabbix_${ZBX_TYPE} /usr/sbin/zabbix_${ZBX_TYPE} && \
     cp src/zabbix_get/zabbix_get /usr/bin/zabbix_get && \
     cp src/zabbix_sender/zabbix_sender /usr/bin/zabbix_sender && \
-    cp conf/zabbix_proxy.conf /etc/zabbix/zabbix_proxy.conf && \
+    cp conf/zabbix_${ZBX_TYPE}.conf /etc/zabbix/zabbix_${ZBX_TYPE}.conf && \
     chown --quiet -R zabbix:root /etc/zabbix && \
     cd /tmp/ && \
     rm -rf /tmp/zabbix-${ZBX_VERSION}/ && \
@@ -129,9 +128,6 @@ WORKDIR /var/lib/zabbix
 VOLUME ["/usr/lib/zabbix/externalscripts", "/var/lib/zabbix/enc", "/var/lib/zabbix/modules", "/var/lib/zabbix/snmptraps"]
 VOLUME ["/var/lib/zabbix/ssh_keys", "/var/lib/zabbix/ssl/certs", "/var/lib/zabbix/ssl/keys", "/var/lib/zabbix/ssl/ssl_ca"]
 
-COPY ["conf/etc/supervisor/", "/etc/supervisor/"]
 COPY ["docker-entrypoint.sh", "/usr/bin/"]
 
 ENTRYPOINT ["docker-entrypoint.sh"]
-
-CMD ["proxy", "sqlite3"]

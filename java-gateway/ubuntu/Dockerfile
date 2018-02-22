@@ -7,9 +7,10 @@ ARG VCS_REF
 ARG APT_FLAGS_COMMON="-qq -y"
 ARG APT_FLAGS_PERSISTANT="${APT_FLAGS_COMMON} --no-install-recommends"
 ARG APT_FLAGS_DEV="${APT_FLAGS_COMMON} --no-install-recommends"
-ENV LANG=en_US.UTF-8 LANGUAGE=en_US:en LC_ALL=en_US.UTF-8 DEBIAN_FRONTEND=noninteractive TERM=xterm
+ENV LANG=en_US.UTF-8 LANGUAGE=en_US:en LC_ALL=en_US.UTF-8 DEBIAN_FRONTEND=noninteractive TERM=xterm \
+    ZBX_TYPE=java-gateway ZBX_DB_TYPE=none ZBX_OPT_TYPE=none
 
-LABEL org.label-schema.name="zabbix-java-gateway-ubuntu" \
+LABEL org.label-schema.name="zabbix-${ZBX_TYPE}-ubuntu" \
       org.label-schema.vendor="Zabbix LLC" \
       org.label-schema.url="https://zabbix.com/" \
       org.label-schema.description="Zabbix Java Gateway performs native support for monitoring JMX applications" \
@@ -33,7 +34,6 @@ RUN locale-gen $LC_ALL && \
     chown --quiet -R zabbix:root /etc/zabbix && \
     apt-get ${APT_FLAGS_COMMON} update && \
     apt-get ${APT_FLAGS_PERSISTANT} install \
-            supervisor \
             openjdk-7-jre-headless 1>/dev/null && \
     apt-get ${APT_FLAGS_COMMON} autoremove && \
     apt-get ${APT_FLAGS_COMMON} clean && \
@@ -47,7 +47,7 @@ ENV ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES}
 LABEL org.label-schema.usage="https://www.zabbix.com/documentation/${MAJOR_VERSION}/manual/installation/containers" \
       org.label-schema.version="${ZBX_VERSION}" \
       org.label-schema.vcs-url="${ZBX_SOURCES}" \
-      org.label-schema.docker.cmd="docker run --name zabbix-java-gateway --link zabbix-server:zabbix-server -p 10052:10052 -d zabbix-java-gateway:ubuntu-${ZBX_VERSION}"
+      org.label-schema.docker.cmd="docker run --name zabbix-${ZBX_TYPE} --link zabbix-server:zabbix-server -p 10052:10052 -d zabbix-${ZBX_TYPE}:ubuntu-${ZBX_VERSION}"
 
 RUN apt-get ${APT_FLAGS_COMMON} update && \
     apt-get ${APT_FLAGS_DEV} install \
@@ -98,11 +98,8 @@ EXPOSE 10052/TCP
 
 WORKDIR /var/lib/zabbix
 
-COPY ["conf/etc/supervisor/", "/etc/supervisor/"]
 COPY ["conf/etc/zabbix/zabbix_java_gateway_logback.xml", "/etc/zabbix/"]
 COPY ["conf/usr/sbin/zabbix_java_gateway", "/usr/sbin/"]
 COPY ["docker-entrypoint.sh", "/usr/bin/"]
 
 ENTRYPOINT ["docker-entrypoint.sh"]
-
-CMD ["java-gateway", "none"]
