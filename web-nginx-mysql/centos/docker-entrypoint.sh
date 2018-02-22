@@ -924,7 +924,7 @@ elif [ "$zbx_type" == "frontend" ] && [ "$zbx_opt_type" == "apache" ]; then
     if [ -f "/usr/sbin/httpd" ]; then
         exec /usr/sbin/httpd -D FOREGROUND
     elif [ -f "/usr/sbin/apache2ctl" ]; then
-        exec source /etc/apache2/envvars && /usr/sbin/apache2ctl -D FOREGROUND
+        exec /bin/bash -c "source /etc/apache2/envvars && /usr/sbin/apache2ctl -D FOREGROUND"
     else
         echo "Unknown Web-server. Exiting..."
         exit 1
