@@ -11,13 +11,13 @@ fi
 
 # Type of Zabbix component
 # Possible values: [server, proxy, agent, web, dev]
-zbx_type="$1"
+zbx_type=${ZBX_TYPE}
 # Type of Zabbix database
 # Possible values: [mysql, postgresql]
-zbx_db_type="$2"
+zbx_db_type=${ZBX_DB_TYPE}
 # Type of web-server. Valid only with zbx_type = web
 # Possible values: [apache, nginx]
-zbx_opt_type="$3"
+zbx_opt_type=${ZBX_OPT_TYPE}
 
 # Default Zabbix installation name
 # Used only by Zabbix web-interface
@@ -884,8 +884,8 @@ else
         exit 1
     fi
 
-    if [ -n "$zbx_db_type" ]; then
-        if [ -n "$zbx_opt_type" ]; then
+    if [ "$zbx_db_type" != "none" ]; then
+        if [ "$zbx_opt_type" != "none" ]; then
             echo "** Deploying Zabbix $zbx_type ($zbx_opt_type) with $zbx_db_type database"
         else
             echo "** Deploying Zabbix $zbx_type with $zbx_db_type database"
@@ -906,7 +906,7 @@ prepare_system "$zbx_type" "$zbx_opt_type"
 [ "$zbx_type" == "frontend" ] && prepare_web $zbx_opt_type $zbx_db_type
 [ "${ZBX_ADD_WEB}" == "true" ] && prepare_web ${ZBX_WEB_SERVER} ${ZBX_MAIN_DB}
 
-[ "$zbx_type" == "agentd" ] && prepare_agent
+[ "$zbx_type" == "agent" ] && prepare_agent
 [ "${ZBX_ADD_AGENT}" == "true" ] && prepare_agent
 
 [ "$zbx_type" == "java-gateway" ] && prepare_java_gateway
@@ -916,7 +916,37 @@ clear_deploy "$zbx_type"
 
 echo "########################################################"
 
-echo "** Executing supervisord"
-exec /usr/bin/supervisord -c /etc/supervisor/supervisord.conf
+if [ "$1" != "" ]; then
+    echo "** Executing '$@'"
+    exec "$@"
+elif [ "$zbx_type" == "agent" ]; then
+    echo "** Starting Zabbix agent"
+    exec su zabbix -s "/bin/bash" -c "/usr/sbin/zabbix_agentd --foreground -c /etc/zabbix/zabbix_agentd.conf"
+elif [ "$zbx_type" == "proxy" ]; then
+    echo "** Starting Zabbix proxy"
+    exec su zabbix -s "/bin/bash" -c "/usr/sbin/zabbix_proxy --foreground -c /etc/zabbix/zabbix_proxy.conf"
+elif [ "$zbx_type" == "server" ]; then
+    echo "** Starting Zabbix server"
+    exec su zabbix -s "/bin/bash" -c "/usr/sbin/zabbix_server --foreground -c /etc/zabbix/zabbix_server.conf"
+elif [ "$zbx_type" == "java-gateway" ]; then
+    echo "** Starting Zabbix Java Gateway"
+    exec su zabbix -s "/bin/bash" -c "/usr/sbin/zabbix_java_gateway"
+elif [ "$zbx_type" == "frontend" ] && [ "$zbx_opt_type" == "apache" ]; then
+    echo "** Starting Zabbix frontend"
+    if [ -f "/usr/sbin/httpd" ]; then
+        exec /usr/sbin/httpd -D FOREGROUND
+    elif [ -f "/usr/sbin/apache2ctl" ]; then
+        exec source /etc/apache2/envvars && /usr/sbin/apache2ctl -D FOREGROUND
+    else
+        echo "Unknown Web-server. Exiting..."
+        exit 1
+    fi
+elif [ -f "/usr/bin/supervisord" ]; then
+    echo "** Executing supervisord"
+    exec /usr/bin/supervisord -c /etc/supervisor/supervisord.conf
+else
+    echo "Unknown instructions. Exiting..."
+    exit 1
+fi
 
 #################################################
