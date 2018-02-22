@@ -43,6 +43,7 @@ RUN groupadd --system zabbix && \
     chown --quiet -R zabbix:root /var/lib/zabbix && \
     mkdir -p /usr/share/doc/zabbix-${ZBX_TYPE}-${ZBX_DB_TYPE} && \
     yum ${YUM_FLAGS_COMMON} makecache && \
+    yum ${YUM_FLAGS_DEV} install epel-release && \
     yum ${YUM_FLAGS_PERSISTANT} install \
             fping \
             iksemel \
