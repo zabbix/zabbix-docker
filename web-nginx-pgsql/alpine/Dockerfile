@@ -46,6 +46,7 @@ RUN addgroup zabbix && \
             php5-xmlreader \
             postgresql-client \
             supervisor \
+            curl \
             ttf-dejavu && \
     rm -rf /var/cache/apk/*
 
