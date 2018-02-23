@@ -49,6 +49,23 @@ prepare_system() {
     fi
 }
 
+escape_spec_char() {
+    local var_value=$1
+
+    var_value="${var_value//\\/\\\\}"
+    var_value="${var_value//[$'\n']/}"
+    var_value="${var_value//\//\\/}"
+    var_value="${var_value//./\\.}"
+    var_value="${var_value//\*/\\*}"
+    var_value="${var_value//^/\\^}"
+    var_value="${var_value//\$/\\\$}"
+    var_value="${var_value//\&/\\\&}"
+    var_value="${var_value//\[/\\[}"
+    var_value="${var_value//\[/\\]}"
+
+    echo $var_value
+}
+
 update_config_var() {
     local config_path=$1
     local var_name=$2
@@ -81,8 +98,8 @@ update_config_var() {
         var_value=$ZABBIX_USER_HOME_DIR/enc/$var_value
     fi
 
-    # Escaping "/" character in parameter value
-    var_value=${var_value//\//\\/}
+    # Escaping characters in parameter value
+    var_value=$(escape_spec_char "$var_value")
 
     if [ "$(grep -E "^$var_name=" $config_path)" ] && [ "$is_multiple" != "true" ]; then
         sed -i -e "/^$var_name=/s/=.*/=$var_value/" "$config_path"
@@ -715,15 +732,17 @@ prepare_zbx_web_config() {
         echo "**** Zabbix related PHP configuration file not found"
     fi
 
-    # Escaping "/" character in parameter value
-    server_name=${ZBX_SERVER_NAME//\//\\/}
+    # Escaping characters in parameter value
+    server_name=$(escape_spec_char "${ZBX_SERVER_NAME}")
+    server_user=$(escape_spec_char "${DB_SERVER_ZBX_USER}")
+    server_pass=$(escape_spec_char "${DB_SERVER_ZBX_PASS}")
 
     sed -i \
         -e "s/{DB_SERVER_HOST}/${DB_SERVER_HOST}/g" \
         -e "s/{DB_SERVER_PORT}/${DB_SERVER_PORT}/g" \
         -e "s/{DB_SERVER_DBNAME}/${DB_SERVER_DBNAME}/g" \
-        -e "s/{DB_SERVER_USER}/${DB_SERVER_ZBX_USER}/g" \
-        -e "s/{DB_SERVER_PASS}/${DB_SERVER_ZBX_PASS}/g" \
+        -e "s/{DB_SERVER_USER}/$server_user/g" \
+        -e "s/{DB_SERVER_PASS}/$server_pass/g" \
         -e "s/{ZBX_SERVER_HOST}/${ZBX_SERVER_HOST}/g" \
         -e "s/{ZBX_SERVER_PORT}/${ZBX_SERVER_PORT}/g" \
         -e "s/{ZBX_SERVER_NAME}/$server_name/g" \
