@@ -523,8 +523,13 @@ update_zbx_config() {
         update_config_var $ZBX_CONFIG "ProxyMode" "${ZBX_PROXYMODE}"
         update_config_var $ZBX_CONFIG "Server" "${ZBX_SERVER_HOST}"
         update_config_var $ZBX_CONFIG "ServerPort" "${ZBX_SERVER_PORT}"
-        update_config_var $ZBX_CONFIG "Hostname" "${ZBX_HOSTNAME:-"zabbix-proxy-"$db_type}"
-        update_config_var $ZBX_CONFIG "HostnameItem" "${ZBX_HOSTNAMEITEM}"
+        if [ -z "${ZBX_HOSTNAME-}" ] && [ -n "${ZBX_HOSTNAMEITEM}" ]; then
+            update_config_var $ZBX_CONFIG "HostnameItem" "${ZBX_HOSTNAMEITEM}"
+            update_config_var $ZBX_CONFIG "Hostname" ""
+        else
+            update_config_var $ZBX_CONFIG "Hostname" "${ZBX_HOSTNAME:-"zabbix-proxy-"$db_type}"
+            update_config_var $ZBX_CONFIG "HostnameItem" ""
+        fi
     fi
 
     if [ $type == "proxy" ] && [ "${ZBX_ADD_SERVER}" = "true" ]; then
