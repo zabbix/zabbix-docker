@@ -38,15 +38,72 @@ ZABBIX_ETC_DIR="/etc/zabbix"
 # Web interface www-root directory
 ZBX_FRONTEND_PATH="/usr/share/zabbix"
 
+configure_db_mysql() {
+    [ "${DB_SERVER_HOST}" != "localhost" ] && return
+
+    echo "** Configuring local MySQL server"
+
+    MYSQL_ALLOW_EMPTY_PASSWORD=true
+    MYSQL_DATA_DIR="/var/lib/mysql"
+    MYSQL_CONF_FILE="/etc/mysql/my.cnf"
+
+    if [ -f "/usr/bin/mysqld" ]; then
+        MYSQLD=/usr/bin/mysqld
+    elif [ -f "/usr/sbin/mysqld" ]; then
+        MYSQLD=/usr/sbin/mysqld
+    else
+        echo "**** Could not found mysqld binary file"
+        exit 1
+    fi
+
+    sed -Ei 's/^(bind-address|log)/#&/' "$MYSQL_CONF_FILE"
+
+    if [ ! -d "$MYSQL_DATA_DIR/mysql" ]; then
+        [ -d "$MYSQL_DATA_DIR" ] || mkdir -p "$MYSQL_DATA_DIR"
+
+        chown -R mysql:mysql "$MYSQL_DATA_DIR"
+
+        echo "** Instaling initial MySQL database schemas"
+        mysql_install_db --user=mysql 2>&1 1>/dev/null
+    else
+        echo "**** MySQL data directory is not empty. Using already existsing installation."
+        chown -R mysql:mysql "$MYSQL_DATA_DIR"
+    fi
+
+    mkdir -p /var/run/mysqld
+    ln -s /var/run/mysqld /run/mysqld
+    chown -R mysql:mysql /var/run/mysqld
+    chown -R mysql:mysql /run/mysqld
+
+    echo "** Starting MySQL server in background mode"
+
+    nohup $MYSQLD --basedir=/usr --datadir=/var/lib/mysql --plugin-dir=/usr/lib/mysql/plugin \
+            --user=mysql --log-output=none --pid-file=/var/lib/mysql/mysqld.pid \
+            --socket=/var/run/mysqld/mysqld.sock --port=3306 --character-set-server=utf8 --collation-server=utf8_bin &
+}
+
 prepare_system() {
     local type=$1
     local web_server=$2
 
     echo "** Preparing the system"
 
-    if [ "$type" != "dev" ]; then
+    if [ "$type" != "appliance" ]; then
         return
     fi
+
+    ZBX_ADD_AGENT=${ZBX_ADD_AGENT:-"false"}
+    ZBX_ADD_JAVA_GATEWAY=${ZBX_ADD_JAVA_GATEWAY:-"false"}
+    ZBX_ADD_SERVER=${ZBX_ADD_SERVER:-"true"}
+    [ "${ZBX_ADD_SERVER}" == "true" ] && ZBX_SERVER_HOST="localhost"
+    ZBX_MAIN_DB=${ZBX_MAIN_DB:-"mysql"}
+    ZBX_ADD_PROXY=${ZBX_ADD_PROXY:-"false"}
+    ZBX_PROXY_DB=${ZBX_PROXY_DB:-"sqlite3"}
+    ZBX_ADD_WEB=${ZBX_ADD_WEB:-"true"}
+    ZBX_WEB_SERVER=${ZBX_WEB_SERVER:-"nginx"}
+    DB_SERVER_HOST=${DB_SERVER_HOST:-"localhost"}
+
+    [ "${ZBX_ADD_SERVER}" == "true" ] && configure_db_${ZBX_MAIN_DB}
 }
 
 escape_spec_char() {
@@ -504,11 +561,36 @@ prepare_web_server_nginx() {
     ln -sf /dev/fd/2 /var/log/php5-fpm.log
 }
 
+stop_databases() {
+    if ([ "${ZBX_MAIN_DB}" == "mysql" ] || [ "${ZBX_PROXY_DB}" == "mysql" ]) && [ "${DB_SERVER_HOST}" == "localhost" ]; then
+        mysql_query "DELETE FROM mysql.user WHERE host = 'localhost' AND user != 'root'" 1>/dev/null
+
+        if [ -f "/var/lib/mysql/mysqld.pid" ]; then
+            kill -TERM $(cat /var/lib/mysql/mysqld.pid)
+        elif [ -f "/var/run/mysqld/mysqld.pid" ]; then
+            kill -TERM $(cat /var/run/mysqld/mysqld.pid)
+        fi
+    fi
+
+    if [ "${ZBX_MAIN_DB}" == "postgresql" ] && [ "${DB_SERVER_HOST}" == "localhost" ]; then
+        if [ "${OS_CODENAME}" == "alpine" ]; then
+            PGDATA=/var/lib/postgresql
+            BINDIR=/usr/bin
+        else
+            PGDATA=/var/lib/postgresql/9.3/main
+            BINDIR=/usr/lib/postgresql/9.3/bin
+        fi
+        su -c "$BINDIR/pg_ctl -D \"$PGDATA\" -m fast -w stop --silent" postgres 1>/dev/null 2>/dev/null
+    fi
+}
+
 clear_deploy() {
     local type=$1
     echo "** Cleaning the system"
 
-    [ "$type" != "dev" ] && return
+    [ "$type" != "appliance" ] && return
+
+    stop_databases
 }
 
 update_zbx_config() {
@@ -523,8 +605,13 @@ update_zbx_config() {
         update_config_var $ZBX_CONFIG "ProxyMode" "${ZBX_PROXYMODE}"
         update_config_var $ZBX_CONFIG "Server" "${ZBX_SERVER_HOST}"
         update_config_var $ZBX_CONFIG "ServerPort" "${ZBX_SERVER_PORT}"
-        update_config_var $ZBX_CONFIG "Hostname" "${ZBX_HOSTNAME:-"zabbix-proxy-"$db_type}"
-        update_config_var $ZBX_CONFIG "HostnameItem" "${ZBX_HOSTNAMEITEM}"
+        if [ -z "${ZBX_HOSTNAME}" ] && [ -n "${ZBX_HOSTNAMEITEM}" ]; then
+            update_config_var $ZBX_CONFIG "Hostname" ""
+            update_config_var $ZBX_CONFIG "HostnameItem" "${ZBX_HOSTNAMEITEM}"
+        else
+            update_config_var $ZBX_CONFIG "Hostname" "${ZBX_HOSTNAME:-"zabbix-proxy-"$db_type}"
+            update_config_var $ZBX_CONFIG "HostnameItem" "${ZBX_HOSTNAMEITEM}"
+        fi
     fi
 
     if [ $type == "proxy" ] && [ "${ZBX_ADD_SERVER}" = "true" ]; then
@@ -792,6 +879,7 @@ prepare_zbx_agent_config() {
     update_config_var $ZBX_AGENT_CONFIG "BufferSend" "${ZBX_BUFFERSEND}"
     update_config_var $ZBX_AGENT_CONFIG "BufferSize" "${ZBX_BUFFERSIZE}"
     update_config_var $ZBX_AGENT_CONFIG "MaxLinesPerSecond" "${ZBX_MAXLINESPERSECOND}"
+    # Please use include to enable Alias feature
 #    update_config_multiple_var $ZBX_AGENT_CONFIG "Alias" ${ZBX_ALIAS}
     update_config_var $ZBX_AGENT_CONFIG "Timeout" "${ZBX_TIMEOUT}"
     update_config_var $ZBX_AGENT_CONFIG "Include" "/etc/zabbix/zabbix_agentd.d/"
