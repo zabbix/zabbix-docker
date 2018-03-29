@@ -33,8 +33,8 @@ RUN groupadd --system zabbix && \
     yum ${YUM_FLAGS_DEV} install epel-release && \
     yum ${YUM_FLAGS_PERSISTANT} install supervisor \
             dejavu-sans-fonts \
-            mariadb \
             nginx \
+            postgresql \
             php-bcmath \
             php-fpm \
             php-gd \
