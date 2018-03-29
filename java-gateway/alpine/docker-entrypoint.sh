@@ -10,12 +10,12 @@ if [ "${DEBUG_MODE}" == "true" ]; then
 fi
 
 # Type of Zabbix component
-# Possible values: [server, proxy, agent, web, dev]
+# Possible values: [server, proxy, agent, frontend, java-gateway, appliance]
 zbx_type=${ZBX_TYPE}
 # Type of Zabbix database
 # Possible values: [mysql, postgresql]
 zbx_db_type=${ZBX_DB_TYPE}
-# Type of web-server. Valid only with zbx_type = web
+# Type of web-server. Valid only with zbx_type = frontend
 # Possible values: [apache, nginx]
 zbx_opt_type=${ZBX_OPT_TYPE}
 
