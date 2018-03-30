@@ -55,16 +55,6 @@ RUN locale-gen $LC_ALL && \
     echo "deb http://nginx.org/packages/ubuntu/ $DISTRIB_CODENAME nginx" >> /etc/apt/sources.list.d/nginx.list && \
     apt-get ${APT_FLAGS_COMMON} update && \
     apt-get ${APT_FLAGS_PERSISTANT} install \
-            mysql-server \
-            mysql-client \
-            nginx \
-            php5-fpm \
-            php5-gd \
-            php5-json \
-            php5-ldap \
-            php5-mysql \
-            supervisor \
-            ttf-dejavu-core \
             fping \
             libcurl3 \
             libiksemel3 \
@@ -75,9 +65,18 @@ RUN locale-gen $LC_ALL && \
             libssl1.0.0 \
             libxml2 \
             mysql-client \
+            mysql-server \
+            nginx \
+            openjdk-7-jre-headless \
+            php5-fpm \
+            php5-gd \
+            php5-json \
+            php5-ldap \
+            php5-mysql \
             snmp-mibs-downloader \
-            unixodbc \
-            openjdk-7-jre-headless 1>/dev/null && \
+            supervisor \
+            ttf-dejavu-core \
+            unixodbc 1>/dev/null && \
     apt-get ${APT_FLAGS_COMMON} purge \
             wget 1>/dev/null && \
     apt-get ${APT_FLAGS_COMMON} autoremove && \
@@ -101,12 +100,10 @@ COPY ["conf/tmp/font-config", "/tmp/font-config"]
 
 RUN apt-get ${APT_FLAGS_COMMON} update && \
     apt-get ${APT_FLAGS_DEV} install \
-            gettext \
-            patch \
-            subversion \
             autoconf \
             automake \
             gcc \
+            gettext \
             libc6-dev \
             libcurl4-openssl-dev \
             libiksemel-dev \
@@ -117,17 +114,11 @@ RUN apt-get ${APT_FLAGS_COMMON} update && \
             libssh2-1-dev \
             libxml2-dev \
             make \
-            pkg-config \
-            subversion \
-            unixodbc-dev \
-            autoconf \
-            automake \
-            libc6-dev \
-            make \
             openjdk-7-jdk \
+            patch \
             pkg-config \
             subversion \
-            gcc 1>/dev/null && \
+            unixodbc-dev 1>/dev/null && \
     cd /tmp/ && \
     svn --quiet export ${ZBX_SOURCES} zabbix-${ZBX_VERSION} 1>/dev/null && \
     cd /tmp/zabbix-${ZBX_VERSION} && \
@@ -195,12 +186,10 @@ RUN apt-get ${APT_FLAGS_COMMON} update && \
     find /usr/share/zabbix/locale -name '*.po' | xargs rm -f && \
     find /usr/share/zabbix/locale -name '*.sh' | xargs rm -f && \
     apt-get ${APT_FLAGS_COMMON} purge \
-            gettext \
-            patch \
-            subversion \
             autoconf \
             automake \
             gcc \
+            gettext \
             libc6-dev \
             libcurl4-openssl-dev \
             libiksemel-dev \
@@ -211,17 +200,11 @@ RUN apt-get ${APT_FLAGS_COMMON} update && \
             libssh2-1-dev \
             libxml2-dev \
             make \
-            pkg-config \
-            subversion \
-            unixodbc-dev \
-            autoconf \
-            automake \
-            libc6-dev \
-            make \
             openjdk-7-jdk \
+            patch \
             pkg-config \
             subversion \
-            gcc 1>/dev/null && \
+            unixodbc-dev 1>/dev/null && \
     apt-get ${APT_FLAGS_COMMON} autoremove && \
     apt-get ${APT_FLAGS_COMMON} clean && \
     rm -rf /var/lib/apt/lists/* && \

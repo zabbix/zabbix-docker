@@ -23,4 +23,4 @@ docker build -t zabbix-appliance:$os-$version --build-arg VCS_REF="$VCS_REF" --b
 #docker rm -f zabbix-appliance
 
 #sleep 5
-#docker run --name zabbix-appliance -t -d -p 80:80 zabbix:$os-$version
+#docker run --name zabbix-appliance -t -d -p 80:80 zabbix-appliance:$os-$version
