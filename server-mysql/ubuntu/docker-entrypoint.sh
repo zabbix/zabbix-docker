@@ -107,12 +107,16 @@ prepare_system() {
     ZBX_ADD_JAVA_GATEWAY=${ZBX_ADD_JAVA_GATEWAY:-"false"}
     ZBX_ADD_SERVER=${ZBX_ADD_SERVER:-"true"}
     [ "${ZBX_ADD_SERVER}" == "true" ] && ZBX_SERVER_HOST="localhost"
+    [ "${ZBX_ADD_SERVER}" == "true" ] && ZBX_SERVER_PORT="10051"
     ZBX_MAIN_DB=${ZBX_MAIN_DB:-"mysql"}
     ZBX_ADD_PROXY=${ZBX_ADD_PROXY:-"false"}
     ZBX_PROXY_DB=${ZBX_PROXY_DB:-"sqlite3"}
     ZBX_ADD_WEB=${ZBX_ADD_WEB:-"true"}
     ZBX_WEB_SERVER=${ZBX_WEB_SERVER:-"nginx"}
     DB_SERVER_HOST=${DB_SERVER_HOST:-"localhost"}
+    [ "${ZBX_ADD_JAVA_GATEWAY}" == "true" ] && ZBX_JAVAGATEWAY_ENABLE="true"
+    [ "${ZBX_ADD_JAVA_GATEWAY}" == "true" ] && ZBX_JAVAGATEWAY="localhost"
+    [ "${ZBX_ADD_JAVA_GATEWAY}" == "true" ] && ZBX_JAVAGATEWAYPORT="10052"
 
     [ "${ZBX_ADD_SERVER}" == "true" ] && configure_db_${ZBX_MAIN_DB}
 }
