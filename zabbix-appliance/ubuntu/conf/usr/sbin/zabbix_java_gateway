@@ -1,0 +1,27 @@
+JAVA=${JAVA:-"/usr/bin/java"}
+DAEMON=${DAEMON:-"/usr/sbin/zabbix_java"}
+
+JAVA_OPTIONS="-server $JAVA_OPTIONS"
+JAVA_OPTIONS="$JAVA_OPTIONS -Dlogback.configurationFile=/etc/zabbix/zabbix_java_gateway_logback.xml"
+
+cd $DAEMON
+
+CLASSPATH="$DAEMON/lib"
+for jar in `find lib bin -name "*.jar"`; do
+    if [ $jar != *junit* ]; then
+        CLASSPATH="$CLASSPATH:$DAEMON/$jar"
+    fi
+done
+
+ZABBIX_OPTIONS=""
+if [ -n "$ZBX_START_POLLERS" ]; then
+    ZABBIX_OPTIONS="$ZABBIX_OPTIONS -Dzabbix.startPollers=$ZBX_START_POLLERS"
+fi
+if [ -n "$ZBX_TIMEOUT" ]; then
+    ZABBIX_OPTIONS="$ZABBIX_OPTIONS -Dzabbix.timeout=$ZBX_TIMEOUT -Dsun.rmi.transport.tcp.responseTimeout=${ZBX_TIMEOUT}000"
+fi
+
+
+COMMAND_LINE="$JAVA $JAVA_OPTIONS -classpath $CLASSPATH $ZABBIX_OPTIONS com.zabbix.gateway.JavaGateway"
+
+exec $COMMAND_LINE

@@ -10,12 +10,12 @@ if [ "${DEBUG_MODE}" == "true" ]; then
 fi
 
 # Type of Zabbix component
-# Possible values: [server, proxy, agent, web, dev]
+# Possible values: [server, proxy, agent, frontend, java-gateway, appliance]
 zbx_type=${ZBX_TYPE}
 # Type of Zabbix database
 # Possible values: [mysql, postgresql]
 zbx_db_type=${ZBX_DB_TYPE}
-# Type of web-server. Valid only with zbx_type = web
+# Type of web-server. Valid only with zbx_type = frontend
 # Possible values: [apache, nginx]
 zbx_opt_type=${ZBX_OPT_TYPE}
 
@@ -45,12 +45,23 @@ configure_db_mysql() {
 
     MYSQL_ALLOW_EMPTY_PASSWORD=true
     MYSQL_DATA_DIR="/var/lib/mysql"
-    MYSQL_CONF_FILE="/etc/mysql/my.cnf"
+
+    if [ -f "/etc/mysql/my.cnf" ]; then
+        MYSQL_CONF_FILE="/etc/mysql/my.cnf"
+    elif [ -f "/etc/my.cnf.d/server.cnf" ]; then
+        MYSQL_CONF_FILE="/etc/my.cnf.d/server.cnf"
+        DB_SERVER_SOCKET="/var/lib/mysql/mysql.sock"
+    else
+        echo "**** Could not found MySQL configuration file"
+        exit 1
+    fi
 
     if [ -f "/usr/bin/mysqld" ]; then
         MYSQLD=/usr/bin/mysqld
     elif [ -f "/usr/sbin/mysqld" ]; then
         MYSQLD=/usr/sbin/mysqld
+    elif [ -f "/usr/libexec/mysqld" ]; then
+        MYSQLD=/usr/libexec/mysqld
     else
         echo "**** Could not found mysqld binary file"
         exit 1
@@ -79,7 +90,7 @@ configure_db_mysql() {
 
     nohup $MYSQLD --basedir=/usr --datadir=/var/lib/mysql --plugin-dir=/usr/lib/mysql/plugin \
             --user=mysql --log-output=none --pid-file=/var/lib/mysql/mysqld.pid \
-            --socket=/var/run/mysqld/mysqld.sock --port=3306 --character-set-server=utf8 --collation-server=utf8_bin &
+            --port=3306 --character-set-server=utf8 --collation-server=utf8_bin &
 }
 
 prepare_system() {
@@ -650,6 +661,8 @@ update_zbx_config() {
         update_config_var $ZBX_CONFIG "HistoryStorageURL" "${ZBX_HISTORYSTORAGEURL}"
         update_config_var $ZBX_CONFIG "HistoryStorageTypes" "${ZBX_HISTORYSTORAGETYPES}"
     fi
+
+    update_config_var $ZBX_CONFIG "DBSocket" "${DB_SERVER_SOCKET}"
 
     if [ "$type" == "proxy" ]; then
         update_config_var $ZBX_CONFIG "ProxyLocalBuffer" "${ZBX_PROXYLOCALBUFFER}"
