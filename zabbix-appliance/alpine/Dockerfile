@@ -52,17 +52,13 @@ RUN addgroup zabbix && \
             libldap \
             libssh2 \
             libxml2 \
+            mariadb-client \
+            mariadb-client-libs \
             mysql \
-            openjdk8-jre-base \
-            mariadb-client \
-            mariadb-client-libs \
             net-snmp-agent-libs \
-            openipmi-libs \
-            unixodbc \
-            bash \
-            mariadb-client \
-            mariadb-client-libs \
             nginx \
+            openipmi-libs \
+            openjdk8-jre-base \
             php5-bcmath \
             php5-ctype \
             php5-fpm \
@@ -74,7 +70,8 @@ RUN addgroup zabbix && \
             php5-sockets \
             php5-xmlreader \
             supervisor \
-            ttf-dejavu && \
+            ttf-dejavu \
+            unixodbc && \
     rm -rf /var/cache/apk/*
 
 ARG MAJOR_VERSION=master
@@ -95,13 +92,13 @@ RUN apk add ${APK_FLAGS_DEV} --virtual build-dependencies \
             automake \
             coreutils \
             curl-dev \
+            gettext \
             libssh2-dev \
             libxml2-dev \
-            openjdk8 \
             mysql-dev \
-            gettext \
             net-snmp-dev \
             openipmi-dev \
+            openjdk8 \
             openldap-dev \
             subversion \
             unixodbc-dev && \
