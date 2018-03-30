@@ -45,10 +45,20 @@ RUN groupadd --system zabbix && \
     yum ${YUM_FLAGS_COMMON} makecache && \
     yum ${YUM_FLAGS_DEV} install epel-release && \
     yum ${YUM_FLAGS_PERSISTANT} install \
+            OpenIPMI-libs \
             dejavu-sans-fonts \
+            fping \
+            iksemel \
+            java-1.8.0-openjdk-headless \
+            libcurl \
+            libxml2 \
             mariadb \
             mariadb-server \
+            net-snmp-libs \
             nginx \
+            openldap \
+            openssl-libs \
+            pcre \
             php-bcmath \
             php-fpm \
             php-gd \
@@ -56,18 +66,8 @@ RUN groupadd --system zabbix && \
             php-mbstring \
             php-mysql \
             php-xml \
-            fping \
-            iksemel \
-            libcurl \
-            libxml2 \
-            net-snmp-libs \
-            OpenIPMI-libs \
-            openldap \
-            openssl-libs \
-            pcre \
-            unixODBC \
-            java-1.8.0-openjdk-headless \
-            supervisor && \
+            supervisor \
+            unixODBC && \
     rm -f /etc/php-fpm.d/www.conf && \
     mkdir -p /var/lib/php/ && \
     chown --quiet -R nginx:nginx /var/lib/php/ && \
@@ -88,12 +88,12 @@ COPY ["conf/tmp/font-config", "/tmp/font-config"]
 
 RUN yum --quiet makecache && \
     yum ${YUM_FLAGS_DEV} install \
-            gettext \
-            patch \
             autoconf \
             automake \
             gcc \
+            gettext \
             iksemel-devel \
+            java-1.8.0-openjdk-devel \
             libcurl-devel \
             libssh2-devel \
             libxml2-devel \
@@ -102,11 +102,9 @@ RUN yum --quiet makecache && \
             net-snmp-devel \
             OpenIPMI-devel \
             openldap-devel \
+            patch \
             subversion \
-            unixODBC-devel \
-            java-1.8.0-openjdk-devel \
-            subversion \
-            gcc && \
+            unixODBC-devel && \
     cd /tmp/ && \
     svn --quiet export ${ZBX_SOURCES} zabbix-${ZBX_VERSION} 1>/dev/null && \
     cd /tmp/zabbix-${ZBX_VERSION} && \
