@@ -8,75 +8,57 @@ Zabbix is software that monitors numerous parameters of a network and the health
 
 For more information and related downloads for Zabbix components, please visit https://hub.docker.com/u/zabbix/ and https://zabbix.com
 
-# What is Zabbix server?
+# What is Zabbix appliance?
 
-Zabbix server is the central process of Zabbix software.
+Zabbix appliance contains MySQL database server, Zabbix server, Zabbix Java Gateway and Zabbix frontend based on Nginx web-server.
 
-The server performs the polling and trapping of data, it calculates triggers, sends notifications to users. It is the central component to which Zabbix agents and proxies report data on availability and integrity of systems. The server can itself remotely check networked services (such as web servers and mail servers) using simple service checks.
+# Zabbix appliance images
 
-# Zabbix server images
+These are the only official Zabbix appliance Docker images. They are based on Alpine Linux v3.4, Ubuntu 14.04 (trusty) and CentOS 7 images. The available versions of Zabbix appliance are:
 
-These are the only official Zabbix server Docker images. They are based on Alpine Linux v3.4, Ubuntu 14.04 (trusty) and CentOS 7 images. The available versions of Zabbix server are:
-
-    Zabbix server 3.0 (tags: alpine-3.0-latest, ubuntu-3.0-latest, centos-3.0-latest)
-    Zabbix server 3.0.* (tags: alpine-3.0.*, ubuntu-3.0.*, centos-3.0.*)
-    Zabbix server 3.2 (tags: alpine-3.2-latest, ubuntu-3.2-latest, centos-3.2-latest)
-    Zabbix server 3.2.* (tags: alpine-3.2.*, ubuntu-3.2.*, centos-3.2.*)
-    Zabbix server 3.4 (tags: alpine-3.4-latest, ubuntu-3.4-latest, centos-3.4-latest, alpine-latest, ubuntu-latest, centos-latest, latest)
-    Zabbix server 3.4.* (tags: alpine-3.4.*, ubuntu-3.4.*, centos-3.4.*)
-    Zabbix server 4.0 (tags: alpine-trunk, ubuntu-trunk)
+    Zabbix appliance 3.0 (tags: alpine-3.0-latest, ubuntu-3.0-latest, centos-3.0-latest)
+    Zabbix appliance 3.0.* (tags: alpine-3.0.*, ubuntu-3.0.*, centos-3.0.*)
+    Zabbix appliance 3.2 (tags: alpine-3.2-latest, ubuntu-3.2-latest, centos-3.2-latest)
+    Zabbix appliance 3.2.* (tags: alpine-3.2.*, ubuntu-3.2.*, centos-3.2.*)
+    Zabbix appliance 3.4 (tags: alpine-3.4-latest, ubuntu-3.4-latest, centos-3.4-latest, alpine-latest, ubuntu-latest, centos-latest, latest)
+    Zabbix appliance 3.4.* (tags: alpine-3.4.*, ubuntu-3.4.*, centos-3.4.*)
+    Zabbix appliance 4.0 (tags: alpine-trunk, ubuntu-trunk)
 
 Images are updated when new releases are published. The image with ``latest`` tag is based on Alpine Linux.
 
-The image uses MySQL database. It uses the next procedure to start:
-- Checking database availability
-- If ``MYSQL_ROOT_PASSWORD`` or ``MYSQL_ALLOW_EMPTY_PASSWORD`` are specified, the instance tries to create ``MYSQL_USER`` user with ``MYSQL_PASSWORD`` to use these credentials then for Zabbix server.
-- Checking of having `MYSQL_DATABASE` database. Creating `MYSQL_DATABASE` database name if it does not exist
-- Checking of having `dbversion` table. Creating Zabbix server database schema and upload initial data sample if no `dbversion` table
+The image uses MySQL database. The image is very useful for testing purposes.
 
 # How to use this image
 
-## Start `zabbix-server-mysql`
+## Start `zabbix-appliance`
 
 Start a Zabbix server container as follows:
 
-    docker run --name some-zabbix-server-mysql -e DB_SERVER_HOST="some-mysql-server" -e MYSQL_USER="some-user" -e MYSQL_PASSWORD="some-password" -d zabbix/zabbix-server-mysql:tag
+    docker run --name some-zabbix-appliance -p 80:80 -p 10051:10051 -d zabbix/zabbix-appliance:tag
 
-Where `some-zabbix-server-mysql` is the name you want to assign to your container, `some-mysql-server` is IP or DNS name of MySQL server, `some-user` is user to connect to Zabbix database on MySQL server, `some-password` is the password to connect to MySQL server and `tag` is the tag specifying the version you want. See the list above for relevant tags, or look at the [full list of tags](https://hub.docker.com/r/zabbix/zabbix-server-mysql/tags/).
+Where `some-zabbix-server-mysql` is the name you want to assign to your container. See the list above for relevant tags, or look at the [full list of tags](https://hub.docker.com/r/zabbix/zabbix-appliance/tags/).
 
-## Container shell access and viewing Zabbix server logs
+## Container shell access and viewing Zabbix appliance logs
 
-The `docker exec` command allows you to run commands inside a Docker container. The following command line will give you a bash shell inside your `zabbix-server-mysql` container:
+The `docker exec` command allows you to run commands inside a Docker container. The following command line will give you a bash shell inside your `zabbix-appliance` container:
 
 ```console
-$ docker exec -ti some-zabbix-server-mysql /bin/bash
+$ docker exec -ti some-zabbix-appliance /bin/bash
 ```
 
-The Zabbix server log is available through Docker's container log:
+The Zabbix appliance logs is available through Docker's container log:
 
 ```console
-$ docker logs some-zabbix-server-mysql
+$ docker logs some-zabbix-appliance
 ```
 
 ## Environment Variables
 
-When you start the `zabbix-server-mysql` image, you can adjust the configuration of the Zabbix server by passing one or more environment variables on the `docker run` command line.
+When you start the `zabbix-appliance` image, you can adjust the configuration of the Zabbix appliance by passing one or more environment variables on the `docker run` command line.
 
-### `DB_SERVER_HOST`
+### `PHP_TZ`
 
-This variable is IP or DNS name of MySQL server. By default, value is 'mysql-server'
-
-### `DB_SERVER_PORT`
-    
-This variable is port of MySQL server. By default, value is '3306'.
-
-### `MYSQL_USER`, `MYSQL_PASSWORD`
-
-These variables are used by Zabbix server to connect to Zabbix database. By default, values are `zabbix`, `zabbix`.
-
-### `MYSQL_DATABASE`
-
-The variable is Zabbix database name. By default, value is `zabbix`.
+The variable is timezone in PHP format. Full list of supported timezones are available on [`php.net`](http://php.net/manual/en/timezones.php). By default, value is 'Europe/Riga'.
 
 ### `ZBX_LOADMODULE`
 
@@ -96,9 +78,29 @@ The variable is used to specify debug level. By default, value is ``3``. It is `
 
 The variable is used to specify timeout for processing checks. By default, value is ``4``.
 
-### `ZBX_JAVAGATEWAY_ENABLE`
+### `ZBX_SERVER_NAME`
 
-The variable enable communication with Zabbix Java Gateway to collect Java related checks. By default, value is `false`.
+The variable is visible Zabbix installation name in right top corner of the web interface.
+
+### `ZBX_MAXEXECUTIONTIME`
+
+The varable is PHP ``max_execution_time`` option. By default, value is `300`.
+
+### `ZBX_MEMORYLIMIT`
+
+The varable is PHP ``memory_limit`` option. By default, value is `128M`.
+    
+### `ZBX_POSTMAXSIZE`
+
+The varable is PHP ``post_max_size`` option. By default, value is `16M`.
+
+### `ZBX_UPLOADMAXFILESIZE`
+    
+The varable is PHP ``upload_max_filesize`` option. By default, value is `2M`.
+
+### `ZBX_MAXINPUTTIME`
+    
+The varable is PHP ``max_input_time`` option. By default, value is `300`.
 
 ### Other variables
 
@@ -115,8 +117,6 @@ ZBX_STARTDISCOVERERS=1
 ZBX_STARTHTTPPOLLERS=1
 ZBX_STARTTIMERS=1
 ZBX_STARTESCALATORS=1
-ZBX_JAVAGATEWAY=zabbix-java-gateway
-ZBX_JAVAGATEWAYPORT=10052
 ZBX_STARTJAVAPOLLERS=5
 ZBX_STARTVMWARECOLLECTORS=0
 ZBX_VMWAREFREQUENCY=60
@@ -198,15 +198,21 @@ SNMP traps processing feature could be enabled using shared volume and switched 
 
 The volume allows to add new MIB files. It does not support subdirectories, all MIBs must be placed to ``/var/lib/zabbix/mibs``.
 
+### ``/etc/ssl/nginx``
+
+The volume allows to enable HTTPS for the Zabbix web interface. The volume must contains two files ``ssl.crt``, ``ssl.key`` and ``dhparam.pem`` prepared for Nginx SSL connections.
+
+Please follow official Nginx [documentation](http://nginx.org/en/docs/http/configuring_https_servers.html) to get more details about how to create certificate files.
+
 # The image variants
 
-The `zabbix-server-mysql` images come in many flavors, each designed for a specific use case.
+The `zabbix-appliance` images come in many flavors, each designed for a specific use case.
 
-## `zabbix-server-mysql:ubuntu-<version>`
+## `zabbix-appliance:ubuntu-<version>`
 
 This is the defacto image. If you are unsure about what your needs are, you probably want to use this one. It is designed to be used both as a throw away container (mount your source code and start the container to start your app), as well as the base to build other images off of.
 
-## `zabbix-server-mysql:alpine-<version>`
+## `zabbix-appliance:alpine-<version>`
 
 This image is based on the popular [Alpine Linux project](http://alpinelinux.org), available in [the `alpine` official image](https://hub.docker.com/_/alpine). Alpine Linux is much smaller than most distribution base images (~5MB), and thus leads to much slimmer images in general.
 
@@ -226,13 +232,14 @@ Please see [the Docker installation documentation](https://docs.docker.com/insta
 
 ## Documentation
 
-Documentation for this image is stored in the [`server-mysql/` directory](https://github.com/zabbix/zabbix-docker/tree/3.0/server-mysql) of the [`zabbix/zabbix-docker` GitHub repo](https://github.com/zabbix/zabbix-docker/). Be sure to familiarize yourself with the [repository's `README.md` file](https://github.com/zabbix/zabbix-docker/blob/master/README.md) before attempting a pull request.
+Documentation for this image is stored in the [`zabbix-appliance/` directory](https://github.com/zabbix/zabbix-docker/tree/3.0/zabbix-appliance) of the [`zabbix/zabbix-docker` GitHub repo](https://github.com/zabbix/zabbix-docker/). Be sure to familiarize yourself with the [repository's `README.md` file](https://github.com/zabbix/zabbix-docker/blob/master/README.md) before attempting a pull request.
 
 ## Issues
 
 If you have any problems with or questions about this image, please contact us through a [GitHub issue](https://github.com/zabbix/zabbix-docker/issues).
 
 ### Known issues
+Some configuration environment variables are the same between multiple Zabbix components. Be careful when change these variables.
 
 ## Contributing
 
