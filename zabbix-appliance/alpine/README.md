@@ -36,7 +36,7 @@ Start a Zabbix server container as follows:
 
     docker run --name some-zabbix-appliance -p 80:80 -p 10051:10051 -d zabbix/zabbix-appliance:tag
 
-Where `some-zabbix-server-mysql` is the name you want to assign to your container. See the list above for relevant tags, or look at the [full list of tags](https://hub.docker.com/r/zabbix/zabbix-appliance/tags/).
+Where `some-zabbix-appliance` is the name you want to assign to your container. See the list above for relevant tags, or look at the [full list of tags](https://hub.docker.com/r/zabbix/zabbix-appliance/tags/).
 
 ## Container shell access and viewing Zabbix appliance logs
 
