@@ -26,7 +26,7 @@ LABEL name="zabbix/zabbix-appliance" \
       summary="Zabbix appliance with MySQL database support and ${ZBX_OPT_TYPE} web-server" \
       description="Zabbix appliance contains MySQL database server, Zabbix server, Zabbix Java Gateway and Zabbix frontend based on Nginx web-server." \
       url="https://www.zabbix.com/" \
-      run='docker run --name zabbix-appliance -p 80:80 -p 10051:10051 -d zabbix/zabbix-appliance:${ZBX_VERSION}' \
+      run="docker run --name zabbix-appliance -p 80:80 -p 10051:10051 -d registry.connect.redhat.com/zabbix/zabbix-appliance:${ZBX_VERSION}" \
       io.k8s.description="Zabbix appliance with MySQL database support and ${ZBX_OPT_TYPE} web-server" \
       io.k8s.display-name="Zabbix Appliance" \
       io.openshift.expose-services="http:http,https:https,10051:10051" \
@@ -42,7 +42,7 @@ LABEL name="zabbix/zabbix-appliance" \
       org.label-schema.usage="https://www.zabbix.com/documentation/${MAJOR_VERSION}/manual/installation/containers" \
       org.label-schema.version="${ZBX_VERSION}" \
       org.label-schema.vcs-url="${ZBX_SOURCES}" \
-      org.label-schema.docker.cmd="docker run --name zabbix-appliance -p 80:80 -p 10051:10051 -d zabbix/zabbix-appliance:${ZBX_VERSION}"
+      org.label-schema.docker.cmd="docker run --name zabbix-appliance -p 80:80 -p 10051:10051 -d registry.connect.redhat.com/zabbix/zabbix-appliance:${ZBX_VERSION}"
 
 STOPSIGNAL SIGTERM
 
