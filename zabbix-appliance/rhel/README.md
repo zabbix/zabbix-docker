@@ -6,7 +6,7 @@ Zabbix is an enterprise-class open source distributed monitoring solution.
 
 Zabbix is software that monitors numerous parameters of a network and the health and integrity of servers. Zabbix uses a flexible notification mechanism that allows users to configure e-mail based alerts for virtually any event. This allows a fast reaction to server problems. Zabbix offers excellent reporting and data visualisation features based on the stored data. This makes Zabbix ideal for capacity planning.
 
-For more information and related downloads for Zabbix components, please visit https://hub.docker.com/u/zabbix/ and https://zabbix.com
+For more information and related downloads for Zabbix components, please visit [`Red Hat Container Catalog`](https://access.redhat.com/containers/?tab=overview#/registry.connect.redhat.com/zabbix/zabbix-appliance) and https://zabbix.com
 
 # What is Zabbix appliance?
 
@@ -14,7 +14,7 @@ Zabbix appliance contains MySQL database server, Zabbix server, Zabbix Java Gate
 
 # Zabbix appliance images
 
-These are the only official Zabbix appliance Docker images. They are based on Alpine Linux v3.4, Ubuntu 14.04 (trusty) and CentOS 7 images. The available versions of Zabbix appliance are:
+These are the only official Zabbix appliance Docker images. They are based on Alpine Linux v3.4, Ubuntu 14.04 (trusty), CentOS 7 and Red Hat Enterprise Linux 7 images. The available versions of Zabbix appliance are:
 
     Zabbix appliance 3.0 (tags: alpine-3.0-latest, ubuntu-3.0-latest, centos-3.0-latest)
     Zabbix appliance 3.0.* (tags: alpine-3.0.*, ubuntu-3.0.*, centos-3.0.*)
@@ -34,9 +34,9 @@ The image uses MySQL database. The image is very useful for testing purposes.
 
 Start a Zabbix server container as follows:
 
-    docker run --name some-zabbix-appliance -p 80:80 -p 10051:10051 -d zabbix/zabbix-appliance:tag
+    docker run --name some-zabbix-appliance -p 80:80 -p 10051:10051 -d registry.connect.redhat.com/zabbix/zabbix-appliance:tag
 
-Where `some-zabbix-server-mysql` is the name you want to assign to your container. See the list above for relevant tags, or look at the [full list of tags](https://hub.docker.com/r/zabbix/zabbix-appliance/tags/).
+Where `some-zabbix-appliance` is the name you want to assign to your container. See the list above for relevant tags, or look at the [full list of tags](https://access.redhat.com/containers/?tab=tags&platform=docker#/registry.connect.redhat.com/zabbix/zabbix-appliance).
 
 ## Container shell access and viewing Zabbix appliance logs
 
