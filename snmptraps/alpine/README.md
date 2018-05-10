@@ -14,13 +14,15 @@ The image is used to receive SNMP traps, store them to a log file and provide ac
 
 # Zabbix snmptraps images
 
-These are the only official Zabbix snmptraps Docker images. They are based on trusty Ubuntu. The available versions of Zabbix snmptraps are:
+These are the only official Zabbix snmptraps Docker images. They are based on Alpine Linux v3.4, Ubuntu 14.04 (trusty) and CentOS 7 images. The available versions of Zabbix snmptraps are:
 
-    Zabbix snmptraps 3.0 (tags: ubuntu-3.0-latest)
-    Zabbix snmptraps 3.0.* (tags: ubuntu-3.0.*)
-    Zabbix snmptraps 3.2 (tags: ubuntu-3.2-latest, ubuntu-latest, latest)
-    Zabbix snmptraps 3.2.* (tags: ubuntu-3.2.*)
-    Zabbix snmptraps 3.4 (tags: ubuntu-trunk)
+    Zabbix snmptraps 3.0 (tags: alpine-3.0-latest, ubuntu-3.0-latest, centos-3.0-latest)
+    Zabbix snmptraps 3.0.* (tags: alpine-3.0.*, ubuntu-3.0.*, centos-3.0.*)
+    Zabbix snmptraps 3.2 (tags: alpine-3.2-latest, ubuntu-3.2-latest, centos-3.2-latest)
+    Zabbix snmptraps 3.2.* (tags: alpine-3.2.*, ubuntu-3.2.*, centos-3.2.*)
+    Zabbix snmptraps 3.4 (tags: alpine-3.4-latest, ubuntu-3.4-latest, centos-3.4-latest, alpine-latest, ubuntu-latest, centos-latest, latest)
+    Zabbix snmptraps 3.4.* (tags: alpine-3.4.*, ubuntu-3.4.*, centos-3.4.*)
+    Zabbix snmptraps 4.0 (tags: alpine-trunk, ubuntu-trunk, centos-trunk)
 
 Images are updated when new releases are published.
 
@@ -61,6 +63,26 @@ The volume contains log file ``snmptraps.log`` named with received SNMP traps.
 ### ``/var/lib/zabbix/mibs``
 
 The volume allows to add new MIB files. It does not support subdirectories, all MIBs must be placed to ``/var/lib/zabbix/mibs``.
+
+# The image variants
+
+The `zabbix-snmptraps` images come in many flavors, each designed for a specific use case.
+
+## `zabbix-snmptraps:ubuntu-<version>`
+
+This is the defacto image. If you are unsure about what your needs are, you probably want to use this one. It is designed to be used both as a throw away container (mount your source code and start the container to start your app), as well as the base to build other images off of.
+
+## `zabbix-snmptraps:centos-<version>`
+
+This is the defacto image also. If you are unsure about what your needs are, you probably want to use this one. It is designed to be used both as a throw away container (mount your source code and start the container to start your app), as well as the base to build other images off of.
+
+## `zabbix-snmptraps:alpine-<version>`
+
+This image is based on the popular [Alpine Linux project](http://alpinelinux.org), available in [the `alpine` official image](https://hub.docker.com/_/alpine). Alpine Linux is much smaller than most distribution base images (~5MB), and thus leads to much slimmer images in general.
+
+This variant is highly recommended when final image size being as small as possible is desired. The main caveat to note is that it does use [musl libc](http://www.musl-libc.org) instead of [glibc and friends](http://www.etalabs.net/compare_libcs.html), so certain software might run into issues depending on the depth of their libc requirements. However, most software doesn't have an issue with this, so this variant is usually a very safe choice. See [this Hacker News comment thread](https://news.ycombinator.com/item?id=10782897) for more discussion of the issues that might arise and some pro/con comparisons of using Alpine-based images.
+
+To minimize image size, it's uncommon for additional related tools (such as `git` or `bash`) to be included in Alpine-based images. Using this image as a base, add the things you need in your own Dockerfile (see the [`alpine` image description](https://hub.docker.com/_/alpine/) for examples of how to install packages if you are unfamiliar).
 
 # Supported Docker versions
 
