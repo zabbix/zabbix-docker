@@ -1,4 +1,4 @@
-FROM alpine:3.4
+FROM alpine:3.7
 LABEL maintainer="Alexey Pustovalov <alexey.pustovalov@zabbix.com>"
 
 ARG BUILD_DATE
