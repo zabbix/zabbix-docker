@@ -364,10 +364,10 @@ services:
 
  zabbix-snmptraps:
   build:
-   context: ./snmptraps/ubuntu
+   context: ./snmptraps/centos
    cache_from:
-    - ubuntu:trusty
-  image: zabbix-snmptraps:ubuntu-local
+    - centos:centos7
+  image: zabbix-snmptraps:centos-local
   ports:
    - "162:162/udp"
   volumes:

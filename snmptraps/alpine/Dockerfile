@@ -1,16 +1,15 @@
-FROM ubuntu:trusty
+FROM alpine:3.7
 LABEL maintainer "Alexey Pustovalov <alexey.pustovalov@zabbix.com>"
 
 ARG BUILD_DATE
 ARG VCS_REF
 
-ARG APT_FLAGS_COMMON="-qq -y"
-ARG APT_FLAGS_PERSISTANT="${APT_FLAGS_COMMON} --no-install-recommends"
-ARG APT_FLAGS_DEV="${APT_FLAGS_COMMON} --no-install-recommends"
-ENV LANG=en_US.UTF-8 LANGUAGE=en_US:en LC_ALL=en_US.UTF-8 DEBIAN_FRONTEND=noninteractive TERM=xterm \
-    MIBDIRS=/var/lib/mibs/iana:/var/lib/mibs/ietf:/usr/share/snmp/mibs:/var/lib/zabbix/mibs MIBS=+ALL
+ARG APK_FLAGS_COMMON="-q"
+ARG APK_FLAGS_PERSISTANT="${APK_FLAGS_COMMON} --clean-protected --no-cache"
+ARG APK_FLAGS_DEV="${APK_FLAGS_COMMON} --no-cache"
+ENV TERM=xterm MIBDIRS=/usr/share/snmp/mibs:/var/lib/zabbix/mibs MIBS=+ALL
 
-LABEL org.label-schema.name="zabbix-snmptraps-ubuntu" \
+LABEL org.label-schema.name="zabbix-snmptraps-alpine" \
       org.label-schema.vendor="Zabbix LLC" \
       org.label-schema.url="https://zabbix.com/" \
       org.label-schema.description="Zabbix SNMP traps receiver" \
@@ -27,33 +26,40 @@ ENV ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES}
 LABEL org.label-schema.usage="https://www.zabbix.com/documentation/${MAJOR_VERSION}/manual/installation/containers" \
       org.label-schema.version="1.14" \
       org.label-schema.vcs-url="https://anonscm.debian.org/gitweb/?p=collab-maint/snmptrapfmt.git" \
-      org.label-schema.docker.cmd="docker run --name zabbix-snmptraps --link zabbix-server:zabbix-server -p 162:162/UDP -d zabbix-snmptraps:ubuntu-${ZBX_VERSION}"
+      org.label-schema.docker.cmd="docker run --name zabbix-snmptraps --link zabbix-server:zabbix-server -p 162:162/UDP -d zabbix-snmptraps:alpine-${ZBX_VERSION}"
 
 STOPSIGNAL SIGTERM
 
-COPY ["snmptrapfmt_1.14+nmu1ubuntu2_amd64.deb", "/tmp/"]
+COPY ["snmptrapfmt_1.14+nmu1ubuntu2.tar.gz", "/tmp/"]
 
-RUN locale-gen $LC_ALL && \
-    echo "#!/bin/sh\nexit 0" > /usr/sbin/policy-rc.d && \
-    DISTRIB_CODENAME=$(/bin/bash -c 'source /etc/lsb-release && echo $DISTRIB_CODENAME') && \
-    echo "deb http://us.archive.ubuntu.com/ubuntu/ $DISTRIB_CODENAME multiverse" >> /etc/apt/sources.list && \
-    addgroup --system --quiet zabbix && \
-    adduser --quiet \
-            --system --disabled-login \
-            --ingroup zabbix \
-            --home /var/lib/zabbix/ \
+RUN addgroup zabbix && \
+    adduser -S \
+            -D -G zabbix \
+            -h /var/lib/zabbix/ \
         zabbix && \
-    apt-get ${APT_FLAGS_COMMON} update && \
-    apt-get ${APT_FLAGS_PERSISTANT} install \
-            snmp-mibs-downloader \
-            snmpd \
-            supervisor 1>/dev/null && \
-    download-mibs 1>/dev/null && \
-    dpkg -i /tmp/snmptrapfmt_1.14+nmu1ubuntu2_amd64.deb && \
+    apk update && \
+    apk add ${APK_FLAGS_PERSISTANT} \
+            net-snmp \
+            supervisor && \
+    apk add ${APK_FLAGS_DEV} --virtual build-dependencies \
+            alpine-sdk \
+            autoconf \
+            automake \
+            libnsl-dev \
+            net-snmp-dev && \
     mkdir -p /var/lib/zabbix && \
     mkdir -p /var/lib/zabbix/snmptraps && \
     mkdir -p /var/lib/zabbix/mibs && \
     chown --quiet -R zabbix:root /var/lib/zabbix && \
+    cd /tmp/ && \
+    tar -zxvf snmptrapfmt_1.14+nmu1ubuntu2.tar.gz && \
+    ls -lah && \
+    cd /tmp/snmptrapfmt-1.14+nmu1ubuntu1/ && \
+    patch -p1 < ./patches/makefile.patch && \
+    make -j"$(nproc)" -s 1>/dev/null && \
+    cp snmptrapfmthdlr /usr/sbin/snmptrapfmthdlr && \
+    cp snmptrapfmt /usr/sbin/snmptrapfmt && \
+    cp snmptrapfmt.conf /etc/snmp/snmptrapfmt.conf && \
     echo "disableAuthorization yes" >> "/etc/snmp/snmptrapd.conf" && \
     echo "traphandle default /usr/sbin/snmptrapfmthdlr" >> "/etc/snmp/snmptrapd.conf" && \
     sed -i \
@@ -61,12 +67,11 @@ RUN locale-gen $LC_ALL && \
             -e '/^LOGFMT=/s/=.*/=\"$x ZBXTRAP $R $G $S $e $*\"/' \
             -e "/^LOGFILE=/s/=.*/=\"\/var\/lib\/zabbix\/snmptraps\/snmptraps.log\"/" \
         "/etc/snmp/snmptrapfmt.conf" && \
-    rm -rf /tmp/snmptrapfmt_1.14+nmu1ubuntu2_amd64.deb && \
-    apt-get ${APT_FLAGS_COMMON} purge \
-            snmp-mibs-downloader \
-            wget 1>/dev/null && \
-    apt-get ${APT_FLAGS_COMMON} autoremove 1>/dev/null && \
-    rm -rf /var/lib/apt/lists/*
+    rm -rf /tmp/snmptrapfmt_1.14+nmu1ubuntu2.tar.gz 1>/dev/null && \
+    rm -rf /tmp/snmptrapfmt-1.14+nmu1ubuntu1/ 1>/dev/null && \
+    apk del ${APK_FLAGS_COMMON} --purge \
+            build-dependencies && \
+    rm -rf /var/cache/apk/*
 
 EXPOSE 162/UDP
 
