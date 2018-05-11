@@ -18,8 +18,8 @@ LABEL org.label-schema.name="zabbix-snmptraps-centos" \
       org.label-schema.schema-version="1.0" \
       org.label-schema.license="GPL 2.0"
 
-ARG MAJOR_VERSION=master
-ARG ZBX_VERSION=${MAJOR_VERSION}
+ARG MAJOR_VERSION=3.4
+ARG ZBX_VERSION=${MAJOR_VERSION}.9
 ARG ZBX_SOURCES=svn://svn.zabbix.com/tags/${ZBX_VERSION}/
 ENV ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES}
 
