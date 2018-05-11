@@ -40,7 +40,7 @@ RUN groupadd --system zabbix && \
     rm -rf /var/cache/yum/
 
 ARG MAJOR_VERSION=3.0
-ARG ZBX_VERSION=${MAJOR_VERSION}.16
+ARG ZBX_VERSION=${MAJOR_VERSION}.17
 ARG ZBX_SOURCES=svn://svn.zabbix.com/tags/${ZBX_VERSION}/
 ENV ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES}
 
