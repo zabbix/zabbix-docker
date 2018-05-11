@@ -823,6 +823,8 @@ prepare_zbx_web_config() {
         PHP_CONFIG_FILE="/etc/php/7.0/fpm/conf.d/99-zabbix.ini"
     elif [ -f "/etc/php.d/99-zabbix.ini" ]; then
         PHP_CONFIG_FILE="/etc/php.d/99-zabbix.ini"
+    elif [ -f "/etc/php7/conf.d/99-zabbix.ini" ]; then
+        PHP_CONFIG_FILE="/etc/php7/conf.d/99-zabbix.ini"
     fi
 
     if [ -n "$PHP_CONFIG_FILE" ]; then
