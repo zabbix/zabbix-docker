@@ -11,11 +11,11 @@ ENV TERM=xterm MIBDIRS=/usr/share/snmp/mibs:/var/lib/zabbix/mibs MIBS=+ALL \
 ARG BUILD_DATE
 ARG VCS_REF
 
-ARG MAJOR_VERSION=master
+ARG MAJOR_VERSION=4.0
 ARG RELEASE=
-ARG ZBX_VERSION=${MAJOR_VERSION}.${RELEASE}
+ARG ZBX_VERSION=${MAJOR_VERSION}
 
-ARG ZBX_SOURCES=svn://svn.zabbix.com/tags/${ZBX_VERSION}/
+ARG ZBX_SOURCES=svn://svn.zabbix.com/trunk/
 ENV ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES}
 
 LABEL name="zabbix/zabbix-appliance" \
