@@ -36,16 +36,19 @@ RUN addgroup zabbix && \
             mariadb-client \
             mariadb-client-libs \
             nginx \
-            php5-bcmath \
-            php5-ctype \
-            php5-fpm \
-            php5-gd \
-            php5-gettext \
-            php5-json \
-            php5-ldap \
-            php5-mysqli \
-            php5-sockets \
-            php5-xmlreader \
+            php7-bcmath \
+            php7-ctype \
+            php7-fpm \
+            php7-gd \
+            php7-gettext \
+            php7-json \
+            php7-ldap \
+            php7-mbstring \
+            php7-mysqli \
+            php7-session \
+            php7-sockets \
+            php7-xmlreader \
+            php7-xmlwriter \
             supervisor \
             ttf-dejavu && \
     rm -rf /var/cache/apk/*
@@ -93,8 +96,8 @@ COPY ["conf/etc/zabbix/nginx.conf", "/etc/zabbix/"]
 COPY ["conf/etc/zabbix/nginx_ssl.conf", "/etc/zabbix/"]
 COPY ["conf/etc/zabbix/web/zabbix.conf.php", "/etc/zabbix/web/"]
 COPY ["conf/etc/nginx/nginx.conf", "/etc/nginx/"]
-COPY ["conf/etc/php5/php-fpm.conf", "/etc/php5/"]
-COPY ["conf/etc/php5/conf.d/99-zabbix.ini", "/etc/php5/conf.d/"]
+COPY ["conf/etc/php7/php-fpm.conf", "/etc/php7/"]
+COPY ["conf/etc/php7/conf.d/99-zabbix.ini", "/etc/php7/conf.d/"]
 COPY ["docker-entrypoint.sh", "/usr/bin/"]
 
 ENTRYPOINT ["docker-entrypoint.sh"]
