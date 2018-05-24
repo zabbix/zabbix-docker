@@ -44,6 +44,7 @@ RUN addgroup zabbix && \
             php7-mbstring \
             php7-pgsql \
             php7-session \
+            php7-simplexml \
             php7-sockets \
             php7-xmlreader \
             php7-xmlwriter \
