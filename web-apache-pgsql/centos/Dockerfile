@@ -68,7 +68,7 @@ RUN groupadd --system zabbix && \
     mkdir -p /etc/zabbix/web && \
     chown --quiet -R zabbix:root /etc/zabbix && \
     yum ${YUM_FLAGS_COMMON} makecache && \
-    yum ${YUM_FLAGS_DEV} install epel-release && \
+    yum ${YUM_FLAGS_PERSISTANT} install epel-release && \
     yum ${YUM_FLAGS_PERSISTANT} install \
             dejavu-sans-fonts \
             httpd \
