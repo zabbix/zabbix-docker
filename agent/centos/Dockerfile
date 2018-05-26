@@ -1,53 +1,13 @@
-FROM centos:centos7
-LABEL maintainer="Alexey Pustovalov <alexey.pustovalov@zabbix.com>"
-
-ARG BUILD_DATE
-ARG VCS_REF
+FROM centos:centos7 as builder
 
 ARG YUM_FLAGS_COMMON="--quiet -y"
-ARG YUM_FLAGS_PERSISTANT="${YUM_FLAGS_COMMON}"
 ARG YUM_FLAGS_DEV="${YUM_FLAGS_COMMON}"
-ENV TERM=xterm \
-    ZBX_TYPE=agent ZBX_DB_TYPE=none ZBX_OPT_TYPE=none
-
-LABEL org.label-schema.name="zabbix-${ZBX_TYPE}-centos" \
-      org.label-schema.vendor="Zabbix LLC" \
-      org.label-schema.url="https://zabbix.com/" \
-      org.label-schema.description="Zabbix agent is deployed on a monitoring target to actively monitor local resources and applications" \
-      org.label-schema.vcs-ref="${VCS_REF}" \
-      org.label-schema.build-date="${BUILD_DATE}" \
-      org.label-schema.schema-version="1.0" \
-      org.label-schema.license="GPL 2.0"
-
-STOPSIGNAL SIGTERM
-
-RUN groupadd --system zabbix && \
-    adduser -r --shell /sbin/nologin \
-            -g zabbix \
-            -d /var/lib/zabbix/ \
-        zabbix && \
-    mkdir -p /etc/zabbix && \
-    mkdir -p /etc/zabbix/zabbix_agentd.d && \
-    mkdir -p /var/lib/zabbix && \
-    mkdir -p /var/lib/zabbix/enc && \
-    mkdir -p /var/lib/zabbix/modules && \
-    chown --quiet -R zabbix:root /var/lib/zabbix && \
-    yum ${YUM_FLAGS_COMMON} makecache && \
-    yum ${YUM_FLAGS_PERSISTANT} install \
-            libldap \
-            openssl-libs && \
-    yum ${YUM_FLAGS_PERSISTANT} clean all && \
-    rm -rf /var/cache/yum/
 
 ARG MAJOR_VERSION=master
 ARG ZBX_VERSION=${MAJOR_VERSION}
 ARG ZBX_SOURCES=svn://svn.zabbix.com/tags/${ZBX_VERSION}/
-ENV ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES}
-
-LABEL org.label-schema.usage="https://www.zabbix.com/documentation/${MAJOR_VERSION}/manual/installation/containers" \
-      org.label-schema.version="${ZBX_VERSION}" \
-      org.label-schema.vcs-url="${ZBX_SOURCES}" \
-      org.label-schema.docker.cmd="docker run --name zabbix-${ZBX_TYPE} --link zabbix-server:zabbix-server -p 10050:10050 -d zabbix-${ZBX_TYPE}:centos-${ZBX_VERSION}"
+ENV TERM=xterm \
+    ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES}
 
 RUN yum --quiet makecache && \
     yum ${YUM_FLAGS_DEV} install \
@@ -76,22 +36,61 @@ RUN yum --quiet makecache && \
             --with-openssl \
             --enable-ipv6 \
             --silent && \
-    make -j"$(nproc)" -s 1>/dev/null && \
-    cp src/zabbix_agent/zabbix_agentd /usr/sbin/zabbix_agentd && \
-    cp src/zabbix_get/zabbix_get /usr/bin/zabbix_get && \
-    cp src/zabbix_sender/zabbix_sender /usr/bin/zabbix_sender && \
-    cp conf/zabbix_agentd.conf /etc/zabbix/zabbix_agentd.conf && \
-    chown --quiet -R zabbix:root /etc/zabbix && \
-    cd /tmp/ && \
-    rm -rf /tmp/zabbix-${ZBX_VERSION}/ && \
-    yum ${YUM_FLAGS_COMMON} history undo `yum history | sed -n 4p |column -t | cut -d' ' -f1` 1>/dev/null && \
-    yum ${YUM_FLAGS_COMMON} clean all && \
-    rm -rf /etc/udev/hwdb.bin && \
-    rm -rf /var/cache/yum && \
-    rm -rf /var/lib/yum/yumdb/* && \
-    rm -rf /usr/lib/udev/hwdb.d/* && \
-    rm -rf /root/.pki && \
-    rm -rf /root/.subversion 
+    make -j"$(nproc)" -s 1>/dev/null
+
+FROM centos:centos7
+LABEL maintainer="Alexey Pustovalov <alexey.pustovalov@zabbix.com>"
+
+ARG BUILD_DATE
+ARG VCS_REF
+
+ARG YUM_FLAGS_COMMON="--quiet -y"
+ARG YUM_FLAGS_PERSISTANT="${YUM_FLAGS_COMMON}"
+ARG MAJOR_VERSION=master
+ARG ZBX_VERSION=${MAJOR_VERSION}
+ARG ZBX_SOURCES=svn://svn.zabbix.com/tags/${ZBX_VERSION}/
+ENV ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES}
+ENV TERM=xterm \
+    ZBX_TYPE=agent ZBX_DB_TYPE=none ZBX_OPT_TYPE=none \
+    ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES}
+
+LABEL org.label-schema.name="zabbix-${ZBX_TYPE}-centos" \
+      org.label-schema.vendor="Zabbix LLC" \
+      org.label-schema.url="https://zabbix.com/" \
+      org.label-schema.description="Zabbix agent is deployed on a monitoring target to actively monitor local resources and applications" \
+      org.label-schema.vcs-ref="${VCS_REF}" \
+      org.label-schema.build-date="${BUILD_DATE}" \
+      org.label-schema.schema-version="1.0" \
+      org.label-schema.license="GPL v2.0" \
+      org.label-schema.usage="https://www.zabbix.com/documentation/${MAJOR_VERSION}/manual/installation/containers" \
+      org.label-schema.version="${ZBX_VERSION}" \
+      org.label-schema.vcs-url="${ZBX_SOURCES}" \
+      org.label-schema.docker.cmd="docker run --name zabbix-${ZBX_TYPE} --link zabbix-server:zabbix-server -p 10050:10050 -d zabbix-${ZBX_TYPE}:centos-${ZBX_VERSION}"
+
+STOPSIGNAL SIGTERM
+
+RUN groupadd --system zabbix && \
+    adduser -r --shell /sbin/nologin \
+            -g zabbix \
+            -d /var/lib/zabbix/ \
+        zabbix && \
+    mkdir -p /etc/zabbix && \
+    mkdir -p /etc/zabbix/zabbix_agentd.d && \
+    mkdir -p /var/lib/zabbix && \
+    mkdir -p /var/lib/zabbix/enc && \
+    mkdir -p /var/lib/zabbix/modules && \
+    chown --quiet -R zabbix:root /var/lib/zabbix && \
+    yum ${YUM_FLAGS_COMMON} makecache && \
+    yum ${YUM_FLAGS_PERSISTANT} install \
+            libldap \
+            openssl-libs && \
+    yum ${YUM_FLAGS_PERSISTANT} clean all && \
+    rm -rf /var/cache/yum
+
+COPY --from=builder /tmp/zabbix-${ZBX_VERSION}/src/zabbix_agent/zabbix_agentd /usr/sbin/zabbix_agentd
+COPY --from=builder /tmp/zabbix-${ZBX_VERSION}/src/zabbix_get/zabbix_get /usr/bin/zabbix_get
+COPY --from=builder /tmp/zabbix-${ZBX_VERSION}/src/zabbix_sender/zabbix_sender /usr/bin/zabbix_sender
+COPY --from=builder  /tmp/zabbix-${ZBX_VERSION}/conf/zabbix_agentd.conf /etc/zabbix/zabbix_agentd.conf
 
 EXPOSE 10050/TCP
 
