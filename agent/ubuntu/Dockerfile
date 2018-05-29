@@ -84,6 +84,8 @@ RUN locale-gen $LC_ALL && \
     mkdir -p /var/lib/zabbix/modules && \
     chown --quiet -R zabbix:root /var/lib/zabbix && \
     apt-get ${APT_FLAGS_COMMON} update && \
+    apt-get ${APT_FLAGS_PERSISTANT} install \
+            libldap-2.4 1>/dev/null && \
     apt-get ${APT_FLAGS_COMMON} autoremove && \
     apt-get ${APT_FLAGS_COMMON} clean && \
     rm -rf /var/lib/apt/lists/*
