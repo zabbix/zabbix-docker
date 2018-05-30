@@ -33,20 +33,24 @@ RUN addgroup zabbix && \
     apk update && \
     apk add ${APK_FLAGS_PERSISTANT} \
             apache2 \
-            apache2-ssl \
             bash \
-            php5-apache2 \
-            php5-bcmath \
-            php5-ctype \
-            php5-gd \
-            php5-gettext \
-            php5-json \
-            php5-ldap \
-            php5-pgsql \
-            php5-sockets \
-            php5-xmlreader \
+            php7-apache2 \
+            php7-bcmath \
+            php7-ctype \
+            php7-gd \
+            php7-gettext \
+            php7-json \
+            php7-ldap \    
+            php7-pgsql \
+            php7-mbstring \
+            php7-session \
+            php7-simplexml \
+            php7-sockets \
+            php7-xmlreader \
+            php7-xmlwriter \
             postgresql-client \
             ttf-dejavu && \
+    apk add ${APK_FLAGS_PERSISTANT} --no-scripts apache2-ssl && \
     rm -rf /var/cache/apk/*
 
 ARG MAJOR_VERSION=4.0
@@ -62,7 +66,6 @@ LABEL org.label-schema.usage="https://www.zabbix.com/documentation/${MAJOR_VERSI
 COPY ["conf/tmp/font-config", "/tmp/font-config"]
 
 RUN apk add ${APK_FLAGS_DEV} --virtual build-dependencies \
-            coreutils \
             gettext \
             subversion && \
     cd /usr/share/ && \
@@ -89,7 +92,7 @@ VOLUME ["/etc/ssl/apache2"]
 COPY ["conf/etc/zabbix/apache.conf", "/etc/zabbix/"]
 COPY ["conf/etc/zabbix/apache_ssl.conf", "/etc/zabbix/"]
 COPY ["conf/etc/zabbix/web/zabbix.conf.php", "/etc/zabbix/web/"]
-COPY ["conf/etc/php5/conf.d/99-zabbix.ini", "/etc/php5/conf.d/"]
+COPY ["conf/etc/php7/conf.d/99-zabbix.ini", "/etc/php7/conf.d/"]
 COPY ["docker-entrypoint.sh", "/usr/bin/"]
 
 ENTRYPOINT ["docker-entrypoint.sh"]
