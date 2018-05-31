@@ -1,6 +1,6 @@
 FROM centos:centos7 as builder
 
-ARG YUM_FLAGS_COMMON="--quiet -y"
+ARG YUM_FLAGS_COMMON="-y"
 ARG YUM_FLAGS_DEV="${YUM_FLAGS_COMMON}"
 
 ARG MAJOR_VERSION=master
@@ -27,11 +27,11 @@ RUN yum --quiet makecache && \
             subversion \
             unixODBC-devel && \
     cd /tmp/ && \
-    svn --quiet export ${ZBX_SOURCES} zabbix-${ZBX_VERSION} 1>/dev/null && \
+    svn --quiet export ${ZBX_SOURCES} zabbix-${ZBX_VERSION} && \
     cd /tmp/zabbix-${ZBX_VERSION} && \
-    zabbix_revision=`svn info ${ZBX_SOURCES} |grep "Last Changed Rev"|awk '{print $4;}'` && \
+    zabbix_revision=`svn info ${ZBX_SOURCES} | grep "Last Changed Rev"|awk '{print $4;}'` && \
     sed -i "s/{ZABBIX_REVISION}/$zabbix_revision/g" include/version.h && \
-    ./bootstrap.sh 1>/dev/null && \
+    ./bootstrap.sh && \
     export CFLAGS="-fPIC -pie -Wl,-z,relro -Wl,-z,now" && \
     ./configure \
             --datadir=/usr/lib \
@@ -52,8 +52,8 @@ RUN yum --quiet makecache && \
             --with-unixodbc \
             --enable-ipv6 \
             --silent && \
-    make -j"$(nproc)" -s dbschema 1>/dev/null && \
-    make -j"$(nproc)" -s 1>/dev/null && \
+    make -j"$(nproc)" -s dbschema && \
+    make -j"$(nproc)" -s && \
     cat database/${ZBX_DB_TYPE}/schema.sql > database/${ZBX_DB_TYPE}/create.sql && \
     cat database/${ZBX_DB_TYPE}/images.sql >> database/${ZBX_DB_TYPE}/create.sql && \
     cat database/${ZBX_DB_TYPE}/data.sql >> database/${ZBX_DB_TYPE}/create.sql && \
@@ -65,9 +65,9 @@ LABEL maintainer="Alexey Pustovalov <alexey.pustovalov@zabbix.com>"
 ARG BUILD_DATE
 ARG VCS_REF
 
-ARG YUM_FLAGS_COMMON="--quiet -y"
-ARG YUM_FLAGS_PERSISTANT="${YUM_FLAGS_COMMON}"
-ARG YUM_FLAGS_DEV="${YUM_FLAGS_COMMON}"
+ARG YUM_FLAGS_COMMON="-y"
+ARG YUM_FLAGS_PERSISTENT="${YUM_FLAGS_COMMON}"
+
 ARG MAJOR_VERSION=master
 ARG ZBX_VERSION=${MAJOR_VERSION}
 ARG ZBX_SOURCES=svn://svn.zabbix.com/tags/${ZBX_VERSION}/
@@ -82,13 +82,19 @@ LABEL org.label-schema.name="zabbix-${ZBX_TYPE}-${ZBX_DB_TYPE}-centos" \
       org.label-schema.vcs-ref="${VCS_REF}" \
       org.label-schema.build-date="${BUILD_DATE}" \
       org.label-schema.schema-version="1.0" \
-      org.label-schema.license="GPL 2.0" \
+      org.label-schema.license="GPL v2.0" \
       org.label-schema.usage="https://www.zabbix.com/documentation/${MAJOR_VERSION}/manual/installation/containers" \
       org.label-schema.version="${ZBX_VERSION}" \
       org.label-schema.vcs-url="${ZBX_SOURCES}" \
       org.label-schema.docker.cmd="docker run --name zabbix-${ZBX_TYPE}-pgsql --link postgres-server:postgres -p 10051:10051 -d zabbix-${ZBX_TYPE}-pgsql:centos-${ZBX_VERSION}"
 
 STOPSIGNAL SIGTERM
+
+COPY --from=builder /tmp/zabbix-${ZBX_VERSION}/src/zabbix_${ZBX_TYPE}/zabbix_${ZBX_TYPE} /usr/sbin/zabbix_${ZBX_TYPE}
+COPY --from=builder /tmp/zabbix-${ZBX_VERSION}/src/zabbix_get/zabbix_get /usr/bin/zabbix_get
+COPY --from=builder /tmp/zabbix-${ZBX_VERSION}/src/zabbix_sender/zabbix_sender /usr/bin/zabbix_sender
+COPY --from=builder /tmp/zabbix-${ZBX_VERSION}/conf/zabbix_${ZBX_TYPE}.conf /etc/zabbix/zabbix_${ZBX_TYPE}.conf
+COPY --from=builder /tmp/zabbix-${ZBX_VERSION}/database/${ZBX_DB_TYPE}/create.sql.gz /usr/share/doc/zabbix-${ZBX_TYPE}-${ZBX_DB_TYPE}/create.sql.gz
 
 RUN groupadd --system zabbix && \
     adduser -r --shell /sbin/nologin \
@@ -111,8 +117,8 @@ RUN groupadd --system zabbix && \
     chown --quiet -R zabbix:root /var/lib/zabbix && \
     mkdir -p /usr/share/doc/zabbix-${ZBX_TYPE}-${ZBX_DB_TYPE} && \
     yum ${YUM_FLAGS_COMMON} makecache && \
-    yum ${YUM_FLAGS_PERSISTANT} install epel-release && \
-    yum ${YUM_FLAGS_PERSISTANT} install \
+    yum ${YUM_FLAGS_PERSISTENT} install epel-release && \
+    yum ${YUM_FLAGS_PERSISTENT} install \
             fping \
             iksemel \
             libcurl \
@@ -125,14 +131,8 @@ RUN groupadd --system zabbix && \
             postgresql \
             postgresql-libs \
             unixODBC && \
-    yum ${YUM_FLAGS_PERSISTANT} clean all && \
+    yum ${YUM_FLAGS_PERSISTENT} clean all && \
     rm -rf /var/cache/yum/
-
-COPY --from=builder /tmp/zabbix-${ZBX_VERSION}/src/zabbix_${ZBX_TYPE}/zabbix_${ZBX_TYPE} /usr/sbin/zabbix_${ZBX_TYPE}
-COPY --from=builder /tmp/zabbix-${ZBX_VERSION}/src/zabbix_get/zabbix_get /usr/bin/zabbix_get
-COPY --from=builder /tmp/zabbix-${ZBX_VERSION}/src/zabbix_sender/zabbix_sender /usr/bin/zabbix_sender
-COPY --from=builder /tmp/zabbix-${ZBX_VERSION}/conf/zabbix_${ZBX_TYPE}.conf /etc/zabbix/zabbix_${ZBX_TYPE}.conf
-COPY --from=builder /tmp/zabbix-${ZBX_VERSION}/database/${ZBX_DB_TYPE}/create.sql.gz /usr/share/doc/zabbix-${ZBX_TYPE}-${ZBX_DB_TYPE}/create.sql.gz
 
 EXPOSE 10051/TCP
 

@@ -1,7 +1,8 @@
 FROM alpine:3.4 as builder
 
-ARG APK_FLAGS_COMMON="-q"
+ARG APK_FLAGS_COMMON=""
 ARG APK_FLAGS_DEV="${APK_FLAGS_COMMON} --no-cache"
+
 ARG MAJOR_VERSION=master
 ARG ZBX_VERSION=${MAJOR_VERSION}
 ARG ZBX_SOURCES=svn://svn.zabbix.com/tags/${ZBX_VERSION}/
@@ -30,13 +31,13 @@ RUN apk add ${APK_FLAGS_DEV} --virtual build-dependencies \
             subversion \
             unixodbc-dev && \
     cd /tmp/ && \
-    svn --quiet export ${ZBX_SOURCES} zabbix-${ZBX_VERSION} 1>/dev/null && \
+    svn --quiet export ${ZBX_SOURCES} zabbix-${ZBX_VERSION} && \
     cd /tmp/zabbix-${ZBX_VERSION} && \
     zabbix_revision=`svn info ${ZBX_SOURCES} |grep "Last Changed Rev"|awk '{print $4;}'` && \
     sed -i "s/{ZABBIX_REVISION}/$zabbix_revision/g" include/version.h && \
     sed -i "s/{ZABBIX_REVISION}/$zabbix_revision/g" include/version.h && \
     sed -i "s/{ZABBIX_REVISION}/$zabbix_revision/g" src/zabbix_java/src/com/zabbix/gateway/GeneralInformation.java && \
-    ./bootstrap.sh 1>/dev/null && \
+    ./bootstrap.sh && \
     export CFLAGS="-fPIC -pie -Wl,-z,relro -Wl,-z,now" && \
     ./configure \
             --datadir=/usr/lib \
@@ -59,8 +60,8 @@ RUN apk add ${APK_FLAGS_DEV} --virtual build-dependencies \
             --with-unixodbc \
             --enable-ipv6 \
             --silent && \
-    make -j"$(nproc)" -s dbschema 1>/dev/null && \
-    make -j"$(nproc)" -s 1>/dev/null && \
+    make -j"$(nproc)" -s dbschema && \
+    make -j"$(nproc)" -s && \
     cat database/${ZBX_DB_TYPE}/schema.sql > database/${ZBX_DB_TYPE}/create.sql && \
     cat database/${ZBX_DB_TYPE}/images.sql >> database/${ZBX_DB_TYPE}/create.sql && \
     cat database/${ZBX_DB_TYPE}/data.sql >> database/${ZBX_DB_TYPE}/create.sql && \
@@ -79,8 +80,9 @@ LABEL maintainer="Alexey Pustovalov <alexey.pustovalov@zabbix.com>"
 ARG BUILD_DATE
 ARG VCS_REF
 
-ARG APK_FLAGS_COMMON="-q"
-ARG APK_FLAGS_PERSISTANT="${APK_FLAGS_COMMON} --clean-protected --no-cache"
+ARG APK_FLAGS_COMMON=""
+ARG APK_FLAGS_PERSISTENT="${APK_FLAGS_COMMON} --clean-protected --no-cache"
+
 ARG MAJOR_VERSION=master
 ARG ZBX_VERSION=${MAJOR_VERSION}
 ARG ZBX_SOURCES=svn://svn.zabbix.com/tags/${ZBX_VERSION}/
@@ -137,7 +139,7 @@ RUN addgroup zabbix && \
     chown --quiet -R zabbix:root /var/lib/zabbix && \
     mkdir -p /usr/share/doc/zabbix-${ZBX_TYPE}-${ZBX_DB_TYPE}/ && \
     apk update && \
-    apk add ${APK_FLAGS_PERSISTANT} \
+    apk add ${APK_FLAGS_PERSISTENT} \
             bash \
             fping \
             iputils \

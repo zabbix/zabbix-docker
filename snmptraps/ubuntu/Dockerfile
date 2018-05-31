@@ -4,8 +4,8 @@ LABEL maintainer "Alexey Pustovalov <alexey.pustovalov@zabbix.com>"
 ARG BUILD_DATE
 ARG VCS_REF
 
-ARG APT_FLAGS_COMMON="-qq -y"
-ARG APT_FLAGS_PERSISTANT="${APT_FLAGS_COMMON} --no-install-recommends"
+ARG APT_FLAGS_COMMON="-y"
+ARG APT_FLAGS_PERSISTENT="${APT_FLAGS_COMMON} --no-install-recommends"
 ARG APT_FLAGS_DEV="${APT_FLAGS_COMMON} --no-install-recommends"
 ENV LANG=en_US.UTF-8 LANGUAGE=en_US:en LC_ALL=en_US.UTF-8 DEBIAN_FRONTEND=noninteractive TERM=xterm \
     MIBDIRS=/var/lib/mibs/iana:/var/lib/mibs/ietf:/usr/share/snmp/mibs:/var/lib/zabbix/mibs MIBS=+ALL
@@ -17,7 +17,7 @@ LABEL org.label-schema.name="zabbix-snmptraps-ubuntu" \
       org.label-schema.vcs-ref="${VCS_REF}" \
       org.label-schema.build-date="${BUILD_DATE}" \
       org.label-schema.schema-version="1.0" \
-      org.label-schema.license="GPL 2.0"
+      org.label-schema.license="GPL v2.0"
 
 ARG MAJOR_VERSION=master
 ARG ZBX_VERSION=${MAJOR_VERSION}
@@ -44,11 +44,11 @@ RUN locale-gen $LC_ALL && \
             --home /var/lib/zabbix/ \
         zabbix && \
     apt-get ${APT_FLAGS_COMMON} update && \
-    apt-get ${APT_FLAGS_PERSISTANT} install \
+    apt-get ${APT_FLAGS_PERSISTENT} install \
             snmp-mibs-downloader \
             snmpd \
-            supervisor 1>/dev/null && \
-    download-mibs 1>/dev/null && \
+            supervisor && \
+    download-mibs && \
     dpkg -i /tmp/snmptrapfmt_1.14+nmu1ubuntu2_amd64.deb && \
     mkdir -p /var/lib/zabbix && \
     mkdir -p /var/lib/zabbix/snmptraps && \
@@ -64,7 +64,7 @@ RUN locale-gen $LC_ALL && \
     rm -rf /tmp/snmptrapfmt_1.14+nmu1ubuntu2_amd64.deb && \
     apt-get ${APT_FLAGS_COMMON} purge \
             snmp-mibs-downloader \
-            wget 1>/dev/null && \
+            wget && \
     apt-get ${APT_FLAGS_COMMON} autoremove 1>/dev/null && \
     rm -rf /var/lib/apt/lists/*
 

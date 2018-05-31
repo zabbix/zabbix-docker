@@ -1,7 +1,8 @@
 FROM ubuntu:trusty as builder
 
-ARG APT_FLAGS_COMMON="-qq -y"
+ARG APT_FLAGS_COMMON="-y"
 ARG APT_FLAGS_DEV="${APT_FLAGS_COMMON} --no-install-recommends"
+
 ARG MAJOR_VERSION=master
 ARG ZBX_VERSION=${MAJOR_VERSION}
 ARG ZBX_SOURCES=svn://svn.zabbix.com/tags/${ZBX_VERSION}/
@@ -34,15 +35,15 @@ RUN locale-gen $LC_ALL && \
             patch \
             pkg-config \
             subversion \
-            unixodbc-dev 1>/dev/null && \
+            unixodbc-dev && \
     cd /tmp/ && \
-    svn --quiet export ${ZBX_SOURCES} zabbix-${ZBX_VERSION} 1>/dev/null && \
+    svn --quiet export ${ZBX_SOURCES} zabbix-${ZBX_VERSION} && \
     cd /tmp/zabbix-${ZBX_VERSION} && \
-    zabbix_revision=`svn info ${ZBX_SOURCES} |grep "Last Changed Rev"|awk '{print $4;}'` && \
+    zabbix_revision=`svn info ${ZBX_SOURCES} | grep "Last Changed Rev"|awk '{print $4;}'` && \
     sed -i "s/{ZABBIX_REVISION}/$zabbix_revision/g" include/version.h && \
     sed -i "s/{ZABBIX_REVISION}/$zabbix_revision/g" include/version.h && \
     sed -i "s/{ZABBIX_REVISION}/$zabbix_revision/g" src/zabbix_java/src/com/zabbix/gateway/GeneralInformation.java && \
-    ./bootstrap.sh 1>/dev/null && \
+    ./bootstrap.sh && \
     export CFLAGS="-fPIC -pie -Wl,-z,relro -Wl,-z,now" && \
     ./configure \
             --datadir=/usr/lib \
@@ -64,8 +65,8 @@ RUN locale-gen $LC_ALL && \
             --with-unixodbc \
             --enable-ipv6 \
             --silent && \
-    make -j"$(nproc)" -s dbschema 1>/dev/null && \
-    make -j"$(nproc)" -s 1>/dev/null && \
+    make -j"$(nproc)" -s dbschema && \
+    make -j"$(nproc)" -s && \
     cat database/${ZBX_DB_TYPE}/schema.sql > database/${ZBX_DB_TYPE}/create.sql && \
     cat database/${ZBX_DB_TYPE}/images.sql >> database/${ZBX_DB_TYPE}/create.sql && \
     cat database/${ZBX_DB_TYPE}/data.sql >> database/${ZBX_DB_TYPE}/create.sql && \
@@ -76,7 +77,7 @@ RUN locale-gen $LC_ALL && \
     rm -f conf/zabbix.conf.php && \
     rm -rf tests && \
     rm /tmp/zabbix-${ZBX_VERSION}/frontends/php/fonts/DejaVuSans.ttf && \
-    ./locale/make_mo.sh 2>/dev/null
+    ./locale/make_mo.sh
 
 FROM ubuntu:trusty
 LABEL maintainer="Alexey Pustovalov <alexey.pustovalov@zabbix.com>"
@@ -84,8 +85,8 @@ LABEL maintainer="Alexey Pustovalov <alexey.pustovalov@zabbix.com>"
 ARG BUILD_DATE
 ARG VCS_REF
 
-ARG APT_FLAGS_COMMON="-qq -y"
-ARG APT_FLAGS_PERSISTANT="${APT_FLAGS_COMMON} --no-install-recommends"
+ARG APT_FLAGS_COMMON="-y"
+ARG APT_FLAGS_PERSISTENT="${APT_FLAGS_COMMON} --no-install-recommends"
 ARG MAJOR_VERSION=master
 ARG ZBX_VERSION=${MAJOR_VERSION}
 ARG ZBX_SOURCES=svn://svn.zabbix.com/tags/${ZBX_VERSION}/
@@ -102,7 +103,7 @@ LABEL org.label-schema.name="zabbix-${ZBX_TYPE}-${ZBX_DB_TYPE}-ubuntu" \
       org.label-schema.vcs-ref="${VCS_REF}" \
       org.label-schema.build-date="${BUILD_DATE}" \
       org.label-schema.schema-version="1.0" \
-      org.label-schema.license="GPL 2.0" \
+      org.label-schema.license="GPL v2.0" \
       org.label-schema.usage="https://www.zabbix.com/documentation/${MAJOR_VERSION}/manual/installation/containers" \
       org.label-schema.version="${ZBX_VERSION}" \
       org.label-schema.vcs-url="${ZBX_SOURCES}" \
@@ -147,12 +148,12 @@ RUN locale-gen $LC_ALL && \
     mkdir -p /usr/share/doc/zabbix-${ZBX_TYPE}-${ZBX_DB_TYPE}/ && \
     apt-get ${APT_FLAGS_COMMON} update && \
     apt-get ${APT_FLAGS_COMMON} install \
-            wget 1>/dev/null && \
+            wget && \
     DISTRIB_CODENAME=$(/bin/bash -c 'source /etc/lsb-release && echo $DISTRIB_CODENAME') && \
     wget -q https://nginx.org/keys/nginx_signing.key -O- | apt-key add - && \
     echo "deb http://nginx.org/packages/ubuntu/ $DISTRIB_CODENAME nginx" >> /etc/apt/sources.list.d/nginx.list && \
     apt-get ${APT_FLAGS_COMMON} update && \
-    apt-get ${APT_FLAGS_PERSISTANT} install \
+    apt-get ${APT_FLAGS_PERSISTENT} install \
             fping \
             libcurl3 \
             libiksemel3 \
@@ -174,7 +175,7 @@ RUN locale-gen $LC_ALL && \
             snmp-mibs-downloader \
             supervisor \
             ttf-dejavu-core \
-            unixodbc 1>/dev/null && \
+            unixodbc && \
     update-alternatives --install /usr/share/zabbix/fonts/graphfont.ttf \
             zabbix-frontend-font /usr/share/fonts/truetype/ttf-dejavu/DejaVuSans.ttf 10 && \
     mkdir -p /var/lib/locales/supported.d/ && \
@@ -182,9 +183,9 @@ RUN locale-gen $LC_ALL && \
     cat /usr/share/zabbix/include/locales.inc.php | grep display | grep true | awk '{$1=$1};1' | \
                 cut -d"'" -f 2 | sort | \
                 xargs -I '{}' bash -c 'echo "{}.UTF-8 UTF-8" >> /var/lib/locales/supported.d/local' && \
-    dpkg-reconfigure locales 1>/dev/null && \
+    dpkg-reconfigure locales && \
     apt-get ${APT_FLAGS_COMMON} purge \
-            wget 1>/dev/null && \
+            wget && \
     apt-get ${APT_FLAGS_COMMON} autoremove && \
     apt-get ${APT_FLAGS_COMMON} clean && \
     mkdir -p /var/lib/php5 && \

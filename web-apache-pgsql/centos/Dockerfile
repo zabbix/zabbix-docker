@@ -1,14 +1,12 @@
 FROM centos:centos7 as builder
 
-ARG YUM_FLAGS_COMMON="--quiet -y"
+ARG YUM_FLAGS_COMMON="-y"
 ARG YUM_FLAGS_DEV="${YUM_FLAGS_COMMON}"
 
 ARG MAJOR_VERSION=master
 ARG ZBX_VERSION=${MAJOR_VERSION}
 ARG ZBX_SOURCES=svn://svn.zabbix.com/tags/${ZBX_VERSION}/
-ENV ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES} \
-    TERM=xterm \
-    ZBX_TYPE=frontend ZBX_DB_TYPE=postgresql ZBX_OPT_TYPE=apache
+ENV TERM=xterm ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES}
 
 COPY ["conf/tmp/font-config", "/tmp/font-config"]
 
@@ -18,14 +16,14 @@ RUN yum --quiet makecache && \
             patch \
             subversion && \
     cd /tmp/ && \
-    svn --quiet export ${ZBX_SOURCES}/frontends/php/ zabbix 1>/dev/null && \
+    svn --quiet export ${ZBX_SOURCES}/frontends/php/ zabbix && \
     cd /tmp/zabbix/ && \
     patch -p3 < /tmp/font-config && \
     rm /tmp/font-config && \
     rm -f conf/zabbix.conf.php && \
     rm -rf tests && \
     rm /tmp/zabbix/fonts/DejaVuSans.ttf && \
-    ./locale/make_mo.sh 2>/dev/null
+    ./locale/make_mo.sh
 
 FROM centos:centos7
 LABEL maintainer="Alexey Pustovalov <alexey.pustovalov@zabbix.com>"
@@ -34,12 +32,12 @@ ARG BUILD_DATE
 ARG VCS_REF
 
 ARG YUM_FLAGS_COMMON="--quiet -y"
-ARG YUM_FLAGS_PERSISTANT="${YUM_FLAGS_COMMON}"
+ARG YUM_FLAGS_PERSISTENT="${YUM_FLAGS_COMMON}"
+
 ARG MAJOR_VERSION=master
 ARG ZBX_VERSION=${MAJOR_VERSION}
 ARG ZBX_SOURCES=svn://svn.zabbix.com/tags/${ZBX_VERSION}/
-ENV ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES} \
-    TERM=xterm \
+ENV TERM=xterm ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES} \
     ZBX_TYPE=frontend ZBX_DB_TYPE=postgresql ZBX_OPT_TYPE=apache
 
 LABEL org.label-schema.name="zabbix-web-${ZBX_OPT_TYPE}-${ZBX_DB_TYPE}-centos" \
@@ -68,8 +66,8 @@ RUN groupadd --system zabbix && \
     mkdir -p /etc/zabbix/web && \
     chown --quiet -R zabbix:root /etc/zabbix && \
     yum ${YUM_FLAGS_COMMON} makecache && \
-    yum ${YUM_FLAGS_PERSISTANT} install epel-release && \
-    yum ${YUM_FLAGS_PERSISTANT} install \
+    yum ${YUM_FLAGS_PERSISTENT} install epel-release && \
+    yum ${YUM_FLAGS_PERSISTENT} install \
             dejavu-sans-fonts \
             httpd \
             php \
@@ -81,7 +79,7 @@ RUN groupadd --system zabbix && \
             php-xml \
             postgresql && \
     ln -s /usr/share/fonts/ttf-dejavu/DejaVuSans.ttf /usr/share/zabbix/fonts/graphfont.ttf && \
-    yum ${YUM_FLAGS_PERSISTANT} clean all && \
+    yum ${YUM_FLAGS_PERSISTENT} clean all && \
     rm -rf /var/cache/yum/
 
 EXPOSE 80/TCP 443/TCP

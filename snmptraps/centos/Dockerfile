@@ -1,6 +1,6 @@
 FROM centos:centos7 as builder
 
-ARG YUM_FLAGS_COMMON="--quiet -y"
+ARG YUM_FLAGS_COMMON="-y"
 ARG YUM_FLAGS_DEV="${YUM_FLAGS_COMMON}"
 
 ARG MAJOR_VERSION=master
@@ -23,7 +23,7 @@ RUN yum ${YUM_FLAGS_COMMON} makecache && \
     tar -zxf snmptrapfmt_1.14+nmu1ubuntu2.tar.gz && \
     cd /tmp/snmptrapfmt-1.14+nmu1ubuntu1/ && \
     patch -p1 < ./patches/makefile.patch && \
-    make -j"$(nproc)" -s 1>/dev/null
+    make -j"$(nproc)" -s
 
 FROM centos:centos7
 LABEL maintainer "Alexey Pustovalov <alexey.pustovalov@zabbix.com>"
@@ -31,8 +31,9 @@ LABEL maintainer "Alexey Pustovalov <alexey.pustovalov@zabbix.com>"
 ARG BUILD_DATE
 ARG VCS_REF
 
-ARG YUM_FLAGS_COMMON="--quiet -y"
-ARG YUM_FLAGS_PERSISTANT="${YUM_FLAGS_COMMON}"
+ARG YUM_FLAGS_COMMON="-y"
+ARG YUM_FLAGS_PERSISTENT="${YUM_FLAGS_COMMON}"
+
 ARG MAJOR_VERSION=master
 ARG ZBX_VERSION=${MAJOR_VERSION}
 ARG ZBX_SOURCES=svn://svn.zabbix.com/tags/${ZBX_VERSION}/
@@ -46,7 +47,7 @@ LABEL org.label-schema.name="zabbix-snmptraps-centos" \
       org.label-schema.vcs-ref="${VCS_REF}" \
       org.label-schema.build-date="${BUILD_DATE}" \
       org.label-schema.schema-version="1.0" \
-      org.label-schema.license="GPL 2.0" \
+      org.label-schema.license="GPL v2.0" \
       org.label-schema.usage="https://www.zabbix.com/documentation/${MAJOR_VERSION}/manual/installation/containers" \
       org.label-schema.version="1.14" \
       org.label-schema.vcs-url="https://anonscm.debian.org/gitweb/?p=collab-maint/snmptrapfmt.git" \
@@ -64,8 +65,8 @@ RUN groupadd --system zabbix && \
             -d /var/lib/zabbix/ \
         zabbix && \
     yum ${YUM_FLAGS_COMMON} makecache && \
-    yum ${YUM_FLAGS_PERSISTANT} install epel-release && \
-    yum ${YUM_FLAGS_PERSISTANT} install \
+    yum ${YUM_FLAGS_PERSISTENT} install epel-release && \
+    yum ${YUM_FLAGS_PERSISTENT} install \
             net-snmp \
             supervisor && \
     mkdir -p /var/lib/zabbix && \

@@ -1,6 +1,6 @@
 FROM centos:centos7 as builder
 
-ARG YUM_FLAGS_COMMON="--quiet -y"
+ARG YUM_FLAGS_COMMON="-y"
 ARG YUM_FLAGS_DEV="${YUM_FLAGS_COMMON}"
 
 ARG MAJOR_VERSION=master
@@ -33,13 +33,13 @@ RUN yum ${YUM_FLAGS_DEV} install epel-release && \
             subversion \
             unixODBC-devel && \
     cd /tmp/ && \
-    svn --quiet export ${ZBX_SOURCES} zabbix-${ZBX_VERSION} 1>/dev/null && \
+    svn --quiet export ${ZBX_SOURCES} zabbix-${ZBX_VERSION} && \
     cd /tmp/zabbix-${ZBX_VERSION} && \
-    zabbix_revision=`svn info ${ZBX_SOURCES} |grep "Last Changed Rev"|awk '{print $4;}'` && \
+    zabbix_revision=`svn info ${ZBX_SOURCES} | grep "Last Changed Rev"|awk '{print $4;}'` && \
     sed -i "s/{ZABBIX_REVISION}/$zabbix_revision/g" include/version.h && \
     sed -i "s/{ZABBIX_REVISION}/$zabbix_revision/g" include/version.h && \
     sed -i "s/{ZABBIX_REVISION}/$zabbix_revision/g" src/zabbix_java/src/com/zabbix/gateway/GeneralInformation.java && \
-    ./bootstrap.sh 1>/dev/null && \
+    ./bootstrap.sh && \
     export CFLAGS="-fPIC -pie -Wl,-z,relro -Wl,-z,now" && \
     ./configure \
             --datadir=/usr/lib \
@@ -61,8 +61,8 @@ RUN yum ${YUM_FLAGS_DEV} install epel-release && \
             --with-unixodbc \
             --enable-ipv6 \
             --silent && \
-    make -j"$(nproc)" -s dbschema 1>/dev/null && \
-    make -j"$(nproc)" -s 1>/dev/null && \
+    make -j"$(nproc)" -s dbschema && \
+    make -j"$(nproc)" -s && \
     cat database/${ZBX_DB_TYPE}/schema.sql > database/${ZBX_DB_TYPE}/create.sql && \
     cat database/${ZBX_DB_TYPE}/images.sql >> database/${ZBX_DB_TYPE}/create.sql && \
     cat database/${ZBX_DB_TYPE}/data.sql >> database/${ZBX_DB_TYPE}/create.sql && \
@@ -73,7 +73,7 @@ RUN yum ${YUM_FLAGS_DEV} install epel-release && \
     rm -f conf/zabbix.conf.php && \
     rm -rf tests && \
     rm /tmp/zabbix-${ZBX_VERSION}/frontends/php/fonts/DejaVuSans.ttf && \
-    ./locale/make_mo.sh 2>/dev/null
+    ./locale/make_mo.sh
 
 FROM centos:centos7
 LABEL maintainer="Alexey Pustovalov <alexey.pustovalov@zabbix.com>"
@@ -82,7 +82,8 @@ ARG BUILD_DATE
 ARG VCS_REF
 
 ARG YUM_FLAGS_COMMON="--quiet -y"
-ARG YUM_FLAGS_PERSISTANT="${YUM_FLAGS_COMMON}"
+ARG YUM_FLAGS_PERSISTENT="${YUM_FLAGS_COMMON}"
+
 ARG MAJOR_VERSION=master
 ARG ZBX_VERSION=${MAJOR_VERSION}
 ARG ZBX_SOURCES=svn://svn.zabbix.com/tags/${ZBX_VERSION}/
@@ -138,8 +139,8 @@ RUN groupadd --system zabbix && \
     chown --quiet -R zabbix:root /var/lib/zabbix && \
     mkdir -p /usr/share/doc/zabbix-${ZBX_TYPE}-${ZBX_DB_TYPE}/ && \
     yum ${YUM_FLAGS_COMMON} makecache && \
-    yum ${YUM_FLAGS_PERSISTANT} install epel-release && \
-    yum ${YUM_FLAGS_PERSISTANT} install \
+    yum ${YUM_FLAGS_PERSISTENT} install epel-release && \
+    yum ${YUM_FLAGS_PERSISTENT} install \
             OpenIPMI-libs \
             dejavu-sans-fonts \
             fping \
@@ -168,7 +169,7 @@ RUN groupadd --system zabbix && \
     chown --quiet -R nginx:nginx /var/lib/php/ && \
     ls -lah /usr/share/zabbix/ && \
     ln -s /usr/share/fonts/ttf-dejavu/DejaVuSans.ttf /usr/share/zabbix/fonts/graphfont.ttf && \
-    yum ${YUM_FLAGS_PERSISTANT} clean all && \
+    yum ${YUM_FLAGS_PERSISTENT} clean all && \
     rm -rf /var/cache/yum/
 
 EXPOSE 80/TCP 443/TCP 10051/TCP

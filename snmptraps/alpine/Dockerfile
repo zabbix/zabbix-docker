@@ -4,8 +4,8 @@ LABEL maintainer "Alexey Pustovalov <alexey.pustovalov@zabbix.com>"
 ARG BUILD_DATE
 ARG VCS_REF
 
-ARG APK_FLAGS_COMMON="-q"
-ARG APK_FLAGS_PERSISTANT="${APK_FLAGS_COMMON} --clean-protected --no-cache"
+ARG APK_FLAGS_COMMON=""
+ARG APK_FLAGS_PERSISTENT="${APK_FLAGS_COMMON} --clean-protected --no-cache"
 ARG APK_FLAGS_DEV="${APK_FLAGS_COMMON} --no-cache"
 ENV TERM=xterm MIBDIRS=/usr/share/snmp/mibs:/var/lib/zabbix/mibs MIBS=+ALL
 
@@ -16,7 +16,7 @@ LABEL org.label-schema.name="zabbix-snmptraps-alpine" \
       org.label-schema.vcs-ref="${VCS_REF}" \
       org.label-schema.build-date="${BUILD_DATE}" \
       org.label-schema.schema-version="1.0" \
-      org.label-schema.license="GPL 2.0"
+      org.label-schema.license="GPL v2.0"
 
 ARG MAJOR_VERSION=master
 ARG ZBX_VERSION=${MAJOR_VERSION}
@@ -38,7 +38,7 @@ RUN addgroup zabbix && \
             -h /var/lib/zabbix/ \
         zabbix && \
     apk update && \
-    apk add ${APK_FLAGS_PERSISTANT} \
+    apk add ${APK_FLAGS_PERSISTENT} \
             net-snmp \
             supervisor && \
     apk add ${APK_FLAGS_DEV} --virtual build-dependencies \
@@ -56,7 +56,7 @@ RUN addgroup zabbix && \
     ls -lah && \
     cd /tmp/snmptrapfmt-1.14+nmu1ubuntu1/ && \
     patch -p1 < ./patches/makefile.patch && \
-    make -j"$(nproc)" -s 1>/dev/null && \
+    make -j"$(nproc)" -s && \
     cp snmptrapfmthdlr /usr/sbin/snmptrapfmthdlr && \
     cp snmptrapfmt /usr/sbin/snmptrapfmt && \
     cp snmptrapfmt.conf /etc/snmp/snmptrapfmt.conf && \
@@ -67,8 +67,8 @@ RUN addgroup zabbix && \
             -e '/^LOGFMT=/s/=.*/=\"$x ZBXTRAP $R $G $S $e $*\"/' \
             -e "/^LOGFILE=/s/=.*/=\"\/var\/lib\/zabbix\/snmptraps\/snmptraps.log\"/" \
         "/etc/snmp/snmptrapfmt.conf" && \
-    rm -rf /tmp/snmptrapfmt_1.14+nmu1ubuntu2.tar.gz 1>/dev/null && \
-    rm -rf /tmp/snmptrapfmt-1.14+nmu1ubuntu1/ 1>/dev/null && \
+    rm -rf /tmp/snmptrapfmt_1.14+nmu1ubuntu2.tar.gz && \
+    rm -rf /tmp/snmptrapfmt-1.14+nmu1ubuntu1/ && \
     apk del ${APK_FLAGS_COMMON} --purge \
             build-dependencies && \
     rm -rf /var/cache/apk/*

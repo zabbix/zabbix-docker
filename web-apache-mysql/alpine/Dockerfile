@@ -5,7 +5,7 @@ ARG BUILD_DATE
 ARG VCS_REF
 
 ARG APK_FLAGS_COMMON="-q"
-ARG APK_FLAGS_PERSISTANT="${APK_FLAGS_COMMON} --clean-protected --no-cache"
+ARG APK_FLAGS_PERSISTENT="${APK_FLAGS_COMMON} --clean-protected --no-cache"
 ARG APK_FLAGS_DEV="${APK_FLAGS_COMMON} --no-cache"
 ENV TERM=xterm \
     ZBX_TYPE=frontend ZBX_DB_TYPE=mysql ZBX_OPT_TYPE=apache
@@ -17,7 +17,7 @@ LABEL org.label-schema.name="zabbix-web-${ZBX_OPT_TYPE}-${ZBX_DB_TYPE}-alpine" \
       org.label-schema.vcs-ref="${VCS_REF}" \
       org.label-schema.build-date="${BUILD_DATE}" \
       org.label-schema.schema-version="1.0" \
-      org.label-schema.license="GPL 2.0"
+      org.label-schema.license="GPL v2.0"
 
 STOPSIGNAL SIGTERM
 
@@ -31,7 +31,7 @@ RUN addgroup zabbix && \
     mkdir -p /etc/zabbix/web && \
     chown --quiet -R zabbix:root /etc/zabbix && \
     apk update && \
-    apk add ${APK_FLAGS_PERSISTANT} \
+    apk add ${APK_FLAGS_PERSISTENT} \
             apache2 \
             bash \
             mariadb-client \
@@ -51,7 +51,7 @@ RUN addgroup zabbix && \
             php7-xmlreader \
             php7-xmlwriter \
             ttf-dejavu && \
-    apk add ${APK_FLAGS_PERSISTANT} --no-scripts apache2-ssl && \
+    apk add ${APK_FLAGS_PERSISTENT} --no-scripts apache2-ssl && \
     rm -rf /var/cache/apk/*
 
 ARG MAJOR_VERSION=master
@@ -70,14 +70,14 @@ RUN apk add ${APK_FLAGS_DEV} --virtual build-dependencies \
             gettext \
             subversion && \
     cd /usr/share/ && \
-    svn --quiet export ${ZBX_SOURCES}/frontends/php/ zabbix 1>/dev/null && \
+    svn --quiet export ${ZBX_SOURCES}/frontends/php/ zabbix && \
     cd /usr/share/zabbix/ && \
     patch -p3 < /tmp/font-config && \
     rm /tmp/font-config && \
     rm -f conf/zabbix.conf.php && \
     rm -rf tests && \
     rm /usr/share/zabbix/fonts/DejaVuSans.ttf && \
-    ./locale/make_mo.sh 2>/dev/null && \
+    ./locale/make_mo.sh && \
     ln -s /usr/share/fonts/ttf-dejavu/DejaVuSans.ttf /usr/share/zabbix/fonts/graphfont.ttf && \
     apk del ${APK_FLAGS_COMMON} --purge \
             build-dependencies && \
