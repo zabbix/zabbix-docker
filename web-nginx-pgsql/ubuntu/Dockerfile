@@ -4,8 +4,8 @@ LABEL maintainer="Alexey Pustovalov <alexey.pustovalov@zabbix.com>"
 ARG BUILD_DATE
 ARG VCS_REF
 
-ARG APT_FLAGS_COMMON="-qq -y"
-ARG APT_FLAGS_PERSISTANT="${APT_FLAGS_COMMON} --no-install-recommends"
+ARG APT_FLAGS_COMMON="-y"
+ARG APT_FLAGS_PERSISTENT="${APT_FLAGS_COMMON} --no-install-recommends"
 ARG APT_FLAGS_DEV="${APT_FLAGS_COMMON} --no-install-recommends"
 ENV LANG=en_US.UTF-8 LANGUAGE=en_US:en LC_ALL=en_US.UTF-8 DEBIAN_FRONTEND=noninteractive TERM=xterm \
     ZBX_TYPE=frontend ZBX_DB_TYPE=postgresql ZBX_OPT_TYPE=nginx
@@ -17,7 +17,7 @@ LABEL org.label-schema.name="zabbix-web-${ZBX_OPT_TYPE}-${ZBX_DB_TYPE}-ubuntu" \
       org.label-schema.vcs-ref="${VCS_REF}" \
       org.label-schema.build-date="${BUILD_DATE}" \
       org.label-schema.schema-version="1.0" \
-      org.label-schema.license="GPL 2.0"
+      org.label-schema.license="GPL v2.0"
 
 STOPSIGNAL SIGTERM
 
@@ -35,12 +35,12 @@ RUN locale-gen $LC_ALL && \
     chown --quiet -R zabbix:root /etc/zabbix && \
     apt-get ${APT_FLAGS_COMMON} update && \
     apt-get ${APT_FLAGS_COMMON} install \
-            wget 1>/dev/null && \
+            wget && \
     DISTRIB_CODENAME=$(/bin/bash -c 'source /etc/lsb-release && echo $DISTRIB_CODENAME') && \
     wget -q https://nginx.org/keys/nginx_signing.key -O- | apt-key add - && \
     echo "deb http://nginx.org/packages/ubuntu/ $DISTRIB_CODENAME nginx" >> /etc/apt/sources.list.d/nginx.list && \
     apt-get ${APT_FLAGS_COMMON} update && \
-    apt-get ${APT_FLAGS_PERSISTANT} install \
+    apt-get ${APT_FLAGS_PERSISTENT} install \
             nginx \
             php5-fpm \
             php5-gd \
@@ -49,9 +49,9 @@ RUN locale-gen $LC_ALL && \
             php5-pgsql \
             postgresql-client \
             supervisor \
-            ttf-dejavu-core 1>/dev/null && \
+            ttf-dejavu-core && \
     apt-get ${APT_FLAGS_COMMON} purge \
-            wget 1>/dev/null && \
+            wget && \
     apt-get ${APT_FLAGS_COMMON} autoremove && \
     apt-get ${APT_FLAGS_COMMON} clean && \
     mkdir -p /var/lib/php5 && \
@@ -75,16 +75,16 @@ RUN apt-get ${APT_FLAGS_COMMON} update && \
     apt-get ${APT_FLAGS_DEV} install \
             gettext \
             patch \
-            subversion 1>/dev/null && \
+            subversion && \
     cd /usr/share/ && \
-    svn --quiet export ${ZBX_SOURCES}/frontends/php/ zabbix 1>/dev/null && \
+    svn --quiet export ${ZBX_SOURCES}/frontends/php/ zabbix && \
     cd /usr/share/zabbix/ && \
     patch -p3 < /tmp/font-config && \
     rm /tmp/font-config && \
     rm -f conf/zabbix.conf.php && \
     rm -rf tests && \
     rm /usr/share/zabbix/fonts/DejaVuSans.ttf && \
-    ./locale/make_mo.sh 2>/dev/null && \
+    ./locale/make_mo.sh && \
     update-alternatives --install /usr/share/zabbix/fonts/graphfont.ttf \
             zabbix-frontend-font /usr/share/fonts/truetype/ttf-dejavu/DejaVuSans.ttf 10 && \
     mkdir -p /var/lib/locales/supported.d/ && \
@@ -92,13 +92,13 @@ RUN apt-get ${APT_FLAGS_COMMON} update && \
     cat /usr/share/zabbix/include/locales.inc.php | grep display | grep true | awk '{$1=$1};1' | \
                 cut -d"'" -f 2 | sort | \
                 xargs -I '{}' bash -c 'echo "{}.UTF-8 UTF-8" >> /var/lib/locales/supported.d/local' && \
-    dpkg-reconfigure locales 1>/dev/null && \
+    dpkg-reconfigure locales && \
     find /usr/share/zabbix/locale -name '*.po' | xargs rm -f && \
     find /usr/share/zabbix/locale -name '*.sh' | xargs rm -f && \
     apt-get ${APT_FLAGS_COMMON} purge \
             gettext \
             patch \
-            subversion 1>/dev/null && \
+            subversion && \
     apt-get ${APT_FLAGS_COMMON} autoremove && \
     apt-get ${APT_FLAGS_COMMON} clean && \
     rm -rf /var/lib/apt/lists/* && \
