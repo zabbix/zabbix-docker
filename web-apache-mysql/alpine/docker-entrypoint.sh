@@ -133,7 +133,7 @@ escape_spec_char() {
     var_value="${var_value//\$/\\\$}"
     var_value="${var_value//\&/\\\&}"
     var_value="${var_value//\[/\\[}"
-    var_value="${var_value//\[/\\]}"
+    var_value="${var_value//\]/\\]}"
 
     echo $var_value
 }
