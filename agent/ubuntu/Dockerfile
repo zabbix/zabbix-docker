@@ -92,7 +92,7 @@ RUN locale-gen $LC_ALL && \
     mkdir -p /var/lib/zabbix/modules && \
     chown --quiet -R zabbix:root /var/lib/zabbix && \
     apt-get ${APT_FLAGS_COMMON} update && \
-    apt-get ${APT_FLAGS_PERSISTANT} install \
+    apt-get ${APT_FLAGS_PERSISTENT} install \
             libpcre3 \
             libldap-2.4 && \
     apt-get ${APT_FLAGS_COMMON} autoremove && \
