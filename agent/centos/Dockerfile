@@ -1,13 +1,13 @@
 FROM centos:centos7 as builder
 
-ARG YUM_FLAGS_COMMON="--quiet -y"
+ARG YUM_FLAGS_COMMON="-y"
 ARG YUM_FLAGS_DEV="${YUM_FLAGS_COMMON}"
 
 ARG MAJOR_VERSION=4.0
 ARG ZBX_VERSION=${MAJOR_VERSION}
 ARG ZBX_SOURCES=svn://svn.zabbix.com/trunk/
-ENV TERM=xterm \
-    ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES}
+ENV TERM=xterm ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES} \
+    ZBX_TYPE=agent
 
 RUN yum --quiet makecache && \
     yum ${YUM_FLAGS_DEV} install \
@@ -19,11 +19,11 @@ RUN yum --quiet makecache && \
             subversion \
             gcc && \
     cd /tmp/ && \
-    svn --quiet export ${ZBX_SOURCES} zabbix-${ZBX_VERSION} 1>/dev/null && \
+    svn --quiet export ${ZBX_SOURCES} zabbix-${ZBX_VERSION} && \
     cd /tmp/zabbix-${ZBX_VERSION} && \
-    zabbix_revision=`set -o pipefail && svn info ${ZBX_SOURCES} |grep "Last Changed Rev"|awk '{print $4;}'` && \
+    zabbix_revision=`set -o pipefail && svn info ${ZBX_SOURCES} | grep "Last Changed Rev"|awk '{print $4;}'` && \
     sed -i "s/{ZABBIX_REVISION}/$zabbix_revision/g" include/version.h && \
-    ./bootstrap.sh 1>/dev/null && \
+    ./bootstrap.sh && \
     export CFLAGS="-fPIC -pie -Wl,-z,relro -Wl,-z,now" && \
     ./configure \
             --datadir=/usr/lib \
@@ -36,7 +36,7 @@ RUN yum --quiet makecache && \
             --with-openssl \
             --enable-ipv6 \
             --silent && \
-    make -j"$(nproc)" -s 1>/dev/null
+    make -j"$(nproc)" -s
 
 FROM centos:centos7
 LABEL maintainer="Alexey Pustovalov <alexey.pustovalov@zabbix.com>"
@@ -44,15 +44,14 @@ LABEL maintainer="Alexey Pustovalov <alexey.pustovalov@zabbix.com>"
 ARG BUILD_DATE
 ARG VCS_REF
 
-ARG YUM_FLAGS_COMMON="--quiet -y"
-ARG YUM_FLAGS_PERSISTANT="${YUM_FLAGS_COMMON}"
+ARG YUM_FLAGS_COMMON="-y"
+ARG YUM_FLAGS_PERSISTENT="${YUM_FLAGS_COMMON}"
+
 ARG MAJOR_VERSION=4.0
 ARG ZBX_VERSION=${MAJOR_VERSION}
 ARG ZBX_SOURCES=svn://svn.zabbix.com/trunk/
-ENV ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES}
-ENV TERM=xterm \
-    ZBX_TYPE=agent ZBX_DB_TYPE=none ZBX_OPT_TYPE=none \
-    ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES}
+ENV TERM=xterm ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES} \
+    ZBX_TYPE=agent ZBX_DB_TYPE=none ZBX_OPT_TYPE=none
 
 LABEL org.label-schema.name="zabbix-${ZBX_TYPE}-centos" \
       org.label-schema.vendor="Zabbix LLC" \
@@ -69,6 +68,11 @@ LABEL org.label-schema.name="zabbix-${ZBX_TYPE}-centos" \
 
 STOPSIGNAL SIGTERM
 
+COPY --from=builder /tmp/zabbix-${ZBX_VERSION}/src/zabbix_agent/zabbix_agentd /usr/sbin/zabbix_agentd
+COPY --from=builder /tmp/zabbix-${ZBX_VERSION}/src/zabbix_get/zabbix_get /usr/bin/zabbix_get
+COPY --from=builder /tmp/zabbix-${ZBX_VERSION}/src/zabbix_sender/zabbix_sender /usr/bin/zabbix_sender
+COPY --from=builder  /tmp/zabbix-${ZBX_VERSION}/conf/zabbix_agentd.conf /etc/zabbix/zabbix_agentd.conf
+
 RUN groupadd --system zabbix && \
     adduser -r --shell /sbin/nologin \
             -g zabbix \
@@ -81,16 +85,11 @@ RUN groupadd --system zabbix && \
     mkdir -p /var/lib/zabbix/modules && \
     chown --quiet -R zabbix:root /var/lib/zabbix && \
     yum ${YUM_FLAGS_COMMON} makecache && \
-    yum ${YUM_FLAGS_PERSISTANT} install \
+    yum ${YUM_FLAGS_PERSISTENT} install \
             libldap \
             openssl-libs && \
-    yum ${YUM_FLAGS_PERSISTANT} clean all && \
+    yum ${YUM_FLAGS_PERSISTENT} clean all && \
     rm -rf /var/cache/yum
-
-COPY --from=builder /tmp/zabbix-${ZBX_VERSION}/src/zabbix_agent/zabbix_agentd /usr/sbin/zabbix_agentd
-COPY --from=builder /tmp/zabbix-${ZBX_VERSION}/src/zabbix_get/zabbix_get /usr/bin/zabbix_get
-COPY --from=builder /tmp/zabbix-${ZBX_VERSION}/src/zabbix_sender/zabbix_sender /usr/bin/zabbix_sender
-COPY --from=builder  /tmp/zabbix-${ZBX_VERSION}/conf/zabbix_agentd.conf /etc/zabbix/zabbix_agentd.conf
 
 EXPOSE 10050/TCP
 

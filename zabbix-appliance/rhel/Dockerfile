@@ -1,8 +1,8 @@
 FROM registry.access.redhat.com/rhel7
 MAINTAINER Alexey Pustovalov <alexey.pustovalov@zabbix.com>
 
-ARG YUM_FLAGS_COMMON="--quiet -y"
-ARG YUM_FLAGS_PERSISTANT="${YUM_FLAGS_COMMON}"
+ARG YUM_FLAGS_COMMON="-y"
+ARG YUM_FLAGS_PERSISTENT="${YUM_FLAGS_COMMON}"
 ARG YUM_FLAGS_DEV="${YUM_FLAGS_COMMON}"
 ENV TERM=xterm MIBDIRS=/usr/share/snmp/mibs:/var/lib/zabbix/mibs MIBS=+ALL \
     ZBX_TYPE=server ZBX_DB_TYPE=mysql ZBX_OPT_TYPE=nginx \
@@ -12,8 +12,8 @@ ARG BUILD_DATE
 ARG VCS_REF
 
 ARG MAJOR_VERSION=4.0
-ARG RELEASE=
-ARG ZBX_VERSION=${MAJOR_VERSION}
+ARG RELEASE=0
+ARG ZBX_VERSION=${MAJOR_VERSION}.${RELEASE}
 
 ARG ZBX_SOURCES=svn://svn.zabbix.com/trunk/
 ENV ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES}
@@ -38,7 +38,7 @@ LABEL name="zabbix/zabbix-appliance" \
       org.label-schema.vcs-ref="${VCS_REF}" \
       org.label-schema.build-date="${BUILD_DATE}" \
       org.label-schema.schema-version="1.0" \
-      org.label-schema.license="GPL 2.0" \
+      org.label-schema.license="GPL v2.0" \
       org.label-schema.usage="https://www.zabbix.com/documentation/${MAJOR_VERSION}/manual/installation/containers" \
       org.label-schema.version="${ZBX_VERSION}" \
       org.label-schema.vcs-url="${ZBX_SOURCES}" \
@@ -135,13 +135,13 @@ RUN REPOLIST="rhel-7-server-rpms,rhel-7-server-optional-rpms,zabbix-non-supporte
             unixODBC-devel" && \
     yum -y install --disablerepo "*" --enablerepo "${REPOLIST}" --setopt=tsflags=nodocs ${INSTALL_PKGS} && \
     cd /tmp/ && \
-    svn --quiet export ${ZBX_SOURCES} zabbix-${ZBX_VERSION} 1>/dev/null && \
+    svn --quiet export ${ZBX_SOURCES} zabbix-${ZBX_VERSION} && \
     cd /tmp/zabbix-${ZBX_VERSION} && \
-    zabbix_revision=`svn info ${ZBX_SOURCES} |grep "Last Changed Rev"|awk '{print $4;}'` && \
+    zabbix_revision=`svn info ${ZBX_SOURCES} | grep "Last Changed Rev"|awk '{print $4;}'` && \
     sed -i "s/{ZABBIX_REVISION}/$zabbix_revision/g" include/version.h && \
     sed -i "s/{ZABBIX_REVISION}/$zabbix_revision/g" include/version.h && \
     sed -i "s/{ZABBIX_REVISION}/$zabbix_revision/g" src/zabbix_java/src/com/zabbix/gateway/GeneralInformation.java && \
-    ./bootstrap.sh 1>/dev/null && \
+    ./bootstrap.sh && \
     export CFLAGS="-fPIC -pie -Wl,-z,relro -Wl,-z,now" && \
     ./configure \
             --datadir=/usr/lib \
@@ -163,8 +163,8 @@ RUN REPOLIST="rhel-7-server-rpms,rhel-7-server-optional-rpms,zabbix-non-supporte
             --with-unixodbc \
             --enable-ipv6 \
             --silent && \
-    make -j"$(nproc)" -s dbschema 1>/dev/null && \
-    make -j"$(nproc)" -s 1>/dev/null && \
+    make -j"$(nproc)" -s dbschema && \
+    make -j"$(nproc)" -s && \
     cp src/zabbix_${ZBX_TYPE}/zabbix_${ZBX_TYPE} /usr/sbin/zabbix_${ZBX_TYPE} && \
     cp src/zabbix_get/zabbix_get /usr/bin/zabbix_get && \
     cp src/zabbix_sender/zabbix_sender /usr/bin/zabbix_sender && \
@@ -182,16 +182,16 @@ RUN REPOLIST="rhel-7-server-rpms,rhel-7-server-optional-rpms,zabbix-non-supporte
     cd /tmp/ && \
     rm -rf /tmp/zabbix-${ZBX_VERSION}/ && \
     cd /usr/share/ && \
-    svn --quiet export ${ZBX_SOURCES}/frontends/php/ zabbix 1>/dev/null && \
+    svn --quiet export ${ZBX_SOURCES}/frontends/php/ zabbix && \
     cd /usr/share/zabbix/ && \
     patch -p3 < /tmp/font-config && \
     rm /tmp/font-config && \
     rm -f conf/zabbix.conf.php && \
     rm -rf tests && \
     rm /usr/share/zabbix/fonts/DejaVuSans.ttf && \
-    ./locale/make_mo.sh 2>/dev/null && \
+    ./locale/make_mo.sh && \
     ln -s /usr/share/fonts/ttf-dejavu/DejaVuSans.ttf /usr/share/zabbix/fonts/graphfont.ttf && \
-    yum ${YUM_FLAGS_COMMON} history undo `yum history | sed -n 4p |column -t | cut -d' ' -f1` 1>/dev/null && \
+    yum ${YUM_FLAGS_COMMON} history undo `yum history | sed -n 4p |column -t | cut -d' ' -f1` && \
     yum ${YUM_FLAGS_COMMON} clean all && \
     rm -rf /var/cache/yum && \
     rm -rf /var/lib/yum/yumdb/* && \

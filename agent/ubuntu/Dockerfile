@@ -1,12 +1,13 @@
 FROM ubuntu:trusty as builder
 
-ARG APT_FLAGS_COMMON="-qq -y"
+ARG APT_FLAGS_COMMON="-y"
 ARG APT_FLAGS_DEV="${APT_FLAGS_COMMON} --no-install-recommends"
+
 ARG MAJOR_VERSION=4.0
 ARG ZBX_VERSION=${MAJOR_VERSION}
 ARG ZBX_SOURCES=svn://svn.zabbix.com/trunk/
 ENV LANG=en_US.UTF-8 LANGUAGE=en_US:en LC_ALL=en_US.UTF-8 DEBIAN_FRONTEND=noninteractive TERM=xterm \
-    ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES}
+    ZBX_TYPE=agent ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES}
 
 RUN locale-gen $LC_ALL && \
     apt-get ${APT_FLAGS_COMMON} update && \
@@ -20,13 +21,13 @@ RUN locale-gen $LC_ALL && \
             make \
             pkg-config \
             subversion \
-            gcc 1>/dev/null && \
+            gcc && \
     cd /tmp/ && \
     svn --quiet export ${ZBX_SOURCES} zabbix-${ZBX_VERSION} && \
     cd /tmp/zabbix-${ZBX_VERSION} && \
-    zabbix_revision=`svn info ${ZBX_SOURCES} |grep "Last Changed Rev"|awk '{print $4;}'` && \
+    zabbix_revision=`svn info ${ZBX_SOURCES} | grep "Last Changed Rev"|awk '{print $4;}'` && \
     sed -i "s/{ZABBIX_REVISION}/$zabbix_revision/g" include/version.h && \
-    ./bootstrap.sh 1>/dev/null && \
+    ./bootstrap.sh && \
     export CFLAGS="-fPIC -pie -Wl,-z,relro -Wl,-z,now" && \
     ./configure \
             --datadir=/usr/lib \
@@ -38,7 +39,7 @@ RUN locale-gen $LC_ALL && \
             --with-openssl \
             --enable-ipv6 \
             --silent && \
-    make -j"$(nproc)" -s 1>/dev/null
+    make -j"$(nproc)" -s
 
 FROM ubuntu:trusty
 LABEL maintainer="Alexey Pustovalov <alexey.pustovalov@zabbix.com>"
@@ -46,8 +47,9 @@ LABEL maintainer="Alexey Pustovalov <alexey.pustovalov@zabbix.com>"
 ARG BUILD_DATE
 ARG VCS_REF
 
-ARG APT_FLAGS_COMMON="-qq -y"
-ARG APT_FLAGS_PERSISTANT="${APT_FLAGS_COMMON} --no-install-recommends"
+ARG APT_FLAGS_COMMON="-y"
+ARG APT_FLAGS_PERSISTENT="${APT_FLAGS_COMMON} --no-install-recommends"
+
 ARG MAJOR_VERSION=4.0
 ARG ZBX_VERSION=${MAJOR_VERSION}
 ARG ZBX_SOURCES=svn://svn.zabbix.com/trunk/
@@ -62,13 +64,18 @@ LABEL org.label-schema.name="zabbix-${ZBX_TYPE}-ubuntu" \
       org.label-schema.vcs-ref="${VCS_REF}" \
       org.label-schema.build-date="${BUILD_DATE}" \
       org.label-schema.schema-version="1.0" \
-      org.label-schema.license="GPL 2.0" \
+      org.label-schema.license="GPL v2.0" \
       org.label-schema.usage="https://www.zabbix.com/documentation/${MAJOR_VERSION}/manual/installation/containers" \
       org.label-schema.version="${ZBX_VERSION}" \
       org.label-schema.vcs-url="${ZBX_SOURCES}" \
       org.label-schema.docker.cmd="docker run --name zabbix-${ZBX_TYPE} --link zabbix-server:zabbix-server -p 10050:10050 -d zabbix-${ZBX_TYPE}:ubuntu-${ZBX_VERSION}"
 
 STOPSIGNAL SIGTERM
+
+COPY --from=builder /tmp/zabbix-${ZBX_VERSION}/src/zabbix_agent/zabbix_agentd /usr/sbin/zabbix_agentd
+COPY --from=builder /tmp/zabbix-${ZBX_VERSION}/src/zabbix_get/zabbix_get /usr/bin/zabbix_get
+COPY --from=builder /tmp/zabbix-${ZBX_VERSION}/src/zabbix_sender/zabbix_sender /usr/bin/zabbix_sender
+COPY --from=builder  /tmp/zabbix-${ZBX_VERSION}/conf/zabbix_agentd.conf /etc/zabbix/zabbix_agentd.conf
 
 RUN locale-gen $LC_ALL && \
     echo "#!/bin/sh\nexit 0" > /usr/sbin/policy-rc.d && \
@@ -87,15 +94,10 @@ RUN locale-gen $LC_ALL && \
     apt-get ${APT_FLAGS_COMMON} update && \
     apt-get ${APT_FLAGS_PERSISTANT} install \
             libpcre3 \
-            libldap-2.4 1>/dev/null && \
+            libldap-2.4 && \
     apt-get ${APT_FLAGS_COMMON} autoremove && \
     apt-get ${APT_FLAGS_COMMON} clean && \
     rm -rf /var/lib/apt/lists/*
-
-COPY --from=builder /tmp/zabbix-${ZBX_VERSION}/src/zabbix_agent/zabbix_agentd /usr/sbin/zabbix_agentd
-COPY --from=builder /tmp/zabbix-${ZBX_VERSION}/src/zabbix_get/zabbix_get /usr/bin/zabbix_get
-COPY --from=builder /tmp/zabbix-${ZBX_VERSION}/src/zabbix_sender/zabbix_sender /usr/bin/zabbix_sender
-COPY --from=builder  /tmp/zabbix-${ZBX_VERSION}/conf/zabbix_agentd.conf /etc/zabbix/zabbix_agentd.conf
 
 EXPOSE 10050/TCP
 
