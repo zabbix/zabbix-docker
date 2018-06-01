@@ -94,6 +94,14 @@ These variables are used by Zabbix web interface to connect to Zabbix database. 
 
 The variable is Zabbix database name. By default, value is `zabbix`.
 
+### `ZBX_HISTORYSTORAGEURL`
+
+History storage HTTP[S] URL. This parameter is used for Elasticsearch setup. Available since 3.4.5.
+
+### `ZBX_HISTORYSTORAGETYPES`
+
+Array of value types to be sent to the history storage. An example: ['uint', 'dbl']. This parameter is used for Elasticsearch setup. Available since 3.4.5.
+
 ### `PHP_TZ`
 
 The variable is timezone in PHP format. Full list of supported timezones are available on [`php.net`](http://php.net/manual/en/timezones.php). By default, value is 'Europe/Riga'.
