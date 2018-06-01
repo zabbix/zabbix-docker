@@ -87,6 +87,7 @@ RUN addgroup zabbix && \
     apk update && \
     apk add ${APK_FLAGS_PERSISTANT} \
             bash \
+            coreutils \
             iputils \
             libldap && \
     rm -rf /var/cache/apk/*
