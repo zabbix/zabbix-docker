@@ -842,6 +842,8 @@ prepare_zbx_web_config() {
     server_name=$(escape_spec_char "${ZBX_SERVER_NAME}")
     server_user=$(escape_spec_char "${DB_SERVER_ZBX_USER}")
     server_pass=$(escape_spec_char "${DB_SERVER_ZBX_PASS}")
+    history_storage_url=$(escape_spec_char "${ZBX_HISTORYSTORAGEURL}")
+    history_storage_types=$(escape_spec_char "${ZBX_HISTORYSTORAGETYPES}")
 
     sed -i \
         -e "s/{DB_SERVER_HOST}/${DB_SERVER_HOST}/g" \
@@ -852,6 +854,8 @@ prepare_zbx_web_config() {
         -e "s/{ZBX_SERVER_HOST}/${ZBX_SERVER_HOST}/g" \
         -e "s/{ZBX_SERVER_PORT}/${ZBX_SERVER_PORT}/g" \
         -e "s/{ZBX_SERVER_NAME}/$server_name/g" \
+        -e "s/{ZBX_HISTORYSTORAGEURL}/$history_storage_url/g" \
+        -e "s/{ZBX_HISTORYSTORAGETYPES}/$history_storage_types/g" \
     "$ZBX_WEB_CONFIG"
 
     [ "$db_type" = "postgresql" ] && sed -i "s/MYSQL/POSTGRESQL/g" "$ZBX_WEB_CONFIG"

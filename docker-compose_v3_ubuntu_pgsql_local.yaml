@@ -411,6 +411,16 @@ services:
   volumes:
    - ./zbx_env/var/lib/postgresql/data:/var/lib/postgresql/data:rw
 
+# elasticsearch:
+#  image: elasticsearch
+#  environment:
+#   - transport.host=0.0.0.0
+#   - discovery.zen.minimum_master_nodes=1
+#  networks:
+#   zbx_net_backend:
+#    aliases:
+#     - elasticsearch
+
 networks:
   zbx_net_frontend:
     driver: bridge
