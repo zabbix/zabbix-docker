@@ -4,8 +4,8 @@ LABEL maintainer="Alexey Pustovalov <alexey.pustovalov@zabbix.com>"
 ARG BUILD_DATE
 ARG VCS_REF
 
-ARG APT_FLAGS_COMMON="-qq -y"
-ARG APT_FLAGS_PERSISTANT="${APT_FLAGS_COMMON} --no-install-recommends"
+ARG APT_FLAGS_COMMON="-y"
+ARG APT_FLAGS_PERSISTENT="${APT_FLAGS_COMMON} --no-install-recommends"
 ARG APT_FLAGS_DEV="${APT_FLAGS_COMMON} --no-install-recommends"
 ENV LANG=en_US.UTF-8 LANGUAGE=en_US:en LC_ALL=en_US.UTF-8 DEBIAN_FRONTEND=noninteractive TERM=xterm \
     ZBX_TYPE=java-gateway ZBX_DB_TYPE=none ZBX_OPT_TYPE=none
@@ -33,8 +33,8 @@ RUN locale-gen $LC_ALL && \
     mkdir -p /etc/zabbix/ && \
     chown --quiet -R zabbix:root /etc/zabbix && \
     apt-get ${APT_FLAGS_COMMON} update && \
-    apt-get ${APT_FLAGS_PERSISTANT} install \
-            openjdk-7-jre-headless 1>/dev/null && \
+    apt-get ${APT_FLAGS_PERSISTENT} install \
+            openjdk-7-jre-headless && \
     apt-get ${APT_FLAGS_COMMON} autoremove && \
     apt-get ${APT_FLAGS_COMMON} clean && \
     rm -rf /var/lib/apt/lists/*
@@ -58,14 +58,14 @@ RUN apt-get ${APT_FLAGS_COMMON} update && \
             openjdk-7-jdk \
             pkg-config \
             subversion \
-            gcc 1>/dev/null && \
+            gcc && \
     cd /tmp/ && \
-    svn --quiet export ${ZBX_SOURCES} zabbix-${ZBX_VERSION} 1>/dev/null && \
+    svn --quiet export ${ZBX_SOURCES} zabbix-${ZBX_VERSION} && \
     cd /tmp/zabbix-${ZBX_VERSION} && \
-    zabbix_revision=`svn info ${ZBX_SOURCES} |grep "Last Changed Rev"|awk '{print $4;}'` && \
+    zabbix_revision=`svn info ${ZBX_SOURCES} | grep "Last Changed Rev"|awk '{print $4;}'` && \
     sed -i "s/{ZABBIX_REVISION}/$zabbix_revision/g" include/version.h && \
     sed -i "s/{ZABBIX_REVISION}/$zabbix_revision/g" src/zabbix_java/src/com/zabbix/gateway/GeneralInformation.java && \
-    ./bootstrap.sh 1>/dev/null && \
+    ./bootstrap.sh && \
     ./configure \
             --datadir=/usr/lib \
             --libdir=/usr/lib/zabbix \
@@ -73,7 +73,7 @@ RUN apt-get ${APT_FLAGS_COMMON} update && \
             --prefix=/usr \
             --enable-java \
             --silent && \
-    make -j"$(nproc)" -s 1>/dev/null && \
+    make -j"$(nproc)" -s && \
     mkdir -p /usr/sbin/zabbix_java/ && \
     cp -r src/zabbix_java/bin /usr/sbin/zabbix_java/ && \
     cp -r src/zabbix_java/lib /usr/sbin/zabbix_java/ && \
@@ -88,7 +88,7 @@ RUN apt-get ${APT_FLAGS_COMMON} update && \
             openjdk-7-jdk \
             pkg-config \
             subversion \
-            gcc 1>/dev/null && \
+            gcc && \
     apt-get ${APT_FLAGS_COMMON} autoremove && \
     apt-get ${APT_FLAGS_COMMON} clean && \
     rm -rf /var/lib/apt/lists/* && \

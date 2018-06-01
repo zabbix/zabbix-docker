@@ -4,8 +4,8 @@ LABEL maintainer="Alexey Pustovalov <alexey.pustovalov@zabbix.com>"
 ARG BUILD_DATE
 ARG VCS_REF
 
-ARG APT_FLAGS_COMMON="-qq -y"
-ARG APT_FLAGS_PERSISTANT="${APT_FLAGS_COMMON} --no-install-recommends"
+ARG APT_FLAGS_COMMON="-y"
+ARG APT_FLAGS_PERSISTENT="${APT_FLAGS_COMMON} --no-install-recommends"
 ARG APT_FLAGS_DEV="${APT_FLAGS_COMMON} --no-install-recommends"
 ENV LANG=en_US.UTF-8 LANGUAGE=en_US:en LC_ALL=en_US.UTF-8 DEBIAN_FRONTEND=noninteractive TERM=xterm \
     MIBDIRS=/var/lib/mibs/iana:/var/lib/mibs/ietf:/usr/share/snmp/mibs:/var/lib/zabbix/mibs MIBS=+ALL \
@@ -46,7 +46,7 @@ RUN locale-gen $LC_ALL && \
     mkdir -p /var/lib/zabbix/ssl/ssl_ca && \
     chown --quiet -R zabbix:root /var/lib/zabbix && \
     apt-get ${APT_FLAGS_COMMON} update && \
-    apt-get ${APT_FLAGS_PERSISTANT} install \
+    apt-get ${APT_FLAGS_PERSISTENT} install \
             fping \
             libcurl3 \
             libopenipmi0 \
@@ -56,7 +56,7 @@ RUN locale-gen $LC_ALL && \
             libssl1.0.0 \
             libxml2 \
             snmp-mibs-downloader \
-            unixodbc 1>/dev/null && \
+            unixodbc && \
     apt-get ${APT_FLAGS_COMMON} autoremove && \
     apt-get ${APT_FLAGS_COMMON} clean && \
     rm -rf /var/lib/apt/lists/*
@@ -87,13 +87,13 @@ RUN apt-get ${APT_FLAGS_COMMON} update && \
             make \
             pkg-config \
             subversion \
-            unixodbc-dev 1>/dev/null && \
+            unixodbc-dev && \
     cd /tmp/ && \
     svn --quiet export ${ZBX_SOURCES} zabbix-${ZBX_VERSION} && \
     cd /tmp/zabbix-${ZBX_VERSION} && \
-    zabbix_revision=`svn info ${ZBX_SOURCES} |grep "Last Changed Rev"|awk '{print $4;}'` && \
+    zabbix_revision=`svn info ${ZBX_SOURCES} |grep " Last Changed Rev"|awk '{print $4;}'` && \
     sed -i "s/{ZABBIX_REVISION}/$zabbix_revision/g" include/version.h && \
-    ./bootstrap.sh 1>/dev/null && \
+    ./bootstrap.sh && \
     export CFLAGS="-fPIC -pie -Wl,-z,relro -Wl,-z,now" && \
     ./configure \
             --datadir=/usr/lib \
@@ -113,8 +113,8 @@ RUN apt-get ${APT_FLAGS_COMMON} update && \
             --with-unixodbc \
             --enable-ipv6 \
             --silent && \
-    make -j"$(nproc)" -s dbschema 1>/dev/null && \
-    make -j"$(nproc)" -s 1>/dev/null && \
+    make -j"$(nproc)" -s dbschema && \
+    make -j"$(nproc)" -s && \
     cp src/zabbix_${ZBX_TYPE}/zabbix_${ZBX_TYPE} /usr/sbin/zabbix_${ZBX_TYPE} && \
     cp src/zabbix_get/zabbix_get /usr/bin/zabbix_get && \
     cp src/zabbix_sender/zabbix_sender /usr/bin/zabbix_sender && \
@@ -137,8 +137,8 @@ RUN apt-get ${APT_FLAGS_COMMON} update && \
             make \
             pkg-config \
             subversion \
-            unixodbc-dev 1>/dev/null && \
-    apt-get ${APT_FLAGS_COMMON} autoremove 1>/dev/null && \
+            unixodbc-dev && \
+    apt-get ${APT_FLAGS_COMMON} autoremove && \
     rm -rf /var/lib/apt/lists/* && \
     rm -rf /root/.subversion
 
