@@ -838,6 +838,8 @@ prepare_zbx_web_config() {
         echo "**** Zabbix related PHP configuration file not found"
     fi
 
+    ZBX_HISTORYSTORAGETYPES=${ZBX_HISTORYSTORAGETYPES:-"[]"}
+
     # Escaping characters in parameter value
     server_name=$(escape_spec_char "${ZBX_SERVER_NAME}")
     server_user=$(escape_spec_char "${DB_SERVER_ZBX_USER}")
