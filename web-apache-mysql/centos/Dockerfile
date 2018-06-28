@@ -77,7 +77,7 @@ RUN groupadd --system zabbix && \
             php-mbstring \
             php-mysql \
             php-xml && \
-    ln -s /usr/share/fonts/ttf-dejavu/DejaVuSans.ttf /usr/share/zabbix/fonts/graphfont.ttf && \
+    ln -s /usr/share/fonts/dejavu/DejaVuSans.ttf /usr/share/zabbix/fonts/graphfont.ttf && \
     yum ${YUM_FLAGS_PERSISTANT} clean all && \
     rm -rf /var/cache/yum/
 
