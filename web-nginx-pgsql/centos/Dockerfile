@@ -79,7 +79,7 @@ RUN groupadd --system zabbix && \
             php-mbstring \
             php-pgsql \
             php-xml && \
-    ln -s /usr/share/fonts/ttf-dejavu/DejaVuSans.ttf /usr/share/zabbix/fonts/graphfont.ttf && \
+    ln -s /usr/share/fonts/dejavu/DejaVuSans.ttf /usr/share/zabbix/fonts/graphfont.ttf && \
     rm -f /etc/php-fpm.d/www.conf && \
     mkdir -p /var/lib/php/ && \
     chown --quiet -R nginx:nginx /var/lib/php/ && \
