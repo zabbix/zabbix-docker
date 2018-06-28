@@ -290,6 +290,7 @@ check_db_connect_postgresql() {
     echo "* DB_SERVER_HOST: ${DB_SERVER_HOST}"
     echo "* DB_SERVER_PORT: ${DB_SERVER_PORT}"
     echo "* DB_SERVER_DBNAME: ${DB_SERVER_DBNAME}"
+    echo "* DB_SERVER_SCHEMA: ${DB_SERVER_SCHEMA}"
     if [ "${USE_DB_ROOT_USER}" == "true" ]; then
         echo "* DB_SERVER_ROOT_USER: ${DB_SERVER_ROOT_USER}"
         echo "* DB_SERVER_ROOT_PASS: ${DB_SERVER_ROOT_PASS}"
@@ -306,6 +307,11 @@ check_db_connect_postgresql() {
     fi
 
     WAIT_TIMEOUT=5
+    
+    if [ -n "${DB_SERVER_SCHEMA}" ]; then
+        PGOPTIONS="--search_path=${DB_SERVER_SCHEMA}"
+        export PGOPTIONS
+    fi
 
     while [ ! "$(psql -h ${DB_SERVER_HOST} -p ${DB_SERVER_PORT} -U ${DB_SERVER_ROOT_USER} -d ${DB_SERVER_DBNAME} -l -q 2>/dev/null)" ]; do
         echo "**** PostgreSQL server is not available. Waiting $WAIT_TIMEOUT seconds..."
@@ -313,6 +319,7 @@ check_db_connect_postgresql() {
     done
 
     unset PGPASSWORD
+    unset PGOPTIONS
 }
 
 
@@ -335,11 +342,17 @@ psql_query() {
     if [ -n "${DB_SERVER_ZBX_PASS}" ]; then
         export PGPASSWORD="${DB_SERVER_ZBX_PASS}"
     fi
+    
+    if [ -n "${DB_SERVER_SCHEMA}" ]; then
+        PGOPTIONS="--search_path=${DB_SERVER_SCHEMA}"
+        export PGOPTIONS
+    fi
 
     result=$(psql -A -q -t  -h ${DB_SERVER_HOST} -p ${DB_SERVER_PORT} \
              -U ${DB_SERVER_ROOT_USER} -c "$query" $db 2>/dev/null);
 
     unset PGPASSWORD
+    unset PGOPTIONS
 
     echo $result
 }
@@ -436,11 +449,17 @@ create_db_schema_postgresql() {
             export PGPASSWORD="${DB_SERVER_ZBX_PASS}"
         fi
 
+        if [ -n "${DB_SERVER_SCHEMA}" ]; then
+            PGOPTIONS="--search_path=${DB_SERVER_SCHEMA}"
+            export PGOPTIONS
+        fi
+
         zcat /usr/share/doc/zabbix-$type-postgresql/create.sql.gz | psql -q \
                 -h ${DB_SERVER_HOST} -p ${DB_SERVER_PORT} \
                 -U ${DB_SERVER_ZBX_USER} ${DB_SERVER_DBNAME} 1>/dev/null
 
         unset PGPASSWORD
+        unset PGOPTIONS
     fi
 }
 
@@ -656,6 +675,7 @@ update_zbx_config() {
     else
         update_config_var $ZBX_CONFIG "DBHost" "${DB_SERVER_HOST}"
         update_config_var $ZBX_CONFIG "DBName" "${DB_SERVER_DBNAME}"
+        update_config_var $ZBX_CONFIG "DBSchema" "${DB_SERVER_SCHEMA}"
         update_config_var $ZBX_CONFIG "DBUser" "${DB_SERVER_ZBX_USER}"
         update_config_var $ZBX_CONFIG "DBPort" "${DB_SERVER_PORT}"
         update_config_var $ZBX_CONFIG "DBPassword" "${DB_SERVER_ZBX_PASS}"
@@ -851,6 +871,7 @@ prepare_zbx_web_config() {
         -e "s/{DB_SERVER_HOST}/${DB_SERVER_HOST}/g" \
         -e "s/{DB_SERVER_PORT}/${DB_SERVER_PORT}/g" \
         -e "s/{DB_SERVER_DBNAME}/${DB_SERVER_DBNAME}/g" \
+        -e "s/{DB_SERVER_SCHEMA}/${DB_SERVER_SCHEMA}/g" \
         -e "s/{DB_SERVER_USER}/$server_user/g" \
         -e "s/{DB_SERVER_PASS}/$server_pass/g" \
         -e "s/{ZBX_SERVER_HOST}/${ZBX_SERVER_HOST}/g" \

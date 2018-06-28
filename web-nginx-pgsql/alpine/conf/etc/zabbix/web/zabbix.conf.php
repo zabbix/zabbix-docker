@@ -10,7 +10,7 @@ $DB['USER']     = '{DB_SERVER_USER}';
 $DB['PASSWORD'] = '{DB_SERVER_PASS}';
 
 // Schema name. Used for IBM DB2 and PostgreSQL.
-$DB['SCHEMA'] = '';
+$DB['SCHEMA'] = '{DB_SERVER_SCHEMA}';
 
 $ZBX_SERVER      = '{ZBX_SERVER_HOST}';
 $ZBX_SERVER_PORT = '{ZBX_SERVER_PORT}';
