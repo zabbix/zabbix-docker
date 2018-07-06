@@ -34,6 +34,7 @@ RUN addgroup zabbix && \
     apk add ${APK_FLAGS_PERSISTENT} \
             apache2 \
             bash \
+            curl \
             php7-apache2 \
             php7-bcmath \
             php7-ctype \

@@ -34,6 +34,7 @@ RUN addgroup zabbix && \
     apk add ${APK_FLAGS_PERSISTENT} \
             apache2 \
             bash \
+            curl \
             mariadb-client \
             mariadb-client-libs \
             php7-apache2 \
