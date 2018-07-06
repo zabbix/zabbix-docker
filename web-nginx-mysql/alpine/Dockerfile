@@ -33,6 +33,7 @@ RUN addgroup zabbix && \
     apk update && \
     apk add ${APK_FLAGS_PERSISTENT} \
             bash \
+            curl \
             mariadb-client \
             mariadb-client-libs \
             nginx \

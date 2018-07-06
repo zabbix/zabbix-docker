@@ -68,6 +68,7 @@ RUN groupadd --system zabbix && \
     yum ${YUM_FLAGS_COMMON} makecache && \
     yum ${YUM_FLAGS_PERSISTENT} install \
             dejavu-sans-fonts \
+            curl \
             httpd \
             mariadb \
             php \

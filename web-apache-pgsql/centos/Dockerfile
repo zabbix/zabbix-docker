@@ -69,6 +69,7 @@ RUN groupadd --system zabbix && \
     yum ${YUM_FLAGS_PERSISTENT} install epel-release && \
     yum ${YUM_FLAGS_PERSISTENT} install \
             dejavu-sans-fonts \
+            curl \
             httpd \
             php \
             php-bcmath \
