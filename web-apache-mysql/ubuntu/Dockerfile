@@ -36,6 +36,7 @@ RUN locale-gen $LC_ALL && \
     apt-get ${APT_FLAGS_COMMON} update && \
     apt-get ${APT_FLAGS_PERSISTENT} install \
             apache2 \
+            curl \
             libapache2-mod-php5 \
             mysql-client \
             php5-gd \

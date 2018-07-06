@@ -70,6 +70,7 @@ RUN groupadd --system zabbix && \
     yum ${YUM_FLAGS_PERSISTENT} install epel-release && \
     yum ${YUM_FLAGS_PERSISTENT} install supervisor \
             dejavu-sans-fonts \
+            curl \
             nginx \
             postgresql \
             php-bcmath \
