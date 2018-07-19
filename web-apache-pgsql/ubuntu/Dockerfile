@@ -1,4 +1,4 @@
-FROM ubuntu:trusty
+FROM ubuntu:bionic
 LABEL maintainer="Alexey Pustovalov <alexey.pustovalov@zabbix.com>"
 
 ARG BUILD_DATE
@@ -21,7 +21,9 @@ LABEL org.label-schema.name="zabbix-web-${ZBX_OPT_TYPE}-${ZBX_DB_TYPE}-ubuntu" \
 
 STOPSIGNAL SIGTERM
 
-RUN locale-gen $LC_ALL && \
+RUN apt-get ${APT_FLAGS_COMMON} update && \
+    apt-get ${APT_FLAGS_PERSISTENT} install locales && \
+    locale-gen $LC_ALL && \
     echo "#!/bin/sh\nexit 0" > /usr/sbin/policy-rc.d && \
     addgroup --system --quiet zabbix && \
     adduser --quiet \
@@ -37,11 +39,14 @@ RUN locale-gen $LC_ALL && \
     apt-get ${APT_FLAGS_PERSISTENT} install \
             apache2 \
             curl \
-            libapache2-mod-php5 \
-            php5-gd \
-            php5-json \
-            php5-ldap \
-            php5-pgsql \
+            libapache2-mod-php \
+            php7.2-bcmath \
+            php7.2-gd \
+            php7.2-json \
+            php7.2-ldap \
+            php7.2-mbstring \
+            php7.2-xml \
+            php7.2-pgsql \
             postgresql-client \
             ttf-dejavu-core && \
     apt-get ${APT_FLAGS_COMMON} autoremove && \
@@ -102,7 +107,7 @@ VOLUME ["/etc/ssl/apache2"]
 COPY ["conf/etc/zabbix/apache.conf", "/etc/zabbix/"]
 COPY ["conf/etc/zabbix/apache_ssl.conf", "/etc/zabbix/"]
 COPY ["conf/etc/zabbix/web/zabbix.conf.php", "/etc/zabbix/web/"]
-COPY ["conf/etc/php5/apache2/conf.d/99-zabbix.ini", "/etc/php5/apache2/conf.d/"]
+COPY ["conf/etc/php/7.2/apache2/conf.d/99-zabbix.ini", "/etc/php/7.2/apache2/conf.d/"]
 COPY ["docker-entrypoint.sh", "/usr/bin/"]
 
 ENTRYPOINT ["docker-entrypoint.sh"]
