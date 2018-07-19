@@ -1,4 +1,4 @@
-FROM ubuntu:trusty
+FROM ubuntu:bionic
 LABEL maintainer="Alexey Pustovalov <alexey.pustovalov@zabbix.com>"
 
 ARG BUILD_DATE
@@ -23,10 +23,10 @@ LABEL org.label-schema.name="zabbix-${ZBX_TYPE}-${ZBX_DB_TYPE}-ubuntu" \
 
 STOPSIGNAL SIGTERM
 
-RUN locale-gen $LC_ALL && \
+RUN apt-get ${APT_FLAGS_COMMON} update && \
+    apt-get ${APT_FLAGS_PERSISTENT} install locales && \
+    locale-gen $LC_ALL && \
     echo "#!/bin/sh\nexit 0" > /usr/sbin/policy-rc.d && \
-    DISTRIB_CODENAME=$(/bin/bash -c 'source /etc/lsb-release && echo $DISTRIB_CODENAME') && \
-    echo "deb http://us.archive.ubuntu.com/ubuntu/ $DISTRIB_CODENAME multiverse" >> /etc/apt/sources.list && \
     addgroup --system --quiet zabbix && \
     adduser --quiet \
             --system --disabled-login \
@@ -50,12 +50,12 @@ RUN locale-gen $LC_ALL && \
     apt-get ${APT_FLAGS_COMMON} update && \
     apt-get ${APT_FLAGS_PERSISTENT} install \
             fping \
-            libcurl3 \
-            libmysqlclient18 \
+            libcurl4 \
+            libmysqlclient20 \
             libopenipmi0 \
             libsnmp30 \
             libssh2-1 \
-            libssl1.0.0 \
+            libssl1.1 \
             libxml2 \
             mysql-client \
             snmp-mibs-downloader \

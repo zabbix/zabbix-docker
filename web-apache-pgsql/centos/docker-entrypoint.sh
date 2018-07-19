@@ -593,6 +593,7 @@ prepare_web_server_nginx() {
     fi
 
     ln -sf /dev/fd/2 /var/log/php5-fpm.log
+    ln -sf /dev/fd/2 /var/log/php7.2-fpm.log
 }
 
 stop_databases() {
@@ -833,6 +834,10 @@ prepare_zbx_web_config() {
         PHP_CONFIG_FILE="/etc/php.d/99-zabbix.ini"
     elif [ -f "/etc/php7/conf.d/99-zabbix.ini" ]; then
         PHP_CONFIG_FILE="/etc/php7/conf.d/99-zabbix.ini"
+    elif [ -f "/etc/php/7.2/fpm/conf.d/99-zabbix.ini" ]; then
+        PHP_CONFIG_FILE="/etc/php/7.2/fpm/conf.d/99-zabbix.ini"
+    elif [ -f "/etc/php/7.2/apache2/conf.d/99-zabbix.ini" ]; then
+        PHP_CONFIG_FILE="/etc/php/7.2/apache2/conf.d/99-zabbix.ini"
     fi
 
     if [ -n "$PHP_CONFIG_FILE" ]; then
