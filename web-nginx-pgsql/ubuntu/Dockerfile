@@ -1,4 +1,4 @@
-FROM ubuntu:bionic
+FROM ubuntu:trusty
 LABEL maintainer="Alexey Pustovalov <alexey.pustovalov@zabbix.com>"
 
 ARG BUILD_DATE
@@ -21,9 +21,7 @@ LABEL org.label-schema.name="zabbix-web-${ZBX_OPT_TYPE}-${ZBX_DB_TYPE}-ubuntu" \
 
 STOPSIGNAL SIGTERM
 
-RUN apt-get ${APT_FLAGS_COMMON} update && \
-    apt-get ${APT_FLAGS_PERSISTENT} install locales gnupg2 && \
-    locale-gen $LC_ALL && \
+RUN locale-gen $LC_ALL && \
     echo "#!/bin/sh\nexit 0" > /usr/sbin/policy-rc.d && \
     addgroup --system --quiet zabbix && \
     adduser --quiet \
@@ -45,14 +43,11 @@ RUN apt-get ${APT_FLAGS_COMMON} update && \
     apt-get ${APT_FLAGS_PERSISTENT} install \
             curl \
             nginx \
-            php7.2-bcmath \
-            php7.2-fpm \
-            php7.2-gd \
-            php7.2-json \
-            php7.2-ldap \
-            php7.2-mbstring \
-            php7.2-xml \
-            php7.2-pgsql \
+            php5-fpm \
+            php5-gd \
+            php5-json \
+            php5-ldap \
+            php5-pgsql \
             postgresql-client \
             supervisor \
             ttf-dejavu-core && \
@@ -121,7 +116,7 @@ COPY ["conf/etc/zabbix/nginx.conf", "/etc/zabbix/"]
 COPY ["conf/etc/zabbix/nginx_ssl.conf", "/etc/zabbix/"]
 COPY ["conf/etc/zabbix/web/zabbix.conf.php", "/etc/zabbix/web/"]
 COPY ["conf/etc/nginx/nginx.conf", "/etc/nginx/"]
-COPY ["conf/etc/php/7.2/fpm/conf.d/99-zabbix.ini", "/etc/php/7.2/fpm/conf.d/"]
+COPY ["conf/etc/php5/fpm/conf.d/99-zabbix.ini", "/etc/php5/fpm/conf.d/"]
 COPY ["docker-entrypoint.sh", "/usr/bin/"]
 
 ENTRYPOINT ["docker-entrypoint.sh"]

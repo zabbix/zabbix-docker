@@ -1,4 +1,4 @@
-FROM ubuntu:bionic as builder
+FROM ubuntu:trusty as builder
 
 ARG APT_FLAGS_COMMON="-y"
 ARG APT_FLAGS_DEV="${APT_FLAGS_COMMON} --no-install-recommends"
@@ -9,9 +9,8 @@ ARG ZBX_SOURCES=svn://svn.zabbix.com/tags/${ZBX_VERSION}/
 ENV LANG=en_US.UTF-8 LANGUAGE=en_US:en LC_ALL=en_US.UTF-8 DEBIAN_FRONTEND=noninteractive TERM=xterm \
     ZBX_TYPE=agent ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES}
 
-RUN apt-get ${APT_FLAGS_COMMON} update && \
-    apt-get ${APT_FLAGS_PERSISTENT} install locales && \
-    locale-gen $LC_ALL && \
+RUN locale-gen $LC_ALL && \
+    apt-get ${APT_FLAGS_COMMON} update && \
     apt-get ${APT_FLAGS_DEV} install \
             autoconf \
             automake \
@@ -42,7 +41,7 @@ RUN apt-get ${APT_FLAGS_COMMON} update && \
             --silent && \
     make -j"$(nproc)" -s
 
-FROM ubuntu:bionic
+FROM ubuntu:trusty
 LABEL maintainer="Alexey Pustovalov <alexey.pustovalov@zabbix.com>"
 
 ARG BUILD_DATE
@@ -78,9 +77,7 @@ COPY --from=builder /tmp/zabbix-${ZBX_VERSION}/src/zabbix_get/zabbix_get /usr/bi
 COPY --from=builder /tmp/zabbix-${ZBX_VERSION}/src/zabbix_sender/zabbix_sender /usr/bin/zabbix_sender
 COPY --from=builder  /tmp/zabbix-${ZBX_VERSION}/conf/zabbix_agentd.conf /etc/zabbix/zabbix_agentd.conf
 
-RUN apt-get ${APT_FLAGS_COMMON} update && \
-    apt-get ${APT_FLAGS_PERSISTENT} install locales && \
-    locale-gen $LC_ALL && \
+RUN locale-gen $LC_ALL && \
     echo "#!/bin/sh\nexit 0" > /usr/sbin/policy-rc.d && \
     addgroup --system --quiet zabbix && \
     adduser --quiet \

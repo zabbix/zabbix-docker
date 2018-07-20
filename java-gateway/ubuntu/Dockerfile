@@ -1,4 +1,4 @@
-FROM ubuntu:bionic
+FROM ubuntu:trusty
 LABEL maintainer="Alexey Pustovalov <alexey.pustovalov@zabbix.com>"
 
 ARG BUILD_DATE
@@ -21,9 +21,7 @@ LABEL org.label-schema.name="zabbix-${ZBX_TYPE}-ubuntu" \
 
 STOPSIGNAL SIGTERM
 
-RUN apt-get ${APT_FLAGS_COMMON} update && \
-    apt-get ${APT_FLAGS_PERSISTENT} install locales && \
-    locale-gen $LC_ALL && \
+RUN locale-gen $LC_ALL && \
     echo "#!/bin/sh\nexit 0" > /usr/sbin/policy-rc.d && \
     addgroup --system --quiet zabbix && \
     adduser --quiet \
@@ -36,7 +34,7 @@ RUN apt-get ${APT_FLAGS_COMMON} update && \
     chown --quiet -R zabbix:root /etc/zabbix && \
     apt-get ${APT_FLAGS_COMMON} update && \
     apt-get ${APT_FLAGS_PERSISTENT} install \
-            openjdk-8-jre-headless && \
+            openjdk-7-jre-headless && \
     apt-get ${APT_FLAGS_COMMON} autoremove && \
     apt-get ${APT_FLAGS_COMMON} clean && \
     rm -rf /var/lib/apt/lists/*
@@ -57,7 +55,7 @@ RUN apt-get ${APT_FLAGS_COMMON} update && \
             automake \
             libc6-dev \
             make \
-            openjdk-8-jdk \
+            openjdk-7-jdk \
             pkg-config \
             subversion \
             gcc && \
@@ -87,7 +85,7 @@ RUN apt-get ${APT_FLAGS_COMMON} update && \
             automake \
             libc6-dev \
             make \
-            openjdk-8-jdk \
+            openjdk-7-jdk \
             pkg-config \
             subversion \
             gcc && \

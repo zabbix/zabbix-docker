@@ -1,4 +1,4 @@
-FROM ubuntu:bionic as builder
+FROM ubuntu:trusty as builder
 
 ARG APT_FLAGS_COMMON="-y"
 ARG APT_FLAGS_DEV="${APT_FLAGS_COMMON} --no-install-recommends"
@@ -81,7 +81,7 @@ RUN locale-gen $LC_ALL && \
     rm /tmp/zabbix-${ZBX_VERSION}/frontends/php/fonts/DejaVuSans.ttf && \
     ./locale/make_mo.sh
 
-FROM ubuntu:bionic
+FROM ubuntu:trusty
 LABEL maintainer="Alexey Pustovalov <alexey.pustovalov@zabbix.com>"
 
 ARG BUILD_DATE
