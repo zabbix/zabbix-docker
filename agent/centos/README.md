@@ -14,7 +14,7 @@ Zabbix agent is deployed on a monitoring target to actively monitor local resour
 
 # Zabbix agent images
 
-These are the only official Zabbix agent Docker images. They are based on Alpine Linux v3.4, Ubuntu 14.04 (trusty) and CentOS 7 images. The available versions of Zabbix agent are:
+These are the only official Zabbix agent Docker images. They are based on Alpine Linux v3.4, Ubuntu 18.04 (bionic) and CentOS 7 images. The available versions of Zabbix agent are:
 
     Zabbix agent 3.0 (tags: alpine-3.0-latest, ubuntu-3.0-latest, centos-3.0-latest)
     Zabbix agent 3.0.* (tags: alpine-3.0.*, ubuntu-3.0.*, centos-3.0.*)
