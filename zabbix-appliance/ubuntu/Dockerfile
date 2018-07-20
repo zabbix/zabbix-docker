@@ -14,7 +14,9 @@ ENV ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES} \
 
 COPY ["conf/tmp/font-config", "/tmp/font-config"]
 
-RUN locale-gen $LC_ALL && \
+RUN apt-get ${APT_FLAGS_COMMON} update && \
+    apt-get ${APT_FLAGS_DEV} install locales && \
+    locale-gen $LC_ALL && \
     apt-get ${APT_FLAGS_COMMON} update && \
     apt-get ${APT_FLAGS_DEV} install \
             autoconf \
@@ -31,7 +33,7 @@ RUN locale-gen $LC_ALL && \
             libssh2-1-dev \
             libxml2-dev \
             make \
-            openjdk-7-jdk \
+            openjdk-8-jdk \
             patch \
             pkg-config \
             subversion \
@@ -122,7 +124,9 @@ COPY --from=builder /tmp/zabbix-${ZBX_VERSION}/src/zabbix_java/lib/ /usr/sbin/za
             
 COPY --from=builder /tmp/zabbix-${ZBX_VERSION}/frontends/php/ /usr/share/zabbix/
 
-RUN locale-gen $LC_ALL && \
+RUN apt-get ${APT_FLAGS_COMMON} update && \
+    apt-get ${APT_FLAGS_PERSISTENT} install locales gnupg2 && \
+    locale-gen $LC_ALL && \
     echo "#!/bin/sh\nexit 0" > /usr/sbin/policy-rc.d && \
     addgroup --system --quiet zabbix && \
     adduser --quiet \
@@ -155,23 +159,26 @@ RUN locale-gen $LC_ALL && \
     apt-get ${APT_FLAGS_COMMON} update && \
     apt-get ${APT_FLAGS_PERSISTENT} install \
             fping \
-            libcurl3 \
+            libcurl4 \
             libiksemel3 \
-            libmysqlclient18 \
+            libmysqlclient20 \
             libopenipmi0 \
             libsnmp30 \
             libssh2-1 \
-            libssl1.0.0 \
+            libssl1.1 \
             libxml2 \
             mysql-client \
             mysql-server \
             nginx \
-            openjdk-7-jre-headless \
-            php5-fpm \
-            php5-gd \
-            php5-json \
-            php5-ldap \
-            php5-mysql \
+            openjdk-8-jre-headless \
+            php7.2-bcmath \
+            php7.2-fpm \
+            php7.2-gd \
+            php7.2-json \
+            php7.2-ldap \
+            php7.2-mbstring \
+            php7.2-mysql \
+            php7.2-xml \
             snmp-mibs-downloader \
             supervisor \
             ttf-dejavu-core \
@@ -188,8 +195,8 @@ RUN locale-gen $LC_ALL && \
             wget && \
     apt-get ${APT_FLAGS_COMMON} autoremove && \
     apt-get ${APT_FLAGS_COMMON} clean && \
-    mkdir -p /var/lib/php5 && \
-    chown --quiet -R www-data:www-data /var/lib/php5 && \
+    mkdir -p /var/lib/php7 && \
+    chown --quiet -R www-data:www-data /var/lib/php7 && \
     rm -rf /var/cache/nginx/* && \
     rm -rf /var/lib/apt/lists/*
 
@@ -206,7 +213,7 @@ COPY ["conf/etc/zabbix/nginx.conf", "/etc/zabbix/"]
 COPY ["conf/etc/zabbix/nginx_ssl.conf", "/etc/zabbix/"]
 COPY ["conf/etc/zabbix/web/zabbix.conf.php", "/etc/zabbix/web/"]
 COPY ["conf/etc/nginx/nginx.conf", "/etc/nginx/"]
-COPY ["conf/etc/php5/fpm/conf.d/99-zabbix.ini", "/etc/php5/fpm/conf.d/"]
+COPY ["conf/etc/php/7.2/fpm/conf.d/99-zabbix.ini", "/etc/php/7.2/fpm/conf.d/"]
 COPY ["conf/etc/zabbix/zabbix_java_gateway_logback.xml", "/etc/zabbix/"]
 COPY ["conf/usr/sbin/zabbix_java_gateway", "/usr/sbin/"]
 COPY ["docker-entrypoint.sh", "/usr/bin/"]
