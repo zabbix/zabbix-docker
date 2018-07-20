@@ -14,7 +14,7 @@ Zabbix appliance contains MySQL database server, Zabbix server, Zabbix Java Gate
 
 # Zabbix appliance images
 
-These are the only official Zabbix appliance Docker images. They are based on Alpine Linux v3.4, Ubuntu 14.04 (trusty) and CentOS 7 images. The available versions of Zabbix appliance are:
+These are the only official Zabbix appliance Docker images. They are based on Alpine Linux v3.4, Ubuntu 18.04 (bionic) and CentOS 7 images. The available versions of Zabbix appliance are:
 
     Zabbix appliance 3.0 (tags: alpine-3.0-latest, ubuntu-3.0-latest, centos-3.0-latest)
     Zabbix appliance 3.0.* (tags: alpine-3.0.*, ubuntu-3.0.*, centos-3.0.*)

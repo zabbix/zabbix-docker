@@ -593,6 +593,7 @@ prepare_web_server_nginx() {
     fi
 
     ln -sf /dev/fd/2 /var/log/php5-fpm.log
+    ln -sf /dev/fd/2 /var/log/php7.2-fpm.log
 }
 
 stop_databases() {
@@ -661,11 +662,6 @@ update_zbx_config() {
 
     update_config_var $ZBX_CONFIG "DebugLevel" "${ZBX_DEBUGLEVEL}"
 
-    if [ $type == "proxy" ]; then
-        update_config_var $ZBX_CONFIG "EnableRemoteCommands" "${ZBX_ENABLEREMOTECOMMANDS}"
-        update_config_var $ZBX_CONFIG "LogRemoteCommands" "${ZBX_LOGREMOTECOMMANDS}"
-    fi
-
     if [ "$db_type" == "sqlite3" ]; then
         update_config_var $ZBX_CONFIG "DBHost"
         update_config_var $ZBX_CONFIG "DBName" "/var/lib/zabbix/zabbix_proxy_db"
@@ -679,11 +675,6 @@ update_zbx_config() {
         update_config_var $ZBX_CONFIG "DBUser" "${DB_SERVER_ZBX_USER}"
         update_config_var $ZBX_CONFIG "DBPort" "${DB_SERVER_PORT}"
         update_config_var $ZBX_CONFIG "DBPassword" "${DB_SERVER_ZBX_PASS}"
-    fi
-
-    if [ $type == "server" ]; then
-        update_config_var $ZBX_CONFIG "HistoryStorageURL" "${ZBX_HISTORYSTORAGEURL}"
-        update_config_var $ZBX_CONFIG "HistoryStorageTypes" "${ZBX_HISTORYSTORAGETYPES}"
     fi
 
     update_config_var $ZBX_CONFIG "DBSocket" "${DB_SERVER_SOCKET}"
@@ -705,10 +696,8 @@ update_zbx_config() {
     update_config_var $ZBX_CONFIG "StartHTTPPollers" "${ZBX_STARTHTTPPOLLERS}"
 
     if [ "$type" == "server" ]; then
-        update_config_var $ZBX_CONFIG "StartPreprocessors" "${ZBX_STARTPREPROCESSORS}"
         update_config_var $ZBX_CONFIG "StartTimers" "${ZBX_STARTTIMERS}"
         update_config_var $ZBX_CONFIG "StartEscalators" "${ZBX_STARTESCALATORS}"
-        update_config_var $ZBX_CONFIG "StartAlerters" "${ZBX_STARTALERTERS}"
     fi
 
     ZBX_JAVAGATEWAY_ENABLE=${ZBX_JAVAGATEWAY_ENABLE:-"false"}
@@ -845,6 +834,10 @@ prepare_zbx_web_config() {
         PHP_CONFIG_FILE="/etc/php.d/99-zabbix.ini"
     elif [ -f "/etc/php7/conf.d/99-zabbix.ini" ]; then
         PHP_CONFIG_FILE="/etc/php7/conf.d/99-zabbix.ini"
+    elif [ -f "/etc/php/7.2/fpm/conf.d/99-zabbix.ini" ]; then
+        PHP_CONFIG_FILE="/etc/php/7.2/fpm/conf.d/99-zabbix.ini"
+    elif [ -f "/etc/php/7.2/apache2/conf.d/99-zabbix.ini" ]; then
+        PHP_CONFIG_FILE="/etc/php/7.2/apache2/conf.d/99-zabbix.ini"
     fi
 
     if [ -n "$PHP_CONFIG_FILE" ]; then
