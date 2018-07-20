@@ -1,4 +1,4 @@
-FROM ubuntu:trusty
+FROM ubuntu:bionic
 LABEL maintainer "Alexey Pustovalov <alexey.pustovalov@zabbix.com>"
 
 ARG BUILD_DATE
@@ -33,10 +33,10 @@ STOPSIGNAL SIGTERM
 
 COPY ["snmptrapfmt_1.14+nmu1ubuntu2_amd64.deb", "/tmp/"]
 
-RUN locale-gen $LC_ALL && \
+RUN apt-get ${APT_FLAGS_COMMON} update && \
+    apt-get ${APT_FLAGS_PERSISTENT} install locales && \
+    locale-gen $LC_ALL && \
     echo "#!/bin/sh\nexit 0" > /usr/sbin/policy-rc.d && \
-    DISTRIB_CODENAME=$(/bin/bash -c 'source /etc/lsb-release && echo $DISTRIB_CODENAME') && \
-    echo "deb http://us.archive.ubuntu.com/ubuntu/ $DISTRIB_CODENAME multiverse" >> /etc/apt/sources.list && \
     addgroup --system --quiet zabbix && \
     adduser --quiet \
             --system --disabled-login \

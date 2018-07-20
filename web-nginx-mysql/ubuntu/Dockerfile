@@ -1,4 +1,4 @@
-FROM ubuntu:trusty
+FROM ubuntu:bionic
 LABEL maintainer="Alexey Pustovalov <alexey.pustovalov@zabbix.com>"
 
 ARG BUILD_DATE
@@ -21,7 +21,9 @@ LABEL org.label-schema.name="zabbix-web-${ZBX_OPT_TYPE}-${ZBX_DB_TYPE}-ubuntu" \
     
 STOPSIGNAL SIGTERM
 
-RUN locale-gen $LC_ALL && \
+RUN apt-get ${APT_FLAGS_COMMON} update && \
+    apt-get ${APT_FLAGS_PERSISTENT} install locales gnupg2 && \
+    locale-gen $LC_ALL && \
     echo "#!/bin/sh\nexit 0" > /usr/sbin/policy-rc.d && \
     addgroup --system --quiet zabbix && \
     adduser --quiet \
@@ -44,19 +46,22 @@ RUN locale-gen $LC_ALL && \
             curl \
             mysql-client \
             nginx \
-            php5-fpm \
-            php5-gd \
-            php5-json \
-            php5-ldap \
-            php5-mysql \
+            php7.2-bcmath \
+            php7.2-fpm \
+            php7.2-gd \
+            php7.2-json \
+            php7.2-ldap \
+            php7.2-mbstring \
+            php7.2-mysql \
+            php7.2-xml \
             supervisor \
             ttf-dejavu-core && \
     apt-get ${APT_FLAGS_COMMON} purge \
             wget && \
     apt-get ${APT_FLAGS_COMMON} autoremove && \
     apt-get ${APT_FLAGS_COMMON} clean && \
-    mkdir -p /var/lib/php5 && \
-    chown --quiet -R www-data:www-data /var/lib/php5 && \
+    mkdir -p /var/lib/php7 && \
+    chown --quiet -R www-data:www-data /var/lib/php7 && \
     rm -rf /var/cache/nginx/* && \
     rm -rf /var/lib/apt/lists/*
 
@@ -116,7 +121,7 @@ COPY ["conf/etc/zabbix/nginx.conf", "/etc/zabbix/"]
 COPY ["conf/etc/zabbix/nginx_ssl.conf", "/etc/zabbix/"]
 COPY ["conf/etc/zabbix/web/zabbix.conf.php", "/etc/zabbix/web/"]
 COPY ["conf/etc/nginx/nginx.conf", "/etc/nginx/"]
-COPY ["conf/etc/php5/fpm/conf.d/99-zabbix.ini", "/etc/php5/fpm/conf.d/"]
+COPY ["conf/etc/php/7.2/fpm/conf.d/99-zabbix.ini", "/etc/php/7.2/fpm/conf.d/"]
 COPY ["docker-entrypoint.sh", "/usr/bin/"]
 
 ENTRYPOINT ["docker-entrypoint.sh"]
