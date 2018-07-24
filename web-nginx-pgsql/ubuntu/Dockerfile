@@ -60,8 +60,8 @@ RUN apt-get ${APT_FLAGS_COMMON} update && \
             wget && \
     apt-get ${APT_FLAGS_COMMON} autoremove && \
     apt-get ${APT_FLAGS_COMMON} clean && \
-    mkdir -p /var/lib/php5 && \
-    chown --quiet -R www-data:www-data /var/lib/php5 && \
+    mkdir -p /var/lib/php7 && \
+    chown --quiet -R www-data:www-data /var/lib/php7 && \
     rm -rf /var/cache/nginx/* && \
     rm -rf /var/lib/apt/lists/*
 
