@@ -71,6 +71,7 @@ RUN groupadd --system zabbix && \
             curl \
             httpd \
             mariadb \
+            mod_ssl \
             php \
             php-bcmath \
             php-gd \
