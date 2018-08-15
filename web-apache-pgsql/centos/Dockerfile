@@ -71,6 +71,7 @@ RUN groupadd --system zabbix && \
             dejavu-sans-fonts \
             curl \
             httpd \
+            mod_ssl \
             php \
             php-bcmath \
             php-gd \
