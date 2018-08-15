@@ -82,7 +82,7 @@ RUN groupadd --system zabbix && \
             postgresql && \
     ln -s /usr/share/fonts/dejavu/DejaVuSans.ttf /usr/share/zabbix/fonts/graphfont.ttf && \
     yum ${YUM_FLAGS_PERSISTENT} clean all && \
-    rm -rf /var/cache/yum/
+    rm -rf /var/cache/yum/ /etc/httpd/conf.d/ssl.conf
 
 EXPOSE 80/TCP 443/TCP
 
