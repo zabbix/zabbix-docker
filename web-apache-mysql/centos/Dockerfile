@@ -70,6 +70,7 @@ RUN groupadd --system zabbix && \
             dejavu-sans-fonts \
             curl \
             httpd \
+            mod_ssl \
             mariadb \
             php \
             php-bcmath \
