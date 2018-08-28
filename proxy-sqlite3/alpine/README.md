@@ -115,6 +115,8 @@ The variable enable communication with Zabbix Java Gateway to collect Java relat
 Additionally the image allows to specify many other environment variables listed below:
 
 ```
+ZBX_ENABLEREMOTECOMMANDS=0 # Available since 3.4.0
+ZBX_LOGREMOTECOMMANDS=0 # Available since 3.4.0
 ZBX_SOURCEIP=
 ZBX_HOSTNAMEITEM=system.hostname
 ZBX_PROXYLOCALBUFFER=0

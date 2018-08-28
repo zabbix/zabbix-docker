@@ -3,8 +3,8 @@ FROM ubuntu:bionic as builder
 ARG APT_FLAGS_COMMON="-y"
 ARG APT_FLAGS_DEV="${APT_FLAGS_COMMON} --no-install-recommends"
 
-ARG MAJOR_VERSION=master
-ARG ZBX_VERSION=${MAJOR_VERSION}
+ARG MAJOR_VERSION=3.4
+ARG ZBX_VERSION=${MAJOR_VERSION}.13
 ARG ZBX_SOURCES=svn://svn.zabbix.com/tags/${ZBX_VERSION}/
 ENV LANG=en_US.UTF-8 LANGUAGE=en_US:en LC_ALL=en_US.UTF-8 DEBIAN_FRONTEND=noninteractive TERM=xterm \
     ZBX_TYPE=agent ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES}
@@ -17,6 +17,7 @@ RUN apt-get ${APT_FLAGS_COMMON} update && \
             automake \
             libc6-dev \
             libldap2-dev \
+            libpcre3-dev \
             libssl-dev \
             make \
             pkg-config \
@@ -50,8 +51,8 @@ ARG VCS_REF
 ARG APT_FLAGS_COMMON="-y"
 ARG APT_FLAGS_PERSISTENT="${APT_FLAGS_COMMON} --no-install-recommends"
 
-ARG MAJOR_VERSION=master
-ARG ZBX_VERSION=${MAJOR_VERSION}
+ARG MAJOR_VERSION=3.4
+ARG ZBX_VERSION=${MAJOR_VERSION}.13
 ARG ZBX_SOURCES=svn://svn.zabbix.com/tags/${ZBX_VERSION}/
 ENV LANG=en_US.UTF-8 LANGUAGE=en_US:en LC_ALL=en_US.UTF-8 DEBIAN_FRONTEND=noninteractive TERM=xterm \
     ZBX_TYPE=agent ZBX_DB_TYPE=none ZBX_OPT_TYPE=none \
@@ -95,6 +96,7 @@ RUN apt-get ${APT_FLAGS_COMMON} update && \
     chown --quiet -R zabbix:root /var/lib/zabbix && \
     apt-get ${APT_FLAGS_COMMON} update && \
     apt-get ${APT_FLAGS_PERSISTENT} install \
+            libpcre3 \
             libssl1.1 \
             libldap-2.4 && \
     apt-get ${APT_FLAGS_COMMON} autoremove && \

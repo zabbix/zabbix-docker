@@ -3,8 +3,8 @@ FROM ubuntu:bionic as builder
 ARG APT_FLAGS_COMMON="-y"
 ARG APT_FLAGS_DEV="${APT_FLAGS_COMMON} --no-install-recommends"
 
-ARG MAJOR_VERSION=master
-ARG ZBX_VERSION=${MAJOR_VERSION}
+ARG MAJOR_VERSION=3.4
+ARG ZBX_VERSION=${MAJOR_VERSION}.13
 ARG ZBX_SOURCES=svn://svn.zabbix.com/tags/${ZBX_VERSION}/
 ENV ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES} \
     LANG=en_US.UTF-8 LANGUAGE=en_US:en LC_ALL=en_US.UTF-8 DEBIAN_FRONTEND=noninteractive TERM=xterm \
@@ -25,10 +25,12 @@ RUN apt-get ${APT_FLAGS_COMMON} update && \
             gettext \
             libc6-dev \
             libcurl4-openssl-dev \
+            libevent-dev \
             libiksemel-dev \
             libldap2-dev \
             libmysqlclient-dev \
             libopenipmi-dev \
+            libpcre3-dev \
             libsnmp-dev \
             libssh2-1-dev \
             libxml2-dev \
@@ -89,8 +91,8 @@ ARG VCS_REF
 
 ARG APT_FLAGS_COMMON="-y"
 ARG APT_FLAGS_PERSISTENT="${APT_FLAGS_COMMON} --no-install-recommends"
-ARG MAJOR_VERSION=master
-ARG ZBX_VERSION=${MAJOR_VERSION}
+ARG MAJOR_VERSION=3.4
+ARG ZBX_VERSION=${MAJOR_VERSION}.13
 ARG ZBX_SOURCES=svn://svn.zabbix.com/tags/${ZBX_VERSION}/
 ENV ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES} \
     LANG=en_US.UTF-8 LANGUAGE=en_US:en LC_ALL=en_US.UTF-8 DEBIAN_FRONTEND=noninteractive TERM=xterm \
@@ -160,9 +162,11 @@ RUN apt-get ${APT_FLAGS_COMMON} update && \
     apt-get ${APT_FLAGS_PERSISTENT} install \
             fping \
             libcurl4 \
+            libevent-2.1 \
             libiksemel3 \
             libmysqlclient20 \
             libopenipmi0 \
+            libpcre3 \
             libsnmp30 \
             libssh2-1 \
             libssl1.1 \

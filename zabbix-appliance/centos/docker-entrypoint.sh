@@ -662,6 +662,11 @@ update_zbx_config() {
 
     update_config_var $ZBX_CONFIG "DebugLevel" "${ZBX_DEBUGLEVEL}"
 
+    if [ $type == "proxy" ]; then
+        update_config_var $ZBX_CONFIG "EnableRemoteCommands" "${ZBX_ENABLEREMOTECOMMANDS}"
+        update_config_var $ZBX_CONFIG "LogRemoteCommands" "${ZBX_LOGREMOTECOMMANDS}"
+    fi
+
     if [ "$db_type" == "sqlite3" ]; then
         update_config_var $ZBX_CONFIG "DBHost"
         update_config_var $ZBX_CONFIG "DBName" "/var/lib/zabbix/zabbix_proxy_db"
@@ -675,6 +680,11 @@ update_zbx_config() {
         update_config_var $ZBX_CONFIG "DBUser" "${DB_SERVER_ZBX_USER}"
         update_config_var $ZBX_CONFIG "DBPort" "${DB_SERVER_PORT}"
         update_config_var $ZBX_CONFIG "DBPassword" "${DB_SERVER_ZBX_PASS}"
+    fi
+
+    if [ $type == "server" ]; then
+        update_config_var $ZBX_CONFIG "HistoryStorageURL" "${ZBX_HISTORYSTORAGEURL}"
+        update_config_var $ZBX_CONFIG "HistoryStorageTypes" "${ZBX_HISTORYSTORAGETYPES}"
     fi
 
     update_config_var $ZBX_CONFIG "DBSocket" "${DB_SERVER_SOCKET}"
@@ -696,8 +706,10 @@ update_zbx_config() {
     update_config_var $ZBX_CONFIG "StartHTTPPollers" "${ZBX_STARTHTTPPOLLERS}"
 
     if [ "$type" == "server" ]; then
+        update_config_var $ZBX_CONFIG "StartPreprocessors" "${ZBX_STARTPREPROCESSORS}"
         update_config_var $ZBX_CONFIG "StartTimers" "${ZBX_STARTTIMERS}"
         update_config_var $ZBX_CONFIG "StartEscalators" "${ZBX_STARTESCALATORS}"
+        update_config_var $ZBX_CONFIG "StartAlerters" "${ZBX_STARTALERTERS}"
     fi
 
     ZBX_JAVAGATEWAY_ENABLE=${ZBX_JAVAGATEWAY_ENABLE:-"false"}
@@ -851,10 +863,14 @@ prepare_zbx_web_config() {
         echo "**** Zabbix related PHP configuration file not found"
     fi
 
+    ZBX_HISTORYSTORAGETYPES=${ZBX_HISTORYSTORAGETYPES:-"[]"}
+
     # Escaping characters in parameter value
     server_name=$(escape_spec_char "${ZBX_SERVER_NAME}")
     server_user=$(escape_spec_char "${DB_SERVER_ZBX_USER}")
     server_pass=$(escape_spec_char "${DB_SERVER_ZBX_PASS}")
+    history_storage_url=$(escape_spec_char "${ZBX_HISTORYSTORAGEURL}")
+    history_storage_types=$(escape_spec_char "${ZBX_HISTORYSTORAGETYPES}")
 
     sed -i \
         -e "s/{DB_SERVER_HOST}/${DB_SERVER_HOST}/g" \
@@ -866,6 +882,8 @@ prepare_zbx_web_config() {
         -e "s/{ZBX_SERVER_HOST}/${ZBX_SERVER_HOST}/g" \
         -e "s/{ZBX_SERVER_PORT}/${ZBX_SERVER_PORT}/g" \
         -e "s/{ZBX_SERVER_NAME}/$server_name/g" \
+        -e "s/{ZBX_HISTORYSTORAGEURL}/$history_storage_url/g" \
+        -e "s/{ZBX_HISTORYSTORAGETYPES}/$history_storage_types/g" \
     "$ZBX_WEB_CONFIG"
 
     [ "$db_type" = "postgresql" ] && sed -i "s/MYSQL/POSTGRESQL/g" "$ZBX_WEB_CONFIG"

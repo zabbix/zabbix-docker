@@ -41,8 +41,8 @@ RUN apt-get ${APT_FLAGS_COMMON} update && \
     apt-get ${APT_FLAGS_COMMON} clean && \
     rm -rf /var/lib/apt/lists/*
 
-ARG MAJOR_VERSION=master
-ARG ZBX_VERSION=${MAJOR_VERSION}
+ARG MAJOR_VERSION=3.4
+ARG ZBX_VERSION=${MAJOR_VERSION}.13
 ARG ZBX_SOURCES=svn://svn.zabbix.com/tags/${ZBX_VERSION}/
 ENV ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES}
 

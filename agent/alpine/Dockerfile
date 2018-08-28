@@ -3,8 +3,8 @@ FROM alpine:3.4 as builder
 ARG APK_FLAGS_COMMON=""
 ARG APK_FLAGS_DEV="${APK_FLAGS_COMMON} --no-cache"
 
-ARG MAJOR_VERSION=master
-ARG ZBX_VERSION=${MAJOR_VERSION}
+ARG MAJOR_VERSION=3.4
+ARG ZBX_VERSION=${MAJOR_VERSION}.13
 ARG ZBX_SOURCES=svn://svn.zabbix.com/tags/${ZBX_VERSION}/
 ENV TERM=xterm ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES} \
     ZBX_TYPE=agent
@@ -16,6 +16,7 @@ RUN apk update && \
             automake \
             openssl-dev \
             openldap-dev \
+            pcre-dev \
             subversion \
             coreutils && \
     cd /tmp/ && \
@@ -47,8 +48,8 @@ ARG VCS_REF
 ARG APK_FLAGS_COMMON=""
 ARG APK_FLAGS_PERSISTENT="${APK_FLAGS_COMMON} --clean-protected --no-cache"
 
-ARG MAJOR_VERSION=master
-ARG ZBX_VERSION=${MAJOR_VERSION}
+ARG MAJOR_VERSION=3.4
+ARG ZBX_VERSION=${MAJOR_VERSION}.13
 ARG ZBX_SOURCES=svn://svn.zabbix.com/tags/${ZBX_VERSION}/
 ENV TERM=xterm ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES} \
     ZBX_TYPE=agent ZBX_DB_TYPE=none ZBX_OPT_TYPE=none
@@ -89,7 +90,8 @@ RUN addgroup zabbix && \
             bash \
             coreutils \
             iputils \
-            libldap && \
+            libldap \
+            pcre && \
     rm -rf /var/cache/apk/*
 
 EXPOSE 10050/TCP

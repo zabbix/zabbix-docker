@@ -3,8 +3,8 @@ FROM centos:centos7 as builder
 ARG YUM_FLAGS_COMMON="-y"
 ARG YUM_FLAGS_DEV="${YUM_FLAGS_COMMON}"
 
-ARG MAJOR_VERSION=master
-ARG ZBX_VERSION=${MAJOR_VERSION}
+ARG MAJOR_VERSION=3.4
+ARG ZBX_VERSION=${MAJOR_VERSION}.13
 ARG ZBX_SOURCES=svn://svn.zabbix.com/tags/${ZBX_VERSION}/
 ENV ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES} \
     ZBX_TYPE=server ZBX_DB_TYPE=postgresql ZBX_OPT_TYPE=none
@@ -17,6 +17,7 @@ RUN yum --quiet makecache && \
             automake \
             gcc \
             libcurl-devel \
+            libevent-devel \
             libssh2-devel \
             libxml2-devel \
             make \
@@ -68,8 +69,8 @@ ARG VCS_REF
 ARG YUM_FLAGS_COMMON="-y"
 ARG YUM_FLAGS_PERSISTENT="${YUM_FLAGS_COMMON}"
 
-ARG MAJOR_VERSION=master
-ARG ZBX_VERSION=${MAJOR_VERSION}
+ARG MAJOR_VERSION=3.4
+ARG ZBX_VERSION=${MAJOR_VERSION}.13
 ARG ZBX_SOURCES=svn://svn.zabbix.com/tags/${ZBX_VERSION}/
 ENV ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES} \
     TERM=xterm MIBDIRS=/usr/share/snmp/mibs:/var/lib/zabbix/mibs MIBS=+ALL \
@@ -123,6 +124,7 @@ RUN groupadd --system zabbix && \
             fping \
             iksemel \
             libcurl \
+            libevent \
             libxml2 \
             net-snmp-libs \
             OpenIPMI-libs \

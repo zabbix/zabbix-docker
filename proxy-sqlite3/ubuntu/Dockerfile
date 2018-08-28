@@ -49,7 +49,9 @@ RUN apt-get ${APT_FLAGS_COMMON} update && \
     apt-get ${APT_FLAGS_PERSISTENT} install \
             fping \
             libcurl4 \
+            libevent-2.1 \
             libopenipmi0 \
+            libpcre3 \
             libsnmp30 \
             libsqlite3-0 \
             libssh2-1 \
@@ -61,8 +63,8 @@ RUN apt-get ${APT_FLAGS_COMMON} update && \
     apt-get ${APT_FLAGS_COMMON} clean && \
     rm -rf /var/lib/apt/lists/*
 
-ARG MAJOR_VERSION=master
-ARG ZBX_VERSION=${MAJOR_VERSION}
+ARG MAJOR_VERSION=3.4
+ARG ZBX_VERSION=${MAJOR_VERSION}.13
 ARG ZBX_SOURCES=svn://svn.zabbix.com/tags/${ZBX_VERSION}/
 ENV ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES}
 
@@ -78,8 +80,10 @@ RUN apt-get ${APT_FLAGS_COMMON} update && \
             gcc \
             libc6-dev \
             libcurl4-openssl-dev \
+            libevent-dev \
             libldap2-dev \
             libopenipmi-dev \
+            libpcre3-dev \
             libsnmp-dev \
             libsqlite3-dev \
             libssh2-1-dev \
@@ -128,8 +132,10 @@ RUN apt-get ${APT_FLAGS_COMMON} update && \
             gcc \
             libc6-dev \
             libcurl4-openssl-dev \
+            libevent-dev \
             libldap2-dev \
             libopenipmi-dev \
+            libpcre3-dev \
             libsnmp-dev \
             libsqlite3-dev \
             libssh2-1-dev \

@@ -3,8 +3,8 @@ FROM alpine:3.4 as builder
 ARG APK_FLAGS_COMMON=""
 ARG APK_FLAGS_DEV="${APK_FLAGS_COMMON} --no-cache"
 
-ARG MAJOR_VERSION=master
-ARG ZBX_VERSION=${MAJOR_VERSION}
+ARG MAJOR_VERSION=3.4
+ARG ZBX_VERSION=${MAJOR_VERSION}.13
 ARG ZBX_SOURCES=svn://svn.zabbix.com/tags/${ZBX_VERSION}/
 ENV ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES} \
     PATH=${PATH}:/usr/lib/jvm/default-jvm/bin/ JAVA_HOME=/usr/lib/jvm/default-jvm \
@@ -21,6 +21,7 @@ RUN apk add ${APK_FLAGS_DEV} --virtual build-dependencies \
             coreutils \
             curl-dev \
             gettext \
+            libevent-dev \
             libssh2-dev \
             libxml2-dev \
             mysql-dev \
@@ -28,6 +29,7 @@ RUN apk add ${APK_FLAGS_DEV} --virtual build-dependencies \
             openipmi-dev \
             openjdk8 \
             openldap-dev \
+            pcre-dev \
             subversion \
             unixodbc-dev && \
     cd /tmp/ && \
@@ -83,8 +85,8 @@ ARG VCS_REF
 ARG APK_FLAGS_COMMON=""
 ARG APK_FLAGS_PERSISTENT="${APK_FLAGS_COMMON} --clean-protected --no-cache"
 
-ARG MAJOR_VERSION=master
-ARG ZBX_VERSION=${MAJOR_VERSION}
+ARG MAJOR_VERSION=3.4
+ARG ZBX_VERSION=${MAJOR_VERSION}.13
 ARG ZBX_SOURCES=svn://svn.zabbix.com/tags/${ZBX_VERSION}/
 ENV ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES} \
     MIBDIRS=/usr/share/snmp/mibs:/var/lib/zabbix/mibs MIBS=+ALL PATH=${PATH}:/usr/lib/jvm/default-jvm/bin/ JAVA_HOME=/usr/lib/jvm/default-jvm \
@@ -145,6 +147,7 @@ RUN addgroup zabbix && \
             fping \
             iputils \
             libcurl \
+            libevent \
             libldap \
             libssh2 \
             libxml2 \
@@ -167,6 +170,7 @@ RUN addgroup zabbix && \
             php5-xmlreader \
             supervisor \
             ttf-dejavu \
+            pcre \
             unixodbc && \
     rm -rf /var/cache/apk/*
 
