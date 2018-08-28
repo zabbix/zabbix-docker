@@ -1,0 +1,465 @@
+version: '3.5'
+services:
+ zabbix-server:
+  build:
+   context: ./server-pgsql/alpine
+   cache_from:
+    - alpine:3.4
+  image: zabbix-server-pgsql:alpine-3.4-local
+  ports:
+   - "10051:10051"
+  volumes:
+   - /etc/localtime:/etc/localtime:ro
+   - /etc/timezone:/etc/timezone:ro 
+   - ./zbx_env/usr/lib/zabbix/alertscripts:/usr/lib/zabbix/alertscripts:ro
+   - ./zbx_env/usr/lib/zabbix/externalscripts:/usr/lib/zabbix/externalscripts:ro
+   - ./zbx_env/var/lib/zabbix/modules:/var/lib/zabbix/modules:ro
+   - ./zbx_env/var/lib/zabbix/enc:/var/lib/zabbix/enc:ro
+   - ./zbx_env/var/lib/zabbix/ssh_keys:/var/lib/zabbix/ssh_keys:ro
+   - ./zbx_env/var/lib/zabbix/mibs:/var/lib/zabbix/mibs:ro
+   - ./zbx_env/var/lib/zabbix/snmptraps:/var/lib/zabbix/snmptraps:ro
+  links:
+   - postgres-server:postgres-server
+   - zabbix-java-gateway:zabbix-java-gateway
+  ulimits:
+   nproc: 65535
+   nofile:
+    soft: 20000
+    hard: 40000
+  deploy:
+   resources:
+    limits:
+      cpus: '0.70'
+      memory: 1G
+    reservations:
+      cpus: '0.5'
+      memory: 512M
+  env_file:
+   - .env_db_pgsql
+   - .env_srv
+  user: root
+  depends_on:
+   - mysql-server
+   - zabbix-java-gateway
+   - zabbix-snmptraps
+  networks:
+   zbx_net_backend:
+     aliases:
+      - zabbix-server
+      - zabbix-server-pgsql
+      - zabbix-server-alpine-pgsql
+      - zabbix-server-pgsql-alpine
+   zbx_net_frontend:
+#  devices:
+#   - "/dev/ttyUSB0:/dev/ttyUSB0"
+  stop_grace_period: 30s
+  sysctls:
+   - net.ipv4.ip_local_port_range=1024 65000
+   - net.ipv4.conf.all.accept_redirects=0
+   - net.ipv4.conf.all.secure_redirects=0
+   - net.ipv4.conf.all.send_redirects=0
+  labels:
+   com.zabbix.description: "Zabbix server with PostgreSQL database support"
+   com.zabbix.company: "Zabbix SIA"
+   com.zabbix.component: "zabbix-server"
+   com.zabbix.dbtype: "pgsql"
+   com.zabbix.os: "alpine"
+
+ zabbix-proxy-sqlite3:
+  build:
+   context: ./proxy-sqlite3/alpine
+   cache_from:
+    - alpine:3.4
+  image: zabbix-proxy-sqlite3:alpine-3.4-local
+  ports:
+   - "10061:10051"
+  volumes:
+   - /etc/localtime:/etc/localtime:ro
+   - /etc/timezone:/etc/timezone:ro 
+   - ./zbx_env/usr/lib/zabbix/externalscripts:/usr/lib/zabbix/externalscripts:ro
+   - ./zbx_env/var/lib/zabbix/modules:/var/lib/zabbix/modules:ro
+   - ./zbx_env/var/lib/zabbix/enc:/var/lib/zabbix/enc:ro
+   - ./zbx_env/var/lib/zabbix/ssh_keys:/var/lib/zabbix/ssh_keys:ro
+   - ./zbx_env/var/lib/zabbix/mibs:/var/lib/zabbix/mibs:ro
+   - ./zbx_env/var/lib/zabbix/snmptraps:/var/lib/zabbix/snmptraps:ro
+  links:
+   - zabbix-server:zabbix-server
+   - zabbix-java-gateway:zabbix-java-gateway
+  ulimits:
+   nproc: 65535
+   nofile:
+    soft: 20000
+    hard: 40000
+  deploy:
+   resources:
+    limits:
+      cpus: '0.70'
+      memory: 512M
+    reservations:
+      cpus: '0.3'
+      memory: 256M
+  env_file:
+   - .env_prx
+   - .env_prx_sqlite3
+  user: root
+  depends_on:
+   - zabbix-java-gateway
+   - zabbix-snmptraps
+  networks:
+   zbx_net_backend:
+    aliases:
+     - zabbix-proxy-sqlite3
+     - zabbix-proxy-alpine-sqlite3
+     - zabbix-proxy-sqlite3-alpine
+   zbx_net_frontend:
+  stop_grace_period: 30s
+  labels:
+   com.zabbix.description: "Zabbix proxy with SQLite3 database support"
+   com.zabbix.company: "Zabbix SIA"
+   com.zabbix.component: "zabbix-proxy"
+   com.zabbix.dbtype: "sqlite3"
+   com.zabbix.os: "alpine"
+
+ zabbix-proxy-mysql:
+  build:
+   context: ./proxy-mysql/alpine
+   cache_from:
+    - alpine:3.4
+  image: zabbix-proxy-mysql:alpine-3.4-local
+  ports:
+   - "10071:10051"
+  volumes:
+   - /etc/localtime:/etc/localtime:ro
+   - /etc/timezone:/etc/timezone:ro 
+   - ./zbx_env/usr/lib/zabbix/externalscripts:/usr/lib/zabbix/externalscripts:ro
+   - ./zbx_env/var/lib/zabbix/modules:/var/lib/zabbix/modules:ro
+   - ./zbx_env/var/lib/zabbix/enc:/var/lib/zabbix/enc:ro
+   - ./zbx_env/var/lib/zabbix/ssh_keys:/var/lib/zabbix/ssh_keys:ro
+   - ./zbx_env/var/lib/zabbix/mibs:/var/lib/zabbix/mibs:ro
+   - ./zbx_env/var/lib/zabbix/snmptraps:/var/lib/zabbix/snmptraps:ro
+  links:
+   - zabbix-server:zabbix-server
+   - zabbix-java-gateway:zabbix-java-gateway
+  ulimits:
+   nproc: 65535
+   nofile:
+    soft: 20000
+    hard: 40000
+  deploy:
+   resources:
+    limits:
+      cpus: '0.70'
+      memory: 512M
+    reservations:
+      cpus: '0.3'
+      memory: 256M
+  env_file:
+   - .env_db_mysql_proxy
+   - .env_prx
+   - .env_prx_mysql
+  user: root
+  depends_on:
+   - mysql-server
+   - zabbix-java-gateway
+   - zabbix-snmptraps
+  networks:
+   zbx_net_backend:
+    aliases:
+     - zabbix-proxy-mysql
+     - zabbix-proxy-alpine-mysql
+     - zabbix-proxy-mysql-alpine
+   zbx_net_frontend:
+  stop_grace_period: 30s
+  labels:
+   com.zabbix.description: "Zabbix proxy with MySQL database support"
+   com.zabbix.company: "Zabbix SIA"
+   com.zabbix.component: "zabbix-proxy"
+   com.zabbix.dbtype: "mysql"
+   com.zabbix.os: "alpine"
+
+
+ zabbix-web-apache-pgsql:
+  build:
+   context: ./web-apache-pgsql/alpine
+   cache_from:
+    - alpine:3.4
+  image: zabbix-web-apache-pgsql:alpine-3.4-local
+  ports:
+   - "80:80"
+   - "443:443"
+  links:
+   - postgres-server:postgres-server
+   - zabbix-server:zabbix-server
+  volumes:
+   - /etc/localtime:/etc/localtime:ro
+   - /etc/timezone:/etc/timezone:ro
+   - ./zbx_env/etc/ssl/apache2:/etc/ssl/apache2:ro
+  deploy:
+   resources:
+    limits:
+      cpus: '0.70'
+      memory: 512M
+    reservations:
+      cpus: '0.5'
+      memory: 256M
+  env_file:
+   - .env_db_pgsql
+   - .env_web
+  user: root
+  depends_on:
+   - postgres-server
+   - zabbix-server
+  healthcheck:
+   test: ["CMD", "curl", "-f", "http://localhost"]
+   interval: 10s
+   timeout: 5s
+   retries: 3
+   start_period: 30s
+  networks:
+   zbx_net_backend:
+    aliases:
+     - zabbix-web-apache-pgsql
+     - zabbix-web-apache-alpine-pgsql
+     - zabbix-web-apache-pgsql-alpine
+   zbx_net_frontend:
+  stop_grace_period: 10s
+  sysctls:
+   - net.core.somaxconn=65535
+  labels:
+   com.zabbix.description: "Zabbix frontend on Apache web-server with PostgreSQL database support"
+   com.zabbix.company: "Zabbix SIA"
+   com.zabbix.component: "zabbix-frontend"
+   com.zabbix.webserver: "apache2"
+   com.zabbix.dbtype: "pgsql"
+   com.zabbix.os: "alpine"
+
+ zabbix-web-nginx-pgsql:
+  build:
+   context: ./web-nginx-pgsql/alpine
+   cache_from:
+    - alpine:3.4
+  image: zabbix-web-nginx-pgsql:alpine-3.4-local
+  ports:
+   - "8081:80"
+   - "8443:443"
+  links:
+   - postgres-server:postgres-server
+   - zabbix-server:zabbix-server
+  volumes:
+   - /etc/localtime:/etc/localtime:ro
+   - /etc/timezone:/etc/timezone:ro
+   - ./zbx_env/etc/ssl/nginx:/etc/ssl/nginx:ro
+  deploy:
+   resources:
+    limits:
+      cpus: '0.70'
+      memory: 512M
+    reservations:
+      cpus: '0.5'
+      memory: 256M
+  env_file:
+   - .env_db_pgsql
+   - .env_web
+  user: root
+  depends_on:
+   - mysql-server
+   - zabbix-server
+  healthcheck:
+   test: ["CMD", "curl", "-f", "http://localhost"]
+   interval: 10s
+   timeout: 5s
+   retries: 3
+   start_period: 30s
+  networks:
+   zbx_net_backend:
+    aliases:
+     - zabbix-web-nginx-pgsql
+     - zabbix-web-nginx-alpine-pgsql
+     - zabbix-web-nginx-pgsql-alpine
+   zbx_net_frontend:
+  stop_grace_period: 10s
+  sysctls:
+   - net.core.somaxconn=65535
+  labels:
+   com.zabbix.description: "Zabbix frontend on Nginx web-server with PostgreSQL database support"
+   com.zabbix.company: "Zabbix SIA"
+   com.zabbix.component: "zabbix-frontend"
+   com.zabbix.webserver: "nginx"
+   com.zabbix.dbtype: "pgsql"
+   com.zabbix.os: "alpine"
+
+ zabbix-agent:
+  build:
+   context: ./agent/alpine
+   cache_from:
+    - alpine:3.4
+  image: zabbix-agent:alpine-3.4-local
+  ports:
+   - "10050:10050"
+  volumes:
+   - /etc/localtime:/etc/localtime:ro
+   - /etc/timezone:/etc/timezone:ro
+   - ./zbx_env/etc/zabbix/zabbix_agentd.d:/etc/zabbix/zabbix_agentd.d:ro
+   - ./zbx_env/var/lib/zabbix/modules:/var/lib/zabbix/modules:ro
+   - ./zbx_env/var/lib/zabbix/enc:/var/lib/zabbix/enc:ro
+   - ./zbx_env/var/lib/zabbix/ssh_keys:/var/lib/zabbix/ssh_keys:ro
+  links:
+   - zabbix-server:zabbix-server
+  deploy:
+   resources:
+    limits:
+      cpus: '0.2'
+      memory: 128M
+    reservations:
+      cpus: '0.1'
+      memory: 64M
+   mode: global
+  env_file:
+   - .env_agent
+  user: root
+  privileged: true
+  pid: "host"
+  networks:
+   zbx_net_backend:
+    aliases:
+     - zabbix-agent
+     - zabbix-agent-passive
+     - zabbix-agent-alpine
+  stop_grace_period: 5s
+  labels:
+   com.zabbix.description: "Zabbix agent"
+   com.zabbix.company: "Zabbix SIA"
+   com.zabbix.component: "zabbix-agentd"
+   com.zabbix.os: "alpine"
+
+ zabbix-java-gateway:
+  build:
+   context: ./java-gateway/alpine
+   cache_from:
+    - alpine:3.4
+  image: zabbix-java-gateway:alpine-3.4-local
+  ports:
+   - "10052:10052"
+  deploy:
+   resources:
+    limits:
+      cpus: '0.5'
+      memory: 512M
+    reservations:
+      cpus: '0.25'
+      memory: 256M
+  env_file:
+   - .env_java
+  user: root
+  networks:
+   zbx_net_backend:
+    aliases:
+     - zabbix-java-gateway
+     - zabbix-java-gateway-alpine
+  stop_grace_period: 5s
+  labels:
+   com.zabbix.description: "Zabbix Java Gateway"
+   com.zabbix.company: "Zabbix SIA"
+   com.zabbix.component: "java-gateway"
+   com.zabbix.os: "alpine"
+
+ zabbix-snmptraps:
+  build:
+   context: ./snmptraps/alpine
+   cache_from:
+    - alpine:3.7
+  image: zabbix-snmptraps:alpine-3.4-local
+  ports:
+   - "162:162/udp"
+  volumes:
+   - ./zbx_env/var/lib/zabbix/snmptraps:/var/lib/zabbix/snmptraps:rw
+  deploy:
+   resources:
+    limits:
+      cpus: '0.5'
+      memory: 256M
+    reservations:
+      cpus: '0.25'
+      memory: 128M
+  user: root
+  networks:
+   zbx_net_frontend:
+    aliases:
+     - zabbix-snmptraps
+   zbx_net_backend:
+  stop_grace_period: 5s
+  labels:
+   com.zabbix.description: "Zabbix snmptraps"
+   com.zabbix.company: "Zabbix SIA"
+   com.zabbix.component: "snmptraps"
+   com.zabbix.os: "ubuntu"
+
+ mysql-server:
+  image: mysql:5.7
+  command: [mysqld, --character-set-server=utf8, --collation-server=utf8_bin]
+  volumes:
+   - ./zbx_env/var/lib/mysql:/var/lib/mysql:rw
+  env_file:
+   - .env_db_mysql
+  user: root
+  stop_grace_period: 1m
+  networks:
+   zbx_net_backend:
+    aliases:
+     - mysql-server
+     - zabbix-database
+     - mysql-database
+
+ postgres-server:
+  image: postgres:latest
+  volumes:
+   - ./zbx_env/var/lib/postgresql/data:/var/lib/postgresql/data:rw
+  env_file:
+   - .env_db_pgsql
+  user: root
+  stop_grace_period: 1m
+  networks:
+   zbx_net_backend:
+    aliases:
+     - postgres-server
+     - pgsql-server
+     - pgsql-database
+
+ db_data_mysql:
+  image: busybox
+  volumes:
+   - ./zbx_env/var/lib/mysql:/var/lib/mysql:rw
+
+ db_data_pgsql:
+  image: busybox
+  volumes:
+   - ./zbx_env/var/lib/postgresql/data:/var/lib/postgresql/data:rw
+
+# elasticsearch:
+#  image: elasticsearch
+#  environment:
+#   - transport.host=0.0.0.0
+#   - discovery.zen.minimum_master_nodes=1
+#  networks:
+#   zbx_net_backend:
+#    aliases:
+#     - elasticsearch
+
+networks:
+  zbx_net_frontend:
+    driver: bridge
+    driver_opts:
+      com.docker.network.enable_ipv6: "false"
+    ipam:
+      driver: default
+      config:
+      - subnet: 172.16.238.0/24
+  zbx_net_backend:
+    driver: bridge
+    driver_opts:
+      com.docker.network.enable_ipv6: "false"
+    internal: true
+    ipam:
+      driver: default
+      config:
+      - subnet: 172.16.239.0/24

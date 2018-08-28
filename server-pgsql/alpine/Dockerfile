@@ -1,126 +1,144 @@
 FROM alpine:3.4
-LABEL maintainer "Alexey Pustovalov <alexey.pustovalov@zabbix.com>"
+LABEL maintainer="Alexey Pustovalov <alexey.pustovalov@zabbix.com>"
 
-ARG APK_FLAGS_COMMON="-q"
-ARG APK_FLAGS_PERSISTANT="${APK_FLAGS_COMMON} --clean-protected --no-cache"
+ARG BUILD_DATE
+ARG VCS_REF
+
+ARG APK_FLAGS_COMMON=""
+ARG APK_FLAGS_PERSISTENT="${APK_FLAGS_COMMON} --clean-protected --no-cache"
 ARG APK_FLAGS_DEV="${APK_FLAGS_COMMON} --no-cache"
-ARG DB_TYPE=postgresql
-ENV TERM=xterm
-ENV MIBDIRS=/usr/share/snmp/mibs:/var/lib/zabbix/mibs MIBS=+ALL
+ENV TERM=xterm MIBDIRS=/usr/share/snmp/mibs:/var/lib/zabbix/mibs MIBS=+ALL \
+    ZBX_TYPE=server ZBX_DB_TYPE=postgresql ZBX_OPT_TYPE=none
+
+LABEL org.label-schema.name="zabbix-${ZBX_TYPE}-${ZBX_DB_TYPE}-alpine" \
+      org.label-schema.vendor="Zabbix LLC" \
+      org.label-schema.url="https://zabbix.com/" \
+      org.label-schema.description="Zabbix ${ZBX_TYPE} with PostgreSQL database support" \
+      org.label-schema.vcs-ref="${VCS_REF}" \
+      org.label-schema.build-date="${BUILD_DATE}" \
+      org.label-schema.schema-version="1.0" \
+      org.label-schema.license="GPL v2.0"
+
+STOPSIGNAL SIGTERM
 
 RUN addgroup zabbix && \
     adduser -S \
             -D -G zabbix \
             -h /var/lib/zabbix/ \
         zabbix && \
-    mkdir -p /etc/zabbix/ && \
+    adduser zabbix dialout && \
+    mkdir -p /etc/zabbix && \
     mkdir -p /var/lib/zabbix && \
+    mkdir -p /usr/lib/zabbix/alertscripts && \
     mkdir -p /var/lib/zabbix/enc && \
+    mkdir -p /usr/lib/zabbix/externalscripts && \
+    mkdir -p /var/lib/zabbix/mibs && \
     mkdir -p /var/lib/zabbix/modules && \
+    mkdir -p /var/lib/zabbix/snmptraps && \
     mkdir -p /var/lib/zabbix/ssh_keys && \
     mkdir -p /var/lib/zabbix/ssl && \
     mkdir -p /var/lib/zabbix/ssl/certs && \
     mkdir -p /var/lib/zabbix/ssl/keys && \
     mkdir -p /var/lib/zabbix/ssl/ssl_ca && \
-    mkdir -p /usr/lib/zabbix/externalscripts && \
-    mkdir -p /usr/lib/zabbix/alertscripts && \
-    mkdir -p /var/lib/zabbix/mibs && \
-    mkdir -p /var/lib/zabbix/snmptraps && \
     chown --quiet -R zabbix:root /var/lib/zabbix && \
-    mkdir -p /usr/share/doc/zabbix-server-${DB_TYPE} && \
+    mkdir -p /usr/share/doc/zabbix-${ZBX_TYPE}-${ZBX_DB_TYPE} && \
     apk update && \
-    apk add ${APK_FLAGS_PERSISTANT} \
-            iputils \
-            supervisor \
+    apk add ${APK_FLAGS_PERSISTENT} \
             bash \
+            fping \
+            iputils \
+            libcurl \
+            libevent \
+            libldap \
+            libssh2 \
+            libxml2 \
+            net-snmp-agent-libs \
+            openipmi-libs \
+            pcre \
             postgresql-client \
             postgresql-libs \
-            fping \
-            libxml2 \
-            unixodbc \
-            net-snmp-agent-libs \
-            libldap \
-            libcurl \
-            openipmi-libs \
-            libevent \
-            pcre \
-            libssh2 && \
+            unixodbc && \
     rm -rf /var/cache/apk/*
 
 ARG MAJOR_VERSION=3.4
-ARG ZBX_VERSION=${MAJOR_VERSION}.6
+ARG ZBX_VERSION=${MAJOR_VERSION}.13
 ARG ZBX_SOURCES=svn://svn.zabbix.com/tags/${ZBX_VERSION}/
-ENV ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES} DB_TYPE=${DB_TYPE}
+ENV ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES}
+
+LABEL org.label-schema.usage="https://www.zabbix.com/documentation/${MAJOR_VERSION}/manual/installation/containers" \
+      org.label-schema.version="${ZBX_VERSION}" \
+      org.label-schema.vcs-url="${ZBX_SOURCES}" \
+      org.label-schema.docker.cmd="docker run --name zabbix-${ZBX_TYPE}-pgsql --link postgres-server:postgres -p 10051:10051 -d zabbix-${ZBX_TYPE}-pgsql:alpine-${ZBX_VERSION}"
 
 RUN apk add ${APK_FLAGS_DEV} --virtual build-dependencies \
             alpine-sdk \
-            coreutils \
-            automake \
             autoconf \
-            postgresql-dev \
-            libxml2-dev \
-            unixodbc-dev \
-            net-snmp-dev \
-            libssh2-dev \
-            openipmi-dev \
-            openldap-dev \
+            automake \
+            coreutils \
             curl-dev \
             libevent-dev \
+            libssh2-dev \
+            libxml2-dev \
+            net-snmp-dev \
+            openipmi-dev \
+            openldap-dev \
             pcre-dev \
-            subversion && \
+            postgresql-dev \
+            subversion \
+            unixodbc-dev && \
     cd /tmp/ && \
-    svn --quiet export ${ZBX_SOURCES} zabbix-${ZBX_VERSION} 1>/dev/null && \
+    svn --quiet export ${ZBX_SOURCES} zabbix-${ZBX_VERSION} && \
     cd /tmp/zabbix-${ZBX_VERSION} && \
-    zabbix_revision=`svn info ${ZBX_SOURCES} |grep "Last Changed Rev"|awk '{print $4;}'` && \
+    zabbix_revision=`svn info ${ZBX_SOURCES} | grep "Last Changed Rev"|awk '{print $4;}'` && \
     sed -i "s/{ZABBIX_REVISION}/$zabbix_revision/g" include/version.h && \
-    ./bootstrap.sh 1>/dev/null && \
+    ./bootstrap.sh && \
     export CFLAGS="-fPIC -pie -Wl,-z,relro -Wl,-z,now" && \
     ./configure \
-            --prefix=/usr \
-            --silent \
-            --sysconfdir=/etc/zabbix \
-            --libdir=/usr/lib/zabbix \
             --datadir=/usr/lib \
-            --enable-server \
+            --libdir=/usr/lib/zabbix \
+            --prefix=/usr \
+            --sysconfdir=/etc/zabbix \
             --enable-agent \
-            --enable-ipv6 \
+            --enable-${ZBX_TYPE} \
+            --with-${ZBX_DB_TYPE} \
 # Does not support stable iksemel library
 #            --with-jabber \
             --with-ldap \
+            --with-libcurl \
+            --with-libxml2 \
             --with-net-snmp \
             --with-openipmi \
-            --with-ssh2 \
-            --with-libcurl \
-            --with-unixodbc \
-            --with-libxml2 \
             --with-openssl \
-            --with-${DB_TYPE} && \
-    make -j"$(nproc)" -s dbschema 1>/dev/null && \
-    make -j"$(nproc)" -s 1>/dev/null && \
-    cp src/zabbix_server/zabbix_server /usr/sbin/zabbix_server && \
+            --with-ssh2 \
+            --with-unixodbc \
+            --enable-ipv6 \
+            --silent && \
+    make -j"$(nproc)" -s dbschema && \
+    make -j"$(nproc)" -s && \
+    cp src/zabbix_${ZBX_TYPE}/zabbix_${ZBX_TYPE} /usr/sbin/zabbix_${ZBX_TYPE} && \
     cp src/zabbix_get/zabbix_get /usr/bin/zabbix_get && \
     cp src/zabbix_sender/zabbix_sender /usr/bin/zabbix_sender && \
-    cp conf/zabbix_server.conf /etc/zabbix/zabbix_server.conf && \
+    cp conf/zabbix_${ZBX_TYPE}.conf /etc/zabbix/zabbix_${ZBX_TYPE}.conf && \
     chown --quiet -R zabbix:root /etc/zabbix && \
-    cp database/${DB_TYPE}/schema.sql /usr/share/doc/zabbix-server-${DB_TYPE}/ && \
-    cp database/${DB_TYPE}/images.sql /usr/share/doc/zabbix-server-${DB_TYPE}/ && \
-    cp database/${DB_TYPE}/data.sql /usr/share/doc/zabbix-server-${DB_TYPE}/ && \
+    cat database/${ZBX_DB_TYPE}/schema.sql > database/${ZBX_DB_TYPE}/create.sql && \
+    cat database/${ZBX_DB_TYPE}/images.sql >> database/${ZBX_DB_TYPE}/create.sql && \
+    cat database/${ZBX_DB_TYPE}/data.sql >> database/${ZBX_DB_TYPE}/create.sql && \
+    gzip database/${ZBX_DB_TYPE}/create.sql && \
+    cp database/${ZBX_DB_TYPE}/create.sql.gz /usr/share/doc/zabbix-${ZBX_TYPE}-${ZBX_DB_TYPE}/ && \
     cd /tmp/ && \
     rm -rf /tmp/zabbix-${ZBX_VERSION}/ && \
     apk del ${APK_FLAGS_COMMON} --purge \
             build-dependencies && \
-    rm -rf /var/cache/apk/*
+    rm -rf /var/cache/apk/* && \
+    rm -rf /root/.subversion
 
-EXPOSE 10051/TCP 162/UDP
+EXPOSE 10051/TCP
 
 WORKDIR /var/lib/zabbix
 
-VOLUME ["/usr/lib/zabbix/alertscripts", "/usr/lib/zabbix/externalscripts", "/var/lib/zabbix/enc", "/var/lib/zabbix/modules", "/var/lib/zabbix/ssh_keys"]
-VOLUME ["/var/lib/zabbix/ssl/certs", "/var/lib/zabbix/ssl/keys", "/var/lib/zabbix/ssl/ssl_ca", "/var/lib/zabbix/snmptraps", "/var/lib/zabbix/mibs"]
+VOLUME ["/usr/lib/zabbix/alertscripts", "/usr/lib/zabbix/externalscripts", "/var/lib/zabbix/enc", "/var/lib/zabbix/mibs", "/var/lib/zabbix/modules"]
+VOLUME ["/var/lib/zabbix/snmptraps", "/var/lib/zabbix/ssh_keys", "/var/lib/zabbix/ssl/certs", "/var/lib/zabbix/ssl/keys", "/var/lib/zabbix/ssl/ssl_ca"]
 
-ADD conf/etc/supervisor/ /etc/supervisor/
-ADD run_zabbix_component.sh /
+COPY ["docker-entrypoint.sh", "/usr/bin/"]
 
-ENTRYPOINT ["/bin/bash"]
-
-CMD ["/run_zabbix_component.sh", "server", "postgresql"]
+ENTRYPOINT ["docker-entrypoint.sh"]

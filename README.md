@@ -1,4 +1,4 @@
-![logo](https://www.zabbix.com/img/logo.svg)
+![logo](https://assets.zabbix.com/img/logo/zabbix_logo_500x131.png)
 
 # What is Zabbix?
 
@@ -15,12 +15,15 @@ This repository contains **Dockerfile** of [Zabbix](https://zabbix.com/) for [Do
 
 ### Base Docker Image
 
-* [ubuntu](https://hub.docker.com/_/ubuntu/)
 * [alpine](https://hub.docker.com/_/alpine/)
+* [centos](https://hub.docker.com/_/centos/)
+* [ubuntu](https://hub.docker.com/_/ubuntu/)
 
 ### Usage
 
 Please follow usage instructions of each Zabbix component image:
+
+* [zabbix-appliance](https://hub.docker.com/r/zabbix/zabbix-appliance/) - Zabbix appliance with built-in MySQL server, Zabbix server, Zabbix Java Gateway and Zabbix frontend based on Nginx web-server
 
 * [zabbix-agent](https://hub.docker.com/r/zabbix/zabbix-agent/) - Zabbix agent
 * [zabbix-server-mysql](https://hub.docker.com/r/zabbix/zabbix-server-mysql/) - Zabbix server with MySQL database support

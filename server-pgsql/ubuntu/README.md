@@ -1,4 +1,4 @@
-![logo](http://www.zabbix.com/ru/img/logo/zabbix_logo_500x131.png)
+![logo](https://assets.zabbix.com/img/logo/zabbix_logo_500x131.png)
 
 # What is Zabbix?
 
@@ -16,14 +16,14 @@ The server performs the polling and trapping of data, it calculates triggers, se
 
 # Zabbix server images
 
-These are the only official Zabbix server Docker images. They are based on latest Alpine and trusty Ubuntu images. The available versions of Zabbix server are:
+These are the only official Zabbix server Docker images. They are based on Alpine Linux v3.4, Ubuntu 18.04 (bionic) and CentOS 7 images. The available versions of Zabbix server are:
 
-    Zabbix server 3.0 (tags: alpine-3.0-latest, ubuntu-3.0-latest)
-    Zabbix server 3.0.* (tags: alpine-3.0.*, ubuntu-3.0.*)
-    Zabbix server 3.2 (tags: alpine-3.2-latest, ubuntu-3.2-latest)
-    Zabbix server 3.2.* (tags: alpine-3.2.*, ubuntu-3.2.*)
-    Zabbix server 3.4 (tags: alpine-3.4-latest, ubuntu-3.4-latest, alpine-latest, ubuntu-latest, latest)
-    Zabbix server 3.4.* (tags: alpine-3.4.*, ubuntu-3.4.*)
+    Zabbix server 3.0 (tags: alpine-3.0-latest, ubuntu-3.0-latest, centos-3.0-latest)
+    Zabbix server 3.0.* (tags: alpine-3.0.*, ubuntu-3.0.*, centos-3.0.*)
+    Zabbix server 3.2 (tags: alpine-3.2-latest, ubuntu-3.2-latest, centos-3.2-latest)
+    Zabbix server 3.2.* (tags: alpine-3.2.*, ubuntu-3.2.*, centos-3.2.*)
+    Zabbix server 3.4 (tags: alpine-3.4-latest, ubuntu-3.4-latest, centos-3.4-latest, alpine-latest, ubuntu-latest, centos-latest, latest)
+    Zabbix server 3.4.* (tags: alpine-3.4.*, ubuntu-3.4.*, centos-3.4.*)
     Zabbix server 4.0 (tags: alpine-trunk, ubuntu-trunk)
 
 Images are updated when new releases are published. The image with ``latest`` tag is based on Alpine Linux.
@@ -104,8 +104,12 @@ The variable enable communication with Zabbix Java Gateway to collect Java relat
 Additionally the image allows to specify many other environment variables listed below:
 
 ```
+ZBX_LISTENIP=
+ZBX_HISTORYSTORAGEURL= # Available since 3.4.0
+ZBX_HISTORYSTORAGETYPES=uint,dbl,str,log,text # Available since 3.4.0
 ZBX_STARTPOLLERS=5
 ZBX_IPMIPOLLERS=0
+ZBX_STARTPREPROCESSORS=3 # Available since 3.4.0
 ZBX_STARTPOLLERSUNREACHABLE=1
 ZBX_STARTTRAPPERS=5
 ZBX_STARTPINGERS=1
@@ -113,6 +117,7 @@ ZBX_STARTDISCOVERERS=1
 ZBX_STARTHTTPPOLLERS=1
 ZBX_STARTTIMERS=1
 ZBX_STARTESCALATORS=1
+ZBX_STARTALERTERS=3 # Available since 3.4.0
 ZBX_JAVAGATEWAY=zabbix-java-gateway
 ZBX_JAVAGATEWAYPORT=10052
 ZBX_STARTJAVAPOLLERS=5
@@ -122,6 +127,7 @@ ZBX_VMWAREPERFFREQUENCY=60
 ZBX_VMWARECACHESIZE=8M
 ZBX_VMWARETIMEOUT=10
 ZBX_ENABLE_SNMP_TRAPS=false
+ZBX_SOURCEIP=
 ZBX_HOUSEKEEPINGFREQUENCY=1
 ZBX_MAXHOUSEKEEPERDELETE=5000
 ZBX_SENDERFREQUENCY=30
