@@ -50,6 +50,8 @@ RUN apt-get ${APT_FLAGS_COMMON} update && \
     mkdir -p /usr/share/doc/zabbix-${ZBX_TYPE}-${ZBX_DB_TYPE} && \
     apt-get ${APT_FLAGS_COMMON} update && \
     apt-get ${APT_FLAGS_PERSISTENT} install \
+            iputils-ping \
+            traceroute \
             fping \
             libcurl4 \
             libiksemel3 \
