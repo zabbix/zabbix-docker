@@ -122,8 +122,6 @@ RUN groupadd --system zabbix && \
     yum ${YUM_FLAGS_PERSISTENT} install \
             iptuils \
             traceroute \
-            fping \
-            iksemel \
             libcurl \
             libxml2 \
             net-snmp-libs \
