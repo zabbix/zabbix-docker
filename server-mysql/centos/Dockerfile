@@ -121,6 +121,8 @@ RUN groupadd --system zabbix && \
     yum ${YUM_FLAGS_PERSISTENT} install http://repo.zabbix.com/non-supported/rhel/7/x86_64/iksemel-1.4-2.el7.centos.x86_64.rpm \
                                         http://repo.zabbix.com/non-supported/rhel/7/x86_64/fping-3.10-1.el7.x86_64.rpm  && \
     yum ${YUM_FLAGS_PERSISTENT} install \
+            iptuils \
+            traceroute \
             libcurl \
             libevent \
             libxml2 \
