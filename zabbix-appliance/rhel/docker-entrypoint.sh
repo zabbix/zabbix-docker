@@ -482,7 +482,10 @@ prepare_web_server_apache() {
     elif [ -f "/etc/apache2/conf.d/default.conf" ]; then
         echo "** Disable default site"
         rm -f "/etc/apache2/conf.d/default.conf"
+    elif [ -f "/etc/httpd/conf.d/welcome.conf" ]; then
+        echo "** Disable default site"
         rm -f "/etc/httpd/conf.d/welcome.conf"
+        rm -f "/etc/httpd/conf.d/ssl.conf"
     fi
 
     echo "** Adding Zabbix virtual host (HTTP)"
