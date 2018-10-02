@@ -20,9 +20,11 @@ These are the only official Zabbix proxy Docker images. They are based on Alpine
     Zabbix proxy 3.0.* (tags: alpine-3.0.*, ubuntu-3.0.*, centos-3.0.*)
     Zabbix proxy 3.2 (tags: alpine-3.2-latest, ubuntu-3.2-latest, centos-3.2-latest)
     Zabbix proxy 3.2.* (tags: alpine-3.2.*, ubuntu-3.2.*, centos-3.2.*)
-    Zabbix proxy 3.4 (tags: alpine-3.4-latest, ubuntu-3.4-latest, centos-3.4-latest, alpine-latest, ubuntu-latest, centos-latest, latest)
+    Zabbix proxy 3.4 (tags: alpine-3.4-latest, ubuntu-3.4-latest, centos-3.4-latest)
     Zabbix proxy 3.4.* (tags: alpine-3.4.*, ubuntu-3.4.*, centos-3.4.*)
-    Zabbix proxy 4.0 (tags: alpine-trunk, ubuntu-trunk)
+    Zabbix proxy 4.0 (tags: alpine-4.0-latest, ubuntu-4.0-latest, centos-4.0-latest, alpine-latest, ubuntu-latest, centos-latest, latest)
+    Zabbix proxy 4.0.* (tags: alpine-4.0.*, ubuntu-4.0.*, centos-4.0.*)
+    Zabbix proxy 4.2 (tags: alpine-trunk, ubuntu-trunk)
 
 Images are updated when new releases are published. The image with ``latest`` tag is based on Alpine Linux.
 
@@ -135,8 +137,6 @@ The variable enable communication with Zabbix Java Gateway to collect Java relat
 Additionally the image allows to specify many other environment variables listed below:
 
 ```
-ZBX_ENABLEREMOTECOMMANDS=0 # Available since 3.4.0
-ZBX_LOGREMOTECOMMANDS=0 # Available since 3.4.0
 ZBX_HOSTNAMEITEM=system.hostname
 ZBX_SOURCEIP=
 ZBX_PROXYLOCALBUFFER=0

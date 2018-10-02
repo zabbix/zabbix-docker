@@ -22,9 +22,11 @@ These are the only official Zabbix server Docker images. They are based on Alpin
     Zabbix server 3.0.* (tags: alpine-3.0.*, ubuntu-3.0.*, centos-3.0.*)
     Zabbix server 3.2 (tags: alpine-3.2-latest, ubuntu-3.2-latest, centos-3.2-latest)
     Zabbix server 3.2.* (tags: alpine-3.2.*, ubuntu-3.2.*, centos-3.2.*)
-    Zabbix server 3.4 (tags: alpine-3.4-latest, ubuntu-3.4-latest, centos-3.4-latest, alpine-latest, ubuntu-latest, centos-latest, latest)
+    Zabbix server 3.4 (tags: alpine-3.4-latest, ubuntu-3.4-latest, centos-3.4-latest)
     Zabbix server 3.4.* (tags: alpine-3.4.*, ubuntu-3.4.*, centos-3.4.*)
-    Zabbix server 4.0 (tags: alpine-trunk, ubuntu-trunk)
+    Zabbix server 4.0 (tags: alpine-4.0-latest, ubuntu-4.0-latest, centos-4.0-latest, alpine-latest, ubuntu-latest, centos-latest, latest)
+    Zabbix server 4.0.* (tags: alpine-4.0.*, ubuntu-4.0.*, centos-4.0.*)
+    Zabbix server 4.2 (tags: alpine-trunk, ubuntu-trunk)
 
 Images are updated when new releases are published. The image with ``latest`` tag is based on Alpine Linux.
 
@@ -106,11 +108,8 @@ Additionally the image allows to specify many other environment variables listed
 
 ```
 ZBX_LISTENIP=
-ZBX_HISTORYSTORAGEURL= # Available since 3.4.0
-ZBX_HISTORYSTORAGETYPES=uint,dbl,str,log,text # Available since 3.4.0
 ZBX_STARTPOLLERS=5
 ZBX_IPMIPOLLERS=0
-ZBX_STARTPREPROCESSORS=3 # Available since 3.4.0
 ZBX_STARTPOLLERSUNREACHABLE=1
 ZBX_STARTTRAPPERS=5
 ZBX_STARTPINGERS=1
@@ -118,7 +117,6 @@ ZBX_STARTDISCOVERERS=1
 ZBX_STARTHTTPPOLLERS=1
 ZBX_STARTTIMERS=1
 ZBX_STARTESCALATORS=1
-ZBX_STARTALERTERS=3 # Available since 3.4.0
 ZBX_JAVAGATEWAY=zabbix-java-gateway
 ZBX_JAVAGATEWAYPORT=10052
 ZBX_STARTJAVAPOLLERS=5
