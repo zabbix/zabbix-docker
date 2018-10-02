@@ -20,8 +20,8 @@ LABEL org.label-schema.name="zabbix-snmptraps-ubuntu" \
       org.label-schema.license="GPL v2.0"
 
 ARG MAJOR_VERSION=4.0
-ARG ZBX_VERSION=${MAJOR_VERSION}
-ARG ZBX_SOURCES=svn://svn.zabbix.com/trunk/
+ARG ZBX_VERSION=${MAJOR_VERSION}.0
+ARG ZBX_SOURCES=svn://svn.zabbix.com/tags/${ZBX_VERSION}/
 ENV ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES}
 
 LABEL org.label-schema.usage="https://www.zabbix.com/documentation/${MAJOR_VERSION}/manual/installation/containers" \
