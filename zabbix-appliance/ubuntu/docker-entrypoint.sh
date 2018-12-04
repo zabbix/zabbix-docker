@@ -75,7 +75,7 @@ configure_db_mysql() {
         chown -R mysql:mysql "$MYSQL_DATA_DIR"
 
         echo "** Instaling initial MySQL database schemas"
-        mysql_install_db --user=mysql 2>&1 1>/dev/null
+        $MYSQLD --initialize-insecure --user=mysql --datadir="$MYSQL_DATA_DIR" 2>&1
     else
         echo "**** MySQL data directory is not empty. Using already existsing installation."
         chown -R mysql:mysql "$MYSQL_DATA_DIR"
