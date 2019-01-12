@@ -53,6 +53,7 @@ COPY ["licenses", "/licenses"]
 
 ### Add necessary Red Hat repos here
 RUN INSTALL_PKGS="OpenIPMI-libs \
+            curl \
             dejavu-sans-fonts \
             fping \
             iksemel \
