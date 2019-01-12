@@ -80,6 +80,9 @@ RUN groupadd --system zabbix && \
             php-mysql \
             php-xml && \
     ln -s /usr/share/fonts/dejavu/DejaVuSans.ttf /usr/share/zabbix/fonts/graphfont.ttf && \
+    cat /usr/share/zabbix/include/locales.inc.php | grep display | grep true | awk '{$1=$1};1' | \
+                cut -d"'" -f 2 | sort | \
+                xargs -I '{}' bash -c 'localedef -v -c -i {} -f UTF-8 {}.UTF-8 2>/dev/null' && \
     yum ${YUM_FLAGS_PERSISTANT} clean all && \
     rm -rf /var/cache/yum/
 
