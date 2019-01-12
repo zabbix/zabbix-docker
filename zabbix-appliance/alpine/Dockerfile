@@ -142,6 +142,7 @@ RUN addgroup zabbix && \
     apk update && \
     apk add ${APK_FLAGS_PERSISTENT} \
             bash \
+            curl \
             fping \
             iputils \
             libcurl \
