@@ -82,6 +82,9 @@ RUN groupadd --system zabbix && \
             php-xml \
             supervisor && \
     ln -s /usr/share/fonts/dejavu/DejaVuSans.ttf /usr/share/zabbix/fonts/graphfont.ttf && \
+    cat /usr/share/zabbix/include/locales.inc.php | grep display | grep true | awk '{$1=$1};1' | \
+                cut -d"'" -f 2 | sort | \
+                xargs -I '{}' bash -c 'localedef -v -c -i {} -f UTF-8 {}.UTF-8 2>/dev/null' && \
     rm -f /etc/php-fpm.d/www.conf && \
     mkdir -p /var/lib/php/ && \
     chown --quiet -R nginx:nginx /var/lib/php/ && \
