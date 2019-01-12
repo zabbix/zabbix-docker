@@ -24,7 +24,7 @@ These are the only official Zabbix appliance Docker images. They are based on Al
     Zabbix appliance 3.4.* (tags: alpine-3.4.*, ubuntu-3.4.*, centos-3.4.*)
     Zabbix appliance 4.0 (tags: alpine-4.0-latest, ubuntu-4.0-latest, centos-4.0-latest, alpine-latest, ubuntu-latest, centos-latest, latest)
     Zabbix appliance 4.0.* (tags: alpine-4.0.*, ubuntu-4.0.*, centos-4.0.*)
-    Zabbix appliance 4.2 (tags: alpine-trunk, ubuntu-trunk)
+    Zabbix appliance 4.2 (tags: alpine-trunk, ubuntu-trunk, centos-trunk)
 
 Images are updated when new releases are published. The image with ``latest`` tag is based on Alpine Linux.
 

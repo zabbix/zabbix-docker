@@ -24,7 +24,7 @@ These are the only official Zabbix proxy Docker images. They are based on Alpine
     Zabbix proxy 3.4.* (tags: alpine-3.4.*, ubuntu-3.4.*, centos-3.4.*)
     Zabbix proxy 4.0 (tags: alpine-4.0-latest, ubuntu-4.0-latest, centos-4.0-latest, alpine-latest, ubuntu-latest, centos-latest, latest)
     Zabbix proxy 4.0.* (tags: alpine-4.0.*, ubuntu-4.0.*, centos-4.0.*)
-    Zabbix proxy 4.2 (tags: alpine-trunk, ubuntu-trunk)
+    Zabbix proxy 4.2 (tags: alpine-trunk, ubuntu-trunk, centos-trunk)
 
 Images are updated when new releases are published. The image with ``latest`` tag is based on Alpine Linux.
 
