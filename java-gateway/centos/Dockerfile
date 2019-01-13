@@ -85,6 +85,8 @@ EXPOSE 10052/TCP
 
 WORKDIR /var/lib/zabbix
 
+VOLUME ["/usr/sbin/zabbix_java/ext_lib"]
+
 COPY ["conf/etc/zabbix/zabbix_java_gateway_logback.xml", "/etc/zabbix/"]
 COPY ["conf/usr/sbin/zabbix_java_gateway", "/usr/sbin/"]
 COPY ["docker-entrypoint.sh", "/usr/bin/"]

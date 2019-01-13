@@ -72,6 +72,12 @@ This variable is used to specify timeout for outgoing connections. By default, v
 
 This variable is used to specify log level. By default, value is `info`. The variable allows next values: ``trace``, ``debug``, ``info``, ``want``, ``error``, ``all``, ``off``
 
+## Allowed volumes for the Zabbix Java Gateway container
+
+### ``/usr/sbin/zabbix_java/ext_lib``
+
+The volume allows include additional JAR files to extend allowed protocols for Zabbix Java Gateway.
+
 # The image variants
 
 The `zabbix-java-gateway` images come in many flavors, each designed for a specific use case.

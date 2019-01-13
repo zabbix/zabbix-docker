@@ -7,7 +7,7 @@ JAVA_OPTIONS="$JAVA_OPTIONS -Dlogback.configurationFile=/etc/zabbix/zabbix_java_
 cd $DAEMON
 
 CLASSPATH="$DAEMON/lib"
-for jar in `find lib bin -name "*.jar"`; do
+for jar in `find lib bin ext_lib -name "*.jar"`; do
     if [ $jar != *junit* ]; then
         CLASSPATH="$CLASSPATH:$DAEMON/$jar"
     fi
