@@ -814,13 +814,14 @@ prepare_zbx_web_config() {
 
     echo "** Preparing Zabbix frontend configuration file"
 
+    ZBX_WWW_ROOT="/usr/share/zabbix"
     ZBX_WEB_CONFIG="$ZABBIX_ETC_DIR/web/zabbix.conf.php"
 
-    if [ -f "/usr/share/zabbix/conf/zabbix.conf.php" ]; then
-        rm -f "/usr/share/zabbix/conf/zabbix.conf.php"
+    if [ -f "$ZBX_WWW_ROOT/conf/zabbix.conf.php" ]; then
+        rm -f "$ZBX_WWW_ROOT/conf/zabbix.conf.php"
     fi
 
-    ln -s "$ZBX_WEB_CONFIG" "/usr/share/zabbix/conf/zabbix.conf.php"
+    ln -s "$ZBX_WEB_CONFIG" "$ZBX_WWW_ROOT/conf/zabbix.conf.php"
 
     # Different places of PHP configuration file
     if [ -f "/etc/php5/conf.d/99-zabbix.ini" ]; then
@@ -878,6 +879,8 @@ prepare_zbx_web_config() {
     "$ZBX_WEB_CONFIG"
 
     [ "$db_type" = "postgresql" ] && sed -i "s/MYSQL/POSTGRESQL/g" "$ZBX_WEB_CONFIG"
+
+    sed "/ZBX_SESSION_NAME/s/'[^']*'/'${ZBX_SESSION_NAME}'/2" "$ZBX_WWW_ROOT/include/defines.inc.php"
 }
 
 prepare_zbx_agent_config() {
