@@ -132,6 +132,10 @@ The varable is PHP ``upload_max_filesize`` option. By default, value is `2M`.
 
 The varable is PHP ``max_input_time`` option. By default, value is `300`.
 
+### `ZBX_SESSION_NAME`
+
+The variable is Zabbix frontend [definition](https://www.zabbix.com/documentation/4.2/manual/web_interface/definitions). String used as the name of the Zabbix frontend session cookie. By default, value is `zbx_sessionid`.
+
 ## Allowed volumes for the Zabbix web interface container
 
 ### ``/etc/ssl/apache2``
