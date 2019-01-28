@@ -20,7 +20,7 @@ LABEL org.label-schema.name="zabbix-snmptraps-ubuntu" \
       org.label-schema.license="GPL v2.0"
 
 ARG MAJOR_VERSION=3.0
-ARG ZBX_VERSION=${MAJOR_VERSION}.24
+ARG ZBX_VERSION=${MAJOR_VERSION}.25
 ARG ZBX_SOURCES=svn://svn.zabbix.com/tags/${ZBX_VERSION}/
 ENV ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES}
 
