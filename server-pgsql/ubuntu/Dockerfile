@@ -65,7 +65,8 @@ RUN apt-get ${APT_FLAGS_COMMON} update && \
             libxml2 \
             postgresql-client \
             snmp-mibs-downloader \
-            unixodbc && \
+            unixodbc \
+            ca-certificates && \
     apt-get ${APT_FLAGS_COMMON} autoremove && \
     apt-get ${APT_FLAGS_COMMON} clean && \
     rm -rf /var/lib/apt/lists/*
