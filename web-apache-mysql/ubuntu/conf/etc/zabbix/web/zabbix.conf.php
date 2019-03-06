@@ -21,4 +21,4 @@ $IMAGE_FORMAT_DEFAULT	= IMAGE_FORMAT_PNG;
 // Elasticsearch url (can be string if same url is used for all types).
 $HISTORY['url']   = '{ZBX_HISTORYSTORAGEURL}';
 // Value types stored in Elasticsearch.
-$HISTORY['types'] = {ZBX_HISTORYSTORAGETYPES};
+$HISTORY['types'] = '{ZBX_HISTORYSTORAGETYPES}';
