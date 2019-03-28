@@ -23,7 +23,7 @@ services:
    nofile:
     soft: 20000
     hard: 40000
-   mem_limit: 512m
+  mem_limit: 512m
   env_file:
    - .env_db_pgsql
    - .env_srv
@@ -64,7 +64,7 @@ services:
    nofile:
     soft: 20000
     hard: 40000
-   mem_limit: 512m
+  mem_limit: 512m
   env_file:
    - .env_prx
    - .env_prx_sqlite3
@@ -104,7 +104,7 @@ services:
    nofile:
     soft: 20000
     hard: 40000
-   mem_limit: 512m
+  mem_limit: 512m
   env_file:
    - .env_db_mysql_proxy
    - .env_prx
