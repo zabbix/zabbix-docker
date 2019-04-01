@@ -24,9 +24,11 @@ These are the only official Zabbix server Docker images. They are based on Alpin
     Zabbix server 3.2.* (tags: alpine-3.2.*, ubuntu-3.2.*, centos-3.2.*)
     Zabbix server 3.4 (tags: alpine-3.4-latest, ubuntu-3.4-latest, centos-3.4-latest)
     Zabbix server 3.4.* (tags: alpine-3.4.*, ubuntu-3.4.*, centos-3.4.*)
-    Zabbix server 4.0 (tags: alpine-4.0-latest, ubuntu-4.0-latest, centos-4.0-latest, alpine-latest, ubuntu-latest, centos-latest, latest)
+    Zabbix server 4.0 (tags: alpine-4.0-latest, ubuntu-4.0-latest, centos-4.0-latest)
     Zabbix server 4.0.* (tags: alpine-4.0.*, ubuntu-4.0.*, centos-4.0.*)
-    Zabbix server 4.2 (tags: alpine-trunk, ubuntu-trunk, centos-trunk)
+    Zabbix server 4.2 (tags: alpine-4.2-latest, ubuntu-4.2-latest, centos-4.2-latest, alpine-latest, ubuntu-latest, centos-latest, latest)
+    Zabbix server 4.2.* (tags: alpine-4.2.*, ubuntu-4.2.*, centos-4.2.*)
+    Zabbix server 4.4 (tags: alpine-trunk, ubuntu-trunk, centos-trunk)
 
 Images are updated when new releases are published. The image with ``latest`` tag is based on Alpine Linux.
 
@@ -106,6 +108,7 @@ The variable enable communication with Zabbix Java Gateway to collect Java relat
 Additionally the image allows to specify many other environment variables listed below:
 
 ```
+ZBX_LISTENIP=
 ZBX_STARTPOLLERS=5
 ZBX_IPMIPOLLERS=0
 ZBX_STARTPOLLERSUNREACHABLE=1
@@ -124,6 +127,7 @@ ZBX_VMWAREPERFFREQUENCY=60
 ZBX_VMWARECACHESIZE=8M
 ZBX_VMWARETIMEOUT=10
 ZBX_ENABLE_SNMP_TRAPS=false
+ZBX_SOURCEIP=
 ZBX_HOUSEKEEPINGFREQUENCY=1
 ZBX_MAXHOUSEKEEPERDELETE=5000
 ZBX_SENDERFREQUENCY=30
