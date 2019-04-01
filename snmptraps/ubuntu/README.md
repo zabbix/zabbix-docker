@@ -22,9 +22,11 @@ These are the only official Zabbix snmptraps Docker images. They are based on Al
     Zabbix snmptraps 3.2.* (tags: alpine-3.2.*, ubuntu-3.2.*, centos-3.2.*)
     Zabbix snmptraps 3.4 (tags: alpine-3.4-latest, ubuntu-3.4-latest, centos-3.4-latest)
     Zabbix snmptraps 3.4.* (tags: alpine-3.4.*, ubuntu-3.4.*, centos-3.4.*)
-    Zabbix snmptraps 4.0 (tags: alpine-4.0-latest, ubuntu-4.0-latest, centos-4.0-latest, alpine-latest, ubuntu-latest, centos-latest, latest)
+    Zabbix snmptraps 4.0 (tags: alpine-4.0-latest, ubuntu-4.0-latest, centos-4.0-latest)
     Zabbix snmptraps 4.0.* (tags: alpine-4.0.*, ubuntu-4.0.*, centos-4.0.*)
-    Zabbix snmptraps 4.2 (tags: alpine-trunk, ubuntu-trunk, centos-trunk)
+    Zabbix snmptraps 4.2 (tags: alpine-4.2-latest, ubuntu-4.2-latest, centos-4.2-latest, alpine-latest, ubuntu-latest, centos-latest, latest)
+    Zabbix snmptraps 4.2.* (tags: alpine-4.2.*, ubuntu-4.2.*, centos-4.2.*)
+    Zabbix snmptraps 4.4 (tags: alpine-trunk, ubuntu-trunk, centos-trunk)
 
 Images are updated when new releases are published.
 
