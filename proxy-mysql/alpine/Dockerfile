@@ -42,6 +42,7 @@ RUN addgroup zabbix && \
     mkdir -p /usr/share/doc/zabbix-${ZBX_TYPE}-${ZBX_DB_TYPE} && \
     apk update && \
     apk add ${APK_FLAGS_PERSISTENT} \
+            tini \
             bash \
             iputils \
             libcurl \
@@ -131,4 +132,6 @@ VOLUME ["/var/lib/zabbix/ssh_keys", "/var/lib/zabbix/ssl/certs", "/var/lib/zabbi
 
 COPY ["docker-entrypoint.sh", "/usr/bin/"]
 
-ENTRYPOINT ["docker-entrypoint.sh"]
+ENTRYPOINT ["/sbin/tini", "--"]
+
+CMD ["docker-entrypoint.sh"]

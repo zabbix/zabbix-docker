@@ -1,4 +1,4 @@
-FROM alpine:3.4
+FROM alpine:3.9
 LABEL maintainer="Alexey Pustovalov <alexey.pustovalov@zabbix.com>"
 
 ARG BUILD_DATE
@@ -41,6 +41,7 @@ RUN addgroup zabbix && \
     chown --quiet -R zabbix:root /var/lib/zabbix && \
     apk update && \
     apk add ${APK_FLAGS_PERSISTENT} \
+            tini \
             bash \
             fping \
             iputils \
@@ -126,4 +127,6 @@ VOLUME ["/var/lib/zabbix/ssh_keys", "/var/lib/zabbix/ssl/certs", "/var/lib/zabbi
 
 COPY ["docker-entrypoint.sh", "/usr/bin/"]
 
-ENTRYPOINT ["docker-entrypoint.sh"]
+ENTRYPOINT ["/sbin/tini", "--"]
+
+CMD ["docker-entrypoint.sh"]

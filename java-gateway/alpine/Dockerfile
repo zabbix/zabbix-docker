@@ -1,4 +1,4 @@
-FROM alpine:3.7
+FROM alpine:3.9
 LABEL maintainer="Alexey Pustovalov <alexey.pustovalov@zabbix.com>"
 
 ARG BUILD_DATE
@@ -30,6 +30,7 @@ RUN addgroup zabbix && \
     chown --quiet -R zabbix:root /etc/zabbix && \
     apk update && \
     apk add ${APK_FLAGS_COMMON} \
+            tini \
             bash \
             openjdk8-jre-base && \
     rm -rf /var/cache/apk/*
