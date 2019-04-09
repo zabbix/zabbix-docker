@@ -52,6 +52,7 @@ ARG ZBX_VERSION=${MAJOR_VERSION}
 ARG ZBX_SOURCES=svn://svn.zabbix.com/tags/${ZBX_VERSION}/
 ENV TERM=xterm ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES} \
     ZBX_TYPE=agent ZBX_DB_TYPE=none ZBX_OPT_TYPE=none
+ENV TINI_VERSION v0.18.0
 
 LABEL org.label-schema.name="zabbix-${ZBX_TYPE}-centos" \
       org.label-schema.vendor="Zabbix LLC" \
@@ -72,6 +73,7 @@ COPY --from=builder /tmp/zabbix-${ZBX_VERSION}/src/zabbix_agent/zabbix_agentd /u
 COPY --from=builder /tmp/zabbix-${ZBX_VERSION}/src/zabbix_get/zabbix_get /usr/bin/zabbix_get
 COPY --from=builder /tmp/zabbix-${ZBX_VERSION}/src/zabbix_sender/zabbix_sender /usr/bin/zabbix_sender
 COPY --from=builder  /tmp/zabbix-${ZBX_VERSION}/conf/zabbix_agentd.conf /etc/zabbix/zabbix_agentd.conf
+ADD https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini /sbin/tini
 
 RUN groupadd --system zabbix && \
     adduser -r --shell /sbin/nologin \
@@ -89,7 +91,8 @@ RUN groupadd --system zabbix && \
             libldap \
             openssl-libs && \
     yum ${YUM_FLAGS_PERSISTENT} clean all && \
-    rm -rf /var/cache/yum
+    rm -rf /var/cache/yum && \
+    chmod +x /sbin/tini
 
 EXPOSE 10050/TCP
 
@@ -99,4 +102,6 @@ VOLUME ["/etc/zabbix/zabbix_agentd.d", "/var/lib/zabbix/enc", "/var/lib/zabbix/m
 
 COPY ["docker-entrypoint.sh", "/usr/bin/"]
 
-ENTRYPOINT ["docker-entrypoint.sh"]
+ENTRYPOINT ["/sbin/tini", "--"]
+
+CMD ["docker-entrypoint.sh"]

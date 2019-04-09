@@ -69,7 +69,7 @@ services:
   build:
    context: ./proxy-sqlite3/alpine
    cache_from:
-    - alpine:3.4
+    - alpine:3.9
   image: zabbix-proxy-sqlite3:alpine-local
   ports:
    - "10061:10051"
@@ -291,7 +291,7 @@ services:
   build:
    context: ./agent/alpine
    cache_from:
-    - alpine:3.4
+    - alpine:3.9
   image: zabbix-agent:alpine-local
   ports:
    - "10050:10050"
@@ -335,7 +335,7 @@ services:
   build:
    context: ./java-gateway/alpine
    cache_from:
-    - alpine:3.4
+    - alpine:3.9
   image: zabbix-java-gateway:alpine-local
   ports:
    - "10052:10052"
@@ -366,7 +366,7 @@ services:
   build:
    context: ./snmptraps/alpine
    cache_from:
-    - alpine:3.7
+    - alpine:3.9
   image: zabbix-snmptraps:alpine-local
   ports:
    - "162:162/udp"

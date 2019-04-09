@@ -10,6 +10,7 @@ ARG APT_FLAGS_DEV="${APT_FLAGS_COMMON} --no-install-recommends"
 ENV LANG=en_US.UTF-8 LANGUAGE=en_US:en LC_ALL=en_US.UTF-8 DEBIAN_FRONTEND=noninteractive TERM=xterm \
     MIBDIRS=/var/lib/snmp/mibs/ietf:/var/lib/snmp/mibs/iana:/usr/share/snmp/mibs:/var/lib/zabbix/mibs MIBS=+ALL \
     ZBX_TYPE=proxy ZBX_DB_TYPE=sqlite3 ZBX_OPT_TYPE=none
+ENV TINI_VERSION v0.18.0
 
 LABEL org.label-schema.name="zabbix-${ZBX_TYPE}-${ZBX_DB_TYPE}-ubuntu" \
       org.label-schema.vendor="Zabbix LLC" \
@@ -70,6 +71,8 @@ LABEL org.label-schema.usage="https://www.zabbix.com/documentation/${MAJOR_VERSI
       org.label-schema.version="${ZBX_VERSION}" \
       org.label-schema.vcs-url="${ZBX_SOURCES}" \
       org.label-schema.docker.cmd="docker run --name zabbix-${ZBX_TYPE}-${ZBX_DB_TYPE} --link zabbix-server:zabbix-server -p 10051:10051 -d zabbix-${ZBX_TYPE}-${ZBX_DB_TYPE}:ubuntu-${ZBX_VERSION}"
+
+ADD https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini /sbin/tini
 
 RUN apt-get ${APT_FLAGS_COMMON} update && \
     apt-get ${APT_FLAGS_DEV} install \
@@ -140,7 +143,8 @@ RUN apt-get ${APT_FLAGS_COMMON} update && \
             unixodbc-dev && \
     apt-get ${APT_FLAGS_COMMON} autoremove && \
     rm -rf /var/lib/apt/lists/* && \
-    rm -rf /root/.subversion
+    rm -rf /root/.subversion && \
+    chmod +x /sbin/tini
 
 EXPOSE 10051/TCP
 
@@ -151,4 +155,6 @@ VOLUME ["/var/lib/zabbix/ssh_keys", "/var/lib/zabbix/ssl/certs", "/var/lib/zabbi
       
 COPY ["docker-entrypoint.sh", "/usr/bin/"]
 
-ENTRYPOINT ["docker-entrypoint.sh"]
+ENTRYPOINT ["/sbin/tini", "--"]
+
+CMD ["docker-entrypoint.sh"]
