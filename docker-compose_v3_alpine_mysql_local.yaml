@@ -4,7 +4,7 @@ services:
   build: 
    context: ./server-mysql/alpine
    cache_from:
-    - alpine:3.4
+    - alpine:3.9
   image: zabbix-server-mysql:alpine-local
   ports:
    - "10051:10051"
@@ -124,7 +124,7 @@ services:
   build:
    context: ./proxy-mysql/alpine
    cache_from:
-    - alpine:3.4
+    - alpine:3.9
   image: zabbix-proxy-mysql:alpine-local
   ports:
    - "10071:10051"
@@ -181,7 +181,7 @@ services:
   build:
    context: ./web-apache-mysql/alpine
    cache_from:
-    - alpine:3.4
+    - alpine:3.9
   image: zabbix-web-apache-mysql:alpine-local
   ports:
    - "80:80"
@@ -236,7 +236,7 @@ services:
   build:
    context: ./web-nginx-mysql/alpine
    cache_from:
-    - alpine:3.4
+    - alpine:3.9
   image: zabbix-web-nginx-mysql:alpine-local
   ports:
    - "8081:80"

@@ -1,4 +1,4 @@
-FROM alpine:3.4
+FROM alpine:3.9
 LABEL maintainer="Alexey Pustovalov <alexey.pustovalov@zabbix.com>"
 
 ARG BUILD_DATE
@@ -53,7 +53,7 @@ RUN addgroup zabbix && \
             libssh2 \
             libxml2 \
             mariadb-client \
-            mariadb-client-libs \
+            mariadb-connector-c \
             net-snmp-agent-libs \
             openipmi-libs \
             unixodbc && \
