@@ -124,8 +124,8 @@ services:
   build:
    context: ./proxy-mysql/alpine
    cache_from:
-    - alpine:3.4
-  image: zabbix-proxy-mysql:alpine-3.0-local
+    - alpine:3.9
+  image: zabbix-proxy-mysql:alpine-local
   ports:
    - "10071:10051"
   volumes:
