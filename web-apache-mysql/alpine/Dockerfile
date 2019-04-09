@@ -1,4 +1,4 @@
-FROM alpine:3.7
+FROM alpine:3.9
 LABEL maintainer="Alexey Pustovalov <alexey.pustovalov@zabbix.com>"
 
 ARG BUILD_DATE
@@ -36,7 +36,7 @@ RUN addgroup zabbix && \
             bash \
             curl \
             mariadb-client \
-            mariadb-client-libs \
+            mariadb-connector-c \
             php7-apache2 \
             php7-bcmath \
             php7-ctype \

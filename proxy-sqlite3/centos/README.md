@@ -14,7 +14,7 @@ Zabbix proxy is a process that may collect monitoring data from one or more moni
 
 # Zabbix proxy images
 
-These are the only official Zabbix proxy Docker images. They are based on Alpine Linux v3.4, Ubuntu 18.04 (bionic) and CentOS 7 images. The available versions of Zabbix proxy are:
+These are the only official Zabbix proxy Docker images. They are based on Alpine Linux v3.9, Ubuntu 18.04 (bionic) and CentOS 7 images. The available versions of Zabbix proxy are:
 
     Zabbix proxy 3.0 (tags: alpine-3.0-latest, ubuntu-3.0-latest, centos-3.0-latest)
     Zabbix proxy 3.0.* (tags: alpine-3.0.*, ubuntu-3.0.*, centos-3.0.*)
