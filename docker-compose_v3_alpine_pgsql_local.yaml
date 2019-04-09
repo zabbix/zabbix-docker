@@ -4,8 +4,8 @@ services:
   build:
    context: ./server-pgsql/alpine
    cache_from:
-    - alpine:3.4
-  image: zabbix-server-pgsql:alpine-3.0-local
+    - alpine:3.9
+  image: zabbix-server-pgsql:alpine-local
   ports:
    - "10051:10051"
   volumes:
@@ -69,8 +69,8 @@ services:
   build:
    context: ./proxy-sqlite3/alpine
    cache_from:
-    - alpine:3.4
-  image: zabbix-proxy-sqlite3:alpine-3.0-local
+    - alpine:3.9
+  image: zabbix-proxy-sqlite3:alpine-local
   ports:
    - "10061:10051"
   volumes:
@@ -182,8 +182,8 @@ services:
   build:
    context: ./web-apache-pgsql/alpine
    cache_from:
-    - alpine:3.4
-  image: zabbix-web-apache-pgsql:alpine-3.0-local
+    - alpine:3.9
+  image: zabbix-web-apache-pgsql:alpine-local
   ports:
    - "80:80"
    - "443:443"
@@ -237,8 +237,8 @@ services:
   build:
    context: ./web-nginx-pgsql/alpine
    cache_from:
-    - alpine:3.4
-  image: zabbix-web-nginx-pgsql:alpine-3.0-local
+    - alpine:3.9
+  image: zabbix-web-nginx-pgsql:alpine-local
   ports:
    - "8081:80"
    - "8443:443"
@@ -292,8 +292,8 @@ services:
   build:
    context: ./agent/alpine
    cache_from:
-    - alpine:3.4
-  image: zabbix-agent:alpine-3.0-local
+    - alpine:3.9
+  image: zabbix-agent:alpine-local
   ports:
    - "10050:10050"
   volumes:
@@ -336,8 +336,8 @@ services:
   build:
    context: ./java-gateway/alpine
    cache_from:
-    - alpine:3.4
-  image: zabbix-java-gateway:alpine-3.0-local
+    - alpine:3.9
+  image: zabbix-java-gateway:alpine-local
   ports:
    - "10052:10052"
   deploy:
