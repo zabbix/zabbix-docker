@@ -10,12 +10,12 @@ ENV ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES} \
     ZBX_TYPE=server ZBX_DB_TYPE=mysql ZBX_OPT_TYPE=none
 
 RUN yum --quiet makecache && \
-    yum ${YUM_FLAGS_DEV} install epel-release && \
+    yum ${YUM_FLAGS_DEV} install http://repo.zabbix.com/non-supported/rhel/7/x86_64/iksemel-devel-1.4-2.el7.centos.x86_64.rpm \
+                                 http://repo.zabbix.com/non-supported/rhel/7/x86_64/iksemel-1.4-2.el7.centos.x86_64.rpm && \
     yum ${YUM_FLAGS_DEV} install \
             autoconf \
             automake \
             gcc \
-            iksemel-devel \
             libcurl-devel \
             libssh2-devel \
             libxml2-devel \
@@ -74,6 +74,7 @@ ARG ZBX_SOURCES=svn://svn.zabbix.com/tags/${ZBX_VERSION}/
 ENV ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES} \
     TERM=xterm MIBDIRS=/usr/share/snmp/mibs:/var/lib/zabbix/mibs MIBS=+ALL \
     ZBX_TYPE=server ZBX_DB_TYPE=mysql ZBX_OPT_TYPE=none
+ENV TINI_VERSION v0.18.0
 
 LABEL org.label-schema.name="zabbix-${ZBX_TYPE}-${ZBX_DB_TYPE}-centos" \
       org.label-schema.vendor="Zabbix LLC" \
@@ -95,6 +96,7 @@ COPY --from=builder /tmp/zabbix-${ZBX_VERSION}/src/zabbix_get/zabbix_get /usr/bi
 COPY --from=builder /tmp/zabbix-${ZBX_VERSION}/src/zabbix_sender/zabbix_sender /usr/bin/zabbix_sender
 COPY --from=builder /tmp/zabbix-${ZBX_VERSION}/conf/zabbix_${ZBX_TYPE}.conf /etc/zabbix/zabbix_${ZBX_TYPE}.conf
 COPY --from=builder /tmp/zabbix-${ZBX_VERSION}/database/${ZBX_DB_TYPE}/create.sql.gz /usr/share/doc/zabbix-${ZBX_TYPE}-${ZBX_DB_TYPE}/create.sql.gz
+ADD https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini /sbin/tini
 
 RUN groupadd --system zabbix && \
     adduser -r --shell /sbin/nologin \
@@ -117,10 +119,9 @@ RUN groupadd --system zabbix && \
     chown --quiet -R zabbix:root /var/lib/zabbix && \
     mkdir -p /usr/share/doc/zabbix-${ZBX_TYPE}-${ZBX_DB_TYPE} && \
     yum ${YUM_FLAGS_COMMON} makecache && \
-    yum ${YUM_FLAGS_PERSISTENT} install epel-release && \
+    yum ${YUM_FLAGS_PERSISTENT} install http://repo.zabbix.com/non-supported/rhel/7/x86_64/iksemel-1.4-2.el7.centos.x86_64.rpm \
+                                        http://repo.zabbix.com/non-supported/rhel/7/x86_64/fping-3.10-1.el7.x86_64.rpm  && \
     yum ${YUM_FLAGS_PERSISTENT} install \
-            fping \
-            iksemel \
             libcurl \
             libxml2 \
             mariadb \
@@ -131,7 +132,8 @@ RUN groupadd --system zabbix && \
             pcre \
             unixODBC && \
     yum ${YUM_FLAGS_PERSISTENT} clean all && \
-    rm -rf /var/cache/yum/
+    rm -rf /var/cache/yum/ && \
+    chmod +x /sbin/tini
 
 EXPOSE 10051/TCP
 
@@ -142,4 +144,7 @@ VOLUME ["/var/lib/zabbix/snmptraps", "/var/lib/zabbix/ssh_keys", "/var/lib/zabbi
       
 COPY ["docker-entrypoint.sh", "/usr/bin/"]
 
-ENTRYPOINT ["docker-entrypoint.sh"]
+ENTRYPOINT ["/sbin/tini", "--"]
+
+CMD ["docker-entrypoint.sh"]
+

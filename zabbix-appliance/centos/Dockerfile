@@ -12,14 +12,14 @@ ENV ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES} \
 
 COPY ["conf/tmp/font-config", "/tmp/font-config"]
 
-RUN yum ${YUM_FLAGS_DEV} install epel-release && \
-    yum --quiet makecache && \
+RUN yum --quiet makecache && \
+    yum ${YUM_FLAGS_DEV} install http://repo.zabbix.com/non-supported/rhel/7/x86_64/iksemel-devel-1.4-2.el7.centos.x86_64.rpm \
+                                 http://repo.zabbix.com/non-supported/rhel/7/x86_64/iksemel-1.4-2.el7.centos.x86_64.rpm && \
     yum ${YUM_FLAGS_DEV} install \
             autoconf \
             automake \
             gcc \
             gettext \
-            iksemel-devel \
             java-1.8.0-openjdk-devel \
             libcurl-devel \
             libssh2-devel \
@@ -91,6 +91,7 @@ ENV ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES} \
     TERM=xterm MIBDIRS=/usr/share/snmp/mibs:/var/lib/zabbix/mibs MIBS=+ALL \
     ZBX_TYPE=server ZBX_DB_TYPE=mysql ZBX_OPT_TYPE=nginx \
     MYSQL_ALLOW_EMPTY_PASSWORD=true ZBX_ADD_SERVER=true ZBX_ADD_WEB=true DB_SERVER_HOST=localhost MYSQL_USER=zabbix ZBX_ADD_JAVA_GATEWAY=true ZBX_JAVAGATEWAY_ENABLE=true ZBX_JAVAGATEWAY=localhost
+ENV TINI_VERSION v0.18.0
 
 LABEL org.label-schema.name="zabbix-${ZBX_TYPE}-${ZBX_DB_TYPE}-centos" \
       org.label-schema.vendor="Zabbix LLC" \
@@ -117,6 +118,7 @@ COPY --from=builder /tmp/zabbix-${ZBX_VERSION}/src/zabbix_java/bin/ /usr/sbin/za
 COPY --from=builder /tmp/zabbix-${ZBX_VERSION}/src/zabbix_java/lib/ /usr/sbin/zabbix_java/lib/
       
 COPY --from=builder /tmp/zabbix-${ZBX_VERSION}/frontends/php/ /usr/share/zabbix/
+ADD https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini /sbin/tini
 
 RUN groupadd --system zabbix && \
     adduser -r --shell /sbin/nologin \
@@ -139,12 +141,12 @@ RUN groupadd --system zabbix && \
     chown --quiet -R zabbix:root /var/lib/zabbix && \
     mkdir -p /usr/share/doc/zabbix-${ZBX_TYPE}-${ZBX_DB_TYPE}/ && \
     yum ${YUM_FLAGS_COMMON} makecache && \
+    yum ${YUM_FLAGS_PERSISTENT} install http://repo.zabbix.com/non-supported/rhel/7/x86_64/iksemel-1.4-2.el7.centos.x86_64.rpm \
+                                        http://repo.zabbix.com/non-supported/rhel/7/x86_64/fping-3.10-1.el7.x86_64.rpm  && \
     yum ${YUM_FLAGS_PERSISTENT} install epel-release && \
     yum ${YUM_FLAGS_PERSISTENT} install \
             OpenIPMI-libs \
             dejavu-sans-fonts \
-            fping \
-            iksemel \
             java-1.8.0-openjdk-headless \
             libcurl \
             libxml2 \
@@ -170,7 +172,8 @@ RUN groupadd --system zabbix && \
     ls -lah /usr/share/zabbix/ && \
     ln -s /usr/share/fonts/dejavu/DejaVuSans.ttf /usr/share/zabbix/fonts/graphfont.ttf && \
     yum ${YUM_FLAGS_PERSISTENT} clean all && \
-    rm -rf /var/cache/yum/
+    rm -rf /var/cache/yum/ && \
+    chmod +x /sbin/tini
 
 EXPOSE 80/TCP 443/TCP 10051/TCP
 
@@ -193,4 +196,6 @@ COPY ["docker-entrypoint.sh", "/usr/bin/"]
 
 ENV ZBX_TYPE=appliance
 
-ENTRYPOINT ["docker-entrypoint.sh"]
+ENTRYPOINT ["/sbin/tini", "--"]
+
+CMD ["docker-entrypoint.sh"]
