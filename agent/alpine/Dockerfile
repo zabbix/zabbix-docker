@@ -1,4 +1,4 @@
-FROM alpine:3.4 as builder
+FROM alpine:3.9 as builder
 
 ARG APK_FLAGS_COMMON=""
 ARG APK_FLAGS_DEV="${APK_FLAGS_COMMON} --no-cache"
@@ -39,7 +39,7 @@ RUN apk update && \
             --silent && \
     make -j"$(nproc)" -s
 
-FROM alpine:3.4
+FROM alpine:3.9
 LABEL maintainer="Alexey Pustovalov <alexey.pustovalov@zabbix.com>"
 
 ARG BUILD_DATE
@@ -87,6 +87,7 @@ RUN addgroup zabbix && \
     chown --quiet -R zabbix:root /var/lib/zabbix && \
     apk update && \
     apk add ${APK_FLAGS_PERSISTANT} \
+            tini \
             bash \
             coreutils \
             iputils \
@@ -102,4 +103,6 @@ VOLUME ["/etc/zabbix/zabbix_agentd.d", "/var/lib/zabbix/enc", "/var/lib/zabbix/m
 
 COPY ["docker-entrypoint.sh", "/usr/bin/"]
 
-ENTRYPOINT ["docker-entrypoint.sh"]
+ENTRYPOINT ["/sbin/tini", "--"]
+
+CMD ["docker-entrypoint.sh"]

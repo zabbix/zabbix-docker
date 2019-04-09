@@ -143,6 +143,7 @@ RUN addgroup zabbix && \
     ln -s /usr/share/fonts/ttf-dejavu/DejaVuSans.ttf /usr/share/zabbix/fonts/graphfont.ttf && \
     apk update && \
     apk add ${APK_FLAGS_PERSISTENT} \
+            tini \
             bash \
             curl \
             fping \
@@ -197,4 +198,6 @@ COPY ["docker-entrypoint.sh", "/usr/bin/"]
 
 ENV ZBX_TYPE=appliance
 
-ENTRYPOINT ["docker-entrypoint.sh"]
+ENTRYPOINT ["/sbin/tini", "--"]
+
+CMD ["docker-entrypoint.sh"]

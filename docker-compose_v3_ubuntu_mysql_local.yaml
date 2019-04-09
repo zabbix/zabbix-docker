@@ -9,8 +9,7 @@ services:
   ports:
    - "10051:10051"
   volumes:
-#   - /etc/localtime:/etc/localtime:ro
-#   - /etc/timezone:/etc/timezone:ro 
+   - /etc/localtime:/etc/localtime:ro
    - ./zbx_env/usr/lib/zabbix/alertscripts:/usr/lib/zabbix/alertscripts:ro
    - ./zbx_env/usr/lib/zabbix/externalscripts:/usr/lib/zabbix/externalscripts:ro
    - ./zbx_env/var/lib/zabbix/modules:/var/lib/zabbix/modules:ro
@@ -74,8 +73,7 @@ services:
   ports:
    - "10061:10051"
   volumes:
-#   - /etc/localtime:/etc/localtime:ro
-#   - /etc/timezone:/etc/timezone:ro 
+   - /etc/localtime:/etc/localtime:ro
    - ./zbx_env/usr/lib/zabbix/externalscripts:/usr/lib/zabbix/externalscripts:ro
    - ./zbx_env/var/lib/zabbix/modules:/var/lib/zabbix/modules:ro
    - ./zbx_env/var/lib/zabbix/enc:/var/lib/zabbix/enc:ro
@@ -129,8 +127,7 @@ services:
   ports:
    - "10071:10051"
   volumes:
-#   - /etc/localtime:/etc/localtime:ro
-#   - /etc/timezone:/etc/timezone:ro
+   - /etc/localtime:/etc/localtime:ro
    - ./zbx_env/usr/lib/zabbix/externalscripts:/usr/lib/zabbix/externalscripts:ro
    - ./zbx_env/var/lib/zabbix/modules:/var/lib/zabbix/modules:ro
    - ./zbx_env/var/lib/zabbix/enc:/var/lib/zabbix/enc:ro
@@ -190,8 +187,7 @@ services:
    - mysql-server:mysql-server
    - zabbix-server:zabbix-server
   volumes:
-#   - /etc/localtime:/etc/localtime:ro
-#   - /etc/timezone:/etc/timezone:ro
+   - /etc/localtime:/etc/localtime:ro
    - ./zbx_env/etc/ssl/apache2:/etc/ssl/apache2:ro
   deploy:
    resources:
@@ -245,8 +241,7 @@ services:
    - mysql-server:mysql-server
    - zabbix-server:zabbix-server
   volumes:
-#   - /etc/localtime:/etc/localtime:ro
-#   - /etc/timezone:/etc/timezone:ro
+   - /etc/localtime:/etc/localtime:ro
    - ./zbx_env/etc/ssl/nginx:/etc/ssl/nginx:ro
   deploy:
    resources:
@@ -296,8 +291,7 @@ services:
   ports:
    - "10050:10050"
   volumes:
-#   - /etc/localtime:/etc/localtime:ro
-#   - /etc/timezone:/etc/timezone:ro
+   - /etc/localtime:/etc/localtime:ro
    - ./zbx_env/etc/zabbix/zabbix_agentd.d:/etc/zabbix/zabbix_agentd.d:ro
    - ./zbx_env/var/lib/zabbix/modules:/var/lib/zabbix/modules:ro
    - ./zbx_env/var/lib/zabbix/enc:/var/lib/zabbix/enc:ro
