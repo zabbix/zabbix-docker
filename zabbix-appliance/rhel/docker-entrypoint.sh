@@ -367,7 +367,7 @@ create_db_user_mysql() {
     if [ -z "$USER_EXISTS" ]; then
         mysql_query "CREATE USER '${DB_SERVER_ZBX_USER}'@'%' IDENTIFIED BY '${DB_SERVER_ZBX_PASS}'" 1>/dev/null
     else
-        mysql_query "SET PASSWORD FOR '${DB_SERVER_ZBX_USER}'@'%' = PASSWORD('${DB_SERVER_ZBX_PASS}');" 1>/dev/null
+        mysql_query "ALTER USER ${DB_SERVER_ZBX_USER} IDENTIFIED BY '${DB_SERVER_ZBX_PASS}';" 1>/dev/null
     fi
 
     mysql_query "GRANT ALL PRIVILEGES ON $DB_SERVER_DBNAME. * TO '${DB_SERVER_ZBX_USER}'@'%'" 1>/dev/null
