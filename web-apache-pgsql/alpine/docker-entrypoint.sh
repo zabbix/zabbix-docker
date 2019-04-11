@@ -367,7 +367,7 @@ create_db_user_mysql() {
     if [ -z "$USER_EXISTS" ]; then
         mysql_query "CREATE USER '${DB_SERVER_ZBX_USER}'@'%' IDENTIFIED BY '${DB_SERVER_ZBX_PASS}'" 1>/dev/null
     else
-        mysql_query "SET PASSWORD FOR '${DB_SERVER_ZBX_USER}'@'%' = PASSWORD('${DB_SERVER_ZBX_PASS}');" 1>/dev/null
+        mysql_query "ALTER USER ${DB_SERVER_ZBX_USER} IDENTIFIED BY '${DB_SERVER_ZBX_PASS}';" 1>/dev/null
     fi
 
     mysql_query "GRANT ALL PRIVILEGES ON $DB_SERVER_DBNAME. * TO '${DB_SERVER_ZBX_USER}'@'%'" 1>/dev/null
@@ -653,10 +653,11 @@ update_zbx_config() {
     fi
 
     if [ $type == "proxy" ] && [ "${ZBX_ADD_SERVER}" = "true" ]; then
-        update_config_var $ZBX_CONFIG "ListenPort" "10061"
+        update_config_var $ZBX_CONFIG "ListenPort" "${ZBX_PROXY_LISTENPORT:-"10061"}"
     else
-        update_config_var $ZBX_CONFIG "ListenPort"
+        update_config_var $ZBX_CONFIG "ListenPort" "${ZBX_LISTENPORT}"
     fi
+
     update_config_var $ZBX_CONFIG "SourceIP" "${ZBX_SOURCEIP}"
     update_config_var $ZBX_CONFIG "LogType" "console"
     update_config_var $ZBX_CONFIG "LogFile"
