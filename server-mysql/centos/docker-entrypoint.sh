@@ -256,6 +256,8 @@ check_variables_postgresql() {
     DB_SERVER_ZBX_USER=${POSTGRES_USER:-"zabbix"}
     DB_SERVER_ZBX_PASS=${POSTGRES_PASSWORD:-"zabbix"}
 
+    DB_SERVER_SCHEMA=${DB_SERVER_SCHEMA:-"public"}
+
     if [ "$type" == "proxy" ]; then
         DB_SERVER_DBNAME=${POSTGRES_DB:-"zabbix_proxy"}
     else
@@ -409,6 +411,8 @@ create_db_database_postgresql() {
     else
         echo "** Database '${DB_SERVER_DBNAME}' already exists. Please be careful with database owner!"
     fi
+
+    psql_query "CREATE SCHEMA IF NOT EXISTS ${DB_SERVER_SCHEMA}"
 }
 
 create_db_schema_mysql() {
@@ -435,11 +439,11 @@ create_db_schema_postgresql() {
     local type=$1
 
     DBVERSION_TABLE_EXISTS=$(psql_query "SELECT 1 FROM pg_catalog.pg_class c JOIN pg_catalog.pg_namespace n ON n.oid = 
-                                         c.relnamespace WHERE  n.nspname = 'public' AND c.relname = 'dbversion'" "${DB_SERVER_DBNAME}")
+                                         c.relnamespace WHERE  n.nspname = '{$DB_SERVER_SCHEMA}' AND c.relname = 'dbversion'" "${DB_SERVER_DBNAME}")
 
     if [ -n "${DBVERSION_TABLE_EXISTS}" ]; then
         echo "** Table '${DB_SERVER_DBNAME}.dbversion' already exists."
-        ZBX_DB_VERSION=$(psql_query "SELECT mandatory FROM public.dbversion" "${DB_SERVER_DBNAME}")
+        ZBX_DB_VERSION=$(psql_query "SELECT mandatory FROM ${DB_SERVER_SCHEMA}.dbversion" "${DB_SERVER_DBNAME}")
     fi
 
     if [ -z "${ZBX_DB_VERSION}" ]; then
