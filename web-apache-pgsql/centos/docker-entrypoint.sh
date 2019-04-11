@@ -653,10 +653,11 @@ update_zbx_config() {
     fi
 
     if [ $type == "proxy" ] && [ "${ZBX_ADD_SERVER}" = "true" ]; then
-        update_config_var $ZBX_CONFIG "ListenPort" "10061"
+        update_config_var $ZBX_CONFIG "ListenPort" "${ZBX_PROXY_LISTENPORT:-"10061"}"
     else
-        update_config_var $ZBX_CONFIG "ListenPort"
+        update_config_var $ZBX_CONFIG "ListenPort" "${ZBX_LISTENPORT}"
     fi
+
     update_config_var $ZBX_CONFIG "SourceIP" "${ZBX_SOURCEIP}"
     update_config_var $ZBX_CONFIG "LogType" "console"
     update_config_var $ZBX_CONFIG "LogFile"
