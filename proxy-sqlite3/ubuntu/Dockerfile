@@ -59,6 +59,7 @@ RUN apt-get ${APT_FLAGS_COMMON} update && \
             libssl1.1 \
             libxml2 \
             snmp-mibs-downloader \
+            ca-certificates \
             unixodbc && \
     apt-get ${APT_FLAGS_COMMON} autoremove && \
     apt-get ${APT_FLAGS_COMMON} clean && \

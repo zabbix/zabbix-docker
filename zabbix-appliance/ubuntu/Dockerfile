@@ -189,6 +189,7 @@ RUN apt-get ${APT_FLAGS_COMMON} update && \
             snmp-mibs-downloader \
             supervisor \
             ttf-dejavu-core \
+            ca-certificates \
             unixodbc && \
     update-alternatives --install /usr/share/zabbix/fonts/graphfont.ttf \
             zabbix-frontend-font /usr/share/fonts/truetype/ttf-dejavu/DejaVuSans.ttf 10 && \
