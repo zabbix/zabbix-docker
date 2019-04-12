@@ -30,6 +30,9 @@ ZBX_SERVER_PORT=${ZBX_SERVER_PORT:-"10051"}
 # Default timezone for web interface
 PHP_TZ=${PHP_TZ:-"Europe/Riga"}
 
+#Enable PostgreSQL timescaleDB feature:
+ENABLE_TIMESCALEDB=${ENABLE_TIMESCALEDB:-"false"}
+
 # Default directories
 # User 'zabbix' home directory
 ZABBIX_USER_HOME_DIR="/var/lib/zabbix"
@@ -439,7 +442,7 @@ create_db_schema_postgresql() {
     local type=$1
 
     DBVERSION_TABLE_EXISTS=$(psql_query "SELECT 1 FROM pg_catalog.pg_class c JOIN pg_catalog.pg_namespace n ON n.oid = 
-                                         c.relnamespace WHERE  n.nspname = '{$DB_SERVER_SCHEMA}' AND c.relname = 'dbversion'" "${DB_SERVER_DBNAME}")
+                                         c.relnamespace WHERE  n.nspname = '$DB_SERVER_SCHEMA' AND c.relname = 'dbversion'" "${DB_SERVER_DBNAME}")
 
     if [ -n "${DBVERSION_TABLE_EXISTS}" ]; then
         echo "** Table '${DB_SERVER_DBNAME}.dbversion' already exists."
@@ -448,6 +451,10 @@ create_db_schema_postgresql() {
 
     if [ -z "${ZBX_DB_VERSION}" ]; then
         echo "** Creating '${DB_SERVER_DBNAME}' schema in PostgreSQL"
+
+        if [ "${ENABLE_TIMESCALEDB}" == "true" ]; then
+            psql_query "CREATE EXTENSION IF NOT EXISTS timescaledb CASCADE;"
+        fi
 
         if [ -n "${DB_SERVER_ZBX_PASS}" ]; then
             export PGPASSWORD="${DB_SERVER_ZBX_PASS}"
@@ -461,6 +468,12 @@ create_db_schema_postgresql() {
         zcat /usr/share/doc/zabbix-$type-postgresql/create.sql.gz | psql -q \
                 -h ${DB_SERVER_HOST} -p ${DB_SERVER_PORT} \
                 -U ${DB_SERVER_ZBX_USER} ${DB_SERVER_DBNAME} 1>/dev/null
+
+        if [ "${ENABLE_TIMESCALEDB}" == "true" ]; then
+            cat /usr/share/doc/zabbix-$type-postgresql/timescaledb.sql | psql -q \
+                -h ${DB_SERVER_HOST} -p ${DB_SERVER_PORT} \
+                -U ${DB_SERVER_ZBX_USER} ${DB_SERVER_DBNAME} 1>/dev/null
+        fi
 
         unset PGPASSWORD
         unset PGOPTIONS

@@ -142,6 +142,7 @@ RUN apt-get ${APT_FLAGS_COMMON} update && \
     cat database/${ZBX_DB_TYPE}/data.sql >> database/${ZBX_DB_TYPE}/create.sql && \
     gzip database/${ZBX_DB_TYPE}/create.sql && \
     cp database/${ZBX_DB_TYPE}/create.sql.gz /usr/share/doc/zabbix-${ZBX_TYPE}-${ZBX_DB_TYPE}/ && \
+    cp database/${ZBX_DB_TYPE}/timescaledb.sql /usr/share/doc/zabbix-${ZBX_TYPE}-${ZBX_DB_TYPE}/ && \
     cd /tmp/ && \
     rm -rf /tmp/zabbix-${ZBX_VERSION}/ && \
     apt-get ${APT_FLAGS_COMMON} purge \
