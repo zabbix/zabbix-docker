@@ -439,7 +439,7 @@ create_db_schema_postgresql() {
     local type=$1
 
     DBVERSION_TABLE_EXISTS=$(psql_query "SELECT 1 FROM pg_catalog.pg_class c JOIN pg_catalog.pg_namespace n ON n.oid = 
-                                         c.relnamespace WHERE  n.nspname = '{$DB_SERVER_SCHEMA}' AND c.relname = 'dbversion'" "${DB_SERVER_DBNAME}")
+                                         c.relnamespace WHERE  n.nspname = '$DB_SERVER_SCHEMA' AND c.relname = 'dbversion'" "${DB_SERVER_DBNAME}")
 
     if [ -n "${DBVERSION_TABLE_EXISTS}" ]; then
         echo "** Table '${DB_SERVER_DBNAME}.dbversion' already exists."
