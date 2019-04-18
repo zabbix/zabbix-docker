@@ -35,7 +35,7 @@ services:
    - .env_srv
   user: root
   depends_on:
-   - mysql-server
+   - postgres-server
    - zabbix-java-gateway
    - zabbix-snmptraps
   networks:
@@ -242,7 +242,7 @@ services:
    - .env_web
   user: root
   depends_on:
-   - mysql-server
+   - postgres-server
    - zabbix-server
   healthcheck:
    test: ["CMD", "curl", "-f", "http://localhost"]
