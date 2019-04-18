@@ -62,9 +62,6 @@ RUN apt-get ${APT_FLAGS_COMMON} update && \
             -e "/^LOGFILE=/s/=.*/=\"\/var\/lib\/zabbix\/snmptraps\/snmptraps.log\"/" \
         "/etc/snmp/snmptrapfmt.conf" && \
     rm -rf /tmp/snmptrapfmt_1.14+nmu1ubuntu2_amd64.deb && \
-    apt-get ${APT_FLAGS_COMMON} purge \
-            snmp-mibs-downloader \
-            wget && \
     apt-get ${APT_FLAGS_COMMON} autoremove 1>/dev/null && \
     rm -rf /var/lib/apt/lists/*
 
