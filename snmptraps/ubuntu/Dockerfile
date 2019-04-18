@@ -46,7 +46,7 @@ RUN apt-get ${APT_FLAGS_COMMON} update && \
     apt-get ${APT_FLAGS_COMMON} update && \
     apt-get ${APT_FLAGS_PERSISTENT} install \
             snmp-mibs-downloader \
-            snmpd \
+            snmptrapd \
             supervisor && \
     download-mibs && \
     dpkg -i /tmp/snmptrapfmt_1.14+nmu1ubuntu2_amd64.deb && \
