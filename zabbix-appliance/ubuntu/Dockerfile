@@ -164,6 +164,8 @@ RUN apt-get ${APT_FLAGS_COMMON} update && \
     apt-get ${APT_FLAGS_PERSISTENT} install \
             curl \
             fping \
+            iputils-ping \
+            traceroute \
             libcurl4 \
             libevent-2.1 \
             libiksemel3 \

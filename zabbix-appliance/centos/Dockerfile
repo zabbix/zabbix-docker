@@ -147,6 +147,8 @@ RUN groupadd --system zabbix && \
     yum ${YUM_FLAGS_PERSISTENT} install epel-release && \
     yum ${YUM_FLAGS_PERSISTENT} install \
             curl \
+            iputils \
+            traceroute \
             OpenIPMI-libs \
             dejavu-sans-fonts \
             java-1.8.0-openjdk-headless \
