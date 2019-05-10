@@ -5,7 +5,7 @@ ARG YUM_FLAGS_DEV="${YUM_FLAGS_COMMON}"
 
 ARG MAJOR_VERSION=master
 ARG ZBX_VERSION=${MAJOR_VERSION}
-ARG ZBX_SOURCES=svn://svn.zabbix.com/tags/${ZBX_VERSION}/
+ARG ZBX_SOURCES=https://git.zabbix.com/scm/zbx/zabbix.git
 ENV ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES} \
     ZBX_TYPE=server ZBX_DB_TYPE=mysql ZBX_OPT_TYPE=nginx \
     MYSQL_ALLOW_EMPTY_PASSWORD=true ZBX_ADD_SERVER=true ZBX_ADD_WEB=true DB_SERVER_HOST=localhost MYSQL_USER=zabbix ZBX_ADD_JAVA_GATEWAY=true ZBX_JAVAGATEWAY_ENABLE=true ZBX_JAVAGATEWAY=localhost
@@ -30,12 +30,12 @@ RUN yum ${YUM_FLAGS_DEV} install http://repo.zabbix.com/non-supported/rhel/7/x86
             OpenIPMI-devel \
             openldap-devel \
             patch \
-            subversion \
+            git \
             unixODBC-devel && \
     cd /tmp/ && \
-    svn --quiet export ${ZBX_SOURCES} zabbix-${ZBX_VERSION} && \
+    git clone ${ZBX_SOURCES} --branch ${ZBX_VERSION} --depth 1 --single-branch zabbix-${ZBX_VERSION} && \
     cd /tmp/zabbix-${ZBX_VERSION} && \
-    zabbix_revision=`svn info ${ZBX_SOURCES} | grep "Last Changed Rev"|awk '{print $4;}'` && \
+    zabbix_revision=`git rev-parse --short HEAD` && \
     sed -i "s/{ZABBIX_REVISION}/$zabbix_revision/g" include/version.h && \
     sed -i "s/{ZABBIX_REVISION}/$zabbix_revision/g" include/version.h && \
     sed -i "s/{ZABBIX_REVISION}/$zabbix_revision/g" src/zabbix_java/src/com/zabbix/gateway/GeneralInformation.java && \
@@ -86,7 +86,7 @@ ARG YUM_FLAGS_PERSISTENT="${YUM_FLAGS_COMMON}"
 
 ARG MAJOR_VERSION=master
 ARG ZBX_VERSION=${MAJOR_VERSION}
-ARG ZBX_SOURCES=svn://svn.zabbix.com/tags/${ZBX_VERSION}/
+ARG ZBX_SOURCES=https://git.zabbix.com/scm/zbx/zabbix.git
 ENV ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES} \
     TERM=xterm MIBDIRS=/usr/share/snmp/mibs:/var/lib/zabbix/mibs MIBS=+ALL \
     ZBX_TYPE=server ZBX_DB_TYPE=mysql ZBX_OPT_TYPE=nginx \

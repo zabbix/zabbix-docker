@@ -5,7 +5,7 @@ ARG APT_FLAGS_DEV="${APT_FLAGS_COMMON} --no-install-recommends"
 
 ARG MAJOR_VERSION=master
 ARG ZBX_VERSION=${MAJOR_VERSION}
-ARG ZBX_SOURCES=svn://svn.zabbix.com/tags/${ZBX_VERSION}/
+ARG ZBX_SOURCES=https://git.zabbix.com/scm/zbx/zabbix.git
 ENV ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES} \
     LANG=en_US.UTF-8 LANGUAGE=en_US:en LC_ALL=en_US.UTF-8 DEBIAN_FRONTEND=noninteractive TERM=xterm \
     MIBDIRS=/var/lib/snmp/mibs/ietf:/var/lib/snmp/mibs/iana:/usr/share/snmp/mibs:/var/lib/zabbix/mibs MIBS=+ALL \
@@ -36,12 +36,12 @@ RUN apt-get ${APT_FLAGS_COMMON} update && \
             openjdk-8-jdk \
             patch \
             pkg-config \
-            subversion \
+            git \
             unixodbc-dev && \
     cd /tmp/ && \
-    svn --quiet export ${ZBX_SOURCES} zabbix-${ZBX_VERSION} && \
+    git clone ${ZBX_SOURCES} --branch ${ZBX_VERSION} --depth 1 --single-branch zabbix-${ZBX_VERSION} && \
     cd /tmp/zabbix-${ZBX_VERSION} && \
-    zabbix_revision=`svn info ${ZBX_SOURCES} | grep "Last Changed Rev"|awk '{print $4;}'` && \
+    zabbix_revision=`git rev-parse --short HEAD` && \
     sed -i "s/{ZABBIX_REVISION}/$zabbix_revision/g" include/version.h && \
     sed -i "s/{ZABBIX_REVISION}/$zabbix_revision/g" include/version.h && \
     sed -i "s/{ZABBIX_REVISION}/$zabbix_revision/g" src/zabbix_java/src/com/zabbix/gateway/GeneralInformation.java && \
@@ -91,7 +91,7 @@ ARG APT_FLAGS_COMMON="-y"
 ARG APT_FLAGS_PERSISTENT="${APT_FLAGS_COMMON} --no-install-recommends"
 ARG MAJOR_VERSION=master
 ARG ZBX_VERSION=${MAJOR_VERSION}
-ARG ZBX_SOURCES=svn://svn.zabbix.com/tags/${ZBX_VERSION}/
+ARG ZBX_SOURCES=https://git.zabbix.com/scm/zbx/zabbix.git
 ENV ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES} \
     LANG=en_US.UTF-8 LANGUAGE=en_US:en LC_ALL=en_US.UTF-8 DEBIAN_FRONTEND=noninteractive TERM=xterm \
     MIBDIRS=/var/lib/snmp/mibs/ietf:/var/lib/snmp/mibs/iana:/usr/share/snmp/mibs:/var/lib/zabbix/mibs MIBS=+ALL \

@@ -15,7 +15,7 @@ ARG MAJOR_VERSION=master
 ARG RELEASE=
 ARG ZBX_VERSION=${MAJOR_VERSION}.${RELEASE}
 
-ARG ZBX_SOURCES=svn://svn.zabbix.com/tags/${ZBX_VERSION}/
+ARG ZBX_SOURCES=https://git.zabbix.com/scm/zbx/zabbix.git
 ENV ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES}
 
 LABEL name="zabbix/zabbix-appliance" \
@@ -132,13 +132,13 @@ RUN REPOLIST="rhel-7-server-rpms,rhel-7-server-optional-rpms,zabbix-non-supporte
             OpenIPMI-devel \
             openldap-devel \
             patch \
-            subversion \
+            git \
             unixODBC-devel" && \
     yum -y install --disablerepo "*" --enablerepo "${REPOLIST}" --setopt=tsflags=nodocs ${INSTALL_PKGS} && \
     cd /tmp/ && \
-    svn --quiet export ${ZBX_SOURCES} zabbix-${ZBX_VERSION} && \
+    git clone ${ZBX_SOURCES} --branch ${ZBX_VERSION} --depth 1 --single-branch zabbix-${ZBX_VERSION} && \
     cd /tmp/zabbix-${ZBX_VERSION} && \
-    zabbix_revision=`svn info ${ZBX_SOURCES} | grep "Last Changed Rev"|awk '{print $4;}'` && \
+    zabbix_revision=`git rev-parse --short HEAD` && \
     sed -i "s/{ZABBIX_REVISION}/$zabbix_revision/g" include/version.h && \
     sed -i "s/{ZABBIX_REVISION}/$zabbix_revision/g" include/version.h && \
     sed -i "s/{ZABBIX_REVISION}/$zabbix_revision/g" src/zabbix_java/src/com/zabbix/gateway/GeneralInformation.java && \
@@ -183,7 +183,10 @@ RUN REPOLIST="rhel-7-server-rpms,rhel-7-server-optional-rpms,zabbix-non-supporte
     cd /tmp/ && \
     rm -rf /tmp/zabbix-${ZBX_VERSION}/ && \
     cd /usr/share/ && \
-    svn --quiet export ${ZBX_SOURCES}/frontends/php/ zabbix && \
+    git clone ${ZBX_SOURCES} --branch ${ZBX_VERSION} --depth 1 --single-branch zabbix-${ZBX_VERSION} && \
+    mkdir /usr/share/zabbix/ && \
+    cp -R /usr/share/zabbix-${ZBX_VERSION}/frontends/php/* /usr/share/zabbix/ && \
+    rm -rf /usr/share/zabbix-${ZBX_VERSION}/ && \
     cd /usr/share/zabbix/ && \
     patch -p3 < /tmp/font-config && \
     rm /tmp/font-config && \
@@ -198,8 +201,7 @@ RUN REPOLIST="rhel-7-server-rpms,rhel-7-server-optional-rpms,zabbix-non-supporte
     rm -rf /var/lib/yum/yumdb/* && \
     rm -rf /usr/lib/udev/hwdb.d/* && \
     rm -rf /etc/udev/hwdb.bin && \
-    rm -rf /root/.pki && \
-    rm -rf /root/.subversion
+    rm -rf /root/.pki
 
 EXPOSE 80/TCP 443/TCP 10051/TCP
 

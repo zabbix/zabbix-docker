@@ -5,7 +5,7 @@ ARG YUM_FLAGS_DEV="${YUM_FLAGS_COMMON}"
 
 ARG MAJOR_VERSION=master
 ARG ZBX_VERSION=${MAJOR_VERSION}
-ARG ZBX_SOURCES=svn://svn.zabbix.com/tags/${ZBX_VERSION}/
+ARG ZBX_SOURCES=https://git.zabbix.com/scm/zbx/zabbix.git
 ENV ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES} \
     ZBX_TYPE=proxy ZBX_DB_TYPE=sqlite3
 
@@ -22,12 +22,12 @@ RUN yum --quiet makecache && \
             OpenIPMI-devel \
             openldap-devel \
             sqlite-devel \
-            subversion \
+            git \
             unixODBC-devel && \
     cd /tmp/ && \
-    svn --quiet export ${ZBX_SOURCES} zabbix-${ZBX_VERSION} && \
+    git clone ${ZBX_SOURCES} --branch ${ZBX_VERSION} --depth 1 --single-branch zabbix-${ZBX_VERSION} && \
     cd /tmp/zabbix-${ZBX_VERSION} && \
-    zabbix_revision=`svn info ${ZBX_SOURCES} | grep "Last Changed Rev"|awk '{print $4;}'` && \
+    zabbix_revision=`git rev-parse --short HEAD` && \
     sed -i "s/{ZABBIX_REVISION}/$zabbix_revision/g" include/version.h && \
     ./bootstrap.sh && \
     export CFLAGS="-fPIC -pie -Wl,-z,relro -Wl,-z,now" && \
@@ -65,7 +65,7 @@ ARG YUM_FLAGS_PERSISTENT="${YUM_FLAGS_COMMON}"
 
 ARG MAJOR_VERSION=master
 ARG ZBX_VERSION=${MAJOR_VERSION}
-ARG ZBX_SOURCES=svn://svn.zabbix.com/tags/${ZBX_VERSION}/
+ARG ZBX_SOURCES=https://git.zabbix.com/scm/zbx/zabbix.git
 ENV TERM=xterm MIBDIRS=/usr/share/snmp/mibs:/var/lib/zabbix/mibs MIBS=+ALL \
     ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES} \
     ZBX_TYPE=proxy ZBX_DB_TYPE=sqlite3 ZBX_OPT_TYPE=none

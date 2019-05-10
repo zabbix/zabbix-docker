@@ -5,7 +5,7 @@ ARG APK_FLAGS_DEV="${APK_FLAGS_COMMON} --no-cache"
 
 ARG MAJOR_VERSION=master
 ARG ZBX_VERSION=${MAJOR_VERSION}
-ARG ZBX_SOURCES=svn://svn.zabbix.com/tags/${ZBX_VERSION}/
+ARG ZBX_SOURCES=https://git.zabbix.com/scm/zbx/zabbix.git
 ENV ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES} \
     PATH=${PATH}:/usr/lib/jvm/default-jvm/bin/ JAVA_HOME=/usr/lib/jvm/default-jvm \
     ZBX_TYPE=server ZBX_DB_TYPE=mysql ZBX_OPT_TYPE=nginx \
@@ -31,9 +31,9 @@ RUN apk add ${APK_FLAGS_DEV} --virtual build-dependencies \
             subversion \
             unixodbc-dev && \
     cd /tmp/ && \
-    svn --quiet export ${ZBX_SOURCES} zabbix-${ZBX_VERSION} && \
+    git clone ${ZBX_SOURCES} --branch ${ZBX_VERSION} --depth 1 --single-branch zabbix-${ZBX_VERSION} && \
     cd /tmp/zabbix-${ZBX_VERSION} && \
-    zabbix_revision=`svn info ${ZBX_SOURCES} |grep "Last Changed Rev"|awk '{print $4;}'` && \
+    zabbix_revision=`git rev-parse --short HEAD` && \
     sed -i "s/{ZABBIX_REVISION}/$zabbix_revision/g" include/version.h && \
     sed -i "s/{ZABBIX_REVISION}/$zabbix_revision/g" include/version.h && \
     sed -i "s/{ZABBIX_REVISION}/$zabbix_revision/g" src/zabbix_java/src/com/zabbix/gateway/GeneralInformation.java && \
@@ -85,7 +85,7 @@ ARG APK_FLAGS_PERSISTENT="${APK_FLAGS_COMMON} --clean-protected --no-cache"
 
 ARG MAJOR_VERSION=master
 ARG ZBX_VERSION=${MAJOR_VERSION}
-ARG ZBX_SOURCES=svn://svn.zabbix.com/tags/${ZBX_VERSION}/
+ARG ZBX_SOURCES=https://git.zabbix.com/scm/zbx/zabbix.git
 ENV ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES} \
     MIBDIRS=/usr/share/snmp/mibs:/var/lib/zabbix/mibs MIBS=+ALL PATH=${PATH}:/usr/lib/jvm/default-jvm/bin/ JAVA_HOME=/usr/lib/jvm/default-jvm \
     ZBX_TYPE=server ZBX_DB_TYPE=mysql ZBX_OPT_TYPE=nginx \

@@ -5,7 +5,7 @@ ARG YUM_FLAGS_DEV="${YUM_FLAGS_COMMON}"
 
 ARG MAJOR_VERSION=master
 ARG ZBX_VERSION=${MAJOR_VERSION}
-ARG ZBX_SOURCES=svn://svn.zabbix.com/tags/${ZBX_VERSION}/
+ARG ZBX_SOURCES=https://git.zabbix.com/scm/zbx/zabbix.git
 ENV TERM=xterm ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES}
 
 COPY ["conf/tmp/font-config", "/tmp/font-config"]
@@ -14,9 +14,12 @@ RUN yum --quiet makecache && \
     yum ${YUM_FLAGS_DEV} install \
             gettext \
             patch \
-            subversion && \
+            git && \
     cd /tmp/ && \
-    svn --quiet export ${ZBX_SOURCES}/frontends/php/ zabbix && \
+    git clone ${ZBX_SOURCES} --branch ${ZBX_VERSION} --depth 1 --single-branch zabbix-${ZBX_VERSION} && \
+    mkdir /tmp/zabbix/ && \
+    cp -R /tmp/zabbix-${ZBX_VERSION}/frontends/php/* /tmp/zabbix/ && \
+    rm -rf /tmp/zabbix-${ZBX_VERSION}/ && \
     cd /tmp/zabbix/ && \
     patch -p3 < /tmp/font-config && \
     rm /tmp/font-config && \
@@ -36,7 +39,7 @@ ARG YUM_FLAGS_PERSISTENT="${YUM_FLAGS_COMMON}"
 
 ARG MAJOR_VERSION=master
 ARG ZBX_VERSION=${MAJOR_VERSION}
-ARG ZBX_SOURCES=svn://svn.zabbix.com/tags/${ZBX_VERSION}/
+ARG ZBX_SOURCES=https://git.zabbix.com/scm/zbx/zabbix.git
 ENV TERM=xterm ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES} \
     ZBX_TYPE=frontend ZBX_DB_TYPE=mysql ZBX_OPT_TYPE=apache
 

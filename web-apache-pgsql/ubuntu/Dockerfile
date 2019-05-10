@@ -55,7 +55,7 @@ RUN apt-get ${APT_FLAGS_COMMON} update && \
 
 ARG MAJOR_VERSION=master
 ARG ZBX_VERSION=${MAJOR_VERSION}
-ARG ZBX_SOURCES=svn://svn.zabbix.com/tags/${ZBX_VERSION}/
+ARG ZBX_SOURCES=https://git.zabbix.com/scm/zbx/zabbix.git
 ENV ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES}
 
 LABEL org.label-schema.usage="https://www.zabbix.com/documentation/${MAJOR_VERSION}/manual/installation/containers" \
@@ -69,9 +69,13 @@ RUN apt-get ${APT_FLAGS_COMMON} update && \
     apt-get ${APT_FLAGS_DEV} install \
             gettext \
             patch \
-            subversion && \
+            ca-certificates \
+            git && \
     cd /usr/share/ && \
-    svn --quiet export ${ZBX_SOURCES}/frontends/php/ zabbix && \
+    git clone ${ZBX_SOURCES} --branch ${ZBX_VERSION} --depth 1 --single-branch zabbix-${ZBX_VERSION} && \
+    mkdir /usr/share/zabbix/ && \
+    cp -R /usr/share/zabbix-${ZBX_VERSION}/frontends/php/* /usr/share/zabbix/ && \
+    rm -rf /usr/share/zabbix-${ZBX_VERSION}/ && \
     cd /usr/share/zabbix/ && \
     patch -p3 < /tmp/font-config && \
     rm /tmp/font-config && \
@@ -92,11 +96,11 @@ RUN apt-get ${APT_FLAGS_COMMON} update && \
     apt-get ${APT_FLAGS_COMMON} purge \
             gettext \
             patch \
-            subversion && \
+            ca-certificates \
+            git && \
     apt-get ${APT_FLAGS_COMMON} autoremove && \
     apt-get ${APT_FLAGS_COMMON} clean && \
-    rm -rf /var/lib/apt/lists/* && \
-    rm -rf /root/.subversion
+    rm -rf /var/lib/apt/lists/*
 
 EXPOSE 80/TCP 443/TCP
 
