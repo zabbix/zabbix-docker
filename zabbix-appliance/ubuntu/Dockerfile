@@ -3,9 +3,9 @@ FROM ubuntu:bionic as builder
 ARG APT_FLAGS_COMMON="-y"
 ARG APT_FLAGS_DEV="${APT_FLAGS_COMMON} --no-install-recommends"
 
-ARG MAJOR_VERSION=4.0
+ARG MAJOR_VERSION=4.4
 ARG ZBX_VERSION=${MAJOR_VERSION}
-ARG ZBX_SOURCES=svn://svn.zabbix.com/trunk/
+ARG ZBX_SOURCES=https://git.zabbix.com/scm/zbx/zabbix.git
 ENV ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES} \
     LANG=en_US.UTF-8 LANGUAGE=en_US:en LC_ALL=en_US.UTF-8 DEBIAN_FRONTEND=noninteractive TERM=xterm \
     MIBDIRS=/var/lib/snmp/mibs/ietf:/var/lib/snmp/mibs/iana:/usr/share/snmp/mibs:/var/lib/zabbix/mibs MIBS=+ALL \
@@ -38,12 +38,12 @@ RUN apt-get ${APT_FLAGS_COMMON} update && \
             openjdk-8-jdk \
             patch \
             pkg-config \
-            subversion \
+            git \
             unixodbc-dev && \
     cd /tmp/ && \
-    svn --quiet export ${ZBX_SOURCES} zabbix-${ZBX_VERSION} && \
+    git clone ${ZBX_SOURCES} --branch master --depth 1 --single-branch zabbix-${ZBX_VERSION} && \
     cd /tmp/zabbix-${ZBX_VERSION} && \
-    zabbix_revision=`svn info ${ZBX_SOURCES} | grep "Last Changed Rev"|awk '{print $4;}'` && \
+    zabbix_revision=`git rev-parse --short HEAD` && \
     sed -i "s/{ZABBIX_REVISION}/$zabbix_revision/g" include/version.h && \
     sed -i "s/{ZABBIX_REVISION}/$zabbix_revision/g" include/version.h && \
     sed -i "s/{ZABBIX_REVISION}/$zabbix_revision/g" src/zabbix_java/src/com/zabbix/gateway/GeneralInformation.java && \
@@ -77,10 +77,9 @@ RUN apt-get ${APT_FLAGS_COMMON} update && \
     gzip database/${ZBX_DB_TYPE}/create.sql && \
     rm -rf /tmp/zabbix-${ZBX_VERSION}/src/zabbix_java/lib/*.xml && \
     cd frontends/php/ && \
-    patch -p3 < /tmp/font-config && \
     rm -f conf/zabbix.conf.php && \
     rm -rf tests && \
-    rm /tmp/zabbix-${ZBX_VERSION}/frontends/php/fonts/DejaVuSans.ttf && \
+    rm -f /tmp/zabbix-${ZBX_VERSION}/frontends/php/assets/fonts/DejaVuSans.ttf && \
     ./locale/make_mo.sh
 
 FROM ubuntu:bionic
@@ -91,9 +90,9 @@ ARG VCS_REF
 
 ARG APT_FLAGS_COMMON="-y"
 ARG APT_FLAGS_PERSISTENT="${APT_FLAGS_COMMON} --no-install-recommends"
-ARG MAJOR_VERSION=4.0
+ARG MAJOR_VERSION=4.4
 ARG ZBX_VERSION=${MAJOR_VERSION}
-ARG ZBX_SOURCES=svn://svn.zabbix.com/trunk/
+ARG ZBX_SOURCES=https://git.zabbix.com/scm/zbx/zabbix.git
 ENV ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES} \
     LANG=en_US.UTF-8 LANGUAGE=en_US:en LC_ALL=en_US.UTF-8 DEBIAN_FRONTEND=noninteractive TERM=xterm \
     MIBDIRS=/var/lib/snmp/mibs/ietf:/var/lib/snmp/mibs/iana:/usr/share/snmp/mibs:/var/lib/zabbix/mibs MIBS=+ALL \
@@ -191,7 +190,7 @@ RUN apt-get ${APT_FLAGS_COMMON} update && \
             ttf-dejavu-core \
             ca-certificates \
             unixodbc && \
-    update-alternatives --install /usr/share/zabbix/fonts/graphfont.ttf \
+    update-alternatives --install /usr/share/zabbix/assets/fonts/graphfont.ttf \
             zabbix-frontend-font /usr/share/fonts/truetype/ttf-dejavu/DejaVuSans.ttf 10 && \
     mkdir -p /var/lib/locales/supported.d/ && \
     rm -f /var/lib/locales/supported.d/local && \
@@ -199,6 +198,7 @@ RUN apt-get ${APT_FLAGS_COMMON} update && \
                 cut -d"'" -f 2 | sort | \
                 xargs -I '{}' bash -c 'echo "{}.UTF-8 UTF-8" >> /var/lib/locales/supported.d/local' && \
     dpkg-reconfigure locales && \
+    chown --quiet -R www-data:www-data /usr/share/zabbix && \
     apt-get ${APT_FLAGS_COMMON} autoremove && \
     apt-get ${APT_FLAGS_COMMON} clean && \
     mkdir -p /var/lib/php7 && \

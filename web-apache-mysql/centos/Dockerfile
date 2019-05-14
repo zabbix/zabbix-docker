@@ -3,9 +3,9 @@ FROM centos:centos7 as builder
 ARG YUM_FLAGS_COMMON="-y"
 ARG YUM_FLAGS_DEV="${YUM_FLAGS_COMMON}"
 
-ARG MAJOR_VERSION=4.0
+ARG MAJOR_VERSION=4.4
 ARG ZBX_VERSION=${MAJOR_VERSION}
-ARG ZBX_SOURCES=svn://svn.zabbix.com/trunk/
+ARG ZBX_SOURCES=https://git.zabbix.com/scm/zbx/zabbix.git
 ENV TERM=xterm ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES}
 
 COPY ["conf/tmp/font-config", "/tmp/font-config"]
@@ -14,15 +14,18 @@ RUN yum --quiet makecache && \
     yum ${YUM_FLAGS_DEV} install \
             gettext \
             patch \
-            subversion && \
+            git && \
     cd /tmp/ && \
-    svn --quiet export ${ZBX_SOURCES}/frontends/php/ zabbix && \
+    git clone ${ZBX_SOURCES} --branch master --depth 1 --single-branch zabbix-${ZBX_VERSION} && \
+    mkdir /tmp/zabbix/ && \
+    cp -R /tmp/zabbix-${ZBX_VERSION}/frontends/php/* /tmp/zabbix/ && \
+    rm -rf /tmp/zabbix-${ZBX_VERSION}/ && \
     cd /tmp/zabbix/ && \
     patch -p3 < /tmp/font-config && \
     rm /tmp/font-config && \
     rm -f conf/zabbix.conf.php && \
     rm -rf tests && \
-    rm /tmp/zabbix/fonts/DejaVuSans.ttf && \
+    rm /tmp/zabbix/assets/fonts/DejaVuSans.ttf && \
     ./locale/make_mo.sh
 
 FROM centos:centos7
@@ -34,9 +37,9 @@ ARG VCS_REF
 ARG YUM_FLAGS_COMMON="-y"
 ARG YUM_FLAGS_PERSISTENT="${YUM_FLAGS_COMMON}"
 
-ARG MAJOR_VERSION=4.0
+ARG MAJOR_VERSION=4.4
 ARG ZBX_VERSION=${MAJOR_VERSION}
-ARG ZBX_SOURCES=svn://svn.zabbix.com/trunk/
+ARG ZBX_SOURCES=https://git.zabbix.com/scm/zbx/zabbix.git
 ENV TERM=xterm ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES} \
     ZBX_TYPE=frontend ZBX_DB_TYPE=mysql ZBX_OPT_TYPE=apache
 
@@ -79,10 +82,11 @@ RUN groupadd --system zabbix && \
             php-mbstring \
             php-mysql \
             php-xml && \
-    ln -s /usr/share/fonts/dejavu/DejaVuSans.ttf /usr/share/zabbix/fonts/graphfont.ttf && \
+    ln -s /usr/share/fonts/dejavu/DejaVuSans.ttf /usr/share/zabbix/assets/fonts/graphfont.ttf && \
     cat /usr/share/zabbix/include/locales.inc.php | grep display | grep true | awk '{$1=$1};1' | \
                 cut -d"'" -f 2 | sort | \
                 xargs -I '{}' bash -c 'echo "{}" && localedef -c -i {} -f UTF-8 {}.UTF-8 2>/dev/null' && \
+    chown --quiet -R apache:apache /usr/share/zabbix && \
     yum ${YUM_FLAGS_PERSISTANT} clean all && \
     rm -rf /var/cache/yum/
 

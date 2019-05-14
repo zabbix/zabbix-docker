@@ -53,9 +53,9 @@ RUN apt-get ${APT_FLAGS_COMMON} update && \
     apt-get ${APT_FLAGS_COMMON} clean && \
     rm -rf /var/lib/apt/lists/*
 
-ARG MAJOR_VERSION=4.0
+ARG MAJOR_VERSION=4.4
 ARG ZBX_VERSION=${MAJOR_VERSION}
-ARG ZBX_SOURCES=svn://svn.zabbix.com/trunk/
+ARG ZBX_SOURCES=https://git.zabbix.com/scm/zbx/zabbix.git
 ENV ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES}
 
 LABEL org.label-schema.usage="https://www.zabbix.com/documentation/${MAJOR_VERSION}/manual/installation/containers" \
@@ -69,17 +69,21 @@ RUN apt-get ${APT_FLAGS_COMMON} update && \
     apt-get ${APT_FLAGS_DEV} install \
             gettext \
             patch \
-            subversion && \
+            ca-certificates \
+            git && \
     cd /usr/share/ && \
-    svn --quiet export ${ZBX_SOURCES}/frontends/php/ zabbix && \
+    git clone ${ZBX_SOURCES} --branch master --depth 1 --single-branch zabbix-${ZBX_VERSION} && \
+    mkdir /usr/share/zabbix/ && \
+    cp -R /usr/share/zabbix-${ZBX_VERSION}/frontends/php/* /usr/share/zabbix/ && \
+    rm -rf /usr/share/zabbix-${ZBX_VERSION}/ && \
     cd /usr/share/zabbix/ && \
     patch -p3 < /tmp/font-config && \
     rm /tmp/font-config && \
     rm -f conf/zabbix.conf.php && \
     rm -rf tests && \
-    rm /usr/share/zabbix/fonts/DejaVuSans.ttf && \
+    rm /usr/share/zabbix/assets/fonts/DejaVuSans.ttf && \
     ./locale/make_mo.sh && \
-    update-alternatives --install /usr/share/zabbix/fonts/graphfont.ttf \
+    update-alternatives --install /usr/share/zabbix/assets/fonts/graphfont.ttf \
             zabbix-frontend-font /usr/share/fonts/truetype/ttf-dejavu/DejaVuSans.ttf 10 && \
     mkdir -p /var/lib/locales/supported.d/ && \
     rm -f /var/lib/locales/supported.d/local && \
@@ -89,14 +93,15 @@ RUN apt-get ${APT_FLAGS_COMMON} update && \
     dpkg-reconfigure locales && \
     find /usr/share/zabbix/locale -name '*.po' | xargs rm -f && \
     find /usr/share/zabbix/locale -name '*.sh' | xargs rm -f && \
+    chown --quiet -R www-data:www-data /usr/share/zabbix && \
     apt-get ${APT_FLAGS_COMMON} purge \
             gettext \
             patch \
-            subversion && \
+            ca-certificates \
+            git && \
     apt-get ${APT_FLAGS_COMMON} autoremove && \
     apt-get ${APT_FLAGS_COMMON} clean && \
-    rm -rf /var/lib/apt/lists/* && \
-    rm -rf /root/.subversion
+    rm -rf /var/lib/apt/lists/*
 
 EXPOSE 80/TCP 443/TCP
 
