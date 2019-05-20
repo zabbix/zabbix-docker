@@ -146,6 +146,8 @@ RUN groupadd --system zabbix && \
                                         http://repo.zabbix.com/non-supported/rhel/7/x86_64/fping-3.10-1.el7.x86_64.rpm  && \
     yum ${YUM_FLAGS_PERSISTENT} install epel-release && \
     yum ${YUM_FLAGS_PERSISTENT} install \
+            iputils \
+            traceroute \
             curl \
             OpenIPMI-libs \
             dejavu-sans-fonts \

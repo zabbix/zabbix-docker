@@ -161,6 +161,8 @@ RUN apt-get ${APT_FLAGS_COMMON} update && \
     echo "deb http://nginx.org/packages/ubuntu/ $DISTRIB_CODENAME nginx" >> /etc/apt/sources.list.d/nginx.list && \
     apt-get ${APT_FLAGS_COMMON} update && \
     apt-get ${APT_FLAGS_PERSISTENT} install \
+            iputils-ping \
+            traceroute \
             curl \
             fping \
             libcurl4 \
