@@ -5,7 +5,7 @@ ARG YUM_FLAGS_DEV="${YUM_FLAGS_COMMON}"
 
 ARG MAJOR_VERSION=3.0
 ARG ZBX_VERSION=${MAJOR_VERSION}.27
-ARG ZBX_SOURCES=https://git.zabbix.com/scm/zbx/zabbix.git
+ARG ZBX_SOURCES=svn://svn.zabbix.com/tags/${ZBX_VERSION}/
 ENV ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES} \
     ZBX_TYPE=proxy ZBX_DB_TYPE=sqlite3
 
@@ -65,7 +65,7 @@ ARG YUM_FLAGS_PERSISTENT="${YUM_FLAGS_COMMON}"
 
 ARG MAJOR_VERSION=3.0
 ARG ZBX_VERSION=${MAJOR_VERSION}.27
-ARG ZBX_SOURCES=https://git.zabbix.com/scm/zbx/zabbix.git
+ARG ZBX_SOURCES=svn://svn.zabbix.com/tags/${ZBX_VERSION}/
 ENV TERM=xterm MIBDIRS=/usr/share/snmp/mibs:/var/lib/zabbix/mibs MIBS=+ALL \
     ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES} \
     ZBX_TYPE=proxy ZBX_DB_TYPE=sqlite3 ZBX_OPT_TYPE=none

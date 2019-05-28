@@ -61,7 +61,7 @@ RUN addgroup zabbix && \
 
 ARG MAJOR_VERSION=3.0
 ARG ZBX_VERSION=${MAJOR_VERSION}.27
-ARG ZBX_SOURCES=https://git.zabbix.com/scm/zbx/zabbix.git
+ARG ZBX_SOURCES=svn://svn.zabbix.com/tags/${ZBX_VERSION}/
 ENV ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES}
 
 LABEL org.label-schema.usage="https://www.zabbix.com/documentation/${MAJOR_VERSION}/manual/installation/containers" \
