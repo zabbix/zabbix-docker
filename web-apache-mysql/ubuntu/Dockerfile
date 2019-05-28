@@ -7,7 +7,7 @@ ARG VCS_REF
 ARG APT_FLAGS_COMMON="-y"
 ARG APT_FLAGS_PERSISTENT="${APT_FLAGS_COMMON} --no-install-recommends"
 ARG APT_FLAGS_DEV="${APT_FLAGS_COMMON} --no-install-recommends"
-ENV LANG=en_US.UTF-8 LANGUAGE=en_US:en LC_ALL=en_US.UTF-8 DEBIAN_FRONTEND=noninteractive TERM=xterm \
+ENV LANG=en_US.UTF-8 LANGUAGE=en_US:en LC_ALL=en_US.UTF-8 TERM=xterm \
     ZBX_TYPE=frontend ZBX_DB_TYPE=mysql ZBX_OPT_TYPE=apache
 
 LABEL org.label-schema.name="zabbix-web-${ZBX_OPT_TYPE}-${DB_TYPE}-ubuntu" \
@@ -22,7 +22,7 @@ LABEL org.label-schema.name="zabbix-web-${ZBX_OPT_TYPE}-${DB_TYPE}-ubuntu" \
 STOPSIGNAL SIGTERM
 
 RUN apt-get ${APT_FLAGS_COMMON} update && \
-    apt-get ${APT_FLAGS_PERSISTENT} install locales && \
+    DEBIAN_FRONTEND=noninteractive apt-get ${APT_FLAGS_PERSISTENT} install locales && \
     locale-gen $LC_ALL && \
     echo "#!/bin/sh\nexit 0" > /usr/sbin/policy-rc.d && \
     addgroup --system --quiet zabbix && \
@@ -36,7 +36,7 @@ RUN apt-get ${APT_FLAGS_COMMON} update && \
     mkdir -p /etc/zabbix/web && \
     chown --quiet -R zabbix:root /etc/zabbix && \
     apt-get ${APT_FLAGS_COMMON} update && \
-    apt-get ${APT_FLAGS_PERSISTENT} install \
+    DEBIAN_FRONTEND=noninteractive apt-get ${APT_FLAGS_PERSISTENT} install \
             apache2 \
             curl \
             libapache2-mod-php \
@@ -66,7 +66,7 @@ LABEL org.label-schema.usage="https://www.zabbix.com/documentation/${MAJOR_VERSI
 COPY ["conf/tmp/font-config", "/tmp/font-config"]
 
 RUN apt-get ${APT_FLAGS_COMMON} update && \
-    apt-get ${APT_FLAGS_DEV} install \
+    DEBIAN_FRONTEND=noninteractive apt-get ${APT_FLAGS_DEV} install \
             gettext \
             patch \
             ca-certificates \
@@ -93,7 +93,7 @@ RUN apt-get ${APT_FLAGS_COMMON} update && \
     dpkg-reconfigure locales && \
     find /usr/share/zabbix/locale -name '*.po' | xargs rm -f && \
     find /usr/share/zabbix/locale -name '*.sh' | xargs rm -f && \
-    apt-get ${APT_FLAGS_COMMON} purge \
+    DEBIAN_FRONTEND=noninteractive apt-get ${APT_FLAGS_COMMON} purge \
             gettext \
             patch \
             ca-certificates \

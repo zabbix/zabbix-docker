@@ -7,7 +7,7 @@ ARG VCS_REF
 ARG APT_FLAGS_COMMON="-y"
 ARG APT_FLAGS_PERSISTENT="${APT_FLAGS_COMMON} --no-install-recommends"
 ARG APT_FLAGS_DEV="${APT_FLAGS_COMMON} --no-install-recommends"
-ENV LANG=en_US.UTF-8 LANGUAGE=en_US:en LC_ALL=en_US.UTF-8 DEBIAN_FRONTEND=noninteractive TERM=xterm \
+ENV LANG=en_US.UTF-8 LANGUAGE=en_US:en LC_ALL=en_US.UTF-8 TERM=xterm \
     ZBX_TYPE=java-gateway ZBX_DB_TYPE=none ZBX_OPT_TYPE=none
 
 LABEL org.label-schema.name="zabbix-${ZBX_TYPE}-ubuntu" \
@@ -22,7 +22,7 @@ LABEL org.label-schema.name="zabbix-${ZBX_TYPE}-ubuntu" \
 STOPSIGNAL SIGTERM
 
 RUN apt-get ${APT_FLAGS_COMMON} update && \
-    apt-get ${APT_FLAGS_PERSISTENT} install locales && \
+    DEBIAN_FRONTEND=noninteractive apt-get ${APT_FLAGS_PERSISTENT} install locales && \
     locale-gen $LC_ALL && \
     echo "#!/bin/sh\nexit 0" > /usr/sbin/policy-rc.d && \
     addgroup --system --quiet zabbix && \
@@ -35,7 +35,7 @@ RUN apt-get ${APT_FLAGS_COMMON} update && \
     mkdir -p /etc/zabbix/ && \
     chown --quiet -R zabbix:root /etc/zabbix && \
     apt-get ${APT_FLAGS_COMMON} update && \
-    apt-get ${APT_FLAGS_PERSISTENT} install \
+    DEBIAN_FRONTEND=noninteractive apt-get ${APT_FLAGS_PERSISTENT} install \
             openjdk-8-jre-headless && \
     apt-get ${APT_FLAGS_COMMON} autoremove && \
     apt-get ${APT_FLAGS_COMMON} clean && \
@@ -52,7 +52,7 @@ LABEL org.label-schema.usage="https://www.zabbix.com/documentation/${MAJOR_VERSI
       org.label-schema.docker.cmd="docker run --name zabbix-${ZBX_TYPE} --link zabbix-server:zabbix-server -p 10052:10052 -d zabbix-${ZBX_TYPE}:ubuntu-${ZBX_VERSION}"
 
 RUN apt-get ${APT_FLAGS_COMMON} update && \
-    apt-get ${APT_FLAGS_DEV} install \
+    DEBIAN_FRONTEND=noninteractive apt-get ${APT_FLAGS_DEV} install \
             autoconf \
             automake \
             libc6-dev \
@@ -82,7 +82,7 @@ RUN apt-get ${APT_FLAGS_COMMON} update && \
     rm -rf /usr/sbin/zabbix_java/lib/*.xml && \
     cd /tmp/ && \
     rm -rf /tmp/zabbix-${ZBX_VERSION}/ && \
-    apt-get ${APT_FLAGS_COMMON} purge \
+    DEBIAN_FRONTEND=noninteractive apt-get ${APT_FLAGS_COMMON} purge \
             autoconf \
             automake \
             libc6-dev \
