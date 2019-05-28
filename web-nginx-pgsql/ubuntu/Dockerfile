@@ -7,7 +7,7 @@ ARG VCS_REF
 ARG APT_FLAGS_COMMON="-y"
 ARG APT_FLAGS_PERSISTENT="${APT_FLAGS_COMMON} --no-install-recommends"
 ARG APT_FLAGS_DEV="${APT_FLAGS_COMMON} --no-install-recommends"
-ENV LANG=en_US.UTF-8 LANGUAGE=en_US:en LC_ALL=en_US.UTF-8 DEBIAN_FRONTEND=noninteractive TERM=xterm \
+ENV LANG=en_US.UTF-8 LANGUAGE=en_US:en LC_ALL=en_US.UTF-8 TERM=xterm \
     ZBX_TYPE=frontend ZBX_DB_TYPE=postgresql ZBX_OPT_TYPE=nginx
 
 LABEL org.label-schema.name="zabbix-web-${ZBX_OPT_TYPE}-${ZBX_DB_TYPE}-ubuntu" \
@@ -22,7 +22,7 @@ LABEL org.label-schema.name="zabbix-web-${ZBX_OPT_TYPE}-${ZBX_DB_TYPE}-ubuntu" \
 STOPSIGNAL SIGTERM
 
 RUN apt-get ${APT_FLAGS_COMMON} update && \
-    apt-get ${APT_FLAGS_PERSISTENT} install locales gnupg2 && \
+    DEBIAN_FRONTEND=noninteractive apt-get ${APT_FLAGS_PERSISTENT} install locales gnupg2 && \
     locale-gen $LC_ALL && \
     echo "#!/bin/sh\nexit 0" > /usr/sbin/policy-rc.d && \
     addgroup --system --quiet zabbix && \
@@ -36,13 +36,13 @@ RUN apt-get ${APT_FLAGS_COMMON} update && \
     mkdir -p /etc/zabbix/web && \
     chown --quiet -R zabbix:root /etc/zabbix && \
     apt-get ${APT_FLAGS_COMMON} update && \
-    apt-get ${APT_FLAGS_COMMON} install \
+    DEBIAN_FRONTEND=noninteractive apt-get ${APT_FLAGS_COMMON} install \
             wget && \
     DISTRIB_CODENAME=$(/bin/bash -c 'source /etc/lsb-release && echo $DISTRIB_CODENAME') && \
     wget -q https://nginx.org/keys/nginx_signing.key -O- | apt-key add - && \
     echo "deb http://nginx.org/packages/ubuntu/ $DISTRIB_CODENAME nginx" >> /etc/apt/sources.list.d/nginx.list && \
     apt-get ${APT_FLAGS_COMMON} update && \
-    apt-get ${APT_FLAGS_PERSISTENT} install \
+    DEBIAN_FRONTEND=noninteractive apt-get ${APT_FLAGS_PERSISTENT} install \
             curl \
             nginx \
             php7.2-bcmath \
@@ -56,7 +56,7 @@ RUN apt-get ${APT_FLAGS_COMMON} update && \
             postgresql-client \
             supervisor \
             ttf-dejavu-core && \
-    apt-get ${APT_FLAGS_COMMON} purge \
+    DEBIAN_FRONTEND=noninteractive apt-get ${APT_FLAGS_COMMON} purge \
             wget && \
     apt-get ${APT_FLAGS_COMMON} autoremove && \
     apt-get ${APT_FLAGS_COMMON} clean && \
@@ -78,7 +78,7 @@ LABEL org.label-schema.usage="https://www.zabbix.com/documentation/${MAJOR_VERSI
 COPY ["conf/tmp/font-config", "/tmp/font-config"]
 
 RUN apt-get ${APT_FLAGS_COMMON} update && \
-    apt-get ${APT_FLAGS_DEV} install \
+    DEBIAN_FRONTEND=noninteractive apt-get ${APT_FLAGS_DEV} install \
             gettext \
             patch \
             ca-certificates \
@@ -106,7 +106,7 @@ RUN apt-get ${APT_FLAGS_COMMON} update && \
     find /usr/share/zabbix/locale -name '*.po' | xargs rm -f && \
     find /usr/share/zabbix/locale -name '*.sh' | xargs rm -f && \
     chown --quiet -R www-data:www-data /usr/share/zabbix && \
-    apt-get ${APT_FLAGS_COMMON} purge \
+    DEBIAN_FRONTEND=noninteractive apt-get ${APT_FLAGS_COMMON} purge \
             gettext \
             patch \
             ca-certificates \

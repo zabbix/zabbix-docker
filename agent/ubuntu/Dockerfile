@@ -6,13 +6,13 @@ ARG APT_FLAGS_DEV="${APT_FLAGS_COMMON} --no-install-recommends"
 ARG MAJOR_VERSION=4.4
 ARG ZBX_VERSION=${MAJOR_VERSION}
 ARG ZBX_SOURCES=https://git.zabbix.com/scm/zbx/zabbix.git
-ENV LANG=en_US.UTF-8 LANGUAGE=en_US:en LC_ALL=en_US.UTF-8 DEBIAN_FRONTEND=noninteractive TERM=xterm \
+ENV LANG=en_US.UTF-8 LANGUAGE=en_US:en LC_ALL=en_US.UTF-8 TERM=xterm \
     ZBX_TYPE=agent ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES}
 
 RUN apt-get ${APT_FLAGS_COMMON} update && \
-    apt-get ${APT_FLAGS_PERSISTENT} install locales && \
+    DEBIAN_FRONTEND=noninteractive apt-get ${APT_FLAGS_PERSISTENT} install locales && \
     locale-gen $LC_ALL && \
-    apt-get ${APT_FLAGS_DEV} install \
+    DEBIAN_FRONTEND=noninteractive apt-get ${APT_FLAGS_DEV} install \
             autoconf \
             automake \
             libc6-dev \
@@ -55,7 +55,7 @@ ARG APT_FLAGS_PERSISTENT="${APT_FLAGS_COMMON} --no-install-recommends"
 ARG MAJOR_VERSION=4.4
 ARG ZBX_VERSION=${MAJOR_VERSION}
 ARG ZBX_SOURCES=https://git.zabbix.com/scm/zbx/zabbix.git
-ENV LANG=en_US.UTF-8 LANGUAGE=en_US:en LC_ALL=en_US.UTF-8 DEBIAN_FRONTEND=noninteractive TERM=xterm \
+ENV LANG=en_US.UTF-8 LANGUAGE=en_US:en LC_ALL=en_US.UTF-8 TERM=xterm \
     ZBX_TYPE=agent ZBX_DB_TYPE=none ZBX_OPT_TYPE=none \
     ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES}
 ENV TINI_VERSION v0.18.0
@@ -82,7 +82,7 @@ COPY --from=builder  /tmp/zabbix-${ZBX_VERSION}/conf/zabbix_agentd.conf /etc/zab
 ADD https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini /sbin/tini
 
 RUN apt-get ${APT_FLAGS_COMMON} update && \
-    apt-get ${APT_FLAGS_PERSISTENT} install locales && \
+    DEBIAN_FRONTEND=noninteractive apt-get ${APT_FLAGS_PERSISTENT} install locales && \
     locale-gen $LC_ALL && \
     echo "#!/bin/sh\nexit 0" > /usr/sbin/policy-rc.d && \
     addgroup --system --quiet zabbix && \
@@ -98,7 +98,7 @@ RUN apt-get ${APT_FLAGS_COMMON} update && \
     mkdir -p /var/lib/zabbix/modules && \
     chown --quiet -R zabbix:root /var/lib/zabbix && \
     apt-get ${APT_FLAGS_COMMON} update && \
-    apt-get ${APT_FLAGS_PERSISTENT} install \
+    DEBIAN_FRONTEND=noninteractive apt-get ${APT_FLAGS_PERSISTENT} install \
             libpcre3 \
             libssl1.1 \
             libldap-2.4 && \
