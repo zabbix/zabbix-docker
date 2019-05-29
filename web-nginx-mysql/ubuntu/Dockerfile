@@ -63,8 +63,7 @@ RUN apt-get ${APT_FLAGS_COMMON} update && \
             php7.2-mbstring \
             php7.2-mysql \
             php7.2-xml \
-            supervisor \
-            ttf-dejavu-core && \
+            supervisor && \
     DEBIAN_FRONTEND=noninteractive apt-get ${APT_FLAGS_COMMON} purge \
             wget && \
     apt-get ${APT_FLAGS_COMMON} autoremove && \
@@ -84,12 +83,9 @@ LABEL org.label-schema.usage="https://www.zabbix.com/documentation/${MAJOR_VERSI
       org.label-schema.vcs-url="${ZBX_SOURCES}" \
       org.label-schema.docker.cmd="docker run --name zabbix-web-${ZBX_OPT_TYPE}-${ZBX_DB_TYPE} --link mysql-server:mysql --link zabbix-server:zabbix-server -p 80:80 -d zabbix-web-${ZBX_OPT_TYPE}-${ZBX_DB_TYPE}:ubuntu-${ZBX_VERSION}"
 
-COPY ["conf/tmp/font-config", "/tmp/font-config"]
-
 RUN apt-get ${APT_FLAGS_COMMON} update && \
     DEBIAN_FRONTEND=noninteractive apt-get ${APT_FLAGS_DEV} install \
             gettext \
-            patch \
             ca-certificates \
             git && \
     cd /usr/share/ && \
@@ -98,14 +94,9 @@ RUN apt-get ${APT_FLAGS_COMMON} update && \
     cp -R /usr/share/zabbix-${ZBX_VERSION}/frontends/php/* /usr/share/zabbix/ && \
     rm -rf /usr/share/zabbix-${ZBX_VERSION}/ && \
     cd /usr/share/zabbix/ && \
-    patch -p3 < /tmp/font-config && \
-    rm /tmp/font-config && \
     rm -f conf/zabbix.conf.php && \
     rm -rf tests && \
-    rm /usr/share/zabbix/fonts/DejaVuSans.ttf && \
     ./locale/make_mo.sh && \
-    update-alternatives --install /usr/share/zabbix/fonts/graphfont.ttf \
-            zabbix-frontend-font /usr/share/fonts/truetype/ttf-dejavu/DejaVuSans.ttf 10 && \
     mkdir -p /var/lib/locales/supported.d/ && \
     rm -f /var/lib/locales/supported.d/local && \
     cat /usr/share/zabbix/include/locales.inc.php | grep display | grep true | awk '{$1=$1};1' | \
@@ -116,7 +107,6 @@ RUN apt-get ${APT_FLAGS_COMMON} update && \
     find /usr/share/zabbix/locale -name '*.sh' | xargs rm -f && \
     DEBIAN_FRONTEND=noninteractive apt-get ${APT_FLAGS_COMMON} purge \
             gettext \
-            patch \
             ca-certificates \
             git && \
     apt-get ${APT_FLAGS_COMMON} autoremove && \
