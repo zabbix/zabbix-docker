@@ -168,10 +168,10 @@ RUN groupadd --system zabbix && \
     rm -f /etc/php-fpm.d/www.conf && \
     mkdir -p /var/lib/php/ && \
     chown --quiet -R nginx:nginx /var/lib/php/ && \
-    ls -lah /usr/share/zabbix/ && \
     cat /usr/share/zabbix/include/locales.inc.php | grep display | grep true | awk '{$1=$1};1' | \
                 cut -d"'" -f 2 | sort | \
                 xargs -I '{}' bash -c 'echo "{}" && localedef -c -i {} -f UTF-8 {}.UTF-8 2>/dev/null' && \
+    chown --quiet -R nginx:nginx /usr/share/zabbix && \
     yum ${YUM_FLAGS_PERSISTENT} clean all && \
     rm -rf /var/cache/yum/ && \
     chmod +x /sbin/tini

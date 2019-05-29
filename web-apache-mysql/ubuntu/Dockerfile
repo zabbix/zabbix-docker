@@ -84,6 +84,7 @@ RUN apt-get ${APT_FLAGS_COMMON} update && \
     dpkg-reconfigure locales && \
     find /usr/share/zabbix/locale -name '*.po' | xargs rm -f && \
     find /usr/share/zabbix/locale -name '*.sh' | xargs rm -f && \
+    chown --quiet -R www-data:www-data /usr/share/zabbix && \
     DEBIAN_FRONTEND=noninteractive apt-get ${APT_FLAGS_COMMON} purge \
             gettext \
             ca-certificates \
