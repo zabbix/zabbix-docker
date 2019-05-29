@@ -12,8 +12,6 @@ ENV ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES} \
     ZBX_TYPE=server ZBX_DB_TYPE=mysql ZBX_OPT_TYPE=nginx \
     MYSQL_ALLOW_EMPTY_PASSWORD=true ZBX_ADD_SERVER=true ZBX_ADD_WEB=true DB_SERVER_HOST=localhost MYSQL_USER=zabbix ZBX_ADD_JAVA_GATEWAY=true ZBX_JAVAGATEWAY_ENABLE=true ZBX_JAVAGATEWAY=localhost
 
-COPY ["conf/tmp/font-config", "/tmp/font-config"]
-
 RUN apt-get ${APT_FLAGS_COMMON} update && \
     DEBIAN_FRONTEND=noninteractive apt-get ${APT_FLAGS_DEV} install locales && \
     locale-gen $LC_ALL && \
@@ -36,7 +34,6 @@ RUN apt-get ${APT_FLAGS_COMMON} update && \
             libxml2-dev \
             make \
             openjdk-8-jdk \
-            patch \
             pkg-config \
             git \
             unixodbc-dev && \
@@ -79,7 +76,6 @@ RUN apt-get ${APT_FLAGS_COMMON} update && \
     cd frontends/php/ && \
     rm -f conf/zabbix.conf.php && \
     rm -rf tests && \
-    rm -f /tmp/zabbix-${ZBX_VERSION}/frontends/php/assets/fonts/DejaVuSans.ttf && \
     ./locale/make_mo.sh
 
 FROM ubuntu:bionic
@@ -198,11 +194,8 @@ RUN apt-get ${APT_FLAGS_COMMON} update && \
             php7.2-xml \
             snmp-mibs-downloader \
             supervisor \
-            ttf-dejavu-core \
             ca-certificates \
             unixodbc && \
-    update-alternatives --install /usr/share/zabbix/assets/fonts/graphfont.ttf \
-            zabbix-frontend-font /usr/share/fonts/truetype/ttf-dejavu/DejaVuSans.ttf 10 && \
     mkdir -p /var/lib/locales/supported.d/ && \
     rm -f /var/lib/locales/supported.d/local && \
     cat /usr/share/zabbix/include/locales.inc.php | grep display | grep true | awk '{$1=$1};1' | \

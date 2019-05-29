@@ -11,8 +11,6 @@ ENV ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES} \
     ZBX_TYPE=server ZBX_DB_TYPE=mysql ZBX_OPT_TYPE=nginx \
     MYSQL_ALLOW_EMPTY_PASSWORD=true ZBX_ADD_SERVER=true ZBX_ADD_WEB=true DB_SERVER_HOST=localhost MYSQL_USER=zabbix ZBX_ADD_JAVA_GATEWAY=true ZBX_JAVAGATEWAY_ENABLE=true ZBX_JAVAGATEWAY=localhost
 
-COPY ["conf/tmp/font-config", "/tmp/font-config"]
-
 RUN apk add ${APK_FLAGS_DEV} --virtual build-dependencies \
             bash \
             alpine-sdk \
@@ -70,10 +68,8 @@ RUN apk add ${APK_FLAGS_DEV} --virtual build-dependencies \
     gzip database/${ZBX_DB_TYPE}/create.sql && \
     rm -rf /tmp/zabbix-${ZBX_VERSION}/src/zabbix_java/lib/*.xml && \
     cd frontends/php/ && \
-    patch -p3 < /tmp/font-config && \
     rm -f conf/zabbix.conf.php && \
     rm -rf tests && \
-    rm -f /tmp/zabbix-${ZBX_VERSION}/frontends/php/fonts/DejaVuSans.ttf && \
     ./locale/make_mo.sh
 
 FROM alpine:3.4
@@ -171,7 +167,6 @@ RUN addgroup zabbix && \
             php5-sockets \
             php5-xmlreader \
             supervisor \
-            ttf-dejavu \
             pcre \
             unixodbc && \
     rm -rf /var/cache/apk/*

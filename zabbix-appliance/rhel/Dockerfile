@@ -58,7 +58,6 @@ COPY ["licenses", "/licenses"]
 ### Add necessary Red Hat repos here
 RUN INSTALL_PKGS="OpenIPMI-libs \
             curl \
-            dejavu-sans-fonts \
             fping \
             iksemel \
             java-1.8.0-openjdk-headless \
@@ -117,8 +116,6 @@ RUN INSTALL_PKGS="OpenIPMI-libs \
     rm -rf /var/lib/yum/yumdb/* && \
     rm -rf /usr/lib/udev/hwdb.d/*
 
-COPY ["conf/tmp/font-config", "/tmp/font-config"]
-
 RUN REPOLIST="rhel-7-server-rpms,rhel-7-server-optional-rpms,zabbix-non-supported" && \
     INSTALL_PKGS="autoconf \
             automake \
@@ -135,7 +132,6 @@ RUN REPOLIST="rhel-7-server-rpms,rhel-7-server-optional-rpms,zabbix-non-supporte
             net-snmp-devel \
             OpenIPMI-devel \
             openldap-devel \
-            patch \
             git \
             unixODBC-devel" && \
     yum -y install --disablerepo "*" --enablerepo "${REPOLIST}" --setopt=tsflags=nodocs ${INSTALL_PKGS} && \
@@ -192,13 +188,9 @@ RUN REPOLIST="rhel-7-server-rpms,rhel-7-server-optional-rpms,zabbix-non-supporte
     cp -R /usr/share/zabbix-${ZBX_VERSION}/frontends/php/* /usr/share/zabbix/ && \
     rm -rf /usr/share/zabbix-${ZBX_VERSION}/ && \
     cd /usr/share/zabbix/ && \
-    patch -p3 < /tmp/font-config && \
-    rm /tmp/font-config && \
     rm -f conf/zabbix.conf.php && \
     rm -rf tests && \
-    rm /usr/share/zabbix/fonts/DejaVuSans.ttf && \
     ./locale/make_mo.sh && \
-    ln -s /usr/share/fonts/ttf-dejavu/DejaVuSans.ttf /usr/share/zabbix/fonts/graphfont.ttf && \
     yum ${YUM_FLAGS_COMMON} history undo `yum history | sed -n 4p |column -t | cut -d' ' -f1` && \
     yum ${YUM_FLAGS_COMMON} clean all && \
     rm -rf /var/cache/yum && \
