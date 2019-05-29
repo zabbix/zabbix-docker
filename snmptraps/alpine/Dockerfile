@@ -53,7 +53,6 @@ RUN addgroup zabbix && \
     chown --quiet -R zabbix:root /var/lib/zabbix && \
     cd /tmp/ && \
     tar -zxvf snmptrapfmt_1.14+nmu1ubuntu2.tar.gz && \
-    ls -lah && \
     cd /tmp/snmptrapfmt-1.14+nmu1ubuntu1/ && \
     patch -p1 < ./patches/makefile.patch && \
     make -j"$(nproc)" -s && \

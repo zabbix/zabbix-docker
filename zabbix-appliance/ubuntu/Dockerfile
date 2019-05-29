@@ -201,6 +201,7 @@ RUN apt-get ${APT_FLAGS_COMMON} update && \
     cat /usr/share/zabbix/include/locales.inc.php | grep display | grep true | awk '{$1=$1};1' | \
                 cut -d"'" -f 2 | sort | \
                 xargs -I '{}' bash -c 'echo "{}.UTF-8 UTF-8" >> /var/lib/locales/supported.d/local' && \
+    chown --quiet -R www-data:www-data /usr/share/zabbix && \
     dpkg-reconfigure locales && \
     apt-get ${APT_FLAGS_COMMON} autoremove && \
     apt-get ${APT_FLAGS_COMMON} clean && \

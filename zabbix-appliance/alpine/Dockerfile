@@ -135,6 +135,7 @@ RUN addgroup zabbix && \
     mkdir -p /var/lib/zabbix/ssl/keys && \
     mkdir -p /var/lib/zabbix/ssl/ssl_ca && \
     chown --quiet -R zabbix:root /var/lib/zabbix && \
+    chown --quiet -R nginx:nginx /usr/share/zabbix && \
     mkdir -p /usr/share/doc/zabbix-${ZBX_TYPE}-${ZBX_DB_TYPE}/ && \
     apk update && \
     apk add ${APK_FLAGS_PERSISTENT} \

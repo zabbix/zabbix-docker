@@ -80,6 +80,7 @@ RUN groupadd --system zabbix && \
     cat /usr/share/zabbix/include/locales.inc.php | grep display | grep true | awk '{$1=$1};1' | \
                 cut -d"'" -f 2 | sort | \
                 xargs -I '{}' bash -c 'echo "{}" && localedef -c -i {} -f UTF-8 {}.UTF-8 2>/dev/null' && \
+    chown --quiet -R apache:apache /usr/share/zabbix && \
     yum ${YUM_FLAGS_PERSISTENT} clean all && \
     rm -rf /var/cache/yum/
 

@@ -76,6 +76,7 @@ RUN apk add ${APK_FLAGS_DEV} --virtual build-dependencies \
     rm -f conf/zabbix.conf.php && \
     rm -rf tests && \
     ./locale/make_mo.sh && \
+    chown --quiet -R apache:apache /usr/share/zabbix/ && \
     apk del ${APK_FLAGS_COMMON} --purge \
             build-dependencies && \
     rm -rf /var/cache/apk/*
