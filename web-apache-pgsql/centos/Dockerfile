@@ -8,8 +8,6 @@ ARG ZBX_VERSION=${MAJOR_VERSION}
 ARG ZBX_SOURCES=https://git.zabbix.com/scm/zbx/zabbix.git
 ENV TERM=xterm ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES}
 
-COPY ["conf/tmp/font-config", "/tmp/font-config"]
-
 RUN yum --quiet makecache && \
     yum ${YUM_FLAGS_DEV} install \
             gettext \
@@ -21,11 +19,8 @@ RUN yum --quiet makecache && \
     cp -R /tmp/zabbix-${ZBX_VERSION}/frontends/php/* /tmp/zabbix/ && \
     rm -rf /tmp/zabbix-${ZBX_VERSION}/ && \
     cd /tmp/zabbix/ && \
-    patch -p3 < /tmp/font-config && \
-    rm /tmp/font-config && \
     rm -f conf/zabbix.conf.php && \
     rm -rf tests && \
-    rm /tmp/zabbix/fonts/DejaVuSans.ttf && \
     ./locale/make_mo.sh
 
 FROM centos:centos7
@@ -71,7 +66,6 @@ RUN groupadd --system zabbix && \
     yum ${YUM_FLAGS_COMMON} makecache && \
     yum ${YUM_FLAGS_PERSISTENT} install epel-release && \
     yum ${YUM_FLAGS_PERSISTENT} install \
-            dejavu-sans-fonts \
             curl \
             httpd \
             mod_ssl \
@@ -83,7 +77,6 @@ RUN groupadd --system zabbix && \
             php-pgsql \
             php-xml \
             postgresql && \
-    ln -s /usr/share/fonts/dejavu/DejaVuSans.ttf /usr/share/zabbix/fonts/graphfont.ttf && \
     cat /usr/share/zabbix/include/locales.inc.php | grep display | grep true | awk '{$1=$1};1' | \
                 cut -d"'" -f 2 | sort | \
                 xargs -I '{}' bash -c 'echo "{}" && localedef -c -i {} -f UTF-8 {}.UTF-8 2>/dev/null' && \

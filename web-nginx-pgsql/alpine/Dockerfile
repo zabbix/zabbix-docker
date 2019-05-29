@@ -50,8 +50,7 @@ RUN addgroup zabbix && \
             php7-xmlreader \
             php7-xmlwriter \
             postgresql-client \
-            supervisor \
-            ttf-dejavu && \
+            supervisor && \
     rm -rf /var/cache/apk/*
 
 ARG MAJOR_VERSION=master
@@ -64,8 +63,6 @@ LABEL org.label-schema.usage="https://www.zabbix.com/documentation/${MAJOR_VERSI
       org.label-schema.vcs-url="${ZBX_SOURCES}" \
       org.label-schema.docker.cmd="docker run --name zabbix-web-${ZBX_OPT_TYPE}-pgsql --link postgres-server:postgres --link zabbix-server:zabbix-server -p 80:80 -d zabbix-web-${ZBX_OPT_TYPE}-pgsql:alpine-${ZBX_VERSION}"
 
-COPY ["conf/tmp/font-config", "/tmp/font-config"]
-
 RUN apk add ${APK_FLAGS_DEV} --virtual build-dependencies \
             coreutils \
             gettext \
@@ -76,13 +73,9 @@ RUN apk add ${APK_FLAGS_DEV} --virtual build-dependencies \
     cp -R /usr/share/zabbix-${ZBX_VERSION}/frontends/php/* /usr/share/zabbix/ && \
     rm -rf /usr/share/zabbix-${ZBX_VERSION}/ && \
     cd /usr/share/zabbix/ && \
-    patch -p3 < /tmp/font-config && \
-    rm /tmp/font-config && \
     rm -f conf/zabbix.conf.php && \
     rm -rf tests && \
-    rm /usr/share/zabbix/fonts/DejaVuSans.ttf && \
     ./locale/make_mo.sh && \
-    ln -s /usr/share/fonts/ttf-dejavu/DejaVuSans.ttf /usr/share/zabbix/fonts/graphfont.ttf && \
     apk del ${APK_FLAGS_COMMON} --purge \
             build-dependencies && \
     rm -rf /var/cache/apk/*

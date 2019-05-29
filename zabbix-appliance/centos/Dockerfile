@@ -10,8 +10,6 @@ ENV ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES} \
     ZBX_TYPE=server ZBX_DB_TYPE=mysql ZBX_OPT_TYPE=nginx \
     MYSQL_ALLOW_EMPTY_PASSWORD=true ZBX_ADD_SERVER=true ZBX_ADD_WEB=true DB_SERVER_HOST=localhost MYSQL_USER=zabbix ZBX_ADD_JAVA_GATEWAY=true ZBX_JAVAGATEWAY_ENABLE=true ZBX_JAVAGATEWAY=localhost
 
-COPY ["conf/tmp/font-config", "/tmp/font-config"]
-
 RUN yum ${YUM_FLAGS_DEV} install http://repo.zabbix.com/non-supported/rhel/7/x86_64/iksemel-devel-1.4-2.el7.centos.x86_64.rpm \
                                  http://repo.zabbix.com/non-supported/rhel/7/x86_64/iksemel-1.4-2.el7.centos.x86_64.rpm && \
     yum --quiet makecache && \
@@ -29,7 +27,6 @@ RUN yum ${YUM_FLAGS_DEV} install http://repo.zabbix.com/non-supported/rhel/7/x86
             net-snmp-devel \
             OpenIPMI-devel \
             openldap-devel \
-            patch \
             git \
             unixODBC-devel && \
     cd /tmp/ && \
@@ -69,10 +66,8 @@ RUN yum ${YUM_FLAGS_DEV} install http://repo.zabbix.com/non-supported/rhel/7/x86
     gzip database/${ZBX_DB_TYPE}/create.sql && \
     rm -rf /tmp/zabbix-${ZBX_VERSION}/src/zabbix_java/lib/*.xml && \
     cd frontends/php/ && \
-    patch -p3 < /tmp/font-config && \
     rm -f conf/zabbix.conf.php && \
     rm -rf tests && \
-    rm /tmp/zabbix-${ZBX_VERSION}/frontends/php/fonts/DejaVuSans.ttf && \
     ./locale/make_mo.sh
 
 FROM centos:centos7
@@ -149,7 +144,6 @@ RUN groupadd --system zabbix && \
             traceroute \
             curl \
             OpenIPMI-libs \
-            dejavu-sans-fonts \
             java-1.8.0-openjdk-headless \
             libcurl \
             libxml2 \
@@ -173,7 +167,6 @@ RUN groupadd --system zabbix && \
     mkdir -p /var/lib/php/ && \
     chown --quiet -R nginx:nginx /var/lib/php/ && \
     ls -lah /usr/share/zabbix/ && \
-    ln -s /usr/share/fonts/dejavu/DejaVuSans.ttf /usr/share/zabbix/fonts/graphfont.ttf && \
     cat /usr/share/zabbix/include/locales.inc.php | grep display | grep true | awk '{$1=$1};1' | \
                 cut -d"'" -f 2 | sort | \
                 xargs -I '{}' bash -c 'echo "{}" && localedef -c -i {} -f UTF-8 {}.UTF-8 2>/dev/null' && \
