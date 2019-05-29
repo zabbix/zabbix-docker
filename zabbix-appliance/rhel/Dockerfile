@@ -15,7 +15,7 @@ ARG MAJOR_VERSION=4.0
 ARG RELEASE=7
 ARG ZBX_VERSION=${MAJOR_VERSION}.7
 
-ARG ZBX_SOURCES=svn://svn.zabbix.com/tags/${ZBX_VERSION}/
+ARG ZBX_SOURCES=https://git.zabbix.com/scm/zbx/zabbix.git
 ENV ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES}
 
 LABEL name="zabbix/zabbix-appliance" \
