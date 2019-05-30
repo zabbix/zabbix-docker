@@ -21,7 +21,8 @@ LABEL org.label-schema.name="zabbix-${ZBX_TYPE}-alpine" \
 
 STOPSIGNAL SIGTERM
 
-RUN addgroup zabbix && \
+RUN set -eux && \
+    addgroup zabbix && \
     adduser -S \
             -D -G zabbix \
             -h /var/lib/zabbix/ \
@@ -44,7 +45,8 @@ LABEL org.label-schema.usage="https://www.zabbix.com/documentation/${MAJOR_VERSI
       org.label-schema.vcs-url="${ZBX_SOURCES}" \
       org.label-schema.docker.cmd="docker run --name zabbix-${ZBX_TYPE} --link zabbix-server:zabbix-server -p 10052:10052 -d zabbix-${ZBX_TYPE}:alpine-${ZBX_VERSION}"
 
-RUN apk add ${APK_FLAGS_DEV} --virtual build-dependencies \
+RUN set -eux && \
+    apk add ${APK_FLAGS_DEV} --virtual build-dependencies \
             autoconf \
             automake \
             coreutils \

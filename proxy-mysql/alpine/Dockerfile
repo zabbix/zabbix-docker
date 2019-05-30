@@ -21,7 +21,8 @@ LABEL org.label-schema.name="zabbix-${ZBX_TYPE}-${ZBX_DB_TYPE}-alpine" \
 
 STOPSIGNAL SIGTERM
 
-RUN addgroup zabbix && \
+RUN set -eux && \
+    addgroup zabbix && \
     adduser -S \
             -D -G zabbix \
             -h /var/lib/zabbix/ \
@@ -67,7 +68,8 @@ LABEL org.label-schema.usage="https://www.zabbix.com/documentation/${MAJOR_VERSI
       org.label-schema.vcs-url="${ZBX_SOURCES}" \
       org.label-schema.docker.cmd="docker run --name zabbix-${ZBX_TYPE}-${ZBX_DB_TYPE} --link mysql-server:mysql --link zabbix-server:zabbix-server -p 10051:10051 -d zabbix-${ZBX_TYPE}-${ZBX_DB_TYPE}:alpine-${ZBX_VERSION}"
 
-RUN apk add ${APK_FLAGS_DEV} --virtual build-dependencies \
+RUN set -eux && \
+    apk add ${APK_FLAGS_DEV} --virtual build-dependencies \
             autoconf \
             automake \
             coreutils \
@@ -120,8 +122,7 @@ RUN apk add ${APK_FLAGS_DEV} --virtual build-dependencies \
     rm -rf /tmp/zabbix-${ZBX_VERSION}/ && \
     apk del ${APK_FLAGS_COMMON} --purge \
             build-dependencies && \
-    rm -rf /var/cache/apk/* && \
-    rm -rf /root/.subversion
+    rm -rf /var/cache/apk/*
 
 EXPOSE 10051/TCP
 

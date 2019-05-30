@@ -8,7 +8,8 @@ ARG ZBX_VERSION=${MAJOR_VERSION}
 ARG ZBX_SOURCES=https://git.zabbix.com/scm/zbx/zabbix.git
 ENV TERM=xterm ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES}
 
-RUN yum --quiet makecache && \
+RUN set -eux && \
+    yum --quiet makecache && \
     yum ${YUM_FLAGS_DEV} install \
             gettext \
             patch \
@@ -55,7 +56,8 @@ STOPSIGNAL SIGTERM
 
 COPY --from=builder /tmp/zabbix/ /usr/share/zabbix/
 
-RUN groupadd --system zabbix && \
+RUN set -eux && \
+    groupadd --system zabbix && \
     adduser -r --shell /sbin/nologin \
             -g zabbix \
             -d /var/lib/zabbix/ \

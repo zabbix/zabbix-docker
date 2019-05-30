@@ -9,7 +9,8 @@ ARG ZBX_SOURCES=https://git.zabbix.com/scm/zbx/zabbix.git
 ENV ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES} \
     ZBX_TYPE=proxy ZBX_DB_TYPE=mysql
 
-RUN yum --quiet makecache && \
+RUN set -eux && \
+    yum --quiet makecache && \
     yum ${YUM_FLAGS_DEV} install \
             autoconf \
             automake \
@@ -93,7 +94,8 @@ COPY --from=builder /tmp/zabbix-${ZBX_VERSION}/conf/zabbix_${ZBX_TYPE}.conf /etc
 COPY --from=builder /tmp/zabbix-${ZBX_VERSION}/database/${ZBX_DB_TYPE}/create.sql.gz /usr/share/doc/zabbix-${ZBX_TYPE}-${ZBX_DB_TYPE}/create.sql.gz
 ADD https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini /sbin/tini
 
-RUN groupadd --system zabbix && \
+RUN set -eux && \
+    groupadd --system zabbix && \
     adduser -r --shell /sbin/nologin \
             -g zabbix \
             -d /var/lib/zabbix/ \
@@ -113,7 +115,7 @@ RUN groupadd --system zabbix && \
     chown --quiet -R zabbix:root /var/lib/zabbix && \
     mkdir -p /usr/share/doc/zabbix-${ZBX_TYPE}-${ZBX_DB_TYPE} && \
     yum ${YUM_FLAGS_COMMON} makecache && \
-    yum ${YUM_FLAGS_PERSISTENT} install http://repo.zabbix.com/non-supported/rhel/7/x86_64/fping-3.10-1.el7.x86_64.rpm && \
+    yum ${YUM_FLAGS_PERSISTENT} install https://repo.zabbix.com/non-supported/rhel/7/x86_64/fping-3.10-1.el7.x86_64.rpm && \
     yum ${YUM_FLAGS_PERSISTENT} install \
             libcurl \
             libxml2 \
@@ -124,7 +126,7 @@ RUN groupadd --system zabbix && \
             openssl-libs \
             pcre \
             unixODBC && \
-    yum ${YUM_FLAGS_PERSISTANT} clean all && \
+    yum ${YUM_FLAGS_PERSISTENT} clean all && \
     rm -rf /var/cache/yum/ && \
     chmod +x /sbin/tini
 
