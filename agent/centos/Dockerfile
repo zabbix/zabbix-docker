@@ -9,7 +9,8 @@ ARG ZBX_SOURCES=https://git.zabbix.com/scm/zbx/zabbix.git
 ENV TERM=xterm ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES} \
     ZBX_TYPE=agent
 
-RUN yum --quiet makecache && \
+RUN set -eux && \
+    yum --quiet makecache && \
     yum ${YUM_FLAGS_DEV} install \
             autoconf \
             automake \
@@ -75,7 +76,8 @@ COPY --from=builder /tmp/zabbix-${ZBX_VERSION}/src/zabbix_sender/zabbix_sender /
 COPY --from=builder  /tmp/zabbix-${ZBX_VERSION}/conf/zabbix_agentd.conf /etc/zabbix/zabbix_agentd.conf
 ADD https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini /sbin/tini
 
-RUN groupadd --system zabbix && \
+RUN set -eux && \
+    groupadd --system zabbix && \
     adduser -r --shell /sbin/nologin \
             -g zabbix \
             -d /var/lib/zabbix/ \

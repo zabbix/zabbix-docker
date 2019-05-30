@@ -9,7 +9,8 @@ ARG ZBX_SOURCES=https://git.zabbix.com/scm/zbx/zabbix.git
 ENV TERM=xterm ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES} \
     ZBX_TYPE=agent
 
-RUN apk update && \
+RUN set -eux && \
+    apk update && \
     apk add ${APK_FLAGS_DEV} --virtual build-dependencies \
             alpine-sdk \
             autoconf \
@@ -74,7 +75,8 @@ COPY --from=builder /tmp/zabbix-${ZBX_VERSION}/src/zabbix_get/zabbix_get /usr/bi
 COPY --from=builder /tmp/zabbix-${ZBX_VERSION}/src/zabbix_sender/zabbix_sender /usr/bin/zabbix_sender
 COPY --from=builder  /tmp/zabbix-${ZBX_VERSION}/conf/zabbix_agentd.conf /etc/zabbix/zabbix_agentd.conf
 
-RUN addgroup zabbix && \
+RUN set -eux && \
+    addgroup zabbix && \
     adduser -S \
             -D -G zabbix \
             -h /var/lib/zabbix/ \
@@ -86,7 +88,7 @@ RUN addgroup zabbix && \
     mkdir -p /var/lib/zabbix/modules && \
     chown --quiet -R zabbix:root /var/lib/zabbix && \
     apk update && \
-    apk add ${APK_FLAGS_PERSISTANT} \
+    apk add ${APK_FLAGS_PERSISTENT} \
             tini \
             bash \
             coreutils \

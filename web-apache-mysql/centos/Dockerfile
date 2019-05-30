@@ -8,7 +8,8 @@ ARG ZBX_VERSION=${MAJOR_VERSION}
 ARG ZBX_SOURCES=https://git.zabbix.com/scm/zbx/zabbix.git
 ENV TERM=xterm ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES}
 
-RUN yum --quiet makecache && \
+RUN set -eux && \
+    yum --quiet makecache && \
     yum ${YUM_FLAGS_DEV} install \
             gettext \
             git && \
@@ -54,7 +55,8 @@ STOPSIGNAL SIGTERM
 
 COPY --from=builder /tmp/zabbix/ /usr/share/zabbix/
 
-RUN groupadd --system zabbix && \
+RUN set -eux && \
+    groupadd --system zabbix && \
     adduser -r --shell /sbin/nologin \
             -g zabbix \
             -d /var/lib/zabbix/ \
@@ -80,7 +82,7 @@ RUN groupadd --system zabbix && \
                 cut -d"'" -f 2 | sort | \
                 xargs -I '{}' bash -c 'echo "{}" && localedef -c -i {} -f UTF-8 {}.UTF-8 2>/dev/null' && \
     chown --quiet -R apache:apache /usr/share/zabbix && \
-    yum ${YUM_FLAGS_PERSISTANT} clean all && \
+    yum ${YUM_FLAGS_PERSISTENT} clean all && \
     rm -rf /var/cache/yum/
 
 EXPOSE 80/TCP 443/TCP

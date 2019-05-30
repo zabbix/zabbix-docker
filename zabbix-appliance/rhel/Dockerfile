@@ -80,7 +80,7 @@ RUN INSTALL_PKGS="OpenIPMI-libs \
             php-mysql \
             php-xml \
             unixODBC" && \
-    rpm -ivh http://repo.zabbix.com/zabbix/${MAJOR_VERSION}/rhel/7/x86_64/zabbix-release-${MAJOR_VERSION}-2.el7.noarch.rpm && \
+    rpm -ivh https://repo.zabbix.com/zabbix/${MAJOR_VERSION}/rhel/7/x86_64/zabbix-release-${MAJOR_VERSION}-2.el7.noarch.rpm && \
     REPOLIST="rhel-7-server-rpms,rhel-7-server-optional-rpms,zabbix-non-supported,nginx" && \
     yum -y update-minimal --disablerepo "*" --enablerepo rhel-7-server-rpms --setopt=tsflags=nodocs \
       --security --sec-severity=Important --sec-severity=Critical && \

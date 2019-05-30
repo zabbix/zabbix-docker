@@ -32,7 +32,8 @@ STOPSIGNAL SIGTERM
 
 COPY ["snmptrapfmt_1.14+nmu1ubuntu2.tar.gz", "/tmp/"]
 
-RUN addgroup zabbix && \
+RUN set -eux && \
+    addgroup zabbix && \
     adduser -S \
             -D -G zabbix \
             -h /var/lib/zabbix/ \
