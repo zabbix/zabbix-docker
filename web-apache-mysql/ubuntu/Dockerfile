@@ -21,7 +21,8 @@ LABEL org.label-schema.name="zabbix-web-${ZBX_OPT_TYPE}-${DB_TYPE}-ubuntu" \
 
 STOPSIGNAL SIGTERM
 
-RUN apt-get ${APT_FLAGS_COMMON} update && \
+RUN set -eux && \
+    apt-get ${APT_FLAGS_COMMON} update && \
     DEBIAN_FRONTEND=noninteractive apt-get ${APT_FLAGS_PERSISTENT} install locales && \
     locale-gen $LC_ALL && \
     echo "#!/bin/sh\nexit 0" > /usr/sbin/policy-rc.d && \
@@ -62,7 +63,8 @@ LABEL org.label-schema.usage="https://www.zabbix.com/documentation/${MAJOR_VERSI
       org.label-schema.vcs-url="${ZBX_SOURCES}" \
       org.label-schema.docker.cmd="docker run --name zabbix-web-${ZBX_OPT_TYPE}-${ZBX_DB_TYPE} --link mysql-server:mysql --link zabbix-server:zabbix-server -p 80:80 -d zabbix-web-${ZBX_OPT_TYPE}-${ZBX_DB_TYPE}:ubuntu-${ZBX_VERSION}"
 
-RUN apt-get ${APT_FLAGS_COMMON} update && \
+RUN set -eux && \
+    apt-get ${APT_FLAGS_COMMON} update && \
     DEBIAN_FRONTEND=noninteractive apt-get ${APT_FLAGS_DEV} install \
             gettext \
             ca-certificates \

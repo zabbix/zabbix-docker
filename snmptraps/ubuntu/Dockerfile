@@ -33,7 +33,8 @@ STOPSIGNAL SIGTERM
 
 COPY ["snmptrapfmt_1.14+nmu1ubuntu2_amd64.deb", "/tmp/"]
 
-RUN apt-get ${APT_FLAGS_COMMON} update && \
+RUN set -eux && \
+    apt-get ${APT_FLAGS_COMMON} update && \
     DEBIAN_FRONTEND=noninteractive apt-get ${APT_FLAGS_PERSISTENT} install locales && \
     locale-gen $LC_ALL && \
     echo "#!/bin/sh\nexit 0" > /usr/sbin/policy-rc.d && \

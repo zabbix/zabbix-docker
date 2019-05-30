@@ -10,7 +10,8 @@ ENV ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES}
 
 COPY ["snmptrapfmt_1.14+nmu1ubuntu2.tar.gz", "/tmp/"]
 
-RUN yum ${YUM_FLAGS_COMMON} makecache && \
+RUN set -eux && \
+    yum ${YUM_FLAGS_COMMON} makecache && \
     yum ${YUM_FLAGS_DEV} install \
             autoconf \
             automake \
@@ -59,7 +60,8 @@ COPY --from=builder /tmp/snmptrapfmt-1.14+nmu1ubuntu1/snmptrapfmthdlr /usr/sbin/
 COPY --from=builder /tmp/snmptrapfmt-1.14+nmu1ubuntu1/snmptrapfmt /usr/sbin/snmptrapfmt
 COPY --from=builder /tmp/snmptrapfmt-1.14+nmu1ubuntu1/snmptrapfmt.conf /etc/snmp/snmptrapfmt.conf
 
-RUN groupadd --system zabbix && \
+RUN set -eux && \
+    groupadd --system zabbix && \
     adduser -r --shell /sbin/nologin \
             -g zabbix \
             -d /var/lib/zabbix/ \
