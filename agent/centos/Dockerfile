@@ -102,6 +102,4 @@ VOLUME ["/etc/zabbix/zabbix_agentd.d", "/var/lib/zabbix/enc", "/var/lib/zabbix/m
 
 COPY ["docker-entrypoint.sh", "/usr/bin/"]
 
-ENTRYPOINT ["/sbin/tini", "--"]
-
-CMD ["docker-entrypoint.sh"]
+ENTRYPOINT ["/sbin/tini", "--", "/usr/bin/docker-entrypoint.sh"]
