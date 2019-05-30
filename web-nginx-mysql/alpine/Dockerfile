@@ -21,7 +21,8 @@ LABEL org.label-schema.name="zabbix-web-${ZBX_OPT_TYPE}-${ZBX_DB_TYPE}-alpine" \
 
 STOPSIGNAL SIGTERM
 
-RUN addgroup zabbix && \
+RUN set -eux && \
+    addgroup zabbix && \
     adduser -S \
             -D -G zabbix \
             -h /var/lib/zabbix/ \
@@ -64,7 +65,8 @@ LABEL org.label-schema.usage="https://www.zabbix.com/documentation/${MAJOR_VERSI
       org.label-schema.vcs-url="${ZBX_SOURCES}" \
       org.label-schema.docker.cmd="docker run --name zabbix-web-${ZBX_OPT_TYPE}-${ZBX_DB_TYPE} --link mysql-server:mysql --link zabbix-server:zabbix-server -p 80:80 -d zabbix-web-${ZBX_OPT_TYPE}-${ZBX_DB_TYPE}:alpine-${ZBX_VERSION}"
 
-RUN apk add ${APK_FLAGS_DEV} --virtual build-dependencies \
+RUN set -eux && \
+    apk add ${APK_FLAGS_DEV} --virtual build-dependencies \
             coreutils \
             gettext \
             git && \
