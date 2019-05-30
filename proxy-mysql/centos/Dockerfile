@@ -137,6 +137,4 @@ VOLUME ["/var/lib/zabbix/ssh_keys", "/var/lib/zabbix/ssl/certs", "/var/lib/zabbi
 
 COPY ["docker-entrypoint.sh", "/usr/bin/"]
 
-ENTRYPOINT ["/sbin/tini", "--"]
-
-CMD ["docker-entrypoint.sh"]
+ENTRYPOINT ["/sbin/tini", "--", "/usr/bin/docker-entrypoint.sh"]

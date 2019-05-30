@@ -196,6 +196,4 @@ COPY ["docker-entrypoint.sh", "/usr/bin/"]
 
 ENV ZBX_TYPE=appliance
 
-ENTRYPOINT ["/sbin/tini", "--"]
-
-CMD ["docker-entrypoint.sh"]
+ENTRYPOINT ["/sbin/tini", "--", "/usr/bin/docker-entrypoint.sh"]
