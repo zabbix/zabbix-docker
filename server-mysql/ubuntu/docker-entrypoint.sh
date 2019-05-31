@@ -30,9 +30,6 @@ ZBX_SERVER_PORT=${ZBX_SERVER_PORT:-"10051"}
 # Default timezone for web interface
 PHP_TZ=${PHP_TZ:-"Europe/Riga"}
 
-#Enable PostgreSQL timescaleDB feature:
-ENABLE_TIMESCALEDB=${ENABLE_TIMESCALEDB:-"false"}
-
 # Default directories
 # User 'zabbix' home directory
 ZABBIX_USER_HOME_DIR="/var/lib/zabbix"
@@ -40,6 +37,35 @@ ZABBIX_USER_HOME_DIR="/var/lib/zabbix"
 ZABBIX_ETC_DIR="/etc/zabbix"
 # Web interface www-root directory
 ZBX_FRONTEND_PATH="/usr/share/zabbix"
+
+# usage: file_env VAR [DEFAULT]
+# as example: file_env 'POSTGRES_PASSWORD' 'zabbix'
+#    (will allow for "$POSTGRES_PASSWORD_FILE" to fill in the value of "$POSTGRES_PASSWORD" from a file)
+# unsets the VAR_FILE afterwards and just leaving VAR
+file_env() {
+    local var="$1"
+    local fileVar="${var}_FILE"
+    local defaultValue="${2:-}"
+
+    if [ "${!var:-}" ] && [ "${!fileVar:-}" ]; then
+        echo >&2 "error: both $var and $fileVar are set (but are exclusive)"
+        exit 1
+    fi
+
+    local val="$defaultValue"
+
+    if [ "${!var:-}" ]; then
+        val="${!var}"
+    elif [ "${!fileVar:-}" ]; then
+        if [ ! -f "${!fileVar}" ]; then
+            echo >&2 "error: file \"${!fileVar}\" is not found"
+            exit 1
+        fi
+        val="$(< "${!fileVar}")"
+    fi
+    export "$var"="$val"
+    unset "$fileVar"
+}
 
 configure_db_mysql() {
     [ "${DB_SERVER_HOST}" != "localhost" ] && return
@@ -213,6 +239,9 @@ check_variables_mysql() {
     DB_SERVER_PORT=${DB_SERVER_PORT:-"3306"}
     USE_DB_ROOT_USER=false
     CREATE_ZBX_DB_USER=false
+    file_env MYSQL_USER
+    file_env MYSQL_ROOT_PASSWORD
+    file_env MYSQL_PASSWORD
 
     if [ ! -n "${MYSQL_USER}" ] && [ "${MYSQL_RANDOM_ROOT_PASSWORD}" == "true" ]; then
         echo "**** Impossible to use MySQL server because of unknown Zabbix user and random 'root' password"
@@ -249,6 +278,9 @@ check_variables_mysql() {
 check_variables_postgresql() {
     local type=$1
 
+    file_env POSTGRES_USER
+    file_env POSTGRES_PASSWORD
+
     DB_SERVER_HOST=${DB_SERVER_HOST:-"postgres-server"}
     DB_SERVER_PORT=${DB_SERVER_PORT:-"5432"}
     CREATE_ZBX_DB_USER=${CREATE_ZBX_DB_USER:-"false"}
@@ -258,8 +290,6 @@ check_variables_postgresql() {
 
     DB_SERVER_ZBX_USER=${POSTGRES_USER:-"zabbix"}
     DB_SERVER_ZBX_PASS=${POSTGRES_PASSWORD:-"zabbix"}
-
-    DB_SERVER_SCHEMA=${DB_SERVER_SCHEMA:-"public"}
 
     if [ "$type" == "proxy" ]; then
         DB_SERVER_DBNAME=${POSTGRES_DB:-"zabbix_proxy"}
@@ -414,8 +444,6 @@ create_db_database_postgresql() {
     else
         echo "** Database '${DB_SERVER_DBNAME}' already exists. Please be careful with database owner!"
     fi
-
-    psql_query "CREATE SCHEMA IF NOT EXISTS ${DB_SERVER_SCHEMA}"
 }
 
 create_db_schema_mysql() {
@@ -442,19 +470,15 @@ create_db_schema_postgresql() {
     local type=$1
 
     DBVERSION_TABLE_EXISTS=$(psql_query "SELECT 1 FROM pg_catalog.pg_class c JOIN pg_catalog.pg_namespace n ON n.oid = 
-                                         c.relnamespace WHERE  n.nspname = '$DB_SERVER_SCHEMA' AND c.relname = 'dbversion'" "${DB_SERVER_DBNAME}")
+                                         c.relnamespace WHERE  n.nspname = 'public' AND c.relname = 'dbversion'" "${DB_SERVER_DBNAME}")
 
     if [ -n "${DBVERSION_TABLE_EXISTS}" ]; then
         echo "** Table '${DB_SERVER_DBNAME}.dbversion' already exists."
-        ZBX_DB_VERSION=$(psql_query "SELECT mandatory FROM ${DB_SERVER_SCHEMA}.dbversion" "${DB_SERVER_DBNAME}")
+        ZBX_DB_VERSION=$(psql_query "SELECT mandatory FROM public.dbversion" "${DB_SERVER_DBNAME}")
     fi
 
     if [ -z "${ZBX_DB_VERSION}" ]; then
         echo "** Creating '${DB_SERVER_DBNAME}' schema in PostgreSQL"
-
-        if [ "${ENABLE_TIMESCALEDB}" == "true" ]; then
-            psql_query "CREATE EXTENSION IF NOT EXISTS timescaledb CASCADE;"
-        fi
 
         if [ -n "${DB_SERVER_ZBX_PASS}" ]; then
             export PGPASSWORD="${DB_SERVER_ZBX_PASS}"
@@ -468,12 +492,6 @@ create_db_schema_postgresql() {
         zcat /usr/share/doc/zabbix-$type-postgresql/create.sql.gz | psql -q \
                 -h ${DB_SERVER_HOST} -p ${DB_SERVER_PORT} \
                 -U ${DB_SERVER_ZBX_USER} ${DB_SERVER_DBNAME} 1>/dev/null
-
-        if [ "${ENABLE_TIMESCALEDB}" == "true" ]; then
-            cat /usr/share/doc/zabbix-$type-postgresql/timescaledb.sql | psql -q \
-                -h ${DB_SERVER_HOST} -p ${DB_SERVER_PORT} \
-                -U ${DB_SERVER_ZBX_USER} ${DB_SERVER_DBNAME} 1>/dev/null
-        fi
 
         unset PGPASSWORD
         unset PGOPTIONS
@@ -683,11 +701,6 @@ update_zbx_config() {
 
     update_config_var $ZBX_CONFIG "DebugLevel" "${ZBX_DEBUGLEVEL}"
 
-    if [ $type == "proxy" ]; then
-        update_config_var $ZBX_CONFIG "EnableRemoteCommands" "${ZBX_ENABLEREMOTECOMMANDS}"
-        update_config_var $ZBX_CONFIG "LogRemoteCommands" "${ZBX_LOGREMOTECOMMANDS}"
-    fi
-
     if [ "$db_type" == "sqlite3" ]; then
         update_config_var $ZBX_CONFIG "DBHost"
         update_config_var $ZBX_CONFIG "DBName" "/var/lib/zabbix/zabbix_proxy_db"
@@ -703,11 +716,6 @@ update_zbx_config() {
         update_config_var $ZBX_CONFIG "DBPassword" "${DB_SERVER_ZBX_PASS}"
     fi
 
-    if [ $type == "server" ]; then
-        update_config_var $ZBX_CONFIG "HistoryStorageURL" "${ZBX_HISTORYSTORAGEURL}"
-        update_config_var $ZBX_CONFIG "HistoryStorageTypes" "${ZBX_HISTORYSTORAGETYPES}"
-    fi
-
     update_config_var $ZBX_CONFIG "DBSocket" "${DB_SERVER_SOCKET}"
 
     if [ "$type" == "proxy" ]; then
@@ -718,8 +726,6 @@ update_zbx_config() {
         update_config_var $ZBX_CONFIG "DataSenderFrequency" "${ZBX_DATASENDERFREQUENCY}"
     fi
 
-    update_config_var $ZBX_CONFIG "StatsAllowedIP" "${ZBX_STATSALLOWEDIP}"
-
     update_config_var $ZBX_CONFIG "StartPollers" "${ZBX_STARTPOLLERS}"
     update_config_var $ZBX_CONFIG "StartIPMIPollers" "${ZBX_IPMIPOLLERS}"
     update_config_var $ZBX_CONFIG "StartPollersUnreachable" "${ZBX_STARTPOLLERSUNREACHABLE}"
@@ -729,10 +735,8 @@ update_zbx_config() {
     update_config_var $ZBX_CONFIG "StartHTTPPollers" "${ZBX_STARTHTTPPOLLERS}"
 
     if [ "$type" == "server" ]; then
-        update_config_var $ZBX_CONFIG "StartPreprocessors" "${ZBX_STARTPREPROCESSORS}"
         update_config_var $ZBX_CONFIG "StartTimers" "${ZBX_STARTTIMERS}"
         update_config_var $ZBX_CONFIG "StartEscalators" "${ZBX_STARTESCALATORS}"
-        update_config_var $ZBX_CONFIG "StartAlerters" "${ZBX_STARTALERTERS}"
     fi
 
     ZBX_JAVAGATEWAY_ENABLE=${ZBX_JAVAGATEWAY_ENABLE:-"false"}
@@ -846,14 +850,13 @@ prepare_zbx_web_config() {
 
     echo "** Preparing Zabbix frontend configuration file"
 
-    ZBX_WWW_ROOT="/usr/share/zabbix"
     ZBX_WEB_CONFIG="$ZABBIX_ETC_DIR/web/zabbix.conf.php"
 
-    if [ -f "$ZBX_WWW_ROOT/conf/zabbix.conf.php" ]; then
-        rm -f "$ZBX_WWW_ROOT/conf/zabbix.conf.php"
+    if [ -f "/usr/share/zabbix/conf/zabbix.conf.php" ]; then
+        rm -f "/usr/share/zabbix/conf/zabbix.conf.php"
     fi
 
-    ln -s "$ZBX_WEB_CONFIG" "$ZBX_WWW_ROOT/conf/zabbix.conf.php"
+    ln -s "$ZBX_WEB_CONFIG" "/usr/share/zabbix/conf/zabbix.conf.php"
 
     # Different places of PHP configuration file
     if [ -f "/etc/php5/conf.d/99-zabbix.ini" ]; then
@@ -887,14 +890,10 @@ prepare_zbx_web_config() {
         echo "**** Zabbix related PHP configuration file not found"
     fi
 
-    ZBX_HISTORYSTORAGETYPES=${ZBX_HISTORYSTORAGETYPES:-"[]"}
-
     # Escaping characters in parameter value
     server_name=$(escape_spec_char "${ZBX_SERVER_NAME}")
     server_user=$(escape_spec_char "${DB_SERVER_ZBX_USER}")
     server_pass=$(escape_spec_char "${DB_SERVER_ZBX_PASS}")
-    history_storage_url=$(escape_spec_char "${ZBX_HISTORYSTORAGEURL}")
-    history_storage_types=$(escape_spec_char "${ZBX_HISTORYSTORAGETYPES}")
 
     sed -i \
         -e "s/{DB_SERVER_HOST}/${DB_SERVER_HOST}/g" \
@@ -906,13 +905,9 @@ prepare_zbx_web_config() {
         -e "s/{ZBX_SERVER_HOST}/${ZBX_SERVER_HOST}/g" \
         -e "s/{ZBX_SERVER_PORT}/${ZBX_SERVER_PORT}/g" \
         -e "s/{ZBX_SERVER_NAME}/$server_name/g" \
-        -e "s/{ZBX_HISTORYSTORAGEURL}/$history_storage_url/g" \
-        -e "s/{ZBX_HISTORYSTORAGETYPES}/$history_storage_types/g" \
     "$ZBX_WEB_CONFIG"
 
     [ "$db_type" = "postgresql" ] && sed -i "s/MYSQL/POSTGRESQL/g" "$ZBX_WEB_CONFIG"
-
-    [ -n "${ZBX_SESSION_NAME}" ] && sed -i "/ZBX_SESSION_NAME/s/'[^']*'/'${ZBX_SESSION_NAME}'/2" "$ZBX_WWW_ROOT/include/defines.inc.php"
 }
 
 prepare_zbx_agent_config() {
