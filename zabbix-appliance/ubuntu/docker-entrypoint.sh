@@ -60,17 +60,18 @@ file_env() {
 
     if [ "${!var:-}" ]; then
         val="${!var}"
+        echo "taking ${var} from env"
     elif [ "${!fileVar:-}" ]; then
         if [ ! -f "${!fileVar}" ]; then
             echo >&2 "error: file \"${!fileVar}\" is not found"
             exit 1
         fi
         val="$(< "${!fileVar}")"
+        echo "taking ${var} from file"
     fi
     export "$var"="$val"
     unset "$fileVar"
 }
-
 
 configure_db_mysql() {
     [ "${DB_SERVER_HOST}" != "localhost" ] && return
