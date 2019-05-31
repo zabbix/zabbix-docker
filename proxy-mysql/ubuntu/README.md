@@ -189,7 +189,7 @@ Default values of these variables are specified after equal sign.
 
 The allowed variables are identical of parameters in official ``zabbix_proxy.conf``. For example, ``ZBX_LOGSLOWQUERIES`` = ``LogSlowQueries``.
 
-Please use official documentation for [``zabbix_proxy.conf``](https://www.zabbix.com/documentation/3.0/manual/appendix/config/zabbix_proxy) to get more information about the variables.
+Please use official documentation for [``zabbix_proxy.conf``](https://www.zabbix.com/documentation/current/manual/appendix/config/zabbix_proxy) to get more information about the variables.
 
 ## Allowed volumes for the Zabbix proxy container
 
