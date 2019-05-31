@@ -9,7 +9,8 @@ ARG ZBX_SOURCES=https://git.zabbix.com/scm/zbx/zabbix.git
 ENV TERM=xterm ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES} \
     ZBX_TYPE=java-gateway
 
-RUN yum --quiet makecache && \
+RUN set -eux && \
+    yum ${YUM_FLAGS_COMMON} makecache && \
     yum ${YUM_FLAGS_DEV} install \
             autoconf \
             automake \
@@ -67,7 +68,8 @@ STOPSIGNAL SIGTERM
 COPY --from=builder /tmp/zabbix-${ZBX_VERSION}/src/zabbix_java/bin/* /usr/sbin/zabbix_java/bin/
 COPY --from=builder /tmp/zabbix-${ZBX_VERSION}/src/zabbix_java/lib/* /usr/sbin/zabbix_java/lib/
 
-RUN groupadd --system zabbix && \
+RUN set -eux && \
+    groupadd --system zabbix && \
     adduser --system --shell /sbin/nologin \
             -g zabbix \
             -d /var/lib/zabbix/ \

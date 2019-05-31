@@ -9,8 +9,9 @@ ARG ZBX_SOURCES=https://git.zabbix.com/scm/zbx/zabbix.git
 ENV LANG=en_US.UTF-8 LANGUAGE=en_US:en LC_ALL=en_US.UTF-8 TERM=xterm \
     ZBX_TYPE=agent ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES}
 
-RUN apt-get ${APT_FLAGS_COMMON} update && \
-    DEBIAN_FRONTEND=noninteractive apt-get ${APT_FLAGS_PERSISTENT} install locales && \
+RUN set -eux && \
+    apt-get ${APT_FLAGS_COMMON} update && \
+    DEBIAN_FRONTEND=noninteractive apt-get ${APT_FLAGS_DEV} install locales && \
     locale-gen $LC_ALL && \
     DEBIAN_FRONTEND=noninteractive apt-get ${APT_FLAGS_DEV} install \
             autoconf \
@@ -80,7 +81,8 @@ COPY --from=builder /tmp/zabbix-${ZBX_VERSION}/src/zabbix_sender/zabbix_sender /
 COPY --from=builder  /tmp/zabbix-${ZBX_VERSION}/conf/zabbix_agentd.conf /etc/zabbix/zabbix_agentd.conf
 ADD https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini /sbin/tini
 
-RUN apt-get ${APT_FLAGS_COMMON} update && \
+RUN set -eux && \
+    apt-get ${APT_FLAGS_COMMON} update && \
     DEBIAN_FRONTEND=noninteractive apt-get ${APT_FLAGS_PERSISTENT} install locales && \
     locale-gen $LC_ALL && \
     echo "#!/bin/sh\nexit 0" > /usr/sbin/policy-rc.d && \
