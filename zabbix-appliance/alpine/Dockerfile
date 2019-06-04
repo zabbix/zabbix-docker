@@ -138,7 +138,6 @@ RUN set -eux && \
     mkdir -p /var/lib/zabbix/ssl/ssl_ca && \
     chown --quiet -R zabbix:root /var/lib/zabbix && \
     mkdir -p /usr/share/doc/zabbix-${ZBX_TYPE}-${ZBX_DB_TYPE}/ && \
-    chown --quiet -R nginx:nginx /usr/share/zabbix/ && \
     apk update && \
     apk add ${APK_FLAGS_PERSISTENT} \
             tini \
@@ -171,6 +170,7 @@ RUN set -eux && \
             supervisor \
             pcre \
             unixodbc && \
+    chown --quiet -R nginx:nginx /usr/share/zabbix/ && \
     rm -rf /var/cache/apk/*
 
 EXPOSE 80/TCP 443/TCP 10051/TCP
