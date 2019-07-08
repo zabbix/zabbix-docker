@@ -88,7 +88,6 @@ RUN set -eux && \
     find /usr/share/zabbix/locale -name '*.sh' | xargs rm -f && \
     DEBIAN_FRONTEND=noninteractive apt-get ${APT_FLAGS_COMMON} purge \
             gettext \
-            ca-certificates \
             git && \
     apt-get ${APT_FLAGS_COMMON} autoremove && \
     apt-get ${APT_FLAGS_COMMON} clean && \
