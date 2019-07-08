@@ -89,7 +89,6 @@ RUN set -eux && \
     chown --quiet -R www-data:www-data /usr/share/zabbix && \
     DEBIAN_FRONTEND=noninteractive apt-get ${APT_FLAGS_COMMON} purge \
             gettext \
-            ca-certificates \
             git && \
     apt-get ${APT_FLAGS_COMMON} autoremove && \
     apt-get ${APT_FLAGS_COMMON} clean && \
