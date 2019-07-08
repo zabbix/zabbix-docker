@@ -91,7 +91,6 @@ RUN set -eux && \
     DEBIAN_FRONTEND=noninteractive apt-get ${APT_FLAGS_COMMON} purge \
             gettext \
             patch \
-            ca-certificates \
             git && \
     apt-get ${APT_FLAGS_COMMON} autoremove && \
     apt-get ${APT_FLAGS_COMMON} clean && \
