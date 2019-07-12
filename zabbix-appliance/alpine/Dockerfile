@@ -1,92 +1,12 @@
-FROM alpine:3.4 as builder
-
-ARG APK_FLAGS_COMMON=""
-ARG APK_FLAGS_DEV="${APK_FLAGS_COMMON} --no-cache"
-
-ARG MAJOR_VERSION=4.4
-ARG ZBX_VERSION=${MAJOR_VERSION}
-ARG ZBX_SOURCES=https://git.zabbix.com/scm/zbx/zabbix.git
-ENV ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES} \
-    PATH=${PATH}:/usr/lib/jvm/default-jvm/bin/ JAVA_HOME=/usr/lib/jvm/default-jvm \
-    ZBX_TYPE=server ZBX_DB_TYPE=mysql ZBX_OPT_TYPE=nginx \
-    MYSQL_ALLOW_EMPTY_PASSWORD=true ZBX_ADD_SERVER=true ZBX_ADD_WEB=true DB_SERVER_HOST=localhost MYSQL_USER=zabbix ZBX_ADD_JAVA_GATEWAY=true ZBX_JAVAGATEWAY_ENABLE=true ZBX_JAVAGATEWAY=localhost
-
-RUN set -eux && \
-    apk add ${APK_FLAGS_DEV} --virtual build-dependencies \
-            bash \
-            alpine-sdk \
-            autoconf \
-            automake \
-            coreutils \
-            curl-dev \
-            gettext \
-            libevent-dev \
-            libssh2-dev \
-            libxml2-dev \
-            mysql-dev \
-            net-snmp-dev \
-            openipmi-dev \
-            openjdk8 \
-            openldap-dev \
-            pcre-dev \
-            git \
-            unixodbc-dev && \
-    cd /tmp/ && \
-    git clone ${ZBX_SOURCES} --branch master --depth 1 --single-branch zabbix-${ZBX_VERSION} && \
-    cd /tmp/zabbix-${ZBX_VERSION} && \
-    zabbix_revision=`git rev-parse --short HEAD` && \
-    sed -i "s/{ZABBIX_REVISION}/$zabbix_revision/g" include/version.h && \
-    sed -i "s/{ZABBIX_REVISION}/$zabbix_revision/g" include/version.h && \
-    sed -i "s/{ZABBIX_REVISION}/$zabbix_revision/g" src/zabbix_java/src/com/zabbix/gateway/GeneralInformation.java && \
-    ./bootstrap.sh && \
-    export CFLAGS="-fPIC -pie -Wl,-z,relro -Wl,-z,now" && \
-    ./configure \
-            --datadir=/usr/lib \
-            --libdir=/usr/lib/zabbix \
-            --prefix=/usr \
-            --sysconfdir=/etc/zabbix \
-            --enable-agent \
-            --enable-${ZBX_TYPE} \
-            --with-${ZBX_DB_TYPE} \
-# Does not support stable iksemel library
-#            --with-jabber \
-            --with-ldap \
-            --with-libcurl \
-            --with-libxml2 \
-            --enable-java \
-            --with-net-snmp \
-            --with-openipmi \
-            --with-openssl \
-            --with-ssh2 \
-            --with-unixodbc \
-            --enable-ipv6 \
-            --silent && \
-    make -j"$(nproc)" -s dbschema && \
-    make -j"$(nproc)" -s && \
-    cat database/${ZBX_DB_TYPE}/schema.sql > database/${ZBX_DB_TYPE}/create.sql && \
-    cat database/${ZBX_DB_TYPE}/images.sql >> database/${ZBX_DB_TYPE}/create.sql && \
-    cat database/${ZBX_DB_TYPE}/data.sql >> database/${ZBX_DB_TYPE}/create.sql && \
-    gzip database/${ZBX_DB_TYPE}/create.sql && \
-    rm -rf /tmp/zabbix-${ZBX_VERSION}/src/zabbix_java/lib/*.xml && \
-    cd frontends/php/ && \
-    rm -f conf/zabbix.conf.php && \
-    rm -rf tests && \
-    ./locale/make_mo.sh
-
 FROM alpine:3.4
-LABEL maintainer="Alexey Pustovalov <alexey.pustovalov@zabbix.com>"
 
 ARG BUILD_DATE
 ARG VCS_REF
 
 ARG APK_FLAGS_COMMON=""
+ARG APK_FLAGS_DEV="${APK_FLAGS_COMMON} --no-cache"
 ARG APK_FLAGS_PERSISTENT="${APK_FLAGS_COMMON} --clean-protected --no-cache"
-
-ARG MAJOR_VERSION=4.4
-ARG ZBX_VERSION=${MAJOR_VERSION}
-ARG ZBX_SOURCES=https://git.zabbix.com/scm/zbx/zabbix.git
-ENV ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES} \
-    MIBDIRS=/usr/share/snmp/mibs:/var/lib/zabbix/mibs MIBS=+ALL PATH=${PATH}:/usr/lib/jvm/default-jvm/bin/ JAVA_HOME=/usr/lib/jvm/default-jvm \
+ENV PATH=${PATH}:/usr/lib/jvm/default-jvm/bin/ JAVA_HOME=/usr/lib/jvm/default-jvm \
     ZBX_TYPE=server ZBX_DB_TYPE=mysql ZBX_OPT_TYPE=nginx \
     MYSQL_ALLOW_EMPTY_PASSWORD=true ZBX_ADD_SERVER=true ZBX_ADD_WEB=true DB_SERVER_HOST=localhost MYSQL_USER=zabbix ZBX_ADD_JAVA_GATEWAY=true ZBX_JAVAGATEWAY_ENABLE=true ZBX_JAVAGATEWAY=localhost
 
@@ -97,24 +17,9 @@ LABEL org.label-schema.name="zabbix-${ZBX_TYPE}-${ZBX_DB_TYPE}-alpine" \
       org.label-schema.vcs-ref="${VCS_REF}" \
       org.label-schema.build-date="${BUILD_DATE}" \
       org.label-schema.schema-version="1.0" \
-      org.label-schema.license="GPL 2.0" \
-      org.label-schema.usage="https://www.zabbix.com/documentation/${MAJOR_VERSION}/manual/installation/containers" \
-      org.label-schema.version="${ZBX_VERSION}" \
-      org.label-schema.vcs-url="${ZBX_SOURCES}" \
-      org.label-schema.docker.cmd="docker run --name zabbix-appliance -p 80:80 -p 10051:10051 -d zabbix-appliance:alpine-${ZBX_VERSION}"
-
+      org.label-schema.license="GPL 2.0"
+    
 STOPSIGNAL SIGTERM
-
-COPY --from=builder /tmp/zabbix-${ZBX_VERSION}/src/zabbix_${ZBX_TYPE}/zabbix_${ZBX_TYPE} /usr/sbin/zabbix_${ZBX_TYPE}
-COPY --from=builder /tmp/zabbix-${ZBX_VERSION}/src/zabbix_get/zabbix_get /usr/bin/zabbix_get
-COPY --from=builder /tmp/zabbix-${ZBX_VERSION}/src/zabbix_sender/zabbix_sender /usr/bin/zabbix_sender
-COPY --from=builder /tmp/zabbix-${ZBX_VERSION}/conf/zabbix_${ZBX_TYPE}.conf /etc/zabbix/zabbix_${ZBX_TYPE}.conf
-COPY --from=builder /tmp/zabbix-${ZBX_VERSION}/database/${ZBX_DB_TYPE}/create.sql.gz /usr/share/doc/zabbix-${ZBX_TYPE}-${ZBX_DB_TYPE}/create.sql.gz
-
-COPY --from=builder /tmp/zabbix-${ZBX_VERSION}/src/zabbix_java/bin/ /usr/sbin/zabbix_java/bin/
-COPY --from=builder /tmp/zabbix-${ZBX_VERSION}/src/zabbix_java/lib/ /usr/sbin/zabbix_java/lib/
-
-COPY --from=builder /tmp/zabbix-${ZBX_VERSION}/frontends/php/ /usr/share/zabbix/
 
 RUN set -eux && \
     addgroup zabbix && \
@@ -170,7 +75,99 @@ RUN set -eux && \
             supervisor \
             pcre \
             unixodbc && \
-    chown --quiet -R nginx:nginx /usr/share/zabbix/ && \
+    rm -rf /var/cache/apk/*
+
+ARG MAJOR_VERSION=4.4
+ARG ZBX_VERSION=${MAJOR_VERSION}
+ARG ZBX_SOURCES=https://git.zabbix.com/scm/zbx/zabbix.git
+ENV ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES}
+
+LABEL org.label-schema.usage="https://www.zabbix.com/documentation/${MAJOR_VERSION}/manual/installation/containers" \
+      org.label-schema.version="${ZBX_VERSION}" \
+      org.label-schema.vcs-url="${ZBX_SOURCES}" \
+      org.label-schema.docker.cmd="docker run --name zabbix-appliance -p 80:80 -p 10051:10051 -d zabbix-appliance:alpine-${ZBX_VERSION}"
+
+RUN set -eux && \
+    apk add ${APK_FLAGS_DEV} --virtual build-dependencies \
+            bash \
+            alpine-sdk \
+            autoconf \
+            automake \
+            coreutils \
+            curl-dev \
+            gettext \
+            libevent-dev \
+            libssh2-dev \
+            libxml2-dev \
+            mysql-dev \
+            net-snmp-dev \
+            openipmi-dev \
+            openjdk8 \
+            openldap-dev \
+            pcre-dev \
+            git \
+            unixodbc-dev && \
+    cd /tmp/ && \
+    git clone ${ZBX_SOURCES} --branch master --depth 1 --single-branch zabbix-${ZBX_VERSION} && \
+    cd /tmp/zabbix-${ZBX_VERSION} && \
+    zabbix_revision=`git rev-parse --short HEAD` && \
+    sed -i "s/{ZABBIX_REVISION}/$zabbix_revision/g" include/version.h && \
+    sed -i "s/{ZABBIX_REVISION}/$zabbix_revision/g" include/version.h && \
+    sed -i "s/{ZABBIX_REVISION}/$zabbix_revision/g" src/zabbix_java/src/com/zabbix/gateway/GeneralInformation.java && \
+    ./bootstrap.sh && \
+    export CFLAGS="-fPIC -pie -Wl,-z,relro -Wl,-z,now" && \
+    ./configure \
+            --datadir=/usr/lib \
+            --libdir=/usr/lib/zabbix \
+            --prefix=/usr \
+            --sysconfdir=/etc/zabbix \
+            --enable-agent \
+            --enable-${ZBX_TYPE} \
+            --with-${ZBX_DB_TYPE} \
+# Does not support stable iksemel library
+#            --with-jabber \
+            --with-ldap \
+            --with-libcurl \
+            --with-libxml2 \
+            --enable-java \
+            --with-net-snmp \
+            --with-openipmi \
+            --with-openssl \
+            --with-ssh2 \
+            --with-unixodbc \
+            --enable-ipv6 \
+            --silent && \
+    make -j"$(nproc)" -s dbschema && \
+    make -j"$(nproc)" -s && \
+    cp src/zabbix_${ZBX_TYPE}/zabbix_${ZBX_TYPE} /usr/sbin/zabbix_${ZBX_TYPE} && \
+    cp src/zabbix_get/zabbix_get /usr/bin/zabbix_get && \
+    cp src/zabbix_sender/zabbix_sender /usr/bin/zabbix_sender && \
+    cp conf/zabbix_${ZBX_TYPE}.conf /etc/zabbix/zabbix_${ZBX_TYPE}.conf && \
+    chown --quiet -R zabbix:root /etc/zabbix && \
+    cat database/${ZBX_DB_TYPE}/schema.sql > database/${ZBX_DB_TYPE}/create.sql && \
+    cat database/${ZBX_DB_TYPE}/images.sql >> database/${ZBX_DB_TYPE}/create.sql && \
+    cat database/${ZBX_DB_TYPE}/data.sql >> database/${ZBX_DB_TYPE}/create.sql && \
+    gzip database/${ZBX_DB_TYPE}/create.sql && \
+    cp /tmp/zabbix-${ZBX_VERSION}/database/${ZBX_DB_TYPE}/create.sql.gz /usr/share/doc/zabbix-${ZBX_TYPE}-${ZBX_DB_TYPE}/create.sql.gz && \
+    mkdir -p /usr/sbin/zabbix_java/ && \
+    cp -r src/zabbix_java/bin /usr/sbin/zabbix_java/ && \
+    cp -r src/zabbix_java/lib /usr/sbin/zabbix_java/ && \
+    rm -rf /usr/sbin/zabbix_java/lib/*.xml && \
+    cd /tmp/ && \
+    rm -rf /tmp/zabbix-${ZBX_VERSION}/ && \
+    cd /usr/share/ && \
+    git clone ${ZBX_SOURCES} --branch master --depth 1 --single-branch zabbix-${ZBX_VERSION} && \
+    mkdir /usr/share/zabbix/ && \
+    cp -R /usr/share/zabbix-${ZBX_VERSION}/frontends/php/* /usr/share/zabbix/ && \
+    rm -rf /usr/share/zabbix-${ZBX_VERSION}/ && \
+    cd /usr/share/zabbix/ && \
+    rm -f conf/zabbix.conf.php && \
+    rm -rf tests && \
+    ./locale/make_mo.sh && \
+    cd /tmp/ && \
+    rm -rf /tmp/zabbix-${ZBX_VERSION}/ && \
+    apk del ${APK_FLAGS_COMMON} --purge \
+            build-dependencies && \
     rm -rf /var/cache/apk/*
 
 EXPOSE 80/TCP 443/TCP 10051/TCP
