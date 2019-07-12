@@ -139,11 +139,16 @@ RUN set -eux && \
     cp src/zabbix_get/zabbix_get /usr/bin/zabbix_get && \
     cp src/zabbix_sender/zabbix_sender /usr/bin/zabbix_sender && \
     cp conf/zabbix_${ZBX_TYPE}.conf /etc/zabbix/zabbix_${ZBX_TYPE}.conf && \
+    chown --quiet -R zabbix:root /etc/zabbix && \
     cat database/${ZBX_DB_TYPE}/schema.sql > database/${ZBX_DB_TYPE}/create.sql && \
     cat database/${ZBX_DB_TYPE}/images.sql >> database/${ZBX_DB_TYPE}/create.sql && \
     cat database/${ZBX_DB_TYPE}/data.sql >> database/${ZBX_DB_TYPE}/create.sql && \
     gzip database/${ZBX_DB_TYPE}/create.sql && \
     cp /tmp/zabbix-${ZBX_VERSION}/database/${ZBX_DB_TYPE}/create.sql.gz /usr/share/doc/zabbix-${ZBX_TYPE}-${ZBX_DB_TYPE}/create.sql.gz && \
+    mkdir -p /usr/sbin/zabbix_java/ && \
+    cp -r src/zabbix_java/bin /usr/sbin/zabbix_java/ && \
+    cp -r src/zabbix_java/lib /usr/sbin/zabbix_java/ && \
+    rm -rf /usr/sbin/zabbix_java/lib/*.xml && \
     cd /tmp/ && \
     rm -rf /tmp/zabbix-${ZBX_VERSION}/ && \
     cd /usr/share/ && \
