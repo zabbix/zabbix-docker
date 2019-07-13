@@ -33,6 +33,9 @@ services:
   env_file:
    - .env_db_pgsql
    - .env_srv
+  secrets:
+   - POSTGRES_USER
+   - POSTGRES_PASSWORD
   user: root
   depends_on:
    - postgres-server
@@ -56,7 +59,7 @@ services:
    - net.ipv4.conf.all.send_redirects=0
   labels:
    com.zabbix.description: "Zabbix server with PostgreSQL database support"
-   com.zabbix.company: "Zabbix SIA"
+   com.zabbix.company: "Zabbix LLC"
    com.zabbix.component: "zabbix-server"
    com.zabbix.dbtype: "pgsql"
    com.zabbix.os: "centos"
@@ -107,7 +110,7 @@ services:
   stop_grace_period: 30s
   labels:
    com.zabbix.description: "Zabbix proxy with SQLite3 database support"
-   com.zabbix.company: "Zabbix SIA"
+   com.zabbix.company: "Zabbix LLC"
    com.zabbix.component: "zabbix-proxy"
    com.zabbix.dbtype: "sqlite3"
    com.zabbix.os: "centos"
@@ -145,6 +148,10 @@ services:
    - .env_db_mysql_proxy
    - .env_prx
    - .env_prx_mysql
+  secrets:
+   - MYSQL_USER
+   - MYSQL_PASSWORD
+   - MYSQL_ROOT_PASSWORD
   user: root
   depends_on:
    - mysql-server
@@ -160,7 +167,7 @@ services:
   stop_grace_period: 30s
   labels:
    com.zabbix.description: "Zabbix proxy with MySQL database support"
-   com.zabbix.company: "Zabbix SIA"
+   com.zabbix.company: "Zabbix LLC"
    com.zabbix.component: "zabbix-proxy"
    com.zabbix.dbtype: "mysql"
    com.zabbix.os: "centos"
@@ -188,6 +195,9 @@ services:
   env_file:
    - .env_db_pgsql
    - .env_web
+  secrets:
+   - POSTGRES_USER
+   - POSTGRES_PASSWORD
   user: root
   depends_on:
    - postgres-server
@@ -210,7 +220,7 @@ services:
    - net.core.somaxconn=65535
   labels:
    com.zabbix.description: "Zabbix frontend on Apache web-server with PostgreSQL database support"
-   com.zabbix.company: "Zabbix SIA"
+   com.zabbix.company: "Zabbix LLC"
    com.zabbix.component: "zabbix-frontend"
    com.zabbix.webserver: "apache2"
    com.zabbix.dbtype: "pgsql"
@@ -239,6 +249,9 @@ services:
   env_file:
    - .env_db_pgsql
    - .env_web
+  secrets:
+   - POSTGRES_USER
+   - POSTGRES_PASSWORD
   user: root
   depends_on:
    - postgres-server
@@ -261,7 +274,7 @@ services:
    - net.core.somaxconn=65535
   labels:
    com.zabbix.description: "Zabbix frontend on Nginx web-server with PostgreSQL database support"
-   com.zabbix.company: "Zabbix SIA"
+   com.zabbix.company: "Zabbix LLC"
    com.zabbix.component: "zabbix-frontend"
    com.zabbix.webserver: "nginx"
    com.zabbix.dbtype: "pgsql"
@@ -303,7 +316,7 @@ services:
   stop_grace_period: 5s
   labels:
    com.zabbix.description: "Zabbix agent"
-   com.zabbix.company: "Zabbix SIA"
+   com.zabbix.company: "Zabbix LLC"
    com.zabbix.component: "zabbix-agentd"
    com.zabbix.os: "centos"
 
@@ -330,7 +343,7 @@ services:
   stop_grace_period: 5s
   labels:
    com.zabbix.description: "Zabbix Java Gateway"
-   com.zabbix.company: "Zabbix SIA"
+   com.zabbix.company: "Zabbix LLC"
    com.zabbix.component: "java-gateway"
    com.zabbix.os: "centos"
 
@@ -357,7 +370,7 @@ services:
   stop_grace_period: 5s
   labels:
    com.zabbix.description: "Zabbix snmptraps"
-   com.zabbix.company: "Zabbix SIA"
+   com.zabbix.company: "Zabbix LLC"
    com.zabbix.component: "snmptraps"
    com.zabbix.os: "ubuntu"
 
@@ -368,6 +381,10 @@ services:
    - ./zbx_env/var/lib/mysql:/var/lib/mysql:rw
   env_file:
    - .env_db_mysql
+  secrets:
+   - MYSQL_USER
+   - MYSQL_PASSWORD
+   - MYSQL_ROOT_PASSWORD
   user: root
   stop_grace_period: 1m
   networks:
@@ -383,6 +400,9 @@ services:
    - ./zbx_env/var/lib/postgresql/data:/var/lib/postgresql/data:rw
   env_file:
    - .env_db_pgsql
+  secrets:
+   - POSTGRES_USER
+   - POSTGRES_PASSWORD
   user: root
   stop_grace_period: 1m
   networks:
@@ -430,3 +450,15 @@ networks:
       driver: default
       config:
       - subnet: 172.16.239.0/24
+
+secrets:
+  MYSQL_USER:
+    file: ./.MYSQL_USER
+  MYSQL_PASSWORD:
+    file: ./.MYSQL_PASSWORD
+  MYSQL_ROOT_PASSWORD:
+    file: ./.MYSQL_ROOT_PASSWORD
+  POSTGRES_USER:
+    file: ./.POSTGRES_USER
+  POSTGRES_PASSWORD:
+    file: ./.POSTGRES_PASSWORD
