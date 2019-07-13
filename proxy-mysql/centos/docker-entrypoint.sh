@@ -51,6 +51,9 @@ configure_db_mysql() {
     elif [ -f "/etc/my.cnf.d/server.cnf" ]; then
         MYSQL_CONF_FILE="/etc/my.cnf.d/server.cnf"
         DB_SERVER_SOCKET="/var/lib/mysql/mysql.sock"
+    elif [ -f "/etc/my.cnf.d/mariadb-server.cnf" ]; then
+        MYSQL_CONF_FILE="/etc/my.cnf.d/mariadb-server.cnf"
+        DB_SERVER_SOCKET="/var/run/mysqld/mysqld.sock"
     else
         echo "**** Could not found MySQL configuration file"
         exit 1
