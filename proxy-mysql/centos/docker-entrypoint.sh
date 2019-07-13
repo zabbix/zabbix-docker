@@ -38,6 +38,37 @@ ZABBIX_ETC_DIR="/etc/zabbix"
 # Web interface www-root directory
 ZBX_FRONTEND_PATH="/usr/share/zabbix"
 
+# usage: file_env VAR [DEFAULT]
+# as example: file_env 'MYSQL_PASSWORD' 'zabbix'
+#    (will allow for "$MYSQL_PASSWORD_FILE" to fill in the value of "$MYSQL_PASSWORD" from a file)
+# unsets the VAR_FILE afterwards and just leaving VAR
+file_env() {
+    local var="$1"
+    local fileVar="${var}_FILE"
+    local defaultValue="${2:-}"
+
+    if [ "${!var:-}" ] && [ "${!fileVar:-}" ]; then
+        echo "**** Both variables $var and $fileVar are set (but are exclusive)"
+        exit 1
+    fi
+
+    local val="$defaultValue"
+
+    if [ "${!var:-}" ]; then
+        val="${!var}"
+        echo "** Using ${var} variable from ENV"
+    elif [ "${!fileVar:-}" ]; then
+        if [ ! -f "${!fileVar}" ]; then
+            echo "**** Secret file \"${!fileVar}\" is not found"
+            exit 1
+        fi
+        val="$(< "${!fileVar}")"
+        echo "** Using ${var} variable from secret file"
+    fi
+    export "$var"="$val"
+    unset "$fileVar"
+}
+
 configure_db_mysql() {
     [ "${DB_SERVER_HOST}" != "localhost" ] && return
 
@@ -138,7 +169,7 @@ escape_spec_char() {
     var_value="${var_value//\[/\\[}"
     var_value="${var_value//\]/\\]}"
 
-    echo $var_value
+    echo "$var_value"
 }
 
 update_config_var() {
@@ -213,6 +244,12 @@ check_variables_mysql() {
     DB_SERVER_PORT=${DB_SERVER_PORT:-"3306"}
     USE_DB_ROOT_USER=false
     CREATE_ZBX_DB_USER=false
+    file_env MYSQL_USER
+    file_env MYSQL_PASSWORD
+
+    if [ "$type" != "" ]; then
+        file_env MYSQL_ROOT_PASSWORD
+    fi
 
     if [ ! -n "${MYSQL_USER}" ] && [ "${MYSQL_RANDOM_ROOT_PASSWORD}" == "true" ]; then
         echo "**** Impossible to use MySQL server because of unknown Zabbix user and random 'root' password"
@@ -248,6 +285,9 @@ check_variables_mysql() {
 # Check prerequisites for PostgreSQL database
 check_variables_postgresql() {
     local type=$1
+
+    file_env POSTGRES_USER
+    file_env POSTGRES_PASSWORD
 
     DB_SERVER_HOST=${DB_SERVER_HOST:-"postgres-server"}
     DB_SERVER_PORT=${DB_SERVER_PORT:-"5432"}
