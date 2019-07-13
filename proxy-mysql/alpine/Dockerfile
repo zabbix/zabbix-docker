@@ -80,7 +80,6 @@ RUN set -eux && \
             net-snmp-dev \
             openipmi-dev \
             openldap-dev \
-            subversion \
             unixodbc-dev \
             alpine-sdk && \
     cd /tmp/ && \
