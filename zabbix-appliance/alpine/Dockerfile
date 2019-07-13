@@ -1,4 +1,4 @@
-FROM alpine:3.4
+FROM alpine:3.8
 
 ARG APK_FLAGS_COMMON=""
 ARG APK_FLAGS_DEV="${APK_FLAGS_COMMON} --no-cache"
@@ -59,7 +59,7 @@ RUN set -eux && \
             libssh2 \
             libxml2 \
             mariadb-client \
-            mariadb-client-libs \
+            mariadb-connector-c \
             mysql \
             net-snmp-agent-libs \
             nginx \
