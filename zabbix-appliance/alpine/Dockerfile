@@ -102,7 +102,6 @@ RUN set -eux && \
             openipmi-dev \
             openjdk8 \
             openldap-dev \
-            subversion \
             unixodbc-dev && \
     cd /tmp/ && \
     git clone ${ZBX_SOURCES} --branch ${ZBX_VERSION} --depth 1 --single-branch zabbix-${ZBX_VERSION} && \
