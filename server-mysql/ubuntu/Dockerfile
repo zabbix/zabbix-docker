@@ -167,7 +167,6 @@ RUN set -eux && \
             unixodbc-dev && \
     apt-get ${APT_FLAGS_COMMON} autoremove && \
     rm -rf /var/lib/apt/lists/* && \
-    rm -rf /root/.subversion && \
     chmod +x /sbin/tini
 
 EXPOSE 10051/TCP
