@@ -84,7 +84,6 @@ RUN set -eux && \
             openipmi-dev \
             openldap-dev \
             pcre-dev \
-            subversion \
             unixodbc-dev \
             alpine-sdk && \
     cd /tmp/ && \
