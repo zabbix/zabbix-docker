@@ -1,4 +1,4 @@
-FROM alpine:3.4
+FROM alpine:3.8
 
 ARG BUILD_DATE
 ARG VCS_REF
@@ -56,7 +56,7 @@ RUN set -eux && \
             libssh2 \
             libxml2 \
             mariadb-client \
-            mariadb-client-libs \
+            mariadb-connector-c \
             mysql \
             net-snmp-agent-libs \
             nginx \
