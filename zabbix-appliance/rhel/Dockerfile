@@ -14,12 +14,7 @@ ARG VCS_REF
 ARG MAJOR_VERSION=4.0
 ARG RELEASE=0
 ARG ZBX_VERSION=${MAJOR_VERSION}.${RELEASE}
-
-<<<<<<< HEAD
-ARG ZBX_SOURCES=svn://svn.zabbix.com/trunk/
-=======
 ARG ZBX_SOURCES=https://git.zabbix.com/scm/zbx/zabbix.git
->>>>>>> master
 ENV ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES}
 
 LABEL name="zabbix/zabbix-appliance" \
