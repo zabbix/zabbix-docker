@@ -39,6 +39,7 @@ RUN set -eux && \
             bash \
             coreutils \
             iputils \
+            libcurl \
             libldap && \
     rm -rf /var/cache/apk/*
 
@@ -58,6 +59,7 @@ RUN set -eux && \
             alpine-sdk \
             autoconf \
             automake \
+            curl-dev \
             openssl-dev \
             openldap-dev \
             git \
@@ -76,6 +78,7 @@ RUN set -eux && \
             --sysconfdir=/etc/zabbix \
             --prefix=/usr \
             --enable-agent \
+            --with-libcurl \
             --with-ldap \
             --with-openssl \
             --enable-ipv6 \

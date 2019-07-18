@@ -14,6 +14,7 @@ RUN set -eux && \
     yum ${YUM_FLAGS_DEV} install \
             autoconf \
             automake \
+            libcurl-devel \
             make \
             openssl-devel \
             openldap-devel \
@@ -33,6 +34,7 @@ RUN set -eux && \
             --sysconfdir=/etc/zabbix \
             --prefix=/usr \
             --enable-agent \
+            --with-libcurl \
             --with-ldap \
             --with-openssl \
             --enable-ipv6 \
@@ -91,6 +93,7 @@ RUN set -eux && \
     yum ${YUM_FLAGS_COMMON} makecache && \
     yum ${YUM_FLAGS_PERSISTENT} install \
             libldap \
+            libcurl \
             openssl-libs && \
     yum ${YUM_FLAGS_PERSISTENT} clean all && \
     rm -rf /var/cache/yum && \
