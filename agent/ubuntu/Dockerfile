@@ -16,6 +16,7 @@ RUN set -eux && \
     DEBIAN_FRONTEND=noninteractive apt-get ${APT_FLAGS_DEV} install \
             autoconf \
             automake \
+            libcurl4-openssl-dev \
             libc6-dev \
             libldap2-dev \
             libpcre3-dev \
@@ -38,6 +39,7 @@ RUN set -eux && \
             --sysconfdir=/etc/zabbix \
             --prefix=/usr \
             --enable-agent \
+            --with-libcurl \
             --with-ldap \
             --with-openssl \
             --enable-ipv6 \
@@ -103,6 +105,7 @@ RUN set -eux && \
     DEBIAN_FRONTEND=noninteractive apt-get ${APT_FLAGS_PERSISTENT} install \
             libpcre3 \
             libssl1.1 \
+            libcurl4 \
             libldap-2.4 && \
     apt-get ${APT_FLAGS_COMMON} autoremove && \
     apt-get ${APT_FLAGS_COMMON} clean && \
