@@ -4,7 +4,7 @@ ARG APK_FLAGS_COMMON=""
 ARG APK_FLAGS_DEV="${APK_FLAGS_COMMON} --no-cache"
 ARG APK_FLAGS_PERSISTENT="${APK_FLAGS_COMMON} --clean-protected --no-cache"
 
-ARG ZBX_VERSION=${MAJOR_VERSION}.10
+ARG ZBX_VERSION=${MAJOR_VERSION}.11
 ARG ZBX_SOURCES=https://git.zabbix.com/scm/zbx/zabbix.git
 
 ENV PATH=${PATH}:/usr/lib/jvm/default-jvm/bin/ JAVA_HOME=/usr/lib/jvm/default-jvm \
@@ -85,7 +85,7 @@ RUN set -eux && \
     rm -rf /var/cache/apk/*
 
 ARG MAJOR_VERSION=4.0
-ARG ZBX_VERSION=${MAJOR_VERSION}.10
+ARG ZBX_VERSION=${MAJOR_VERSION}.11
 ARG ZBX_SOURCES=https://git.zabbix.com/scm/zbx/zabbix.git
 ENV ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES}
       
