@@ -70,7 +70,7 @@ RUN set -eux && \
         "/etc/snmp/snmptrapfmt.conf" && \
     rm -rf /tmp/snmptrapfmt_1.14+nmu1ubuntu2.tar.gz && \
     rm -rf /tmp/snmptrapfmt-1.14+nmu1ubuntu1/ && \
-    apk del ${APK_FLAGS_COMMON} --purge \
+    apk del ${APK_FLAGS_COMMON} --purge --no-network \
             build-dependencies && \
     rm -rf /var/cache/apk/*
 

@@ -77,7 +77,7 @@ RUN set -eux && \
     rm -f conf/zabbix.conf.php && \
     rm -rf tests && \
     ./locale/make_mo.sh && \
-    apk del ${APK_FLAGS_COMMON} --purge \
+    apk del ${APK_FLAGS_COMMON} --purge --no-network \
             build-dependencies && \
     rm -rf /var/cache/apk/*
 

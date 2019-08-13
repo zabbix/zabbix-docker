@@ -115,7 +115,7 @@ RUN set -eux && \
     chown --quiet -R zabbix:root /etc/zabbix && \
     cd /tmp/ && \
     rm -rf /tmp/zabbix-${ZBX_VERSION}/ && \
-    apk del ${APK_FLAGS_COMMON} --purge \
+    apk del ${APK_FLAGS_COMMON} --purge --no-network \
             build-dependencies && \
     rm -rf /var/cache/apk/*
 
