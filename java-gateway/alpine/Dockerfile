@@ -73,7 +73,7 @@ RUN set -eux && \
     rm -rf /usr/sbin/zabbix_java/lib/*.xml && \
     cd /tmp/ && \
     rm -rf /tmp/zabbix-${ZBX_VERSION}/ && \
-    apk del ${APK_FLAGS_COMMON} --purge \
+    apk del ${APK_FLAGS_COMMON} --purge --no-network \
             build-dependencies && \
     rm -rf /var/cache/apk/*
 
