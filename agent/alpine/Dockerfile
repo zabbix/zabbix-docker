@@ -1,23 +1,23 @@
 FROM alpine:3.10
-LABEL maintainer="Alexey Pustovalov <alexey.pustovalov@zabbix.com>"
 
-ARG BUILD_DATE
-ARG VCS_REF
+ARG APK_FLAGS_PERSISTENT="--clean-protected --no-cache"
+ARG APK_FLAGS_DEV="--no-cache"
 
-ARG APK_FLAGS_COMMON=""
-ARG APK_FLAGS_PERSISTENT="${APK_FLAGS_COMMON} --clean-protected --no-cache"
-ARG APK_FLAGS_DEV="${APK_FLAGS_COMMON} --no-cache"
-ENV TERM=xterm ZBX_TYPE=agent ZBX_DB_TYPE=none ZBX_OPT_TYPE=none
+ARG MAJOR_VERSION=master
+ARG ZBX_VERSION=${MAJOR_VERSION}
+ARG ZBX_SOURCES=https://git.zabbix.com/scm/zbx/zabbix.git
 
+ENV TERM=xterm ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES}
 
-LABEL org.label-schema.name="zabbix-${ZBX_TYPE}-alpine" \
-      org.label-schema.vendor="Zabbix LLC" \
-      org.label-schema.url="https://zabbix.com/" \
-      org.label-schema.description="Zabbix agent is deployed on a monitoring target to actively monitor local resources and applications" \
-      org.label-schema.vcs-ref="${VCS_REF}" \
-      org.label-schema.build-date="${BUILD_DATE}" \
-      org.label-schema.schema-version="1.0" \
-      org.label-schema.license="GPL v2.0"
+LABEL org.opencontainers.image.title="Zabbix agent" \
+      org.opencontainers.image.authors="Alexey Pustovalov <alexey.pustovalov@zabbix.com>" \
+      org.opencontainers.image.vendor="Zabbix LLC" \
+      org.opencontainers.image.url="https://zabbix.com/" \
+      org.opencontainers.image.description="Zabbix agent is deployed on a monitoring target to actively monitor local resources and applications" \
+      org.opencontainers.image.licenses="GPL v2.0" \
+      org.opencontainers.image.documentation="https://www.zabbix.com/documentation/${MAJOR_VERSION}/manual/installation/containers" \
+      org.opencontainers.image.version="${ZBX_VERSION}" \
+      org.opencontainers.image.source="${ZBX_SOURCES}"
 
 STOPSIGNAL SIGTERM
 
@@ -42,16 +42,6 @@ RUN set -eux && \
             libcurl \
             libldap && \
     rm -rf /var/cache/apk/*
-
-ARG MAJOR_VERSION=master
-ARG ZBX_VERSION=${MAJOR_VERSION}
-ARG ZBX_SOURCES=https://git.zabbix.com/scm/zbx/zabbix.git
-ENV ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES}
-
-LABEL org.label-schema.usage="https://www.zabbix.com/documentation/${MAJOR_VERSION}/manual/installation/containers" \
-      org.label-schema.version="${ZBX_VERSION}" \
-      org.label-schema.vcs-url="${ZBX_SOURCES}" \
-      org.label-schema.docker.cmd="docker run --name zabbix-${ZBX_TYPE} --link zabbix-server:zabbix-server -p 10050:10050 -d zabbix-${ZBX_TYPE}:alpine-${ZBX_VERSION}"
 
 RUN set -eux && \
     apk update && \
@@ -90,7 +80,7 @@ RUN set -eux && \
     cp /tmp/zabbix-${ZBX_VERSION}/conf/zabbix_agentd.conf /etc/zabbix/zabbix_agentd.conf && \
     cd /tmp/ && \
     rm -rf /tmp/zabbix-${ZBX_VERSION}/ && \
-    apk del ${APK_FLAGS_COMMON} --purge --no-network \
+    apk del --purge --no-network \
             build-dependencies && \
     rm -rf /var/cache/apk/*
 
@@ -98,7 +88,7 @@ EXPOSE 10050/TCP
 
 WORKDIR /var/lib/zabbix
 
-VOLUME ["/etc/zabbix/zabbix_agentd.d", "/var/lib/zabbix/enc", "/var/lib/zabbix/modules"]
+VOLUME ["/var/lib/zabbix/enc"]
 
 COPY ["docker-entrypoint.sh", "/usr/bin/"]
 

@@ -1,23 +1,25 @@
 FROM alpine:3.10
-LABEL maintainer="Alexey Pustovalov <alexey.pustovalov@zabbix.com>"
 
-ARG BUILD_DATE
-ARG VCS_REF
+ARG APK_FLAGS_PERSISTENT="--clean-protected --no-cache"
+ARG APK_FLAGS_DEV="--no-cache"
 
-ARG APK_FLAGS_COMMON="-q"
-ARG APK_FLAGS_PERSISTENT="${APK_FLAGS_COMMON} --clean-protected --no-cache"
-ARG APK_FLAGS_DEV="${APK_FLAGS_COMMON} --no-cache"
-ENV TERM=xterm MIBDIRS=/usr/share/snmp/mibs:/var/lib/zabbix/mibs MIBS=+ALL \
-    ZBX_TYPE=proxy ZBX_DB_TYPE=sqlite3 ZBX_OPT_TYPE=none
+ARG MAJOR_VERSION=master
+ARG ZBX_VERSION=${MAJOR_VERSION}
+ARG ZBX_SOURCES=https://git.zabbix.com/scm/zbx/zabbix.git
+ENV ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES}
 
-LABEL org.label-schema.name="zabbix-${ZBX_TYPE}-${ZBX_DB_TYPE}-alpine" \
-      org.label-schema.vendor="Zabbix LLC" \
-      org.label-schema.url="https://zabbix.com/" \
-      org.label-schema.description="Zabbix ${ZBX_TYPE} with SQLite3 database support" \
-      org.label-schema.vcs-ref="${VCS_REF}" \
-      org.label-schema.build-date="${BUILD_DATE}" \
-      org.label-schema.schema-version="1.0" \
-      org.label-schema.license="GPL v2.0"
+ENV TERM=xterm ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES} \
+    MIBDIRS=/usr/share/snmp/mibs:/var/lib/zabbix/mibs MIBS=+ALL
+
+LABEL org.opencontainers.image.title="Zabbix proxy (SQLite3)" \
+      org.opencontainers.image.authors="Alexey Pustovalov <alexey.pustovalov@zabbix.com>" \
+      org.opencontainers.image.vendor="Zabbix LLC" \
+      org.opencontainers.image.url="https://zabbix.com/" \
+      org.opencontainers.image.description="Zabbix proxy with SQLite3 database support" \
+      org.opencontainers.image.licenses="GPL v2.0" \
+      org.opencontainers.image.documentation="https://www.zabbix.com/documentation/${MAJOR_VERSION}/manual/installation/containers" \
+      org.opencontainers.image.version="${ZBX_VERSION}" \
+      org.opencontainers.image.source="${ZBX_SOURCES}"
 
 STOPSIGNAL SIGTERM
 
@@ -56,16 +58,6 @@ RUN set -eux && \
             unixodbc && \
     rm -rf /var/cache/apk/*
 
-ARG MAJOR_VERSION=master
-ARG ZBX_VERSION=${MAJOR_VERSION}
-ARG ZBX_SOURCES=https://git.zabbix.com/scm/zbx/zabbix.git
-ENV ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES}
-
-LABEL org.label-schema.usage="https://www.zabbix.com/documentation/${MAJOR_VERSION}/manual/installation/containers" \
-      org.label-schema.version="${ZBX_VERSION}" \
-      org.label-schema.vcs-url="${ZBX_SOURCES}" \
-      org.label-schema.docker.cmd="docker run --name zabbix-${ZBX_TYPE}-${ZBX_DB_TYPE} --link zabbix-server:zabbix-server -p 10051:10051 -d zabbix-${ZBX_TYPE}-${ZBX_DB_TYPE}:alpine-${ZBX_VERSION}"
-
 RUN set -eux && \
     apk add ${APK_FLAGS_DEV} --virtual build-dependencies \
             alpine-sdk \
@@ -94,8 +86,8 @@ RUN set -eux && \
             --sysconfdir=/etc/zabbix \
             --prefix=/usr \
             --enable-agent \
-            --enable-${ZBX_TYPE} \
-            --with-${ZBX_DB_TYPE} \
+            --enable-proxy \
+            --with-sqlite3 \
             --with-ldap \
             --with-libcurl \
             --with-libxml2 \
@@ -108,14 +100,14 @@ RUN set -eux && \
             --silent && \
     make -j"$(nproc)" -s dbschema && \
     make -j"$(nproc)" -s && \
-    cp src/zabbix_${ZBX_TYPE}/zabbix_${ZBX_TYPE} /usr/sbin/zabbix_${ZBX_TYPE} && \
+    cp src/zabbix_proxy/zabbix_proxy /usr/sbin/zabbix_proxy && \
     cp src/zabbix_get/zabbix_get /usr/bin/zabbix_get && \
     cp src/zabbix_sender/zabbix_sender /usr/bin/zabbix_sender && \
-    cp conf/zabbix_${ZBX_TYPE}.conf /etc/zabbix/zabbix_${ZBX_TYPE}.conf && \
+    cp conf/zabbix_proxy.conf /etc/zabbix/zabbix_proxy.conf && \
     chown --quiet -R zabbix:root /etc/zabbix && \
     cd /tmp/ && \
     rm -rf /tmp/zabbix-${ZBX_VERSION}/ && \
-    apk del ${APK_FLAGS_COMMON} --purge --no-network \
+    apk del --purge --no-network \
             build-dependencies && \
     rm -rf /var/cache/apk/*
 
