@@ -48,6 +48,7 @@ RUN set -eux && \
             php7-session \
             php7-simplexml \
             php7-sockets \
+            php7-fileinfo \
             php7-xmlreader \
             php7-xmlwriter \
             postgresql-client && \
