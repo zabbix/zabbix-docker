@@ -38,6 +38,7 @@ RUN set -eux && \
             nginx \
             php7-bcmath \
             php7-ctype \
+            php7-fileinfo \
             php7-fpm \
             php7-gd \
             php7-gettext \

@@ -39,6 +39,7 @@ RUN set -eux && \
             php7-apache2 \
             php7-bcmath \
             php7-ctype \
+            php7-fileinfo \
             php7-gd \
             php7-gettext \
             php7-json \
