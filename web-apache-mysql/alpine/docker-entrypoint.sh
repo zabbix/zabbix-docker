@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -eo pipefail
+set -o pipefail
 
 set +e
 
@@ -11,14 +11,14 @@ fi
 
 # Default Zabbix installation name
 # Used only by Zabbix web-interface
-ZBX_SERVER_NAME=${ZBX_SERVER_NAME:-"Zabbix docker"}
+: ${ZBX_SERVER_NAME:="Zabbix docker"}
 # Default Zabbix server host
-ZBX_SERVER_HOST=${ZBX_SERVER_HOST:-"zabbix-server"}
+: ${ZBX_SERVER_HOST:="zabbix-server"}
 # Default Zabbix server port number
-ZBX_SERVER_PORT=${ZBX_SERVER_PORT:-"10051"}
+: ${ZBX_SERVER_PORT:="10051"}
 
 # Default timezone for web interface
-PHP_TZ=${PHP_TZ:-"Europe/Riga"}
+: ${PHP_TZ:="Europe/Riga"}
 
 # Default directories
 # Configuration files directory
@@ -135,8 +135,8 @@ update_config_multiple_var() {
 
 # Check prerequisites for MySQL database
 check_variables_mysql() {
-    DB_SERVER_HOST=${DB_SERVER_HOST:-"mysql-server"}
-    DB_SERVER_PORT=${DB_SERVER_PORT:-"3306"}
+    : ${DB_SERVER_HOST:="mysql-server"}
+    : ${DB_SERVER_PORT:="3306"}
     USE_DB_ROOT_USER=false
     CREATE_ZBX_DB_USER=false
     file_env MYSQL_USER
@@ -161,7 +161,7 @@ check_variables_mysql() {
     [ -n "${MYSQL_USER}" ] && CREATE_ZBX_DB_USER=true
 
     # If root password is not specified use provided credentials
-    DB_SERVER_ROOT_USER=${DB_SERVER_ROOT_USER:-${MYSQL_USER}}
+    : ${DB_SERVER_ROOT_USER:=${MYSQL_USER}}
     [ "${MYSQL_ALLOW_EMPTY_PASSWORD}" == "true" ] || DB_SERVER_ROOT_PASS=${DB_SERVER_ROOT_PASS:-${MYSQL_PASSWORD}}
     DB_SERVER_ZBX_USER=${MYSQL_USER:-"zabbix"}
     DB_SERVER_ZBX_PASS=${MYSQL_PASSWORD:-"zabbix"}
@@ -271,12 +271,7 @@ prepare_web
 
 echo "########################################################"
 
-if [ "$1" != "" ]; then
-    echo "** Executing '$@'"
-    exec "$@"
-else
-    echo "** Starting Zabbix frontend"
-    exec /usr/sbin/httpd -D FOREGROUND
-fi
+echo "** Executing '$@'"
+exec "$@"
 
 #################################################

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -eo pipefail
+set -o pipefail
 
 set +e
 
@@ -11,14 +11,14 @@ fi
 
 # Default Zabbix installation name
 # Used only by Zabbix web-interface
-ZBX_SERVER_NAME=${ZBX_SERVER_NAME:-"Zabbix docker"}
+: ${ZBX_SERVER_NAME:="Zabbix docker"}
 # Default Zabbix server host
-ZBX_SERVER_HOST=${ZBX_SERVER_HOST:-"zabbix-server"}
+: ${ZBX_SERVER_HOST:="zabbix-server"}
 # Default Zabbix server port number
-ZBX_SERVER_PORT=${ZBX_SERVER_PORT:-"10051"}
+: ${ZBX_SERVER_PORT:="10051"}
 
 # Default timezone for web interface
-PHP_TZ=${PHP_TZ:-"Europe/Riga"}
+: ${PHP_TZ:="Europe/Riga"}
 
 # Default directories
 # Configuration files directory
@@ -143,9 +143,9 @@ check_variables_postgresql() {
     file_env POSTGRES_USER
     file_env POSTGRES_PASSWORD
 
-    DB_SERVER_HOST=${DB_SERVER_HOST:-"postgres-server"}
-    DB_SERVER_PORT=${DB_SERVER_PORT:-"5432"}
-    CREATE_ZBX_DB_USER=${CREATE_ZBX_DB_USER:-"false"}
+    : ${DB_SERVER_HOST:="postgres-server"}
+    : ${DB_SERVER_PORT:="5432"}
+    : ${CREATE_ZBX_DB_USER:="false"}
 
     DB_SERVER_ROOT_USER=${POSTGRES_USER:-"postgres"}
     DB_SERVER_ROOT_PASS=${POSTGRES_PASSWORD:-""}
@@ -153,7 +153,7 @@ check_variables_postgresql() {
     DB_SERVER_ZBX_USER=${POSTGRES_USER:-"zabbix"}
     DB_SERVER_ZBX_PASS=${POSTGRES_PASSWORD:-"zabbix"}
 
-    DB_SERVER_SCHEMA=${DB_SERVER_SCHEMA:-"public"}
+    : ${DB_SERVER_SCHEMA:="public"}
 
     DB_SERVER_DBNAME=${POSTGRES_DB:-"zabbix"}
 }
@@ -289,12 +289,7 @@ prepare_web
 
 echo "########################################################"
 
-if [ "$1" != "" ]; then
-    echo "** Executing '$@'"
-    exec "$@"
-else
-    echo "** Starting Zabbix frontend"
-    exec /usr/sbin/httpd -D FOREGROUND
-fi
+echo "** Executing '$@'"
+exec "$@"
 
 #################################################
