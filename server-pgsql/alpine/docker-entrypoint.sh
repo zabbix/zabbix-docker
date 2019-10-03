@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -eo pipefail
+set -o pipefail
 
 set +e
 
@@ -132,9 +132,9 @@ check_variables_postgresql() {
     file_env POSTGRES_USER
     file_env POSTGRES_PASSWORD
 
-    DB_SERVER_HOST=${DB_SERVER_HOST:-"postgres-server"}
-    DB_SERVER_PORT=${DB_SERVER_PORT:-"5432"}
-    CREATE_ZBX_DB_USER=${CREATE_ZBX_DB_USER:-"false"}
+    : ${DB_SERVER_HOST:="postgres-server"}
+    : ${DB_SERVER_PORT:="5432"}
+    : ${CREATE_ZBX_DB_USER:="false"}
 
     DB_SERVER_ROOT_USER=${POSTGRES_USER:-"postgres"}
     DB_SERVER_ROOT_PASS=${POSTGRES_PASSWORD:-""}
@@ -142,7 +142,7 @@ check_variables_postgresql() {
     DB_SERVER_ZBX_USER=${POSTGRES_USER:-"zabbix"}
     DB_SERVER_ZBX_PASS=${POSTGRES_PASSWORD:-"zabbix"}
 
-    DB_SERVER_SCHEMA=${DB_SERVER_SCHEMA:-"public"}
+    : ${DB_SERVER_SCHEMA:="public"}
 
     DB_SERVER_DBNAME=${POSTGRES_DB:-"zabbix"}
 }
@@ -303,7 +303,7 @@ update_zbx_config() {
     update_config_var $ZBX_CONFIG "StartTimers" "${ZBX_STARTTIMERS}"
     update_config_var $ZBX_CONFIG "StartEscalators" "${ZBX_STARTESCALATORS}"
 
-    ZBX_JAVAGATEWAY_ENABLE=${ZBX_JAVAGATEWAY_ENABLE:-"false"}
+    : ${ZBX_JAVAGATEWAY_ENABLE:="false"}
     if [ "${ZBX_JAVAGATEWAY_ENABLE}" == "true" ]; then
         update_config_var $ZBX_CONFIG "JavaGateway" "${ZBX_JAVAGATEWAY:-"zabbix-java-gateway"}"
         update_config_var $ZBX_CONFIG "JavaGatewayPort" "${ZBX_JAVAGATEWAYPORT}"
@@ -320,7 +320,7 @@ update_zbx_config() {
     update_config_var $ZBX_CONFIG "VMwareCacheSize" "${ZBX_VMWARECACHESIZE}"
     update_config_var $ZBX_CONFIG "VMwareTimeout" "${ZBX_VMWARETIMEOUT}"
 
-    ZBX_ENABLE_SNMP_TRAPS=${ZBX_ENABLE_SNMP_TRAPS:-"false"}
+    : ${ZBX_ENABLE_SNMP_TRAPS:="false"}
     if [ "${ZBX_ENABLE_SNMP_TRAPS}" == "true" ]; then
         update_config_var $ZBX_CONFIG "SNMPTrapperFile" "${ZABBIX_USER_HOME_DIR}/snmptraps/snmptraps.log"
         update_config_var $ZBX_CONFIG "StartSNMPTrapper" "1"
@@ -404,12 +404,7 @@ prepare_server
 
 echo "########################################################"
 
-if [ "$1" != "" ]; then
-    echo "** Executing '$@'"
-    exec "$@"
-else
-    echo "** Starting Zabbix server"
-    exec su zabbix -s "/bin/bash" -c "/usr/sbin/zabbix_server --foreground -c /etc/zabbix/zabbix_server.conf"
-fi
+echo "** Executing '$@'"
+exec "$@"
 
 #################################################

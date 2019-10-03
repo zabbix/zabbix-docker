@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -eo pipefail
+set -o pipefail
 
 set +e
 
@@ -12,37 +12,6 @@ fi
 # Default directories
 # Configuration files directory
 ZABBIX_ETC_DIR="/etc/zabbix"
-
-# usage: file_env VAR [DEFAULT]
-# as example: file_env 'MYSQL_PASSWORD' 'zabbix'
-#    (will allow for "$MYSQL_PASSWORD_FILE" to fill in the value of "$MYSQL_PASSWORD" from a file)
-# unsets the VAR_FILE afterwards and just leaving VAR
-file_env() {
-    local var="$1"
-    local fileVar="${var}_FILE"
-    local defaultValue="${2:-}"
-
-    if [ "${!var:-}" ] && [ "${!fileVar:-}" ]; then
-        echo "**** Both variables $var and $fileVar are set (but are exclusive)"
-        exit 1
-    fi
-
-    local val="$defaultValue"
-
-    if [ "${!var:-}" ]; then
-        val="${!var}"
-        echo "** Using ${var} variable from ENV"
-    elif [ "${!fileVar:-}" ]; then
-        if [ ! -f "${!fileVar}" ]; then
-            echo "**** Secret file \"${!fileVar}\" is not found"
-            exit 1
-        fi
-        val="$(< "${!fileVar}")"
-        echo "** Using ${var} variable from secret file"
-    fi
-    export "$var"="$val"
-    unset "$fileVar"
-}
 
 escape_spec_char() {
     local var_value=$1
@@ -152,12 +121,7 @@ prepare_java_gateway
 
 echo "########################################################"
 
-if [ "$1" != "" ]; then
-    echo "** Executing '$@'"
-    exec "$@"
-else
-    echo "** Starting Zabbix Java Gateway"
-    exec su zabbix -s "/bin/bash" -c "/usr/sbin/zabbix_java_gateway"
-fi
+echo "** Executing '$@'"
+exec "$@"
 
 #################################################

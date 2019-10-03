@@ -94,3 +94,5 @@ COPY ["conf/etc/php7/conf.d/99-zabbix.ini", "/etc/php7/conf.d/"]
 COPY ["docker-entrypoint.sh", "/usr/bin/"]
 
 ENTRYPOINT ["docker-entrypoint.sh"]
+
+CMD ["/usr/sbin/httpd", "-D", "FOREGROUND"]

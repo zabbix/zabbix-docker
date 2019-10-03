@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -eo pipefail
+set -o pipefail
 
 set +e
 
@@ -10,9 +10,9 @@ if [ "${DEBUG_MODE}" == "true" ]; then
 fi
 
 # Default Zabbix server host
-ZBX_SERVER_HOST=${ZBX_SERVER_HOST:-"zabbix-server"}
+: ${ZBX_SERVER_HOST:="zabbix-server"}
 # Default Zabbix server port number
-ZBX_SERVER_PORT=${ZBX_SERVER_PORT:-"10051"}
+: ${ZBX_SERVER_PORT:="10051"}
 
 # Default directories
 # User 'zabbix' home directory
@@ -134,8 +134,8 @@ update_config_multiple_var() {
 
 # Check prerequisites for MySQL database
 check_variables_mysql() {
-    DB_SERVER_HOST=${DB_SERVER_HOST:-"mysql-server"}
-    DB_SERVER_PORT=${DB_SERVER_PORT:-"3306"}
+    : ${DB_SERVER_HOST:="mysql-server"}
+    : ${DB_SERVER_PORT:="3306"}
     USE_DB_ROOT_USER=false
     CREATE_ZBX_DB_USER=false
     file_env MYSQL_USER
@@ -298,7 +298,7 @@ update_zbx_config() {
     update_config_var $ZBX_CONFIG "StartDiscoverers" "${ZBX_STARTDISCOVERERS}"
     update_config_var $ZBX_CONFIG "StartHTTPPollers" "${ZBX_STARTHTTPPOLLERS}"
 
-    ZBX_JAVAGATEWAY_ENABLE=${ZBX_JAVAGATEWAY_ENABLE:-"false"}
+    : ${ZBX_JAVAGATEWAY_ENABLE:="false"}
     if [ "${ZBX_JAVAGATEWAY_ENABLE}" == "true" ]; then
         update_config_var $ZBX_CONFIG "JavaGateway" "${ZBX_JAVAGATEWAY:-"zabbix-java-gateway"}"
         update_config_var $ZBX_CONFIG "JavaGatewayPort" "${ZBX_JAVAGATEWAYPORT}"
@@ -315,7 +315,7 @@ update_zbx_config() {
     update_config_var $ZBX_CONFIG "VMwareCacheSize" "${ZBX_VMWARECACHESIZE}"
     update_config_var $ZBX_CONFIG "VMwareTimeout" "${ZBX_VMWARETIMEOUT}"
 
-    ZBX_ENABLE_SNMP_TRAPS=${ZBX_ENABLE_SNMP_TRAPS:-"false"}
+    : ${ZBX_ENABLE_SNMP_TRAPS:="false"}
     if [ "${ZBX_ENABLE_SNMP_TRAPS}" == "true" ]; then
         update_config_var $ZBX_CONFIG "SNMPTrapperFile" "${ZABBIX_USER_HOME_DIR}/snmptraps/snmptraps.log"
         update_config_var $ZBX_CONFIG "StartSNMPTrapper" "1"
@@ -395,12 +395,7 @@ prepare_proxy
 
 echo "########################################################"
 
-if [ "$1" != "" ]; then
-    echo "** Executing '$@'"
-    exec "$@"
-else
-    echo "** Starting Zabbix proxy"
-    exec su zabbix -s "/bin/bash" -c "/usr/sbin/zabbix_proxy --foreground -c /etc/zabbix/zabbix_proxy.conf"
-fi
+echo "** Executing '$@'"
+exec "$@"
 
 #################################################

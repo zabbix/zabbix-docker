@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -eo pipefail
+set -o pipefail
 
 set +e
 
@@ -11,46 +11,15 @@ fi
 
 # Default Zabbix installation name
 # Default Zabbix server host
-ZBX_SERVER_HOST=${ZBX_SERVER_HOST:-"zabbix-server"}
+: ${ZBX_SERVER_HOST:="zabbix-server"}
 # Default Zabbix server port number
-ZBX_SERVER_PORT=${ZBX_SERVER_PORT:-"10051"}
+: ${ZBX_SERVER_PORT:="10051"}
 
 # Default directories
 # User 'zabbix' home directory
 ZABBIX_USER_HOME_DIR="/var/lib/zabbix"
 # Configuration files directory
 ZABBIX_ETC_DIR="/etc/zabbix"
-
-# usage: file_env VAR [DEFAULT]
-# as example: file_env 'MYSQL_PASSWORD' 'zabbix'
-#    (will allow for "$MYSQL_PASSWORD_FILE" to fill in the value of "$MYSQL_PASSWORD" from a file)
-# unsets the VAR_FILE afterwards and just leaving VAR
-file_env() {
-    local var="$1"
-    local fileVar="${var}_FILE"
-    local defaultValue="${2:-}"
-
-    if [ "${!var:-}" ] && [ "${!fileVar:-}" ]; then
-        echo "**** Both variables $var and $fileVar are set (but are exclusive)"
-        exit 1
-    fi
-
-    local val="$defaultValue"
-
-    if [ "${!var:-}" ]; then
-        val="${!var}"
-        echo "** Using ${var} variable from ENV"
-    elif [ "${!fileVar:-}" ]; then
-        if [ ! -f "${!fileVar}" ]; then
-            echo "**** Secret file \"${!fileVar}\" is not found"
-            exit 1
-        fi
-        val="$(< "${!fileVar}")"
-        echo "** Using ${var} variable from secret file"
-    fi
-    export "$var"="$val"
-    unset "$fileVar"
-}
 
 escape_spec_char() {
     local var_value=$1
@@ -138,8 +107,8 @@ prepare_zbx_agent_config() {
 
     ZBX_AGENT_CONFIG=$ZABBIX_ETC_DIR/zabbix_agentd.conf
 
-    ZBX_PASSIVESERVERS=${ZBX_PASSIVESERVERS:-""}
-    ZBX_ACTIVESERVERS=${ZBX_ACTIVESERVERS:-""}
+    : ${ZBX_PASSIVESERVERS:=""}
+    : ${ZBX_ACTIVESERVERS:=""}
 
     [ -n "$ZBX_PASSIVESERVERS" ] && ZBX_PASSIVESERVERS=","$ZBX_PASSIVESERVERS
 
@@ -158,7 +127,7 @@ prepare_zbx_agent_config() {
     update_config_var $ZBX_AGENT_CONFIG "EnableRemoteCommands" "${ZBX_ENABLEREMOTECOMMANDS}"
     update_config_var $ZBX_AGENT_CONFIG "LogRemoteCommands" "${ZBX_LOGREMOTECOMMANDS}"
 
-    ZBX_PASSIVE_ALLOW=${ZBX_PASSIVE_ALLOW:-"true"}
+    : ${ZBX_PASSIVE_ALLOW:="true"}
     if [ "$ZBX_PASSIVE_ALLOW" == "true" ]; then
         echo "** Using '$ZBX_PASSIVESERVERS' servers for passive checks"
         update_config_var $ZBX_AGENT_CONFIG "Server" "${ZBX_PASSIVESERVERS}"
@@ -170,7 +139,7 @@ prepare_zbx_agent_config() {
     update_config_var $ZBX_AGENT_CONFIG "ListenIP" "${ZBX_LISTENIP}"
     update_config_var $ZBX_AGENT_CONFIG "StartAgents" "${ZBX_STARTAGENTS}"
 
-    ZBX_ACTIVE_ALLOW=${ZBX_ACTIVE_ALLOW:-"true"}
+    : ${ZBX_ACTIVE_ALLOW:="true"}
     if [ "$ZBX_ACTIVE_ALLOW" == "true" ]; then
         echo "** Using '$ZBX_ACTIVESERVERS' servers for active checks"
         update_config_var $ZBX_AGENT_CONFIG "ServerActive" "${ZBX_ACTIVESERVERS}"
@@ -216,12 +185,7 @@ prepare_agent
 
 echo "########################################################"
 
-if [ "$1" != "" ]; then
-    echo "** Executing '$@'"
-    exec "$@"
-else
-    echo "** Starting Zabbix agent"
-    exec su zabbix -s "/bin/bash" -c "/usr/sbin/zabbix_agentd --foreground -c /etc/zabbix/zabbix_agentd.conf"
-fi
+echo "** Executing '$@'"
+exec "$@"
 
 #################################################

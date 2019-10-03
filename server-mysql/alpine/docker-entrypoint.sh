@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -eo pipefail
+set -o pipefail
 
 set +e
 
@@ -187,8 +187,8 @@ update_config_multiple_var() {
 
 # Check prerequisites for MySQL database
 check_variables_mysql() {
-    DB_SERVER_HOST=${DB_SERVER_HOST:-"mysql-server"}
-    DB_SERVER_PORT=${DB_SERVER_PORT:-"3306"}
+    : ${DB_SERVER_HOST:="mysql-server"}
+    : ${DB_SERVER_PORT:="3306"}
     USE_DB_ROOT_USER=false
     CREATE_ZBX_DB_USER=false
     file_env MYSQL_USER
@@ -215,7 +215,7 @@ check_variables_mysql() {
     [ -n "${MYSQL_USER}" ] && CREATE_ZBX_DB_USER=true
 
     # If root password is not specified use provided credentials
-    DB_SERVER_ROOT_USER=${DB_SERVER_ROOT_USER:-${MYSQL_USER}}
+    : ${DB_SERVER_ROOT_USER:=${MYSQL_USER}}
     [ "${MYSQL_ALLOW_EMPTY_PASSWORD}" == "true" ] || DB_SERVER_ROOT_PASS=${DB_SERVER_ROOT_PASS:-${MYSQL_PASSWORD}}
     DB_SERVER_ZBX_USER=${MYSQL_USER:-"zabbix"}
     DB_SERVER_ZBX_PASS=${MYSQL_PASSWORD:-"zabbix"}
@@ -337,7 +337,7 @@ update_zbx_config() {
     update_config_var $ZBX_CONFIG "StartTimers" "${ZBX_STARTTIMERS}"
     update_config_var $ZBX_CONFIG "StartEscalators" "${ZBX_STARTESCALATORS}"
 
-    ZBX_JAVAGATEWAY_ENABLE=${ZBX_JAVAGATEWAY_ENABLE:-"false"}
+    : ${ZBX_JAVAGATEWAY_ENABLE:="false"}
     if [ "${ZBX_JAVAGATEWAY_ENABLE}" == "true" ]; then
         update_config_var $ZBX_CONFIG "JavaGateway" "${ZBX_JAVAGATEWAY:-"zabbix-java-gateway"}"
         update_config_var $ZBX_CONFIG "JavaGatewayPort" "${ZBX_JAVAGATEWAYPORT}"
@@ -354,7 +354,7 @@ update_zbx_config() {
     update_config_var $ZBX_CONFIG "VMwareCacheSize" "${ZBX_VMWARECACHESIZE}"
     update_config_var $ZBX_CONFIG "VMwareTimeout" "${ZBX_VMWARETIMEOUT}"
 
-    ZBX_ENABLE_SNMP_TRAPS=${ZBX_ENABLE_SNMP_TRAPS:-"false"}
+    : ${ZBX_ENABLE_SNMP_TRAPS:="false"}
     if [ "${ZBX_ENABLE_SNMP_TRAPS}" == "true" ]; then
         update_config_var $ZBX_CONFIG "SNMPTrapperFile" "${ZABBIX_USER_HOME_DIR}/snmptraps/snmptraps.log"
         update_config_var $ZBX_CONFIG "StartSNMPTrapper" "1"
@@ -437,12 +437,7 @@ prepare_server
 
 echo "########################################################"
 
-if [ "$1" != "" ]; then
-    echo "** Executing '$@'"
-    exec "$@"
-else
-    echo "** Starting Zabbix server"
-    exec su zabbix -s "/bin/bash" -c "/usr/sbin/zabbix_server --foreground -c /etc/zabbix/zabbix_server.conf"
-fi
+echo "** Executing '$@'"
+exec "$@"
 
 #################################################

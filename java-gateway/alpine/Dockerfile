@@ -38,6 +38,7 @@ RUN set -eux && \
             autoconf \
             automake \
             coreutils \
+            pkgconf \
             git \
             g++ \
             make \
@@ -76,3 +77,7 @@ COPY ["conf/usr/sbin/zabbix_java_gateway", "/usr/sbin/"]
 COPY ["docker-entrypoint.sh", "/usr/bin/"]
 
 ENTRYPOINT ["docker-entrypoint.sh"]
+
+USER zabbix
+
+CMD ["/usr/sbin/zabbix_java_gateway"]
