@@ -1,23 +1,11 @@
 FROM alpine:3.10
 
-ARG APK_FLAGS_PERSISTENT="--clean-protected --no-cache"
-ARG APK_FLAGS_DEV="--no-cache"
-
-ARG MAJOR_VERSION=master
-ARG ZBX_VERSION=${MAJOR_VERSION}
-ARG ZBX_SOURCES=https://git.zabbix.com/scm/zbx/zabbix.git
-
-ENV TERM=xterm ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES}
-
 LABEL org.opencontainers.image.title="Zabbix web-interface (Apache, MySQL)" \
       org.opencontainers.image.authors="Alexey Pustovalov <alexey.pustovalov@zabbix.com>" \
       org.opencontainers.image.vendor="Zabbix LLC" \
       org.opencontainers.image.url="https://zabbix.com/" \
       org.opencontainers.image.description="abbix web-interface based on Apache2 web server with MySQL database support" \
-      org.opencontainers.image.licenses="GPL v2.0" \
-      org.opencontainers.image.documentation="https://www.zabbix.com/documentation/${MAJOR_VERSION}/manual/installation/containers" \
-      org.opencontainers.image.version="${ZBX_VERSION}" \
-      org.opencontainers.image.source="${ZBX_SOURCES}"
+      org.opencontainers.image.licenses="GPL v2.0"
 
 STOPSIGNAL SIGTERM
 
@@ -31,8 +19,7 @@ RUN set -eux && \
     mkdir -p /etc/zabbix && \
     mkdir -p /etc/zabbix/web && \
     chown --quiet -R zabbix:root /etc/zabbix && \
-    apk update && \
-    apk add ${APK_FLAGS_PERSISTENT} \
+    apk add --clean-protected --no-cache \
             apache2 \
             bash \
             curl \
@@ -53,7 +40,7 @@ RUN set -eux && \
             php7-fileinfo \
             php7-xmlreader \
             php7-xmlwriter && \
-    apk add ${APK_FLAGS_PERSISTENT} --no-scripts apache2-ssl && \
+    apk add --clean-protected --no-cache --no-scripts apache2-ssl && \
     rm -f "/etc/apache2/conf.d/default.conf" && \
     rm -f "/etc/apache2/conf.d/ssl.conf" && \
     sed -ri \
@@ -66,8 +53,18 @@ RUN set -eux && \
     rm -f "/var/run/apache2/apache2.pid" && \
     rm -rf /var/cache/apk/*
 
+ARG MAJOR_VERSION=master
+ARG ZBX_VERSION=${MAJOR_VERSION}
+ARG ZBX_SOURCES=https://git.zabbix.com/scm/zbx/zabbix.git
+
+ENV TERM=xterm ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES}
+
+LABEL org.opencontainers.image.documentation="https://www.zabbix.com/documentation/${MAJOR_VERSION}/manual/installation/containers" \
+      org.opencontainers.image.version="${ZBX_VERSION}" \
+      org.opencontainers.image.source="${ZBX_SOURCES}"
+
 RUN set -eux && \
-    apk add ${APK_FLAGS_DEV} --virtual build-dependencies \
+    apk add --no-cache --virtual build-dependencies \
             gettext \
             git && \
     cd /usr/share/ && \

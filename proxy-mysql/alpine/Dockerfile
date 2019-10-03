@@ -1,24 +1,11 @@
 FROM alpine:3.10
 
-ARG APK_FLAGS_PERSISTENT="--clean-protected --no-cache"
-ARG APK_FLAGS_DEV="--no-cache"
-
-ARG MAJOR_VERSION=master
-ARG ZBX_VERSION=${MAJOR_VERSION}
-ARG ZBX_SOURCES=https://git.zabbix.com/scm/zbx/zabbix.git
-
-ENV TERM=xterm ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES} \
-    MIBDIRS=/usr/share/snmp/mibs:/var/lib/zabbix/mibs MIBS=+ALL
-
 LABEL org.opencontainers.image.title="Zabbix proxy (MySQL)" \
       org.opencontainers.image.authors="Alexey Pustovalov <alexey.pustovalov@zabbix.com>" \
       org.opencontainers.image.vendor="Zabbix LLC" \
       org.opencontainers.image.url="https://zabbix.com/" \
       org.opencontainers.image.description="Zabbix proxy with MySQL database support" \
-      org.opencontainers.image.licenses="GPL v2.0" \
-      org.opencontainers.image.documentation="https://www.zabbix.com/documentation/${MAJOR_VERSION}/manual/installation/containers" \
-      org.opencontainers.image.version="${ZBX_VERSION}" \
-      org.opencontainers.image.source="${ZBX_SOURCES}"
+      org.opencontainers.image.licenses="GPL v2.0"
 
 STOPSIGNAL SIGTERM
 
@@ -42,8 +29,7 @@ RUN set -eux && \
     mkdir -p /var/lib/zabbix/ssl/ssl_ca && \
     chown --quiet -R zabbix:root /var/lib/zabbix && \
     mkdir -p /usr/share/doc/zabbix-proxy-mysql && \
-    apk update && \
-    apk add ${APK_FLAGS_PERSISTENT} \
+    apk add --clean-protected --no-cache \
             tini \
             bash \
             iputils \
@@ -59,20 +45,33 @@ RUN set -eux && \
             fping && \
     rm -rf /var/cache/apk/*
 
+ARG MAJOR_VERSION=3.0
+ARG ZBX_VERSION=${MAJOR_VERSION}.28
+ARG ZBX_SOURCES=https://git.zabbix.com/scm/zbx/zabbix.git
+
+ENV TERM=xterm ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES} \
+    MIBDIRS=/usr/share/snmp/mibs:/var/lib/zabbix/mibs MIBS=+ALL
+
+LABEL org.opencontainers.image.documentation="https://www.zabbix.com/documentation/${MAJOR_VERSION}/manual/installation/containers" \
+      org.opencontainers.image.version="${ZBX_VERSION}" \
+      org.opencontainers.image.source="${ZBX_SOURCES}"
+
 RUN set -eux && \
-    apk add ${APK_FLAGS_DEV} --virtual build-dependencies \
+    apk add --no-cache --virtual build-dependencies \
             autoconf \
             automake \
             coreutils \
             curl-dev \
+            g++ \
+            git \
+            make \
             libssh2-dev \
             libxml2-dev \
             mysql-dev \
             net-snmp-dev \
             openipmi-dev \
             openldap-dev \
-            unixodbc-dev \
-            alpine-sdk && \
+            unixodbc-dev && \
     cd /tmp/ && \
     git clone ${ZBX_SOURCES} --branch ${ZBX_VERSION} --depth 1 --single-branch zabbix-${ZBX_VERSION} && \
     cd /tmp/zabbix-${ZBX_VERSION} && \

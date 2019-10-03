@@ -1,23 +1,11 @@
 FROM alpine:3.10
 
-ARG APK_FLAGS_PERSISTENT="--clean-protected --no-cache"
-ARG APK_FLAGS_DEV="--no-cache"
-
-ARG MAJOR_VERSION=master
-ARG ZBX_VERSION=${MAJOR_VERSION}
-ARG ZBX_SOURCES=https://git.zabbix.com/scm/zbx/zabbix.git
-
-ENV TERM=xterm ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES}
-
 LABEL org.opencontainers.image.title="Zabbix agent" \
       org.opencontainers.image.authors="Alexey Pustovalov <alexey.pustovalov@zabbix.com>" \
       org.opencontainers.image.vendor="Zabbix LLC" \
       org.opencontainers.image.url="https://zabbix.com/" \
       org.opencontainers.image.description="Zabbix agent is deployed on a monitoring target to actively monitor local resources and applications" \
-      org.opencontainers.image.licenses="GPL v2.0" \
-      org.opencontainers.image.documentation="https://www.zabbix.com/documentation/${MAJOR_VERSION}/manual/installation/containers" \
-      org.opencontainers.image.version="${ZBX_VERSION}" \
-      org.opencontainers.image.source="${ZBX_SOURCES}"
+      org.opencontainers.image.licenses="GPL v2.0"
 
 STOPSIGNAL SIGTERM
 
@@ -33,8 +21,7 @@ RUN set -eux && \
     mkdir -p /var/lib/zabbix/enc && \
     mkdir -p /var/lib/zabbix/modules && \
     chown --quiet -R zabbix:root /var/lib/zabbix && \
-    apk update && \
-    apk add ${APK_FLAGS_PERSISTENT} \
+    apk add --no-cache --clean-protected \
             tini \
             bash \
             coreutils \
@@ -43,15 +30,26 @@ RUN set -eux && \
             libldap && \
     rm -rf /var/cache/apk/*
 
+ARG MAJOR_VERSION=master
+ARG ZBX_VERSION=${MAJOR_VERSION}
+ARG ZBX_SOURCES=https://git.zabbix.com/scm/zbx/zabbix.git
+
+ENV TERM=xterm ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES}
+
+LABEL org.opencontainers.image.documentation="https://www.zabbix.com/documentation/${MAJOR_VERSION}/manual/installation/containers" \
+      org.opencontainers.image.version="${ZBX_VERSION}" \
+      org.opencontainers.image.source="${ZBX_SOURCES}"
+
 RUN set -eux && \
-    apk update && \
-    apk add ${APK_FLAGS_DEV} --virtual build-dependencies \
-            alpine-sdk \
+    apk add --no-cache --virtual build-dependencies \
             autoconf \
             automake \
             curl-dev \
             openssl-dev \
             openldap-dev \
+            g++ \
+            pcre-dev \
+            make \
             git \
             coreutils && \
     cd /tmp/ && \
