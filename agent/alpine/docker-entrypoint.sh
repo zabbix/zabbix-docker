@@ -181,11 +181,14 @@ prepare_agent() {
 
 #################################################
 
-prepare_agent
+if [ "${1#-}" != "$1" ]; then
+    set -- /usr/sbin/zabbix_agentd "$@"
+fi
 
-echo "########################################################"
+if [ "$1" == '/usr/sbin/zabbix_agentd' ]; then
+    prepare_agent
+fi
 
-echo "** Executing '$@'"
 exec "$@"
 
 #################################################

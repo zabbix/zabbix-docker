@@ -117,11 +117,11 @@ prepare_java_gateway() {
 
 #################################################
 
-prepare_java_gateway
+if [ "$1" == '/usr/sbin/zabbix_java_gateway' ]; then
+    prepare_java_gateway
+fi
 
-echo "########################################################"
-
-echo "** Executing '$@'"
 exec "$@"
+
 
 #################################################

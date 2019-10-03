@@ -433,11 +433,14 @@ prepare_server() {
 
 #################################################
 
-prepare_server
+if [ "${1#-}" != "$1" ]; then
+    set -- /usr/sbin/zabbix_server "$@"
+    fi
 
-echo "########################################################"
+if [ "$1" == '/usr/sbin/zabbix_server' ]; then
+    prepare_server
+fi
 
-echo "** Executing '$@'"
 exec "$@"
 
 #################################################
