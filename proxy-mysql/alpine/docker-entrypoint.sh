@@ -375,6 +375,12 @@ update_zbx_config() {
 
     update_config_var $ZBX_CONFIG "TLSPSKIdentity" "${ZBX_TLSPSKIDENTITY}"
     update_config_var $ZBX_CONFIG "TLSPSKFile" "${ZBX_TLSPSKFILE}"
+
+    if [ "$(id -u)" != '0' ]; then
+        update_config_var $ZBX_CONFIG "User" "$(whoami)"
+    else
+        update_config_var $ZBX_CONFIG "AllowRoot" "1"
+    fi
 }
 
 prepare_proxy() {

@@ -10,9 +10,10 @@ LABEL org.opencontainers.image.title="Zabbix server (PostgreSQL)" \
 STOPSIGNAL SIGTERM
 
 RUN set -eux && \
-    addgroup zabbix && \
+    addgroup -S -g 1000 zabbix && \
     adduser -S \
             -D -G zabbix \
+            -u 999 \
             -h /var/lib/zabbix/ \
         zabbix && \
     adduser zabbix dialout && \

@@ -104,7 +104,6 @@ update_config_multiple_var() {
 
 prepare_zbx_agent_config() {
     echo "** Preparing Zabbix agent configuration file"
-
     ZBX_AGENT_CONFIG=$ZABBIX_ETC_DIR/zabbix_agentd.conf
 
     : ${ZBX_PASSIVESERVERS:=""}
@@ -172,6 +171,12 @@ prepare_zbx_agent_config() {
     update_config_var $ZBX_AGENT_CONFIG "TLSKeyFile" "${ZBX_TLSKEYFILE}"
     update_config_var $ZBX_AGENT_CONFIG "TLSPSKIdentity" "${ZBX_TLSPSKIDENTITY}"
     update_config_var $ZBX_AGENT_CONFIG "TLSPSKFile" "${ZBX_TLSPSKFILE}"
+
+    if [ "$(id -u)" != '0' ]; then
+        update_config_var $ZBX_AGENT_CONFIG "User" "$(whoami)"
+    else
+        update_config_var $ZBX_AGENT_CONFIG "AllowRoot" "1"
+    fi
 }
 
 prepare_agent() {
