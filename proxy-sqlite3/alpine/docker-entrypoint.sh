@@ -232,20 +232,6 @@ prepare_proxy() {
 
     echo "Preparing Zabbix proxy"
 
-    if [ "$db_type" != "sqlite3" ]; then
-        check_variables_$db_type "proxy"
-        check_db_connect_$db_type
-        create_db_user_$db_type
-        create_db_database_$db_type
-        create_db_schema_$db_type "proxy"
-    fi
-
-    update_zbx_config "proxy" $db_type
-}
-
-prepare_web() {
-    echo "** Preparing Zabbix web-interface"
-
     update_zbx_config
 }
 
