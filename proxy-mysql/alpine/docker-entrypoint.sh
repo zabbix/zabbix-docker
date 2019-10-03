@@ -391,11 +391,14 @@ prepare_proxy() {
 
 #################################################
 
-prepare_proxy
+if [ "${1#-}" != "$1" ]; then
+    set -- /usr/sbin/zabbix_proxy "$@"
+    fi
 
-echo "########################################################"
+if [ "$1" == '/usr/sbin/zabbix_proxy' ]; then
+    prepare_proxy
+fi
 
-echo "** Executing '$@'"
 exec "$@"
 
 #################################################
