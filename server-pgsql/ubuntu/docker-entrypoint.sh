@@ -113,6 +113,10 @@ configure_db_mysql() {
 
         echo "** Installing initial MySQL database schemas"
         mysqld --initialize-insecure --user=mysql --datadir="$MYSQL_DATA_DIR" 2>&1
+
+        if [ -n "${MYSQL_ROOT_PASSWORD}" ]; then
+            SET_MYSQL_ROOT_PASSWORD="true"
+        fi
     else
         echo "**** MySQL data directory is not empty. Using already existing installation."
         chown -R mysql:mysql "$MYSQL_DATA_DIR"
@@ -128,6 +132,19 @@ configure_db_mysql() {
     nohup $MYSQLD --basedir=/usr --datadir=/var/lib/mysql --plugin-dir=/usr/lib/mysql/plugin \
             --user=mysql --log-output=none --pid-file=/var/lib/mysql/mysqld.pid \
             --port=3306 --character-set-server=utf8 --collation-server=utf8_bin &
+
+    if [ "${SET_MYSQL_ROOT_PASSWORD}" == "true" ]; then
+        echo "** Setting up MySQL root password"
+        
+        WAIT_TIMEOUT=5
+        
+        while [ ! "$(mysqladmin ping -h localhost -u root --skip-password --silent --connect_timeout=10)" ]; do
+            echo "**** MySQL server is not available. Waiting $WAIT_TIMEOUT seconds..."
+            sleep $WAIT_TIMEOUT
+        done
+
+        mysqladmin -u root password "$MYSQL_ROOT_PASSWORD" 2>&1
+    fi
 }
 
 prepare_system() {
