@@ -75,7 +75,7 @@ This variable is port of PostgreSQL server. By default, value is '5432'.
 
 ### `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_USER_FILE`, `POSTGRES_PASSWORD_FILE`
 
-By default, values are for user and password are `zabbix`, `zabbix`.
+By default, values for user and password are `zabbix`, `zabbix`.
 
 These variables are used by Zabbix server to connect to Zabbix database. With the `_FILE` variables you can instead provide the path to a file which contains the user / the password instead. Without Docker Swarm or Kubernetes you also have to map the files. Those are exclusive so you can just provide one type - either POSTGRES_USER or POSTGRES_USER_FILE!
 

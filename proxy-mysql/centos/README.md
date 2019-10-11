@@ -106,7 +106,7 @@ This variable is port of MySQL server. By default, value is '3306'.
 
 ### `MYSQL_USER`, `MYSQL_PASSWORD`, `MYSQL_USER_FILE`, `MYSQL_PASSWORD_FILE`
 
-By default, values are for user and password are `zabbix`, `zabbix`.
+By default, values for user and password are `zabbix`, `zabbix`.
 
 These variables are used by Zabbix server to connect to Zabbix database. With the `_FILE` variables you can instead provide the path to a file which contains the user / the password instead. Without Docker Swarm or Kubernetes you also have to map the files. Those are exclusive so you can just provide one type - either MYSQL_USER or MYSQL_USER_FILE!
 
