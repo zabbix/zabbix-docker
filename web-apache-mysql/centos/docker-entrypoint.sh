@@ -317,11 +317,8 @@ check_db_connect_mysql() {
     echo "* DB_SERVER_PORT: ${DB_SERVER_PORT}"
     echo "* DB_SERVER_DBNAME: ${DB_SERVER_DBNAME}"
     if [ "${USE_DB_ROOT_USER}" == "true" ]; then
-        echo "* DB_SERVER_ROOT_USER: ${DB_SERVER_ROOT_USER}"
-        echo "* DB_SERVER_ROOT_PASS: ${DB_SERVER_ROOT_PASS}"
+        echo "* USING DB ROOT USER !"
     fi
-    echo "* DB_SERVER_ZBX_USER: ${DB_SERVER_ZBX_USER}"
-    echo "* DB_SERVER_ZBX_PASS: ${DB_SERVER_ZBX_PASS}"
     echo "********************"
 
     WAIT_TIMEOUT=5
@@ -340,14 +337,11 @@ check_db_connect_postgresql() {
     echo "* DB_SERVER_DBNAME: ${DB_SERVER_DBNAME}"
     echo "* DB_SERVER_SCHEMA: ${DB_SERVER_SCHEMA}"
     if [ "${USE_DB_ROOT_USER}" == "true" ]; then
-        echo "* DB_SERVER_ROOT_USER: ${DB_SERVER_ROOT_USER}"
-        echo "* DB_SERVER_ROOT_PASS: ${DB_SERVER_ROOT_PASS}"
+        echo "* USING DB ROOT USER !"
     else
         DB_SERVER_ROOT_USER=${DB_SERVER_ZBX_USER}
         DB_SERVER_ROOT_PASS=${DB_SERVER_ZBX_PASS}
     fi
-    echo "* DB_SERVER_ZBX_USER: ${DB_SERVER_ZBX_USER}"
-    echo "* DB_SERVER_ZBX_PASS: ${DB_SERVER_ZBX_PASS}"
     echo "********************"
 
     if [ -n "${DB_SERVER_ZBX_PASS}" ]; then
