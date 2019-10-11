@@ -90,9 +90,23 @@ This variable is IP or DNS name of PostgreSQL server. By default, value is 'post
 
 This variable is port of PostgreSQL server. By default, value is '5432'.
 
-### `POSTGRES_USER`, `POSTGRES_PASSWORD`
+### `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_USER_FILE`, `POSTGRES_PASSWORD_FILE`
 
-These variables are used by Zabbix web interface to connect to Zabbix database. By default, values are `zabbix`, `zabbix`.
+By default, values are for user and password are `zabbix`, `zabbix`.
+
+These variables are used by Zabbix server to connect to Zabbix database. With the `_FILE` variables you can instead provide the path to a file which contains the user / the password instead. Without Docker Swarm or Kubernetes you also have to map the files. Those are exclusive so you can just provide one type - either POSTGRES_USER or POSTGRES_USER_FILE!
+
+```console
+docker run --name some-zabbix-server-pgsql -e DB_SERVER_HOST="some-postgres-server" -v ./.POSTGRES_USER:/var/run/secrets/pguser -e POSTGRES_USER_FILE=/var/run/secrets/pguser -v ./.POSTGRES_PASSWORD:/var/run/secrets/pgpass -e POSTGRES_PASSWORD_FILE=/var/run/secrets/pgpass -d zabbix/zabbix-server-pgsql:tag
+```
+
+With Docker Swarm or Kubernetes this works with secrets. That way it is replicated in your cluster!
+
+```console
+printf "secureDBpassword" | docker secret create pgpass -
+printf "secureDBuser" | docker secret create pguser -
+docker run --name some-zabbix-server-pgsql -e POSTGRES_USER_FILE=/var/run/secrets/pguser -e POSTGRES_PASSWORD_FILE=/var/run/secrets/pgpass -d zabbix/zabbix-server-pgsql:tag
+```
 
 ### `POSTGRES_DB`
 

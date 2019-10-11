@@ -90,9 +90,25 @@ This variable is IP or DNS name of MySQL server. By default, value is 'mysql-ser
 
 This variable is port of MySQL server. By default, value is '3306'.
 
-### `MYSQL_USER`, `MYSQL_PASSWORD`
+### `MYSQL_USER`, `MYSQL_PASSWORD`, `MYSQL_USER_FILE`, `MYSQL_PASSWORD_FILE`
 
-These variables are used by Zabbix web interface to connect to Zabbix database. By default, values are `zabbix`, `zabbix`.
+By default, values are for user and password are `zabbix`, `zabbix`.
+
+These variables are used by Zabbix server to connect to Zabbix database. With the `_FILE` variables you can instead provide the path to a file which contains the user / the password instead. Without Docker Swarm or Kubernetes you also have to map the files. Those are exclusive so you can just provide one type - either MYSQL_USER or MYSQL_USER_FILE!
+
+```console
+docker run --name some-zabbix-server-mysql -e DB_SERVER_HOST="some-mysql-server" -v ./.MYSQL_USER:/var/run/secrets/dbuser -e MYSQL_USER_FILE=/var/run/secrets/dbuser -v ./.MYSQL_PASSWORD:/var/run/secrets/dbpass -e MYSQL_PASSWORD_FILE=/var/run/secrets/dbpass -d zabbix/zabbix-server-mysql:tag
+```
+
+With Docker Swarm or Kubernetes this works with secrets. That way it is replicated in your cluster!
+
+```console
+printf "secureDBpassword" | docker secret create dbpass -
+printf "secureDBuser" | docker secret create dbuser -
+docker run --name some-zabbix-server-mysql -e MYSQL_USER_FILE=/var/run/secrets/dbuser -e MYSQL_PASSWORD_FILE=/var/run/secrets/dbpass -d zabbix/zabbix-server-mysql:tag
+```
+
+This works also for MYSQL_ROOT_PASSWORD with MYSQL_ROOT_PASSWORD_FILE .
 
 ### `MYSQL_DATABASE`
 
