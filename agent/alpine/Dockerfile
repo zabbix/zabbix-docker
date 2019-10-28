@@ -38,7 +38,7 @@ RUN set -eux && \
             bash \
             coreutils \
             iputils \
-            pcre
+            pcre \
             libcurl \
             libldap && \
     rm -rf /var/cache/apk/*
