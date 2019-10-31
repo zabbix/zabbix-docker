@@ -344,6 +344,8 @@ update_zbx_config() {
     update_config_var $ZBX_CONFIG "StartTimers" "${ZBX_STARTTIMERS}"
     update_config_var $ZBX_CONFIG "StartEscalators" "${ZBX_STARTESCALATORS}"
 
+    update_config_var $ZBX_CONFIG "StartLLDProcessors" "${ZBX_STARTLLDPROCESSORS}"
+
     : ${ZBX_JAVAGATEWAY_ENABLE:="false"}
     if [ "${ZBX_JAVAGATEWAY_ENABLE}" == "true" ]; then
         update_config_var $ZBX_CONFIG "JavaGateway" "${ZBX_JAVAGATEWAY:-"zabbix-java-gateway"}"
