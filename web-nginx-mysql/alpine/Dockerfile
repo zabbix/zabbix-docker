@@ -54,6 +54,7 @@ RUN set -eux && \
             php7-xmlreader \
             php7-xmlwriter \
             supervisor && \
+    rm -f /etc/nginx/conf.d/*.conf && \
     rm -rf /var/cache/apk/*
 
 ARG MAJOR_VERSION=master
