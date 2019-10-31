@@ -113,7 +113,7 @@ update_zbx_config() {
         update_config_var $ZBX_CONFIG "Hostname" ""
         update_config_var $ZBX_CONFIG "HostnameItem" "${ZBX_HOSTNAMEITEM}"
     else
-        update_config_var $ZBX_CONFIG "Hostname" "${ZBX_HOSTNAME:-"zabbix-proxy-sqlite3}"
+        update_config_var $ZBX_CONFIG "Hostname" "${ZBX_HOSTNAME:-"zabbix-proxy-sqlite3"}"
         update_config_var $ZBX_CONFIG "HostnameItem" "${ZBX_HOSTNAMEITEM}"
     fi
 
@@ -234,8 +234,6 @@ update_zbx_config() {
 }
 
 prepare_proxy() {
-    local db_type=$1
-
     echo "Preparing Zabbix proxy"
 
     update_zbx_config
