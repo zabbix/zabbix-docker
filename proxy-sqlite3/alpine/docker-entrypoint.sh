@@ -239,8 +239,6 @@ update_zbx_config() {
 }
 
 prepare_proxy() {
-    local db_type=$1
-
     echo "Preparing Zabbix proxy"
 
     update_zbx_config
