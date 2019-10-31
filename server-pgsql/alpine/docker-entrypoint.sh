@@ -268,7 +268,7 @@ create_db_schema_postgresql() {
                 -U ${DB_SERVER_ZBX_USER} ${DB_SERVER_DBNAME} 1>/dev/null
 
         if [ "${ENABLE_TIMESCALEDB}" == "true" ]; then
-            cat /usr/share/doc/zabbix-$type-postgresql/timescaledb.sql | psql -q \
+            cat /usr/share/doc/zabbix-server-postgresql/timescaledb.sql | psql -q \
                 -h ${DB_SERVER_HOST} -p ${DB_SERVER_PORT} \
                 -U ${DB_SERVER_ZBX_USER} ${DB_SERVER_DBNAME} 1>/dev/null
         fi
