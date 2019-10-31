@@ -175,12 +175,14 @@ check_db_connect_mysql() {
     echo "* DB_SERVER_HOST: ${DB_SERVER_HOST}"
     echo "* DB_SERVER_PORT: ${DB_SERVER_PORT}"
     echo "* DB_SERVER_DBNAME: ${DB_SERVER_DBNAME}"
-    if [ "${USE_DB_ROOT_USER}" == "true" ]; then
-        echo "* DB_SERVER_ROOT_USER: ${DB_SERVER_ROOT_USER}"
-        echo "* DB_SERVER_ROOT_PASS: ${DB_SERVER_ROOT_PASS}"
+    if [ "${DEBUG_MODE}" == "true" ]; then
+        if [ "${USE_DB_ROOT_USER}" == "true" ]; then
+            echo "* DB_SERVER_ROOT_USER: ${DB_SERVER_ROOT_USER}"
+            echo "* DB_SERVER_ROOT_PASS: ${DB_SERVER_ROOT_PASS}"
+        fi
+        echo "* DB_SERVER_ZBX_USER: ${DB_SERVER_ZBX_USER}"
+        echo "* DB_SERVER_ZBX_PASS: ${DB_SERVER_ZBX_PASS}"
     fi
-    echo "* DB_SERVER_ZBX_USER: ${DB_SERVER_ZBX_USER}"
-    echo "* DB_SERVER_ZBX_PASS: ${DB_SERVER_ZBX_PASS}"
     echo "********************"
 
     WAIT_TIMEOUT=5
