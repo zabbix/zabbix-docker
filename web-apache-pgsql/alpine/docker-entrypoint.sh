@@ -122,22 +122,6 @@ update_config_var() {
 
 }
 
-update_config_multiple_var() {
-    local config_path=$1
-    local var_name=$2
-    local var_value=$3
-
-    var_value="${var_value%\"}"
-    var_value="${var_value#\"}"
-
-    local IFS=,
-    local OPT_LIST=($var_value)
-
-    for value in "${OPT_LIST[@]}"; do
-        update_config_var $config_path $var_name $value true
-    done
-}
-
 # Check prerequisites for PostgreSQL database
 check_variables_postgresql() {
     file_env POSTGRES_USER
