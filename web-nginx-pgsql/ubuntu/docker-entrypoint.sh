@@ -630,9 +630,6 @@ prepare_web_server_nginx() {
     NGINX_SSL_CONFIG="/etc/ssl/nginx"
     PHP_SESSIONS_DIR="/var/lib/php5"
 
-    echo "** Disable default vhosts"
-    rm -f $NGINX_CONFD_DIR/*.conf
-
     echo "** Adding Zabbix virtual host (HTTP)"
     if [ -f "$ZABBIX_ETC_DIR/nginx.conf" ]; then
         ln -s "$ZABBIX_ETC_DIR/nginx.conf" "$NGINX_CONFD_DIR"
