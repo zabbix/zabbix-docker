@@ -65,6 +65,7 @@ RUN set -eux && \
             php7.2-mysql \
             php7.2-xml \
             supervisor && \
+    rm -f /etc/nginx/conf.d/*.conf && \
     DEBIAN_FRONTEND=noninteractive apt-get ${APT_FLAGS_COMMON} purge \
             wget && \
     apt-get ${APT_FLAGS_COMMON} autoremove && \
