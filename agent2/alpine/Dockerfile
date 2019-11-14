@@ -55,11 +55,10 @@ RUN set -eux && \
     git clone ${ZBX_SOURCES} --branch master --depth 1 --single-branch zabbix-${ZBX_VERSION} && \
     cd /tmp/zabbix-${ZBX_VERSION} && \
     zabbix_revision=`git rev-parse --short HEAD` && \
-    sed -i "s/{ZABBIX_REVISION}/$zabbix_revision/g" include/version.h && \
+    sed -i "s/{ZABBIX_REVISION}/$zabbix_revision/g" go/src/zabbix/pkg/version/version.go && \
     ./bootstrap.sh && \
     export CFLAGS="-fPIC -pie -Wl,-z,relro -Wl,-z,now" && \
     export GOPATH=/tmp/zabbix-${ZBX_VERSION}/go && \
-#    sleep 600 && \
     ./configure \
             --datadir=/usr/lib \
             --libdir=/usr/lib/zabbix \
