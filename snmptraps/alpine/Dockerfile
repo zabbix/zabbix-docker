@@ -3,7 +3,7 @@ FROM alpine:3.10
 ARG APK_FLAGS_PERSISTENT="--clean-protected --no-cache"
 ARG APK_FLAGS_DEV="--no-cache"
 
-ARG MAJOR_VERSION=4.4
+ARG MAJOR_VERSION=5.0
 ARG ZBX_VERSION=${MAJOR_VERSION}
 ARG ZBX_SOURCES=https://git.zabbix.com/scm/zbx/zabbix.git
 

@@ -1,10 +1,10 @@
 FROM alpine:3.10
 
-LABEL org.opencontainers.image.title="Zabbix agent" \
+LABEL org.opencontainers.image.title="Zabbix agent 2" \
       org.opencontainers.image.authors="Alexey Pustovalov <alexey.pustovalov@zabbix.com>" \
       org.opencontainers.image.vendor="Zabbix LLC" \
       org.opencontainers.image.url="https://zabbix.com/" \
-      org.opencontainers.image.description="Zabbix agent is deployed on a monitoring target to actively monitor local resources and applications" \
+      org.opencontainers.image.description="Zabbix agent 2 is deployed on a monitoring target to actively monitor local resources and applications" \
       org.opencontainers.image.licenses="GPL v2.0"
 
 STOPSIGNAL SIGTERM
@@ -25,11 +25,9 @@ RUN set -eux && \
     apk add --no-cache --clean-protected \
             tini \
             bash \
-            coreutils \
-            iputils \
             pcre \
-            libcurl \
-            libldap && \
+            coreutils \
+            iputils && \
     rm -rf /var/cache/apk/*
 
 ARG MAJOR_VERSION=5.0
@@ -46,13 +44,12 @@ RUN set -eux && \
     apk add --no-cache --virtual build-dependencies \
             autoconf \
             automake \
-            curl-dev \
-            openssl-dev \
-            openldap-dev \
+            go \
             g++ \
-            pcre-dev \
             make \
             git \
+            pcre-dev \
+            zlib-dev \
             coreutils && \
     cd /tmp/ && \
     git clone ${ZBX_SOURCES} --branch master --depth 1 --single-branch zabbix-${ZBX_VERSION} && \
@@ -61,23 +58,24 @@ RUN set -eux && \
     sed -i "s/{ZABBIX_REVISION}/$zabbix_revision/g" include/version.h && \
     ./bootstrap.sh && \
     export CFLAGS="-fPIC -pie -Wl,-z,relro -Wl,-z,now" && \
+    export GOPATH=/tmp/zabbix-${ZBX_VERSION}/go && \
+#    sleep 600 && \
     ./configure \
             --datadir=/usr/lib \
             --libdir=/usr/lib/zabbix \
             --prefix=/usr \
             --sysconfdir=/etc/zabbix \
             --prefix=/usr \
-            --enable-agent \
-            --with-libcurl \
-            --with-ldap \
-            --with-openssl \
             --enable-ipv6 \
+            --enable-static \
+            --enable-agent2 \
+            --enable-agent \
             --silent && \
     make -j"$(nproc)" -s && \
-    cp /tmp/zabbix-${ZBX_VERSION}/src/zabbix_agent/zabbix_agentd /usr/sbin/zabbix_agentd && \
+    cp /tmp/zabbix-${ZBX_VERSION}/go/src/zabbix/cmd/zabbix_agent2/zabbix_agent2 /usr/sbin/zabbix_agent2 && \
     cp /tmp/zabbix-${ZBX_VERSION}/src/zabbix_get/zabbix_get /usr/bin/zabbix_get && \
     cp /tmp/zabbix-${ZBX_VERSION}/src/zabbix_sender/zabbix_sender /usr/bin/zabbix_sender && \
-    cp /tmp/zabbix-${ZBX_VERSION}/conf/zabbix_agentd.conf /etc/zabbix/zabbix_agentd.conf && \
+    cp /tmp/zabbix-${ZBX_VERSION}/go/src/zabbix/conf/zabbix_agent2.conf /etc/zabbix/zabbix_agent2.conf && \
     chown -R zabbix:zabbix /etc/zabbix/ && \
     cd /tmp/ && \
     rm -rf /tmp/zabbix-${ZBX_VERSION}/ && \
@@ -97,4 +95,4 @@ ENTRYPOINT ["/sbin/tini", "--", "/usr/bin/docker-entrypoint.sh"]
 
 USER zabbix
 
-CMD ["/usr/sbin/zabbix_agentd", "--foreground", "-c", "/etc/zabbix/zabbix_agentd.conf"]
+CMD ["/usr/sbin/zabbix_agent2", "--foreground", "-c", "/etc/zabbix/zabbix_agent2.conf"]
