@@ -125,8 +125,11 @@ Additionally the image allows to specify many other environment variables listed
 
 ```
 ZBX_LISTENIP=
+ZBX_HISTORYSTORAGEURL= # Available since 3.4.0
+ZBX_HISTORYSTORAGETYPES=uint,dbl,str,log,text # Available since 3.4.0
 ZBX_STARTPOLLERS=5
 ZBX_IPMIPOLLERS=0
+ZBX_STARTPREPROCESSORS=3 # Available since 3.4.0
 ZBX_STARTPOLLERSUNREACHABLE=1
 ZBX_STARTTRAPPERS=5
 ZBX_STARTPINGERS=1
@@ -134,9 +137,12 @@ ZBX_STARTDISCOVERERS=1
 ZBX_STARTHTTPPOLLERS=1
 ZBX_STARTTIMERS=1
 ZBX_STARTESCALATORS=1
+ZBX_STARTALERTERS=3 # Available since 3.4.0
 ZBX_JAVAGATEWAY=zabbix-java-gateway
 ZBX_JAVAGATEWAYPORT=10052
 ZBX_STARTJAVAPOLLERS=5
+ZBX_STARTLLDPROCESSORS=2 # Available since 4.2.0
+ZBX_STATSALLOWEDIP= # Available since 4.0.5
 ZBX_STARTVMWARECOLLECTORS=0
 ZBX_VMWAREFREQUENCY=60
 ZBX_VMWAREPERFFREQUENCY=60
@@ -150,8 +156,10 @@ ZBX_SENDERFREQUENCY=30
 ZBX_CACHESIZE=8M
 ZBX_CACHEUPDATEFREQUENCY=60
 ZBX_STARTDBSYNCERS=4
+ZBX_EXPORTFILESIZE=1G # Available since 4.0.0
 ZBX_HISTORYCACHESIZE=16M
 ZBX_HISTORYINDEXCACHESIZE=4M
+ZBX_HISTORYSTORAGEDATEINDEX=0 # Available since 4.0.0
 ZBX_TRENDCACHESIZE=4M
 ZBX_VALUECACHESIZE=8M
 ZBX_TRAPPERIMEOUT=300
@@ -216,6 +224,10 @@ SNMP traps processing feature could be enabled using shared volume and switched 
 ### ``/var/lib/zabbix/mibs``
 
 The volume allows to add new MIB files. It does not support subdirectories, all MIBs must be placed to ``/var/lib/zabbix/mibs``.
+
+### ``/var/lib/zabbix/export``
+
+Directory for real-time export of events, history and trends in newline-delimited JSON format. Could be enabled using ``ZBX_EXPORTFILESIZE`` environment variable.
 
 # The image variants
 
