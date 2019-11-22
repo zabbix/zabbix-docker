@@ -46,64 +46,6 @@ file_env() {
     unset "$fileVar"
 }
 
-configure_db_mysql() {
-    [ "${DB_SERVER_HOST}" != "localhost" ] && return
-
-    echo "** Configuring local MySQL server"
-
-    MYSQL_ALLOW_EMPTY_PASSWORD=true
-    MYSQL_DATA_DIR="/var/lib/mysql"
-
-    if [ -f "/etc/mysql/my.cnf" ]; then
-        MYSQL_CONF_FILE="/etc/mysql/my.cnf"
-    elif [ -f "/etc/my.cnf.d/server.cnf" ]; then
-        MYSQL_CONF_FILE="/etc/my.cnf.d/server.cnf"
-        DB_SERVER_SOCKET="/var/lib/mysql/mysql.sock"
-    elif [ -f "/etc/my.cnf.d/mariadb-server.cnf" ]; then
-        MYSQL_CONF_FILE="/etc/my.cnf.d/mariadb-server.cnf"
-        DB_SERVER_SOCKET="/var/run/mysqld/mysqld.sock"
-    else
-        echo "**** Could not found MySQL configuration file"
-        exit 1
-    fi
-
-    if [ -f "/usr/bin/mysqld" ]; then
-        MYSQLD=/usr/bin/mysqld
-    elif [ -f "/usr/sbin/mysqld" ]; then
-        MYSQLD=/usr/sbin/mysqld
-    elif [ -f "/usr/libexec/mysqld" ]; then
-        MYSQLD=/usr/libexec/mysqld
-    else
-        echo "**** Could not found mysqld binary file"
-        exit 1
-    fi
-
-    sed -Ei 's/^(bind-address|log)/#&/' "$MYSQL_CONF_FILE"
-
-    if [ ! -d "$MYSQL_DATA_DIR/mysql" ]; then
-        [ -d "$MYSQL_DATA_DIR" ] || mkdir -p "$MYSQL_DATA_DIR"
-
-        chown -R mysql:mysql "$MYSQL_DATA_DIR"
-
-        echo "** Installing initial MySQL database schemas"
-        mysql_install_db --user=mysql --datadir="$MYSQL_DATA_DIR" 2>&1
-    else
-        echo "**** MySQL data directory is not empty. Using already existing installation."
-        chown -R mysql:mysql "$MYSQL_DATA_DIR"
-    fi
-
-    mkdir -p /var/run/mysqld
-    ln -s /var/run/mysqld /run/mysqld
-    chown -R mysql:mysql /var/run/mysqld
-    chown -R mysql:mysql /run/mysqld
-
-    echo "** Starting MySQL server in background mode"
-
-    nohup $MYSQLD --basedir=/usr --datadir=/var/lib/mysql --plugin-dir=/usr/lib/mysql/plugin \
-            --user=mysql --log-output=none --pid-file=/var/lib/mysql/mysqld.pid \
-            --port=3306 --character-set-server=utf8 --collation-server=utf8_bin &
-}
-
 escape_spec_char() {
     local var_value=$1
 
