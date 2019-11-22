@@ -703,6 +703,7 @@ update_zbx_config() {
     local type=$1
     local db_type=$2
 
+
     echo "** Preparing Zabbix $type configuration file"
 
     ZBX_CONFIG=$ZABBIX_ETC_DIR/zabbix_$type.conf
@@ -770,6 +771,7 @@ update_zbx_config() {
     fi
 
     update_config_var $ZBX_CONFIG "StatsAllowedIP" "${ZBX_STATSALLOWEDIP}"
+    update_config_var $ZBX_CONFIG "StartPreprocessors" "${ZBX_STARTPREPROCESSORS}"
 
     update_config_var $ZBX_CONFIG "StartPollers" "${ZBX_STARTPOLLERS}"
     update_config_var $ZBX_CONFIG "StartIPMIPollers" "${ZBX_IPMIPOLLERS}"
@@ -780,7 +782,6 @@ update_zbx_config() {
     update_config_var $ZBX_CONFIG "StartHTTPPollers" "${ZBX_STARTHTTPPOLLERS}"
 
     if [ "$type" == "server" ]; then
-        update_config_var $ZBX_CONFIG "StartPreprocessors" "${ZBX_STARTPREPROCESSORS}"
         update_config_var $ZBX_CONFIG "StartTimers" "${ZBX_STARTTIMERS}"
         update_config_var $ZBX_CONFIG "StartEscalators" "${ZBX_STARTESCALATORS}"
         update_config_var $ZBX_CONFIG "StartAlerters" "${ZBX_STARTALERTERS}"
