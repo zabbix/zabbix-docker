@@ -770,6 +770,7 @@ update_zbx_config() {
     fi
 
     update_config_var $ZBX_CONFIG "StatsAllowedIP" "${ZBX_STATSALLOWEDIP}"
+    update_config_var $ZBX_CONFIG "StartPreprocessors" "${ZBX_STARTPREPROCESSORS}"
 
     update_config_var $ZBX_CONFIG "StartPollers" "${ZBX_STARTPOLLERS}"
     update_config_var $ZBX_CONFIG "StartIPMIPollers" "${ZBX_IPMIPOLLERS}"
@@ -780,7 +781,6 @@ update_zbx_config() {
     update_config_var $ZBX_CONFIG "StartHTTPPollers" "${ZBX_STARTHTTPPOLLERS}"
 
     if [ "$type" == "server" ]; then
-        update_config_var $ZBX_CONFIG "StartPreprocessors" "${ZBX_STARTPREPROCESSORS}"
         update_config_var $ZBX_CONFIG "StartTimers" "${ZBX_STARTTIMERS}"
         update_config_var $ZBX_CONFIG "StartEscalators" "${ZBX_STARTESCALATORS}"
         update_config_var $ZBX_CONFIG "StartAlerters" "${ZBX_STARTALERTERS}"
