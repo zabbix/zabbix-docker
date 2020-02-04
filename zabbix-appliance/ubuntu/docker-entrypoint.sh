@@ -757,6 +757,7 @@ update_zbx_config() {
     if [ $type == "server" ]; then
         update_config_var $ZBX_CONFIG "HistoryStorageURL" "${ZBX_HISTORYSTORAGEURL}"
         update_config_var $ZBX_CONFIG "HistoryStorageTypes" "${ZBX_HISTORYSTORAGETYPES}"
+        update_config_var $ZBX_CONFIG "HistoryStorageDateIndex" "${ZBX_HISTORYSTORAGEDATEINDEX}"
     fi
 
     update_config_var $ZBX_CONFIG "DBSocket" "${DB_SERVER_SOCKET}"
