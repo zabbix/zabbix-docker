@@ -1,4 +1,4 @@
-FROM alpine:3.10
+FROM alpine:3.11
 
 ARG APK_FLAGS_PERSISTENT="--clean-protected --no-cache"
 ARG APK_FLAGS_DEV="--no-cache"
