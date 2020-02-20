@@ -1,4 +1,4 @@
-FROM alpine:3.10
+FROM alpine:3.11
 
 LABEL org.opencontainers.image.title="Zabbix agent 2" \
       org.opencontainers.image.authors="Alexey Pustovalov <alexey.pustovalov@zabbix.com>" \
@@ -71,10 +71,10 @@ RUN set -eux && \
             --enable-agent \
             --silent && \
     make -j"$(nproc)" -s && \
-    cp /tmp/zabbix-${ZBX_VERSION}/go/src/zabbix/cmd/zabbix_agent2/zabbix_agent2 /usr/sbin/zabbix_agent2 && \
+    cp /tmp/zabbix-${ZBX_VERSION}/src/go/bin/zabbix_agent2 /usr/sbin/zabbix_agent2 && \
     cp /tmp/zabbix-${ZBX_VERSION}/src/zabbix_get/zabbix_get /usr/bin/zabbix_get && \
     cp /tmp/zabbix-${ZBX_VERSION}/src/zabbix_sender/zabbix_sender /usr/bin/zabbix_sender && \
-    cp /tmp/zabbix-${ZBX_VERSION}/go/src/zabbix/conf/zabbix_agent2.conf /etc/zabbix/zabbix_agent2.conf && \
+    cp /tmp/zabbix-${ZBX_VERSION}/src/go/conf/zabbix_agent2.conf /etc/zabbix/zabbix_agent2.conf && \
     chown -R zabbix:zabbix /etc/zabbix/ && \
     cd /tmp/ && \
     rm -rf /tmp/zabbix-${ZBX_VERSION}/ && \
