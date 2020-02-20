@@ -137,6 +137,8 @@ Additionally the image allows to specify many other environment variables listed
 ZBX_SOURCEIP=
 ZBX_ENABLEREMOTECOMMANDS=0
 ZBX_LOGREMOTECOMMANDS=0
+ZBX_HOSTINTERFACE= # Available since 4.4.0
+ZBX_HOSTINTERFACEITEM= # Available since 4.4.0
 ZBX_STARTAGENTS=3
 ZBX_HOSTNAMEITEM=system.hostname
 ZBX_METADATA=
