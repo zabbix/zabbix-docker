@@ -1,4 +1,4 @@
-FROM alpine:3.10
+FROM alpine:3.11
 
 LABEL org.opencontainers.image.title="Zabbix web-interface (Apache, MySQL)" \
       org.opencontainers.image.authors="Alexey Pustovalov <alexey.pustovalov@zabbix.com>" \
