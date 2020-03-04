@@ -385,7 +385,7 @@ update_zbx_config() {
 
     if [ -n "${ZBX_EXPORTFILESIZE}" ]; then
         update_config_var $ZBX_CONFIG "ExportDir" "$ZABBIX_USER_HOME_DIR/export/"
-        update_config_var $ZBX_CONFIG "ExportFileSize" "{$ZBX_EXPORTFILESIZE}"
+        update_config_var $ZBX_CONFIG "ExportFileSize" "${ZBX_EXPORTFILESIZE}"
     fi
 
     update_config_var $ZBX_CONFIG "FpingLocation" "/usr/sbin/fping"
