@@ -28,7 +28,7 @@ LABEL name="zabbix/zabbix-appliance" \
       run="docker run --name zabbix-appliance -p 80:80 -p 10051:10051 -d registry.connect.redhat.com/zabbix/zabbix-appliance-44:${ZBX_VERSION}" \
       io.k8s.description="Zabbix appliance with MySQL database support and Nginx web-server" \
       io.k8s.display-name="Zabbix Appliance" \
-      io.openshift.expose-services="http:http,https:https,10051:10051" \
+      io.openshift.expose-services="8080:http,8443:https,10051:10051" \
       io.openshift.tags="zabbix,zabbix-appliance,mysql,nginx" \
       org.label-schema.name="zabbix-appliance-rhel" \
       org.label-schema.vendor="Zabbix LLC" \
@@ -41,7 +41,7 @@ LABEL name="zabbix/zabbix-appliance" \
       org.label-schema.usage="https://www.zabbix.com/documentation/${MAJOR_VERSION}/manual/installation/containers" \
       org.label-schema.version="${ZBX_VERSION}" \
       org.label-schema.vcs-url="${ZBX_SOURCES}" \
-      org.label-schema.docker.cmd="docker run --name zabbix-appliance -p 80:80 -p 10051:10051 -d registry.connect.redhat.com/zabbix/zabbix-appliance-44:${ZBX_VERSION}"
+      org.label-schema.docker.cmd="docker run --name zabbix-appliance -p 80:8080 -p 10051:10051 -d registry.connect.redhat.com/zabbix/zabbix-appliance-44:${ZBX_VERSION}"
 
 STOPSIGNAL SIGTERM
 
@@ -85,10 +85,10 @@ RUN set -o xtrace && INSTALL_PKGS="OpenIPMI-libs \
     dnf ${DNF_FLAGS_COMMON} update-minimal --disablerepo "*" --enablerepo rhel-8-for-x86_64-baseos-rpms --setopt=tsflags=nodocs \
         --security --sec-severity=Important --sec-severity=Critical && \
     dnf ${DNF_FLAGS_COMMON} install --disablerepo "*" --enablerepo "${REPOLIST}" --setopt=tsflags=nodocs ${INSTALL_PKGS} && \
-    groupadd --system zabbix && \
+    groupadd -g 1995 --system zabbix && \
     adduser -r --shell /sbin/nologin \
             -g zabbix -G dialout \
-            -d /var/lib/zabbix/ \
+            -d /var/lib/zabbix/ -u 1997 \
         zabbix && \
     mkdir -p /etc/zabbix && \
     mkdir -p /var/lib/zabbix && \
@@ -235,8 +235,6 @@ VOLUME ["/var/lib/mysql/"]
 
 COPY ["docker-entrypoint.sh", "/usr/bin/"]
 
-ENV ZBX_TYPE=appliance
-
-USER zabbix
+USER 1997
 
 ENTRYPOINT ["/sbin/tini", "--", "/usr/bin/docker-entrypoint.sh"]
