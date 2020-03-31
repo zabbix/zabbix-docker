@@ -104,10 +104,16 @@ RUN set -o xtrace && INSTALL_PKGS="OpenIPMI-libs \
     mkdir -p /var/lib/zabbix/ssl/keys && \
     mkdir -p /var/lib/zabbix/ssl/ssl_ca && \
     chown --quiet -R zabbix:root /var/lib/zabbix && \
+    chown -R zabbix:mysql /etc/my.cnf.d/ && \
+    chown -R zabbix:mysql /etc/my.cnf && \
+    mkdir -p /var/run/mysqld && \
+    chown -R zabbix:mysql /var/run/mysqld && \
+    chown -R zabbix:nginx /etc/nginx/ && \
     mkdir -p /usr/share/doc/zabbix-server-mysql/ && \
     rm -f /etc/php-fpm.d/www.conf && \
     mkdir -p /var/lib/php/ && \
-    chown --quiet -R nginx:nginx /var/lib/php/ && \
+    chown --quiet -R zabbix:nginx /var/lib/php/ && \
+    chown -R zabbix:mysql /var/lib/mysql/ && \
     easy_install-3.6 --install-dir /usr/lib/python3.6/site-packages/ supervisor && \
     mkdir -p /etc/supervisor/conf.d/ && \
     dnf ${DNF_FLAGS_COMMON} clean all && \
@@ -115,6 +121,16 @@ RUN set -o xtrace && INSTALL_PKGS="OpenIPMI-libs \
     rm -rf /var/cache/yum && \
     rm -rf /var/lib/yum/yumdb/* && \
     rm -rf /usr/lib/udev/hwdb.d/*
+
+COPY ["conf/etc/supervisor/", "/etc/supervisor/"]
+COPY ["conf/etc/zabbix/nginx.conf", "/etc/zabbix/"]
+COPY ["conf/etc/zabbix/nginx_ssl.conf", "/etc/zabbix/"]
+COPY ["conf/etc/zabbix/web/zabbix.conf.php", "/etc/zabbix/web/"]
+COPY ["conf/etc/nginx/nginx.conf", "/etc/nginx/"]
+COPY ["conf/etc/php-fpm.conf", "/etc/php-fpm.conf"]
+COPY ["conf/etc/php.d/99-zabbix.ini", "/etc/php.d/99-zabbix.ini"]
+COPY ["conf/etc/zabbix/zabbix_java_gateway_logback.xml", "/etc/zabbix/"]
+COPY ["conf/usr/sbin/zabbix_java_gateway", "/usr/sbin/"]
 
 RUN set -eux && REPOLIST="rhel-8-for-x86_64-baseos-rpms,rhel-8-for-x86_64-appstream-rpms,zabbix-non-supported" && \
     INSTALL_PKGS="autoconf \
@@ -171,7 +187,6 @@ RUN set -eux && REPOLIST="rhel-8-for-x86_64-baseos-rpms,rhel-8-for-x86_64-appstr
     cp src/zabbix_get/zabbix_get /usr/bin/zabbix_get && \
     cp src/zabbix_sender/zabbix_sender /usr/bin/zabbix_sender && \
     cp conf/zabbix_server.conf /etc/zabbix/zabbix_server.conf && \
-    chown --quiet -R zabbix:root /etc/zabbix && \
     cat database/mysql/schema.sql > database/mysql/create.sql && \
     cat database/mysql/images.sql >> database/mysql/create.sql && \
     cat database/mysql/data.sql >> database/mysql/create.sql && \
@@ -197,6 +212,10 @@ RUN set -eux && REPOLIST="rhel-8-for-x86_64-baseos-rpms,rhel-8-for-x86_64-appstr
 #                xargs -I '{}' bash -c 'echo "{}" && localedef -c -i {} -f UTF-8 {}.UTF-8' && \
     dnf ${DNF_FLAGS_COMMON} history undo `dnf -q history | sed -n 3p |column -t | cut -d' ' -f1` && \
     dnf ${DNF_FLAGS_COMMON} clean all && \
+    chown -R zabbix:root /usr/share/zabbix/ && \
+    chown --quiet -R zabbix:zabbix /etc/zabbix/ && \
+    chown -R zabbix:zabbix /var/cache/nginx/ && \
+    chown -R zabbix:zabbix /var/log/nginx/ && \
     rm -rf /var/cache/yum && \
     rm -rf /var/lib/yum/yumdb/* && \
     rm -rf /usr/lib/udev/hwdb.d/* && \
@@ -214,17 +233,10 @@ VOLUME ["/usr/lib/zabbix/alertscripts", "/usr/lib/zabbix/externalscripts", "/var
 VOLUME ["/var/lib/zabbix/snmptraps", "/var/lib/zabbix/ssh_keys", "/var/lib/zabbix/ssl/certs", "/var/lib/zabbix/ssl/keys", "/var/lib/zabbix/ssl/ssl_ca"]
 VOLUME ["/var/lib/mysql/"]
 
-COPY ["conf/etc/supervisor/", "/etc/supervisor/"]
-COPY ["conf/etc/zabbix/nginx.conf", "/etc/zabbix/"]
-COPY ["conf/etc/zabbix/nginx_ssl.conf", "/etc/zabbix/"]
-COPY ["conf/etc/zabbix/web/zabbix.conf.php", "/etc/zabbix/web/"]
-COPY ["conf/etc/nginx/nginx.conf", "/etc/nginx/"]
-COPY ["conf/etc/php-fpm.conf", "/etc/php-fpm.conf"]
-COPY ["conf/etc/php.d/99-zabbix.ini", "/etc/php.d/99-zabbix.ini"]
-COPY ["conf/etc/zabbix/zabbix_java_gateway_logback.xml", "/etc/zabbix/"]
-COPY ["conf/usr/sbin/zabbix_java_gateway", "/usr/sbin/"]
 COPY ["docker-entrypoint.sh", "/usr/bin/"]
 
 ENV ZBX_TYPE=appliance
+
+USER zabbix
 
 ENTRYPOINT ["/sbin/tini", "--", "/usr/bin/docker-entrypoint.sh"]
