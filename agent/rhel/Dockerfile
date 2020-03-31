@@ -43,6 +43,9 @@ LABEL name="zabbix/zabbix-agent-44" \
 
 STOPSIGNAL SIGTERM
 
+### add licenses to this directory
+COPY ["licenses", "/licenses"]
+
 ENV TINI_VERSION v0.18.0
 COPY ["conf/sbin/tini","/sbin/tini"]
 
