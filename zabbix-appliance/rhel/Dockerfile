@@ -25,7 +25,7 @@ LABEL name="zabbix/zabbix-appliance" \
       summary="Zabbix appliance with MySQL database support and Nginx web-server" \
       description="Zabbix appliance contains MySQL database server, Zabbix server, Zabbix Java Gateway and Zabbix frontend based on Nginx web-server." \
       url="https://www.zabbix.com/" \
-      run="docker run --name zabbix-appliance -p 80:80 -p 10051:10051 -d registry.connect.redhat.com/zabbix/zabbix-appliance:${ZBX_VERSION}" \
+      run="docker run --name zabbix-appliance -p 80:80 -p 10051:10051 -d registry.connect.redhat.com/zabbix/zabbix-appliance-44:${ZBX_VERSION}" \
       io.k8s.description="Zabbix appliance with MySQL database support and Nginx web-server" \
       io.k8s.display-name="Zabbix Appliance" \
       io.openshift.expose-services="http:http,https:https,10051:10051" \
@@ -115,7 +115,7 @@ RUN set -o xtrace && INSTALL_PKGS="OpenIPMI-libs \
     rm -rf /var/lib/yum/yumdb/* && \
     rm -rf /usr/lib/udev/hwdb.d/*
 
-RUN set -o xtrace && REPOLIST="--enablerepo=ubi-8-baseos --enablerepo=ubi-8-appstream --enablerepo=zabbix-non-supported --enablerepo=nginx-stable" && \
+RUN set -eux && REPOLIST="rhel-8-for-x86_64-baseos-rpms,rhel-8-for-x86_64-appstream-rpms,zabbix-non-supported" && \
     INSTALL_PKGS="autoconf \
             automake \
             gcc \
