@@ -41,7 +41,7 @@ LABEL name="zabbix/zabbix-appliance" \
       org.label-schema.usage="https://www.zabbix.com/documentation/${MAJOR_VERSION}/manual/installation/containers" \
       org.label-schema.version="${ZBX_VERSION}" \
       org.label-schema.vcs-url="${ZBX_SOURCES}" \
-      org.label-schema.docker.cmd="docker run --name zabbix-appliance -p 80:80 -p 10051:10051 -d registry.connect.redhat.com/zabbix/zabbix-appliance:${ZBX_VERSION}"
+      org.label-schema.docker.cmd="docker run --name zabbix-appliance -p 80:80 -p 10051:10051 -d registry.connect.redhat.com/zabbix/zabbix-appliance-44:${ZBX_VERSION}"
 
 STOPSIGNAL SIGTERM
 
