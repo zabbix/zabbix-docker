@@ -73,19 +73,16 @@ configure_db_mysql() {
     if [ ! -d "$MYSQL_DATA_DIR/mysql" ]; then
         [ -d "$MYSQL_DATA_DIR" ] || mkdir -p "$MYSQL_DATA_DIR"
 
-        chown -R zabbix:mysql "$MYSQL_DATA_DIR"
-
         echo "** Installing initial MySQL database schemas"
-        mysql_install_db --user=zabbix --datadir="$MYSQL_DATA_DIR" 2>&1
+        mysql_install_db --datadir="$MYSQL_DATA_DIR" 2>&1
     else
         echo "**** MySQL data directory is not empty. Using already existing installation."
-        chown -R zabbix:mysql "$MYSQL_DATA_DIR"
     fi
 
     echo "** Starting MySQL server in background mode"
 
     nohup $MYSQLD --basedir=/usr --datadir=/var/lib/mysql --plugin-dir=/usr/lib/mysql/plugin \
-            --user=zabbix --log-output=none --pid-file=/var/lib/mysql/mysqld.pid \
+            --log-output=none --pid-file=/var/lib/mysql/mysqld.pid \
             --port=3306 --character-set-server=utf8 --collation-server=utf8_bin &
 }
 
