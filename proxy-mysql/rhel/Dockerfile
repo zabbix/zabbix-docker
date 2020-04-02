@@ -44,7 +44,6 @@ LABEL name="zabbix/zabbix-proxy-mysql-44" \
             
 STOPSIGNAL SIGTERM
 
-### add licenses to this directory
 COPY ["licenses", "/licenses"]
 COPY ["conf/sbin/tini","/sbin/tini"]
 

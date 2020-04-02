@@ -44,6 +44,8 @@ LABEL name="zabbix/zabbix-java-gateway-44" \
             
 STOPSIGNAL SIGTERM
 
+COPY ["licenses", "/licenses"]
+
 RUN set -eux && INSTALL_PKGS="bash \
             java-1.8.0-openjdk-headless" && \
     REPOLIST="rhel-8-for-x86_64-baseos-rpms,rhel-8-for-x86_64-appstream-rpms" && \
