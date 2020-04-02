@@ -85,7 +85,7 @@ RUN set -eux && INSTALL_PKGS="bash \
     mkdir -p /var/lib/zabbix/ssl/keys && \
     mkdir -p /var/lib/zabbix/ssl/ssl_ca && \
     mkdir -p /usr/share/doc/zabbix-server-mysql && \
-    chmod +x /sbin/tini &&
+    chmod +x /sbin/tini && \
     dnf ${DNF_FLAGS_COMMON} clean all && \
     rm -rf /var/cache/yum /var/lib/yum/yumdb/* /usr/lib/udev/hwdb.d/*
 
