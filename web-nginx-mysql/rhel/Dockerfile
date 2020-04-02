@@ -66,23 +66,23 @@ RUN set -eux && INSTALL_PKGS="bash \
     dnf ${DNF_FLAGS_COMMON} update-minimal --disablerepo "*" --enablerepo rhel-8-for-x86_64-baseos-rpms --setopt=tsflags=nodocs \
         --security --sec-severity=Important --sec-severity=Critical && \
     dnf ${DNF_FLAGS_COMMON} install --disablerepo "*" --enablerepo "${REPOLIST}" --setopt=tsflags=nodocs ${INSTALL_PKGS} && \
-    groupadd --system zabbix && \
+    groupadd -g 1995 --system zabbix && \
     adduser -r --shell /sbin/nologin \
-            -g zabbix -G dialout \
-            -d /var/lib/zabbix/ \
+            -g zabbix -G dialout -G root \
+            -d /var/lib/zabbix/ -u 1997 \
         zabbix && \
     mkdir -p /etc/zabbix && \
     mkdir -p /etc/zabbix/web && \
-    chown --quiet -R zabbix:root /etc/zabbix && \
     rm -f /etc/php-fpm.d/www.conf && \
     mkdir -p /var/lib/php/ && \
-    chown --quiet -R nginx:nginx /var/lib/php/ && \
     easy_install-3.6 --install-dir /usr/lib/python3.6/site-packages/ supervisor && \
+    ln -s /usr/lib/python3.6/site-packages/supervisord /usr/bin/supervisord && \
     mkdir -p /etc/supervisor/conf.d/ && \
     dnf ${DNF_FLAGS_COMMON} clean all && \
-    rm -rf /var/cache/yum && \
-    rm -rf /var/lib/yum/yumdb/* && \
-    rm -rf /usr/lib/udev/hwdb.d/*
+    rm -rf /var/cache/yum /var/lib/yum/yumdb/* /usr/lib/udev/hwdb.d/* && \
+    rm -rf /etc/udev/hwdb.bin /root/.pki
+
+COPY ["conf/etc/", "/etc/"]
 
 RUN set -eux && REPOLIST="rhel-8-for-x86_64-baseos-rpms,rhel-8-for-x86_64-appstream-rpms,zabbix-non-supported" && \
     INSTALL_PKGS="gettext \
@@ -98,14 +98,22 @@ RUN set -eux && REPOLIST="rhel-8-for-x86_64-baseos-rpms,rhel-8-for-x86_64-appstr
     rm -rf tests && \
     ./locale/make_mo.sh && \
     chown --quiet -R nginx:nginx /usr/share/zabbix && \
-    ln -s /usr/lib/python3.6/site-packages/supervisord /usr/bin/supervisord && \
     dnf ${DNF_FLAGS_COMMON} history undo `dnf -q history | sed -n 3p |column -t | cut -d' ' -f1` && \
     dnf ${DNF_FLAGS_COMMON} clean all && \
-    rm -rf /var/cache/yum && \
-    rm -rf /var/lib/yum/yumdb/* && \
-    rm -rf /usr/lib/udev/hwdb.d/* && \
-    rm -rf /etc/udev/hwdb.bin && \
-    rm -rf /root/.pki
+    chown --quiet -R zabbix:root /etc/zabbix/ /usr/share/zabbix/conf/ && \
+    chgrp -R 0 /etc/zabbix/ /usr/share/zabbix/conf/ && \
+    chmod -R g=u /etc/zabbix/ /usr/share/zabbix/conf/ && \
+    chown --quiet -R zabbix:root /etc/nginx/ && \
+    chgrp -R 0 /etc/nginx/ && \
+    chmod -R g=u /etc/nginx/ && \
+    chown --quiet -R zabbix:root /var/lib/php/ /var/cache/nginx/ && \
+    chgrp -R 0 /var/lib/php/ /var/cache/nginx/ && \
+    chmod -R g=u /var/lib/php/ /var/cache/nginx/ && \
+    chown --quiet -R zabbix:root /var/cache/nginx/ /var/log/nginx/ && \
+    chgrp -R 0 /var/cache/nginx/ /var/log/nginx/ && \
+    chmod -R g=u /var/cache/nginx/ /var/log/nginx/ && \
+    rm -rf /var/cache/yum /var/lib/yum/yumdb/* /usr/lib/udev/hwdb.d/* && \
+    rm -rf /etc/udev/hwdb.bin /root/.pki
 
 EXPOSE 80/TCP 443/TCP
 
@@ -113,13 +121,8 @@ WORKDIR /usr/share/zabbix
 
 VOLUME ["/etc/ssl/nginx"]
 
-COPY ["conf/etc/supervisor/", "/etc/supervisor/"]
-COPY ["conf/etc/zabbix/nginx.conf", "/etc/zabbix/"]
-COPY ["conf/etc/zabbix/nginx_ssl.conf", "/etc/zabbix/"]
-COPY ["conf/etc/zabbix/web/zabbix.conf.php", "/etc/zabbix/web/"]
-COPY ["conf/etc/nginx/nginx.conf", "/etc/nginx/"]
-COPY ["conf/etc/php-fpm.conf", "/etc/php-fpm.conf"]
-COPY ["conf/etc/php.d/99-zabbix.ini", "/etc/php.d/99-zabbix.ini"]
 COPY ["docker-entrypoint.sh", "/usr/bin/"]
+
+USER 1997
 
 ENTRYPOINT ["docker-entrypoint.sh"]

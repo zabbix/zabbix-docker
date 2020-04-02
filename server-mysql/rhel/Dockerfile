@@ -13,7 +13,7 @@ ARG RELEASE=7
 ARG ZBX_VERSION=${MAJOR_VERSION}.7
 
 ARG ZBX_SOURCES=https://git.zabbix.com/scm/zbx/zabbix.git
-ENV TERM=xterm ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES} \
+ENV TERM=xterm ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES} TINI_VERSION=v0.18.0 \
     MIBDIRS=/usr/share/snmp/mibs:/var/lib/zabbix/mibs MIBS=+ALL
 
 LABEL name="zabbix/zabbix-server-mysql-44" \
@@ -46,8 +46,6 @@ STOPSIGNAL SIGTERM
 
 ### add licenses to this directory
 COPY ["licenses", "/licenses"]
-
-ENV TINI_VERSION v0.18.0
 COPY ["conf/sbin/tini","/sbin/tini"]
 
 RUN set -eux && INSTALL_PKGS="bash \
@@ -68,10 +66,10 @@ RUN set -eux && INSTALL_PKGS="bash \
     dnf ${DNF_FLAGS_COMMON} update-minimal --disablerepo "*" --enablerepo rhel-8-for-x86_64-baseos-rpms --setopt=tsflags=nodocs \
         --security --sec-severity=Important --sec-severity=Critical && \
     dnf ${DNF_FLAGS_COMMON} install --disablerepo "*" --enablerepo "${REPOLIST}" --setopt=tsflags=nodocs ${INSTALL_PKGS} && \
-    groupadd --system zabbix && \
+    groupadd -g 1995 --system zabbix && \
     adduser -r --shell /sbin/nologin \
-            -g zabbix -G dialout \
-            -d /var/lib/zabbix/ \
+            -g zabbix -G dialout -G root \
+            -d /var/lib/zabbix/ -u 1997 \
         zabbix && \
     mkdir -p /etc/zabbix && \
     mkdir -p /var/lib/zabbix && \
@@ -86,12 +84,10 @@ RUN set -eux && INSTALL_PKGS="bash \
     mkdir -p /var/lib/zabbix/ssl/certs && \
     mkdir -p /var/lib/zabbix/ssl/keys && \
     mkdir -p /var/lib/zabbix/ssl/ssl_ca && \
-    chown --quiet -R zabbix:root /var/lib/zabbix && \
     mkdir -p /usr/share/doc/zabbix-server-mysql && \
+    chmod +x /sbin/tini &&
     dnf ${DNF_FLAGS_COMMON} clean all && \
-    rm -rf /var/cache/yum && \
-    rm -rf /var/lib/yum/yumdb/* && \
-    rm -rf /usr/lib/udev/hwdb.d/*
+    rm -rf /var/cache/yum /var/lib/yum/yumdb/* /usr/lib/udev/hwdb.d/*
 
 RUN set -eux && INSTALL_PKGS="autoconf \
             automake \
@@ -152,13 +148,11 @@ RUN set -eux && INSTALL_PKGS="autoconf \
     rm -rf /tmp/zabbix-${ZBX_VERSION}/ && \
     dnf ${DNF_FLAGS_COMMON} history undo `dnf -q history | sed -n 3p |column -t | cut -d' ' -f1` && \
     dnf ${DNF_FLAGS_COMMON} clean all && \
-    rm -rf /var/cache/yum && \
-    rm -rf /var/lib/yum/yumdb/* && \
-    rm -rf /usr/lib/udev/hwdb.d/* && \
-    rm -rf /etc/udev/hwdb.bin && \
-    rm -rf /root/.pki && \
-    ln -s /usr/lib/python3.6/site-packages/supervisord /usr/bin/supervisord && \
-    chmod +x /sbin/tini
+    chown --quiet -R zabbix:root /etc/zabbix/ /var/lib/zabbix/ && \
+    chgrp -R 0 /etc/zabbix/ /var/lib/zabbix/ && \
+    chmod -R g=u /etc/zabbix/ /var/lib/zabbix/ && \
+    rm -rf /var/cache/yum /var/lib/yum/yumdb/* /usr/lib/udev/hwdb.d/* && \
+    rm -rf /etc/udev/hwdb.bin /root/.pki
 
 EXPOSE 10051/TCP
 
@@ -172,6 +166,6 @@ COPY ["docker-entrypoint.sh", "/usr/bin/"]
 
 ENTRYPOINT ["/sbin/tini", "--", "/usr/bin/docker-entrypoint.sh"]
 
-USER zabbix
+USER 1997
 
 CMD ["/usr/sbin/zabbix_server", "--foreground", "-c", "/etc/zabbix/zabbix_server.conf"]

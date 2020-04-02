@@ -59,6 +59,10 @@ file_env() {
     unset "$fileVar"
 }
 
+prepare_system() {
+    echo "** Preparing the system"
+}
+
 escape_spec_char() {
     local var_value=$1
 
