@@ -209,7 +209,6 @@ check_db_connect() {
 prepare_web_server() {
     NGINX_CONFD_DIR="/etc/nginx/conf.d"
     NGINX_SSL_CONFIG="/etc/ssl/nginx"
-    PHP_SESSIONS_DIR="/var/lib/php5"
 
     echo "** Disable default vhosts"
     rm -f $NGINX_CONFD_DIR/*.conf
@@ -235,9 +234,6 @@ prepare_web_server() {
     if [ -d "/var/log/nginx/" ]; then
         ln -sf /dev/fd/2 /var/log/nginx/error.log
     fi
-
-    ln -sf /dev/fd/2 /var/log/php5-fpm.log
-    ln -sf /dev/fd/2 /var/log/php7.2-fpm.log
 }
 
 clear_deploy() {

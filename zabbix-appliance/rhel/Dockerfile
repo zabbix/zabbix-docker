@@ -190,9 +190,9 @@ RUN set -eux && REPOLIST="rhel-8-for-x86_64-baseos-rpms,rhel-8-for-x86_64-appstr
     chown --quiet -R zabbix:root /etc/zabbix/ /var/lib/zabbix/ /usr/share/zabbix/conf/ && \
     chgrp -R 0 /etc/zabbix/ /var/lib/zabbix/ /usr/share/zabbix/conf/ && \
     chmod -R g=u /etc/zabbix/ /var/lib/zabbix/ /usr/share/zabbix/conf/ && \
-    chown --quiet -R zabbix:root /etc/nginx/ /etc/my.cnf.d/ /etc/my.cnf && \
-    chgrp -R 0 /etc/nginx/ /etc/my.cnf.d/ /etc/my.cnf && \
-    chmod -R g=u /etc/nginx/ /etc/my.cnf.d/ /etc/my.cnf && \
+    chown --quiet -R zabbix:root /etc/nginx/ /etc/my.cnf.d/ /etc/my.cnf /etc/php.d/ && \
+    chgrp -R 0 /etc/nginx/ /etc/my.cnf.d/ /etc/my.cnf /etc/php.d/ && \
+    chmod -R g=u /etc/nginx/ /etc/my.cnf.d/ /etc/my.cnf /etc/php.d/ && \
     chown --quiet -R zabbix:root /var/lib/php/ /var/lib/mysql/ /var/cache/nginx/ && \
     chgrp -R 0 /var/lib/php/ /var/lib/mysql/ /var/cache/nginx/ && \
     chmod -R g=u /var/lib/php/ /var/lib/mysql/ /var/cache/nginx/ && \

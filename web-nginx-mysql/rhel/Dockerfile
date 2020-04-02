@@ -103,9 +103,9 @@ RUN set -eux && REPOLIST="rhel-8-for-x86_64-baseos-rpms,rhel-8-for-x86_64-appstr
     chown --quiet -R zabbix:root /etc/zabbix/ /usr/share/zabbix/conf/ && \
     chgrp -R 0 /etc/zabbix/ /usr/share/zabbix/conf/ && \
     chmod -R g=u /etc/zabbix/ /usr/share/zabbix/conf/ && \
-    chown --quiet -R zabbix:root /etc/nginx/ && \
-    chgrp -R 0 /etc/nginx/ && \
-    chmod -R g=u /etc/nginx/ && \
+    chown --quiet -R zabbix:root /etc/nginx/ /etc/php.d/ && \
+    chgrp -R 0 /etc/nginx/ /etc/php.d/ && \
+    chmod -R g=u /etc/nginx/ /etc/php.d/ && \
     chown --quiet -R zabbix:root /var/lib/php/ /var/cache/nginx/ && \
     chgrp -R 0 /var/lib/php/ /var/cache/nginx/ && \
     chmod -R g=u /var/lib/php/ /var/cache/nginx/ && \
