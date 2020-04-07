@@ -85,7 +85,8 @@ RUN set -eux && INSTALL_PKGS="bash \
     mkdir -p /var/lib/zabbix/ssl/ssl_ca && \
     chmod +x /sbin/tini && \
     dnf ${DNF_FLAGS_COMMON} clean all && \
-    rm -rf /var/cache/yum /var/lib/yum/yumdb/* /usr/lib/udev/hwdb.d/*
+    rm -rf /var/cache/yum /var/lib/yum/yumdb/* /usr/lib/udev/hwdb.d/* && \
+    rm -rf /var/cache/dnf /etc/udev/hwdb.bin /root/.pki
 
 RUN set -eux && INSTALL_PKGS="autoconf \
             automake \
@@ -143,7 +144,7 @@ RUN set -eux && INSTALL_PKGS="autoconf \
     chgrp -R 0 /etc/zabbix/ /var/lib/zabbix/ && \
     chmod -R g=u /etc/zabbix/ /var/lib/zabbix/ && \
     rm -rf /var/cache/yum /var/lib/yum/yumdb/* /usr/lib/udev/hwdb.d/* && \
-    rm -rf /etc/udev/hwdb.bin /root/.pki
+    rm -rf /var/cache/dnf /etc/udev/hwdb.bin /root/.pki
 
 EXPOSE 10051/TCP
 

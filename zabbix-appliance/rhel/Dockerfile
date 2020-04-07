@@ -108,7 +108,7 @@ RUN set -o xtrace && INSTALL_PKGS="OpenIPMI-libs \
     dnf ${DNF_FLAGS_COMMON} clean all && \
     rm -f /etc/php-fpm.d/www.conf /etc/my.cnf.d/auth_gssapi.cnf && \
     rm -rf /var/cache/yum /var/lib/yum/yumdb/* /usr/lib/udev/hwdb.d/* && \
-    rm -rf /etc/udev/hwdb.bin /root/.pki
+    rm -rf /var/cache/dnf /etc/udev/hwdb.bin /root/.pki
 
 COPY ["conf/etc/", "/etc/"]
 
@@ -200,7 +200,7 @@ RUN set -eux && REPOLIST="rhel-8-for-x86_64-baseos-rpms,rhel-8-for-x86_64-appstr
     chgrp -R 0 /var/cache/nginx/ /var/log/nginx/ && \
     chmod -R g=u /var/cache/nginx/ /var/log/nginx/ && \
     rm -rf /var/cache/yum /var/lib/yum/yumdb/* /usr/lib/udev/hwdb.d/* && \
-    rm -rf /etc/udev/hwdb.bin /root/.pki
+    rm -rf /var/cache/dnf /etc/udev/hwdb.bin /root/.pki
 
 EXPOSE 80/TCP 443/TCP 10051/TCP
 

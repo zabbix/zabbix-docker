@@ -59,7 +59,8 @@ RUN set -eux && INSTALL_PKGS="bash \
         zabbix && \
     mkdir -p /etc/zabbix/ && \
     dnf ${DNF_FLAGS_COMMON} clean all && \
-    rm -rf /var/cache/yum /var/lib/yum/yumdb/* /usr/lib/udev/hwdb.d/*
+    rm -rf /var/cache/yum /var/lib/yum/yumdb/* /usr/lib/udev/hwdb.d/* && \
+    rm -rf /var/cache/dnf /etc/udev/hwdb.bin /root/.pki
 
 RUN set -eux && INSTALL_PKGS="autoconf \
             automake \
@@ -97,7 +98,7 @@ RUN set -eux && INSTALL_PKGS="autoconf \
     chgrp -R 0 /etc/zabbix/ && \
     chmod -R g=u /etc/zabbix/ && \
     rm -rf /var/cache/yum /var/lib/yum/yumdb/* /usr/lib/udev/hwdb.d/* && \
-    rm -rf /etc/udev/hwdb.bin /root/.pki
+    rm -rf /var/cache/dnf /etc/udev/hwdb.bin /root/.pki
 
 EXPOSE 10052/TCP
 
