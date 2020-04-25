@@ -118,7 +118,7 @@ update_config_var() {
 }
 
 # Check prerequisites for MySQL database
-check_variables_mysql() {
+check_variables() {
     : ${DB_SERVER_HOST:="mysql-server"}
     : ${DB_SERVER_PORT:="3306"}
     USE_DB_ROOT_USER=false
@@ -153,7 +153,7 @@ check_variables_mysql() {
     DB_SERVER_DBNAME=${MYSQL_DATABASE:-"zabbix"}
 }
 
-check_db_connect_mysql() {
+check_db_connect() {
     echo "********************"
     echo "* DB_SERVER_HOST: ${DB_SERVER_HOST}"
     echo "* DB_SERVER_PORT: ${DB_SERVER_PORT}"
@@ -177,17 +177,7 @@ check_db_connect_mysql() {
     done
 }
 
-mysql_query() {
-    query=$1
-    local result=""
-
-    result=$(mysql --silent --skip-column-names -h ${DB_SERVER_HOST} -P ${DB_SERVER_PORT} \
-             -u ${DB_SERVER_ROOT_USER} --password="${DB_SERVER_ROOT_PASS}" -e "$query")
-
-    echo $result
-}
-
-prepare_web_server_apache() {
+prepare_web_server() {
     APACHE_SITES_DIR=/etc/apache2/conf.d
 
     echo "** Adding Zabbix virtual host (HTTP)"
@@ -245,18 +235,34 @@ prepare_zbx_web_config() {
 prepare_web() {
     echo "** Preparing Zabbix web-interface"
 
-    check_variables_mysql
-    check_db_connect_mysql
-    prepare_web_server_apache
+    check_variables
+    check_db_connect
+    prepare_web_server
     prepare_zbx_web_config
 }
 
+
 #################################################
 
-if [ "$1" == '/usr/sbin/httpd' ]; then
-    prepare_web
-fi
+echo "** Deploying Zabbix web-interface (Apache) with MySQL database"
 
-exec "$@"
+prepare_system
+
+prepare_web
+
+clear_deploy
+
+echo "########################################################"
+
+if [ "$1" != "" ]; then
+    echo "** Executing '$@'"
+    exec "$@"
+elif [ -f "/usr/bin/supervisord" ]; then
+    echo "** Executing supervisord"
+    exec /usr/bin/supervisord -c /etc/supervisor/supervisord.conf
+else
+    echo "Unknown instructions. Exiting..."
+    exit 1
+fi
 
 #################################################

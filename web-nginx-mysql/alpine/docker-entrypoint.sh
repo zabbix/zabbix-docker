@@ -145,8 +145,7 @@ update_config_multiple_var() {
 }
 
 # Check prerequisites for MySQL database
-check_variables_mysql() {
-    local type=$1
+check_variables() {
 
     DB_SERVER_HOST=${DB_SERVER_HOST:-"mysql-server"}
     DB_SERVER_PORT=${DB_SERVER_PORT:-"3306"}
@@ -155,9 +154,7 @@ check_variables_mysql() {
     file_env MYSQL_USER
     file_env MYSQL_PASSWORD
 
-    if [ "$type" != "" ]; then
-        file_env MYSQL_ROOT_PASSWORD
-    fi
+    file_env MYSQL_ROOT_PASSWORD
 
     if [ ! -n "${MYSQL_USER}" ] && [ "${MYSQL_RANDOM_ROOT_PASSWORD}" == "true" ]; then
         echo "**** Impossible to use MySQL server because of unknown Zabbix user and random 'root' password"
@@ -288,7 +285,7 @@ prepare_zbx_web_config() {
 prepare_web() {
     echo "** Preparing Zabbix web-interface"
 
-    check_variables_mysql
+    check_variables
     check_db_connect
     prepare_web_server
     prepare_zbx_web_config
