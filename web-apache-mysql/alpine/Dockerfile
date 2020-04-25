@@ -4,22 +4,21 @@ LABEL org.opencontainers.image.title="Zabbix web-interface (Apache, MySQL)" \
       org.opencontainers.image.authors="Alexey Pustovalov <alexey.pustovalov@zabbix.com>" \
       org.opencontainers.image.vendor="Zabbix LLC" \
       org.opencontainers.image.url="https://zabbix.com/" \
-      org.opencontainers.image.description="abbix web-interface based on Apache2 web server with MySQL database support" \
+      org.opencontainers.image.description="Zabbix web-interface based on Apache2 web server with MySQL database support" \
       org.opencontainers.image.licenses="GPL v2.0"
 
 STOPSIGNAL SIGTERM
 
 RUN set -eux && \
-    addgroup -S -g 1000 zabbix && \
+    addgroup -S -g 1995 zabbix && \
     adduser -S \
-            -D -G zabbix \
-            -u 999 \
+            -D -G zabbix -G root \
+            -u 1997 \
             -h /var/lib/zabbix/ \
             -H \
         zabbix && \
     mkdir -p /etc/zabbix && \
     mkdir -p /etc/zabbix/web && \
-    chown --quiet -R zabbix:root /etc/zabbix && \
     apk add --clean-protected --no-cache \
             apache2 \
             bash \
@@ -49,9 +48,10 @@ RUN set -eux && \
         -e 's!^(\s*ErrorLog)\s+\S+!\1 /proc/self/fd/2!g' \
         "/etc/apache2/httpd.conf" && \
     sed -ri \
-        -e 's!^(\s*PidFile)\s+\S+!\1 "/var/run/httpd.pid"!g' \
+        -e 's!^(\s*PidFile)\s+\S+!\1 "/tmp/httpd.pid"!g' \
         "/etc/apache2/conf.d/mpm.conf" && \
-    rm -f "/var/run/apache2/apache2.pid" && \
+    sed -i 's/Listen 80/Listen 8080/g' /etc/apache2/httpd.conf && \
+    rm -rf "/var/run/apache2/" && \
     rm -rf /var/cache/apk/*
 
 ARG MAJOR_VERSION=5.0
@@ -63,6 +63,8 @@ ENV TERM=xterm ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES}
 LABEL org.opencontainers.image.documentation="https://www.zabbix.com/documentation/${MAJOR_VERSION}/manual/installation/containers" \
       org.opencontainers.image.version="${ZBX_VERSION}" \
       org.opencontainers.image.source="${ZBX_SOURCES}"
+
+COPY ["conf/etc/", "/etc/"]
 
 RUN set -eux && \
     apk add --no-cache --virtual build-dependencies \
@@ -78,21 +80,25 @@ RUN set -eux && \
     rm -rf tests && \
     ./locale/make_mo.sh && \
     ln -s "/etc/zabbix/web/zabbix.conf.php" "/usr/share/zabbix/conf/zabbix.conf.php" && \
+    chown --quiet -R zabbix:root /etc/zabbix/ /usr/share/zabbix/conf/ && \
+    chgrp -R 0 /etc/zabbix/ /usr/share/zabbix/conf/ && \
+    chmod -R g=u /etc/zabbix/ /usr/share/zabbix/conf/ && \
+    chown --quiet -R zabbix:root /etc/apache2/ /etc/php7/ && \
+    chgrp -R 0 /etc/apache2/ /etc/php7/ && \
+    chmod -R g=u /etc/apache2/ /etc/php7/ && \
     apk del --purge --no-network \
             build-dependencies && \
     rm -rf /var/cache/apk/*
 
-EXPOSE 80/TCP 443/TCP
+EXPOSE 8080/TCP 8443/TCP
 
 WORKDIR /usr/share/zabbix
 
 VOLUME ["/etc/ssl/apache2"]
 
-COPY ["conf/etc/zabbix/apache.conf", "/etc/zabbix/"]
-COPY ["conf/etc/zabbix/apache_ssl.conf", "/etc/zabbix/"]
-COPY ["conf/etc/zabbix/web/zabbix.conf.php", "/etc/zabbix/web/"]
-COPY ["conf/etc/php7/conf.d/99-zabbix.ini", "/etc/php7/conf.d/"]
 COPY ["docker-entrypoint.sh", "/usr/bin/"]
+
+USER 1997
 
 ENTRYPOINT ["docker-entrypoint.sh"]
 
