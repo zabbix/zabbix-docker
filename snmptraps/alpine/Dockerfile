@@ -46,6 +46,7 @@ RUN set -eux && \
     ls -lah && \
     cd /tmp/snmptrapfmt-1.14+nmu1ubuntu1/ && \
     patch -p1 < ./patches/makefile.patch && \
+    patch -p1 < ./patches/pid_location.patch && \
     make -j"$(nproc)" -s && \
     cp snmptrapfmthdlr /usr/sbin/snmptrapfmthdlr && \
     cp snmptrapfmt /usr/sbin/snmptrapfmt && \
@@ -59,14 +60,14 @@ RUN set -eux && \
         "/etc/snmp/snmptrapfmt.conf" && \
     rm -rf /tmp/snmptrapfmt_1.14+nmu1ubuntu2.tar.gz && \
     rm -rf /tmp/snmptrapfmt-1.14+nmu1ubuntu1/ && \
-    chown --quiet -R zabbix:root /var/lib/zabbix/ && \
-    chgrp -R 0 /var/lib/zabbix/ && \
-    chmod -R g=u /var/lib/zabbix/ && \
+    chown --quiet -R zabbix:root /etc/snmp/ /var/lib/zabbix/ /var/tmp/ /var/run/ && \
+    chgrp -R 0 /etc/snmp/ /var/lib/zabbix/ /var/tmp/ /var/run/ && \
+    chmod -R g=u /etc/snmp/ /var/lib/zabbix/ /var/tmp/ /var/run/ && \
     apk del --purge --no-network \
             build-dependencies && \
     rm -rf /var/cache/apk/*
 
-EXPOSE 162/UDP
+EXPOSE 1162/UDP
 
 WORKDIR /var/lib/zabbix/snmptraps/
 

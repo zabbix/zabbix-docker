@@ -228,7 +228,6 @@ prepare_web_server() {
     fi
 
     ln -sf /dev/fd/2 /var/log/nginx/error.log
-    ln -sf /dev/fd/1 /var/log/php-fpm.log
 }
 
 clear_deploy() {
