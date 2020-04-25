@@ -1,8 +1,5 @@
 FROM alpine:3.11
 
-ARG APK_FLAGS_PERSISTENT="--clean-protected --no-cache"
-ARG APK_FLAGS_DEV="--no-cache"
-
 ARG MAJOR_VERSION=master
 ARG ZBX_VERSION=${MAJOR_VERSION}
 ARG ZBX_SOURCES=https://git.zabbix.com/scm/zbx/zabbix.git
@@ -25,16 +22,17 @@ STOPSIGNAL SIGTERM
 COPY ["snmptrapfmt_1.14+nmu1ubuntu2.tar.gz", "/tmp/"]
 
 RUN set -eux && \
-    addgroup zabbix && \
+    addgroup -S -g 1995 zabbix && \
     adduser -S \
-            -D -G zabbix \
+            -D -G zabbix -G root \
+            -u 1997 \
             -h /var/lib/zabbix/ \
         zabbix && \
     apk update && \
-    apk add ${APK_FLAGS_PERSISTENT} \
+    apk add --clean-protected --no-cache \
             net-snmp \
             supervisor && \
-    apk add ${APK_FLAGS_DEV} --virtual build-dependencies \
+    apk add --no-cache --virtual build-dependencies \
             alpine-sdk \
             autoconf \
             automake \
@@ -43,7 +41,6 @@ RUN set -eux && \
     mkdir -p /var/lib/zabbix && \
     mkdir -p /var/lib/zabbix/snmptraps && \
     mkdir -p /var/lib/zabbix/mibs && \
-    chown --quiet -R zabbix:root /var/lib/zabbix && \
     cd /tmp/ && \
     tar -zxvf snmptrapfmt_1.14+nmu1ubuntu2.tar.gz && \
     ls -lah && \
@@ -62,6 +59,9 @@ RUN set -eux && \
         "/etc/snmp/snmptrapfmt.conf" && \
     rm -rf /tmp/snmptrapfmt_1.14+nmu1ubuntu2.tar.gz && \
     rm -rf /tmp/snmptrapfmt-1.14+nmu1ubuntu1/ && \
+    chown --quiet -R zabbix:root /var/lib/zabbix/ && \
+    chgrp -R 0 /var/lib/zabbix/ && \
+    chmod -R g=u /var/lib/zabbix/ && \
     apk del --purge --no-network \
             build-dependencies && \
     rm -rf /var/cache/apk/*
@@ -74,5 +74,7 @@ VOLUME ["/var/lib/zabbix/snmptraps", "/var/lib/zabbix/mibs"]
 
 COPY ["conf/etc/supervisor/", "/etc/supervisor/"]
 COPY ["conf/etc/logrotate.d/zabbix_snmptraps", "/etc/logrotate.d/"]
+
+USER 1997
 
 CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/supervisord.conf"]
