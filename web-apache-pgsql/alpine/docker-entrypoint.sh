@@ -123,7 +123,7 @@ update_config_var() {
 }
 
 # Check prerequisites for PostgreSQL database
-check_variables_postgresql() {
+check_variables() {
     file_env POSTGRES_USER
     file_env POSTGRES_PASSWORD
 
@@ -142,7 +142,7 @@ check_variables_postgresql() {
     DB_SERVER_DBNAME=${POSTGRES_DB:-"zabbix"}
 }
 
-check_db_connect_postgresql() {
+check_db_connect() {
     echo "********************"
     echo "* DB_SERVER_HOST: ${DB_SERVER_HOST}"
     echo "* DB_SERVER_PORT: ${DB_SERVER_PORT}"
@@ -183,31 +183,7 @@ check_db_connect_postgresql() {
     unset PGOPTIONS
 }
 
-psql_query() {
-    query=$1
-    db=$2
-
-    local result=""
-
-    if [ -n "${DB_SERVER_ZBX_PASS}" ]; then
-        export PGPASSWORD="${DB_SERVER_ZBX_PASS}"
-    fi
-    
-    if [ -n "${DB_SERVER_SCHEMA}" ]; then
-        PGOPTIONS="--search_path=${DB_SERVER_SCHEMA}"
-        export PGOPTIONS
-    fi
-
-    result=$(psql -A -q -t  -h ${DB_SERVER_HOST} -p ${DB_SERVER_PORT} \
-             -U ${DB_SERVER_ROOT_USER} -c "$query" $db 2>/dev/null);
-
-    unset PGPASSWORD
-    unset PGOPTIONS
-
-    echo $result
-}
-
-prepare_web_server_apache() {
+prepare_web_server() {
     APACHE_SITES_DIR=/etc/apache2/conf.d
 
     echo "** Adding Zabbix virtual host (HTTP)"
@@ -273,19 +249,35 @@ prepare_zbx_web_config() {
 
 prepare_web() {
     echo "** Preparing Zabbix web-interface"
-
-    check_variables_postgresql
-    check_db_connect_postgresql
-    prepare_web_server_apache
+        
+    check_variables
+    check_db_connect
+    prepare_web_server
     prepare_zbx_web_config
 }
 
+
 #################################################
 
-if [ "$1" == '/usr/sbin/httpd' ]; then
-    prepare_web
-fi
+echo "** Deploying Zabbix web-interface (Apache) with MySQL database"
 
-exec "$@"
+prepare_system
+
+prepare_web
+
+clear_deploy
+
+echo "########################################################"
+
+if [ "$1" != "" ]; then
+    echo "** Executing '$@'"
+    exec "$@"
+elif [ -f "/usr/bin/supervisord" ]; then
+    echo "** Executing supervisord"
+    exec /usr/bin/supervisord -c /etc/supervisor/supervisord.conf
+else
+    echo "Unknown instructions. Exiting..."
+    exit 1
+fi
 
 #################################################
