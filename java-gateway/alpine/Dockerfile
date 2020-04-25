@@ -10,14 +10,13 @@ LABEL org.opencontainers.image.title="Zabbix Java Gateway" \
 STOPSIGNAL SIGTERM
 
 RUN set -eux && \
-    addgroup -S -g 1000 zabbix && \
+    addgroup -S -g 1995 zabbix && \
     adduser -S \
-            -D -G zabbix \
-            -u 999 \
+            -D -G zabbix -G root \
+            -u 1997 \
             -h /var/lib/zabbix/ \
         zabbix && \
     mkdir -p /etc/zabbix/ && \
-    chown --quiet -R zabbix:root /etc/zabbix && \
     apk add --clean-protected --no-cache \
             bash \
             openjdk8-jre-base && \
@@ -65,6 +64,9 @@ RUN set -eux && \
     rm -rf /usr/sbin/zabbix_java/lib/*.xml && \
     cd /tmp/ && \
     rm -rf /tmp/zabbix-${ZBX_VERSION}/ && \
+    chown --quiet -R zabbix:root /etc/zabbix/ && \
+    chgrp -R 0 /etc/zabbix/ && \
+    chmod -R g=u /etc/zabbix/ && \
     apk del --purge --no-network \
             build-dependencies && \
     rm -rf /var/cache/apk/*
@@ -81,6 +83,6 @@ COPY ["docker-entrypoint.sh", "/usr/bin/"]
 
 ENTRYPOINT ["docker-entrypoint.sh"]
 
-USER zabbix
+USER 1997
 
 CMD ["/usr/sbin/zabbix_java_gateway"]
