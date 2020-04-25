@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -eo pipefail
+set -o pipefail
 
 set +e
 
@@ -190,7 +190,7 @@ check_variables_mysql() {
     fi
 }
 
-check_db_connect_mysql() {
+check_db_connect() {
     echo "********************"
     echo "* DB_SERVER_HOST: ${DB_SERVER_HOST}"
     echo "* DB_SERVER_PORT: ${DB_SERVER_PORT}"
@@ -215,10 +215,9 @@ check_db_connect_mysql() {
     done
 }
 
-prepare_web_server_nginx() {
+prepare_web_server() {
     NGINX_CONFD_DIR="/etc/nginx/conf.d"
     NGINX_SSL_CONFIG="/etc/ssl/nginx"
-    PHP_SESSIONS_DIR="/var/lib/php5"
 
     echo "** Adding Zabbix virtual host (HTTP)"
     if [ -f "$ZABBIX_ETC_DIR/nginx.conf" ]; then
@@ -238,12 +237,8 @@ prepare_web_server_nginx() {
         echo "**** Impossible to enable SSL support for Nginx. Certificates are missed."
     fi
 
-    if [ -d "/var/log/nginx/" ]; then
-        ln -sf /dev/fd/2 /var/log/nginx/error.log
-    fi
-
-    ln -sf /dev/fd/2 /var/log/php5-fpm.log
-    ln -sf /dev/fd/2 /var/log/php7.2-fpm.log
+    ln -sf /dev/fd/2 /var/log/nginx/error.log
+    ln -sf /dev/fd/1 /var/log/php-fpm.log
 }
 
 clear_deploy() {
@@ -263,37 +258,14 @@ prepare_zbx_web_config() {
 
     ln -s "$ZBX_WEB_CONFIG" "/usr/share/zabbix/conf/zabbix.conf.php"
 
-    # Different places of PHP configuration file
-    if [ -f "/etc/php5/conf.d/99-zabbix.ini" ]; then
-        PHP_CONFIG_FILE="/etc/php5/conf.d/99-zabbix.ini"
-    elif [ -f "/etc/php5/fpm/conf.d/99-zabbix.ini" ]; then
-        PHP_CONFIG_FILE="/etc/php5/fpm/conf.d/99-zabbix.ini"
-    elif [ -f "/etc/php5/apache2/conf.d/99-zabbix.ini" ]; then
-        PHP_CONFIG_FILE="/etc/php5/apache2/conf.d/99-zabbix.ini"
-    elif [ -f "/etc/php/7.0/apache2/conf.d/99-zabbix.ini" ]; then
-        PHP_CONFIG_FILE="/etc/php/7.0/apache2/conf.d/99-zabbix.ini"
-    elif [ -f "/etc/php/7.0/fpm/conf.d/99-zabbix.ini" ]; then
-        PHP_CONFIG_FILE="/etc/php/7.0/fpm/conf.d/99-zabbix.ini"
-    elif [ -f "/etc/php.d/99-zabbix.ini" ]; then
-        PHP_CONFIG_FILE="/etc/php.d/99-zabbix.ini"
-    elif [ -f "/etc/php7/conf.d/99-zabbix.ini" ]; then
-        PHP_CONFIG_FILE="/etc/php7/conf.d/99-zabbix.ini"
-    elif [ -f "/etc/php/7.2/fpm/conf.d/99-zabbix.ini" ]; then
-        PHP_CONFIG_FILE="/etc/php/7.2/fpm/conf.d/99-zabbix.ini"
-    elif [ -f "/etc/php/7.2/apache2/conf.d/99-zabbix.ini" ]; then
-        PHP_CONFIG_FILE="/etc/php/7.2/apache2/conf.d/99-zabbix.ini"
-    fi
+    PHP_CONFIG_FILE="/etc/php7/conf.d/99-zabbix.ini"
 
-    if [ -n "$PHP_CONFIG_FILE" ]; then
-        update_config_var "$PHP_CONFIG_FILE" "max_execution_time" "${ZBX_MAXEXECUTIONTIME:-"600"}"
-        update_config_var "$PHP_CONFIG_FILE" "memory_limit" "${ZBX_MEMORYLIMIT:-"128M"}" 
-        update_config_var "$PHP_CONFIG_FILE" "post_max_size" "${ZBX_POSTMAXSIZE:-"16M"}"
-        update_config_var "$PHP_CONFIG_FILE" "upload_max_filesize" "${ZBX_UPLOADMAXFILESIZE:-"2M"}"
-        update_config_var "$PHP_CONFIG_FILE" "max_input_time" "${ZBX_MAXINPUTTIME:-"300"}"
-        update_config_var "$PHP_CONFIG_FILE" "date.timezone" "${PHP_TZ}"
-    else
-        echo "**** Zabbix related PHP configuration file not found"
-    fi
+    update_config_var "$PHP_CONFIG_FILE" "max_execution_time" "${ZBX_MAXEXECUTIONTIME:-"600"}"
+    update_config_var "$PHP_CONFIG_FILE" "memory_limit" "${ZBX_MEMORYLIMIT:-"128M"}"
+    update_config_var "$PHP_CONFIG_FILE" "post_max_size" "${ZBX_POSTMAXSIZE:-"16M"}"
+    update_config_var "$PHP_CONFIG_FILE" "upload_max_filesize" "${ZBX_UPLOADMAXFILESIZE:-"2M"}"
+    update_config_var "$PHP_CONFIG_FILE" "max_input_time" "${ZBX_MAXINPUTTIME:-"300"}"
+    update_config_var "$PHP_CONFIG_FILE" "date.timezone" "${PHP_TZ}"
 
     # Escaping characters in parameter value
     server_name=$(escape_spec_char "${ZBX_SERVER_NAME}")
@@ -311,8 +283,6 @@ prepare_zbx_web_config() {
         -e "s/{ZBX_SERVER_PORT}/${ZBX_SERVER_PORT}/g" \
         -e "s/{ZBX_SERVER_NAME}/$server_name/g" \
     "$ZBX_WEB_CONFIG"
-
-    [ "$db_type" = "postgresql" ] && sed -i "s/MYSQL/POSTGRESQL/g" "$ZBX_WEB_CONFIG"
 }
 
 prepare_web() {

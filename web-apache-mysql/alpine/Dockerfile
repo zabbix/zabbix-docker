@@ -48,9 +48,10 @@ RUN set -eux && \
         -e 's!^(\s*ErrorLog)\s+\S+!\1 /proc/self/fd/2!g' \
         "/etc/apache2/httpd.conf" && \
     sed -ri \
-        -e 's!^(\s*PidFile)\s+\S+!\1 "/var/run/httpd.pid"!g' \
+        -e 's!^(\s*PidFile)\s+\S+!\1 "/tmp/httpd.pid"!g' \
         "/etc/apache2/conf.d/mpm.conf" && \
-    rm -f "/var/run/apache2/apache2.pid" && \
+    sed -i 's/Listen 80/Listen 8080/g' /etc/apache2/httpd.conf && \
+    rm -rf "/var/run/apache2/" && \
     rm -rf /var/cache/apk/*
 
 ARG MAJOR_VERSION=master
@@ -89,7 +90,7 @@ RUN set -eux && \
             build-dependencies && \
     rm -rf /var/cache/apk/*
 
-EXPOSE 80/TCP 443/TCP
+EXPOSE 8080/TCP 8443/TCP
 
 WORKDIR /usr/share/zabbix
 

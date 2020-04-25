@@ -1,10 +1,10 @@
 FROM alpine:3.11
 
-LABEL org.opencontainers.image.title="Zabbix web-interface (Nginx, MySQL)" \
+LABEL org.opencontainers.image.title="Zabbix web-interface (Apache, MySQL)" \
       org.opencontainers.image.authors="Alexey Pustovalov <alexey.pustovalov@zabbix.com>" \
       org.opencontainers.image.vendor="Zabbix LLC" \
       org.opencontainers.image.url="https://zabbix.com/" \
-      org.opencontainers.image.description="abbix web-interface based on Nginx web server with MySQL database support" \
+      org.opencontainers.image.description="Zabbix web-interface based on Apache2 web server with MySQL database support" \
       org.opencontainers.image.licenses="GPL v2.0"
 
 STOPSIGNAL SIGTERM
@@ -20,14 +20,14 @@ RUN set -eux && \
     mkdir -p /etc/zabbix && \
     mkdir -p /etc/zabbix/web && \
     apk add --clean-protected --no-cache \
+            apache2 \
             bash \
             curl \
             mariadb-client \
             mariadb-connector-c \
-            nginx \
+            php7-apache2 \
             php7-bcmath \
             php7-ctype \
-            php7-fpm \
             php7-gd \
             php7-gettext \
             php7-json \
@@ -39,10 +39,18 @@ RUN set -eux && \
             php7-sockets \
             php7-fileinfo \
             php7-xmlreader \
-            php7-xmlwriter \
-            supervisor && \
-    rm -rf /etc/php7/php-fpm.d/www.conf && \
-    rm -f /etc/nginx/conf.d/*.conf && \
+            php7-xmlwriter && \
+    apk add --clean-protected --no-cache --no-scripts apache2-ssl && \
+    rm -f "/etc/apache2/conf.d/default.conf" && \
+    rm -f "/etc/apache2/conf.d/ssl.conf" && \
+    sed -ri \
+        -e 's!^(\s*CustomLog)\s+\S+!\1 /proc/self/fd/1!g' \
+        -e 's!^(\s*ErrorLog)\s+\S+!\1 /proc/self/fd/2!g' \
+        "/etc/apache2/httpd.conf" && \
+    sed -ri \
+        -e 's!^(\s*PidFile)\s+\S+!\1 "/var/run/httpd.pid"!g' \
+        "/etc/apache2/conf.d/mpm.conf" && \
+    rm -f "/var/run/apache2/apache2.pid" && \
     rm -rf /var/cache/apk/*
 
 ARG MAJOR_VERSION=master
@@ -59,7 +67,6 @@ COPY ["conf/etc/", "/etc/"]
 
 RUN set -eux && \
     apk add --no-cache --virtual build-dependencies \
-            coreutils \
             gettext \
             git && \
     cd /usr/share/ && \
@@ -75,24 +82,23 @@ RUN set -eux && \
     chown --quiet -R zabbix:root /etc/zabbix/ /usr/share/zabbix/conf/ && \
     chgrp -R 0 /etc/zabbix/ /usr/share/zabbix/conf/ && \
     chmod -R g=u /etc/zabbix/ /usr/share/zabbix/conf/ && \
-    chown --quiet -R zabbix:root /etc/nginx/ /etc/php7/ && \
-    chgrp -R 0 /etc/nginx/ /etc/php7/ && \
-    chmod -R g=u /etc/nginx/ /etc/php7/ && \
-    chown --quiet -R zabbix:root /var/log/nginx/ /var/lib/nginx/ && \
-    chgrp -R 0 /var/log/nginx/ /var/lib/nginx/ && \
-    chmod -R g=u /var/log/nginx/ /var/lib/nginx/ && \
+    chown --quiet -R zabbix:root /etc/apache2/ /etc/php7/ && \
+    chgrp -R 0 /etc/apache2/ /etc/php7/ && \
+    chmod -R g=u /etc/apache2/ /etc/php7/ && \
     apk del --purge --no-network \
             build-dependencies && \
     rm -rf /var/cache/apk/*
 
-EXPOSE 8080/TCP 8443/TCP
+EXPOSE 80/TCP 443/TCP
 
 WORKDIR /usr/share/zabbix
 
-VOLUME ["/etc/ssl/nginx"]
+VOLUME ["/etc/ssl/apache2"]
 
 COPY ["docker-entrypoint.sh", "/usr/bin/"]
 
 USER 1997
 
 ENTRYPOINT ["docker-entrypoint.sh"]
+
+CMD ["/usr/sbin/httpd", "-D", "FOREGROUND"]
