@@ -146,15 +146,12 @@ update_config_multiple_var() {
 
 # Check prerequisites for MySQL database
 check_variables() {
-
-    DB_SERVER_HOST=${DB_SERVER_HOST:-"mysql-server"}
-    DB_SERVER_PORT=${DB_SERVER_PORT:-"3306"}
+    : ${DB_SERVER_HOST:="mysql-server"}
+    : ${DB_SERVER_PORT:="3306"}
     USE_DB_ROOT_USER=false
     CREATE_ZBX_DB_USER=false
     file_env MYSQL_USER
     file_env MYSQL_PASSWORD
-
-    file_env MYSQL_ROOT_PASSWORD
 
     if [ ! -n "${MYSQL_USER}" ] && [ "${MYSQL_RANDOM_ROOT_PASSWORD}" == "true" ]; then
         echo "**** Impossible to use MySQL server because of unknown Zabbix user and random 'root' password"
@@ -175,16 +172,12 @@ check_variables() {
     [ -n "${MYSQL_USER}" ] && CREATE_ZBX_DB_USER=true
 
     # If root password is not specified use provided credentials
-    DB_SERVER_ROOT_USER=${DB_SERVER_ROOT_USER:-${MYSQL_USER}}
+    : ${DB_SERVER_ROOT_USER:=${MYSQL_USER}}....
     [ "${MYSQL_ALLOW_EMPTY_PASSWORD}" == "true" ] || DB_SERVER_ROOT_PASS=${DB_SERVER_ROOT_PASS:-${MYSQL_PASSWORD}}
     DB_SERVER_ZBX_USER=${MYSQL_USER:-"zabbix"}
     DB_SERVER_ZBX_PASS=${MYSQL_PASSWORD:-"zabbix"}
 
-    if [ "$type" == "proxy" ]; then
-        DB_SERVER_DBNAME=${MYSQL_DATABASE:-"zabbix_proxy"}
-    else
-        DB_SERVER_DBNAME=${MYSQL_DATABASE:-"zabbix"}
-    fi
+    DB_SERVER_DBNAME=${MYSQL_DATABASE:-"zabbix"}
 }
 
 check_db_connect() {
@@ -235,7 +228,6 @@ prepare_web_server() {
     fi
 
     ln -sf /dev/fd/2 /var/log/nginx/error.log
-    ln -sf /dev/fd/1 /var/log/php-fpm.log
 }
 
 clear_deploy() {
