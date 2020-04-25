@@ -10,10 +10,10 @@ LABEL org.opencontainers.image.title="Zabbix server (MySQL)" \
 STOPSIGNAL SIGTERM
 
 RUN set -eux && \
-    addgroup -S -g 1000 zabbix && \
+    addgroup -S -g 1995 zabbix && \
     adduser -S \
-            -D -G zabbix \
-            -u 999 \
+            -D -G zabbix -G root \
+            -u 1997 \
             -h /var/lib/zabbix/ \
         zabbix && \
     adduser zabbix dialout && \
@@ -31,7 +31,6 @@ RUN set -eux && \
     mkdir -p /var/lib/zabbix/ssl/certs && \
     mkdir -p /var/lib/zabbix/ssl/keys && \
     mkdir -p /var/lib/zabbix/ssl/ssl_ca && \
-    chown --quiet -R zabbix:root /var/lib/zabbix && \
     mkdir -p /usr/share/doc/zabbix-server-mysql && \
     apk add --clean-protected --no-cache \
             tini \
@@ -109,7 +108,6 @@ RUN set -eux && \
     cp src/zabbix_get/zabbix_get /usr/bin/zabbix_get && \
     cp src/zabbix_sender/zabbix_sender /usr/bin/zabbix_sender && \
     cp conf/zabbix_server.conf /etc/zabbix/zabbix_server.conf && \
-    chown --quiet -R zabbix:root /etc/zabbix && \
     cat database/mysql/schema.sql > database/mysql/create.sql && \
     cat database/mysql/images.sql >> database/mysql/create.sql && \
     cat database/mysql/data.sql >> database/mysql/create.sql && \
@@ -117,6 +115,9 @@ RUN set -eux && \
     cp database/mysql/create.sql.gz /usr/share/doc/zabbix-server-mysql/ && \
     cd /tmp/ && \
     rm -rf /tmp/zabbix-${ZBX_VERSION}/ && \
+    chown --quiet -R zabbix:root /etc/zabbix/ /var/lib/zabbix/ && \
+    chgrp -R 0 /etc/zabbix/ /var/lib/zabbix/ && \
+    chmod -R g=u /etc/zabbix/ /var/lib/zabbix/ && \
     apk del --purge --no-network \
             build-dependencies && \
     rm -rf /var/cache/apk/*
@@ -132,6 +133,6 @@ COPY ["docker-entrypoint.sh", "/usr/bin/"]
 
 ENTRYPOINT ["/sbin/tini", "--", "/usr/bin/docker-entrypoint.sh"]
 
-USER zabbix
+USER 1997
 
 CMD ["/usr/sbin/zabbix_server", "--foreground", "-c", "/etc/zabbix/zabbix_server.conf"]
