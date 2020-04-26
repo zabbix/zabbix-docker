@@ -31,6 +31,12 @@ RUN set -eux && \
             php-mbstring \
             php-mysql \
             php-xml && \
+    rm -f "/etc/httpd/conf.d/default.conf" && \
+    rm -f "/etc/httpd/conf.d/ssl.conf" && \
+    sed -ri \
+        -e 's!^(\s*CustomLog)\s+\S+!\1 /proc/self/fd/1!g' \
+        -e 's!^(\s*ErrorLog)\s+\S+!\1 /proc/self/fd/2!g' \
+        "/etc/httpd/conf/httpd.conf" && \
     sed -i 's/Listen 80/Listen 8080/g' /etc/httpd/conf/httpd.conf && \
     yum -y clean all && \
     rm -rf /var/cache/yum /var/lib/yum/yumdb/* /usr/lib/udev/hwdb.d/* && \
@@ -72,6 +78,9 @@ RUN set -eux && \
     chown --quiet -R zabbix:root /etc/httpd/ /etc/php.d/ /etc/php.ini && \
     chgrp -R 0 /etc/httpd/ /etc/php.d/ /etc/php.ini && \
     chmod -R g=u /etc/httpd/ /etc/php.d/ /etc/php.ini && \
+    chown --quiet -R zabbix:root /run/httpd/ /var/lib/php/session/ && \
+    chgrp -R 0 /run/httpd/ /var/lib/php/session/ && \
+    chmod -R g=u /run/httpd/ /var/lib/php/session/ && \
     yum -y history undo `yum -q history | sed -n 3p |column -t | cut -d' ' -f1` && \
     yum -y clean all && \
     rm -rf /var/cache/yum /var/lib/yum/yumdb/* /usr/lib/udev/hwdb.d/* && \

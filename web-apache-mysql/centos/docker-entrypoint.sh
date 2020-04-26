@@ -57,6 +57,10 @@ file_env() {
     unset "$fileVar"
 }
 
+prepare_system() {
+    echo "** Preparing the system"
+}
+
 escape_spec_char() {
     local var_value=$1
 
@@ -178,7 +182,7 @@ check_db_connect() {
 }
 
 prepare_web_server() {
-    APACHE_SITES_DIR=/etc/apache2/conf.d
+    APACHE_SITES_DIR=/etc/httpd/conf.d
 
     echo "** Adding Zabbix virtual host (HTTP)"
     if [ -f "$ZABBIX_ETC_DIR/apache.conf" ]; then
@@ -197,6 +201,10 @@ prepare_web_server() {
     else
         echo "**** Impossible to enable SSL support for Apache2. Certificates are missed."
     fi
+}
+
+clear_deploy() {
+    echo "** Cleaning the system"
 }
 
 prepare_zbx_web_config() {

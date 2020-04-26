@@ -32,6 +32,7 @@ RUN set -eux && \
             php-xml \
             supervisor && \
     rm -f /etc/nginx/conf.d/*.conf  && \
+    rm -f /etc/php-fpm.d/www.conf && \
     yum -y clean all && \
     rm -rf /var/cache/yum /var/lib/yum/yumdb/* /usr/lib/udev/hwdb.d/* && \
     rm -rf /etc/udev/hwdb.bin /root/.pki
