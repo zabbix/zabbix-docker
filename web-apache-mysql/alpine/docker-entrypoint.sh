@@ -57,6 +57,10 @@ file_env() {
     unset "$fileVar"
 }
 
+prepare_system() {
+    echo "** Preparing the system"
+}
+
 escape_spec_char() {
     local var_value=$1
 
@@ -197,6 +201,10 @@ prepare_web_server() {
     else
         echo "**** Impossible to enable SSL support for Apache2. Certificates are missed."
     fi
+}
+
+clear_deploy() {
+    echo "** Cleaning the system"
 }
 
 prepare_zbx_web_config() {
