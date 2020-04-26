@@ -42,7 +42,6 @@ services:
    - MYSQL_USER
    - MYSQL_PASSWORD
    - MYSQL_ROOT_PASSWORD
-  user: root
   depends_on:
    - mysql-server
    - zabbix-java-gateway
@@ -106,7 +105,6 @@ services:
   env_file:
    - .env_prx
    - .env_prx_sqlite3
-  user: root
   depends_on:
    - zabbix-java-gateway
    - zabbix-snmptraps
@@ -162,7 +160,6 @@ services:
    - .env_db_mysql_proxy
    - .env_prx
    - .env_prx_mysql
-  user: root
   depends_on:
    - mysql-server
    - zabbix-java-gateway
@@ -189,8 +186,8 @@ services:
     - centos:centos7
   image: zabbix-web-apache-mysql:centos-local
   ports:
-   - "80:80"
-   - "443:443"
+   - "80:8080"
+   - "443:8443"
   links:
    - mysql-server:mysql-server
    - zabbix-server:zabbix-server
@@ -212,12 +209,11 @@ services:
   secrets:
    - MYSQL_USER
    - MYSQL_PASSWORD
-  user: root
   depends_on:
    - mysql-server
    - zabbix-server
   healthcheck:
-   test: ["CMD", "curl", "-f", "http://localhost"]
+   test: ["CMD", "curl", "-f", "http://localhost:8080/"]
    interval: 10s
    timeout: 5s
    retries: 3
@@ -247,8 +243,8 @@ services:
     - centos:centos7
   image: zabbix-web-nginx-mysql:centos-local
   ports:
-   - "8081:80"
-   - "8443:443"
+   - "8081:8080"
+   - "8443:8443"
   links:
    - mysql-server:mysql-server
    - zabbix-server:zabbix-server
@@ -270,12 +266,11 @@ services:
   secrets:
    - MYSQL_USER
    - MYSQL_PASSWORD
-  user: root
   depends_on:
    - mysql-server
    - zabbix-server
   healthcheck:
-   test: ["CMD", "curl", "-f", "http://localhost"]
+   test: ["CMD", "curl", "-f", "http://localhost:8080/"]
    interval: 10s
    timeout: 5s
    retries: 3
@@ -326,7 +321,6 @@ services:
    mode: global
   env_file:
    - .env_agent
-  user: root
   privileged: true
   pid: "host"
   networks:
@@ -360,7 +354,6 @@ services:
       memory: 256M
   env_file:
    - .env_java
-  user: root
   networks:
    zbx_net_backend:
     aliases:
@@ -380,7 +373,7 @@ services:
     - centos:centos7
   image: zabbix-snmptraps:centos-local
   ports:
-   - "162:162/udp"
+   - "162:1162/udp"
   volumes:
    - ./zbx_env/var/lib/zabbix/snmptraps:/var/lib/zabbix/snmptraps:rw
   deploy:
@@ -391,7 +384,6 @@ services:
     reservations:
       cpus: '0.25'
       memory: 128M
-  user: root
   networks:
    zbx_net_frontend:
     aliases:
@@ -415,7 +407,6 @@ services:
    - MYSQL_USER
    - MYSQL_PASSWORD
    - MYSQL_ROOT_PASSWORD
-  user: root
   stop_grace_period: 1m
   networks:
    zbx_net_backend:
