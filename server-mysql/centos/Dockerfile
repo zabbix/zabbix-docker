@@ -1,19 +1,76 @@
-FROM centos:centos7 as builder
+FROM centos:centos7
 
-ARG YUM_FLAGS_COMMON="-y"
-ARG YUM_FLAGS_DEV="${YUM_FLAGS_COMMON}"
+LABEL org.opencontainers.image.title="Zabbix server (MySQL)" \
+      org.opencontainers.image.authors="Alexey Pustovalov <alexey.pustovalov@zabbix.com>" \
+      org.opencontainers.image.vendor="Zabbix LLC" \
+      org.opencontainers.image.url="https://zabbix.com/" \
+      org.opencontainers.image.description="Zabbix server with MySQL database support" \
+      org.opencontainers.image.licenses="GPL v2.0"
+
+STOPSIGNAL SIGTERM
+
+ENV TINI_VERSION=v0.19.0
+
+RUN set -eux && \
+    groupadd -g 1995 --system zabbix && \
+    adduser -r --shell /sbin/nologin \
+            -g zabbix -G root \
+            -d /var/lib/zabbix/ -u 1997 \
+        zabbix && \
+    mkdir -p /etc/zabbix && \
+    mkdir -p /var/lib/zabbix && \
+    mkdir -p /usr/lib/zabbix/alertscripts && \
+    mkdir -p /var/lib/zabbix/enc && \
+    mkdir -p /var/lib/zabbix/export && \
+    mkdir -p /usr/lib/zabbix/externalscripts && \
+    mkdir -p /var/lib/zabbix/mibs && \
+    mkdir -p /var/lib/zabbix/modules && \
+    mkdir -p /var/lib/zabbix/snmptraps && \
+    mkdir -p /var/lib/zabbix/ssh_keys && \
+    mkdir -p /var/lib/zabbix/ssl && \
+    mkdir -p /var/lib/zabbix/ssl/certs && \
+    mkdir -p /var/lib/zabbix/ssl/keys && \
+    mkdir -p /var/lib/zabbix/ssl/ssl_ca && \
+    mkdir -p /usr/share/doc/zabbix-server-mysql && \
+    yum --quiet makecache && \
+    yum -y install --setopt=tsflags=nodocs https://repo.zabbix.com/non-supported/rhel/7/x86_64/iksemel-1.4-2.el7.centos.x86_64.rpm \
+                                        https://repo.zabbix.com/non-supported/rhel/7/x86_64/fping-3.10-1.el7.x86_64.rpm && \
+    yum -y install --setopt=tsflags=nodocs \
+            iputils \
+            traceroute \
+            libcurl \
+            libxml2 \
+            mariadb \
+            net-snmp-libs \
+            OpenIPMI-libs \
+            openldap \
+            openssl-libs \
+            pcre \
+            unixODBC && \
+    curl -L https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini -o /sbin/tini && \
+    curl -L https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini.asc -o /tini.asc && \
+    gpg --batch --keyserver hkp://p80.pool.sks-keyservers.net:80 --recv-keys 595E85A6B1B4779EA4DAAEC70B588DFF0527A9B7 && \
+    gpg --batch --verify /tini.asc /sbin/tini && \
+    rm -rf /root/.gnupg && \
+    chmod +x /sbin/tini && \
+    yum -y clean all && \
+    rm -rf /var/cache/yum /var/lib/yum/yumdb/* /usr/lib/udev/hwdb.d/* && \
+    rm -rf /etc/udev/hwdb.bin /root/.pki
 
 ARG MAJOR_VERSION=master
 ARG ZBX_VERSION=${MAJOR_VERSION}
 ARG ZBX_SOURCES=https://git.zabbix.com/scm/zbx/zabbix.git
-ENV ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES} \
-    ZBX_TYPE=server ZBX_DB_TYPE=mysql ZBX_OPT_TYPE=none
+
+ENV TERM=xterm ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES}
+
+LABEL org.opencontainers.image.documentation="https://www.zabbix.com/documentation/${MAJOR_VERSION}/manual/installation/containers" \
+      org.opencontainers.image.version="${ZBX_VERSION}" \
+      org.opencontainers.image.source="${ZBX_SOURCES}"
 
 RUN set -eux && \
     yum --quiet makecache && \
-    yum ${YUM_FLAGS_DEV} install https://repo.zabbix.com/non-supported/rhel/7/x86_64/iksemel-devel-1.4-2.el7.centos.x86_64.rpm \
-                                 https://repo.zabbix.com/non-supported/rhel/7/x86_64/iksemel-1.4-2.el7.centos.x86_64.rpm && \
-    yum ${YUM_FLAGS_DEV} install \
+    yum -y install https://repo.zabbix.com/non-supported/rhel/7/x86_64/iksemel-devel-1.4-2.el7.centos.x86_64.rpm --setopt=tsflags=nodocs && \
+    yum -y install --setopt=tsflags=nodocs \
             autoconf \
             automake \
             gcc \
@@ -40,8 +97,8 @@ RUN set -eux && \
             --prefix=/usr \
             --sysconfdir=/etc/zabbix \
             --enable-agent \
-            --enable-${ZBX_TYPE} \
-            --with-${ZBX_DB_TYPE} \
+            --enable-server \
+            --with-mysql \
             --with-jabber \
             --with-ldap \
             --with-libcurl \
@@ -55,90 +112,24 @@ RUN set -eux && \
             --silent && \
     make -j"$(nproc)" -s dbschema && \
     make -j"$(nproc)" -s && \
-    cat database/${ZBX_DB_TYPE}/schema.sql > database/${ZBX_DB_TYPE}/create.sql && \
-    cat database/${ZBX_DB_TYPE}/images.sql >> database/${ZBX_DB_TYPE}/create.sql && \
-    cat database/${ZBX_DB_TYPE}/data.sql >> database/${ZBX_DB_TYPE}/create.sql && \
-    gzip database/${ZBX_DB_TYPE}/create.sql
-
-FROM centos:centos7
-LABEL maintainer="Alexey Pustovalov <alexey.pustovalov@zabbix.com>"
-
-ARG BUILD_DATE
-ARG VCS_REF
-
-ARG YUM_FLAGS_COMMON="-y"
-ARG YUM_FLAGS_PERSISTENT="${YUM_FLAGS_COMMON}"
-
-ARG MAJOR_VERSION=master
-ARG ZBX_VERSION=${MAJOR_VERSION}
-ARG ZBX_SOURCES=https://git.zabbix.com/scm/zbx/zabbix.git
-ENV ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES} \
-    TERM=xterm MIBDIRS=/usr/share/snmp/mibs:/var/lib/zabbix/mibs MIBS=+ALL \
-    ZBX_TYPE=server ZBX_DB_TYPE=mysql ZBX_OPT_TYPE=none
-ENV TINI_VERSION v0.18.0
-
-LABEL org.label-schema.name="zabbix-${ZBX_TYPE}-${ZBX_DB_TYPE}-centos" \
-      org.label-schema.vendor="Zabbix LLC" \
-      org.label-schema.url="https://zabbix.com/" \
-      org.label-schema.description="Zabbix ${ZBX_TYPE} with MySQL database support" \
-      org.label-schema.vcs-ref="${VCS_REF}" \
-      org.label-schema.build-date="${BUILD_DATE}" \
-      org.label-schema.schema-version="1.0" \
-      org.label-schema.license="GPL v2.0" \
-      org.label-schema.usage="https://www.zabbix.com/documentation/${MAJOR_VERSION}/manual/installation/containers" \
-      org.label-schema.version="${ZBX_VERSION}" \
-      org.label-schema.vcs-url="${ZBX_SOURCES}" \
-      org.label-schema.docker.cmd="docker run --name zabbix-${ZBX_TYPE}-${ZBX_DB_TYPE} --link mysql-server:mysql -p 10051:10051 -d zabbix-${ZBX_TYPE}-${ZBX_DB_TYPE}:centos-${ZBX_VERSION}"
-
-STOPSIGNAL SIGTERM
-
-COPY --from=builder /tmp/zabbix-${ZBX_VERSION}/src/zabbix_${ZBX_TYPE}/zabbix_${ZBX_TYPE} /usr/sbin/zabbix_${ZBX_TYPE}
-COPY --from=builder /tmp/zabbix-${ZBX_VERSION}/src/zabbix_get/zabbix_get /usr/bin/zabbix_get
-COPY --from=builder /tmp/zabbix-${ZBX_VERSION}/src/zabbix_sender/zabbix_sender /usr/bin/zabbix_sender
-COPY --from=builder /tmp/zabbix-${ZBX_VERSION}/conf/zabbix_${ZBX_TYPE}.conf /etc/zabbix/zabbix_${ZBX_TYPE}.conf
-COPY --from=builder /tmp/zabbix-${ZBX_VERSION}/database/${ZBX_DB_TYPE}/create.sql.gz /usr/share/doc/zabbix-${ZBX_TYPE}-${ZBX_DB_TYPE}/create.sql.gz
-ADD https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini /sbin/tini
-
-RUN set -eux && \
-    groupadd --system zabbix && \
-    adduser -r --shell /sbin/nologin \
-            -g zabbix -G dialout \
-            -d /var/lib/zabbix/ \
-        zabbix && \
-    mkdir -p /etc/zabbix && \
-    mkdir -p /var/lib/zabbix && \
-    mkdir -p /usr/lib/zabbix/alertscripts && \
-    mkdir -p /var/lib/zabbix/enc && \
-    mkdir -p /var/lib/zabbix/export && \
-    mkdir -p /usr/lib/zabbix/externalscripts && \
-    mkdir -p /var/lib/zabbix/mibs && \
-    mkdir -p /var/lib/zabbix/modules && \
-    mkdir -p /var/lib/zabbix/snmptraps && \
-    mkdir -p /var/lib/zabbix/ssh_keys && \
-    mkdir -p /var/lib/zabbix/ssl && \
-    mkdir -p /var/lib/zabbix/ssl/certs && \
-    mkdir -p /var/lib/zabbix/ssl/keys && \
-    mkdir -p /var/lib/zabbix/ssl/ssl_ca && \
-    chown --quiet -R zabbix:root /var/lib/zabbix && \
-    mkdir -p /usr/share/doc/zabbix-${ZBX_TYPE}-${ZBX_DB_TYPE} && \
-    yum ${YUM_FLAGS_COMMON} makecache && \
-    yum ${YUM_FLAGS_PERSISTENT} install https://repo.zabbix.com/non-supported/rhel/7/x86_64/iksemel-1.4-2.el7.centos.x86_64.rpm \
-                                        https://repo.zabbix.com/non-supported/rhel/7/x86_64/fping-3.10-1.el7.x86_64.rpm  && \
-    yum ${YUM_FLAGS_PERSISTENT} install \
-            iputils \
-            traceroute \
-            libcurl \
-            libxml2 \
-            mariadb \
-            net-snmp-libs \
-            OpenIPMI-libs \
-            openldap \
-            openssl-libs \
-            pcre \
-            unixODBC && \
-    yum ${YUM_FLAGS_PERSISTENT} clean all && \
-    rm -rf /var/cache/yum/ && \
-    chmod +x /sbin/tini
+    cp src/zabbix_server/zabbix_server /usr/sbin/zabbix_server && \
+    cp src/zabbix_get/zabbix_get /usr/bin/zabbix_get && \
+    cp src/zabbix_sender/zabbix_sender /usr/bin/zabbix_sender && \
+    cp conf/zabbix_server.conf /etc/zabbix/zabbix_server.conf && \
+    cat database/mysql/schema.sql > database/mysql/create.sql && \
+    cat database/mysql/images.sql >> database/mysql/create.sql && \
+    cat database/mysql/data.sql >> database/mysql/create.sql && \
+    gzip database/mysql/create.sql && \
+    cp database/mysql/create.sql.gz /usr/share/doc/zabbix-server-mysql/ && \
+    cd /tmp/ && \
+    rm -rf /tmp/zabbix-${ZBX_VERSION}/ && \
+    chown --quiet -R zabbix:root /etc/zabbix/ /var/lib/zabbix/ && \
+    chgrp -R 0 /etc/zabbix/ /var/lib/zabbix/ && \
+    chmod -R g=u /etc/zabbix/ /var/lib/zabbix/ && \
+    yum -y history undo `yum -q history | sed -n 3p |column -t | cut -d' ' -f1` && \
+    yum -y clean all && \
+    rm -rf /var/cache/yum /var/lib/yum/yumdb/* /usr/lib/udev/hwdb.d/* && \
+    rm -rf /var/cache/dnf /etc/udev/hwdb.bin /root/.pki
 
 EXPOSE 10051/TCP
 
@@ -150,3 +141,7 @@ VOLUME ["/var/lib/zabbix/snmptraps", "/var/lib/zabbix/ssh_keys", "/var/lib/zabbi
 COPY ["docker-entrypoint.sh", "/usr/bin/"]
 
 ENTRYPOINT ["/sbin/tini", "--", "/usr/bin/docker-entrypoint.sh"]
+
+USER 1997
+
+CMD ["/usr/sbin/zabbix_server", "--foreground", "-c", "/etc/zabbix/zabbix_server.conf"]

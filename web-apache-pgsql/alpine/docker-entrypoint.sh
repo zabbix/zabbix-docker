@@ -263,9 +263,9 @@ echo "########################################################"
 if [ "$1" != "" ]; then
     echo "** Executing '$@'"
     exec "$@"
-elif [ -f "/usr/bin/supervisord" ]; then
-    echo "** Executing supervisord"
-    exec /usr/bin/supervisord -c /etc/supervisor/supervisord.conf
+elif [ -f "/usr/sbin/httpd" ]; then
+    echo "** Executing HTTPD"
+    exec /usr/sbin/httpd -D FOREGROUND
 else
     echo "Unknown instructions. Exiting..."
     exit 1

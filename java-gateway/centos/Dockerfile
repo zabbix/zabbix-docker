@@ -1,17 +1,42 @@
-FROM centos:centos7 as builder
+FROM centos:centos7
 
-ARG YUM_FLAGS_COMMON="-y"
-ARG YUM_FLAGS_DEV="${YUM_FLAGS_COMMON}"
-    
+LABEL org.opencontainers.image.title="Zabbix Java Gateway" \
+      org.opencontainers.image.authors="Alexey Pustovalov <alexey.pustovalov@zabbix.com>" \
+      org.opencontainers.image.vendor="Zabbix LLC" \
+      org.opencontainers.image.url="https://zabbix.com/" \
+      org.opencontainers.image.description="Zabbix Java Gateway performs native support for monitoring JMX applications" \
+      org.opencontainers.image.licenses="GPL v2.0"
+
+STOPSIGNAL SIGTERM
+
+RUN set -eux && \
+    groupadd -g 1995 --system zabbix && \
+    adduser -r --shell /sbin/nologin \
+            -g zabbix -G root \
+            -d /var/lib/zabbix/ -u 1997 \
+        zabbix && \
+    mkdir -p /etc/zabbix/ && \
+    mkdir -p /usr/sbin/zabbix_java/ && \
+    yum --quiet makecache && \
+    yum -y install --setopt=tsflags=nodocs \
+            java-1.8.0-openjdk-headless && \
+    yum -y clean all && \
+    rm -rf /var/cache/yum /var/lib/yum/yumdb/* /usr/lib/udev/hwdb.d/* && \
+    rm -rf /etc/udev/hwdb.bin /root/.pki
+
 ARG MAJOR_VERSION=master
 ARG ZBX_VERSION=${MAJOR_VERSION}
 ARG ZBX_SOURCES=https://git.zabbix.com/scm/zbx/zabbix.git
-ENV TERM=xterm ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES} \
-    ZBX_TYPE=java-gateway
+
+ENV TERM=xterm ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES}
+
+LABEL org.opencontainers.image.documentation="https://www.zabbix.com/documentation/${MAJOR_VERSION}/manual/installation/containers" \
+      org.opencontainers.image.version="${ZBX_VERSION}" \
+      org.opencontainers.image.source="${ZBX_SOURCES}"
 
 RUN set -eux && \
-    yum ${YUM_FLAGS_COMMON} makecache && \
-    yum ${YUM_FLAGS_DEV} install \
+    yum --quiet makecache && \
+    yum -y install \
             autoconf \
             automake \
             java-1.8.0-openjdk-devel \
@@ -33,55 +58,19 @@ RUN set -eux && \
             --enable-java \
             --silent && \
     make -j"$(nproc)" -s && \
-    rm -rf src/zabbix_java/lib/*.xml
-
-FROM centos:centos7
-LABEL maintainer="Alexey Pustovalov <alexey.pustovalov@zabbix.com>"
-
-ARG BUILD_DATE
-ARG VCS_REF
-
-ARG YUM_FLAGS_COMMON="-y"
-ARG YUM_FLAGS_PERSISTENT="${YUM_FLAGS_COMMON}"
-
-ARG MAJOR_VERSION=master
-ARG ZBX_VERSION=${MAJOR_VERSION}
-ARG ZBX_SOURCES=https://git.zabbix.com/scm/zbx/zabbix.git
-ENV TERM=xterm ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES} \
-    ZBX_TYPE=java-gateway ZBX_DB_TYPE=none ZBX_OPT_TYPE=none
-
-LABEL org.label-schema.name="zabbix-${ZBX_TYPE}-centos" \
-      org.label-schema.vendor="Zabbix LLC" \
-      org.label-schema.url="https://zabbix.com/" \
-      org.label-schema.description="Zabbix Java Gateway performs native support for monitoring JMX applications" \
-      org.label-schema.vcs-ref="${VCS_REF}" \
-      org.label-schema.build-date="${BUILD_DATE}" \
-      org.label-schema.schema-version="1.0" \
-      org.label-schema.license="GPL v2.0" \
-      org.label-schema.usage="https://www.zabbix.com/documentation/${MAJOR_VERSION}/manual/installation/containers" \
-      org.label-schema.version="${ZBX_VERSION}" \
-      org.label-schema.vcs-url="${ZBX_SOURCES}" \
-      org.label-schema.docker.cmd="docker run --name zabbix-${ZBX_TYPE} --link zabbix-server:zabbix-server -p 10052:10052 -d zabbix-${ZBX_TYPE}:centos-${ZBX_VERSION}"
-
-STOPSIGNAL SIGTERM
-
-COPY --from=builder /tmp/zabbix-${ZBX_VERSION}/src/zabbix_java/bin/* /usr/sbin/zabbix_java/bin/
-COPY --from=builder /tmp/zabbix-${ZBX_VERSION}/src/zabbix_java/lib/* /usr/sbin/zabbix_java/lib/
-
-RUN set -eux && \
-    groupadd --system zabbix && \
-    adduser --system --shell /sbin/nologin \
-            -g zabbix \
-            -d /var/lib/zabbix/ \
-        zabbix && \
-    mkdir -p /etc/zabbix/ && \
-    chown --quiet -R zabbix:root /etc/zabbix && \
     mkdir -p /usr/sbin/zabbix_java/ && \
-    yum ${YUM_FLAGS_COMMON} makecache && \
-    yum ${YUM_FLAGS_PERSISTENT} install \
-            java-1.8.0-openjdk-headless && \
-    yum ${YUM_FLAGS_PERSISTENT} clean all && \
-    rm -rf /var/cache/yum/
+    cp -r src/zabbix_java/bin /usr/sbin/zabbix_java/ && \
+    cp -r src/zabbix_java/lib /usr/sbin/zabbix_java/ && \
+    rm -rf /usr/sbin/zabbix_java/lib/*.xml && \
+    cd /tmp/ && \
+    rm -rf /tmp/zabbix-${ZBX_VERSION}/ && \
+    yum -y history undo `yum -q history | sed -n 3p |column -t | cut -d' ' -f1` && \
+    yum -y clean all && \
+    chown --quiet -R zabbix:root /etc/zabbix/ && \
+    chgrp -R 0 /etc/zabbix/ && \
+    chmod -R g=u /etc/zabbix/ && \
+    rm -rf /var/cache/yum /var/lib/yum/yumdb/* /usr/lib/udev/hwdb.d/* && \
+    rm -rf /etc/udev/hwdb.bin /root/.pki
 
 EXPOSE 10052/TCP
 
@@ -92,3 +81,7 @@ COPY ["conf/usr/sbin/zabbix_java_gateway", "/usr/sbin/"]
 COPY ["docker-entrypoint.sh", "/usr/bin/"]
 
 ENTRYPOINT ["docker-entrypoint.sh"]
+
+USER 1997
+
+CMD ["/usr/sbin/zabbix_java_gateway"]
