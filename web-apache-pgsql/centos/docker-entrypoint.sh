@@ -108,13 +108,9 @@ update_config_var() {
         return
     fi
 
-    # Use full path to a file for TLS related configuration parameters
-    if [[ $var_name =~ ^TLS.*File$ ]]; then
-        var_value=$ZABBIX_USER_HOME_DIR/enc/$var_value
-    fi
-
-    # Escaping characters in parameter value
+    # Escaping characters in parameter value and name
     var_value=$(escape_spec_char "$var_value")
+    var_name=$(escape_spec_char "$var_name")
 
     if [ "$(grep -E "^$var_name=" $config_path)" ] && [ "$is_multiple" != "true" ]; then
         sed -i -e "/^$var_name=/s/=.*/=$var_value/" "$config_path"
@@ -219,14 +215,14 @@ prepare_zbx_web_config() {
 
     ZBX_WWW_ROOT="/usr/share/zabbix"
     ZBX_WEB_CONFIG="$ZABBIX_ETC_DIR/web/zabbix.conf.php"
-    PHP_CONFIG_FILE="/etc/php.d/99-zabbix.ini"
+    PHP_CONFIG_FILE="/etc/php-fpm.d/zabbix.conf"
 
-    update_config_var "$PHP_CONFIG_FILE" "max_execution_time" "${ZBX_MAXEXECUTIONTIME:-"600"}"
-    update_config_var "$PHP_CONFIG_FILE" "memory_limit" "${ZBX_MEMORYLIMIT:-"128M"}" 
-    update_config_var "$PHP_CONFIG_FILE" "post_max_size" "${ZBX_POSTMAXSIZE:-"16M"}"
-    update_config_var "$PHP_CONFIG_FILE" "upload_max_filesize" "${ZBX_UPLOADMAXFILESIZE:-"2M"}"
-    update_config_var "$PHP_CONFIG_FILE" "max_input_time" "${ZBX_MAXINPUTTIME:-"300"}"
-    update_config_var "$PHP_CONFIG_FILE" "date.timezone" "${PHP_TZ}"
+    update_config_var "$PHP_CONFIG_FILE" "php_value[max_execution_time]" "${ZBX_MAXEXECUTIONTIME:-"600"}"
+    update_config_var "$PHP_CONFIG_FILE" "php_value[memory_limit]" "${ZBX_MEMORYLIMIT:-"128M"}"
+    update_config_var "$PHP_CONFIG_FILE" "php_value[post_max_size]" "${ZBX_POSTMAXSIZE:-"16M"}"
+    update_config_var "$PHP_CONFIG_FILE" "php_value[upload_max_filesize]" "${ZBX_UPLOADMAXFILESIZE:-"2M"}"
+    update_config_var "$PHP_CONFIG_FILE" "php_value[max_input_time]" "${ZBX_MAXINPUTTIME:-"300"}"
+    update_config_var "$PHP_CONFIG_FILE" "php_value[date.timezone]" "${PHP_TZ}"
 
     ZBX_HISTORYSTORAGETYPES=${ZBX_HISTORYSTORAGETYPES:-"[]"}
 
@@ -247,6 +243,12 @@ prepare_zbx_web_config() {
         -e "s/{ZBX_SERVER_HOST}/${ZBX_SERVER_HOST}/g" \
         -e "s/{ZBX_SERVER_PORT}/${ZBX_SERVER_PORT}/g" \
         -e "s/{ZBX_SERVER_NAME}/$server_name/g" \
+        -e "s/{ZBX_DB_ENCRYPTION}/${ZBX_DB_ENCRYPTION:-"false"}/g" \
+        -e "s/{ZBX_DB_KEY_FILE}/${ZBX_DB_KEY_FILE}/g" \
+        -e "s/{ZBX_DB_CERT_FILE}/${ZBX_DB_CERT_FILE}/g" \
+        -e "s/{ZBX_DB_CA_FILE}/${ZBX_DB_CA_FILE}/g" \
+        -e "s/{ZBX_DB_VERIFY_HOST}/${ZBX_DB_VERIFY_HOST:-"false"}/g" \
+        -e "s/{ZBX_DB_CIPHER_LIST}/${ZBX_DB_CIPHER_LIST}/g" \
         -e "s/{ZBX_HISTORYSTORAGEURL}/$history_storage_url/g" \
         -e "s/{ZBX_HISTORYSTORAGETYPES}/$history_storage_types/g" \
     "$ZBX_WEB_CONFIG"
@@ -263,7 +265,6 @@ prepare_web() {
     prepare_zbx_web_config
 }
 
-
 #################################################
 
 echo "** Deploying Zabbix web-interface (Apache) with MySQL database"
@@ -279,9 +280,9 @@ echo "########################################################"
 if [ "$1" != "" ]; then
     echo "** Executing '$@'"
     exec "$@"
-elif [ -f "/usr/sbin/httpd" ]; then
-    echo "** Executing HTTPD"
-    exec /usr/sbin/httpd -D FOREGROUND
+elif [ -f "/usr/bin/supervisord" ]; then
+    echo "** Executing supervisord"
+    exec /usr/bin/supervisord -c /etc/supervisor/supervisord.conf
 else
     echo "Unknown instructions. Exiting..."
     exit 1

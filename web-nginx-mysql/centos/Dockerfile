@@ -1,4 +1,4 @@
-FROM centos:centos7
+FROM centos:centos8
 
 LABEL org.opencontainers.image.title="Zabbix web-interface (Nginx, MySQL)" \
       org.opencontainers.image.authors="Alexey Pustovalov <alexey.pustovalov@zabbix.com>" \
@@ -17,9 +17,9 @@ RUN set -eux && \
         zabbix && \
     mkdir -p /etc/zabbix && \
     mkdir -p /etc/zabbix/web && \
-    yum --quiet makecache && \
-    yum -y install epel-release && \
-    yum -y install --setopt=tsflags=nodocs \
+    dnf --quiet makecache && \
+    dnf -y install epel-release && \
+    dnf -y install --setopt=install_weak_deps=False --best --setopt=tsflags=nodocs \
             curl \
             mariadb \
             nginx \
@@ -28,14 +28,15 @@ RUN set -eux && \
             php-gd \
             php-ldap \
             php-mbstring \
-            php-mysql \
+            php-mysqlnd \
+            php-json \
             php-xml \
             supervisor && \
     rm -f /etc/nginx/conf.d/*.conf  && \
     rm -f /etc/php-fpm.d/www.conf && \
-    yum -y clean all && \
+    dnf -y clean all && \
     rm -rf /var/cache/yum /var/lib/yum/yumdb/* /usr/lib/udev/hwdb.d/* && \
-    rm -rf /etc/udev/hwdb.bin /root/.pki
+    rm -rf /var/cache/dnf /etc/udev/hwdb.bin /root/.pki
 
 ARG MAJOR_VERSION=5.0
 ARG ZBX_VERSION=${MAJOR_VERSION}
@@ -50,8 +51,10 @@ LABEL org.opencontainers.image.documentation="https://www.zabbix.com/documentati
 COPY ["conf/etc/", "/etc/"]
 
 RUN set -eux && \
-    yum --quiet makecache && \
-    yum -y install --setopt=tsflags=nodocs \
+    dnf --quiet makecache && \
+    dnf -y install --setopt=install_weak_deps=False --best --setopt=tsflags=nodocs \
+            glibc-locale-source && \
+    dnf -y install --setopt=tsflags=nodocs \
             gettext \
             git && \
     cd /usr/share/ && \
@@ -73,10 +76,11 @@ RUN set -eux && \
     chown --quiet -R zabbix:root /etc/nginx/ /etc/php.d/ /etc/php.ini && \
     chgrp -R 0 /etc/nginx/ /etc/php.d/ /etc/php.ini && \
     chmod -R g=u /etc/nginx/ /etc/php.d/ /etc/php.ini && \
-    yum -y history undo `yum -q history | sed -n 3p |column -t | cut -d' ' -f1` && \
-    yum -y clean all && \
+    dnf -y history undo `dnf -q history | sed -n 3p |column -t | cut -d' ' -f1` && \
+    dnf -y erase glibc-locale-source && \
+    dnf -y clean all && \
     rm -rf /var/cache/yum /var/lib/yum/yumdb/* /usr/lib/udev/hwdb.d/* && \
-    rm -rf /etc/udev/hwdb.bin /root/.pki
+    rm -rf /var/cache/dnf /etc/udev/hwdb.bin /root/.pki
 
 EXPOSE 8080/TCP 8443/TCP
 

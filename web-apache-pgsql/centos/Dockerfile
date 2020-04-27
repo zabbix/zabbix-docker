@@ -1,4 +1,4 @@
-FROM centos:centos7
+FROM centos:centos8
 
 LABEL org.opencontainers.image.title="Zabbix web-interface (Apache, PostgreSQL)" \
       org.opencontainers.image.authors="Alexey Pustovalov <alexey.pustovalov@zabbix.com>" \
@@ -17,30 +17,35 @@ RUN set -eux && \
         zabbix && \
     mkdir -p /etc/zabbix && \
     mkdir -p /etc/zabbix/web && \
-    yum --quiet makecache && \
-    yum -y install --setopt=tsflags=nodocs \
+    dnf --quiet makecache && \
+    dnf -y install epel-release && \
+    dnf -y install --setopt=install_weak_deps=False --best --setopt=tsflags=nodocs \
             dejavu-sans-fonts \
             curl \
             httpd \
             mod_ssl \
             php \
+            php-fpm \
             php-bcmath \
             php-gd \
             php-ldap \
             php-mbstring \
             php-pgsql \
+            php-json \
             php-xml \
-            postgresql && \
+            postgresql \
+            supervisor && \
     rm -f "/etc/httpd/conf.d/default.conf" && \
     rm -f "/etc/httpd/conf.d/ssl.conf" && \
+    rm -f /etc/php-fpm.d/www.conf && \
     sed -ri \
         -e 's!^(\s*CustomLog)\s+\S+!\1 /proc/self/fd/1!g' \
         -e 's!^(\s*ErrorLog)\s+\S+!\1 /proc/self/fd/2!g' \
         "/etc/httpd/conf/httpd.conf" && \
     sed -i 's/Listen 80/Listen 8080/g' /etc/httpd/conf/httpd.conf && \
-    yum -y clean all && \
+    dnf -y clean all && \
     rm -rf /var/cache/yum /var/lib/yum/yumdb/* /usr/lib/udev/hwdb.d/* && \
-    rm -rf /etc/udev/hwdb.bin /root/.pki 
+    rm -rf /var/cache/dnf /etc/udev/hwdb.bin /root/.pki 
 
 ARG MAJOR_VERSION=5.0
 ARG ZBX_VERSION=${MAJOR_VERSION}
@@ -55,8 +60,10 @@ LABEL org.opencontainers.image.documentation="https://www.zabbix.com/documentati
 COPY ["conf/etc/", "/etc/"]
 
 RUN set -eux && \
-    yum --quiet makecache && \
-    yum -y install --setopt=tsflags=nodocs \
+    dnf --quiet makecache && \
+    dnf -y install --setopt=install_weak_deps=False --best --setopt=tsflags=nodocs \
+            glibc-locale-source && \
+    dnf -y install --setopt=tsflags=nodocs \
             gettext \
             git && \
     cd /usr/share/ && \
@@ -75,16 +82,17 @@ RUN set -eux && \
     chown --quiet -R zabbix:root /etc/zabbix/ /usr/share/zabbix/conf/ && \
     chgrp -R 0 /etc/zabbix/ /usr/share/zabbix/conf/ && \
     chmod -R g=u /etc/zabbix/ /usr/share/zabbix/conf/ && \
-    chown --quiet -R zabbix:root /etc/httpd/ /etc/php.d/ /etc/php.ini && \
-    chgrp -R 0 /etc/httpd/ /etc/php.d/ /etc/php.ini && \
-    chmod -R g=u /etc/httpd/ /etc/php.d/ /etc/php.ini && \
+    chown --quiet -R zabbix:root /etc/httpd/ /etc/php-fpm.d/ /etc/php-fpm.conf && \
+    chgrp -R 0 /etc/httpd/ /etc/php-fpm.d/ /etc/php-fpm.conf && \
+    chmod -R g=u /etc/httpd/ /etc/php-fpm.d/ /etc/php-fpm.conf && \
     chown --quiet -R zabbix:root /run/httpd/ /var/lib/php/session/ && \
     chgrp -R 0 /run/httpd/ /var/lib/php/session/ && \
     chmod -R g=u /run/httpd/ /var/lib/php/session/ && \
-    yum -y history undo `yum -q history | sed -n 3p |column -t | cut -d' ' -f1` && \
-    yum -y clean all && \
+    dnf -y history undo `dnf -q history | sed -n 3p |column -t | cut -d' ' -f1` && \
+    dnf -y erase glibc-locale-source && \
+    dnf -y clean all && \
     rm -rf /var/cache/yum /var/lib/yum/yumdb/* /usr/lib/udev/hwdb.d/* && \
-    rm -rf /etc/udev/hwdb.bin /root/.pki
+    rm -rf /var/cache/dnf /etc/udev/hwdb.bin /root/.pki
 
 EXPOSE 8080/TCP 8443/TCP
 
@@ -97,5 +105,3 @@ COPY ["docker-entrypoint.sh", "/usr/bin/"]
 USER 1997
 
 ENTRYPOINT ["docker-entrypoint.sh"]
-
-CMD ["/usr/sbin/httpd", "-D", "FOREGROUND"]
