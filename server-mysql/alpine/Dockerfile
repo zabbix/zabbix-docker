@@ -12,7 +12,7 @@ STOPSIGNAL SIGTERM
 RUN set -eux && \
     addgroup -S -g 1995 zabbix && \
     adduser -S \
-            -D -G zabbix -G root \
+            -D -G zabbix -G dialout -G root \
             -u 1997 \
             -h /var/lib/zabbix/ \
         zabbix && \

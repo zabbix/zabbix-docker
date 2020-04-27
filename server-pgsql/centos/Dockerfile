@@ -19,10 +19,8 @@ RUN set -eux && \
         zabbix && \
     mkdir -p /etc/zabbix && \
     mkdir -p /var/lib/zabbix && \
-    mkdir -p /usr/lib/zabbix/alertscripts && \
     mkdir -p /var/lib/zabbix/enc && \
     mkdir -p /var/lib/zabbix/export && \
-    mkdir -p /usr/lib/zabbix/externalscripts && \
     mkdir -p /var/lib/zabbix/mibs && \
     mkdir -p /var/lib/zabbix/modules && \
     mkdir -p /var/lib/zabbix/snmptraps && \
@@ -31,6 +29,8 @@ RUN set -eux && \
     mkdir -p /var/lib/zabbix/ssl/certs && \
     mkdir -p /var/lib/zabbix/ssl/keys && \
     mkdir -p /var/lib/zabbix/ssl/ssl_ca && \
+    mkdir -p /usr/lib/zabbix/alertscripts && \
+    mkdir -p /usr/lib/zabbix/externalscripts && \
     mkdir -p /usr/share/doc/zabbix-server-postgresql && \
     yum --quiet makecache && \
     yum -y install --setopt=tsflags=nodocs https://repo.zabbix.com/non-supported/rhel/7/x86_64/iksemel-1.4-2.el7.centos.x86_64.rpm \
