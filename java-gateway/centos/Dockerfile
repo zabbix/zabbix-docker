@@ -36,7 +36,7 @@ LABEL org.opencontainers.image.documentation="https://www.zabbix.com/documentati
 
 RUN set -eux && \
     yum --quiet makecache && \
-    yum -y install \
+    yum -y install --setopt=tsflags=nodocs \
             autoconf \
             automake \
             java-1.8.0-openjdk-devel \

@@ -20,7 +20,6 @@ RUN set -eux && \
     mkdir -p /etc/zabbix && \
     mkdir -p /var/lib/zabbix && \
     mkdir -p /var/lib/zabbix/enc && \
-    mkdir -p /usr/lib/zabbix/externalscripts && \
     mkdir -p /var/lib/zabbix/mibs && \
     mkdir -p /var/lib/zabbix/modules && \
     mkdir -p /var/lib/zabbix/snmptraps && \
@@ -29,6 +28,7 @@ RUN set -eux && \
     mkdir -p /var/lib/zabbix/ssl/certs && \
     mkdir -p /var/lib/zabbix/ssl/keys && \
     mkdir -p /var/lib/zabbix/ssl/ssl_ca && \
+    mkdir -p /usr/lib/zabbix/externalscripts && \
     mkdir -p /usr/share/doc/zabbix-proxy-mysql && \
     yum --quiet makecache && \
     yum -y install https://repo.zabbix.com/non-supported/rhel/7/x86_64/fping-3.10-1.el7.x86_64.rpm --setopt=tsflags=nodocs && \
@@ -56,7 +56,8 @@ ARG MAJOR_VERSION=3.0
 ARG ZBX_VERSION=${MAJOR_VERSION}.30
 ARG ZBX_SOURCES=https://git.zabbix.com/scm/zbx/zabbix.git
 
-ENV TERM=xterm ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES}
+ENV TERM=xterm MIBDIRS=/usr/share/snmp/mibs:/var/lib/zabbix/mibs MIBS=+ALL \
+    ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES}
 
 LABEL org.opencontainers.image.documentation="https://www.zabbix.com/documentation/${MAJOR_VERSION}/manual/installation/containers" \
       org.opencontainers.image.version="${ZBX_VERSION}" \
@@ -120,7 +121,7 @@ RUN set -eux && \
     yum -y history undo `yum -q history | sed -n 3p |column -t | cut -d' ' -f1` && \
     yum -y clean all && \
     rm -rf /var/cache/yum /var/lib/yum/yumdb/* /usr/lib/udev/hwdb.d/* && \
-    rm -rf /var/cache/dnf /etc/udev/hwdb.bin /root/.pki
+    rm -rf /etc/udev/hwdb.bin /root/.pki
 
 EXPOSE 10051/TCP
 
