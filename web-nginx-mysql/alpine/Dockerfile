@@ -19,6 +19,7 @@ RUN set -eux && \
         zabbix && \
     mkdir -p /etc/zabbix && \
     mkdir -p /etc/zabbix/web && \
+    mkdir -p /var/lib/php/session && \
     apk add --clean-protected --no-cache \
             bash \
             curl \
@@ -75,12 +76,12 @@ RUN set -eux && \
     chown --quiet -R zabbix:root /etc/zabbix/ /usr/share/zabbix/conf/ && \
     chgrp -R 0 /etc/zabbix/ /usr/share/zabbix/conf/ && \
     chmod -R g=u /etc/zabbix/ /usr/share/zabbix/conf/ && \
-    chown --quiet -R zabbix:root /etc/nginx/ /etc/php7/ && \
-    chgrp -R 0 /etc/nginx/ /etc/php7/ && \
-    chmod -R g=u /etc/nginx/ /etc/php7/ && \
-    chown --quiet -R zabbix:root /var/log/nginx/ /var/lib/nginx/ && \
-    chgrp -R 0 /var/log/nginx/ /var/lib/nginx/ && \
-    chmod -R g=u /var/log/nginx/ /var/lib/nginx/ && \
+    chown --quiet -R zabbix:root /etc/nginx/ /etc/php7/php-fpm.d/ /etc/php7/php-fpm.conf && \
+    chgrp -R 0 /etc/nginx/ /etc/php7/php-fpm.d/ /etc/php7/php-fpm.conf && \
+    chmod -R g=u /etc/nginx/ /etc/php7/php-fpm.d/ /etc/php7/php-fpm.conf && \
+    chown --quiet -R zabbix:root /var/lib/php/session/ && \
+    chgrp -R 0 /var/lib/php/session/ && \
+    chmod -R g=u /var/lib/php/session/ && \
     apk del --purge --no-network \
             build-dependencies && \
     rm -rf /var/cache/apk/*
