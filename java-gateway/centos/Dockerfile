@@ -34,6 +34,8 @@ LABEL org.opencontainers.image.documentation="https://www.zabbix.com/documentati
       org.opencontainers.image.version="${ZBX_VERSION}" \
       org.opencontainers.image.source="${ZBX_SOURCES}"
 
+COPY ["conf/etc/", "/etc/"]
+
 RUN set -eux && \
     yum --quiet makecache && \
     yum -y install --setopt=tsflags=nodocs \
@@ -66,9 +68,9 @@ RUN set -eux && \
     rm -rf /tmp/zabbix-${ZBX_VERSION}/ && \
     yum -y history undo `yum -q history | sed -n 3p |column -t | cut -d' ' -f1` && \
     yum -y clean all && \
-    chown --quiet -R zabbix:root /etc/zabbix/ && \
-    chgrp -R 0 /etc/zabbix/ && \
-    chmod -R g=u /etc/zabbix/ && \
+    chown --quiet -R zabbix:root /etc/zabbix/ /usr/sbin/zabbix_java/ && \
+    chgrp -R 0 /etc/zabbix/ /usr/sbin/zabbix_java/ && \
+    chmod -R g=u /etc/zabbix/ /usr/sbin/zabbix_java/ && \
     rm -rf /var/cache/yum /var/lib/yum/yumdb/* /usr/lib/udev/hwdb.d/* && \
     rm -rf /etc/udev/hwdb.bin /root/.pki
 
@@ -78,7 +80,6 @@ WORKDIR /var/lib/zabbix
 
 VOLUME ["/usr/sbin/zabbix_java/ext_lib"]
 
-COPY ["conf/etc/zabbix/zabbix_java_gateway_logback.xml", "/etc/zabbix/"]
 COPY ["conf/usr/sbin/zabbix_java_gateway", "/usr/sbin/"]
 COPY ["docker-entrypoint.sh", "/usr/bin/"]
 
