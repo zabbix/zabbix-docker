@@ -32,7 +32,7 @@ RUN set -eux && \
     yum -y install --setopt=tsflags=nodocs \
             net-snmp \
             supervisor && \
-    yum -y install \
+    yum -y install --setopt=tsflags=nodocs \
             autoconf \
             automake \
             gcc \
