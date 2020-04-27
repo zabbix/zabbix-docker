@@ -14,7 +14,7 @@ ENV TINI_VERSION=v0.19.0
 RUN set -eux && \
     groupadd -g 1995 --system zabbix && \
     adduser -r --shell /sbin/nologin \
-            -g zabbix -G root \
+            -g zabbix -G dialout -G root \
             -d /var/lib/zabbix/ -u 1997 \
         zabbix && \
     mkdir -p /etc/zabbix && \
@@ -62,7 +62,8 @@ ARG MAJOR_VERSION=master
 ARG ZBX_VERSION=${MAJOR_VERSION}
 ARG ZBX_SOURCES=https://git.zabbix.com/scm/zbx/zabbix.git
 
-ENV TERM=xterm ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES}
+ENV TERM=xterm MIBDIRS=/usr/share/snmp/mibs:/var/lib/zabbix/mibs MIBS=+ALL \
+    ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES}
 
 LABEL org.opencontainers.image.documentation="https://www.zabbix.com/documentation/${MAJOR_VERSION}/manual/installation/containers" \
       org.opencontainers.image.version="${ZBX_VERSION}" \
@@ -130,7 +131,7 @@ RUN set -eux && \
     yum -y history undo `yum -q history | sed -n 3p |column -t | cut -d' ' -f1` && \
     yum -y clean all && \
     rm -rf /var/cache/yum /var/lib/yum/yumdb/* /usr/lib/udev/hwdb.d/* && \
-    rm -rf /var/cache/dnf /etc/udev/hwdb.bin /root/.pki
+    rm -rf /etc/udev/hwdb.bin /root/.pki
 
 EXPOSE 10051/TCP
 
