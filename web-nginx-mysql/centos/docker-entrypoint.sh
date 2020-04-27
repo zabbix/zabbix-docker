@@ -107,13 +107,9 @@ update_config_var() {
         return
     fi
 
-    # Use full path to a file for TLS related configuration parameters
-    if [[ $var_name =~ ^TLS.*File$ ]]; then
-        var_value=$ZABBIX_USER_HOME_DIR/enc/$var_value
-    fi
-
-    # Escaping characters in parameter value
+    # Escaping characters in parameter value and name
     var_value=$(escape_spec_char "$var_value")
+    var_name=$(escape_spec_char "$var_name")
 
     if [ "$(grep -E "^$var_name=" $config_path)" ] && [ "$is_multiple" != "true" ]; then
         sed -i -e "/^$var_name=/s/=.*/=$var_value/" "$config_path"
@@ -241,20 +237,14 @@ prepare_zbx_web_config() {
 
     ZBX_WEB_CONFIG="$ZABBIX_ETC_DIR/web/zabbix.conf.php"
 
-    if [ -f "/usr/share/zabbix/conf/zabbix.conf.php" ]; then
-        rm -f "/usr/share/zabbix/conf/zabbix.conf.php"
-    fi
+    PHP_CONFIG_FILE="/etc/php-fpm.d/zabbix.conf"
 
-    ln -s "$ZBX_WEB_CONFIG" "/usr/share/zabbix/conf/zabbix.conf.php"
-
-    PHP_CONFIG_FILE="/etc/php.d/99-zabbix.ini"
-
-    update_config_var "$PHP_CONFIG_FILE" "max_execution_time" "${ZBX_MAXEXECUTIONTIME:-"600"}"
-    update_config_var "$PHP_CONFIG_FILE" "memory_limit" "${ZBX_MEMORYLIMIT:-"128M"}"
-    update_config_var "$PHP_CONFIG_FILE" "post_max_size" "${ZBX_POSTMAXSIZE:-"16M"}"
-    update_config_var "$PHP_CONFIG_FILE" "upload_max_filesize" "${ZBX_UPLOADMAXFILESIZE:-"2M"}"
-    update_config_var "$PHP_CONFIG_FILE" "max_input_time" "${ZBX_MAXINPUTTIME:-"300"}"
-    update_config_var "$PHP_CONFIG_FILE" "date.timezone" "${PHP_TZ}"
+    update_config_var "$PHP_CONFIG_FILE" "php_value[max_execution_time]" "${ZBX_MAXEXECUTIONTIME:-"600"}"
+    update_config_var "$PHP_CONFIG_FILE" "php_value[memory_limit]" "${ZBX_MEMORYLIMIT:-"128M"}"
+    update_config_var "$PHP_CONFIG_FILE" "php_value[post_max_size]" "${ZBX_POSTMAXSIZE:-"16M"}"
+    update_config_var "$PHP_CONFIG_FILE" "php_value[upload_max_filesize]" "${ZBX_UPLOADMAXFILESIZE:-"2M"}"
+    update_config_var "$PHP_CONFIG_FILE" "php_value[max_input_time]" "${ZBX_MAXINPUTTIME:-"300"}"
+    update_config_var "$PHP_CONFIG_FILE" "php_value[date.timezone]" "${PHP_TZ}"
 
     # Escaping characters in parameter value
     server_name=$(escape_spec_char "${ZBX_SERVER_NAME}")
