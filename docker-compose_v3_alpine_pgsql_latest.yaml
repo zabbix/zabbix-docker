@@ -227,7 +227,7 @@ services:
   image: zabbix/zabbix-web-nginx-pgsql:alpine-trunk
   ports:
    - "8081:8080"
-   - "8443:80443"
+   - "8443:8443"
   links:
    - postgres-server:postgres-server
    - zabbix-server:zabbix-server
