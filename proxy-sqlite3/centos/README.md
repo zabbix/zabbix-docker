@@ -18,14 +18,14 @@ These are the only official Zabbix proxy Docker images. They are based on Alpine
 
     Zabbix proxy 3.0 (tags: alpine-3.0-latest, ubuntu-3.0-latest, centos-3.0-latest)
     Zabbix proxy 3.0.* (tags: alpine-3.0.*, ubuntu-3.0.*, centos-3.0.*)
-    Zabbix proxy 3.2 (tags: alpine-3.2-latest, ubuntu-3.2-latest, centos-3.2-latest)
-    Zabbix proxy 3.2.* (tags: alpine-3.2.*, ubuntu-3.2.*, centos-3.2.*)
-    Zabbix proxy 3.4 (tags: alpine-3.4-latest, ubuntu-3.4-latest, centos-3.4-latest)
-    Zabbix proxy 3.4.* (tags: alpine-3.4.*, ubuntu-3.4.*, centos-3.4.*)
+    Zabbix proxy 3.2 (tags: alpine-3.2-latest, ubuntu-3.2-latest, centos-3.2.*) (unsupported)
+    Zabbix proxy 3.2.* (tags: alpine-3.2.*, ubuntu-3.2.*, centos-3.2.*) (unsupported)
+    Zabbix proxy 3.4 (tags: alpine-3.4-latest, ubuntu-3.4-latest, centos-3.4.*) (unsupported)
+    Zabbix proxy 3.4.* (tags: alpine-3.4.*, ubuntu-3.4.*, centos-3.4.*) (unsupported)
     Zabbix proxy 4.0 (tags: alpine-4.0-latest, ubuntu-4.0-latest, centos-4.0-latest)
     Zabbix proxy 4.0.* (tags: alpine-4.0.*, ubuntu-4.0.*, centos-4.0.*)
-    Zabbix proxy 4.2 (tags: alpine-4.2-latest, ubuntu-4.2-latest, centos-4.2-latest)
-    Zabbix proxy 4.2.* (tags: alpine-4.2.*, ubuntu-4.2.*, centos-4.2.*)
+    Zabbix proxy 4.2 (tags: alpine-4.2-latest, ubuntu-4.2-latest, centos-4.2.*) (unsupported)
+    Zabbix proxy 4.2.* (tags: alpine-4.2.*, ubuntu-4.2.*, centos-4.2.*) (unsupported)
     Zabbix proxy 4.4 (tags: alpine-4.4-latest, ubuntu-4.4-latest, centos-4.4-latest, alpine-latest, ubuntu-latest, centos-latest, latest)
     Zabbix proxy 4.4.* (tags: alpine-4.4.*, ubuntu-4.4.*, centos-4.4.*)
     Zabbix proxy 5.0 (tags: alpine-trunk, ubuntu-trunk, centos-trunk)
@@ -251,8 +251,6 @@ Documentation for this image is stored in the [`proxy-sqlite3/` directory](https
 If you have any problems with or questions about this image, please contact us through a [GitHub issue](https://github.com/zabbix/zabbix-docker/issues).
 
 ### Known issues
-
-Zabbix proxy does not support Jabber notifications on Alpine Linux because of `iksemel` package is in testing repository and not available in stable repository.
 
 ## Contributing
 
