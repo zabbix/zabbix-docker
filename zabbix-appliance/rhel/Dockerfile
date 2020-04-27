@@ -54,7 +54,6 @@ COPY ["licenses", "/licenses"]
 RUN INSTALL_PKGS="OpenIPMI-libs \
             curl \
             fping \
-            iksemel \
             java-1.8.0-openjdk-headless \
             libcurl \
             libevent \
@@ -116,7 +115,6 @@ RUN REPOLIST="rhel-7-server-rpms,rhel-7-server-optional-rpms,zabbix-non-supporte
             automake \
             gcc \
             gettext \
-            iksemel-devel \
             java-1.8.0-openjdk-devel \
             libcurl-devel \
             libevent-devel \
@@ -147,7 +145,6 @@ RUN REPOLIST="rhel-7-server-rpms,rhel-7-server-optional-rpms,zabbix-non-supporte
             --enable-agent \
             --enable-${ZBX_TYPE} \
             --with-${ZBX_DB_TYPE} \
-            --with-jabber \
             --with-ldap \
             --with-libcurl \
             --with-libxml2 \

@@ -12,17 +12,15 @@ STOPSIGNAL SIGTERM
 RUN set -eux && \
     addgroup -S -g 1995 zabbix && \
     adduser -S \
-            -D -G zabbix -G root \
+            -D -G zabbix -G dialout -G root \
             -u 1997 \
             -h /var/lib/zabbix/ \
         zabbix && \
     adduser zabbix dialout && \
     mkdir -p /etc/zabbix && \
     mkdir -p /var/lib/zabbix && \
-    mkdir -p /usr/lib/zabbix/alertscripts && \
     mkdir -p /var/lib/zabbix/enc && \
     mkdir -p /var/lib/zabbix/export && \
-    mkdir -p /usr/lib/zabbix/externalscripts && \
     mkdir -p /var/lib/zabbix/mibs && \
     mkdir -p /var/lib/zabbix/modules && \
     mkdir -p /var/lib/zabbix/snmptraps && \
@@ -31,6 +29,8 @@ RUN set -eux && \
     mkdir -p /var/lib/zabbix/ssl/certs && \
     mkdir -p /var/lib/zabbix/ssl/keys && \
     mkdir -p /var/lib/zabbix/ssl/ssl_ca && \
+    mkdir -p /usr/lib/zabbix/alertscripts && \
+    mkdir -p /usr/lib/zabbix/externalscripts && \
     mkdir -p /usr/share/doc/zabbix-server-postgresql && \
     apk add --clean-protected --no-cache \
             tini \
@@ -95,8 +95,6 @@ RUN set -eux && \
             --enable-agent \
             --enable-server \
             --with-postgresql \
-# Does not support stable iksemel library
-#            --with-jabber \
             --with-ldap \
             --with-libcurl \
             --with-libxml2 \

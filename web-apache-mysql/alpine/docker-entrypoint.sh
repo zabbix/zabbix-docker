@@ -60,6 +60,10 @@ file_env() {
     unset "$fileVar"
 }
 
+prepare_system() {
+    echo "** Preparing the system"
+}
+
 escape_spec_char() {
     local var_value=$1
 
@@ -202,6 +206,10 @@ prepare_web_server() {
     fi
 }
 
+clear_deploy() {
+    echo "** Cleaning the system"
+}
+
 prepare_zbx_web_config() {
     local server_name=""
 
@@ -269,9 +277,9 @@ echo "########################################################"
 if [ "$1" != "" ]; then
     echo "** Executing '$@'"
     exec "$@"
-elif [ -f "/usr/bin/supervisord" ]; then
-    echo "** Executing supervisord"
-    exec /usr/bin/supervisord -c /etc/supervisor/supervisord.conf
+elif [ -f "/usr/sbin/httpd" ]; then
+    echo "** Executing HTTPD"
+    exec /usr/sbin/httpd -D FOREGROUND
 else
     echo "Unknown instructions. Exiting..."
     exit 1

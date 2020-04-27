@@ -129,8 +129,6 @@ RUN set -eux && \
             --enable-agent \
             --enable-${ZBX_TYPE} \
             --with-${ZBX_DB_TYPE} \
-# Does not support stable iksemel library
-#            --with-jabber \
             --with-ldap \
             --with-libcurl \
             --with-libxml2 \

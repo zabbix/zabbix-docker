@@ -15,10 +15,10 @@ metadata:
 spec:
   ports:
   - port: 80
-    targetPort: 80
+    targetPort: 8080
     name: web-http
   - port: 443
-    targetPort: 443
+    targetPort: 8443
     name: web-https
   selector:
     name: zabbix-web
@@ -54,7 +54,7 @@ spec:
     targetPort: 10051
     name: zabbix-trapper
   - port: 162
-    targetPort: 162
+    targetPort: 1162
     protocol: UDP
     name: snmp-trap
   selector:
@@ -75,7 +75,7 @@ spec:
     targetPort: 10051
     name: zabbix-trapper
   - port: 162
-    targetPort: 162
+    targetPort: 1162
     protocol: UDP
     name: snmp-trap
   selector:
@@ -94,7 +94,7 @@ spec:
     targetPort: 10051
     name: zabbix-trapper
   - port: 162
-    targetPort: 162
+    targetPort: 1162
     protocol: UDP
     name: snmp-trap
   selector:
@@ -151,9 +151,9 @@ spec:
           image: zabbix/zabbix-web-nginx-mysql:alpine-3.4-latest
           imagePullPolicy: Always
           ports:
-          - containerPort: 80
+          - containerPort: 8080
             name: web-http
-          - containerPort: 443
+          - containerPort: 8443
             name: web-https
           resources:
            limits:
@@ -334,7 +334,7 @@ spec:
           image: zabbix/zabbix-snmptraps:ubuntu-3.4-latest
           imagePullPolicy: Always
           ports:
-          - containerPort: 162
+          - containerPort: 1162
             protocol: UDP
             name: snmp-trap
           volumeMounts:
