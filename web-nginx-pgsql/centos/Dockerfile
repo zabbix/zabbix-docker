@@ -17,6 +17,7 @@ RUN set -eux && \
         zabbix && \
     mkdir -p /etc/zabbix && \
     mkdir -p /etc/zabbix/web && \
+    mkdir -p /var/lib/php/session && \
     yum --quiet makecache && \
     yum -y install epel-release && \
     yum -y install --setopt=tsflags=nodocs \
@@ -70,9 +71,12 @@ RUN set -eux && \
     chown --quiet -R zabbix:root /etc/zabbix/ /usr/share/zabbix/conf/ && \
     chgrp -R 0 /etc/zabbix/ /usr/share/zabbix/conf/ && \
     chmod -R g=u /etc/zabbix/ /usr/share/zabbix/conf/ && \
-    chown --quiet -R zabbix:root /etc/nginx/ /etc/php.d/ /etc/php.ini && \
-    chgrp -R 0 /etc/nginx/ /etc/php.d/ /etc/php.ini && \
-    chmod -R g=u /etc/nginx/ /etc/php.d/ /etc/php.ini && \
+    chown --quiet -R zabbix:root /etc/nginx/ /etc/php-fpm.d/ /etc/php-fpm.conf && \
+    chgrp -R 0 /etc/nginx/ /etc/php-fpm.d/ /etc/php-fpm.conf && \
+    chmod -R g=u /etc/nginx/ /etc/php-fpm.d/ /etc/php-fpm.conf && \
+    chown --quiet -R zabbix:root /var/lib/php/session/ && \
+    chgrp -R 0 /var/lib/php/session/ && \
+    chmod -R g=u /var/lib/php/session/ && \
     yum -y history undo `yum -q history | sed -n 3p |column -t | cut -d' ' -f1` && \
     yum -y clean all && \
     rm -rf /var/cache/yum /var/lib/yum/yumdb/* /usr/lib/udev/hwdb.d/* && \
