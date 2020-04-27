@@ -121,8 +121,6 @@ RUN set -eux && INSTALL_PKGS="autoconf \
             --enable-agent \
             --enable-server \
             --with-mysql \
-# Does not support stable iksemel library
-#            --with-jabber \
             --with-ldap \
             --with-libcurl \
             --with-libxml2 \

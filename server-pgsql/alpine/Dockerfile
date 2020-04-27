@@ -95,8 +95,6 @@ RUN set -eux && \
             --enable-agent \
             --enable-server \
             --with-postgresql \
-# Does not support stable iksemel library
-#            --with-jabber \
             --with-ldap \
             --with-libcurl \
             --with-libxml2 \

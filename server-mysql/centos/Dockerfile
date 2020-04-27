@@ -33,8 +33,7 @@ RUN set -eux && \
     mkdir -p /usr/lib/zabbix/externalscripts && \
     mkdir -p /usr/share/doc/zabbix-server-mysql && \
     yum --quiet makecache && \
-    yum -y install --setopt=tsflags=nodocs https://repo.zabbix.com/non-supported/rhel/7/x86_64/iksemel-1.4-2.el7.centos.x86_64.rpm \
-                                        https://repo.zabbix.com/non-supported/rhel/7/x86_64/fping-3.10-1.el7.x86_64.rpm && \
+    yum -y install --setopt=tsflags=nodocs https://repo.zabbix.com/non-supported/rhel/7/x86_64/fping-3.10-1.el7.x86_64.rpm && \
     yum -y install --setopt=tsflags=nodocs \
             iputils \
             traceroute \
@@ -71,7 +70,6 @@ LABEL org.opencontainers.image.documentation="https://www.zabbix.com/documentati
 
 RUN set -eux && \
     yum --quiet makecache && \
-    yum -y install https://repo.zabbix.com/non-supported/rhel/7/x86_64/iksemel-devel-1.4-2.el7.centos.x86_64.rpm --setopt=tsflags=nodocs && \
     yum -y install --setopt=tsflags=nodocs \
             autoconf \
             automake \
@@ -102,7 +100,6 @@ RUN set -eux && \
             --enable-agent \
             --enable-server \
             --with-mysql \
-            --with-jabber \
             --with-ldap \
             --with-libcurl \
             --with-libxml2 \

@@ -58,7 +58,6 @@ RUN set -eux && \
             fping \
             libcurl4 \
             libevent-2.1 \
-            libiksemel3 \
             libmysqlclient20 \
             libopenipmi0 \
             libpcre3 \
@@ -95,7 +94,6 @@ RUN set -eux && \
             libc6-dev \
             libcurl4-openssl-dev \
             libevent-dev \
-            libiksemel-dev \
             libldap2-dev \
             libmysqlclient-dev \
             libopenipmi-dev \
@@ -122,7 +120,6 @@ RUN set -eux && \
             --enable-agent \
             --enable-${ZBX_TYPE} \
             --with-${ZBX_DB_TYPE} \
-            --with-jabber \
             --with-ldap \
             --with-libcurl \
             --with-libxml2 \
@@ -154,7 +151,6 @@ RUN set -eux && \
             libc6-dev \
             libcurl4-openssl-dev \
             libevent-dev \
-            libiksemel-dev \
             libldap2-dev \
             libmysqlclient-dev \
             libopenipmi-dev \

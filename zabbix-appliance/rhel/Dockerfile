@@ -52,7 +52,6 @@ COPY ["conf/sbin/tini","/sbin/tini"]
 RUN set -o xtrace && INSTALL_PKGS="OpenIPMI-libs \
             curl \
             fping \
-#            iksemel \
             java-1.8.0-openjdk-headless \
             pcre \
             libcurl \
@@ -117,7 +116,6 @@ RUN set -eux && REPOLIST="rhel-8-for-x86_64-baseos-rpms,rhel-8-for-x86_64-appstr
             automake \
             gcc \
             gettext \
-#            iksemel-devel \
             java-1.8.0-openjdk-devel \
             libcurl-devel \
             libevent-devel \
@@ -149,7 +147,6 @@ RUN set -eux && REPOLIST="rhel-8-for-x86_64-baseos-rpms,rhel-8-for-x86_64-appstr
             --enable-agent \
             --enable-server \
             --with-mysql \
-#            --with-jabber \
             --with-ldap \
             --with-libcurl \
             --with-libxml2 \
