@@ -62,6 +62,8 @@ RUN set -eux && INSTALL_PKGS="bash \
     rm -rf /var/cache/yum /var/lib/yum/yumdb/* /usr/lib/udev/hwdb.d/* && \
     rm -rf /var/cache/dnf /etc/udev/hwdb.bin /root/.pki
 
+COPY ["conf/etc/", "/etc/"]
+
 RUN set -eux && INSTALL_PKGS="autoconf \
             automake \
             pkgconf \
@@ -94,9 +96,9 @@ RUN set -eux && INSTALL_PKGS="autoconf \
     rm -rf /tmp/zabbix-${ZBX_VERSION}/ && \
     dnf ${DNF_FLAGS_COMMON} history undo `dnf -q history | sed -n 3p |column -t | cut -d' ' -f1` && \
     dnf ${DNF_FLAGS_COMMON} clean all && \
-    chown --quiet -R zabbix:root /etc/zabbix/ && \
-    chgrp -R 0 /etc/zabbix/ && \
-    chmod -R g=u /etc/zabbix/ && \
+    chown --quiet -R zabbix:root /etc/zabbix/ /usr/sbin/zabbix_java/ && \
+    chgrp -R 0 /etc/zabbix/ /usr/sbin/zabbix_java/ && \
+    chmod -R g=u /etc/zabbix/ /usr/sbin/zabbix_java/ && \
     rm -rf /var/cache/yum /var/lib/yum/yumdb/* /usr/lib/udev/hwdb.d/* && \
     rm -rf /var/cache/dnf /etc/udev/hwdb.bin /root/.pki
 
@@ -106,7 +108,6 @@ WORKDIR /var/lib/zabbix
 
 VOLUME ["/usr/sbin/zabbix_java/ext_lib"]
 
-COPY ["conf/etc/zabbix/zabbix_java_gateway_logback.xml", "/etc/zabbix/"]
 COPY ["conf/usr/sbin/zabbix_java_gateway", "/usr/sbin/"]
 COPY ["docker-entrypoint.sh", "/usr/bin/"]
 
