@@ -33,6 +33,8 @@ LABEL org.opencontainers.image.documentation="https://www.zabbix.com/documentati
       org.opencontainers.image.version="${ZBX_VERSION}" \
       org.opencontainers.image.source="${ZBX_SOURCES}"
 
+COPY ["conf/etc/", "/etc/"]
+
 RUN set -eux && \
     apk add --no-cache --virtual build-dependencies \
             autoconf \
@@ -64,9 +66,9 @@ RUN set -eux && \
     rm -rf /usr/sbin/zabbix_java/lib/*.xml && \
     cd /tmp/ && \
     rm -rf /tmp/zabbix-${ZBX_VERSION}/ && \
-    chown --quiet -R zabbix:root /etc/zabbix/ && \
-    chgrp -R 0 /etc/zabbix/ && \
-    chmod -R g=u /etc/zabbix/ && \
+    chown --quiet -R zabbix:root /etc/zabbix/ /usr/sbin/zabbix_java/ && \
+    chgrp -R 0 /etc/zabbix/ /usr/sbin/zabbix_java/ && \
+    chmod -R g=u /etc/zabbix/ /usr/sbin/zabbix_java/ && \
     apk del --purge --no-network \
             build-dependencies && \
     rm -rf /var/cache/apk/*
@@ -75,7 +77,6 @@ EXPOSE 10052/TCP
 
 WORKDIR /var/lib/zabbix
 
-COPY ["conf/etc/zabbix/zabbix_java_gateway_logback.xml", "/etc/zabbix/"]
 COPY ["conf/usr/sbin/zabbix_java_gateway", "/usr/sbin/"]
 COPY ["docker-entrypoint.sh", "/usr/bin/"]
 
