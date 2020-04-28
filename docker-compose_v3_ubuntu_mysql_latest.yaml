@@ -36,7 +36,6 @@ services:
    - MYSQL_USER
    - MYSQL_PASSWORD
    - MYSQL_ROOT_PASSWORD
-  user: root
   depends_on:
    - mysql-server
    - zabbix-java-gateway
@@ -95,7 +94,6 @@ services:
   env_file:
    - .env_prx
    - .env_prx_sqlite3
-  user: root
   depends_on:
    - zabbix-java-gateway
    - zabbix-snmptraps
@@ -146,7 +144,6 @@ services:
    - .env_db_mysql_proxy
    - .env_prx
    - .env_prx_mysql
-  user: root
   depends_on:
    - mysql-server
    - zabbix-java-gateway
@@ -191,7 +188,6 @@ services:
   secrets:
    - MYSQL_USER
    - MYSQL_PASSWORD
-  user: root
   depends_on:
    - mysql-server
    - zabbix-server
@@ -244,7 +240,6 @@ services:
   secrets:
    - MYSQL_USER
    - MYSQL_PASSWORD
-  user: root
   depends_on:
    - mysql-server
    - zabbix-server
@@ -295,7 +290,6 @@ services:
    mode: global
   env_file:
    - .env_agent
-  user: root
   privileged: true
   pid: "host"
   networks:
@@ -325,7 +319,6 @@ services:
       memory: 256M
   env_file:
    - .env_java
-  user: root
   networks:
    zbx_net_backend:
     aliases:
@@ -352,7 +345,6 @@ services:
     reservations:
       cpus: '0.25'
       memory: 128M
-  user: root
   networks:
    zbx_net_frontend:
     aliases:
@@ -376,7 +368,6 @@ services:
    - MYSQL_USER
    - MYSQL_PASSWORD
    - MYSQL_ROOT_PASSWORD
-  user: root
   stop_grace_period: 1m
   networks:
    zbx_net_backend:
