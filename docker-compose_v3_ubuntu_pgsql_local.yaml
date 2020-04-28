@@ -199,7 +199,7 @@ services:
    - zabbix-server:zabbix-server
   volumes:
    - /etc/localtime:/etc/localtime:ro
-#   - /etc/timezone:/etc/timezone:ro
+   - /etc/timezone:/etc/timezone:ro
    - ./zbx_env/etc/ssl/apache2:/etc/ssl/apache2:ro
    - ./zbx_env/usr/share/zabbix/modules/:/usr/share/zabbix/modules/:ro
 #   - ./.ZBX_DB_CA_FILE:/run/secrets/root-ca.pem:ro
@@ -260,7 +260,7 @@ services:
    - zabbix-server:zabbix-server
   volumes:
    - /etc/localtime:/etc/localtime:ro
-#   - /etc/timezone:/etc/timezone:ro
+   - /etc/timezone:/etc/timezone:ro
    - ./zbx_env/etc/ssl/nginx:/etc/ssl/nginx:ro
    - ./zbx_env/usr/share/zabbix/modules/:/usr/share/zabbix/modules/:ro
 #   - ./.ZBX_DB_CA_FILE:/run/secrets/root-ca.pem:ro
