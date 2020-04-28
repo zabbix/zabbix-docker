@@ -89,7 +89,7 @@ EXPOSE 10050/TCP
 
 WORKDIR /var/lib/zabbix
 
-VOLUME ["/var/lib/zabbix/enc"]
+VOLUME ["/etc/zabbix/zabbix_agentd.d", "/var/lib/zabbix/enc", "/var/lib/zabbix/modules"]
 
 COPY ["docker-entrypoint.sh", "/usr/bin/"]
 

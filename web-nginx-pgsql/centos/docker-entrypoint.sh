@@ -237,12 +237,6 @@ prepare_zbx_web_config() {
 
     ZBX_WEB_CONFIG="$ZABBIX_ETC_DIR/web/zabbix.conf.php"
 
-    if [ -f "/usr/share/zabbix/conf/zabbix.conf.php" ]; then
-        rm -f "/usr/share/zabbix/conf/zabbix.conf.php"
-    fi
-
-    ln -s "$ZBX_WEB_CONFIG" "/usr/share/zabbix/conf/zabbix.conf.php"
-
     PHP_CONFIG_FILE="/etc/php-fpm.d/zabbix.conf"
 
     update_config_var "$PHP_CONFIG_FILE" "php_value[max_execution_time]" "${ZBX_MAXEXECUTIONTIME:-"600"}"
