@@ -115,5 +115,4 @@ USER 1997
 
 ENTRYPOINT ["docker-entrypoint.sh"]
 
-#CMD ["source", "/etc/apache2/envvars", "&&", "/usr/sbin/apache2ctl", "-D", "FOREGROUND"]
 CMD ["/usr/sbin/apache2ctl", "-D", "FOREGROUND"]
