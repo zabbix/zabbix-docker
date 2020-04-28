@@ -55,30 +55,31 @@ RUN set -eux && \
             postgresql-client \
             supervisor && \
     rm -f /etc/nginx/conf.d/*.conf && \
-    DEBIAN_FRONTEND=noninteractive apt-get ${APT_FLAGS_COMMON} purge \
-            wget && \
-    apt-get ${APT_FLAGS_COMMON} autoremove && \
-    apt-get ${APT_FLAGS_COMMON} clean && \
-    mkdir -p /var/lib/php7 && \
-    chown --quiet -R www-data:www-data /var/lib/php7 && \
-    rm -rf /var/cache/nginx/* && \
+    rm -rf /var/cache/nginx/ && \
+    rm -f /etc/php/7.2/fpm/pool.d/www.conf && \
+    DEBIAN_FRONTEND=noninteractive apt-get -y purge curl gpg dirmngr gpg-agent && \
+    apt-get -y autoremove && \
+    apt-get -y clean && \
     rm -rf /var/lib/apt/lists/*
 
 ARG MAJOR_VERSION=master
 ARG ZBX_VERSION=${MAJOR_VERSION}
 ARG ZBX_SOURCES=https://git.zabbix.com/scm/zbx/zabbix.git
-ENV ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES}
 
-LABEL org.label-schema.usage="https://www.zabbix.com/documentation/${MAJOR_VERSION}/manual/installation/containers" \
-      org.label-schema.version="${ZBX_VERSION}" \
-      org.label-schema.vcs-url="${ZBX_SOURCES}" \
-      org.label-schema.docker.cmd="docker run --name zabbix-web-${ZBX_OPT_TYPE}-pgsql --link postgres-server:postgres --link zabbix-server:zabbix-server -p 80:80 -d zabbix-web-${ZBX_OPT_TYPE}-pgsql:ubuntu-${ZBX_VERSION}"
+ENV TERM=xterm ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES}
+
+LABEL org.opencontainers.image.documentation="https://www.zabbix.com/documentation/${MAJOR_VERSION}/manual/installation/containers" \
+      org.opencontainers.image.version="${ZBX_VERSION}" \
+      org.opencontainers.image.source="${ZBX_SOURCES}"
+
+COPY ["conf/etc/", "/etc/"]
 
 RUN set -eux && \
-    apt-get ${APT_FLAGS_COMMON} update && \
-    DEBIAN_FRONTEND=noninteractive apt-get ${APT_FLAGS_DEV} install \
+    apt-get -y update && \
+    DEBIAN_FRONTEND=noninteractive apt-get -y --no-install-recommends install \
             gettext \
-            git && \
+            git \
+            locales && \
     cd /usr/share/ && \
     git clone ${ZBX_SOURCES} --branch ${ZBX_VERSION} --depth 1 --single-branch zabbix-${ZBX_VERSION} && \
     mkdir /usr/share/zabbix/ && \
