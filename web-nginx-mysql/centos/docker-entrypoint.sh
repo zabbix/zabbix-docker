@@ -229,8 +229,6 @@ prepare_web_server() {
     else
         echo "**** Impossible to enable SSL support for Nginx. Certificates are missed."
     fi
-
-    ln -sf /dev/fd/2 /var/log/nginx/error.log
 }
 
 clear_deploy() {

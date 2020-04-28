@@ -401,9 +401,9 @@ services:
    - MYSQL_USER
    - MYSQL_PASSWORD
    - MYSQL_ROOT_PASSWORD
-   - mysql-server-key.pem
-   - mysql-server-cert.pem
-   - mysql-ca.pem
+#   - server-key.pem
+#   - server-cert.pem
+#   - root-ca.pem
   stop_grace_period: 1m
   networks:
    zbx_net_backend:

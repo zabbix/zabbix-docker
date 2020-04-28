@@ -1,47 +1,33 @@
 FROM ubuntu:bionic
-LABEL maintainer="Alexey Pustovalov <alexey.pustovalov@zabbix.com>"
 
-ARG BUILD_DATE
-ARG VCS_REF
-
-ARG APT_FLAGS_COMMON="-y"
-ARG APT_FLAGS_PERSISTENT="${APT_FLAGS_COMMON} --no-install-recommends"
-ARG APT_FLAGS_DEV="${APT_FLAGS_COMMON} --no-install-recommends"
-ENV LANG=en_US.UTF-8 LANGUAGE=en_US:en LC_ALL=en_US.UTF-8 TERM=xterm \
-    ZBX_TYPE=frontend ZBX_DB_TYPE=mysql ZBX_OPT_TYPE=apache
-
-LABEL org.label-schema.name="zabbix-web-${ZBX_OPT_TYPE}-${DB_TYPE}-ubuntu" \
-      org.label-schema.vendor="Zabbix LLC" \
-      org.label-schema.url="https://zabbix.com/" \
-      org.label-schema.description="Zabbix web-interface based on Apache2 web server with MySQL database support" \
-      org.label-schema.vcs-ref="${VCS_REF}" \
-      org.label-schema.build-date="${BUILD_DATE}" \
-      org.label-schema.schema-version="1.0" \
-      org.label-schema.license="GPL v2.0"
+LABEL org.opencontainers.image.title="Zabbix web-interface (Apache, MySQL)" \
+      org.opencontainers.image.authors="Alexey Pustovalov <alexey.pustovalov@zabbix.com>" \
+      org.opencontainers.image.vendor="Zabbix LLC" \
+      org.opencontainers.image.url="https://zabbix.com/" \
+      org.opencontainers.image.description="Zabbix web-interface based on Apache2 web server with MySQL database support" \
+      org.opencontainers.image.licenses="GPL v2.0"
 
 STOPSIGNAL SIGTERM
 
 RUN set -eux && \
-    apt-get ${APT_FLAGS_COMMON} update && \
-    DEBIAN_FRONTEND=noninteractive apt-get ${APT_FLAGS_PERSISTENT} install locales && \
-    locale-gen $LC_ALL && \
     echo "#!/bin/sh\nexit 0" > /usr/sbin/policy-rc.d && \
-    addgroup --system --quiet zabbix && \
+    addgroup --system --gid 1995 --quiet zabbix && \
     adduser --quiet \
             --system --disabled-login \
-            --ingroup zabbix \
+            --ingroup zabbix --ingroup root \
+            --uid 1997 \
             --home /var/lib/zabbix/ \
-            --no-create-home \
         zabbix && \
     mkdir -p /etc/zabbix && \
     mkdir -p /etc/zabbix/web && \
-    chown --quiet -R zabbix:root /etc/zabbix && \
-    apt-get ${APT_FLAGS_COMMON} update && \
-    DEBIAN_FRONTEND=noninteractive apt-get ${APT_FLAGS_PERSISTENT} install \
+    apt-get -y update && \
+    DEBIAN_FRONTEND=noninteractive apt-get -y --no-install-recommends install \
             apache2 \
             curl \
             libapache2-mod-php \
+            ca-certificates \
             mysql-client \
+            locales \
             php7.2-bcmath \
             php7.2-gd \
             php7.2-json \
@@ -49,25 +35,41 @@ RUN set -eux && \
             php7.2-mbstring \
             php7.2-mysql \
             php7.2-xml && \
-    apt-get ${APT_FLAGS_COMMON} autoremove && \
-    apt-get ${APT_FLAGS_COMMON} clean && \
+    rm -f /etc/apache2/sites-available/* && \
+    rm -f /etc/apache2/sites-enabled/* && \
+    /usr/sbin/a2enmod ssl && \
+    sed -ri \
+            -e 's!^(\s*CustomLog)\s+\S+!\1 /proc/self/fd/1!g' \
+            -e 's!^(\s*ErrorLog)\s+\S+!\1 /proc/self/fd/2!g' \
+            "/etc/apache2/apache2.conf" && \
+    sed -ri \
+            -e 's!^(\s*CustomLog)\s+\S+!\1 /proc/self/fd/1!g' \
+            -e 's!^(\s*ErrorLog)\s+\S+!\1 /proc/self/fd/2!g' \
+            "/etc/apache2/conf-available/other-vhosts-access-log.conf" && \
+    sed -i 's/Listen 80/Listen 8080/g' /etc/apache2/ports.conf && \
+    sed -i 's/Listen 443/Listen 8443/g' /etc/apache2/ports.conf && \
+    sed -i 's|/var/run/apache2$SUFFIX|/tmp|g' /etc/apache2/envvars && \
+    rm -f /var/run/apache2/apache2.pid && \
+    apt-get -y autoremove && \
+    apt-get -y clean && \
     rm -rf /var/lib/apt/lists/*
 
 ARG MAJOR_VERSION=5.0
 ARG ZBX_VERSION=${MAJOR_VERSION}
 ARG ZBX_SOURCES=https://git.zabbix.com/scm/zbx/zabbix.git
-ENV ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES}
 
-LABEL org.label-schema.usage="https://www.zabbix.com/documentation/${MAJOR_VERSION}/manual/installation/containers" \
-      org.label-schema.version="${ZBX_VERSION}" \
-      org.label-schema.vcs-url="${ZBX_SOURCES}" \
-      org.label-schema.docker.cmd="docker run --name zabbix-web-${ZBX_OPT_TYPE}-${ZBX_DB_TYPE} --link mysql-server:mysql --link zabbix-server:zabbix-server -p 80:80 -d zabbix-web-${ZBX_OPT_TYPE}-${ZBX_DB_TYPE}:ubuntu-${ZBX_VERSION}"
+ENV TERM=xterm ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES}
+
+LABEL org.opencontainers.image.documentation="https://www.zabbix.com/documentation/${MAJOR_VERSION}/manual/installation/containers" \
+      org.opencontainers.image.version="${ZBX_VERSION}" \
+      org.opencontainers.image.source="${ZBX_SOURCES}"
+
+COPY ["conf/etc/", "/etc/"]
 
 RUN set -eux && \
-    apt-get ${APT_FLAGS_COMMON} update && \
-    DEBIAN_FRONTEND=noninteractive apt-get ${APT_FLAGS_DEV} install \
+    apt-get -y update && \
+    DEBIAN_FRONTEND=noninteractive apt-get -y --no-install-recommends install \
             gettext \
-            ca-certificates \
             git && \
     cd /usr/share/ && \
     git clone ${ZBX_SOURCES} --branch master --depth 1 --single-branch zabbix-${ZBX_VERSION} && \
@@ -78,6 +80,8 @@ RUN set -eux && \
     rm -f conf/zabbix.conf.php && \
     rm -rf tests && \
     ./locale/make_mo.sh && \
+    ln -s "/etc/zabbix/web/zabbix.conf.php" "/usr/share/zabbix/conf/zabbix.conf.php" && \
+    ./locale/make_mo.sh && \
     mkdir -p /var/lib/locales/supported.d/ && \
     rm -f /var/lib/locales/supported.d/local && \
     cat /usr/share/zabbix/include/locales.inc.php | grep display | grep true | awk '{$1=$1};1' | \
@@ -86,24 +90,29 @@ RUN set -eux && \
     dpkg-reconfigure locales && \
     find /usr/share/zabbix/locale -name '*.po' | xargs rm -f && \
     find /usr/share/zabbix/locale -name '*.sh' | xargs rm -f && \
-    chown --quiet -R www-data:www-data /usr/share/zabbix && \
-    DEBIAN_FRONTEND=noninteractive apt-get ${APT_FLAGS_COMMON} purge \
+    chown --quiet -R zabbix:root /etc/zabbix/ /usr/share/zabbix/conf/ && \
+    chgrp -R 0 /etc/zabbix/ /usr/share/zabbix/conf/ && \
+    chmod -R g=u /etc/zabbix/ /usr/share/zabbix/conf/ && \
+    chown --quiet -R zabbix:root /etc/apache2/ /etc/php/7.2/ && \
+    chgrp -R 0 /etc/apache2/ /etc/php/7.2/ && \
+    chmod -R g=u /etc/apache2/ /etc/php/7.2/ && \
+    DEBIAN_FRONTEND=noninteractive apt-get -y purge \
             gettext \
             git && \
-    apt-get ${APT_FLAGS_COMMON} autoremove && \
-    apt-get ${APT_FLAGS_COMMON} clean && \
+    apt-get -y autoremove && \
+    apt-get -y clean && \
     rm -rf /var/lib/apt/lists/*
 
-EXPOSE 80/TCP 443/TCP
-
+EXPOSE 8080/TCP 8443/TCP
+    
 WORKDIR /usr/share/zabbix
 
 VOLUME ["/etc/ssl/apache2", "/usr/share/zabbix/modules"]
 
-COPY ["conf/etc/zabbix/apache.conf", "/etc/zabbix/"]
-COPY ["conf/etc/zabbix/apache_ssl.conf", "/etc/zabbix/"]
-COPY ["conf/etc/zabbix/web/zabbix.conf.php", "/etc/zabbix/web/"]
-COPY ["conf/etc/php/7.2/apache2/conf.d/99-zabbix.ini", "/etc/php/7.2/apache2/conf.d/"]
 COPY ["docker-entrypoint.sh", "/usr/bin/"]
 
+USER 1997
+
 ENTRYPOINT ["docker-entrypoint.sh"]
+
+CMD ["/usr/sbin/apache2ctl", "-D", "FOREGROUND"]

@@ -6,9 +6,9 @@ LABEL org.opencontainers.image.title="Zabbix server (PostgreSQL)" \
       org.opencontainers.image.url="https://zabbix.com/" \
       org.opencontainers.image.description="Zabbix server with PostgreSQL database support" \
       org.opencontainers.image.licenses="GPL v2.0"
-            
+
 STOPSIGNAL SIGTERM
-            
+
 ENV TINI_VERSION=v0.19.0
 
 RUN set -eux && \
