@@ -288,8 +288,6 @@ If you have any problems with or questions about this image, please contact us t
 
 ### Known issues
 
-Zabbix proxy does not support Jabber notifications on Alpine Linux because of `iksemel` package is in testing repository and not available in stable repository.
-
 ## Contributing
 
 You are invited to contribute new features, fixes, or updates, large or small; we are always thrilled to receive pull requests, and do our best to process them as fast as we can.
