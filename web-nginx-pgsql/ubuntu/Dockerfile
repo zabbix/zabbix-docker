@@ -79,8 +79,7 @@ RUN set -eux && \
     apt-get -y update && \
     DEBIAN_FRONTEND=noninteractive apt-get -y --no-install-recommends install \
             gettext \
-            git \
-            locales && \
+            git && \
     cd /usr/share/ && \
     git clone ${ZBX_SOURCES} --branch ${ZBX_VERSION} --depth 1 --single-branch zabbix-${ZBX_VERSION} && \
     mkdir /usr/share/zabbix/ && \
@@ -111,8 +110,7 @@ RUN set -eux && \
     chmod -R g=u /var/lib/php/session/ && \
     DEBIAN_FRONTEND=noninteractive apt-get -y purge \
             gettext \
-            git \
-            locales && \
+            git && \
     apt-get -y autoremove && \
     apt-get -y clean && \
     rm -rf /var/lib/apt/lists/*
