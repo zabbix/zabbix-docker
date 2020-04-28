@@ -380,7 +380,10 @@ services:
 
  mysql-server:
   image: mysql:5.7
-  command: [mysqld, --character-set-server=utf8, --collation-server=utf8_bin]
+  command:
+   - mysqld
+   - --character-set-server=utf8
+   - --collation-server=utf8_bin
   volumes:
    - ./zbx_env/var/lib/mysql:/var/lib/mysql:rw
   env_file:
