@@ -26,6 +26,7 @@ RUN set -eux && \
             curl \
             libapache2-mod-php \
             ca-certificates \
+            locales \
             php7.2-bcmath \
             php7.2-gd \
             php7.2-json \
@@ -69,8 +70,7 @@ RUN set -eux && \
     apt-get -y update && \
     DEBIAN_FRONTEND=noninteractive apt-get -y --no-install-recommends install \
             gettext \
-            git \
-            locales && \
+            git && \
     cd /usr/share/ && \
     git clone ${ZBX_SOURCES} --branch ${ZBX_VERSION} --depth 1 --single-branch zabbix-${ZBX_VERSION} && \
     mkdir /usr/share/zabbix/ && \
@@ -98,8 +98,7 @@ RUN set -eux && \
     chmod -R g=u /etc/apache2/ /etc/php/7.2/ && \
     DEBIAN_FRONTEND=noninteractive apt-get -y purge \
             gettext \
-            git \
-            locales && \
+            git && \
     apt-get -y autoremove && \
     apt-get -y clean && \
     rm -rf /var/lib/apt/lists/*

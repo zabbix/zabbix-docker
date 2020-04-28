@@ -44,6 +44,7 @@ RUN set -eux && \
     DEBIAN_FRONTEND=noninteractive apt-get -y --no-install-recommends install \
             curl \
             nginx \
+            locales \
             php7.2-bcmath \
             php7.2-fpm \
             php7.2-gd \
