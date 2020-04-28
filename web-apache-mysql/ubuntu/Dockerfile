@@ -98,7 +98,7 @@ EXPOSE 80/TCP 443/TCP
 
 WORKDIR /usr/share/zabbix
 
-VOLUME ["/etc/ssl/apache2"]
+VOLUME ["/etc/ssl/apache2", "/usr/share/zabbix/modules"]
 
 COPY ["conf/etc/zabbix/apache.conf", "/etc/zabbix/"]
 COPY ["conf/etc/zabbix/apache_ssl.conf", "/etc/zabbix/"]

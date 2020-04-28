@@ -6,6 +6,7 @@ services:
    - "10051:10051"
   volumes:
    - /etc/localtime:/etc/localtime:ro
+   - /etc/timezone:/etc/timezone:ro 
    - ./zbx_env/usr/lib/zabbix/alertscripts:/usr/lib/zabbix/alertscripts:ro
    - ./zbx_env/usr/lib/zabbix/externalscripts:/usr/lib/zabbix/externalscripts:ro
    - ./zbx_env/var/lib/zabbix/export:/var/lib/zabbix/export:rw
@@ -37,7 +38,9 @@ services:
    - MYSQL_USER
    - MYSQL_PASSWORD
    - MYSQL_ROOT_PASSWORD
-  user: root
+#   - client-key.pem
+#   - client-cert.pem
+#   - root-ca.pem
   depends_on:
    - mysql-server
    - zabbix-java-gateway
@@ -60,7 +63,7 @@ services:
    - net.ipv4.conf.all.send_redirects=0
   labels:
    com.zabbix.description: "Zabbix server with MySQL database support"
-   com.zabbix.company: "Zabbix SIA"
+   com.zabbix.company: "Zabbix LLC"
    com.zabbix.component: "zabbix-server"
    com.zabbix.dbtype: "mysql"
    com.zabbix.os: "ubuntu"
@@ -71,6 +74,7 @@ services:
    - "10061:10051"
   volumes:
    - /etc/localtime:/etc/localtime:ro
+   - /etc/timezone:/etc/timezone:ro 
    - ./zbx_env/usr/lib/zabbix/externalscripts:/usr/lib/zabbix/externalscripts:ro
    - ./zbx_env/var/lib/zabbix/modules:/var/lib/zabbix/modules:ro
    - ./zbx_env/var/lib/zabbix/enc:/var/lib/zabbix/enc:ro
@@ -96,7 +100,6 @@ services:
   env_file:
    - .env_prx
    - .env_prx_sqlite3
-  user: root
   depends_on:
    - zabbix-java-gateway
    - zabbix-snmptraps
@@ -110,7 +113,7 @@ services:
   stop_grace_period: 30s
   labels:
    com.zabbix.description: "Zabbix proxy with SQLite3 database support"
-   com.zabbix.company: "Zabbix SIA"
+   com.zabbix.company: "Zabbix LLC"
    com.zabbix.component: "zabbix-proxy"
    com.zabbix.dbtype: "sqlite3"
    com.zabbix.os: "ubuntu"
@@ -121,6 +124,7 @@ services:
    - "10071:10051"
   volumes:
    - /etc/localtime:/etc/localtime:ro
+   - /etc/timezone:/etc/timezone:ro
    - ./zbx_env/usr/lib/zabbix/externalscripts:/usr/lib/zabbix/externalscripts:ro
    - ./zbx_env/var/lib/zabbix/modules:/var/lib/zabbix/modules:ro
    - ./zbx_env/var/lib/zabbix/enc:/var/lib/zabbix/enc:ro
@@ -147,11 +151,17 @@ services:
    - .env_db_mysql_proxy
    - .env_prx
    - .env_prx_mysql
-  user: root
   depends_on:
    - mysql-server
    - zabbix-java-gateway
    - zabbix-snmptraps
+  secrets:
+   - MYSQL_USER
+   - MYSQL_PASSWORD
+   - MYSQL_ROOT_PASSWORD
+#   - client-key.pem
+#   - client-cert.pem
+#   - root-ca.pem
   networks:
    zbx_net_backend:
     aliases:
@@ -162,7 +172,7 @@ services:
   stop_grace_period: 30s
   labels:
    com.zabbix.description: "Zabbix proxy with MySQL database support"
-   com.zabbix.company: "Zabbix SIA"
+   com.zabbix.company: "Zabbix LLC"
    com.zabbix.component: "zabbix-proxy"
    com.zabbix.dbtype: "mysql"
    com.zabbix.os: "ubuntu"
@@ -170,14 +180,16 @@ services:
  zabbix-web-apache-mysql:
   image: zabbix/zabbix-web-apache-mysql:ubuntu-trunk
   ports:
-   - "80:80"
-   - "443:443"
+   - "80:8080"
+   - "443:8443"
   links:
    - mysql-server:mysql-server
    - zabbix-server:zabbix-server
   volumes:
    - /etc/localtime:/etc/localtime:ro
+   - /etc/timezone:/etc/timezone:ro
    - ./zbx_env/etc/ssl/apache2:/etc/ssl/apache2:ro
+   - ./zbx_env/usr/share/zabbix/modules/:/usr/share/zabbix/modules/:ro
   deploy:
    resources:
     limits:
@@ -192,12 +204,14 @@ services:
   secrets:
    - MYSQL_USER
    - MYSQL_PASSWORD
-  user: root
+#   - client-key.pem
+#   - client-cert.pem
+#   - root-ca.pem
   depends_on:
    - mysql-server
    - zabbix-server
   healthcheck:
-   test: ["CMD", "curl", "-f", "http://localhost"]
+   test: ["CMD", "curl", "-f", "http://localhost:8080/"]
    interval: 10s
    timeout: 5s
    retries: 3
@@ -214,7 +228,7 @@ services:
    - net.core.somaxconn=65535
   labels:
    com.zabbix.description: "Zabbix frontend on Apache web-server with MySQL database support"
-   com.zabbix.company: "Zabbix SIA"
+   com.zabbix.company: "Zabbix LLC"
    com.zabbix.component: "zabbix-frontend"
    com.zabbix.webserver: "apache2"
    com.zabbix.dbtype: "mysql"
@@ -223,14 +237,16 @@ services:
  zabbix-web-nginx-mysql:
   image: zabbix/zabbix-web-nginx-mysql:ubuntu-trunk
   ports:
-   - "8081:80"
-   - "8443:443"
+   - "8081:8080"
+   - "8443:8443"
   links:
    - mysql-server:mysql-server
    - zabbix-server:zabbix-server
   volumes:
    - /etc/localtime:/etc/localtime:ro
+   - /etc/timezone:/etc/timezone:ro
    - ./zbx_env/etc/ssl/nginx:/etc/ssl/nginx:ro
+   - ./zbx_env/usr/share/zabbix/modules/:/usr/share/zabbix/modules/:ro
   deploy:
    resources:
     limits:
@@ -245,12 +261,14 @@ services:
   secrets:
    - MYSQL_USER
    - MYSQL_PASSWORD
-  user: root
+#   - client-key.pem
+#   - client-cert.pem
+#   - root-ca.pem
   depends_on:
    - mysql-server
    - zabbix-server
   healthcheck:
-   test: ["CMD", "curl", "-f", "http://localhost"]
+   test: ["CMD", "curl", "-f", "http://localhost:8080/"]
    interval: 10s
    timeout: 5s
    retries: 3
@@ -267,7 +285,7 @@ services:
    - net.core.somaxconn=65535
   labels:
    com.zabbix.description: "Zabbix frontend on Nginx web-server with MySQL database support"
-   com.zabbix.company: "Zabbix SIA"
+   com.zabbix.company: "Zabbix LLC"
    com.zabbix.component: "zabbix-frontend"
    com.zabbix.webserver: "nginx"
    com.zabbix.dbtype: "mysql"
@@ -279,6 +297,7 @@ services:
    - "10050:10050"
   volumes:
    - /etc/localtime:/etc/localtime:ro
+   - /etc/timezone:/etc/timezone:ro
    - ./zbx_env/etc/zabbix/zabbix_agentd.d:/etc/zabbix/zabbix_agentd.d:ro
    - ./zbx_env/var/lib/zabbix/modules:/var/lib/zabbix/modules:ro
    - ./zbx_env/var/lib/zabbix/enc:/var/lib/zabbix/enc:ro
@@ -296,7 +315,6 @@ services:
    mode: global
   env_file:
    - .env_agent
-  user: root
   privileged: true
   pid: "host"
   networks:
@@ -308,7 +326,7 @@ services:
   stop_grace_period: 5s
   labels:
    com.zabbix.description: "Zabbix agent"
-   com.zabbix.company: "Zabbix SIA"
+   com.zabbix.company: "Zabbix LLC"
    com.zabbix.component: "zabbix-agentd"
    com.zabbix.os: "ubuntu"
 
@@ -326,7 +344,6 @@ services:
       memory: 256M
   env_file:
    - .env_java
-  user: root
   networks:
    zbx_net_backend:
     aliases:
@@ -335,14 +352,14 @@ services:
   stop_grace_period: 5s
   labels:
    com.zabbix.description: "Zabbix Java Gateway"
-   com.zabbix.company: "Zabbix SIA"
+   com.zabbix.company: "Zabbix LLC"
    com.zabbix.component: "java-gateway"
    com.zabbix.os: "ubuntu"
 
  zabbix-snmptraps:
   image: zabbix/zabbix-snmptraps:ubuntu-trunk
   ports:
-   - "162:162/udp"
+   - "162:1162/udp"
   volumes:
    - ./zbx_env/var/lib/zabbix/snmptraps:/var/lib/zabbix/snmptraps:rw
   deploy:
@@ -353,7 +370,6 @@ services:
     reservations:
       cpus: '0.25'
       memory: 128M
-  user: root
   networks:
    zbx_net_frontend:
     aliases:
@@ -362,13 +378,21 @@ services:
   stop_grace_period: 5s
   labels:
    com.zabbix.description: "Zabbix snmptraps"
-   com.zabbix.company: "Zabbix SIA"
+   com.zabbix.company: "Zabbix LLC"
    com.zabbix.component: "snmptraps"
    com.zabbix.os: "ubuntu"
 
  mysql-server:
   image: mysql:8.0
-  command: [mysqld, --character-set-server=utf8, --collation-server=utf8_bin, --default-authentication-plugin=mysql_native_password]
+  command:
+   - mysqld
+   - --character-set-server=utf8
+   - --collation-server=utf8_bin
+   - --default-authentication-plugin=mysql_native_password
+#   - --require-secure-transport
+#   - --ssl-ca=/run/secrets/root-ca.pem
+#   - --ssl-cert=/run/secrets/server-cert.pem
+#   - --ssl-key=/run/secrets/server-key.pem
   volumes:
    - ./zbx_env/var/lib/mysql:/var/lib/mysql:rw
   env_file:
@@ -377,7 +401,9 @@ services:
    - MYSQL_USER
    - MYSQL_PASSWORD
    - MYSQL_ROOT_PASSWORD
-  user: root
+   - mysql-server-key.pem
+   - mysql-server-cert.pem
+   - mysql-ca.pem
   stop_grace_period: 1m
   networks:
    zbx_net_backend:
@@ -427,3 +453,13 @@ secrets:
     file: ./.MYSQL_PASSWORD
   MYSQL_ROOT_PASSWORD:
     file: ./.MYSQL_ROOT_PASSWORD
+#  client-key.pem:
+#    file: ./.ZBX_DB_KEY_FILE
+#  client-cert.pem:
+#    file: ./.ZBX_DB_CERT_FILE
+#  root-ca.pem:
+#    file: ./.ZBX_DB_CA_FILE
+#  server-cert.pem:
+#    file: ./.DB_CERT_FILE
+#  server-key.pem:
+#    file: ./.DB_KEY_FILE

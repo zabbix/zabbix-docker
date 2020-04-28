@@ -6,6 +6,7 @@ services:
    - "10051:10051"
   volumes:
    - /etc/localtime:/etc/localtime:ro
+   - /etc/timezone:/etc/timezone:ro 
    - ./zbx_env/usr/lib/zabbix/alertscripts:/usr/lib/zabbix/alertscripts:ro
    - ./zbx_env/usr/lib/zabbix/externalscripts:/usr/lib/zabbix/externalscripts:ro
    - ./zbx_env/var/lib/zabbix/export:/var/lib/zabbix/export:rw
@@ -14,6 +15,9 @@ services:
    - ./zbx_env/var/lib/zabbix/ssh_keys:/var/lib/zabbix/ssh_keys:ro
    - ./zbx_env/var/lib/zabbix/mibs:/var/lib/zabbix/mibs:ro
    - ./zbx_env/var/lib/zabbix/snmptraps:/var/lib/zabbix/snmptraps:ro
+#   - ./.ZBX_DB_CA_FILE:/run/secrets/root-ca.pem:ro
+#   - ./.ZBX_DB_CERT_FILE:/run/secrets/client-cert.pem:ro
+#   - ./.ZBX_DB_KEY_FILE:/run/secrets/client-key.pem:ro
   links:
    - postgres-server:postgres-server
    - zabbix-java-gateway:zabbix-java-gateway
@@ -36,7 +40,6 @@ services:
   secrets:
    - POSTGRES_USER
    - POSTGRES_PASSWORD
-  user: root
   depends_on:
    - postgres-server
    - zabbix-java-gateway
@@ -70,6 +73,7 @@ services:
    - "10061:10051"
   volumes:
    - /etc/localtime:/etc/localtime:ro
+   - /etc/timezone:/etc/timezone:ro 
    - ./zbx_env/usr/lib/zabbix/externalscripts:/usr/lib/zabbix/externalscripts:ro
    - ./zbx_env/var/lib/zabbix/modules:/var/lib/zabbix/modules:ro
    - ./zbx_env/var/lib/zabbix/enc:/var/lib/zabbix/enc:ro
@@ -95,7 +99,6 @@ services:
   env_file:
    - .env_prx
    - .env_prx_sqlite3
-  user: root
   depends_on:
    - zabbix-java-gateway
    - zabbix-snmptraps
@@ -120,6 +123,7 @@ services:
    - "10071:10051"
   volumes:
    - /etc/localtime:/etc/localtime:ro
+   - /etc/timezone:/etc/timezone:ro 
    - ./zbx_env/usr/lib/zabbix/externalscripts:/usr/lib/zabbix/externalscripts:ro
    - ./zbx_env/var/lib/zabbix/modules:/var/lib/zabbix/modules:ro
    - ./zbx_env/var/lib/zabbix/enc:/var/lib/zabbix/enc:ro
@@ -150,7 +154,6 @@ services:
    - MYSQL_USER
    - MYSQL_PASSWORD
    - MYSQL_ROOT_PASSWORD
-  user: root
   depends_on:
    - mysql-server
    - zabbix-java-gateway
@@ -173,14 +176,19 @@ services:
  zabbix-web-apache-pgsql:
   image: zabbix/zabbix-web-apache-pgsql:ubuntu-trunk
   ports:
-   - "80:80"
-   - "443:443"
+   - "80:8080"
+   - "443:8443"
   links:
    - postgres-server:postgres-server
    - zabbix-server:zabbix-server
   volumes:
    - /etc/localtime:/etc/localtime:ro
+   - /etc/timezone:/etc/timezone:ro
    - ./zbx_env/etc/ssl/apache2:/etc/ssl/apache2:ro
+   - ./zbx_env/usr/share/zabbix/modules/:/usr/share/zabbix/modules/:ro
+#   - ./.ZBX_DB_CA_FILE:/run/secrets/root-ca.pem:ro
+#   - ./.ZBX_DB_CERT_FILE:/run/secrets/client-cert.pem:ro
+#   - ./.ZBX_DB_KEY_FILE:/run/secrets/client-key.pem:ro
   deploy:
    resources:
     limits:
@@ -195,12 +203,11 @@ services:
   secrets:
    - POSTGRES_USER
    - POSTGRES_PASSWORD
-  user: root
   depends_on:
    - postgres-server
    - zabbix-server
   healthcheck:
-   test: ["CMD", "curl", "-f", "http://localhost"]
+   test: ["CMD", "curl", "-f", "http://localhost:8080/"]
    interval: 10s
    timeout: 5s
    retries: 3
@@ -226,14 +233,19 @@ services:
  zabbix-web-nginx-pgsql:
   image: zabbix/zabbix-web-nginx-pgsql:ubuntu-trunk
   ports:
-   - "8081:80"
-   - "8443:443"
+   - "8081:8080"
+   - "8443:8443"
   links:
    - postgres-server:postgres-server
    - zabbix-server:zabbix-server
   volumes:
    - /etc/localtime:/etc/localtime:ro
+   - /etc/timezone:/etc/timezone:ro
    - ./zbx_env/etc/ssl/nginx:/etc/ssl/nginx:ro
+   - ./zbx_env/usr/share/zabbix/modules/:/usr/share/zabbix/modules/:ro
+#   - ./.ZBX_DB_CA_FILE:/run/secrets/root-ca.pem:ro
+#   - ./.ZBX_DB_CERT_FILE:/run/secrets/client-cert.pem:ro
+#   - ./.ZBX_DB_KEY_FILE:/run/secrets/client-key.pem:ro
   deploy:
    resources:
     limits:
@@ -248,12 +260,11 @@ services:
   secrets:
    - POSTGRES_USER
    - POSTGRES_PASSWORD
-  user: root
   depends_on:
    - postgres-server
    - zabbix-server
   healthcheck:
-   test: ["CMD", "curl", "-f", "http://localhost"]
+   test: ["CMD", "curl", "-f", "http://localhost:8080/"]
    interval: 10s
    timeout: 5s
    retries: 3
@@ -282,6 +293,7 @@ services:
    - "10050:10050"
   volumes:
    - /etc/localtime:/etc/localtime:ro
+   - /etc/timezone:/etc/timezone:ro
    - ./zbx_env/etc/zabbix/zabbix_agentd.d:/etc/zabbix/zabbix_agentd.d:ro
    - ./zbx_env/var/lib/zabbix/modules:/var/lib/zabbix/modules:ro
    - ./zbx_env/var/lib/zabbix/enc:/var/lib/zabbix/enc:ro
@@ -299,7 +311,6 @@ services:
    mode: global
   env_file:
    - .env_agent
-  user: root
   privileged: true
   pid: "host"
   networks:
@@ -329,7 +340,6 @@ services:
       memory: 256M
   env_file:
    - .env_java
-  user: root
   networks:
    zbx_net_backend:
     aliases:
@@ -345,7 +355,7 @@ services:
  zabbix-snmptraps:
   image: zabbix/zabbix-snmptraps:ubuntu-trunk
   ports:
-   - "162:162/udp"
+   - "162:1162/udp"
   volumes:
    - ./zbx_env/var/lib/zabbix/snmptraps:/var/lib/zabbix/snmptraps:rw
   deploy:
@@ -356,7 +366,6 @@ services:
     reservations:
       cpus: '0.25'
       memory: 128M
-  user: root
   networks:
    zbx_net_frontend:
     aliases:
@@ -380,7 +389,6 @@ services:
    - MYSQL_USER
    - MYSQL_PASSWORD
    - MYSQL_ROOT_PASSWORD
-  user: root
   stop_grace_period: 1m
   networks:
    zbx_net_backend:
@@ -391,14 +399,17 @@ services:
 
  postgres-server:
   image: postgres:latest
+#  command: -c ssl=on -c ssl_cert_file=/run/secrets/server-cert.pem -c ssl_key_file=/run/secrets/server-key.pem -c ssl_ca_file=/run/secrets/root-ca.pem
   volumes:
    - ./zbx_env/var/lib/postgresql/data:/var/lib/postgresql/data:rw
+   - ./.ZBX_DB_CA_FILE:/run/secrets/root-ca.pem:ro
+   - ./.ZBX_DB_CERT_FILE:/run/secrets/server-cert.pem:ro
+   - ./.ZBX_DB_KEY_FILE:/run/secrets/server-key.pem:ro
   env_file:
    - .env_db_pgsql
   secrets:
    - POSTGRES_USER
    - POSTGRES_PASSWORD
-  user: root
   stop_grace_period: 1m
   networks:
    zbx_net_backend:

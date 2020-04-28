@@ -197,8 +197,12 @@ check_db_connect() {
 
     WAIT_TIMEOUT=5
 
+    if [ "${ZBX_DB_ENCRYPTION}" == "true" ]; then
+        ssl_opts="--ssl --ssl-ca=${ZBX_DB_CA_FILE} --ssl-key=${ZBX_DB_KEY_FILE} --ssl-cert=${ZBX_DB_CERT_FILE}"
+    fi
+
     while [ ! "$(mysqladmin ping -h ${DB_SERVER_HOST} -P ${DB_SERVER_PORT} -u ${DB_SERVER_ROOT_USER} \
-                --password="${DB_SERVER_ROOT_PASS}" --silent --connect_timeout=10)" ]; do
+                --password="${DB_SERVER_ROOT_PASS}" --silent --connect_timeout=10 $ssl_opts)" ]; do
         echo "**** MySQL server is not available. Waiting $WAIT_TIMEOUT seconds..."
         sleep $WAIT_TIMEOUT
     done
@@ -258,6 +262,10 @@ prepare_zbx_web_config() {
     server_pass=$(escape_spec_char "${DB_SERVER_ZBX_PASS}")
     history_storage_url=$(escape_spec_char "${ZBX_HISTORYSTORAGEURL}")
     history_storage_types=$(escape_spec_char "${ZBX_HISTORYSTORAGETYPES}")
+
+    ZBX_DB_KEY_FILE=$(escape_spec_char "${ZBX_DB_KEY_FILE}")
+    ZBX_DB_CERT_FILE=$(escape_spec_char "${ZBX_DB_CERT_FILE}")
+    ZBX_DB_CA_FILE=$(escape_spec_char "${ZBX_DB_CA_FILE}")
 
     sed -i \
         -e "s/{DB_SERVER_HOST}/${DB_SERVER_HOST}/g" \

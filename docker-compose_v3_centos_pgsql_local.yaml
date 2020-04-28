@@ -1,7 +1,10 @@
 version: '3.5'
 services:
  zabbix-server:
-  build: ./server-pgsql/centos
+  build:
+   context: ./server-pgsql/centos
+   cache_from:
+    - centos:centos7
   image: zabbix-server-pgsql:centos-local
   ports:
    - "10051:10051"
@@ -16,6 +19,9 @@ services:
    - ./zbx_env/var/lib/zabbix/ssh_keys:/var/lib/zabbix/ssh_keys:ro
    - ./zbx_env/var/lib/zabbix/mibs:/var/lib/zabbix/mibs:ro
    - ./zbx_env/var/lib/zabbix/snmptraps:/var/lib/zabbix/snmptraps:ro
+#   - ./.ZBX_DB_CA_FILE:/run/secrets/root-ca.pem:ro
+#   - ./.ZBX_DB_CERT_FILE:/run/secrets/client-cert.pem:ro
+#   - ./.ZBX_DB_KEY_FILE:/run/secrets/client-key.pem:ro
   links:
    - postgres-server:postgres-server
    - zabbix-java-gateway:zabbix-java-gateway
@@ -66,7 +72,10 @@ services:
    com.zabbix.os: "centos"
 
  zabbix-proxy-sqlite3:
-  build: ./proxy-sqlite3/centos
+  build:
+   context: ./proxy-sqlite3/centos
+   cache_from:
+    - centos:centos7
   image: zabbix-proxy-sqlite3:centos-local
   ports:
    - "10061:10051"
@@ -117,7 +126,10 @@ services:
    com.zabbix.os: "centos"
 
  zabbix-proxy-mysql:
-  build: ./proxy-mysql/centos
+  build:
+   context: ./proxy-mysql/centos
+   cache_from:
+    - centos:centos7
   image: zabbix-proxy-mysql:centos-local
   ports:
    - "10071:10051"
@@ -173,9 +185,11 @@ services:
    com.zabbix.dbtype: "mysql"
    com.zabbix.os: "centos"
 
-
  zabbix-web-apache-pgsql:
-  build: ./web-apache-pgsql/centos
+  build:
+   context: ./web-apache-pgsql/centos
+   cache_from:
+    - centos:centos8
   image: zabbix-web-apache-pgsql:centos-local
   ports:
    - "80:8080"
@@ -187,6 +201,10 @@ services:
    - /etc/localtime:/etc/localtime:ro
    - /etc/timezone:/etc/timezone:ro
    - ./zbx_env/etc/ssl/apache2:/etc/ssl/apache2:ro
+   - ./zbx_env/usr/share/zabbix/modules/:/usr/share/zabbix/modules/:ro
+#   - ./.ZBX_DB_CA_FILE:/run/secrets/root-ca.pem:ro
+#   - ./.ZBX_DB_CERT_FILE:/run/secrets/client-cert.pem:ro
+#   - ./.ZBX_DB_KEY_FILE:/run/secrets/client-key.pem:ro
   deploy:
    resources:
     limits:
@@ -229,7 +247,10 @@ services:
    com.zabbix.os: "centos"
 
  zabbix-web-nginx-pgsql:
-  build: ./web-nginx-pgsql/centos
+  build:
+   context: ./web-nginx-pgsql/centos
+   cache_from:
+    - centos:centos8
   image: zabbix-web-nginx-pgsql:centos-local
   ports:
    - "8081:8080"
@@ -241,6 +262,10 @@ services:
    - /etc/localtime:/etc/localtime:ro
    - /etc/timezone:/etc/timezone:ro
    - ./zbx_env/etc/ssl/nginx:/etc/ssl/nginx:ro
+   - ./zbx_env/usr/share/zabbix/modules/:/usr/share/zabbix/modules/:ro
+#   - ./.ZBX_DB_CA_FILE:/run/secrets/root-ca.pem:ro
+#   - ./.ZBX_DB_CERT_FILE:/run/secrets/client-cert.pem:ro
+#   - ./.ZBX_DB_KEY_FILE:/run/secrets/client-key.pem:ro
   deploy:
    resources:
     limits:
@@ -283,7 +308,10 @@ services:
    com.zabbix.os: "centos"
 
  zabbix-agent:
-  build: ./agent/centos
+  build:
+   context: ./agent/centos
+   cache_from:
+    - centos:centos7
   image: zabbix-agent:centos-local
   ports:
    - "10050:10050"
@@ -323,7 +351,10 @@ services:
    com.zabbix.os: "centos"
 
  zabbix-java-gateway:
-  build: ./java-gateway/centos
+  build:
+   context: ./java-gateway/centos
+   cache_from:
+    - centos:centos7
   image: zabbix-java-gateway:centos-local
   ports:
    - "10052:10052"
@@ -400,8 +431,12 @@ services:
 
  postgres-server:
   image: postgres:latest
+#  command: -c ssl=on -c ssl_cert_file=/run/secrets/server-cert.pem -c ssl_key_file=/run/secrets/server-key.pem -c ssl_ca_file=/run/secrets/root-ca.pem
   volumes:
    - ./zbx_env/var/lib/postgresql/data:/var/lib/postgresql/data:rw
+   - ./.ZBX_DB_CA_FILE:/run/secrets/root-ca.pem:ro
+   - ./.ZBX_DB_CERT_FILE:/run/secrets/server-cert.pem:ro
+   - ./.ZBX_DB_KEY_FILE:/run/secrets/server-key.pem:ro
   env_file:
    - .env_db_pgsql
   secrets:

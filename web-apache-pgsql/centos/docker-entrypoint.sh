@@ -171,13 +171,18 @@ check_db_connect() {
     fi
 
     WAIT_TIMEOUT=5
-    
+
     if [ -n "${DB_SERVER_SCHEMA}" ]; then
         PGOPTIONS="--search_path=${DB_SERVER_SCHEMA}"
         export PGOPTIONS
     fi
 
-    while [ ! "$(psql -h ${DB_SERVER_HOST} -p ${DB_SERVER_PORT} -U ${DB_SERVER_ROOT_USER} -d ${DB_SERVER_DBNAME} -l -q 2>/dev/null)" ]; do
+    if [ -n "${ZBX_DBTLSCONNECT}" ]; then
+        dbtlsconnect=${ZBX_DBTLSCONNECT//_/-}
+        ssl_opts="sslmode=$dbtlsconnect sslrootcert=${ZBX_DBTLSCAFILE} sslcert=${ZBX_DBTLSCERTFILE} sslkey=${ZBX_DBTLSKEYFILE}"
+    fi
+
+    while [ ! "$(psql "$ssl_opts" -h ${DB_SERVER_HOST} -p ${DB_SERVER_PORT} -U ${DB_SERVER_ROOT_USER} -d ${DB_SERVER_DBNAME} -l -q 2>/dev/null)" ]; do
         echo "**** PostgreSQL server is not available. Waiting $WAIT_TIMEOUT seconds..."
         sleep $WAIT_TIMEOUT
     done
@@ -232,6 +237,10 @@ prepare_zbx_web_config() {
     server_pass=$(escape_spec_char "${DB_SERVER_ZBX_PASS}")
     history_storage_url=$(escape_spec_char "${ZBX_HISTORYSTORAGEURL}")
     history_storage_types=$(escape_spec_char "${ZBX_HISTORYSTORAGETYPES}")
+
+    ZBX_DB_KEY_FILE=$(escape_spec_char "${ZBX_DB_KEY_FILE}")
+    ZBX_DB_CERT_FILE=$(escape_spec_char "${ZBX_DB_CERT_FILE}")
+    ZBX_DB_CA_FILE=$(escape_spec_char "${ZBX_DB_CA_FILE}")
 
     sed -i \
         -e "s/{DB_SERVER_HOST}/${DB_SERVER_HOST}/g" \

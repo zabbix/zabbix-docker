@@ -71,9 +71,9 @@ RUN set -eux && \
     cat /usr/share/zabbix/include/locales.inc.php | grep display | grep true | awk '{$1=$1};1' | \
                 cut -d"'" -f 2 | sort | \
                 xargs -I '{}' bash -c 'echo "{}" && localedef -c -i {} -f UTF-8 {}.UTF-8 2>/dev/null' && \
-    chown --quiet -R zabbix:root /etc/zabbix/ /usr/share/zabbix/conf/ && \
-    chgrp -R 0 /etc/zabbix/ /usr/share/zabbix/conf/ && \
-    chmod -R g=u /etc/zabbix/ /usr/share/zabbix/conf/ && \
+    chown --quiet -R zabbix:root /etc/zabbix/ /usr/share/zabbix/conf/ /usr/share/zabbix/modules/ && \
+    chgrp -R 0 /etc/zabbix/ /usr/share/zabbix/conf/ /usr/share/zabbix/modules/ && \
+    chmod -R g=u /etc/zabbix/ /usr/share/zabbix/conf/ /usr/share/zabbix/modules/ && \
     chown --quiet -R zabbix:root /etc/nginx/ /etc/php-fpm.d/ /etc/php-fpm.conf && \
     chgrp -R 0 /etc/nginx/ /etc/php-fpm.d/ /etc/php-fpm.conf && \
     chmod -R g=u /etc/nginx/ /etc/php-fpm.d/ /etc/php-fpm.conf && \
@@ -89,7 +89,7 @@ EXPOSE 8080/TCP 8443/TCP
 
 WORKDIR /usr/share/zabbix
 
-VOLUME ["/etc/ssl/nginx"]
+VOLUME ["/etc/ssl/nginx", "/usr/share/zabbix/modules"]
 
 COPY ["docker-entrypoint.sh", "/usr/bin/"]
 

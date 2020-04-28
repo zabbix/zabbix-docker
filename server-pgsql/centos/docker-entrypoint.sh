@@ -177,13 +177,18 @@ check_db_connect_postgresql() {
     fi
 
     WAIT_TIMEOUT=5
-    
+
     if [ -n "${DB_SERVER_SCHEMA}" ]; then
         PGOPTIONS="--search_path=${DB_SERVER_SCHEMA}"
         export PGOPTIONS
     fi
 
-    while [ ! "$(psql -h ${DB_SERVER_HOST} -p ${DB_SERVER_PORT} -U ${DB_SERVER_ROOT_USER} -d ${DB_SERVER_DBNAME} -l -q 2>/dev/null)" ]; do
+    if [ -n "${ZBX_DBTLSCONNECT}" ]; then
+        dbtlsconnect=${ZBX_DBTLSCONNECT//_/-}
+        ssl_opts="sslmode=$dbtlsconnect sslrootcert=${ZBX_DBTLSCAFILE} sslcert=${ZBX_DBTLSCERTFILE} sslkey=${ZBX_DBTLSKEYFILE}"
+    fi
+
+    while [ ! "$(psql "$ssl_opts" -h ${DB_SERVER_HOST} -p ${DB_SERVER_PORT} -U ${DB_SERVER_ROOT_USER} -d ${DB_SERVER_DBNAME} -l -q 2>/dev/null)" ]; do
         echo "**** PostgreSQL server is not available. Waiting $WAIT_TIMEOUT seconds..."
         sleep $WAIT_TIMEOUT
     done
@@ -201,13 +206,18 @@ psql_query() {
     if [ -n "${DB_SERVER_ZBX_PASS}" ]; then
         export PGPASSWORD="${DB_SERVER_ZBX_PASS}"
     fi
-    
+
     if [ -n "${DB_SERVER_SCHEMA}" ]; then
         PGOPTIONS="--search_path=${DB_SERVER_SCHEMA}"
         export PGOPTIONS
     fi
 
-    result=$(psql -A -q -t  -h ${DB_SERVER_HOST} -p ${DB_SERVER_PORT} \
+    if [ -n "${ZBX_DBTLSCONNECT}" ]; then
+        dbtlsconnect=${ZBX_DBTLSCONNECT//_/-}
+        ssl_opts="sslmode=$dbtlsconnect sslrootcert=${ZBX_DBTLSCAFILE} sslcert=${ZBX_DBTLSCERTFILE} sslkey=${ZBX_DBTLSKEYFILE}"
+    fi
+
+    result=$(psql "$ssl_opts" -A -q -t  -h ${DB_SERVER_HOST} -p ${DB_SERVER_PORT} \
              -U ${DB_SERVER_ROOT_USER} -c "$query" $db 2>/dev/null);
 
     unset PGPASSWORD
@@ -268,12 +278,17 @@ create_db_schema_postgresql() {
             export PGOPTIONS
         fi
 
-        zcat /usr/share/doc/zabbix-server-postgresql/create.sql.gz | psql -q \
+        if [ -n "${ZBX_DBTLSCONNECT}" ]; then
+            dbtlsconnect=${ZBX_DBTLSCONNECT//_/-}
+            ssl_opts="sslmode=$dbtlsconnect sslrootcert=${ZBX_DBTLSCAFILE} sslcert=${ZBX_DBTLSCERTFILE} sslkey=${ZBX_DBTLSKEYFILE}"
+        fi
+
+        zcat /usr/share/doc/zabbix-server-postgresql/create.sql.gz | psql "$ssl_opts" -q \
                 -h ${DB_SERVER_HOST} -p ${DB_SERVER_PORT} \
                 -U ${DB_SERVER_ZBX_USER} ${DB_SERVER_DBNAME} 1>/dev/null
 
         if [ "${ENABLE_TIMESCALEDB}" == "true" ]; then
-            cat /usr/share/doc/zabbix-server-postgresql/timescaledb.sql | psql -q \
+            cat /usr/share/doc/zabbix-server-postgresql/timescaledb.sql | psql "$ssl_opts" -q \
                 -h ${DB_SERVER_HOST} -p ${DB_SERVER_PORT} \
                 -U ${DB_SERVER_ZBX_USER} ${DB_SERVER_DBNAME} 1>/dev/null
         fi
@@ -300,6 +315,15 @@ update_zbx_config() {
     update_config_var $ZBX_CONFIG "PidFile"
 
     update_config_var $ZBX_CONFIG "DebugLevel" "${ZBX_DEBUGLEVEL}"
+
+    if [ -n "${ZBX_DBTLSCONNECT}" ]; then
+        update_config_var $ZBX_CONFIG "DBTLSConnect" "${ZBX_DBTLSCONNECT}"
+        update_config_var $ZBX_CONFIG "DBTLSCAFile" "${ZBX_DBTLSCAFILE}"
+        update_config_var $ZBX_CONFIG "DBTLSCertFile" "${ZBX_DBTLSCERTFILE}"
+        update_config_var $ZBX_CONFIG "DBTLSKeyFile" "${ZBX_DBTLSKEYFILE}"
+        update_config_var $ZBX_CONFIG "DBTLSCipher" "${ZBX_DBTLSCIPHER}"
+        update_config_var $ZBX_CONFIG "DBTLSCipher13" "${ZBX_DBTLSCIPHER13}"
+    fi
 
     update_config_var $ZBX_CONFIG "DBHost" "${DB_SERVER_HOST}"
     update_config_var $ZBX_CONFIG "DBName" "${DB_SERVER_DBNAME}"
