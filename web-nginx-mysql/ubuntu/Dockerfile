@@ -19,7 +19,13 @@ RUN set -eux && \
         zabbix && \
     mkdir -p /etc/zabbix && \
     mkdir -p /etc/zabbix/web && \
+    mkdir -p /var/lib/php/session && \
     apt-get -y update && \
+    DEBIAN_FRONTEND=noninteractive apt-get -y --no-install-recommends install \
+        gpg \
+        dirmngr \
+        gpg-agent \
+        ca-certificates && \
     NGINX_GPGKEY=573BFD6B3D8FBC641079A6ABABF5BD827BD9BF62; \
     found=''; \
     for server in \
@@ -50,8 +56,8 @@ RUN set -eux && \
             supervisor && \
     rm -f /etc/nginx/conf.d/*.conf && \
     rm -rf /var/cache/nginx/ && \
-    DEBIAN_FRONTEND=noninteractive apt-get -y purge \
-            wget && \
+    rm -f /etc/php/7.2/fpm/pool.d/www.conf && \
+    DEBIAN_FRONTEND=noninteractive apt-get -y purge curl gpg dirmngr gpg-agent && \
     apt-get -y autoremove && \
     apt-get -y clean && \
     rm -rf /var/lib/apt/lists/*
@@ -96,6 +102,12 @@ RUN set -eux && \
     chown --quiet -R zabbix:root /etc/zabbix/ /usr/share/zabbix/conf/ && \
     chgrp -R 0 /etc/zabbix/ /usr/share/zabbix/conf/ && \
     chmod -R g=u /etc/zabbix/ /usr/share/zabbix/conf/ && \
+    chown --quiet -R zabbix:root /etc/nginx/ /etc/php/7.2/fpm/php-fpm.conf /etc/php/7.2/fpm/pool.d/ && \
+    chgrp -R 0 /etc/nginx/ /etc/php/7.2/fpm/php-fpm.conf /etc/php/7.2/fpm/pool.d/ && \
+    chmod -R g=u /etc/nginx/ /etc/php/7.2/fpm/php-fpm.conf /etc/php/7.2/fpm/pool.d/ && \
+    chown --quiet -R zabbix:root /var/lib/php/session/ && \
+    chgrp -R 0 /var/lib/php/session/ && \
+    chmod -R g=u /var/lib/php/session/ && \
     DEBIAN_FRONTEND=noninteractive apt-get -y purge \
             gettext \
             git \
@@ -111,5 +123,7 @@ WORKDIR /usr/share/zabbix
 VOLUME ["/etc/ssl/nginx"]
 
 COPY ["docker-entrypoint.sh", "/usr/bin/"]
+
+USER 1997
 
 ENTRYPOINT ["docker-entrypoint.sh"]
