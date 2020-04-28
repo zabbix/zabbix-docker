@@ -35,6 +35,7 @@ RUN set -eux && \
             php7.2-mysql \
             php7.2-xml && \
     rm -f /etc/apache2/sites-available/* && \
+    rm -f /etc/apache2/sites-enabled/* && \
     /usr/sbin/a2enmod ssl && \
     sed -ri \
             -e 's!^(\s*CustomLog)\s+\S+!\1 /proc/self/fd/1!g' \
@@ -115,4 +116,5 @@ USER 1997
 
 ENTRYPOINT ["docker-entrypoint.sh"]
 
-CMD ["source", "/etc/apache2/envvars", "&&", "/usr/sbin/apache2ctl", "-D", "FOREGROUND"]
+#CMD ["source", "/etc/apache2/envvars", "&&", "/usr/sbin/apache2ctl", "-D", "FOREGROUND"]
+CMD ["/usr/sbin/apache2ctl", "-D", "FOREGROUND"]

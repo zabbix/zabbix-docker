@@ -172,8 +172,8 @@ services:
  zabbix-web-apache-pgsql:
   image: zabbix/zabbix-web-apache-pgsql:ubuntu-latest
   ports:
-   - "80:80"
-   - "443:443"
+   - "80:8080"
+   - "443:8443"
   links:
    - postgres-server:postgres-server
    - zabbix-server:zabbix-server
@@ -199,7 +199,7 @@ services:
    - postgres-server
    - zabbix-server
   healthcheck:
-   test: ["CMD", "curl", "-f", "http://localhost"]
+   test: ["CMD", "curl", "-f", "http://localhost:8080/"]
    interval: 10s
    timeout: 5s
    retries: 3
@@ -225,8 +225,8 @@ services:
  zabbix-web-nginx-pgsql:
   image: zabbix/zabbix-web-nginx-pgsql:ubuntu-latest
   ports:
-   - "8081:80"
-   - "8443:443"
+   - "8081:8080"
+   - "8443:8443"
   links:
    - postgres-server:postgres-server
    - zabbix-server:zabbix-server
@@ -252,7 +252,7 @@ services:
    - postgres-server
    - zabbix-server
   healthcheck:
-   test: ["CMD", "curl", "-f", "http://localhost"]
+   test: ["CMD", "curl", "-f", "http://localhost:8080/"]
    interval: 10s
    timeout: 5s
    retries: 3

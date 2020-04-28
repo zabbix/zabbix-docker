@@ -183,7 +183,7 @@ check_db_connect() {
 }
 
 prepare_web_server() {
-    APACHE_SITES_DIR="/etc/apache2/sites-available"
+    APACHE_SITES_DIR="/etc/apache2/sites-enabled"
 
     echo "** Adding Zabbix virtual host (HTTP)"
     if [ -f "$ZABBIX_ETC_DIR/apache.conf" ]; then
