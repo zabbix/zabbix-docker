@@ -1,60 +1,46 @@
 FROM ubuntu:bionic
-LABEL maintainer="Alexey Pustovalov <alexey.pustovalov@zabbix.com>"
 
-ARG BUILD_DATE
-ARG VCS_REF
-
-ARG APT_FLAGS_COMMON="-y"
-ARG APT_FLAGS_PERSISTENT="${APT_FLAGS_COMMON} --no-install-recommends"
-ARG APT_FLAGS_DEV="${APT_FLAGS_COMMON} --no-install-recommends"
-ENV LANG=en_US.UTF-8 LANGUAGE=en_US:en LC_ALL=en_US.UTF-8 TERM=xterm \
-    ZBX_TYPE=java-gateway ZBX_DB_TYPE=none ZBX_OPT_TYPE=none
-
-LABEL org.label-schema.name="zabbix-${ZBX_TYPE}-ubuntu" \
-      org.label-schema.vendor="Zabbix LLC" \
-      org.label-schema.url="https://zabbix.com/" \
-      org.label-schema.description="Zabbix Java Gateway performs native support for monitoring JMX applications" \
-      org.label-schema.vcs-ref="${VCS_REF}" \
-      org.label-schema.build-date="${BUILD_DATE}" \
-      org.label-schema.schema-version="1.0" \
-      org.label-schema.license="GPL v2.0"
-
+LABEL org.opencontainers.image.title="Zabbix Java Gateway" \
+      org.opencontainers.image.authors="Alexey Pustovalov <alexey.pustovalov@zabbix.com>" \
+      org.opencontainers.image.vendor="Zabbix LLC" \
+      org.opencontainers.image.url="https://zabbix.com/" \
+      org.opencontainers.image.description="Zabbix Java Gateway performs native support for monitoring JMX applications" \
+      org.opencontainers.image.licenses="GPL v2.0"
+    
 STOPSIGNAL SIGTERM
 
 RUN set -eux && \
-    apt-get ${APT_FLAGS_COMMON} update && \
-    DEBIAN_FRONTEND=noninteractive apt-get ${APT_FLAGS_PERSISTENT} install locales && \
-    locale-gen $LC_ALL && \
     echo "#!/bin/sh\nexit 0" > /usr/sbin/policy-rc.d && \
-    addgroup --system --quiet zabbix && \
+    addgroup --system --gid 1995 --quiet zabbix && \
     adduser --quiet \
             --system --disabled-login \
-            --ingroup zabbix \
+            --ingroup zabbix --ingroup root \
+            --uid 1997 \
             --home /var/lib/zabbix/ \
-            --no-create-home \
         zabbix && \
     mkdir -p /etc/zabbix/ && \
-    chown --quiet -R zabbix:root /etc/zabbix && \
-    apt-get ${APT_FLAGS_COMMON} update && \
-    DEBIAN_FRONTEND=noninteractive apt-get ${APT_FLAGS_PERSISTENT} install \
+    apt-get -y update && \
+    DEBIAN_FRONTEND=noninteractive apt-get -y --no-install-recommends install \
             openjdk-8-jre-headless && \
-    apt-get ${APT_FLAGS_COMMON} autoremove && \
-    apt-get ${APT_FLAGS_COMMON} clean && \
+    apt-get -y autoremove && \
+    apt-get -y clean && \
     rm -rf /var/lib/apt/lists/*
 
 ARG MAJOR_VERSION=master
 ARG ZBX_VERSION=${MAJOR_VERSION}
 ARG ZBX_SOURCES=https://git.zabbix.com/scm/zbx/zabbix.git
-ENV ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES}
 
-LABEL org.label-schema.usage="https://www.zabbix.com/documentation/${MAJOR_VERSION}/manual/installation/containers" \
-      org.label-schema.version="${ZBX_VERSION}" \
-      org.label-schema.vcs-url="${ZBX_SOURCES}" \
-      org.label-schema.docker.cmd="docker run --name zabbix-${ZBX_TYPE} --link zabbix-server:zabbix-server -p 10052:10052 -d zabbix-${ZBX_TYPE}:ubuntu-${ZBX_VERSION}"
+ENV TERM=xterm ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES}
+
+LABEL org.opencontainers.image.documentation="https://www.zabbix.com/documentation/${MAJOR_VERSION}/manual/installation/containers" \
+      org.opencontainers.image.version="${ZBX_VERSION}" \
+      org.opencontainers.image.source="${ZBX_SOURCES}"
+
+COPY ["conf/etc/", "/etc/"]
 
 RUN set -eux && \
-    apt-get ${APT_FLAGS_COMMON} update && \
-    DEBIAN_FRONTEND=noninteractive apt-get ${APT_FLAGS_DEV} install \
+    apt-get -y update && \
+    DEBIAN_FRONTEND=noninteractive apt-get -y --no-install-recommends install \
             autoconf \
             automake \
             libc6-dev \
@@ -84,7 +70,7 @@ RUN set -eux && \
     rm -rf /usr/sbin/zabbix_java/lib/*.xml && \
     cd /tmp/ && \
     rm -rf /tmp/zabbix-${ZBX_VERSION}/ && \
-    DEBIAN_FRONTEND=noninteractive apt-get ${APT_FLAGS_COMMON} purge \
+    DEBIAN_FRONTEND=noninteractive apt-get -y purge \
             autoconf \
             automake \
             libc6-dev \
@@ -93,16 +79,22 @@ RUN set -eux && \
             pkg-config \
             git \
             gcc && \
-    apt-get ${APT_FLAGS_COMMON} autoremove && \
-    apt-get ${APT_FLAGS_COMMON} clean && \
+    apt-get -y autoremove && \
+    apt-get -y clean && \
+    chown --quiet -R zabbix:root /etc/zabbix/ /usr/sbin/zabbix_java/ && \
+    chgrp -R 0 /etc/zabbix/ /usr/sbin/zabbix_java/ && \
+    chmod -R g=u /etc/zabbix/ /usr/sbin/zabbix_java/ && \
     rm -rf /var/lib/apt/lists/*
 
 EXPOSE 10052/TCP
-
+    
 WORKDIR /var/lib/zabbix
-
-COPY ["conf/etc/zabbix/zabbix_java_gateway_logback.xml", "/etc/zabbix/"]
+    
 COPY ["conf/usr/sbin/zabbix_java_gateway", "/usr/sbin/"]
 COPY ["docker-entrypoint.sh", "/usr/bin/"]
-
+    
 ENTRYPOINT ["docker-entrypoint.sh"]
+    
+USER 1997
+    
+CMD ["/usr/sbin/zabbix_java_gateway"]
