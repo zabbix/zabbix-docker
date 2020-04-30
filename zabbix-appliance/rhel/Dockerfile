@@ -1,21 +1,14 @@
 FROM registry.access.redhat.com/ubi8/ubi
 MAINTAINER Alexey Pustovalov <alexey.pustovalov@zabbix.com>
 
-ARG DNF_FLAGS_COMMON="-y"
-ARG DNF_FLAGS_PERSISTENT="${DNF_FLAGS_COMMON}"
-ARG DNF_FLAGS_DEV="${DNF_FLAGS_COMMON}"
-ENV TERM=xterm MIBDIRS=/usr/share/snmp/mibs:/var/lib/zabbix/mibs MIBS=+ALL \
-    MYSQL_ALLOW_EMPTY_PASSWORD=true DB_SERVER_HOST=localhost MYSQL_USER=zabbix
-
-ARG BUILD_DATE
-ARG VCS_REF
-
 ARG MAJOR_VERSION=4.4
 ARG RELEASE=8
 ARG ZBX_VERSION=${MAJOR_VERSION}.8
 
 ARG ZBX_SOURCES=https://git.zabbix.com/scm/zbx/zabbix.git
-ENV ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES} TINI_VERSION=v0.18.0
+ENV TERM=xterm ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES} \
+    MIBDIRS=/usr/share/snmp/mibs:/var/lib/zabbix/mibs MIBS=+ALL
+ENV TINI_VERSION=v0.19.0
 
 LABEL name="zabbix/zabbix-appliance" \
       maintainer="alexey.pustovalov@zabbix.com" \
@@ -47,7 +40,6 @@ STOPSIGNAL SIGTERM
 
 COPY ["conf/etc/yum.repo.d/nginx.repo", "/etc/yum.repos.d/nginx.repo"]
 COPY ["licenses", "/licenses"]
-COPY ["conf/sbin/tini","/sbin/tini"]
 
 RUN set -o xtrace && INSTALL_PKGS="OpenIPMI-libs \
             curl \
@@ -70,15 +62,18 @@ RUN set -o xtrace && INSTALL_PKGS="OpenIPMI-libs \
             php-gd \
             php-ldap \
             php-mbstring \
-            python3-setuptools \
             php-mysqlnd \
             php-xml \
+            python3-pip \
             unixODBC" && \
-    dnf ${DNF_FLAGS_COMMON} install https://repo.zabbix.com/zabbix/${MAJOR_VERSION}/rhel/8/x86_64/zabbix-release-${MAJOR_VERSION}-1.el8.noarch.rpm && \
+    dnf -y install https://repo.zabbix.com/zabbix/${MAJOR_VERSION}/rhel/8/x86_64/zabbix-release-${MAJOR_VERSION}-1.el8.noarch.rpm && \
     REPOLIST="rhel-8-for-x86_64-baseos-rpms,rhel-8-for-x86_64-appstream-rpms,zabbix-non-supported,nginx-stable" && \
-    dnf ${DNF_FLAGS_COMMON} update-minimal --disablerepo "*" --enablerepo rhel-8-for-x86_64-baseos-rpms --setopt=tsflags=nodocs \
+    dnf -y update-minimal --disablerepo "*" --enablerepo ubi-8-baseos --setopt=tsflags=nodocs \
         --security --sec-severity=Important --sec-severity=Critical && \
-    dnf ${DNF_FLAGS_COMMON} install --disablerepo "*" --enablerepo "${REPOLIST}" --setopt=tsflags=nodocs ${INSTALL_PKGS} && \
+    dnf -y install --disablerepo "*" --enablerepo "${REPOLIST}" --setopt=install_weak_deps=False --best \
+        --setopt=tsflags=nodocs ${INSTALL_PKGS} && \
+    pip3 install supervisor && \
+    ln -s /usr/local/bin/supervisord /usr/bin/supervisord && \
     groupadd -g 1995 --system zabbix && \
     adduser -r --shell /sbin/nologin \
             -g zabbix -G dialout -G root \
@@ -101,11 +96,14 @@ RUN set -o xtrace && INSTALL_PKGS="OpenIPMI-libs \
     mkdir -p /usr/sbin/zabbix_java/ && \
     mkdir -p /var/lib/php/ && \
     mkdir -p /usr/share/doc/zabbix-server-mysql/ && \
-    easy_install-3.6 --install-dir /usr/lib/python3.6/site-packages/ supervisor && \
-    ln -s /usr/lib/python3.6/site-packages/supervisord /usr/bin/supervisord && \
+    curl -L https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini -o /sbin/tini && \
+    curl -L https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini.asc -o /tini.asc && \
+    gpg --batch --keyserver hkp://p80.pool.sks-keyservers.net:80 --keyserver-options timeout=10 --recv-keys 595E85A6B1B4779EA4DAAEC70B588DFF0527A9B7 && \
+    gpg --batch --verify /tini.asc /sbin/tini && \
+    rm -rf /root/.gnupg && \
     chmod +x /sbin/tini && \
-    dnf ${DNF_FLAGS_COMMON} clean all && \
-    rm -f /etc/php-fpm.d/www.conf /etc/my.cnf.d/auth_gssapi.cnf && \
+    dnf -y clean all && \
+    rm -f /etc/php-fpm.d/www.conf /etc/nginx/conf.d/*.conf /etc/my.cnf.d/auth_gssapi.cnf && \
     rm -rf /var/cache/yum /var/lib/yum/yumdb/* /usr/lib/udev/hwdb.d/* && \
     rm -rf /var/cache/dnf /etc/udev/hwdb.bin /root/.pki
 
@@ -116,6 +114,7 @@ RUN set -eux && REPOLIST="rhel-8-for-x86_64-baseos-rpms,rhel-8-for-x86_64-appstr
             automake \
             gcc \
             gettext \
+            glibc-locale-source \
             java-1.8.0-openjdk-devel \
             libcurl-devel \
             libevent-devel \
@@ -129,7 +128,8 @@ RUN set -eux && REPOLIST="rhel-8-for-x86_64-baseos-rpms,rhel-8-for-x86_64-appstr
             openldap-devel \
             git \
             unixODBC-devel" && \
-    dnf ${DNF_FLAGS_COMMON} install --disablerepo "*" --enablerepo "${REPOLIST}" --setopt=tsflags=nodocs ${INSTALL_PKGS} && \
+    dnf -y install --disablerepo "*" --enablerepo "${REPOLIST}" --setopt=install_weak_deps=False --best \
+        --setopt=tsflags=nodocs ${INSTALL_PKGS} && \
     cd /tmp/ && \
     git clone ${ZBX_SOURCES} --branch ${ZBX_VERSION} --depth 1 --single-branch zabbix-${ZBX_VERSION} && \
     cd /tmp/zabbix-${ZBX_VERSION} && \
@@ -179,23 +179,22 @@ RUN set -eux && REPOLIST="rhel-8-for-x86_64-baseos-rpms,rhel-8-for-x86_64-appstr
     rm -rf /usr/share/zabbix/tests/ && \
     cd /usr/share/zabbix/ && \
     ./locale/make_mo.sh && \
-#    cat /usr/share/zabbix/include/locales.inc.php | grep display | grep true | awk '{$1=$1};1' | \
-#                cut -d"'" -f 2 | sort | \
-#                xargs -I '{}' bash -c 'echo "{}" && localedef -c -i {} -f UTF-8 {}.UTF-8' && \
-    dnf ${DNF_FLAGS_COMMON} history undo `dnf -q history | sed -n 3p |column -t | cut -d' ' -f1` && \
-    dnf ${DNF_FLAGS_COMMON} clean all && \
+    ln -s "/etc/zabbix/web/zabbix.conf.php" "/usr/share/zabbix/conf/zabbix.conf.php" && \
+    cat /usr/share/zabbix/include/locales.inc.php | grep display | grep true | awk '{$1=$1};1' | \
+                cut -d"'" -f 2 | sort | \
+                xargs -I '{}' bash -c 'echo "{}" && localedef -c -i {} -f UTF-8 {}.UTF-8 2>/dev/null' && \
     chown --quiet -R zabbix:root /etc/zabbix/ /var/lib/zabbix/ /usr/share/zabbix/conf/ && \
     chgrp -R 0 /etc/zabbix/ /var/lib/zabbix/ /usr/share/zabbix/conf/ && \
     chmod -R g=u /etc/zabbix/ /var/lib/zabbix/ /usr/share/zabbix/conf/ && \
-    chown --quiet -R zabbix:root /etc/nginx/ /etc/my.cnf.d/ /etc/my.cnf /etc/php.d/ && \
-    chgrp -R 0 /etc/nginx/ /etc/my.cnf.d/ /etc/my.cnf /etc/php.d/ && \
-    chmod -R g=u /etc/nginx/ /etc/my.cnf.d/ /etc/my.cnf /etc/php.d/ && \
-    chown --quiet -R zabbix:root /var/lib/php/ /var/lib/mysql/ /var/cache/nginx/ && \
-    chgrp -R 0 /var/lib/php/ /var/lib/mysql/ /var/cache/nginx/ && \
-    chmod -R g=u /var/lib/php/ /var/lib/mysql/ /var/cache/nginx/ && \
-    chown --quiet -R zabbix:root /var/cache/nginx/ /var/log/nginx/ && \
-    chgrp -R 0 /var/cache/nginx/ /var/log/nginx/ && \
-    chmod -R g=u /var/cache/nginx/ /var/log/nginx/ && \
+    chown --quiet -R zabbix:root /etc/nginx/ /etc/my.cnf.d/ /etc/my.cnf /etc/php-fpm.d/ /etc/php-fpm.conf && \
+    chgrp -R 0 /etc/nginx/ /etc/my.cnf.d/ /etc/my.cnf /etc/php-fpm.d/ /etc/php-fpm.conf && \
+    chmod -R g=u /etc/nginx/ /etc/my.cnf.d/ /etc/my.cnf /etc/php-fpm.d/ /etc/php-fpm.conf && \
+    chown --quiet -R zabbix:root /var/lib/mysql/ /var/lib/php/session/ && \
+    chgrp -R 0 /var/lib/mysql/ /var/lib/php/session/ && \
+    chmod -R g=u /var/lib/mysql/ /var/lib/php/session/ && \
+    dnf -y history undo `dnf history list last -q | sed -n 3p |column -t | cut -d' ' -f1` && \
+    dnf -y erase glibc-locale-source glibc-langpack-en && \
+    dnf -y clean all && \
     rm -rf /var/cache/yum /var/lib/yum/yumdb/* /usr/lib/udev/hwdb.d/* && \
     rm -rf /var/cache/dnf /etc/udev/hwdb.bin /root/.pki
 
@@ -206,6 +205,7 @@ WORKDIR /var/lib/zabbix
 VOLUME ["/etc/ssl/nginx", "/var/lib/mysql/"]
 VOLUME ["/usr/lib/zabbix/alertscripts", "/usr/lib/zabbix/externalscripts", "/var/lib/zabbix/enc", "/var/lib/zabbix/mibs", "/var/lib/zabbix/modules"]
 VOLUME ["/var/lib/zabbix/snmptraps", "/var/lib/zabbix/ssh_keys", "/var/lib/zabbix/ssl/certs", "/var/lib/zabbix/ssl/keys", "/var/lib/zabbix/ssl/ssl_ca"]
+VOLUME ["/usr/sbin/zabbix_java/ext_lib", "/var/lib/zabbix/export"]
 
 COPY ["conf/usr/sbin/zabbix_java_gateway", "/usr/sbin/"]
 COPY ["docker-entrypoint.sh", "/usr/bin/"]
