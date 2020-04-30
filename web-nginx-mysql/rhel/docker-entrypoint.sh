@@ -153,8 +153,6 @@ check_variables_mysql() {
     file_env MYSQL_USER
     file_env MYSQL_PASSWORD
 
-    file_env MYSQL_ROOT_PASSWORD
-
     if [ ! -n "${MYSQL_USER}" ] && [ "${MYSQL_RANDOM_ROOT_PASSWORD}" == "true" ]; then
         echo "**** Impossible to use MySQL server because of unknown Zabbix user and random 'root' password"
         exit 1
