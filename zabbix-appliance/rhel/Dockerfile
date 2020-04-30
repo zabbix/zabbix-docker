@@ -66,7 +66,8 @@ RUN set -o xtrace && INSTALL_PKGS="OpenIPMI-libs \
             php-xml \
             python3-pip \
             unixODBC" && \
-    dnf -y install https://repo.zabbix.com/zabbix/${MAJOR_VERSION}/rhel/8/x86_64/zabbix-release-${MAJOR_VERSION}-1.el8.noarch.rpm && \
+    dnf -y install --disableplugin=subscription-manager --disablerepo "*" \
+        https://repo.zabbix.com/zabbix/${MAJOR_VERSION}/rhel/8/x86_64/zabbix-release-${MAJOR_VERSION}-1.el8.noarch.rpm && \
     REPOLIST="rhel-8-for-x86_64-baseos-rpms,rhel-8-for-x86_64-appstream-rpms,zabbix-non-supported,nginx-stable" && \
     dnf -y update-minimal --disablerepo "*" --enablerepo ubi-8-baseos --setopt=tsflags=nodocs \
         --security --sec-severity=Important --sec-severity=Critical && \
@@ -109,7 +110,7 @@ RUN set -o xtrace && INSTALL_PKGS="OpenIPMI-libs \
 
 COPY ["conf/etc/", "/etc/"]
 
-RUN set -eux && REPOLIST="rhel-8-for-x86_64-baseos-rpms,rhel-8-for-x86_64-appstream-rpms,zabbix-non-supported" && \
+RUN set -eux && REPOLIST="rhel-8-for-x86_64-baseos-rpms,rhel-8-for-x86_64-appstream-rpms" && \
     INSTALL_PKGS="autoconf \
             automake \
             gcc \
