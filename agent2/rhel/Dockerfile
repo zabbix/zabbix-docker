@@ -6,27 +6,26 @@ ARG RELEASE=8
 ARG ZBX_VERSION=${MAJOR_VERSION}.8
 
 ARG ZBX_SOURCES=https://git.zabbix.com/scm/zbx/zabbix.git
-ENV TERM=xterm ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES} \
-    MIBDIRS=/usr/share/snmp/mibs:/var/lib/zabbix/mibs MIBS=+ALL
+ENV ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES}
 ENV TINI_VERSION=v0.19.0
 
-LABEL name="zabbix/zabbix-proxy-sqlite-44" \
+LABEL name="zabbix/zabbix-agent2-44" \
       maintainer="alexey.pustovalov@zabbix.com" \
       vendor="Zabbix LLC" \
       version="${MAJOR_VERSION}" \
       release="${RELEASE}" \
-      summary="Zabbix proxy (SQLite3)" \
-      description="Zabbix proxy with SQLite3 database support" \
+      summary="Zabbix agent 2" \
+      description="Zabbix agent is deployed on a monitoring target to actively monitor local resources and applications" \
       url="https://www.zabbix.com/" \
-      run="docker run --name zabbix-proxy -p 10051:10051 -d registry.connect.redhat.com/zabbix/zabbix-proxy-sqlite-44:${ZBX_VERSION}" \
-      io.k8s.description="Zabbix proxy with SQLite3 database support" \
-      io.k8s.display-name="Zabbix proxy (SQLite3)" \
-      io.openshift.expose-services="10051:10051" \
-      io.openshift.tags="zabbix,zabbix-proxy,sqlite" \
-      org.label-schema.name="zabbix-proxy-sqlite-rhel" \
+      run="docker run --name zabbix-agent2 --link zabbix-server:zabbix-server -p 10050:10050 -d registry.connect.redhat.com/zabbix/zabbix-agent2-44:${ZBX_VERSION}" \
+      io.k8s.description="Zabbix agent is deployed on a monitoring target to actively monitor local resources and applications" \
+      io.k8s.display-name="Zabbix Agent 2" \
+      io.openshift.expose-services="10050:10050" \
+      io.openshift.tags="zabbix,zabbix-agent2" \
+      org.label-schema.name="zabbix-agent2-rhel" \
       org.label-schema.vendor="Zabbix LLC" \
       org.label-schema.url="https://zabbix.com/" \
-      org.label-schema.description="Zabbix proxy with SQLite3 database support" \
+      org.label-schema.description="Zabbix agent is deployed on a monitoring target to actively monitor local resources and applications" \
       org.label-schema.vcs-ref="${VCS_REF}" \
       org.label-schema.build-date="${BUILD_DATE}" \
       org.label-schema.schema-version="1.0" \
@@ -34,28 +33,14 @@ LABEL name="zabbix/zabbix-proxy-sqlite-44" \
       org.label-schema.usage="https://www.zabbix.com/documentation/${MAJOR_VERSION}/manual/installation/containers" \
       org.label-schema.version="${ZBX_VERSION}" \
       org.label-schema.vcs-url="${ZBX_SOURCES}" \
-      org.label-schema.docker.cmd="docker run --name zabbix-proxy -p 10051:10051 -d registry.connect.redhat.com/zabbix/zabbix-proxy-sqlite3-44:${ZBX_VERSION}"
+      org.label-schema.docker.cmd="docker run --name zabbix-agent2 --link zabbix-server:zabbix-server -p 10050:10050 -d registry.connect.redhat.com/zabbix/zabbix-agent2-44:${ZBX_VERSION}"
 
 STOPSIGNAL SIGTERM
 
 COPY ["licenses", "/licenses"]
 
-RUN set -eux && INSTALL_PKGS="bash \
-            fping \
-            iputils \
-            libcurl \
-            libevent \
-#            libldap \
-            libssh \
-            libxml2 \
-            net-snmp-agent-libs \
-            OpenIPMI-libs \
-            pcre \
-            sqlite-libs \
-            unixODBC" && \
-    dnf -y install --disableplugin=subscription-manager --disablerepo "*" \
-        https://repo.zabbix.com/zabbix/${MAJOR_VERSION}/rhel/8/x86_64/zabbix-release-${MAJOR_VERSION}-1.el8.noarch.rpm && \
-    REPOLIST="rhel-8-for-x86_64-baseos-rpms,rhel-8-for-x86_64-appstream-rpms,zabbix-non-supported" && \
+RUN set -eux && INSTALL_PKGS="bash" && \
+    REPOLIST="rhel-8-for-x86_64-baseos-rpms,rhel-8-for-x86_64-appstream-rpms" && \
     dnf -y update-minimal --disablerepo "*" --enablerepo ubi-8-baseos --setopt=tsflags=nodocs \
         --security --sec-severity=Important --sec-severity=Critical && \
     dnf -y install --disablerepo "*" --enablerepo "${REPOLIST}" --setopt=install_weak_deps=False --best \
@@ -66,17 +51,10 @@ RUN set -eux && INSTALL_PKGS="bash \
             -d /var/lib/zabbix/ -u 1997 \
         zabbix && \
     mkdir -p /etc/zabbix && \
+    mkdir -p /etc/zabbix/zabbix_agentd.d && \
     mkdir -p /var/lib/zabbix && \
     mkdir -p /var/lib/zabbix/enc && \
-    mkdir -p /usr/lib/zabbix/externalscripts && \
-    mkdir -p /var/lib/zabbix/mibs && \
     mkdir -p /var/lib/zabbix/modules && \
-    mkdir -p /var/lib/zabbix/snmptraps && \
-    mkdir -p /var/lib/zabbix/ssh_keys && \
-    mkdir -p /var/lib/zabbix/ssl && \
-    mkdir -p /var/lib/zabbix/ssl/certs && \
-    mkdir -p /var/lib/zabbix/ssl/keys && \
-    mkdir -p /var/lib/zabbix/ssl/ssl_ca && \
     curl -L https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini -o /sbin/tini && \
     curl -L https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini.asc -o /tini.asc && \
     gpg --batch --keyserver hkp://p80.pool.sks-keyservers.net:80 --keyserver-options timeout=10 --recv-keys 595E85A6B1B4779EA4DAAEC70B588DFF0527A9B7 && \
@@ -87,55 +65,40 @@ RUN set -eux && INSTALL_PKGS="bash \
     rm -rf /var/cache/yum /var/lib/yum/yumdb/* /usr/lib/udev/hwdb.d/* && \
     rm -rf /var/cache/dnf /etc/udev/hwdb.bin /root/.pki
 
-RUN set -eux && INSTALL_PKGS="autoconf \
+RUN set -eux && REPOLIST="rhel-8-for-x86_64-baseos-rpms,rhel-8-for-x86_64-appstream-rpms" && \
+    INSTALL_PKGS="autoconf \
             automake \
-            libcurl-devel \
-            libevent-devel \
-            libssh-devel \
-            libxml2-devel \
-            sqlite-devel \
-            net-snmp-devel \
-            openldap-devel \
-            pcre-devel \
-            git \
+            go \
             gcc \
             make \
-            unixODBC-devel" && \
-    REPOLIST="rhel-8-for-x86_64-baseos-rpms,rhel-8-for-x86_64-appstream-rpms,zabbix-non-supported" && \
+            git \
+            pcre-devel \
+            zlib-devel" && \
     dnf -y install --disablerepo "*" --enablerepo "${REPOLIST}" --setopt=install_weak_deps=False --best \
         --setopt=tsflags=nodocs ${INSTALL_PKGS} && \
     cd /tmp/ && \
     git clone ${ZBX_SOURCES} --branch ${ZBX_VERSION} --depth 1 --single-branch zabbix-${ZBX_VERSION} && \
     cd /tmp/zabbix-${ZBX_VERSION} && \
     zabbix_revision=`git rev-parse --short HEAD` && \
-    sed -i "s/{ZABBIX_REVISION}/$zabbix_revision/g" include/version.h && \
+    sed -i "s/{ZABBIX_REVISION}/$zabbix_revision/g" src/go/pkg/version/version.go && \
     ./bootstrap.sh && \
     export CFLAGS="-fPIC -pie -Wl,-z,relro -Wl,-z,now" && \
+    export GOPATH=/tmp/zabbix-${ZBX_VERSION}/go && \
     ./configure \
             --datadir=/usr/lib \
             --libdir=/usr/lib/zabbix \
+            --prefix=/usr \
             --sysconfdir=/etc/zabbix \
             --prefix=/usr \
-            --enable-agent \
-            --enable-proxy \
-            --with-sqlite3 \
-            --with-ldap \
-            --with-libcurl \
-            --with-libxml2 \
-            --with-net-snmp \
-#            --with-openipmi \
-            --with-openssl \
-            --with-ssh \
-            --with-unixodbc \
             --enable-ipv6 \
+            --enable-agent2 \
+            --enable-agent \
             --silent && \
-    make -j"$(nproc)" -s dbschema && \
     make -j"$(nproc)" -s && \
-    cp src/zabbix_proxy/zabbix_proxy /usr/sbin/zabbix_proxy && \
-    cp src/zabbix_get/zabbix_get /usr/bin/zabbix_get && \
-    cp src/zabbix_sender/zabbix_sender /usr/bin/zabbix_sender && \
-    cp conf/zabbix_proxy.conf /etc/zabbix/zabbix_proxy.conf && \
-    chown --quiet -R zabbix:root /etc/zabbix && \
+    cp /tmp/zabbix-${ZBX_VERSION}/src/go/bin/zabbix_agent2 /usr/sbin/zabbix_agent2 && \
+    cp /tmp/zabbix-${ZBX_VERSION}/src/zabbix_get/zabbix_get /usr/bin/zabbix_get && \
+    cp /tmp/zabbix-${ZBX_VERSION}/src/zabbix_sender/zabbix_sender /usr/bin/zabbix_sender && \
+    cp /tmp/zabbix-${ZBX_VERSION}/src/go/conf/zabbix_agent2.conf /etc/zabbix/zabbix_agent2.conf && \
     cd /tmp/ && \
     rm -rf /tmp/zabbix-${ZBX_VERSION}/ && \
     dnf -y history undo `dnf history list last -q | sed -n 3p |column -t | cut -d' ' -f1` && \
@@ -146,12 +109,11 @@ RUN set -eux && INSTALL_PKGS="autoconf \
     rm -rf /var/cache/yum /var/lib/yum/yumdb/* /usr/lib/udev/hwdb.d/* && \
     rm -rf /var/cache/dnf /etc/udev/hwdb.bin /root/.pki
 
-EXPOSE 10051/TCP
+EXPOSE 10050/TCP
 
 WORKDIR /var/lib/zabbix
 
-VOLUME ["/usr/lib/zabbix/externalscripts", "/var/lib/zabbix/enc", "/var/lib/zabbix/modules", "/var/lib/zabbix/snmptraps"]
-VOLUME ["/var/lib/zabbix/ssh_keys", "/var/lib/zabbix/ssl/certs", "/var/lib/zabbix/ssl/keys", "/var/lib/zabbix/ssl/ssl_ca"]
+VOLUME ["/var/lib/zabbix/enc"]
 
 COPY ["docker-entrypoint.sh", "/usr/bin/"]
 
@@ -159,4 +121,4 @@ ENTRYPOINT ["/sbin/tini", "--", "/usr/bin/docker-entrypoint.sh"]
 
 USER 1997
 
-CMD ["/usr/sbin/zabbix_proxy", "--foreground", "-c", "/etc/zabbix/zabbix_proxy.conf"]
+CMD ["/usr/sbin/zabbix_agent2", "--foreground", "-c", "/etc/zabbix/zabbix_agent2.conf"]

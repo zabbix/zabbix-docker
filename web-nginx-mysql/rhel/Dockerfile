@@ -1,14 +1,6 @@
 FROM registry.access.redhat.com/ubi8/ubi
 MAINTAINER Alexey Pustovalov <alexey.pustovalov@zabbix.com>
 
-ARG DNF_FLAGS_COMMON="-y"
-ARG DNF_FLAGS_PERSISTENT="${DNF_FLAGS_COMMON}"
-ARG DNF_FLAGS_DEV="${DNF_FLAGS_COMMON}"
-ENV TERM=xterm
-
-ARG BUILD_DATE
-ARG VCS_REF
-
 ARG MAJOR_VERSION=4.4
 ARG RELEASE=8
 ARG ZBX_VERSION=${MAJOR_VERSION}.8
@@ -45,10 +37,9 @@ LABEL name="zabbix/zabbix-web-mysql" \
 STOPSIGNAL SIGTERM
 
 COPY ["conf/etc/yum.repo.d/nginx.repo", "/etc/yum.repos.d/nginx.repo"]
-            
-### add licenses to this directory
+
 COPY ["licenses", "/licenses"]
-            
+
 RUN set -eux && INSTALL_PKGS="bash \
             curl \
             mariadb \
@@ -58,35 +49,37 @@ RUN set -eux && INSTALL_PKGS="bash \
             php-gd \
             php-ldap \
             php-mbstring \
-            python3-setuptools \
+            python3-pip \
             php-mysqlnd \
             php-xml" && \
     REPOLIST="rhel-8-for-x86_64-baseos-rpms,rhel-8-for-x86_64-appstream-rpms,nginx-stable" && \
-    dnf ${DNF_FLAGS_COMMON} update-minimal --disablerepo "*" --enablerepo rhel-8-for-x86_64-baseos-rpms --setopt=tsflags=nodocs \
+    dnf -y update-minimal --disablerepo "*" --enablerepo ubi-8-baseos --setopt=tsflags=nodocs \
         --security --sec-severity=Important --sec-severity=Critical && \
-    dnf ${DNF_FLAGS_COMMON} install --disablerepo "*" --enablerepo "${REPOLIST}" --setopt=tsflags=nodocs ${INSTALL_PKGS} && \
+    dnf -y install --disablerepo "*" --enablerepo "${REPOLIST}" --setopt=install_weak_deps=False --best \
+        --setopt=tsflags=nodocs ${INSTALL_PKGS} && \
+    pip3 install supervisor && \
+    ln -s /usr/local/bin/supervisord /usr/bin/supervisord && \
     groupadd -g 1995 --system zabbix && \
     adduser -r --shell /sbin/nologin \
-            -g zabbix -G dialout -G root \
+            -g zabbix -G root \
             -d /var/lib/zabbix/ -u 1997 \
         zabbix && \
     mkdir -p /etc/zabbix && \
     mkdir -p /etc/zabbix/web && \
+    mkdir -p /var/lib/php/session && \
+    rm -f /etc/nginx/conf.d/*.conf  && \
     rm -f /etc/php-fpm.d/www.conf && \
-    mkdir -p /var/lib/php/ && \
-    easy_install-3.6 --install-dir /usr/lib/python3.6/site-packages/ supervisor && \
-    ln -s /usr/lib/python3.6/site-packages/supervisord /usr/bin/supervisord && \
-    mkdir -p /etc/supervisor/conf.d/ && \
-    dnf ${DNF_FLAGS_COMMON} clean all && \
+    dnf -y clean all && \
     rm -rf /var/cache/yum /var/lib/yum/yumdb/* /usr/lib/udev/hwdb.d/* && \
     rm -rf /var/cache/dnf /etc/udev/hwdb.bin /root/.pki
 
 COPY ["conf/etc/", "/etc/"]
 
 RUN set -eux && REPOLIST="rhel-8-for-x86_64-baseos-rpms,rhel-8-for-x86_64-appstream-rpms" && \
-    INSTALL_PKGS="gettext \
+    INSTALL_PKGS="glibc-locale-source gettext \
             git" && \
-    dnf ${DNF_FLAGS_COMMON} install --disablerepo "*" --enablerepo "${REPOLIST}" --setopt=tsflags=nodocs ${INSTALL_PKGS} && \
+    dnf -y install --disablerepo "*" --enablerepo "${REPOLIST}" --setopt=install_weak_deps=False --best \
+        --setopt=tsflags=nodocs ${INSTALL_PKGS} && \
     cd /usr/share/ && \
     git clone ${ZBX_SOURCES} --branch ${ZBX_VERSION} --depth 1 --single-branch zabbix-${ZBX_VERSION} && \
     mkdir /usr/share/zabbix/ && \
@@ -96,25 +89,25 @@ RUN set -eux && REPOLIST="rhel-8-for-x86_64-baseos-rpms,rhel-8-for-x86_64-appstr
     rm -f conf/zabbix.conf.php && \
     rm -rf tests && \
     ./locale/make_mo.sh && \
-    chown --quiet -R nginx:nginx /usr/share/zabbix && \
-    dnf ${DNF_FLAGS_COMMON} history undo `dnf -q history | sed -n 3p |column -t | cut -d' ' -f1` && \
-    dnf ${DNF_FLAGS_COMMON} clean all && \
+    ln -s "/etc/zabbix/web/zabbix.conf.php" "/usr/share/zabbix/conf/zabbix.conf.php" && \
+    cat /usr/share/zabbix/include/locales.inc.php | grep display | grep true | awk '{$1=$1};1' | \
+                cut -d"'" -f 2 | sort | \
+                xargs -I '{}' bash -c 'echo "{}" && localedef -c -i {} -f UTF-8 {}.UTF-8 2>/dev/null' && \
     chown --quiet -R zabbix:root /etc/zabbix/ /usr/share/zabbix/conf/ && \
     chgrp -R 0 /etc/zabbix/ /usr/share/zabbix/conf/ && \
     chmod -R g=u /etc/zabbix/ /usr/share/zabbix/conf/ && \
-    chown --quiet -R zabbix:root /etc/nginx/ /etc/php.d/ && \
-    chgrp -R 0 /etc/nginx/ /etc/php.d/ && \
-    chmod -R g=u /etc/nginx/ /etc/php.d/ && \
-    chown --quiet -R zabbix:root /var/lib/php/ /var/cache/nginx/ && \
-    chgrp -R 0 /var/lib/php/ /var/cache/nginx/ && \
-    chmod -R g=u /var/lib/php/ /var/cache/nginx/ && \
-    chown --quiet -R zabbix:root /var/cache/nginx/ /var/log/nginx/ && \
-    chgrp -R 0 /var/cache/nginx/ /var/log/nginx/ && \
-    chmod -R g=u /var/cache/nginx/ /var/log/nginx/ && \
+    chown --quiet -R zabbix:root /etc/nginx/ /etc/php-fpm.d/ /etc/php-fpm.conf && \
+    chgrp -R 0 /etc/nginx/ /etc/php-fpm.d/ /etc/php-fpm.conf && \
+    chmod -R g=u /etc/nginx/ /etc/php-fpm.d/ /etc/php-fpm.conf && \
+    chown --quiet -R zabbix:root /var/lib/php/session/ && \
+    chgrp -R 0 /var/lib/php/session/ && \
+    chmod -R g=u /var/lib/php/session/ && \
+    dnf -y history undo `dnf history list last -q | sed -n 3p |column -t | cut -d' ' -f1` && \
+    dnf -y clean all && \
     rm -rf /var/cache/yum /var/lib/yum/yumdb/* /usr/lib/udev/hwdb.d/* && \
     rm -rf /var/cache/dnf /etc/udev/hwdb.bin /root/.pki
 
-EXPOSE 80/TCP 443/TCP
+EXPOSE 8080/TCP 8443/TCP
 
 WORKDIR /usr/share/zabbix
 

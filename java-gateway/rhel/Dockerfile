@@ -1,20 +1,12 @@
 FROM registry.access.redhat.com/ubi8/ubi
 MAINTAINER Alexey Pustovalov <alexey.pustovalov@zabbix.com>
 
-ARG DNF_FLAGS_COMMON="-y"
-ARG DNF_FLAGS_PERSISTENT="${DNF_FLAGS_COMMON}"
-ARG DNF_FLAGS_DEV="${DNF_FLAGS_COMMON}"
-
-ARG BUILD_DATE
-ARG VCS_REF
-
 ARG MAJOR_VERSION=4.4
 ARG RELEASE=8
 ARG ZBX_VERSION=${MAJOR_VERSION}.8
 
 ARG ZBX_SOURCES=https://git.zabbix.com/scm/zbx/zabbix.git
-ENV TERM=xterm ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES} TINI_VERSION=v0.18.0 \
-    MIBDIRS=/usr/share/snmp/mibs:/var/lib/zabbix/mibs MIBS=+ALL
+ENV ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES}
 
 LABEL name="zabbix/zabbix-java-gateway-44" \
       maintainer="alexey.pustovalov@zabbix.com" \
@@ -49,16 +41,17 @@ COPY ["licenses", "/licenses"]
 RUN set -eux && INSTALL_PKGS="bash \
             java-1.8.0-openjdk-headless" && \
     REPOLIST="rhel-8-for-x86_64-baseos-rpms,rhel-8-for-x86_64-appstream-rpms" && \
-    dnf ${DNF_FLAGS_COMMON} update-minimal --disablerepo "*" --enablerepo rhel-8-for-x86_64-baseos-rpms --setopt=tsflags=nodocs \
+    dnf -y update-minimal --disablerepo "*" --enablerepo ubi-8-baseos --setopt=tsflags=nodocs \
         --security --sec-severity=Important --sec-severity=Critical && \
-    dnf ${DNF_FLAGS_COMMON} install --disablerepo "*" --enablerepo "${REPOLIST}" --setopt=tsflags=nodocs ${INSTALL_PKGS} && \
+    dnf -y install --disablerepo "*" --enablerepo "${REPOLIST}" --setopt=install_weak_deps=False --best \
+        --setopt=tsflags=nodocs ${INSTALL_PKGS} && \
     groupadd -g 1995 --system zabbix && \
     adduser -r --shell /sbin/nologin \
-            -g zabbix -G dialout -G root \
+            -g zabbix -G root \
             -d /var/lib/zabbix/ -u 1997 \
         zabbix && \
     mkdir -p /etc/zabbix/ && \
-    dnf ${DNF_FLAGS_COMMON} clean all && \
+    dnf -y clean all && \
     rm -rf /var/cache/yum /var/lib/yum/yumdb/* /usr/lib/udev/hwdb.d/* && \
     rm -rf /var/cache/dnf /etc/udev/hwdb.bin /root/.pki
 
@@ -72,7 +65,8 @@ RUN set -eux && INSTALL_PKGS="autoconf \
             make \
             java-1.8.0-openjdk-devel" && \
     REPOLIST="rhel-8-for-x86_64-baseos-rpms,rhel-8-for-x86_64-appstream-rpms" && \
-    dnf ${DNF_FLAGS_COMMON} install --disablerepo "*" --enablerepo "${REPOLIST}" --setopt=tsflags=nodocs ${INSTALL_PKGS} && \
+    dnf -y install --disablerepo "*" --enablerepo "${REPOLIST}" --setopt=install_weak_deps=False --best \
+        --setopt=tsflags=nodocs ${INSTALL_PKGS} && \
     cd /tmp/ && \
     git clone ${ZBX_SOURCES} --branch ${ZBX_VERSION} --depth 1 --single-branch zabbix-${ZBX_VERSION} && \
     cd /tmp/zabbix-${ZBX_VERSION} && \
@@ -94,8 +88,8 @@ RUN set -eux && INSTALL_PKGS="autoconf \
     rm -rf /usr/sbin/zabbix_java/lib/*.xml && \
     cd /tmp/ && \
     rm -rf /tmp/zabbix-${ZBX_VERSION}/ && \
-    dnf ${DNF_FLAGS_COMMON} history undo `dnf -q history | sed -n 3p |column -t | cut -d' ' -f1` && \
-    dnf ${DNF_FLAGS_COMMON} clean all && \
+    dnf -y history undo `dnf history list last -q | sed -n 3p |column -t | cut -d' ' -f1` && \
+    dnf -y clean all && \
     chown --quiet -R zabbix:root /etc/zabbix/ /usr/sbin/zabbix_java/ && \
     chgrp -R 0 /etc/zabbix/ /usr/sbin/zabbix_java/ && \
     chmod -R g=u /etc/zabbix/ /usr/sbin/zabbix_java/ && \

@@ -1,19 +1,13 @@
 FROM registry.access.redhat.com/ubi8/ubi
 MAINTAINER Alexey Pustovalov <alexey.pustovalov@zabbix.com>
 
-ARG DNF_FLAGS_COMMON="-y"
-ARG DNF_FLAGS_PERSISTENT="${DNF_FLAGS_COMMON}"
-ARG DNF_FLAGS_DEV="${DNF_FLAGS_COMMON}"
-
-ARG BUILD_DATE
-ARG VCS_REF
-
 ARG MAJOR_VERSION=4.4
 ARG RELEASE=8
 ARG ZBX_VERSION=${MAJOR_VERSION}.8
 
 ARG ZBX_SOURCES=https://git.zabbix.com/scm/zbx/zabbix.git
 ENV ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES}
+ENV TINI_VERSION=v0.19.0
 
 LABEL name="zabbix/zabbix-agent-44" \
       maintainer="alexey.pustovalov@zabbix.com" \
@@ -43,23 +37,20 @@ LABEL name="zabbix/zabbix-agent-44" \
 
 STOPSIGNAL SIGTERM
 
-### add licenses to this directory
 COPY ["licenses", "/licenses"]
-
-ENV TINI_VERSION v0.18.0
-COPY ["conf/sbin/tini","/sbin/tini"]
 
 RUN set -eux && INSTALL_PKGS="bash \
             iputils \
             pcre \
             libcurl" && \
     REPOLIST="rhel-8-for-x86_64-baseos-rpms,rhel-8-for-x86_64-appstream-rpms" && \
-    dnf ${DNF_FLAGS_COMMON} update-minimal --disablerepo "*" --enablerepo rhel-8-for-x86_64-baseos-rpms --setopt=tsflags=nodocs \
+    dnf -y update-minimal --disablerepo "*" --enablerepo ubi-8-baseos --setopt=tsflags=nodocs \
         --security --sec-severity=Important --sec-severity=Critical && \
-    dnf ${DNF_FLAGS_COMMON} install --disablerepo "*" --enablerepo "${REPOLIST}" --setopt=tsflags=nodocs ${INSTALL_PKGS} && \
+    dnf -y install --disablerepo "*" --enablerepo "${REPOLIST}" --setopt=install_weak_deps=False --best \
+        --setopt=tsflags=nodocs ${INSTALL_PKGS} && \
     groupadd -g 1995 --system zabbix && \
     adduser -r --shell /sbin/nologin \
-            -g zabbix -G dialout -G root \
+            -g zabbix -G root \
             -d /var/lib/zabbix/ -u 1997 \
         zabbix && \
     mkdir -p /etc/zabbix && \
@@ -67,14 +58,15 @@ RUN set -eux && INSTALL_PKGS="bash \
     mkdir -p /var/lib/zabbix && \
     mkdir -p /var/lib/zabbix/enc && \
     mkdir -p /var/lib/zabbix/modules && \
+    curl -L https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini -o /sbin/tini && \
+    curl -L https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini.asc -o /tini.asc && \
+    gpg --batch --keyserver hkp://p80.pool.sks-keyservers.net:80 --keyserver-options timeout=10 --recv-keys 595E85A6B1B4779EA4DAAEC70B588DFF0527A9B7 && \
+    gpg --batch --verify /tini.asc /sbin/tini && \
+    rm -rf /root/.gnupg && \
     chmod +x /sbin/tini && \
-    dnf ${DNF_FLAGS_COMMON} clean all && \
+    dnf -y clean all && \
     rm -rf /var/cache/yum /var/lib/yum/yumdb/* /usr/lib/udev/hwdb.d/* && \
     rm -rf /var/cache/dnf /etc/udev/hwdb.bin /root/.pki
-
-ARG MAJOR_VERSION=4.4
-ARG ZBX_VERSION=${MAJOR_VERSION}.8
-ARG ZBX_SOURCES=https://git.zabbix.com/scm/zbx/zabbix.git
 
 RUN set -eux && REPOLIST="rhel-8-for-x86_64-baseos-rpms,rhel-8-for-x86_64-appstream-rpms" && \
     INSTALL_PKGS="autoconf \
@@ -86,7 +78,8 @@ RUN set -eux && REPOLIST="rhel-8-for-x86_64-baseos-rpms,rhel-8-for-x86_64-appstr
             pcre-devel \
             make \
             git" && \
-    dnf ${DNF_FLAGS_COMMON} install --disablerepo "*" --enablerepo "${REPOLIST}" --setopt=tsflags=nodocs ${INSTALL_PKGS} && \
+    dnf -y install --disablerepo "*" --enablerepo "${REPOLIST}" --setopt=install_weak_deps=False --best \
+        --setopt=tsflags=nodocs ${INSTALL_PKGS} && \
     cd /tmp/ && \
     git clone ${ZBX_SOURCES} --branch ${ZBX_VERSION} --depth 1 --single-branch zabbix-${ZBX_VERSION} && \
     cd /tmp/zabbix-${ZBX_VERSION} && \
@@ -113,8 +106,8 @@ RUN set -eux && REPOLIST="rhel-8-for-x86_64-baseos-rpms,rhel-8-for-x86_64-appstr
     cp /tmp/zabbix-${ZBX_VERSION}/conf/zabbix_agentd.conf /etc/zabbix/zabbix_agentd.conf && \
     cd /tmp/ && \
     rm -rf /tmp/zabbix-${ZBX_VERSION}/ && \
-    dnf ${DNF_FLAGS_COMMON} history undo `dnf -q history | sed -n 3p |column -t | cut -d' ' -f1` && \
-    dnf ${DNF_FLAGS_COMMON} clean all && \
+    dnf -y history undo `dnf history list last -q | sed -n 3p |column -t | cut -d' ' -f1` && \
+    dnf -y clean all && \
     chown --quiet -R zabbix:root /etc/zabbix/ /var/lib/zabbix/ && \
     chgrp -R 0 /etc/zabbix/ /var/lib/zabbix/ && \
     chmod -R g=u /etc/zabbix/ /var/lib/zabbix/ && \

@@ -199,7 +199,7 @@ RUN set -eux && REPOLIST="rhel-8-for-x86_64-baseos-rpms,rhel-8-for-x86_64-appstr
     rm -rf /var/cache/yum /var/lib/yum/yumdb/* /usr/lib/udev/hwdb.d/* && \
     rm -rf /var/cache/dnf /etc/udev/hwdb.bin /root/.pki
 
-EXPOSE 80/TCP 443/TCP 10051/TCP
+EXPOSE 8080/TCP 8443/TCP 10051/TCP
 
 WORKDIR /var/lib/zabbix
 
