@@ -80,7 +80,7 @@ RUN set -eux && \
     apt-get -y autoremove && \
     rm -rf /var/lib/apt/lists/*
 
-EXPOSE 162/UDP
+EXPOSE 1162/UDP
 
 WORKDIR /var/lib/zabbix/snmptraps/
 
