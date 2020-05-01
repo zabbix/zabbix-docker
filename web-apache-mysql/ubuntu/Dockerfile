@@ -90,9 +90,9 @@ RUN set -eux && \
     dpkg-reconfigure locales && \
     find /usr/share/zabbix/locale -name '*.po' | xargs rm -f && \
     find /usr/share/zabbix/locale -name '*.sh' | xargs rm -f && \
-    chown --quiet -R zabbix:root /etc/zabbix/ /usr/share/zabbix/conf/ && \
-    chgrp -R 0 /etc/zabbix/ /usr/share/zabbix/conf/ && \
-    chmod -R g=u /etc/zabbix/ /usr/share/zabbix/conf/ && \
+    chown --quiet -R zabbix:root /etc/zabbix/  && \
+    chgrp -R 0 /etc/zabbix/  && \
+    chmod -R g=u /etc/zabbix/  && \
     chown --quiet -R zabbix:root /etc/apache2/ /etc/php/7.2/ && \
     chgrp -R 0 /etc/apache2/ /etc/php/7.2/ && \
     chmod -R g=u /etc/apache2/ /etc/php/7.2/ && \
