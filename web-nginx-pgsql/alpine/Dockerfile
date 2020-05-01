@@ -43,6 +43,7 @@ RUN set -eux && \
             supervisor && \
     rm -rf /etc/php7/php-fpm.d/www.conf && \
     rm -f /etc/nginx/conf.d/*.conf && \
+    ln -sf /dev/fd/2 /var/lib/nginx/logs/error.log && \
     rm -rf /var/cache/apk/*
 
 ARG MAJOR_VERSION=master
@@ -72,15 +73,15 @@ RUN set -eux && \
     rm -rf tests && \
     ./locale/make_mo.sh && \
     ln -s "/etc/zabbix/web/zabbix.conf.php" "/usr/share/zabbix/conf/zabbix.conf.php" && \
-    chown --quiet -R zabbix:root /etc/zabbix/ /usr/share/zabbix/conf/ && \
-    chgrp -R 0 /etc/zabbix/ /usr/share/zabbix/conf/ && \
-    chmod -R g=u /etc/zabbix/ /usr/share/zabbix/conf/ && \
+    chown --quiet -R zabbix:root /etc/zabbix/ && \
+    chgrp -R 0 /etc/zabbix/ && \
+    chmod -R g=u /etc/zabbix/ && \
     chown --quiet -R zabbix:root /etc/nginx/ /etc/php7/php-fpm.d/ /etc/php7/php-fpm.conf && \
     chgrp -R 0 /etc/nginx/ /etc/php7/php-fpm.d/ /etc/php7/php-fpm.conf && \
     chmod -R g=u /etc/nginx/ /etc/php7/php-fpm.d/ /etc/php7/php-fpm.conf && \
-    chown --quiet -R zabbix:root /var/lib/php/session/ && \
-    chgrp -R 0 /var/lib/php/session/ && \
-    chmod -R g=u /var/lib/php/session/ && \
+    chown --quiet -R zabbix:root /var/lib/php/session/ /var/lib/nginx/ && \
+    chgrp -R 0 /var/lib/php/session/ /var/lib/nginx/ && \
+    chmod -R g=u /var/lib/php/session/ /var/lib/nginx/ && \
     apk del --purge --no-network \
             build-dependencies && \
     rm -rf /var/cache/apk/*
