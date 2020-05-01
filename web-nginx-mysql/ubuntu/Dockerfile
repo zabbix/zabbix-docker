@@ -58,7 +58,7 @@ RUN set -eux && \
     rm -f /etc/nginx/conf.d/*.conf && \
     rm -rf /var/cache/nginx/ && \
     rm -f /etc/php/7.2/fpm/pool.d/www.conf && \
-    DEBIAN_FRONTEND=noninteractive apt-get -y purge curl gpg dirmngr gpg-agent && \
+    DEBIAN_FRONTEND=noninteractive apt-get -y purge gpg dirmngr gpg-agent && \
     apt-get -y autoremove && \
     apt-get -y clean && \
     rm -rf /var/lib/apt/lists/*
@@ -99,9 +99,9 @@ RUN set -eux && \
     dpkg-reconfigure locales && \
     find /usr/share/zabbix/locale -name '*.po' | xargs rm -f && \
     find /usr/share/zabbix/locale -name '*.sh' | xargs rm -f && \
-    chown --quiet -R zabbix:root /etc/zabbix/ /usr/share/zabbix/conf/ && \
-    chgrp -R 0 /etc/zabbix/ /usr/share/zabbix/conf/ && \
-    chmod -R g=u /etc/zabbix/ /usr/share/zabbix/conf/ && \
+    chown --quiet -R zabbix:root /etc/zabbix/ /usr/share/zabbix/include/defines.inc.php /usr/share/zabbix/modules/ && \
+    chgrp -R 0 /etc/zabbix/ /usr/share/zabbix/include/defines.inc.php /usr/share/zabbix/modules/ && \
+    chmod -R g=u /etc/zabbix/ /usr/share/zabbix/include/defines.inc.php /usr/share/zabbix/modules/ && \
     chown --quiet -R zabbix:root /etc/nginx/ /etc/php/7.2/fpm/php-fpm.conf /etc/php/7.2/fpm/pool.d/ && \
     chgrp -R 0 /etc/nginx/ /etc/php/7.2/fpm/php-fpm.conf /etc/php/7.2/fpm/pool.d/ && \
     chmod -R g=u /etc/nginx/ /etc/php/7.2/fpm/php-fpm.conf /etc/php/7.2/fpm/pool.d/ && \

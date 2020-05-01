@@ -79,9 +79,9 @@ RUN set -eux && \
     rm -rf tests && \
     ./locale/make_mo.sh && \
     ln -s "/etc/zabbix/web/zabbix.conf.php" "/usr/share/zabbix/conf/zabbix.conf.php" && \
-    chown --quiet -R zabbix:root /etc/zabbix/ /usr/share/zabbix/conf/ /usr/share/zabbix/modules/ && \
-    chgrp -R 0 /etc/zabbix/ /usr/share/zabbix/conf/ /usr/share/zabbix/modules/ && \
-    chmod -R g=u /etc/zabbix/ /usr/share/zabbix/conf/ /usr/share/zabbix/modules/ && \
+    chown --quiet -R zabbix:root /etc/zabbix/ /usr/share/zabbix/include/defines.inc.php /usr/share/zabbix/modules/ && \
+    chgrp -R 0 /etc/zabbix/ /usr/share/zabbix/include/defines.inc.php /usr/share/zabbix/modules/ && \
+    chmod -R g=u /etc/zabbix/ /usr/share/zabbix/include/defines.inc.php /usr/share/zabbix/modules/ && \
     chown --quiet -R zabbix:root /etc/apache2/ /etc/php7/ && \
     chgrp -R 0 /etc/apache2/ /etc/php7/ && \
     chmod -R g=u /etc/apache2/ /etc/php7/ && \
