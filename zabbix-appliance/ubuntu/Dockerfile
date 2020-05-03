@@ -72,7 +72,7 @@ RUN set -eux && \
     cat database/${ZBX_DB_TYPE}/data.sql >> database/${ZBX_DB_TYPE}/create.sql && \
     gzip database/${ZBX_DB_TYPE}/create.sql && \
     rm -rf /tmp/zabbix-${ZBX_VERSION}/src/zabbix_java/lib/*.xml && \
-    cd frontends/php/ && \
+    cd ui/ && \
     rm -f conf/zabbix.conf.php && \
     rm -rf tests && \
     ./locale/make_mo.sh
@@ -119,7 +119,7 @@ COPY --from=builder /tmp/zabbix-${ZBX_VERSION}/database/${ZBX_DB_TYPE}/create.sq
 COPY --from=builder /tmp/zabbix-${ZBX_VERSION}/src/zabbix_java/bin/ /usr/sbin/zabbix_java/bin/
 COPY --from=builder /tmp/zabbix-${ZBX_VERSION}/src/zabbix_java/lib/ /usr/sbin/zabbix_java/lib/
             
-COPY --from=builder /tmp/zabbix-${ZBX_VERSION}/frontends/php/ /usr/share/zabbix/
+COPY --from=builder /tmp/zabbix-${ZBX_VERSION}/ui/ /usr/share/zabbix/
 ADD https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini /sbin/tini
 
 RUN set -eux && \
