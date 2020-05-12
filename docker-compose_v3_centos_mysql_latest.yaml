@@ -1,7 +1,7 @@
 version: '3.5'
 services:
  zabbix-server:
-  image: zabbix/zabbix-server-mysql:centos-trunk
+  image: zabbix/zabbix-server-mysql:centos-5.0-latest
   ports:
    - "10051:10051"
   volumes:
@@ -69,7 +69,7 @@ services:
    com.zabbix.os: "centos"
 
  zabbix-proxy-sqlite3:
-  image: zabbix/zabbix-proxy-sqlite3:centos-trunk
+  image: zabbix/zabbix-proxy-sqlite3:centos-5.0-latest
   ports:
    - "10061:10051"
   volumes:
@@ -119,7 +119,7 @@ services:
    com.zabbix.os: "centos"
 
  zabbix-proxy-mysql:
-  image: zabbix/zabbix-proxy-mysql:centos-trunk
+  image: zabbix/zabbix-proxy-mysql:centos-5.0-latest
   ports:
    - "10071:10051"
   volumes:
@@ -178,7 +178,7 @@ services:
    com.zabbix.os: "centos"
 
  zabbix-web-apache-mysql:
-  image: zabbix/zabbix-web-apache-mysql:centos-trunk
+  image: zabbix/zabbix-web-apache-mysql:centos-5.0-latest
   ports:
    - "80:8080"
    - "443:8443"
@@ -235,7 +235,7 @@ services:
    com.zabbix.os: "centos"
 
  zabbix-web-nginx-mysql:
-  image: zabbix/zabbix-web-nginx-mysql:centos-trunk
+  image: zabbix/zabbix-web-nginx-mysql:centos-5.0-latest
   ports:
    - "8081:8080"
    - "8443:8443"
@@ -292,7 +292,7 @@ services:
    com.zabbix.os: "centos"
 
  zabbix-agent:
-  image: zabbix/zabbix-agent:centos-trunk
+  image: zabbix/zabbix-agent:centos-5.0-latest
   ports:
    - "10050:10050"
   volumes:
@@ -331,7 +331,7 @@ services:
    com.zabbix.os: "centos"
 
  zabbix-java-gateway:
-  image: zabbix/zabbix-java-gateway:centos-trunk
+  image: zabbix/zabbix-java-gateway:centos-5.0-latest
   ports:
    - "10052:10052"
   deploy:
@@ -357,7 +357,7 @@ services:
    com.zabbix.os: "centos"
 
  zabbix-snmptraps:
-  image: zabbix/zabbix-snmptraps:centos-trunk
+  image: zabbix/zabbix-snmptraps:centos-5.0-latest
   ports:
    - "162:1162/udp"
   volumes:
