@@ -392,6 +392,9 @@ update_zbx_config() {
     update_config_var $ZBX_CONFIG "TLSCertFile" "${ZBX_TLSCERTFILE}"
     update_config_var $ZBX_CONFIG "TLSKeyFile" "${ZBX_TLSKEYFILE}"
 
+    update_config_var $ZBX_CONFIG "TLSPSKIdentity" "${ZBX_TLSPSKIDENTITY}"
+    update_config_var $ZBX_CONFIG "TLSPSKFile" "${ZBX_TLSPSKFILE}"
+
     if [ "$(id -u)" != '0' ]; then
         update_config_var $ZBX_CONFIG "User" "$(whoami)"
     else

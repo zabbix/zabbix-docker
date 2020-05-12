@@ -370,8 +370,8 @@ update_zbx_config() {
         update_config_var $ZBX_CONFIG "ExportFileSize" "${ZBX_EXPORTFILESIZE}"
     fi
 
-    update_config_var $ZBX_CONFIG "FpingLocation" "/usr/sbin/fping"
-    update_config_var $ZBX_CONFIG "Fping6Location"
+    update_config_var $ZBX_CONFIG "FpingLocation" "/usr/bin/fping"
+    update_config_var $ZBX_CONFIG "Fping6Location" "/usr/bin/fping6"
 
     update_config_var $ZBX_CONFIG "SSHKeyLocation" "$ZABBIX_USER_HOME_DIR/ssh_keys"
     update_config_var $ZBX_CONFIG "LogSlowQueries" "${ZBX_LOGSLOWQUERIES}"
@@ -391,6 +391,9 @@ update_zbx_config() {
 
     update_config_var $ZBX_CONFIG "TLSCertFile" "${ZBX_TLSCERTFILE}"
     update_config_var $ZBX_CONFIG "TLSKeyFile" "${ZBX_TLSKEYFILE}"
+
+    update_config_var $ZBX_CONFIG "TLSPSKIdentity" "${ZBX_TLSPSKIDENTITY}"
+    update_config_var $ZBX_CONFIG "TLSPSKFile" "${ZBX_TLSPSKFILE}"
 
     if [ "$(id -u)" != '0' ]; then
         update_config_var $ZBX_CONFIG "User" "$(whoami)"
