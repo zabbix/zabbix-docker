@@ -26,9 +26,11 @@ These are the only official Zabbix web interface Docker images. They are based o
     Zabbix web interface 4.0.* (tags: alpine-4.0.*, ubuntu-4.0.*, centos-4.0.*)
     Zabbix web interface 4.2 (tags: alpine-4.2-latest, ubuntu-4.2-latest, centos-4.2.*) (unsupported)
     Zabbix web interface 4.2.* (tags: alpine-4.2.*, ubuntu-4.2.*, centos-4.2.*) (unsupported)
-    Zabbix web interface 4.4 (tags: alpine-4.4-latest, ubuntu-4.4-latest, centos-4.4-latest, alpine-latest, ubuntu-latest, centos-latest, latest)
+    Zabbix web interface 4.4 (tags: alpine-4.4-latest, ubuntu-4.4-latest, centos-4.4-latest)
     Zabbix web interface 4.4.* (tags: alpine-4.4.*, ubuntu-4.4.*, centos-4.4.*)
-    Zabbix web interface 5.0 (tags: alpine-trunk, ubuntu-trunk, centos-trunk)
+    Zabbix web interface 5.0 (tags: alpine-5.0-latest, ubuntu-5.0-latest, centos-5.0-latest, alpine-latest, ubuntu-latest, centos-latest, latest)
+    Zabbix web interface 5.0.* (tags: alpine-5.0.*, ubuntu-5.0.*, centos-5.0.*)
+    Zabbix web interface 5.2 (tags: alpine-trunk, ubuntu-trunk, centos-trunk)
 
 Images are updated when new releases are published. The image with ``latest`` tag is based on Alpine Linux.
 
