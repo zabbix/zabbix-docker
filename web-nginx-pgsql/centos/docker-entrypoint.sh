@@ -59,10 +59,6 @@ file_env() {
     unset "$fileVar"
 }
 
-prepare_system() {
-    echo "** Preparing the system"
-}
-
 escape_spec_char() {
     local var_value=$1
 
@@ -224,10 +220,6 @@ prepare_web_server() {
     fi
 }
 
-clear_deploy() {
-    echo "** Cleaning the system"
-}
-
 prepare_zbx_web_config() {
     local server_name=""
 
@@ -262,25 +254,14 @@ prepare_zbx_web_config() {
     "$ZBX_WEB_CONFIG"
 }
 
-prepare_web() {
-    echo "** Preparing Zabbix web-interface"
-
-    check_variables
-    check_db_connect
-    prepare_web_server
-    prepare_zbx_web_config
-}
-
-
 #################################################
 
 echo "** Deploying Zabbix web-interface (Nginx) with PostgreSQL database"
 
-prepare_system
-
-prepare_web
-
-clear_deploy
+check_variables
+check_db_connect
+prepare_web_server
+prepare_zbx_web_config
 
 echo "########################################################"
 
