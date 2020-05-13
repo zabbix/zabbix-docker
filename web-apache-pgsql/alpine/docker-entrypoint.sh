@@ -234,25 +234,14 @@ prepare_zbx_web_config() {
     "$ZBX_WEB_CONFIG"
 }
 
-prepare_web() {
-    echo "** Preparing Zabbix web-interface"
-        
-    check_variables
-    check_db_connect
-    prepare_web_server
-    prepare_zbx_web_config
-}
-
-
 #################################################
 
 echo "** Deploying Zabbix web-interface (Apache) with MySQL database"
 
-prepare_system
-
-prepare_web
-
-clear_deploy
+check_variables
+check_db_connect
+prepare_web_server
+prepare_zbx_web_config
 
 echo "########################################################"
 
