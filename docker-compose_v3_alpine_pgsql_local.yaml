@@ -408,7 +408,7 @@ services:
    com.zabbix.description: "Zabbix snmptraps"
    com.zabbix.company: "Zabbix LLC"
    com.zabbix.component: "snmptraps"
-   com.zabbix.os: "ubuntu"
+   com.zabbix.os: "alpine"
 
  mysql-server:
   image: mysql:8.0
