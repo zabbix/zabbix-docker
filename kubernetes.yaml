@@ -331,7 +331,7 @@ spec:
             mountPath: /var/lib/zabbix/snmptraps/
             readOnly: true
         - name: zabbix-snmptraps
-          image: zabbix/zabbix-snmptraps:ubuntu-4.4-latest
+          image: zabbix/zabbix-snmptraps:alpine-4.4-latest
           imagePullPolicy: Always
           ports:
           - containerPort: 1162
@@ -449,7 +449,7 @@ spec:
           - name: ZBX_TIMEOUT
             value: "5"
 ---
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 kind: DaemonSet
 metadata:
   name: zabbix-agent
