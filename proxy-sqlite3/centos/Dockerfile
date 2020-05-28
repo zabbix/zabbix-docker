@@ -53,7 +53,7 @@ RUN set -eux && \
     rm -rf /etc/udev/hwdb.bin /root/.pki
 
 ARG MAJOR_VERSION=4.4
-ARG ZBX_VERSION=${MAJOR_VERSION}.8
+ARG ZBX_VERSION=${MAJOR_VERSION}.9
 ARG ZBX_SOURCES=https://git.zabbix.com/scm/zbx/zabbix.git
 
 ENV TERM=xterm MIBDIRS=/usr/share/snmp/mibs:/var/lib/zabbix/mibs MIBS=+ALL \
