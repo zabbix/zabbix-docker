@@ -148,7 +148,7 @@ spec:
     spec:
       containers:
         - name: zabbix-web
-          image: zabbix/zabbix-web-nginx-mysql:alpine-3.4-latest
+          image: zabbix/zabbix-web-nginx-mysql:alpine-5.0-latest
           imagePullPolicy: Always
           ports:
           - containerPort: 8080
@@ -282,7 +282,7 @@ spec:
     spec:
       containers:
         - name: zabbix-server
-          image: zabbix/zabbix-server-mysql:alpine-3.4-latest
+          image: zabbix/zabbix-server-mysql:alpine-5.0-latest
           imagePullPolicy: Always
           ports:
           - containerPort: 10051
@@ -331,7 +331,7 @@ spec:
             mountPath: /var/lib/zabbix/snmptraps/
             readOnly: true
         - name: zabbix-snmptraps
-          image: zabbix/zabbix-snmptraps:ubuntu-3.4-latest
+          image: zabbix/zabbix-snmptraps:alpine-5.0-latest
           imagePullPolicy: Always
           ports:
           - containerPort: 1162
@@ -364,7 +364,7 @@ spec:
     spec:
       containers:
         - name: zabbix-proxy-sqlite3
-          image: zabbix/zabbix-proxy-sqlite3:alpine-3.4-latest
+          image: zabbix/zabbix-proxy-sqlite3:alpine-5.0-latest
           imagePullPolicy: Always
           ports:
           - containerPort: 10051
@@ -396,7 +396,7 @@ spec:
     spec:
       containers:
         - name: zabbix-proxy-mysql
-          image: zabbix/zabbix-proxy-mysql:alpine-3.4-latest
+          image: zabbix/zabbix-proxy-mysql:alpine-5.0-latest
           imagePullPolicy: Always
           ports:
           - containerPort: 10051
@@ -439,7 +439,7 @@ spec:
     spec:
       containers:
         - name: zabbix-java-gateway
-          image: zabbix/zabbix-java-gateway:alpine-3.4-latest
+          image: zabbix/zabbix-java-gateway:alpine-5.0-latest
           imagePullPolicy: Always
           ports:
           - containerPort: 10052
@@ -449,7 +449,7 @@ spec:
           - name: ZBX_TIMEOUT
             value: "5"
 ---
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 kind: DaemonSet
 metadata:
   name: zabbix-agent
@@ -470,7 +470,7 @@ spec:
     spec:
       containers:
         - name: zabbix-agent
-          image: zabbix/zabbix-agent:alpine-3.4-latest
+          image: zabbix/zabbix-agent:alpine-5.0-latest
           imagePullPolicy: Always
           resources:
            limits:
