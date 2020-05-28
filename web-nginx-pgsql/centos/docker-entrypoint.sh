@@ -240,6 +240,13 @@ prepare_zbx_web_config() {
     update_config_var "$PHP_CONFIG_FILE" "php_value[max_input_time]" "${ZBX_MAXINPUTTIME:-"300"}"
     update_config_var "$PHP_CONFIG_FILE" "php_value[date.timezone]" "${PHP_TZ}"
 
+    if [ "$(id -u)" == '0' ]; then
+        echo "user = zabbix" >> "$PHP_CONFIG_FILE"
+        echo "group = zabbix" >> "$PHP_CONFIG_FILE"
+        echo "listen.owner = nginx" >> "$PHP_CONFIG_FILE"
+        echo "listen.group = nginx" >> "$PHP_CONFIG_FILE"
+    fi
+
     ZBX_HISTORYSTORAGETYPES=${ZBX_HISTORYSTORAGETYPES:-"[]"}
 
     # Escaping characters in parameter value
