@@ -449,7 +449,7 @@ spec:
           - name: ZBX_TIMEOUT
             value: "5"
 ---
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 kind: DaemonSet
 metadata:
   name: zabbix-agent
