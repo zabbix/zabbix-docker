@@ -331,7 +331,7 @@ spec:
             mountPath: /var/lib/zabbix/snmptraps/
             readOnly: true
         - name: zabbix-snmptraps
-          image: zabbix/zabbix-snmptraps:latest
+          image: zabbix/zabbix-snmptraps:alpine-latest
           imagePullPolicy: Always
           ports:
           - containerPort: 1162
