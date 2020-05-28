@@ -48,6 +48,7 @@ RUN set -eux && \
             make \
             git \
             pcre-dev \
+            openssl-dev \
             zlib-dev \
             coreutils && \
     cd /tmp/ && \
@@ -64,8 +65,8 @@ RUN set -eux && \
             --prefix=/usr \
             --sysconfdir=/etc/zabbix \
             --prefix=/usr \
+            --with-openssl \
             --enable-ipv6 \
-            --enable-static \
             --enable-agent2 \
             --enable-agent \
             --silent && \
