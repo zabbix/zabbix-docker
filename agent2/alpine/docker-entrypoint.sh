@@ -172,8 +172,8 @@ prepare_zbx_agent_config() {
     update_config_var $ZBX_AGENT_CONFIG "TLSPSKIdentity" "${ZBX_TLSPSKIDENTITY}"
     update_config_var $ZBX_AGENT_CONFIG "TLSPSKFile" "${ZBX_TLSPSKFILE}"
 
-    if [ "$(id -u)" != '0' ]; then
-        update_config_var $ZBX_AGENT_CONFIG "User" "$(whoami)"
+    if [ "${PUID}" != '0' ]; then
+        update_config_var $ZBX_AGENT_CONFIG "User" "${PUID}"
     else
         update_config_var $ZBX_AGENT_CONFIG "AllowRoot" "1"
     fi
@@ -182,6 +182,10 @@ prepare_zbx_agent_config() {
 prepare_agent() {
     echo "** Preparing Zabbix agent"
     prepare_zbx_agent_config
+
+    if [ ! -z "${DOCKER_GID}" ] && [ ! $(getent group docker) ]; then
+        addgroup -S -g ${DOCKER_GID} docker
+    fi
 }
 
 #################################################
@@ -194,6 +198,6 @@ if [ "$1" == '/usr/sbin/zabbix_agent2' ]; then
     prepare_agent
 fi
 
-exec "$@"
+su-exec ${PUID} $@
 
 #################################################

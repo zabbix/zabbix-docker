@@ -26,14 +26,15 @@ RUN set -eux && \
             bash \
             pcre \
             coreutils \
-            iputils && \
+            iputils \
+            su-exec && \
     rm -rf /var/cache/apk/*
 
 ARG MAJOR_VERSION=5.0
 ARG ZBX_VERSION=${MAJOR_VERSION}.1
 ARG ZBX_SOURCES=https://git.zabbix.com/scm/zbx/zabbix.git
 
-ENV TERM=xterm ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES}
+ENV TERM=xterm ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES} PUID=1997
 
 LABEL org.opencontainers.image.documentation="https://www.zabbix.com/documentation/${MAJOR_VERSION}/manual/installation/containers" \
       org.opencontainers.image.version="${ZBX_VERSION}" \
@@ -93,7 +94,5 @@ VOLUME ["/var/lib/zabbix/enc"]
 COPY ["docker-entrypoint.sh", "/usr/bin/"]
 
 ENTRYPOINT ["/sbin/tini", "--", "/usr/bin/docker-entrypoint.sh"]
-
-USER 1997
 
 CMD ["/usr/sbin/zabbix_agent2", "--foreground", "-c", "/etc/zabbix/zabbix_agent2.conf"]
