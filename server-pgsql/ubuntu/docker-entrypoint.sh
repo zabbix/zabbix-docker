@@ -188,7 +188,7 @@ check_db_connect_postgresql() {
         ssl_opts="sslmode=$dbtlsconnect sslrootcert=${ZBX_DBTLSCAFILE} sslcert=${ZBX_DBTLSCERTFILE} sslkey=${ZBX_DBTLSKEYFILE}"
     fi
 
-    while [ ! "$(psql "$ssl_opts" -h ${DB_SERVER_HOST} -p ${DB_SERVER_PORT} -U ${DB_SERVER_ROOT_USER} -d ${DB_SERVER_DBNAME} -l -q 2>/dev/null)" ]; do
+    while [ ! "$(psql "$ssl_opts" -h ${DB_SERVER_HOST} -p ${DB_SERVER_PORT} -U ${DB_SERVER_ROOT_USER} -l -q 2>/dev/null)" ]; do
         echo "**** PostgreSQL server is not available. Waiting $WAIT_TIMEOUT seconds..."
         sleep $WAIT_TIMEOUT
     done
