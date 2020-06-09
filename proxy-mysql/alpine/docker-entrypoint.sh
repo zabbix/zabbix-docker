@@ -20,6 +20,8 @@ ZABBIX_USER_HOME_DIR="/var/lib/zabbix"
 # Configuration files directory
 ZABBIX_ETC_DIR="/etc/zabbix"
 
+NGINX_ACCESS_LOG=${NGINX_ACCESS_LOG:-"/dev/fd/1 main"}
+
 # usage: file_env VAR [DEFAULT]
 # as example: file_env 'MYSQL_PASSWORD' 'zabbix'
 #    (will allow for "$MYSQL_PASSWORD_FILE" to fill in the value of "$MYSQL_PASSWORD" from a file)
