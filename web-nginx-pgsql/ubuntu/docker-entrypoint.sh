@@ -28,6 +28,8 @@ ZABBIX_ETC_DIR="/etc/zabbix"
 # Web interface www-root directory
 ZBX_FRONTEND_PATH="/usr/share/zabbix"
 
+NGINX_ACCESS_LOG=${NGINX_ACCESS_LOG:-"/dev/fd/1 main"}
+
 # usage: file_env VAR [DEFAULT]
 # as example: file_env 'MYSQL_PASSWORD' 'zabbix'
 #    (will allow for "$MYSQL_PASSWORD_FILE" to fill in the value of "$MYSQL_PASSWORD" from a file)
@@ -217,6 +219,18 @@ prepare_web_server() {
         fi
     else
         echo "**** Impossible to enable SSL support for Nginx. Certificates are missed."
+    fi
+
+    if [ -f "$ZABBIX_ETC_DIR/nginx.conf" ]; then
+        sed -i \
+            -e "s|{NGINX_ACCESS_LOG}|${NGINX_ACCESS_LOG}|g" \
+        "$ZABBIX_ETC_DIR/nginx.conf"
+    fi
+
+    if [ -f "$ZABBIX_ETC_DIR/nginx_ssl.conf" ]; then
+        sed -i \
+            -e "s|{NGINX_ACCESS_LOG}|${NGINX_ACCESS_LOG}|g" \
+        "$ZABBIX_ETC_DIR/nginx_ssl.conf"
     fi
 }
 
