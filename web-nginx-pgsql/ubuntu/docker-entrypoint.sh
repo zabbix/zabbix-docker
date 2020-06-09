@@ -31,6 +31,7 @@ ZABBIX_ETC_DIR="/etc/zabbix"
 # Web interface www-root directory
 ZBX_FRONTEND_PATH="/usr/share/zabbix"
 
+# Nginx access log directive
 NGINX_ACCESS_LOG=${NGINX_ACCESS_LOG:-"/dev/fd/1 main"}
 
 # usage: file_env VAR [DEFAULT]

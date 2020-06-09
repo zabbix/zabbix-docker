@@ -158,6 +158,11 @@ The varable is PHP ``max_input_time`` option. By default, value is `300`.
                                                                                                
 The variable is Zabbix frontend [definition](https://www.zabbix.com/documentation/4.2/manual/web_interface/definitions). String used as the name of the Zabbix frontend session cookie. By default, value is `zbx_sessionid`.
 
+### `NGINX_ACCESS_LOG`
+
+The variable sets the access_log directive for zabbix nginx server. By default, value is `/dev/fd/1 main`.
+To disable nginx access_log set the variable to `off`.
+
 ## Allowed volumes for the Zabbix web interface container
 
 ### ``/etc/ssl/nginx``
