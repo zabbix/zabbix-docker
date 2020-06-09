@@ -228,6 +228,18 @@ prepare_web_server() {
     else
         echo "**** Impossible to enable SSL support for Nginx. Certificates are missed."
     fi
+
+    if [ -f "$ZABBIX_ETC_DIR/nginx.conf" ]; then
+        sed -i \
+            -e "s|{NGINX_ACCESS_LOG}|${NGINX_ACCESS_LOG}|g" \
+        "$ZABBIX_ETC_DIR/nginx.conf"
+    fi
+
+    if [ -f "$ZABBIX_ETC_DIR/nginx_ssl.conf" ]; then
+        sed -i \
+            -e "s|{NGINX_ACCESS_LOG}|${NGINX_ACCESS_LOG}|g" \
+        "$ZABBIX_ETC_DIR/nginx_ssl.conf"
+    fi
 }
 
 clear_deploy() {
