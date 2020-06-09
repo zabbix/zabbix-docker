@@ -154,6 +154,11 @@ The varable is PHP ``upload_max_filesize`` option. By default, value is `2M`.
 
 The varable is PHP ``max_input_time`` option. By default, value is `300`.
 
+### `NGINX_ACCESS_LOG`
+
+The variable sets the access_log directive for zabbix nginx server. By default, value is `/dev/fd/1 main`.
+To disable nginx access_log set the variable to `off`.
+
 ## Allowed volumes for the Zabbix web interface container
 
 ### ``/etc/ssl/nginx``
