@@ -10,6 +10,8 @@ LABEL org.opencontainers.image.title="Zabbix web-interface (Apache, MySQL)" \
 STOPSIGNAL SIGTERM
 
 RUN set -eux && \
+    mkdir ~/.gnupg && \
+    echo "disable-ipv6" >> ~/.gnupg/dirmgr.conf && \
     echo "#!/bin/sh\nexit 0" > /usr/sbin/policy-rc.d && \
     addgroup --system --gid 1995 --quiet zabbix && \
     adduser --quiet \
