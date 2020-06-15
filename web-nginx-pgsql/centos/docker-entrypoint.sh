@@ -225,16 +225,28 @@ prepare_web_server() {
         echo "**** Impossible to enable SSL support for Nginx. Certificates are missed."
     fi
 
-    if [ -f "$ZABBIX_ETC_DIR/nginx.conf" ] && [ "${NGINX_ACCESS_LOG}" == "true" ]; then
-        sed -i \
-            -e "s|{NGINX_ACCESS_LOG}|/dev/fd/1 main|g" \
-        "$ZABBIX_ETC_DIR/nginx.conf"
+    if [ -f "$ZABBIX_ETC_DIR/nginx.conf" ]; then
+        if [ "${NGINX_ACCESS_LOG}" == "true" ]; then
+            sed -i \
+                -e "s|{NGINX_ACCESS_LOG}|/dev/fd/1 main;|g" \
+            "$ZABBIX_ETC_DIR/nginx.conf"
+        else
+            sed -i \
+                -e "s|{NGINX_ACCESS_LOG}|off;|g" \
+            "$ZABBIX_ETC_DIR/nginx.conf"
+        fi
     fi
 
-    if [ -f "$ZABBIX_ETC_DIR/nginx_ssl.conf" ] && [ "${NGINX_ACCESS_LOG}" == "true" ]; then
-        sed -i \
-            -e "s|{NGINX_ACCESS_LOG}|/dev/fd/1 main|g" \
-        "$ZABBIX_ETC_DIR/nginx_ssl.conf"
+    if [ -f "$ZABBIX_ETC_DIR/nginx_ssl.conf" ]; then
+        if [ "${NGINX_ACCESS_LOG}" == "true" ]; then
+            sed -i \
+                -e "s|{NGINX_ACCESS_LOG}|/dev/fd/1 main;|g" \
+            "$ZABBIX_ETC_DIR/nginx.conf"
+        else
+            sed -i \
+                -e "s|{NGINX_ACCESS_LOG}|off;|g" \
+            "$ZABBIX_ETC_DIR/nginx.conf"
+        fi
     fi
 }
 
