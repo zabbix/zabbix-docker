@@ -188,7 +188,7 @@ check_db_connect_postgresql() {
         ssl_opts="sslmode=$dbtlsconnect sslrootcert=${ZBX_DBTLSCAFILE} sslcert=${ZBX_DBTLSCERTFILE} sslkey=${ZBX_DBTLSKEYFILE}"
     fi
 
-    while [ ! "$(psql "$ssl_opts" -h ${DB_SERVER_HOST} -p ${DB_SERVER_PORT} -U ${DB_SERVER_ROOT_USER} -l -q 2>/dev/null)" ]; do
+    while [ ! "$(psql "$ssl_opts" -h ${DB_SERVER_HOST} -p ${DB_SERVER_PORT} -U ${DB_SERVER_ROOT_USER} -d ${DB_SERVER_DBNAME} -l -q 2>/dev/null)" ]; do
         echo "**** PostgreSQL server is not available. Waiting $WAIT_TIMEOUT seconds..."
         sleep $WAIT_TIMEOUT
     done
@@ -218,7 +218,7 @@ psql_query() {
     fi
 
     result=$(psql -A -q -t "$ssl_opts" -h ${DB_SERVER_HOST} -p ${DB_SERVER_PORT} \
-             -U ${DB_SERVER_ROOT_USER} -c "$query" -d $db 2>/dev/null);
+             -U ${DB_SERVER_ROOT_USER} -c "$query" $db 2>/dev/null);
 
     unset PGPASSWORD
     unset PGOPTIONS
@@ -285,12 +285,12 @@ create_db_schema_postgresql() {
 
         zcat /usr/share/doc/zabbix-server-postgresql/create.sql.gz | psql "$ssl_opts" -q \
                 -h ${DB_SERVER_HOST} -p ${DB_SERVER_PORT} \
-                -U ${DB_SERVER_ZBX_USER} -d ${DB_SERVER_DBNAME} 1>/dev/null
+                -U ${DB_SERVER_ZBX_USER} ${DB_SERVER_DBNAME} 1>/dev/null
 
         if [ "${ENABLE_TIMESCALEDB}" == "true" ]; then
             cat /usr/share/doc/zabbix-server-postgresql/timescaledb.sql | psql "$ssl_opts" -q \
                 -h ${DB_SERVER_HOST} -p ${DB_SERVER_PORT} \
-                -U ${DB_SERVER_ZBX_USER} -d ${DB_SERVER_DBNAME} 1>/dev/null
+                -U ${DB_SERVER_ZBX_USER} ${DB_SERVER_DBNAME} 1>/dev/null
         fi
 
         unset PGPASSWORD
