@@ -232,11 +232,11 @@ prepare_web_server() {
     if [ -f "$ZABBIX_ETC_DIR/nginx.conf" ]; then
         if [ "${NGINX_ACCESS_LOG}" == "true" ]; then
             sed -i \
-                -e "s|{NGINX_ACCESS_LOG}|/dev/fd/1 main;|g" \
+                -e "s|{NGINX_ACCESS_LOG}|/dev/fd/1 main|g" \
             "$ZABBIX_ETC_DIR/nginx.conf"
         else
             sed -i \
-                -e "s|{NGINX_ACCESS_LOG}|off;|g" \
+                -e "s|{NGINX_ACCESS_LOG}|off|g" \
             "$ZABBIX_ETC_DIR/nginx.conf"
         fi
     fi
@@ -244,11 +244,11 @@ prepare_web_server() {
     if [ -f "$ZABBIX_ETC_DIR/nginx_ssl.conf" ]; then
         if [ "${NGINX_ACCESS_LOG}" == "true" ]; then
             sed -i \
-                -e "s|{NGINX_ACCESS_LOG}|/dev/fd/1 main;|g" \
+                -e "s|{NGINX_ACCESS_LOG}|/dev/fd/1 main|g" \
             "$ZABBIX_ETC_DIR/nginx.conf"
         else
             sed -i \
-                -e "s|{NGINX_ACCESS_LOG}|off;|g" \
+                -e "s|{NGINX_ACCESS_LOG}|off|g" \
             "$ZABBIX_ETC_DIR/nginx.conf"
         fi
     fi
