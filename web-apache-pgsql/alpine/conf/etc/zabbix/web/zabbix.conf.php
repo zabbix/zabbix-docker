@@ -27,7 +27,7 @@ $DB['CIPHER_LIST']		= '{ZBX_DB_CIPHER_LIST}';
 // Use IEEE754 compatible value range for 64-bit Numeric (float) history values.
 // This option is enabled by default for new Zabbix installations.
 // For upgraded installations, please read database upgrade notes before enabling this option.
-$DB['DOUBLE_IEEE754']	= true;
+$DB['DOUBLE_IEEE754']	= {DB_DOUBLE_IEEE754};
 
 
 $IMAGE_FORMAT_DEFAULT	= IMAGE_FORMAT_PNG;

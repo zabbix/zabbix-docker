@@ -173,6 +173,8 @@ check_variables() {
     DB_SERVER_ZBX_PASS=${MYSQL_PASSWORD:-"zabbix"}
 
     DB_SERVER_DBNAME=${MYSQL_DATABASE:-"zabbix"}
+    
+    DB_DOUBLE_IEEE754=${DB_DOUBLE_IEEE754:-true}
 }
 
 check_db_connect() {

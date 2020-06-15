@@ -157,6 +157,8 @@ check_variables() {
     : ${DB_SERVER_SCHEMA:="public"}
 
     DB_SERVER_DBNAME=${POSTGRES_DB:-"zabbix"}
+
+    DB_DOUBLE_IEEE754=${DB_DOUBLE_IEEE754:-true}
 }
 
 check_db_connect() {
