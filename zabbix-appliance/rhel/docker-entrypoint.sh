@@ -186,7 +186,13 @@ update_config_var() {
         return
     fi
 
-    echo -n "** Updating '$config_path' parameter \"$var_name\": '$var_value'... "
+    local masklist=("DBPassword TLSPSKIdentity")
+
+    if [[ " ${masklist[@]} " =~ " $var_name " ]]; then
+        echo -n "** Updating '$config_path' parameter \"$var_name\": enable DEBUG_MODE to view ... "
+    else
+        echo -n "** Updating '$config_path' parameter \"$var_name\": '$var_value'... "
+    fi
 
     # Remove configuration parameter definition in case of unset parameter value
     if [ -z "$var_value" ]; then
