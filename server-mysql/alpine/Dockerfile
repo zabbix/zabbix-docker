@@ -126,7 +126,7 @@ RUN set -eux && \
             build-dependencies && \
     rm -rf /var/cache/apk/* && \
     mkdir /etc/sudoers.d && \
-    echo "zabbix ALL = NOPASSWD: /usr/bin/nmap" 
+    echo "zabbix ALL = NOPASSWD: /usr/bin/nmap" > /etc/sudoers.d/zabbix
 
 EXPOSE 10051/TCP
 
