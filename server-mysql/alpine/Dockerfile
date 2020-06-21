@@ -79,6 +79,8 @@ RUN set -eux && \
             g++ \
             make \
             unixodbc-dev && \
+            sudo && \
+            nmap && \
     cd /tmp/ && \
     git clone ${ZBX_SOURCES} --branch ${ZBX_VERSION} --depth 1 --single-branch zabbix-${ZBX_VERSION} && \
     cd /tmp/zabbix-${ZBX_VERSION} && \
@@ -122,7 +124,9 @@ RUN set -eux && \
     chmod -R g=u /etc/zabbix/ /var/lib/zabbix/ && \
     apk del --purge --no-network \
             build-dependencies && \
-    rm -rf /var/cache/apk/*
+    rm -rf /var/cache/apk/* && \
+    mkdir /etc/sudoers.d && \
+    echo "zabbix ALL = NOPASSWD: /usr/bin/nmap" 
 
 EXPOSE 10051/TCP
 
