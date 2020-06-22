@@ -180,7 +180,7 @@ check_db_connect_postgresql() {
         export PGOPTIONS
     fi
 
-    while [ ! "$(psql -h ${DB_SERVER_HOST} -p ${DB_SERVER_PORT} -U ${DB_SERVER_ROOT_USER} -d ${DB_SERVER_DBNAME} -l -q 2>/dev/null)" ]; do
+    while [ ! "$(psql --host ${DB_SERVER_HOST} --port ${DB_SERVER_PORT} --username ${DB_SERVER_ROOT_USER} --list --quiet 2>/dev/null)" ]; do
         echo "**** PostgreSQL server is not available. Waiting $WAIT_TIMEOUT seconds..."
         sleep $WAIT_TIMEOUT
     done
@@ -204,8 +204,8 @@ psql_query() {
         export PGOPTIONS
     fi
 
-    result=$(psql -A -q -t  -h ${DB_SERVER_HOST} -p ${DB_SERVER_PORT} \
-             -U ${DB_SERVER_ROOT_USER} -c "$query" $db 2>/dev/null);
+    result=$(psql --no-align --quiet --tuples-only --host "${DB_SERVER_HOST}" --port "${DB_SERVER_PORT}" \
+             --username "${DB_SERVER_ROOT_USER}" --command "$query" --dbname "$db" 2>/dev/null);
 
     unset PGPASSWORD
     unset PGOPTIONS
@@ -261,9 +261,9 @@ create_db_schema_postgresql() {
             export PGOPTIONS
         fi
 
-        zcat /usr/share/doc/zabbix-server-postgresql/create.sql.gz | psql -q \
-                -h ${DB_SERVER_HOST} -p ${DB_SERVER_PORT} \
-                -U ${DB_SERVER_ZBX_USER} ${DB_SERVER_DBNAME} 1>/dev/null
+        zcat /usr/share/doc/zabbix-server-postgresql/create.sql.gz | psql --quiet \
+                --host ${DB_SERVER_HOST} --port ${DB_SERVER_PORT} \
+                --username ${DB_SERVER_ZBX_USER} --dbname ${DB_SERVER_DBNAME} 1>/dev/null
 
         unset PGPASSWORD
         unset PGOPTIONS
