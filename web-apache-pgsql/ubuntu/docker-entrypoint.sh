@@ -237,7 +237,7 @@ prepare_zbx_web_config() {
 
 #################################################
 
-echo "** Deploying Zabbix web-interface (Apache) with MySQL database"
+echo "** Deploying Zabbix web-interface (Apache) with PostgreSQL database"
 
 check_variables
 check_db_connect
