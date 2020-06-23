@@ -76,7 +76,7 @@ update_config_var() {
         return
     fi
 
-    if [[ " ${masklist[@]} " =~ " $var_name " ]] && [ ! -z "$var_value" ]; then
+    if [[ " ${masklist[@]} " =~ " $var_name " ]]; then
         echo -n "** Updating '$config_path' parameter \"$var_name\": '****'. Enable DEBUG_MODE to view value ..."
     else
         echo -n "** Updating '$config_path' parameter \"$var_name\": '$var_value'..."
