@@ -346,7 +346,7 @@ services:
   build: ./snmptraps/ubuntu
   image: zabbix-snmptraps:ubuntu-local
   ports:
-   - "162:162/udp"
+   - "162:1162/udp"
   volumes:
    - ./zbx_env/var/lib/zabbix/snmptraps:/var/lib/zabbix/snmptraps:rw
   deploy:
