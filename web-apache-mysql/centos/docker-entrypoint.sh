@@ -252,6 +252,7 @@ prepare_zbx_web_config() {
         -e "s/{ZBX_DB_CA_FILE}/${ZBX_DB_CA_FILE}/g" \
         -e "s/{ZBX_DB_VERIFY_HOST}/${ZBX_DB_VERIFY_HOST:-"false"}/g" \
         -e "s/{ZBX_DB_CIPHER_LIST}/${ZBX_DB_CIPHER_LIST}/g" \
+        -e "s/{DB_DOUBLE_IEEE754}/${DB_DOUBLE_IEEE754:-"true"}/g" \
         -e "s/{ZBX_HISTORYSTORAGEURL}/$history_storage_url/g" \
         -e "s/{ZBX_HISTORYSTORAGETYPES}/$history_storage_types/g" \
     "$ZBX_WEB_CONFIG"
