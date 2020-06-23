@@ -44,12 +44,18 @@ update_config_var() {
     local var_value=$3
     local is_multiple=$4
 
+    local masklist=("TLSPSKIdentity")
+
     if [ ! -f "$config_path" ]; then
         echo "**** Configuration file '$config_path' does not exist"
         return
     fi
 
-    echo -n "** Updating '$config_path' parameter \"$var_name\": '$var_value'... "
+    if [[ " ${masklist[@]} " =~ " $var_name " ]] && [ ! -z "$var_value" ]; then
+        echo -n "** Updating '$config_path' parameter \"$var_name\": '****'. Enable DEBUG_MODE to view value ..."
+    else
+        echo -n "** Updating '$config_path' parameter \"$var_name\": '$var_value'..."
+    fi
 
     # Remove configuration parameter definition in case of unset parameter value
     if [ -z "$var_value" ]; then
