@@ -14,7 +14,7 @@ services:
    - ./zbx_env/var/lib/zabbix/enc:/var/lib/zabbix/enc:ro
    - ./zbx_env/var/lib/zabbix/ssh_keys:/var/lib/zabbix/ssh_keys:ro
    - ./zbx_env/var/lib/zabbix/mibs:/var/lib/zabbix/mibs:ro
-   - ./zbx_env/var/lib/zabbix/snmptraps:/var/lib/zabbix/snmptraps:ro
+   - snmptraps:/var/lib/zabbix/snmptraps:rw
   links:
    - mysql-server:mysql-server
    - zabbix-java-gateway:zabbix-java-gateway
@@ -80,7 +80,7 @@ services:
    - ./zbx_env/var/lib/zabbix/enc:/var/lib/zabbix/enc:ro
    - ./zbx_env/var/lib/zabbix/ssh_keys:/var/lib/zabbix/ssh_keys:ro
    - ./zbx_env/var/lib/zabbix/mibs:/var/lib/zabbix/mibs:ro
-   - ./zbx_env/var/lib/zabbix/snmptraps:/var/lib/zabbix/snmptraps:ro
+   - snmptraps:/var/lib/zabbix/snmptraps:rw
   links:
    - zabbix-server:zabbix-server
    - zabbix-java-gateway:zabbix-java-gateway
@@ -130,7 +130,7 @@ services:
    - ./zbx_env/var/lib/zabbix/enc:/var/lib/zabbix/enc:ro
    - ./zbx_env/var/lib/zabbix/ssh_keys:/var/lib/zabbix/ssh_keys:ro
    - ./zbx_env/var/lib/zabbix/mibs:/var/lib/zabbix/mibs:ro
-   - ./zbx_env/var/lib/zabbix/snmptraps:/var/lib/zabbix/snmptraps:ro
+   - snmptraps:/var/lib/zabbix/snmptraps:rw
   links:
    - zabbix-server:zabbix-server
    - zabbix-java-gateway:zabbix-java-gateway
@@ -361,7 +361,7 @@ services:
   ports:
    - "162:1162/udp"
   volumes:
-   - ./zbx_env/var/lib/zabbix/snmptraps:/var/lib/zabbix/snmptraps:rw
+   - snmptraps:/var/lib/zabbix/snmptraps:rw
   deploy:
    resources:
     limits:
@@ -445,6 +445,9 @@ networks:
       driver: default
       config:
       - subnet: 172.16.239.0/24
+
+volumes:
+  snmptraps:
 
 secrets:
   MYSQL_USER:
