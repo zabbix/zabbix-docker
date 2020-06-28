@@ -266,11 +266,20 @@ prepare_zbx_web_config() {
         sed "/ZBX_SESSION_NAME/s/'[^']*'/'${ZBX_SESSION_NAME}'/2" "/tmp/defines.inc.php_tmp" > "$ZBX_WWW_ROOT/include/defines.inc.php"
         rm -f "/tmp/defines.inc.php_tmp"
     fi
+
+    if [ "${ENABLE_WEB_ACCESS_LOG:-"true"}" == "false" ]; then
+        sed -ri \
+            -e 's!^(\s*CustomLog)\s+\S+!\1 /dev/null!g' \
+            "/etc/apache2/apache2.conf"
+        sed -ri \
+            -e 's!^(\s*CustomLog)\s+\S+!\1 /dev/null!g' \
+            "/etc/apache2/conf-available/other-vhosts-access-log.conf"
+    fi
 }
 
 #################################################
 
-echo "** Deploying Zabbix web-interface (Apache) with MySQL database"
+echo "** Deploying Zabbix web-interface (Apache) with PostgreSQL database"
 
 check_variables
 check_db_connect
