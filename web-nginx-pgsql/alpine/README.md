@@ -136,6 +136,10 @@ The variable is visible Zabbix installation name in right top corner of the web 
 
 Use IEEE754 compatible value range for 64-bit Numeric (float) history values. Available since 5.0.0. Enabled by default.
 
+### `ENABLE_WEB_ACCESS_LOG`
+
+The variable sets the Access Log directive for Web-server. By default, value corresponds to standard output.
+
 ### `ZBX_MAXEXECUTIONTIME`
 
 The varable is PHP ``max_execution_time`` option. By default, value is `300`.
