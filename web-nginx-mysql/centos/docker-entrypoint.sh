@@ -259,6 +259,18 @@ prepare_zbx_web_config() {
         -e "s/{ZBX_SERVER_PORT}/${ZBX_SERVER_PORT}/g" \
         -e "s/{ZBX_SERVER_NAME}/$server_name/g" \
     "$ZBX_WEB_CONFIG"
+
+    if [ "${ENABLE_WEB_ACCESS_LOG:-"true"}" == "false" ]; then
+        sed -ri \
+            -e 's!^(\s*access_log).+\;!\1 off\;!g' \
+            "/etc/nginx/nginx.conf"
+        sed -ri \
+            -e 's!^(\s*access_log).+\;!\1 off\;!g' \
+            "/etc/zabbix/nginx.conf"
+        sed -ri \
+            -e 's!^(\s*access_log).+\;!\1 off\;!g' \
+            "/etc/zabbix/nginx_ssl.conf"
+    fi
 }
 
 #################################################
