@@ -233,6 +233,15 @@ prepare_zbx_web_config() {
         -e "s/{ZBX_SERVER_PORT}/${ZBX_SERVER_PORT}/g" \
         -e "s/{ZBX_SERVER_NAME}/$server_name/g" \
     "$ZBX_WEB_CONFIG"
+
+    if [ "${ENABLE_WEB_ACCESS_LOG:-"true"}" == "false" ]; then
+        sed -ri \
+            -e 's!^(\s*CustomLog)\s+\S+!\1 /dev/null!g' \
+            "/etc/apache2/apache2.conf"
+        sed -ri \
+            -e 's!^(\s*CustomLog)\s+\S+!\1 /dev/null!g' \
+            "/etc/apache2/conf-available/other-vhosts-access-log.conf"
+    fi
 }
 
 #################################################
