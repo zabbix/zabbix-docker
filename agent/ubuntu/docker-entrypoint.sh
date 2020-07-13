@@ -86,9 +86,12 @@ update_config_var() {
     elif [ "$(grep -Ec "^# $var_name=" $config_path)" -gt 1 ]; then
         sed -i -e  "/^[#;] $var_name=$/i\\$var_name=$var_value" "$config_path"
         echo "added first occurrence"
-    else
+    elif [ "$(grep -Ec "^[#;] $var_name=" $config_path)" -gt 0 ]; then
         sed -i -e "/^[#;] $var_name=/s/.*/&\n$var_name=$var_value/" "$config_path"
         echo "added"
+    else
+        sed -i -e '$a\' -e "$var_name=$var_value" "$config_path"
+        echo "added at the end"
     fi
 
 }
@@ -130,7 +133,6 @@ prepare_zbx_agent_config() {
     update_config_var $ZBX_AGENT_CONFIG "LogFileSize"
     update_config_var $ZBX_AGENT_CONFIG "DebugLevel" "${ZBX_DEBUGLEVEL}"
     update_config_var $ZBX_AGENT_CONFIG "SourceIP"
-    update_config_var $ZBX_AGENT_CONFIG "EnableRemoteCommands" "${ZBX_ENABLEREMOTECOMMANDS}"
     update_config_var $ZBX_AGENT_CONFIG "LogRemoteCommands" "${ZBX_LOGREMOTECOMMANDS}"
 
     : ${ZBX_PASSIVE_ALLOW:="true"}
@@ -181,6 +183,9 @@ prepare_zbx_agent_config() {
     update_config_var $ZBX_AGENT_CONFIG "TLSKeyFile" "${ZBX_TLSKEYFILE}"
     update_config_var $ZBX_AGENT_CONFIG "TLSPSKIdentity" "${ZBX_TLSPSKIDENTITY}"
     update_config_var $ZBX_AGENT_CONFIG "TLSPSKFile" "${ZBX_TLSPSKFILE}"
+
+    update_config_multiple_var $ZBX_AGENT_CONFIG "DenyKey" "${ZBX_DENYKEY}"
+    update_config_multiple_var $ZBX_AGENT_CONFIG "AllowKey" "${ZBX_ALLOWKEY}"
 
     if [ "$(id -u)" != '0' ]; then
         update_config_var $ZBX_AGENT_CONFIG "User" "$(whoami)"
