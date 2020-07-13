@@ -137,7 +137,7 @@ Additionally the image allows to specify many other environment variables listed
 
 ```
 ZBX_SOURCEIP=
-ZBX_ENABLEREMOTECOMMANDS=0
+ZBX_ENABLEREMOTECOMMANDS=0 # Deprecated since 5.0.0
 ZBX_LOGREMOTECOMMANDS=0
 ZBX_HOSTINTERFACE= # Available since 4.4.0
 ZBX_HOSTINTERFACEITEM= # Available since 4.4.0
@@ -161,6 +161,8 @@ ZBX_TLSCERTFILE=
 ZBX_TLSKEYFILE=
 ZBX_TLSPSKIDENTITY=
 ZBX_TLSPSKFILE=
+ZBX_DENYKEY=system.run[*] # Available since 5.0.0
+ZBX_ALLOWKEY= # Available since 5.0.0
 ```
 
 Default values of these variables are specified after equal sign.
