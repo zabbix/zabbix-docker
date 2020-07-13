@@ -71,7 +71,7 @@ EXPOSE 1162/UDP
 
 WORKDIR /var/lib/zabbix/snmptraps/
 
-VOLUME ["/var/lib/zabbix/snmptraps", "/var/lib/zabbix/mibs"]
+VOLUME ["/var/lib/zabbix/snmptraps"]
 
 COPY ["conf/etc/supervisor/", "/etc/supervisor/"]
 COPY ["conf/etc/logrotate.d/zabbix_snmptraps", "/etc/logrotate.d/"]
