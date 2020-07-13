@@ -120,8 +120,6 @@ EXPOSE 8080/TCP 8443/TCP
 
 WORKDIR /usr/share/zabbix
 
-VOLUME ["/etc/ssl/nginx"]
-
 COPY ["docker-entrypoint.sh", "/usr/bin/"]
 
 USER 1997

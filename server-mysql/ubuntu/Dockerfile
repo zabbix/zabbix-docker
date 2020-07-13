@@ -163,8 +163,7 @@ EXPOSE 10051/TCP
 
 WORKDIR /var/lib/zabbix
 
-VOLUME ["/usr/lib/zabbix/alertscripts", "/usr/lib/zabbix/externalscripts", "/var/lib/zabbix/enc", "/var/lib/zabbix/mibs", "/var/lib/zabbix/modules"]
-VOLUME ["/var/lib/zabbix/snmptraps", "/var/lib/zabbix/ssh_keys", "/var/lib/zabbix/ssl/certs", "/var/lib/zabbix/ssl/keys", "/var/lib/zabbix/ssl/ssl_ca"]
+VOLUME ["/var/lib/zabbix/snmptraps"]
 
 COPY ["docker-entrypoint.sh", "/usr/bin/"]
 
