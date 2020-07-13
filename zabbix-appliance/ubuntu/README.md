@@ -10,6 +10,9 @@ For more information and related downloads for Zabbix components, please visit h
 
 # What is Zabbix appliance?
 
+> **Important information:_**
+Zabbix Docker Appliance image has been decommissioned and will not be available for [3.0.31](https://www.zabbix.com/documentation/3.0/manual/installation/upgrade_notes_3031), [4.0.19](https://www.zabbix.com/documentation/4.0/manual/installation/upgrade_notes_4020), 4.4.7, 5.0.0 and newer releases. Please use a separate Docker image for each component instead of the all-in-one solution.
+
 Zabbix appliance contains MySQL database server, Zabbix server, Zabbix Java Gateway and Zabbix frontend based on Nginx web-server.
 
 # Zabbix appliance images
