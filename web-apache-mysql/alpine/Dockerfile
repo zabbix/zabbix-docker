@@ -94,8 +94,6 @@ EXPOSE 8080/TCP 8443/TCP
 
 WORKDIR /usr/share/zabbix
 
-VOLUME ["/etc/ssl/apache2", "/usr/share/zabbix/modules/"]
-
 COPY ["docker-entrypoint.sh", "/usr/bin/"]
 
 USER 1997
