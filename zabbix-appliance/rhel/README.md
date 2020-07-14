@@ -14,23 +14,12 @@ Zabbix appliance contains MySQL database server, Zabbix server, Zabbix Java Gate
 
 # Zabbix appliance images
 
-These are the only official Zabbix appliance Docker images. They are based on Alpine Linux v3.4, Ubuntu 18.04 (bionic), CentOS 7 and Red Hat Enterprise Linux 7 images. The available versions of Zabbix appliance are:
+These are the only official Zabbix appliance Docker images. They are based on Red Hat Enterprise Linux 8 images. The available versions of Zabbix appliance are:
 
-    Zabbix appliance 3.0 (tags: alpine-3.0-latest, ubuntu-3.0-latest, centos-3.0-latest)
-    Zabbix appliance 3.0.* (tags: alpine-3.0.*, ubuntu-3.0.*, centos-3.0.*)
-    Zabbix appliance 3.2 (tags: alpine-3.2-latest, ubuntu-3.2-latest, centos-3.2.*) (unsupported)
-    Zabbix appliance 3.2.* (tags: alpine-3.2.*, ubuntu-3.2.*, centos-3.2.*) (unsupported)
-    Zabbix appliance 3.4 (tags: alpine-3.4-latest, ubuntu-3.4-latest, centos-3.4.*) (unsupported)
-    Zabbix appliance 3.4.* (tags: alpine-3.4.*, ubuntu-3.4.*, centos-3.4.*) (unsupported)
-    Zabbix appliance 4.0 (tags: alpine-4.0-latest, ubuntu-4.0-latest, centos-4.0-latest)
-    Zabbix appliance 4.0.* (tags: alpine-4.0.*, ubuntu-4.0.*, centos-4.0.*)
-    Zabbix appliance 4.2 (tags: alpine-4.2-latest, ubuntu-4.2-latest, centos-4.2.*) (unsupported)
-    Zabbix appliance 4.2.* (tags: alpine-4.2.*, ubuntu-4.2.*, centos-4.2.*) (unsupported)
-    Zabbix appliance 4.4 (tags: alpine-4.4-latest, ubuntu-4.4-latest, centos-4.4-latest, alpine-latest, ubuntu-latest, centos-latest, latest)
-    Zabbix appliance 4.4.* (tags: alpine-4.4.*, ubuntu-4.4.*, centos-4.4.*)
-    Zabbix appliance 5.0 (tags: alpine-trunk, ubuntu-trunk, centos-trunk)
+    Zabbix appliance 4.4
+    Zabbix appliance 5.0
 
-Images are updated when new releases are published. The image with ``latest`` tag is based on Alpine Linux.
+Images are updated when new releases are published. The image with ``latest`` tag is based on Red Hat Enterprise Linux 8.
 
 The image uses MySQL database. The image is very useful for testing purposes.
 
@@ -40,7 +29,7 @@ The image uses MySQL database. The image is very useful for testing purposes.
 
 Start a Zabbix server container as follows:
 
-    docker run --name some-zabbix-appliance -p 80:80 -p 10051:10051 -d registry.connect.redhat.com/zabbix/zabbix-appliance:tag
+    docker run --name some-zabbix-appliance -p 80:8080 -p 10051:10051 -d registry.connect.redhat.com/zabbix/zabbix-appliance:tag
 
 Where `some-zabbix-appliance` is the name you want to assign to your container. See the list above for relevant tags, or look at the [full list of tags](https://access.redhat.com/containers/?tab=tags&platform=docker#/registry.connect.redhat.com/zabbix/zabbix-appliance).
 
