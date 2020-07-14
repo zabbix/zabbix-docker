@@ -81,9 +81,13 @@ configure_db_mysql() {
 
     echo "** Starting MySQL server in background mode"
 
+    if [ "$(id -u)" == '0' ]; then
+        mysql_user="--user=zabbix"
+    fi
+
     nohup $MYSQLD --basedir=/usr --datadir=/var/lib/mysql --plugin-dir=/usr/lib/mysql/plugin \
             --log-output=none --pid-file=/var/lib/mysql/mysqld.pid \
-            --port=3306 --character-set-server=utf8 --collation-server=utf8_bin &
+            --port=3306 --character-set-server=utf8 --collation-server=utf8_bin $mysql_user &
 }
 
 prepare_system() {
