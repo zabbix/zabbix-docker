@@ -43,12 +43,18 @@ update_config_var() {
     local var_value=$3
     local is_multiple=$4
 
+    local masklist=("TLSPSKIdentity")
+
     if [ ! -f "$config_path" ]; then
         echo "**** Configuration file '$config_path' does not exist"
         return
     fi
 
-    echo -n "** Updating '$config_path' parameter \"$var_name\": '$var_value'... "
+    if [[ " ${masklist[@]} " =~ " $var_name " ]] && [ ! -z "$var_value" ]; then
+        echo -n "** Updating '$config_path' parameter \"$var_name\": '****'. Enable DEBUG_MODE to view value ..."
+    else
+        echo -n "** Updating '$config_path' parameter \"$var_name\": '$var_value'..."
+    fi
 
     # Remove configuration parameter definition in case of unset parameter value
     if [ -z "$var_value" ]; then
@@ -69,8 +75,9 @@ update_config_var() {
         var_value=$ZABBIX_USER_HOME_DIR/enc/$var_value
     fi
 
-    # Escaping characters in parameter value
+    # Escaping characters in parameter value and name
     var_value=$(escape_spec_char "$var_value")
+    var_name=$(escape_spec_char "$var_name")
 
     if [ "$(grep -E "^$var_name=" $config_path)" ] && [ "$is_multiple" != "true" ]; then
         sed -i -e "/^$var_name=/s/=.*/=$var_value/" "$config_path"
