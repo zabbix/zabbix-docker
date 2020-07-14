@@ -74,12 +74,18 @@ update_config_var() {
     local var_value=$3
     local is_multiple=$4
 
+    local masklist=("DBPassword TLSPSKIdentity")
+
     if [ ! -f "$config_path" ]; then
         echo "**** Configuration file '$config_path' does not exist"
         return
     fi
 
-    echo -n "** Updating '$config_path' parameter \"$var_name\": '$var_value'... "
+    if [[ " ${masklist[@]} " =~ " $var_name " ]] && [ ! -z "$var_value" ]; then
+        echo -n "** Updating '$config_path' parameter \"$var_name\": '****'. Enable DEBUG_MODE to view value ..."
+    else
+        echo -n "** Updating '$config_path' parameter \"$var_name\": '$var_value'..."
+    fi
 
     # Remove configuration parameter definition in case of unset parameter value
     if [ -z "$var_value" ]; then
@@ -100,8 +106,9 @@ update_config_var() {
         var_value=$ZABBIX_USER_HOME_DIR/enc/$var_value
     fi
 
-    # Escaping characters in parameter value
+    # Escaping characters in parameter value and name
     var_value=$(escape_spec_char "$var_value")
+    var_name=$(escape_spec_char "$var_name")
 
     if [ "$(grep -E "^$var_name=" $config_path)" ] && [ "$is_multiple" != "true" ]; then
         sed -i -e "/^$var_name=/s/=.*/=$var_value/" "$config_path"
@@ -187,8 +194,12 @@ check_db_connect_mysql() {
 
     WAIT_TIMEOUT=5
 
+    if [ -n "${ZBX_DBTLSCONNECT}" ]; then
+        ssl_opts="--ssl --ssl-ca=${ZBX_DBTLSCAFILE} --ssl-key=${ZBX_DBTLSKEYFILE} --ssl-cert=${ZBX_DBTLSCERTFILE}"
+    fi
+
     while [ ! "$(mysqladmin ping -h ${DB_SERVER_HOST} -P ${DB_SERVER_PORT} -u ${DB_SERVER_ROOT_USER} \
-                --password="${DB_SERVER_ROOT_PASS}" --silent --connect_timeout=10)" ]; do
+                --password="${DB_SERVER_ROOT_PASS}" --silent --connect_timeout=10 $ssl_opts)" ]; do
         echo "**** MySQL server is not available. Waiting $WAIT_TIMEOUT seconds..."
         sleep $WAIT_TIMEOUT
     done
@@ -198,8 +209,12 @@ mysql_query() {
     query=$1
     local result=""
 
+    if [ -n "${ZBX_DBTLSCONNECT}" ]; then
+        ssl_opts="--ssl --ssl-ca=${ZBX_DBTLSCAFILE} --ssl-key=${ZBX_DBTLSKEYFILE} --ssl-cert=${ZBX_DBTLSCERTFILE}"
+    fi
+
     result=$(mysql --silent --skip-column-names -h ${DB_SERVER_HOST} -P ${DB_SERVER_PORT} \
-             -u ${DB_SERVER_ROOT_USER} --password="${DB_SERVER_ROOT_PASS}" -e "$query")
+             -u ${DB_SERVER_ROOT_USER} --password="${DB_SERVER_ROOT_PASS}" -e "$query" $ssl_opts)
 
     echo $result
 }
@@ -244,9 +259,13 @@ create_db_schema_mysql() {
     if [ -z "${ZBX_DB_VERSION}" ]; then
         echo "** Creating '${DB_SERVER_DBNAME}' schema in MySQL"
 
+        if [ -n "${ZBX_DBTLSCONNECT}" ]; then
+            ssl_opts="--ssl --ssl-ca=${ZBX_DBTLSCAFILE} --ssl-key=${ZBX_DBTLSKEYFILE} --ssl-cert=${ZBX_DBTLSCERTFILE}"
+        fi
+
         zcat /usr/share/doc/zabbix-proxy-mysql/create.sql.gz | mysql --silent --skip-column-names \
                     -h ${DB_SERVER_HOST} -P ${DB_SERVER_PORT} \
-                    -u ${DB_SERVER_ROOT_USER} --password="${DB_SERVER_ROOT_PASS}"  \
+                    -u ${DB_SERVER_ROOT_USER} --password="${DB_SERVER_ROOT_PASS}" $ssl_opts \
                     ${DB_SERVER_DBNAME} 1>/dev/null
     fi
 }
@@ -276,6 +295,15 @@ update_zbx_config() {
     update_config_var $ZBX_CONFIG "PidFile"
 
     update_config_var $ZBX_CONFIG "DebugLevel" "${ZBX_DEBUGLEVEL}"
+
+    if [ -n "${ZBX_DBTLSCONNECT}" ]; then
+        update_config_var $ZBX_CONFIG "DBTLSConnect" "${ZBX_DBTLSCONNECT}"
+        update_config_var $ZBX_CONFIG "DBTLSCAFile" "${ZBX_DBTLSCAFILE}"
+        update_config_var $ZBX_CONFIG "DBTLSCertFile" "${ZBX_DBTLSCERTFILE}"
+        update_config_var $ZBX_CONFIG "DBTLSKeyFile" "${ZBX_DBTLSKEYFILE}"
+        update_config_var $ZBX_CONFIG "DBTLSCipher" "${ZBX_DBTLSCIPHER}"
+        update_config_var $ZBX_CONFIG "DBTLSCipher13" "${ZBX_DBTLSCIPHER13}"
+    fi
 
     update_config_var $ZBX_CONFIG "EnableRemoteCommands" "${ZBX_ENABLEREMOTECOMMANDS}"
     update_config_var $ZBX_CONFIG "LogRemoteCommands" "${ZBX_LOGREMOTECOMMANDS}"
