@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -eo pipefail
+set -o pipefail
 
 set +e
 
@@ -19,6 +19,9 @@ ZBX_SERVER_PORT=${ZBX_SERVER_PORT:-"10051"}
 
 # Default timezone for web interface
 PHP_TZ=${PHP_TZ:-"Europe/Riga"}
+
+#Enable PostgreSQL timescaleDB feature:
+ENABLE_TIMESCALEDB=${ENABLE_TIMESCALEDB:-"false"}
 
 # Default directories
 # User 'zabbix' home directory
@@ -57,10 +60,6 @@ file_env() {
     fi
     export "$var"="$val"
     unset "$fileVar"
-}
-
-prepare_system() {
-    echo "** Preparing the system"
 }
 
 escape_spec_char() {
@@ -107,13 +106,9 @@ update_config_var() {
         return
     fi
 
-    # Use full path to a file for TLS related configuration parameters
-    if [[ $var_name =~ ^TLS.*File$ ]]; then
-        var_value=$ZABBIX_USER_HOME_DIR/enc/$var_value
-    fi
-
-    # Escaping characters in parameter value
+    # Escaping characters in parameter value and name
     var_value=$(escape_spec_char "$var_value")
+    var_name=$(escape_spec_char "$var_name")
 
     if [ "$(grep -E "^$var_name=" $config_path)" ] && [ "$is_multiple" != "true" ]; then
         sed -i -e "/^$var_name=/s/=.*/=$var_value/" "$config_path"
@@ -145,7 +140,7 @@ update_config_multiple_var() {
 }
 
 # Check prerequisites for MySQL database
-check_variables_mysql() {
+check_variables() {
     : ${DB_SERVER_HOST:="mysql-server"}
     : ${DB_SERVER_PORT:="3306"}
     USE_DB_ROOT_USER=false
@@ -172,7 +167,7 @@ check_variables_mysql() {
     [ -n "${MYSQL_USER}" ] && CREATE_ZBX_DB_USER=true
 
     # If root password is not specified use provided credentials
-    : ${DB_SERVER_ROOT_USER:=${MYSQL_USER}}    
+    : ${DB_SERVER_ROOT_USER:=${MYSQL_USER}}
     [ "${MYSQL_ALLOW_EMPTY_PASSWORD}" == "true" ] || DB_SERVER_ROOT_PASS=${DB_SERVER_ROOT_PASS:-${MYSQL_PASSWORD}}
     DB_SERVER_ZBX_USER=${MYSQL_USER:-"zabbix"}
     DB_SERVER_ZBX_PASS=${MYSQL_PASSWORD:-"zabbix"}
@@ -192,13 +187,18 @@ check_db_connect() {
         fi
         echo "* DB_SERVER_ZBX_USER: ${DB_SERVER_ZBX_USER}"
         echo "* DB_SERVER_ZBX_PASS: ${DB_SERVER_ZBX_PASS}"
+        echo "********************"
     fi
     echo "********************"
-        
+
     WAIT_TIMEOUT=5
-    
+
+    if [ "${ZBX_DB_ENCRYPTION}" == "true" ]; then
+        ssl_opts="--ssl --ssl-ca=${ZBX_DB_CA_FILE} --ssl-key=${ZBX_DB_KEY_FILE} --ssl-cert=${ZBX_DB_CERT_FILE}"
+    fi
+
     while [ ! "$(mysqladmin ping -h ${DB_SERVER_HOST} -P ${DB_SERVER_PORT} -u ${DB_SERVER_ROOT_USER} \
-                --password="${DB_SERVER_ROOT_PASS}" --silent --connect_timeout=10)" ]; do
+                --password="${DB_SERVER_ROOT_PASS}" --silent --connect_timeout=10 $ssl_opts)" ]; do
         echo "**** MySQL server is not available. Waiting $WAIT_TIMEOUT seconds..."
         sleep $WAIT_TIMEOUT
     done
@@ -207,9 +207,6 @@ check_db_connect() {
 prepare_web_server() {
     NGINX_CONFD_DIR="/etc/nginx/conf.d"
     NGINX_SSL_CONFIG="/etc/ssl/nginx"
-
-    echo "** Disable default vhosts"
-    rm -f $NGINX_CONFD_DIR/*.conf
 
     echo "** Adding Zabbix virtual host (HTTP)"
     if [ -f "$ZABBIX_ETC_DIR/nginx.conf" ]; then
@@ -230,10 +227,6 @@ prepare_web_server() {
     fi
 }
 
-clear_deploy() {
-    echo "** Cleaning the system"
-}
-
 prepare_zbx_web_config() {
     local server_name=""
 
@@ -251,6 +244,13 @@ prepare_zbx_web_config() {
     update_config_var "$PHP_CONFIG_FILE" "php_value[max_input_time]" "${ZBX_MAXINPUTTIME:-"300"}"
     update_config_var "$PHP_CONFIG_FILE" "php_value[date.timezone]" "${PHP_TZ}"
 
+    if [ "$(id -u)" == '0' ]; then
+        echo "user = zabbix" >> "$PHP_CONFIG_FILE"
+        echo "group = zabbix" >> "$PHP_CONFIG_FILE"
+        echo "listen.owner = nginx" >> "$PHP_CONFIG_FILE"
+        echo "listen.group = nginx" >> "$PHP_CONFIG_FILE"
+    fi
+
     ZBX_HISTORYSTORAGETYPES=${ZBX_HISTORYSTORAGETYPES:-"[]"}
 
     # Escaping characters in parameter value
@@ -259,6 +259,10 @@ prepare_zbx_web_config() {
     server_pass=$(escape_spec_char "${DB_SERVER_ZBX_PASS}")
     history_storage_url=$(escape_spec_char "${ZBX_HISTORYSTORAGEURL}")
     history_storage_types=$(escape_spec_char "${ZBX_HISTORYSTORAGETYPES}")
+
+    ZBX_DB_KEY_FILE=$(escape_spec_char "${ZBX_DB_KEY_FILE}")
+    ZBX_DB_CERT_FILE=$(escape_spec_char "${ZBX_DB_CERT_FILE}")
+    ZBX_DB_CA_FILE=$(escape_spec_char "${ZBX_DB_CA_FILE}")
 
     sed -i \
         -e "s/{DB_SERVER_HOST}/${DB_SERVER_HOST}/g" \
@@ -270,32 +274,44 @@ prepare_zbx_web_config() {
         -e "s/{ZBX_SERVER_HOST}/${ZBX_SERVER_HOST}/g" \
         -e "s/{ZBX_SERVER_PORT}/${ZBX_SERVER_PORT}/g" \
         -e "s/{ZBX_SERVER_NAME}/$server_name/g" \
+        -e "s/{ZBX_DB_ENCRYPTION}/${ZBX_DB_ENCRYPTION:-"false"}/g" \
+        -e "s/{ZBX_DB_KEY_FILE}/${ZBX_DB_KEY_FILE}/g" \
+        -e "s/{ZBX_DB_CERT_FILE}/${ZBX_DB_CERT_FILE}/g" \
+        -e "s/{ZBX_DB_CA_FILE}/${ZBX_DB_CA_FILE}/g" \
+        -e "s/{ZBX_DB_VERIFY_HOST}/${ZBX_DB_VERIFY_HOST:-"false"}/g" \
+        -e "s/{ZBX_DB_CIPHER_LIST}/${ZBX_DB_CIPHER_LIST}/g" \
+        -e "s/{DB_DOUBLE_IEEE754}/${DB_DOUBLE_IEEE754:-"true"}/g" \
         -e "s/{ZBX_HISTORYSTORAGEURL}/$history_storage_url/g" \
         -e "s/{ZBX_HISTORYSTORAGETYPES}/$history_storage_types/g" \
     "$ZBX_WEB_CONFIG"
 
-    [ -n "${ZBX_SESSION_NAME}" ] && sed -i "/ZBX_SESSION_NAME/s/'[^']*'/'${ZBX_SESSION_NAME}'/2" "$ZBX_WWW_ROOT/include/defines.inc.php"
+    if [ -n "${ZBX_SESSION_NAME}" ]; then
+        cp "$ZBX_WWW_ROOT/include/defines.inc.php" "/tmp/defines.inc.php_tmp"
+        sed "/ZBX_SESSION_NAME/s/'[^']*'/'${ZBX_SESSION_NAME}'/2" "/tmp/defines.inc.php_tmp" > "$ZBX_WWW_ROOT/include/defines.inc.php"
+        rm -f "/tmp/defines.inc.php_tmp"
+    fi
+
+    if [ "${ENABLE_WEB_ACCESS_LOG:-"true"}" == "false" ]; then
+        sed -ri \
+            -e 's!^(\s*access_log).+\;!\1 off\;!g' \
+            "/etc/nginx/nginx.conf"
+        sed -ri \
+            -e 's!^(\s*access_log).+\;!\1 off\;!g' \
+            "/etc/zabbix/nginx.conf"
+        sed -ri \
+            -e 's!^(\s*access_log).+\;!\1 off\;!g' \
+            "/etc/zabbix/nginx_ssl.conf"
+    fi
 }
-
-prepare_web() {
-    echo "** Preparing Zabbix web-interface"
-
-    check_variables_mysql
-    check_db_connect
-    prepare_web_server
-    prepare_zbx_web_config
-}
-
 
 #################################################
 
 echo "** Deploying Zabbix web-interface (Nginx) with MySQL database"
 
-prepare_system
-
-prepare_web
-
-clear_deploy
+check_variables
+check_db_connect
+prepare_web_server
+prepare_zbx_web_config
 
 echo "########################################################"
 
