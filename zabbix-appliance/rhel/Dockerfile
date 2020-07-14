@@ -99,9 +99,17 @@ RUN set -o xtrace && INSTALL_PKGS="OpenIPMI-libs \
     mkdir -p /usr/share/doc/zabbix-server-mysql/ && \
     curl -L https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini -o /sbin/tini && \
     curl -L https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini.asc -o /tini.asc && \
-    gpg --batch --keyserver hkp://p80.pool.sks-keyservers.net:80 --keyserver-options timeout=10 --recv-keys 595E85A6B1B4779EA4DAAEC70B588DFF0527A9B7 && \
-    gpg --batch --verify /tini.asc /sbin/tini && \
-    rm -rf /root/.gnupg && \
+    export GNUPGHOME="$(mktemp -d)" && \
+    for server in $(shuf -e ha.pool.sks-keyservers.net \
+                            hkp://p80.pool.sks-keyservers.net:80 \
+                            ipv4.pool.sks-keyservers.net \
+                            keyserver.ubuntu.com \
+                            keyserver.pgp.com \
+                            pgp.mit.edu) ; do \
+        gpg --keyserver "$server" --recv-keys 595E85A6B1B4779EA4DAAEC70B588DFF0527A9B7 && break || : ; \
+    done && \
+    gpg --batch --verify /tmp/tini.asc /sbin/tini && \
+    rm -r "$GNUPGHOME" /tmp/tini.asc && \
     chmod +x /sbin/tini && \
     dnf -y clean all && \
     rm -f /etc/php-fpm.d/www.conf /etc/nginx/conf.d/*.conf /etc/my.cnf.d/auth_gssapi.cnf && \
@@ -203,10 +211,7 @@ EXPOSE 8080/TCP 8443/TCP 10051/TCP
 
 WORKDIR /var/lib/zabbix
 
-VOLUME ["/etc/ssl/nginx", "/var/lib/mysql/"]
-VOLUME ["/usr/lib/zabbix/alertscripts", "/usr/lib/zabbix/externalscripts", "/var/lib/zabbix/enc", "/var/lib/zabbix/mibs", "/var/lib/zabbix/modules"]
-VOLUME ["/var/lib/zabbix/snmptraps", "/var/lib/zabbix/ssh_keys", "/var/lib/zabbix/ssl/certs", "/var/lib/zabbix/ssl/keys", "/var/lib/zabbix/ssl/ssl_ca"]
-VOLUME ["/usr/sbin/zabbix_java/ext_lib", "/var/lib/zabbix/export"]
+VOLUME ["/var/lib/zabbix/snmptraps", "/var/lib/zabbix/export"]
 
 COPY ["conf/usr/sbin/zabbix_java_gateway", "/usr/sbin/"]
 COPY ["docker-entrypoint.sh", "/usr/bin/"]
