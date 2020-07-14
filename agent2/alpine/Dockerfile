@@ -88,8 +88,6 @@ EXPOSE 10050/TCP
 
 WORKDIR /var/lib/zabbix
 
-VOLUME ["/var/lib/zabbix/enc"]
-
 COPY ["docker-entrypoint.sh", "/usr/bin/"]
 
 ENTRYPOINT ["/sbin/tini", "--", "/usr/bin/docker-entrypoint.sh"]
