@@ -38,6 +38,7 @@ RUN set -eux && \
             php7-fileinfo \
             php7-xmlreader \
             php7-xmlwriter \
+            php7-openssl \
             postgresql-client && \
     apk add --clean-protected --no-cache --no-scripts apache2-ssl && \
     rm -f "/etc/apache2/conf.d/default.conf" && \

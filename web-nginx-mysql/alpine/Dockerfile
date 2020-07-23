@@ -41,6 +41,7 @@ RUN set -eux && \
             php7-fileinfo \
             php7-xmlreader \
             php7-xmlwriter \
+            php7-openssl \
             supervisor && \
     rm -rf /etc/php7/php-fpm.d/www.conf && \
     rm -f /etc/nginx/conf.d/*.conf && \
