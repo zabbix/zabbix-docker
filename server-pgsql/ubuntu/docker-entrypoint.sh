@@ -189,7 +189,7 @@ check_db_connect_postgresql() {
         export PGOPTIONS
     fi
 
-    while [ ! "$(psql --host ${DB_SERVER_HOST} --port ${DB_SERVER_PORT} --username ${DB_SERVER_ROOT_USER} --list --quiet 2>/dev/null)" ]; do
+    while [ ! "$(pg_isready --host ${DB_SERVER_HOST} --port ${DB_SERVER_PORT} --username ${DB_SERVER_ROOT_USER} --dbname ${DB_SERVER_DBNAME} --quiet 2>/dev/null && echo $?)" ]; do
         echo "**** PostgreSQL server is not available. Waiting $WAIT_TIMEOUT seconds..."
         sleep $WAIT_TIMEOUT
     done
@@ -276,7 +276,7 @@ create_db_schema_postgresql() {
 
         zcat /usr/share/doc/zabbix-server-postgresql/create.sql.gz | psql --quiet \
                 --host ${DB_SERVER_HOST} --port ${DB_SERVER_PORT} \
-                --username ${DB_SERVER_ZBX_USER} --dbname ${DB_SERVER_DBNAME} 1>/dev/null
+                --username ${DB_SERVER_ZBX_USER} --dbname ${DB_SERVER_DBNAME} 1>/dev/null || exit 1
 
         if [ "${ENABLE_TIMESCALEDB}" == "true" ]; then
             cat /usr/share/doc/zabbix-server-postgresql/timescaledb.sql | psql --quiet \
