@@ -265,7 +265,7 @@ create_db_schema_mysql() {
 
         zcat /usr/share/doc/zabbix-proxy-mysql/create.sql.gz | mysql --silent --skip-column-names \
                     -h ${DB_SERVER_HOST} -P ${DB_SERVER_PORT} \
-                    -u ${DB_SERVER_ROOT_USER} --password="${DB_SERVER_ROOT_PASS}" $ssl_opts \
+                    -u ${DB_SERVER_ROOT_USER} --password="${DB_SERVER_ROOT_PASS}" $ssl_opts  \
                     ${DB_SERVER_DBNAME} 1>/dev/null
     fi
 }
