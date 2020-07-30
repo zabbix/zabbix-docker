@@ -190,8 +190,10 @@ check_db_connect_postgresql() {
     fi
 
     if [ -n "${ZBX_DBTLSCONNECT}" ]; then
-        dbtlsconnect=${ZBX_DBTLSCONNECT//_/-}
-        ssl_opts="sslmode=$dbtlsconnect sslrootcert=${ZBX_DBTLSCAFILE} sslcert=${ZBX_DBTLSCERTFILE} sslkey=${ZBX_DBTLSKEYFILE}"
+        export PGSSLMODE=${ZBX_DBTLSCONNECT//_/-}
+        export PGSSLROOTCERT=${ZBX_DBTLSCAFILE}
+        export PGSSLCERT=${ZBX_DBTLSCERTFILE}
+        export PGSSLKEY=${ZBX_DBTLSKEYFILE}
     fi
 
     while [ ! "$(psql "$ssl_opts" --host ${DB_SERVER_HOST} --port ${DB_SERVER_PORT} --username ${DB_SERVER_ROOT_USER} --list --quiet 2>/dev/null)" ]; do
@@ -201,6 +203,10 @@ check_db_connect_postgresql() {
 
     unset PGPASSWORD
     unset PGOPTIONS
+    unset PGSSLMODE
+    unset PGSSLROOTCERT
+    unset PGSSLCERT
+    unset PGSSLKEY
 }
 
 psql_query() {
@@ -219,15 +225,21 @@ psql_query() {
     fi
 
     if [ -n "${ZBX_DBTLSCONNECT}" ]; then
-        dbtlsconnect=${ZBX_DBTLSCONNECT//_/-}
-        ssl_opts="sslmode=$dbtlsconnect sslrootcert=${ZBX_DBTLSCAFILE} sslcert=${ZBX_DBTLSCERTFILE} sslkey=${ZBX_DBTLSKEYFILE}"
+        export PGSSLMODE=${ZBX_DBTLSCONNECT//_/-}
+        export PGSSLROOTCERT=${ZBX_DBTLSCAFILE}
+        export PGSSLCERT=${ZBX_DBTLSCERTFILE}
+        export PGSSLKEY=${ZBX_DBTLSKEYFILE}
     fi
 
-    result=$(psql "$ssl_opts" --no-align --quiet --tuples-only --host "${DB_SERVER_HOST}" --port "${DB_SERVER_PORT}" \
+    result=$(psql --no-align --quiet --tuples-only --host "${DB_SERVER_HOST}" --port "${DB_SERVER_PORT}" \
              --username "${DB_SERVER_ROOT_USER}" --command "$query" --dbname "$db" 2>/dev/null);
 
     unset PGPASSWORD
     unset PGOPTIONS
+    unset PGSSLMODE
+    unset PGSSLROOTCERT
+    unset PGSSLCERT
+    unset PGSSLKEY
 
     echo $result
 }
@@ -285,22 +297,28 @@ create_db_schema_postgresql() {
         fi
 
         if [ -n "${ZBX_DBTLSCONNECT}" ]; then
-            dbtlsconnect=${ZBX_DBTLSCONNECT//_/-}
-            ssl_opts="sslmode=$dbtlsconnect sslrootcert=${ZBX_DBTLSCAFILE} sslcert=${ZBX_DBTLSCERTFILE} sslkey=${ZBX_DBTLSKEYFILE}"
+            export PGSSLMODE=${ZBX_DBTLSCONNECT//_/-}
+            export PGSSLROOTCERT=${ZBX_DBTLSCAFILE}
+            export PGSSLCERT=${ZBX_DBTLSCERTFILE}
+            export PGSSLKEY=${ZBX_DBTLSKEYFILE}
         fi
 
-        zcat /usr/share/doc/zabbix-server-postgresql/create.sql.gz | psql "$ssl_opts" --quiet \
+        zcat /usr/share/doc/zabbix-server-postgresql/create.sql.gz | psql --quiet \
                 --host ${DB_SERVER_HOST} --port ${DB_SERVER_PORT} \
-                --username ${DB_SERVER_ZBX_USER} --dbname ${DB_SERVER_DBNAME} 1>/dev/null
+                --username ${DB_SERVER_ZBX_USER} --dbname ${DB_SERVER_DBNAME} 1>/dev/null || exit 1
 
         if [ "${ENABLE_TIMESCALEDB}" == "true" ]; then
-            cat /usr/share/doc/zabbix-server-postgresql/timescaledb.sql | psql "$ssl_opts" --quiet \
+            cat /usr/share/doc/zabbix-server-postgresql/timescaledb.sql | psql --quiet \
                 --host ${DB_SERVER_HOST} --port ${DB_SERVER_PORT} \
-                --username ${DB_SERVER_ZBX_USER} --dbname ${DB_SERVER_DBNAME} 1>/dev/null
+                --username ${DB_SERVER_ZBX_USER} --dbname ${DB_SERVER_DBNAME} 1>/dev/null || exit 1
         fi
 
         unset PGPASSWORD
         unset PGOPTIONS
+        unset PGSSLMODE
+        unset PGSSLROOTCERT
+        unset PGSSLCERT
+        unset PGSSLKEY
     fi
 }
 
