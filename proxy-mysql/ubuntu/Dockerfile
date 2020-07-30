@@ -53,11 +53,19 @@ RUN set -eux && \
             mysql-client \
             snmp-mibs-downloader \
             unixodbc && \
-    curl -L https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini -o /sbin/tini && \
-    curl -L https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini.asc -o /tini.asc && \
-    gpg --batch --keyserver hkp://p80.pool.sks-keyservers.net:80 --recv-keys 595E85A6B1B4779EA4DAAEC70B588DFF0527A9B7 && \
-    gpg --batch --verify /tini.asc /sbin/tini && \
-    rm -rf /root/.gnupg && \
+    curl -L "https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini" -o /sbin/tini && \
+    curl -L "https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini.asc" -o /tmp/tini.asc && \
+    export GNUPGHOME="$(mktemp -d)" && \
+    for server in $(shuf -e ha.pool.sks-keyservers.net \
+                            hkp://p80.pool.sks-keyservers.net:80 \
+                            ipv4.pool.sks-keyservers.net \
+                            keyserver.ubuntu.com \
+                            keyserver.pgp.com \
+                            pgp.mit.edu) ; do \
+        gpg --keyserver "$server" --recv-keys 595E85A6B1B4779EA4DAAEC70B588DFF0527A9B7 && break || : ; \
+    done && \
+    gpg --batch --verify /tmp/tini.asc /sbin/tini && \
+    rm -r "$GNUPGHOME" /tmp/tini.asc && \
     chmod +x /sbin/tini && \
     apt-get -y purge curl gpg dirmngr gpg-agent && \
     apt-get -y autoremove && \
