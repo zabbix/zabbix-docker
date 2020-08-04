@@ -186,7 +186,10 @@ check_db_connect_postgresql() {
         export PGOPTIONS
     fi
 
-    while [ ! "$(pg_isready --host ${DB_SERVER_HOST} --port ${DB_SERVER_PORT} --username ${DB_SERVER_ROOT_USER} --dbname ${DB_SERVER_DBNAME} --quiet 2>/dev/null && echo $?)" ]; do
+    while true :
+    do
+        psql --host ${DB_SERVER_HOST} --port ${DB_SERVER_PORT} --username ${DB_SERVER_ROOT_USER} --list --quiet 2>&1 1>/dev/null && break
+        psql --host ${DB_SERVER_HOST} --port ${DB_SERVER_PORT} --username ${DB_SERVER_ROOT_USER} --list --dbname ${DB_SERVER_DBNAME} --quiet 2>&1 1>/dev/null && break
         echo "**** PostgreSQL server is not available. Waiting $WAIT_TIMEOUT seconds..."
         sleep $WAIT_TIMEOUT
     done
@@ -234,7 +237,7 @@ create_db_user_postgresql() {
 }
 
 create_db_database_postgresql() {
-    DB_EXISTS=$(psql_query "SELECT 1 AS result FROM pg_database WHERE datname='${DB_SERVER_DBNAME}'")
+    DB_EXISTS=$(psql_query "SELECT 1 AS result FROM pg_database WHERE datname='${DB_SERVER_DBNAME}'" "${DB_SERVER_DBNAME}")
 
     if [ -z ${DB_EXISTS} ]; then
         echo "** Database '${DB_SERVER_DBNAME}' does not exist. Creating..."
