@@ -14,11 +14,11 @@ Zabbix agent 2 is deployed on a monitoring target to actively monitor local reso
 
 # Zabbix agent 2 images
 
-These are the only official Zabbix agent 2 Docker images. They are based on Alpine Linux v3.10 images. The available versions of Zabbix agent 2 are:
+These are the only official Zabbix agent 2 Docker images. They are based on Alpine Linux v3.12 images. The available versions of Zabbix agent 2 are:
 
-    Zabbix agent 2 4.4 (tags: alpine-4.4-latest)
-    Zabbix agent 2 4.4.* (tags: alpine-4.4.*)
-    Zabbix agent 2 5.0 (tags: alpine-5.0-latest, alpine-latest, latest)
+    Zabbix agent 2 4.4 (tags: alpine-4.4-latest, alpine-latest, latest) (unsupported)
+    Zabbix agent 2 4.4.* (tags: alpine-4.4.*) (unsupported)
+    Zabbix agent 2 5.0 (tags: alpine-5.0-latest)
     Zabbix agent 2 5.0.* (tags: alpine-5.0.*)
     Zabbix agent 2 5.2 (tags: alpine-trunk)
 
@@ -126,8 +126,11 @@ The variable is used to specify timeout for processing checks. By default, value
 Additionally the image allows to specify many other environment variables listed below:
 
 ```
+ZBX_ENABLEPERSISTENTBUFFER=false # Available since 5.0.0
+ZBX_PERSISTENTBUFFERPERIOD=1h # Available since 5.0.0
+ZBX_ENABLESTATUSPORT=
 ZBX_SOURCEIP=
-ZBX_ENABLEREMOTECOMMANDS=0
+ZBX_ENABLEREMOTECOMMANDS=0 # Deprecated since 5.0.0
 ZBX_LOGREMOTECOMMANDS=0
 ZBX_STARTAGENTS=3
 ZBX_HOSTNAMEITEM=system.hostname
@@ -149,6 +152,8 @@ ZBX_TLSCERTFILE=
 ZBX_TLSKEYFILE=
 ZBX_TLSPSKIDENTITY=
 ZBX_TLSPSKFILE=
+ZBX_DENYKEY=system.run[*] # Available since 5.0.0
+ZBX_ALLOWKEY= # Available since 5.0.0
 ```
 
 Default values of these variables are specified after equal sign.
@@ -170,6 +175,10 @@ The volume allows load additional modules and extend Zabbix agent 2 using ``Load
 ### ``/var/lib/zabbix/enc``
 
 The volume is used to store TLS related files. These file names are specified using ``ZBX_TLSCAFILE``, ``ZBX_TLSCRLFILE``, ``ZBX_TLSKEY_FILE`` and ``ZBX_TLSPSKFILE`` variables.
+
+### ``/var/lib/zabbix/buffer``
+
+The volume is used to store the file, where Zabbix Agent2 should keep SQLite database. To enable the feature specify ``ZBX_ENABLEPERSISTENTBUFFER=true``. Available since 5.0.0.
 
 # The image variants
 
