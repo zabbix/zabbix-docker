@@ -28,8 +28,8 @@ These are the only official Zabbix server Docker images. They are based on Alpin
     Zabbix server 4.0.* (tags: alpine-4.0.*, ubuntu-4.0.*, centos-4.0.*)
     Zabbix server 4.2 (tags: alpine-4.2-latest, ubuntu-4.2-latest, centos-4.2.*) (unsupported)
     Zabbix server 4.2.* (tags: alpine-4.2.*, ubuntu-4.2.*, centos-4.2.*) (unsupported)
-    Zabbix server 4.4 (tags: alpine-4.4-latest, ubuntu-4.4-latest, centos-4.4-latest)
-    Zabbix server 4.4.* (tags: alpine-4.4.*, ubuntu-4.4.*, centos-4.4.*)
+    Zabbix server 4.4 (tags: alpine-4.4-latest, ubuntu-4.4-latest, centos-4.4-latest) (unsupported)
+    Zabbix server 4.4.* (tags: alpine-4.4.*, ubuntu-4.4.*, centos-4.4.*) (unsupported)
     Zabbix server 5.0 (tags: alpine-5.0-latest, ubuntu-5.0-latest, centos-5.0-latest, alpine-latest, ubuntu-latest, centos-latest, latest)
     Zabbix server 5.0.* (tags: alpine-5.0.*, ubuntu-5.0.*, centos-5.0.*)
     Zabbix server 5.2 (tags: alpine-trunk, ubuntu-trunk, centos-trunk)
@@ -129,6 +129,12 @@ The variable enable communication with Zabbix Java Gateway to collect Java relat
 Additionally the image allows to specify many other environment variables listed below:
 
 ```
+ZBX_DBTLSCONNECT= # Available since 5.0.0
+ZBX_DBTLSCAFILE= # Available since 5.0.0
+ZBX_DBTLSCERTFILE= # Available since 5.0.0
+ZBX_DBTLSKEYFILE= # Available since 5.0.0
+ZBX_DBTLSCIPHER= # Available since 5.0.0
+ZBX_DBTLSCIPHER13= # Available since 5.0.0
 ZBX_LISTENIP=
 ZBX_HISTORYSTORAGEURL= # Available since 3.4.0
 ZBX_HISTORYSTORAGETYPES=uint,dbl,str,log,text # Available since 3.4.0
@@ -179,6 +185,12 @@ ZBX_TLSCAFILE=
 ZBX_TLSCRLFILE=
 ZBX_TLSCERTFILE=
 ZBX_TLSKEYFILE=
+ZBX_TLSCIPHERALL= # Available since 4.4.7
+ZBX_TLSCIPHERALL13= # Available since 4.4.7
+ZBX_TLSCIPHERCERT= # Available since 4.4.7
+ZBX_TLSCIPHERCERT13= # Available since 4.4.7
+ZBX_TLSCIPHERPSK= # Available since 4.4.7
+ZBX_TLSCIPHERPSK13= # Available since 4.4.7
 ```
 
 Default values of these variables are specified after equal sign.

@@ -26,8 +26,8 @@ These are the only official Zabbix proxy Docker images. They are based on Alpine
     Zabbix proxy 4.0.* (tags: alpine-4.0.*, ubuntu-4.0.*, centos-4.0.*)
     Zabbix proxy 4.2 (tags: alpine-4.2-latest, ubuntu-4.2-latest, centos-4.2.*) (unsupported)
     Zabbix proxy 4.2.* (tags: alpine-4.2.*, ubuntu-4.2.*, centos-4.2.*) (unsupported)
-    Zabbix proxy 4.4 (tags: alpine-4.4-latest, ubuntu-4.4-latest, centos-4.4-latest)
-    Zabbix proxy 4.4.* (tags: alpine-4.4.*, ubuntu-4.4.*, centos-4.4.*)
+    Zabbix proxy 4.4 (tags: alpine-4.4-latest, ubuntu-4.4-latest, centos-4.4-latest) (unsupported)
+    Zabbix proxy 4.4.* (tags: alpine-4.4.*, ubuntu-4.4.*, centos-4.4.*) (unsupported)
     Zabbix proxy 5.0 (tags: alpine-5.0-latest, ubuntu-5.0-latest, centos-5.0-latest, alpine-latest, ubuntu-latest, centos-latest, latest)
     Zabbix proxy 5.0.* (tags: alpine-5.0.*, ubuntu-5.0.*, centos-5.0.*)
     Zabbix proxy 5.2 (tags: alpine-trunk, ubuntu-trunk, centos-trunk)
@@ -171,6 +171,12 @@ ZBX_TLSCERTFILE=
 ZBX_TLSKEYFILE=
 ZBX_TLSPSKIDENTITY=
 ZBX_TLSPSKFILE=
+ZBX_TLSCIPHERALL= # Available since 4.4.7
+ZBX_TLSCIPHERALL13= # Available since 4.4.7
+ZBX_TLSCIPHERCERT= # Available since 4.4.7
+ZBX_TLSCIPHERCERT13= # Available since 4.4.7
+ZBX_TLSCIPHERPSK= # Available since 4.4.7
+ZBX_TLSCIPHERPSK13= # Available since 4.4.7
 ```
 
 Default values of these variables are specified after equal sign.
