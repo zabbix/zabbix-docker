@@ -159,6 +159,12 @@ The variable enable communication with Zabbix Java Gateway to collect Java relat
 Additionally the image allows to specify many other environment variables listed below:
 
 ```
+ZBX_DBTLSCONNECT= # Available since 5.0.0
+ZBX_DBTLSCAFILE= # Available since 5.0.0
+ZBX_DBTLSCERTFILE= # Available since 5.0.0
+ZBX_DBTLSKEYFILE= # Available since 5.0.0
+ZBX_DBTLSCIPHER= # Available since 5.0.0
+ZBX_DBTLSCIPHER13= # Available since 5.0.0
 ZBX_ENABLEREMOTECOMMANDS=0 # Available since 3.4.0
 ZBX_LOGREMOTECOMMANDS=0 # Available since 3.4.0
 ZBX_HOSTNAMEITEM=system.hostname
@@ -207,6 +213,12 @@ ZBX_TLSCERTFILE=
 ZBX_TLSKEYFILE=
 ZBX_TLSPSKIDENTITY=
 ZBX_TLSPSKFILE=
+ZBX_TLSCIPHERALL= # Available since 4.4.7
+ZBX_TLSCIPHERALL13= # Available since 4.4.7
+ZBX_TLSCIPHERCERT= # Available since 4.4.7
+ZBX_TLSCIPHERCERT13= # Available since 4.4.7
+ZBX_TLSCIPHERPSK= # Available since 4.4.7
+ZBX_TLSCIPHERPSK13= # Available since 4.4.7
 ```
 
 Default values of these variables are specified after equal sign.
