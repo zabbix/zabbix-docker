@@ -1,4 +1,4 @@
-FROM alpine:3.11
+FROM alpine:3.12
 
 LABEL org.opencontainers.image.title="Zabbix agent 2" \
       org.opencontainers.image.authors="Alexey Pustovalov <alexey.pustovalov@zabbix.com>" \
@@ -84,7 +84,7 @@ RUN set -eux && \
             build-dependencies && \
     rm -rf /var/cache/apk/*
 
-EXPOSE 10050/TCP
+EXPOSE 10050/TCP 31999/TCP
 
 WORKDIR /var/lib/zabbix
 
