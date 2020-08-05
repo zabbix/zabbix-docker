@@ -141,7 +141,6 @@ check_variables_postgresql() {
 
     : ${DB_SERVER_HOST:="postgres-server"}
     : ${DB_SERVER_PORT:="5432"}
-    : ${CREATE_ZBX_DB_USER:="false"}
 
     DB_SERVER_ROOT_USER=${POSTGRES_USER:-"postgres"}
     DB_SERVER_ROOT_PASS=${POSTGRES_PASSWORD:-""}
@@ -161,26 +160,17 @@ check_db_connect_postgresql() {
     echo "* DB_SERVER_DBNAME: ${DB_SERVER_DBNAME}"
     echo "* DB_SERVER_SCHEMA: ${DB_SERVER_SCHEMA}"
     if [ "${DEBUG_MODE}" == "true" ]; then
-        if [ "${USE_DB_ROOT_USER}" == "true" ]; then
-            echo "* DB_SERVER_ROOT_USER: ${DB_SERVER_ROOT_USER}"
-            echo "* DB_SERVER_ROOT_PASS: ${DB_SERVER_ROOT_PASS}"
-        fi
         echo "* DB_SERVER_ZBX_USER: ${DB_SERVER_ZBX_USER}"
         echo "* DB_SERVER_ZBX_PASS: ${DB_SERVER_ZBX_PASS}"
     fi
     echo "********************"
-
-    if [ "${USE_DB_ROOT_USER}" != "true" ]; then
-        DB_SERVER_ROOT_USER=${DB_SERVER_ZBX_USER}
-        DB_SERVER_ROOT_PASS=${DB_SERVER_ZBX_PASS}
-    fi
 
     if [ -n "${DB_SERVER_ZBX_PASS}" ]; then
         export PGPASSWORD="${DB_SERVER_ZBX_PASS}"
     fi
 
     WAIT_TIMEOUT=5
-    
+
     if [ -n "${DB_SERVER_SCHEMA}" ]; then
         PGOPTIONS="--search_path=${DB_SERVER_SCHEMA}"
         export PGOPTIONS
@@ -188,8 +178,9 @@ check_db_connect_postgresql() {
 
     while true :
     do
-        psql --host ${DB_SERVER_HOST} --port ${DB_SERVER_PORT} --username ${DB_SERVER_ROOT_USER} --list --quiet 2>&1 1>/dev/null && break
-        psql --host ${DB_SERVER_HOST} --port ${DB_SERVER_PORT} --username ${DB_SERVER_ROOT_USER} --list --dbname ${DB_SERVER_DBNAME} --quiet 2>&1 1>/dev/null && break
+        psql --host ${DB_SERVER_HOST} --port ${DB_SERVER_PORT} --username ${DB_SERVER_ROOT_USER} --list --quiet 1>/dev/null 2>&1 && break
+        psql --host ${DB_SERVER_HOST} --port ${DB_SERVER_PORT} --username ${DB_SERVER_ROOT_USER} --list --dbname ${DB_SERVER_DBNAME} --quiet 1>/dev/null 2>&1 && break
+
         echo "**** PostgreSQL server is not available. Waiting $WAIT_TIMEOUT seconds..."
         sleep $WAIT_TIMEOUT
     done
@@ -207,7 +198,7 @@ psql_query() {
     if [ -n "${DB_SERVER_ZBX_PASS}" ]; then
         export PGPASSWORD="${DB_SERVER_ZBX_PASS}"
     fi
-    
+
     if [ -n "${DB_SERVER_SCHEMA}" ]; then
         PGOPTIONS="--search_path=${DB_SERVER_SCHEMA}"
         export PGOPTIONS
@@ -222,31 +213,31 @@ psql_query() {
     echo $result
 }
 
-create_db_user_postgresql() {
-    [ "${CREATE_ZBX_DB_USER}" == "true" ] || return
-
-    echo "** Creating '${DB_SERVER_ZBX_USER}' user in PostgreSQL database"
-
-    USER_EXISTS=$(psql_query "SELECT 1 FROM pg_roles WHERE rolname='${DB_SERVER_ZBX_USER}'")
-
-    if [ -z "$USER_EXISTS" ]; then
-        psql_query "CREATE USER ${DB_SERVER_ZBX_USER} WITH PASSWORD '${DB_SERVER_ZBX_PASS}'" 1>/dev/null
-    else
-        psql_query "ALTER USER ${DB_SERVER_ZBX_USER} WITH ENCRYPTED PASSWORD '${DB_SERVER_ZBX_PASS}'" 1>/dev/null
-    fi
-}
-
 create_db_database_postgresql() {
     DB_EXISTS=$(psql_query "SELECT 1 AS result FROM pg_database WHERE datname='${DB_SERVER_DBNAME}'" "${DB_SERVER_DBNAME}")
 
     if [ -z ${DB_EXISTS} ]; then
         echo "** Database '${DB_SERVER_DBNAME}' does not exist. Creating..."
-        psql_query "CREATE DATABASE ${DB_SERVER_DBNAME} WITH OWNER ${DB_SERVER_ZBX_USER} ENCODING='UTF8' LC_CTYPE='en_US.utf8' LC_COLLATE='en_US.utf8'" 1>/dev/null
+
+        if [ -n "${DB_SERVER_ZBX_PASS}" ]; then
+            export PGPASSWORD="${DB_SERVER_ZBX_PASS}"
+        fi
+
+        if [ -n "${DB_SERVER_SCHEMA}" ]; then
+            PGOPTIONS="--search_path=${DB_SERVER_SCHEMA}"
+            export PGOPTIONS
+        fi
+
+        createdb --host "${DB_SERVER_HOST}" --port "${DB_SERVER_PORT}" --username "${DB_SERVER_ROOT_USER}" \
+                 --owner "${DB_SERVER_ZBX_USER}" --lc-ctype "en_US.utf8" --lc-collate "en_US.utf8" "${DB_SERVER_DBNAME}"
+
+        unset PGPASSWORD
+        unset PGOPTIONS
     else
         echo "** Database '${DB_SERVER_DBNAME}' already exists. Please be careful with database owner!"
     fi
 
-    psql_query "CREATE SCHEMA IF NOT EXISTS ${DB_SERVER_SCHEMA}"
+    psql_query "CREATE SCHEMA IF NOT EXISTS ${DB_SERVER_SCHEMA}" "${DB_SERVER_DBNAME}" 1>/dev/null
 }
 
 create_db_schema_postgresql() {
@@ -271,8 +262,8 @@ create_db_schema_postgresql() {
         fi
 
         zcat /usr/share/doc/zabbix-server-postgresql/create.sql.gz | psql --quiet \
-                --host ${DB_SERVER_HOST} --port ${DB_SERVER_PORT} \
-                --username ${DB_SERVER_ZBX_USER} --dbname ${DB_SERVER_DBNAME} 1>/dev/null || exit 1
+                --host "${DB_SERVER_HOST}" --port "${DB_SERVER_PORT}" \
+                --username "${DB_SERVER_ZBX_USER}" --dbname "${DB_SERVER_DBNAME}" 1>/dev/null || exit 1
 
         unset PGPASSWORD
         unset PGOPTIONS
@@ -402,7 +393,6 @@ prepare_server() {
 
     check_variables_postgresql
     check_db_connect_postgresql
-    create_db_user_postgresql
     create_db_database_postgresql
     create_db_schema_postgresql
 
