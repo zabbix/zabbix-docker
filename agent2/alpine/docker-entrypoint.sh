@@ -153,6 +153,13 @@ prepare_zbx_agent_config() {
         update_config_var $ZBX_AGENT_CONFIG "ServerActive"
     fi
 
+    if [ "$ZBX_ENABLESTATUSPORT" == "true" ]; then
+        update_config_var $ZBX_AGENT_CONFIG "StatusPort" "31999"
+    fi
+
+    update_config_var $ZBX_AGENT_CONFIG "HostInterface" "${ZBX_HOSTINTERFACE}"
+    update_config_var $ZBX_AGENT_CONFIG "HostInterfaceItem" "${ZBX_HOSTINTERFACEITEM}"
+
     update_config_var $ZBX_AGENT_CONFIG "Hostname" "${ZBX_HOSTNAME}"
     update_config_var $ZBX_AGENT_CONFIG "HostnameItem" "${ZBX_HOSTNAMEITEM}"
     update_config_var $ZBX_AGENT_CONFIG "HostMetadata" "${ZBX_METADATA}"
