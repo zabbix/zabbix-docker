@@ -16,7 +16,7 @@ The server performs the polling and trapping of data, it calculates triggers, se
 
 # Zabbix server images
 
-These are the only official Zabbix server Docker images. They are based on Alpine Linux v3.9, Ubuntu 18.04 (bionic) and CentOS 7 images. The available versions of Zabbix server are:
+These are the only official Zabbix server Docker images. They are based on Alpine Linux v3.11, Ubuntu 18.04 (bionic) and CentOS 7 images. The available versions of Zabbix server are:
 
     Zabbix server 3.0 (tags: alpine-3.0-latest, ubuntu-3.0-latest, centos-3.0-latest)
     Zabbix server 3.0.* (tags: alpine-3.0.*, ubuntu-3.0.*, centos-3.0.*)
@@ -129,6 +129,12 @@ The variable enable communication with Zabbix Java Gateway to collect Java relat
 Additionally the image allows to specify many other environment variables listed below:
 
 ```
+ZBX_DBTLSCONNECT= # Available since 5.0.0
+ZBX_DBTLSCAFILE= # Available since 5.0.0
+ZBX_DBTLSCERTFILE= # Available since 5.0.0
+ZBX_DBTLSKEYFILE= # Available since 5.0.0
+ZBX_DBTLSCIPHER= # Available since 5.0.0
+ZBX_DBTLSCIPHER13= # Available since 5.0.0
 ZBX_LISTENIP=
 ZBX_HISTORYSTORAGEURL= # Available since 3.4.0
 ZBX_HISTORYSTORAGETYPES=uint,dbl,str,log,text # Available since 3.4.0
@@ -179,6 +185,12 @@ ZBX_TLSCAFILE=
 ZBX_TLSCRLFILE=
 ZBX_TLSCERTFILE=
 ZBX_TLSKEYFILE=
+ZBX_TLSCIPHERALL= # Available since 4.4.7
+ZBX_TLSCIPHERALL13= # Available since 4.4.7
+ZBX_TLSCIPHERCERT= # Available since 4.4.7
+ZBX_TLSCIPHERCERT13= # Available since 4.4.7
+ZBX_TLSCIPHERPSK= # Available since 4.4.7
+ZBX_TLSCIPHERPSK13= # Available since 4.4.7
 ```
 
 Default values of these variables are specified after equal sign.

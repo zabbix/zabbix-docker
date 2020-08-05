@@ -14,21 +14,23 @@ Zabbix agent is deployed on a monitoring target to actively monitor local resour
 
 # Zabbix agent images
 
-These are the only official Zabbix agent Docker images. They are based on Alpine Linux v3.9, Ubuntu 18.04 (bionic) and CentOS 7 images. The available versions of Zabbix agent are:
+These are the only official Zabbix agent Docker images. They are based on Alpine Linux v3.11, Ubuntu 18.04 (bionic) and CentOS 7 images. The available versions of Zabbix agent are:
 
     Zabbix agent 3.0 (tags: alpine-3.0-latest, ubuntu-3.0-latest, centos-3.0-latest)
     Zabbix agent 3.0.* (tags: alpine-3.0.*, ubuntu-3.0.*, centos-3.0.*)
-    Zabbix agent 3.2 (tags: alpine-3.2-latest, ubuntu-3.2-latest, centos-3.2-latest)
-    Zabbix agent 3.2.* (tags: alpine-3.2.*, ubuntu-3.2.*, centos-3.2.*)
-    Zabbix agent 3.4 (tags: alpine-3.4-latest, ubuntu-3.4-latest, centos-3.4-latest)
-    Zabbix agent 3.4.* (tags: alpine-3.4.*, ubuntu-3.4.*, centos-3.4.*)
+    Zabbix agent 3.2 (tags: alpine-3.2-latest, ubuntu-3.2-latest, centos-3.2.*) (unsupported)
+    Zabbix agent 3.2.* (tags: alpine-3.2.*, ubuntu-3.2.*, centos-3.2.*) (unsupported)
+    Zabbix agent 3.4 (tags: alpine-3.4-latest, ubuntu-3.4-latest, centos-3.4.*) (unsupported)
+    Zabbix agent 3.4.* (tags: alpine-3.4.*, ubuntu-3.4.*, centos-3.4.*) (unsupported)
     Zabbix agent 4.0 (tags: alpine-4.0-latest, ubuntu-4.0-latest, centos-4.0-latest)
     Zabbix agent 4.0.* (tags: alpine-4.0.*, ubuntu-4.0.*, centos-4.0.*)
-    Zabbix agent 4.2 (tags: alpine-4.2-latest, ubuntu-4.2-latest, centos-4.2-latest)
-    Zabbix agent 4.2.* (tags: alpine-4.2.*, ubuntu-4.2.*, centos-4.2.*)
-    Zabbix agent 4.4 (tags: alpine-4.4-latest, ubuntu-4.4-latest, centos-4.4-latest, alpine-latest, ubuntu-latest, centos-latest, latest)
-    Zabbix agent 4.4.* (tags: alpine-4.4.*, ubuntu-4.4.*, centos-4.4.*)
-    Zabbix agent 5.0 (tags: alpine-trunk, ubuntu-trunk, centos-trunk)
+    Zabbix agent 4.2 (tags: alpine-4.2-latest, ubuntu-4.2-latest, centos-4.2.*) (unsupported)
+    Zabbix agent 4.2.* (tags: alpine-4.2.*, ubuntu-4.2.*, centos-4.2.*) (unsupported)
+    Zabbix agent 4.4 (tags: alpine-4.4-latest, ubuntu-4.4-latest, centos-4.4-latest) (unsupported)
+    Zabbix agent 4.4.* (tags: alpine-4.4.*, ubuntu-4.4.*, centos-4.4.*) (unsupported)
+    Zabbix agent 5.0 (tags: alpine-5.0-latest, ubuntu-5.0-latest, centos-5.0-latest, alpine-latest, ubuntu-latest, centos-latest, latest)
+    Zabbix agent 5.0.* (tags: alpine-5.0.*, ubuntu-5.0.*, centos-5.0.*)
+    Zabbix agent 5.2 (tags: alpine-trunk, ubuntu-trunk, centos-trunk)
 
 Images are updated when new releases are published. The image with ``latest`` tag is based on Alpine Linux.
 
@@ -135,7 +137,7 @@ Additionally the image allows to specify many other environment variables listed
 
 ```
 ZBX_SOURCEIP=
-ZBX_ENABLEREMOTECOMMANDS=0
+ZBX_ENABLEREMOTECOMMANDS=0 # Deprecated since 5.0.0
 ZBX_LOGREMOTECOMMANDS=0
 ZBX_HOSTINTERFACE= # Available since 4.4.0
 ZBX_HOSTINTERFACEITEM= # Available since 4.4.0
@@ -159,6 +161,14 @@ ZBX_TLSCERTFILE=
 ZBX_TLSKEYFILE=
 ZBX_TLSPSKIDENTITY=
 ZBX_TLSPSKFILE=
+ZBX_TLSCIPHERALL= # Available since 4.4.7
+ZBX_TLSCIPHERALL13= # Available since 4.4.7
+ZBX_TLSCIPHERCERT= # Available since 4.4.7
+ZBX_TLSCIPHERCERT13= # Available since 4.4.7
+ZBX_TLSCIPHERPSK= # Available since 4.4.7
+ZBX_TLSCIPHERPSK13= # Available since 4.4.7
+ZBX_DENYKEY=system.run[*] # Available since 5.0.0
+ZBX_ALLOWKEY= # Available since 5.0.0
 ```
 
 Default values of these variables are specified after equal sign.
