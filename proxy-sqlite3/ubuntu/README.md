@@ -171,6 +171,12 @@ ZBX_TLSCERTFILE=
 ZBX_TLSKEYFILE=
 ZBX_TLSPSKIDENTITY=
 ZBX_TLSPSKFILE=
+ZBX_TLSCIPHERALL= # Available since 4.4.7
+ZBX_TLSCIPHERALL13= # Available since 4.4.7
+ZBX_TLSCIPHERCERT= # Available since 4.4.7
+ZBX_TLSCIPHERCERT13= # Available since 4.4.7
+ZBX_TLSCIPHERPSK= # Available since 4.4.7
+ZBX_TLSCIPHERPSK13= # Available since 4.4.7
 ```
 
 Default values of these variables are specified after equal sign.
