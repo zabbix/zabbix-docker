@@ -14,21 +14,23 @@ Zabbix proxy is a process that may collect monitoring data from one or more moni
 
 # Zabbix proxy images
 
-These are the only official Zabbix proxy Docker images. They are based on Alpine Linux v3.9, Ubuntu 18.04 (bionic) and CentOS 7 images. The available versions of Zabbix proxy are:
+These are the only official Zabbix proxy Docker images. They are based on Alpine Linux v3.11, Ubuntu 18.04 (bionic) and CentOS 7 images. The available versions of Zabbix proxy are:
 
     Zabbix proxy 3.0 (tags: alpine-3.0-latest, ubuntu-3.0-latest, centos-3.0-latest)
     Zabbix proxy 3.0.* (tags: alpine-3.0.*, ubuntu-3.0.*, centos-3.0.*)
-    Zabbix proxy 3.2 (tags: alpine-3.2-latest, ubuntu-3.2-latest, centos-3.2-latest)
-    Zabbix proxy 3.2.* (tags: alpine-3.2.*, ubuntu-3.2.*, centos-3.2.*)
-    Zabbix proxy 3.4 (tags: alpine-3.4-latest, ubuntu-3.4-latest, centos-3.4-latest)
-    Zabbix proxy 3.4.* (tags: alpine-3.4.*, ubuntu-3.4.*, centos-3.4.*)
+    Zabbix proxy 3.2 (tags: alpine-3.2-latest, ubuntu-3.2-latest, centos-3.2.*) (unsupported)
+    Zabbix proxy 3.2.* (tags: alpine-3.2.*, ubuntu-3.2.*, centos-3.2.*) (unsupported)
+    Zabbix proxy 3.4 (tags: alpine-3.4-latest, ubuntu-3.4-latest, centos-3.4.*) (unsupported)
+    Zabbix proxy 3.4.* (tags: alpine-3.4.*, ubuntu-3.4.*, centos-3.4.*) (unsupported)
     Zabbix proxy 4.0 (tags: alpine-4.0-latest, ubuntu-4.0-latest, centos-4.0-latest)
     Zabbix proxy 4.0.* (tags: alpine-4.0.*, ubuntu-4.0.*, centos-4.0.*)
-    Zabbix proxy 4.2 (tags: alpine-4.2-latest, ubuntu-4.2-latest, centos-4.2-latest)
-    Zabbix proxy 4.2.* (tags: alpine-4.2.*, ubuntu-4.2.*, centos-4.2.*)
-    Zabbix proxy 4.4 (tags: alpine-4.4-latest, ubuntu-4.4-latest, centos-4.4-latest, alpine-latest, ubuntu-latest, centos-latest, latest)
-    Zabbix proxy 4.4.* (tags: alpine-4.4.*, ubuntu-4.4.*, centos-4.4.*)
-    Zabbix proxy 5.0 (tags: alpine-trunk, ubuntu-trunk, centos-trunk)
+    Zabbix proxy 4.2 (tags: alpine-4.2-latest, ubuntu-4.2-latest, centos-4.2.*) (unsupported)
+    Zabbix proxy 4.2.* (tags: alpine-4.2.*, ubuntu-4.2.*, centos-4.2.*) (unsupported)
+    Zabbix proxy 4.4 (tags: alpine-4.4-latest, ubuntu-4.4-latest, centos-4.4-latest) (unsupported)
+    Zabbix proxy 4.4.* (tags: alpine-4.4.*, ubuntu-4.4.*, centos-4.4.*) (unsupported)
+    Zabbix proxy 5.0 (tags: alpine-5.0-latest, ubuntu-5.0-latest, centos-5.0-latest, alpine-latest, ubuntu-latest, centos-latest, latest)
+    Zabbix proxy 5.0.* (tags: alpine-5.0.*, ubuntu-5.0.*, centos-5.0.*)
+    Zabbix proxy 5.2 (tags: alpine-trunk, ubuntu-trunk, centos-trunk)
 
 Images are updated when new releases are published. The image with ``latest`` tag is based on Alpine Linux.
 
@@ -157,6 +159,12 @@ The variable enable communication with Zabbix Java Gateway to collect Java relat
 Additionally the image allows to specify many other environment variables listed below:
 
 ```
+ZBX_DBTLSCONNECT= # Available since 5.0.0
+ZBX_DBTLSCAFILE= # Available since 5.0.0
+ZBX_DBTLSCERTFILE= # Available since 5.0.0
+ZBX_DBTLSKEYFILE= # Available since 5.0.0
+ZBX_DBTLSCIPHER= # Available since 5.0.0
+ZBX_DBTLSCIPHER13= # Available since 5.0.0
 ZBX_ENABLEREMOTECOMMANDS=0 # Available since 3.4.0
 ZBX_LOGREMOTECOMMANDS=0 # Available since 3.4.0
 ZBX_HOSTNAMEITEM=system.hostname
@@ -205,6 +213,12 @@ ZBX_TLSCERTFILE=
 ZBX_TLSKEYFILE=
 ZBX_TLSPSKIDENTITY=
 ZBX_TLSPSKFILE=
+ZBX_TLSCIPHERALL= # Available since 4.4.7
+ZBX_TLSCIPHERALL13= # Available since 4.4.7
+ZBX_TLSCIPHERCERT= # Available since 4.4.7
+ZBX_TLSCIPHERCERT13= # Available since 4.4.7
+ZBX_TLSCIPHERPSK= # Available since 4.4.7
+ZBX_TLSCIPHERPSK13= # Available since 4.4.7
 ```
 
 Default values of these variables are specified after equal sign.
