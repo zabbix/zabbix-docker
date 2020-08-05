@@ -14,21 +14,23 @@ Zabbix web interface is a part of Zabbix software. It is used to manage resource
 
 # Zabbix web interface images
 
-These are the only official Zabbix web interface Docker images. They are based on Alpine Linux v3.9, Ubuntu 18.04 (bionic) and CentOS 7 images. The available versions of Zabbix web interface are:
+These are the only official Zabbix web interface Docker images. They are based on Alpine Linux v3.11, Ubuntu 18.04 (bionic) and CentOS 7 images. The available versions of Zabbix web interface are:
 
     Zabbix web interface 3.0 (tags: alpine-3.0-latest, ubuntu-3.0-latest, centos-3.0-latest)
     Zabbix web interface 3.0.* (tags: alpine-3.0.*, ubuntu-3.0.*, centos-3.0.*)
-    Zabbix web interface 3.2 (tags: alpine-3.2-latest, ubuntu-3.2-latest, centos-3.2-latest)
-    Zabbix web interface 3.2.* (tags: alpine-3.2.*, ubuntu-3.2.*, centos-3.2.*)
-    Zabbix web interface 3.4 (tags: alpine-3.4-latest, ubuntu-3.4-latest, centos-3.4-latest)
-    Zabbix web interface 3.4.* (tags: alpine-3.4.*, ubuntu-3.4.*, centos-3.4.*)
+    Zabbix web interface 3.2 (tags: alpine-3.2-latest, ubuntu-3.2-latest, centos-3.2.*) (unsupported)
+    Zabbix web interface 3.2.* (tags: alpine-3.2.*, ubuntu-3.2.*, centos-3.2.*) (unsupported)
+    Zabbix web interface 3.4 (tags: alpine-3.4-latest, ubuntu-3.4-latest, centos-3.4.*) (unsupported)
+    Zabbix web interface 3.4.* (tags: alpine-3.4.*, ubuntu-3.4.*, centos-3.4.*) (unsupported)
     Zabbix web interface 4.0 (tags: alpine-4.0-latest, ubuntu-4.0-latest, centos-4.0-latest)
     Zabbix web interface 4.0.* (tags: alpine-4.0.*, ubuntu-4.0.*, centos-4.0.*)
-    Zabbix web interface 4.2 (tags: alpine-4.2-latest, ubuntu-4.2-latest, centos-4.2-latest)
-    Zabbix web interface 4.2.* (tags: alpine-4.2.*, ubuntu-4.2.*, centos-4.2.*)
-    Zabbix web interface 4.4 (tags: alpine-4.4-latest, ubuntu-4.4-latest, centos-4.4-latest, alpine-latest, ubuntu-latest, centos-latest, latest)
-    Zabbix web interface 4.4.* (tags: alpine-4.4.*, ubuntu-4.4.*, centos-4.4.*)
-    Zabbix web interface 5.0 (tags: alpine-trunk, ubuntu-trunk, centos-trunk)
+    Zabbix web interface 4.2 (tags: alpine-4.2-latest, ubuntu-4.2-latest, centos-4.2.*) (unsupported)
+    Zabbix web interface 4.2.* (tags: alpine-4.2.*, ubuntu-4.2.*, centos-4.2.*) (unsupported)
+    Zabbix web interface 4.4 (tags: alpine-4.4-latest, ubuntu-4.4-latest, centos-4.4-latest) (unsupported)
+    Zabbix web interface 4.4.* (tags: alpine-4.4.*, ubuntu-4.4.*, centos-4.4.*) (unsupported)
+    Zabbix web interface 5.0 (tags: alpine-5.0-latest, ubuntu-5.0-latest, centos-5.0-latest, alpine-latest, ubuntu-latest, centos-latest, latest)
+    Zabbix web interface 5.0.* (tags: alpine-5.0.*, ubuntu-5.0.*, centos-5.0.*)
+    Zabbix web interface 5.2 (tags: alpine-trunk, ubuntu-trunk, centos-trunk)
 
 Images are updated when new releases are published. The image with ``latest`` tag is based on Alpine Linux.
 
@@ -132,6 +134,15 @@ The variable is timezone in PHP format. Full list of supported timezones are ava
 
 The variable is visible Zabbix installation name in right top corner of the web interface.
 
+
+### `DB_DOUBLE_IEEE754`
+
+Use IEEE754 compatible value range for 64-bit Numeric (float) history values. Available since 5.0.0. Enabled by default.
+
+### `ENABLE_WEB_ACCESS_LOG`
+
+The variable sets the Access Log directive for Web-server. By default, value corresponds to standard output.
+
 ### `ZBX_MAXEXECUTIONTIME`
 
 The varable is PHP ``max_execution_time`` option. By default, value is `300`.
@@ -152,9 +163,34 @@ The varable is PHP ``upload_max_filesize`` option. By default, value is `2M`.
 
 The varable is PHP ``max_input_time`` option. By default, value is `300`.
 
+
 ### `ZBX_SESSION_NAME`
-                                                                                               
+
 The variable is Zabbix frontend [definition](https://www.zabbix.com/documentation/4.2/manual/web_interface/definitions). String used as the name of the Zabbix frontend session cookie. By default, value is `zbx_sessionid`.
+
+### `ZBX_DB_ENCRYPTION`
+
+The variable allows to activate encryption for connections to Zabbix database. Even if no other environment variables are specified, connections will be TLS-encrypted if `ZBX_DB_ENCRYPTION=true` specified. Available since 5.0.0. Disabled by default.
+
+### `ZBX_DB_KEY_FILE`
+
+The variable allows to specify the full path to a valid TLS key file. Available since 5.0.0.
+
+### `ZBX_DB_CERT_FILE`
+
+The variable allows to specify the full path to a valid TLS certificate file. Available since 5.0.0.
+
+### `ZBX_DB_CA_FILE`
+
+The variable allows to specify the full path to a valid TLS certificate authority file. Available since 5.0.0.
+
+### `ZBX_DB_VERIFY_HOST`
+
+The variable allows to activate host verification. Available since 5.0.0.
+
+### `ZBX_DB_CIPHER_LIST`
+
+The variable allows to specify a custom list of valid ciphers. The format of the cipher list must conform to the OpenSSL standard. Available since 5.0.0.
 
 ## Allowed volumes for the Zabbix web interface container
 
