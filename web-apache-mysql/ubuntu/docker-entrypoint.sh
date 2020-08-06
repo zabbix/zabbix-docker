@@ -208,7 +208,7 @@ prepare_zbx_web_config() {
     ZBX_WWW_ROOT="/usr/share/zabbix"
     ZBX_WEB_CONFIG="$ZABBIX_ETC_DIR/web/zabbix.conf.php"
 
-    PHP_CONFIG_FILE="/etc/php/7.2/apache2/conf.d/99-zabbix.ini"
+    PHP_CONFIG_FILE="/etc/php/7.4/apache2/conf.d/99-zabbix.ini"
 
     update_config_var "$PHP_CONFIG_FILE" "max_execution_time" "${ZBX_MAXEXECUTIONTIME:-"600"}"
     update_config_var "$PHP_CONFIG_FILE" "memory_limit" "${ZBX_MEMORYLIMIT:-"128M"}" 
