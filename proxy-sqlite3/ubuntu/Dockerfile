@@ -46,7 +46,7 @@ RUN set -eux && \
             libpcre3 \
             libsnmp30 \
             libsqlite3-0 \
-            libssh2-1 \
+            libssh-4 \
             libssl1.1 \
             libxml2 \
             snmp-mibs-downloader \
@@ -95,7 +95,7 @@ RUN set -eux && \
             libpcre3-dev \
             libsnmp-dev \
             libsqlite3-dev \
-            libssh2-1-dev \
+            libssh-dev \
             libxml2-dev \
             make \
             pkg-config \
@@ -122,7 +122,7 @@ RUN set -eux && \
             --with-net-snmp \
             --with-openipmi \
             --with-openssl \
-            --with-ssh2 \
+            --with-ssh \
             --with-unixodbc \
             --enable-ipv6 \
             --silent && \
@@ -149,7 +149,7 @@ RUN set -eux && \
             libpcre3-dev \
             libsnmp-dev \
             libsqlite3-dev \
-            libssh2-1-dev \
+            libssh-dev \
             libxml2-dev \
             make \
             pkg-config \

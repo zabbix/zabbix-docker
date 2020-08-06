@@ -39,6 +39,7 @@ RUN set -eux && \
             traceroute \
             libcurl \
             libevent \
+            libssh \
             libxml2 \
             mariadb \
             net-snmp-libs \
@@ -84,7 +85,7 @@ RUN set -eux && \
             gcc \
             libcurl-devel \
             libevent-devel \
-            libssh2-devel \
+            libssh-devel \
             libxml2-devel \
             make \
             mariadb-devel \
@@ -114,7 +115,7 @@ RUN set -eux && \
             --with-net-snmp \
             --with-openipmi \
             --with-openssl \
-            --with-ssh2 \
+            --with-ssh \
             --with-unixodbc \
             --enable-ipv6 \
             --silent && \
