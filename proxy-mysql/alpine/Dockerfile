@@ -36,7 +36,7 @@ RUN set -eux && \
             libcurl \
             libevent \
             libldap \
-            libssh2 \
+            libssh \
             libxml2 \
             mariadb-client \
             mariadb-connector-c \
@@ -68,7 +68,7 @@ RUN set -eux && \
             g++ \
             git \
             make \
-            libssh2-dev \
+            libssh-dev \
             libxml2-dev \
             mysql-dev \
             net-snmp-dev \
@@ -98,7 +98,7 @@ RUN set -eux && \
             --with-net-snmp \
             --with-openipmi \
             --with-openssl \
-            --with-ssh2 \
+            --with-ssh \
             --with-unixodbc \
             --enable-ipv6 \
             --silent && \

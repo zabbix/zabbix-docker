@@ -52,7 +52,7 @@ RUN set -eux && \
             libopenipmi0 \
             libpcre3 \
             libsnmp30 \
-            libssh2-1 \
+            libssh-4 \
             libssl1.1 \
             libxml2 \
             mysql-client \
@@ -103,7 +103,7 @@ RUN set -eux && \
             libopenipmi-dev \
             libpcre3-dev \
             libsnmp-dev \
-            libssh2-1-dev \
+            libssh-dev \
             libxml2-dev \
             make \
             pkg-config \
@@ -131,7 +131,7 @@ RUN set -eux && \
             --with-net-snmp \
             --with-openipmi \
             --with-openssl \
-            --with-ssh2 \
+            --with-ssh \
             --with-unixodbc \
             --enable-ipv6 \
             --silent && \
@@ -164,7 +164,7 @@ RUN set -eux && \
             libopenipmi-dev \
             libpcre3-dev \
             libsnmp-dev \
-            libssh2-1-dev \
+            libssh-dev \
             libxml2-dev \
             make \
             pkg-config \

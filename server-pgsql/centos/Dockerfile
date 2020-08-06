@@ -40,6 +40,7 @@ RUN set -eux && \
             traceroute \
             libcurl \
             libevent \
+            libssh \
             libxml2 \
             net-snmp-libs \
             OpenIPMI-libs \
@@ -87,7 +88,7 @@ RUN set -eux && \
             gcc \
             libcurl-devel \
             libevent-devel \
-            libssh2-devel \
+            libssh-devel \
             libxml2-devel \
             make \
             net-snmp-devel \
@@ -118,7 +119,7 @@ RUN set -eux && \
             --with-net-snmp \
             --with-openipmi \
             --with-openssl \
-            --with-ssh2 \
+            --with-ssh \
             --with-unixodbc \
             --enable-ipv6 \
             --silent && \
