@@ -1,4 +1,4 @@
-FROM ubuntu:bionic
+FROM ubuntu:focal
 
 LABEL org.opencontainers.image.title="Zabbix web-interface (Apache, MySQL)" \
       org.opencontainers.image.authors="Alexey Pustovalov <alexey.pustovalov@zabbix.com>" \
@@ -28,13 +28,13 @@ RUN set -eux && \
             ca-certificates \
             mysql-client \
             locales \
-            php7.2-bcmath \
-            php7.2-gd \
-            php7.2-json \
-            php7.2-ldap \
-            php7.2-mbstring \
-            php7.2-mysql \
-            php7.2-xml && \
+            php7.4-bcmath \
+            php7.4-gd \
+            php7.4-json \
+            php7.4-ldap \
+            php7.4-mbstring \
+            php7.4-mysql \
+            php7.4-xml && \
     rm -f /etc/apache2/sites-available/* && \
     rm -f /etc/apache2/sites-enabled/* && \
     /usr/sbin/a2enmod ssl && \
@@ -93,9 +93,9 @@ RUN set -eux && \
     chown --quiet -R zabbix:root /etc/zabbix/ /usr/share/zabbix/include/defines.inc.php /usr/share/zabbix/modules/ && \
     chgrp -R 0 /etc/zabbix/ /usr/share/zabbix/include/defines.inc.php /usr/share/zabbix/modules/ && \
     chmod -R g=u /etc/zabbix/ /usr/share/zabbix/include/defines.inc.php /usr/share/zabbix/modules/ && \
-    chown --quiet -R zabbix:root /etc/apache2/ /etc/php/7.2/ && \
-    chgrp -R 0 /etc/apache2/ /etc/php/7.2/ && \
-    chmod -R g=u /etc/apache2/ /etc/php/7.2/ && \
+    chown --quiet -R zabbix:root /etc/apache2/ /etc/php/7.4/ && \
+    chgrp -R 0 /etc/apache2/ /etc/php/7.4/ && \
+    chmod -R g=u /etc/apache2/ /etc/php/7.4/ && \
     DEBIAN_FRONTEND=noninteractive apt-get -y purge \
             gettext \
             git && \

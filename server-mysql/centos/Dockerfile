@@ -1,4 +1,4 @@
-FROM centos:centos7
+FROM centos:centos8
 
 LABEL org.opencontainers.image.title="Zabbix server (MySQL)" \
       org.opencontainers.image.authors="Alexey Pustovalov <alexey.pustovalov@zabbix.com>" \
@@ -32,14 +32,15 @@ RUN set -eux && \
     mkdir -p /usr/lib/zabbix/alertscripts && \
     mkdir -p /usr/lib/zabbix/externalscripts && \
     mkdir -p /usr/share/doc/zabbix-server-mysql && \
-    yum --quiet makecache && \
-    yum -y install --setopt=tsflags=nodocs https://repo.zabbix.com/non-supported/rhel/7/x86_64/fping-3.10-1.el7.x86_64.rpm && \
-    yum -y install --setopt=tsflags=nodocs \
+    dnf --quiet makecache && \
+    dnf -y install --setopt=tsflags=nodocs http://repo.zabbix.com/non-supported/rhel/8/x86_64/fping-3.16-1.el8.x86_64.rpm && \
+    dnf -y install --setopt=tsflags=nodocs \
             iputils \
             traceroute \
-            libcurl \
+            libcurl-minimal \
             libevent \
             libxml2 \
+            libssh \
             mariadb \
             net-snmp-libs \
             OpenIPMI-libs \
@@ -61,9 +62,9 @@ RUN set -eux && \
     gpg --batch --verify /tmp/tini.asc /sbin/tini && \
     rm -r "$GNUPGHOME" /tmp/tini.asc && \
     chmod +x /sbin/tini && \
-    yum -y clean all && \
+    dnf -y clean all && \
     rm -rf /var/cache/yum /var/lib/yum/yumdb/* /usr/lib/udev/hwdb.d/* && \
-    rm -rf /etc/udev/hwdb.bin /root/.pki
+    rm -rf /var/cache/dnf /etc/udev/hwdb.bin /root/.pki
 
 ARG MAJOR_VERSION=5.0
 ARG ZBX_VERSION=${MAJOR_VERSION}
@@ -77,14 +78,16 @@ LABEL org.opencontainers.image.documentation="https://www.zabbix.com/documentati
       org.opencontainers.image.source="${ZBX_SOURCES}"
 
 RUN set -eux && \
-    yum --quiet makecache && \
-    yum -y install --setopt=tsflags=nodocs \
+    sed -i 's/enabled=0/enabled=1/g' /etc/yum.repos.d/CentOS-PowerTools.repo && \
+    dnf --quiet makecache && \
+    dnf -y install --setopt=tsflags=nodocs \
             autoconf \
             automake \
             gcc \
+            pcre-devel \
             libcurl-devel \
             libevent-devel \
-            libssh2-devel \
+            libssh-devel \
             libxml2-devel \
             make \
             mariadb-devel \
@@ -114,7 +117,7 @@ RUN set -eux && \
             --with-net-snmp \
             --with-openipmi \
             --with-openssl \
-            --with-ssh2 \
+            --with-ssh \
             --with-unixodbc \
             --enable-ipv6 \
             --silent && \
@@ -134,10 +137,11 @@ RUN set -eux && \
     chown --quiet -R zabbix:root /etc/zabbix/ /var/lib/zabbix/ && \
     chgrp -R 0 /etc/zabbix/ /var/lib/zabbix/ && \
     chmod -R g=u /etc/zabbix/ /var/lib/zabbix/ && \
-    yum -y history undo `yum -q history | sed -n 3p |column -t | cut -d' ' -f1` && \
-    yum -y clean all && \
+    dnf -y history undo `dnf -q history | sed -n 3p |column -t | cut -d' ' -f1` && \
+    dnf -y clean all && \
+    sed -i 's/enabled=1/enabled=0/g' /etc/yum.repos.d/CentOS-PowerTools.repo && \
     rm -rf /var/cache/yum /var/lib/yum/yumdb/* /usr/lib/udev/hwdb.d/* && \
-    rm -rf /etc/udev/hwdb.bin /root/.pki
+    rm -rf /var/cache/dnf /etc/udev/hwdb.bin /root/.pki
 
 EXPOSE 10051/TCP
 

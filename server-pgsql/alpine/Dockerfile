@@ -1,4 +1,4 @@
-FROM alpine:3.11
+FROM alpine:3.12
 
 LABEL org.opencontainers.image.title="Zabbix server (PostgreSQL)" \
       org.opencontainers.image.authors="Alexey Pustovalov <alexey.pustovalov@zabbix.com>" \
@@ -40,7 +40,7 @@ RUN set -eux && \
             libcurl \
             libevent \
             libldap \
-            libssh2 \
+            libssh \
             libxml2 \
             net-snmp-agent-libs \
             openipmi-libs \
@@ -69,7 +69,7 @@ RUN set -eux && \
             coreutils \
             curl-dev \
             libevent-dev \
-            libssh2-dev \
+            libssh-dev \
             libxml2-dev \
             net-snmp-dev \
             openipmi-dev \
@@ -101,7 +101,7 @@ RUN set -eux && \
             --with-net-snmp \
             --with-openipmi \
             --with-openssl \
-            --with-ssh2 \
+            --with-ssh \
             --with-unixodbc \
             --enable-ipv6 \
             --silent && \

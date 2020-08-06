@@ -1,4 +1,4 @@
-FROM ubuntu:bionic
+FROM ubuntu:focal
 
 LABEL org.opencontainers.image.title="Zabbix server (PostgreSQL)" \
       org.opencontainers.image.authors="Alexey Pustovalov <alexey.pustovalov@zabbix.com>" \
@@ -8,8 +8,6 @@ LABEL org.opencontainers.image.title="Zabbix server (PostgreSQL)" \
       org.opencontainers.image.licenses="GPL v2.0"
 
 STOPSIGNAL SIGTERM
-
-ENV TINI_VERSION=v0.19.0
 
 RUN set -eux && \
     addgroup --system --gid 1995 --quiet zabbix && \
@@ -37,11 +35,8 @@ RUN set -eux && \
     mkdir -p /usr/share/doc/zabbix-server-postgresql && \
     apt-get -y update && \
     DEBIAN_FRONTEND=noninteractive apt-get -y --no-install-recommends install \
-            curl \
+            tini \
             ca-certificates \
-            gpg \
-            dirmngr \
-            gpg-agent \
             iputils-ping \
             traceroute \
             fping \
@@ -50,28 +45,13 @@ RUN set -eux && \
             libopenipmi0 \
             libpcre3 \
             libpq5 \
-            libsnmp30 \
-            libssh2-1 \
+            libsnmp35 \
+            libssh-4 \
             libssl1.1 \
             libxml2 \
             postgresql-client \
             snmp-mibs-downloader \
             unixodbc && \
-    curl -L "https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini" -o /sbin/tini && \
-    curl -L "https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini.asc" -o /tmp/tini.asc && \
-    export GNUPGHOME="$(mktemp -d)" && \
-    for server in $(shuf -e ha.pool.sks-keyservers.net \
-                            hkp://p80.pool.sks-keyservers.net:80 \
-                            ipv4.pool.sks-keyservers.net \
-                            keyserver.ubuntu.com \
-                            keyserver.pgp.com \
-                            pgp.mit.edu) ; do \
-        gpg --keyserver "$server" --recv-keys 595E85A6B1B4779EA4DAAEC70B588DFF0527A9B7 && break || : ; \
-    done && \
-    gpg --batch --verify /tmp/tini.asc /sbin/tini && \
-    rm -r "$GNUPGHOME" /tmp/tini.asc && \
-    chmod +x /sbin/tini && \
-    apt-get -y purge curl gpg dirmngr gpg-agent && \
     apt-get -y autoremove && \
     apt-get -y clean && \
     rm -rf /var/lib/apt/lists/*
@@ -101,7 +81,7 @@ RUN set -eux && \
             libpcre3-dev \
             libpq-dev \
             libsnmp-dev \
-            libssh2-1-dev \
+            libssh-dev \
             libxml2-dev \
             make \
             pkg-config \
@@ -128,7 +108,7 @@ RUN set -eux && \
             --with-net-snmp \
             --with-openipmi \
             --with-openssl \
-            --with-ssh2 \
+            --with-ssh \
             --with-unixodbc \
             --enable-ipv6 \
             --silent && \
@@ -161,15 +141,14 @@ RUN set -eux && \
             libpcre3-dev \
             libpq-dev \
             libsnmp-dev \
-            libssh2-1-dev \
+            libssh-dev \
             libxml2-dev \
             make \
             pkg-config \
             git \
             unixodbc-dev && \
     apt-get -y autoremove && \
-    rm -rf /var/lib/apt/lists/* && \
-    chmod +x /sbin/tini
+    rm -rf /var/lib/apt/lists/*
 
 EXPOSE 10051/TCP
 
@@ -179,7 +158,7 @@ VOLUME ["/var/lib/zabbix/snmptraps", "/var/lib/zabbix/export"]
 
 COPY ["docker-entrypoint.sh", "/usr/bin/"]
 
-ENTRYPOINT ["/sbin/tini", "--", "/usr/bin/docker-entrypoint.sh"]
+ENTRYPOINT ["/usr/bin/tini", "--", "/usr/bin/docker-entrypoint.sh"]
 
 USER 1997
 
