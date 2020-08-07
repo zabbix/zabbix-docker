@@ -40,7 +40,7 @@ RUN set -eux && \
             libcurl \
             libevent \
             libldap \
-            libssh-4 \
+            libssh \
             libxml2 \
             mariadb-client \
             mariadb-connector-c \
