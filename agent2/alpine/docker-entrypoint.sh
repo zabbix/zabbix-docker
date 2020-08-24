@@ -145,7 +145,6 @@ prepare_zbx_agent_config() {
 
     update_config_var $ZBX_AGENT_CONFIG "ListenPort" "${ZBX_LISTENPORT}"
     update_config_var $ZBX_AGENT_CONFIG "ListenIP" "${ZBX_LISTENIP}"
-    update_config_var $ZBX_AGENT_CONFIG "StartAgents" "${ZBX_STARTAGENTS}"
 
     : ${ZBX_ACTIVE_ALLOW:="true"}
     if [ "$ZBX_ACTIVE_ALLOW" == "true" ]; then
@@ -167,8 +166,8 @@ prepare_zbx_agent_config() {
         update_config_var $ZBX_AGENT_CONFIG "StatusPort" "31999"
     fi
 
-    update_config_var $ZBX_AGENT_CONFIG "HostInterface" "${ZBX_HOSTINTERFACE}"
-    update_config_var $ZBX_AGENT_CONFIG "HostInterfaceItem" "${ZBX_HOSTINTERFACEITEM}"
+#    update_config_var $ZBX_AGENT_CONFIG "HostInterface" "${ZBX_HOSTINTERFACE}"
+#    update_config_var $ZBX_AGENT_CONFIG "HostInterfaceItem" "${ZBX_HOSTINTERFACEITEM}"
 
     update_config_var $ZBX_AGENT_CONFIG "Hostname" "${ZBX_HOSTNAME}"
     update_config_var $ZBX_AGENT_CONFIG "HostnameItem" "${ZBX_HOSTNAMEITEM}"
@@ -183,8 +182,6 @@ prepare_zbx_agent_config() {
     update_config_var $ZBX_AGENT_CONFIG "Timeout" "${ZBX_TIMEOUT}"
     update_config_var $ZBX_AGENT_CONFIG "Include" "/etc/zabbix/zabbix_agentd.d/"
     update_config_var $ZBX_AGENT_CONFIG "UnsafeUserParameters" "${ZBX_UNSAFEUSERPARAMETERS}"
-    update_config_var $ZBX_AGENT_CONFIG "LoadModulePath" "$ZABBIX_USER_HOME_DIR/modules/"
-    update_config_multiple_var $ZBX_AGENT_CONFIG "LoadModule" "${ZBX_LOADMODULE}"
     update_config_var $ZBX_AGENT_CONFIG "TLSConnect" "${ZBX_TLSCONNECT}"
     update_config_var $ZBX_AGENT_CONFIG "TLSAccept" "${ZBX_TLSACCEPT}"
     update_config_var $ZBX_AGENT_CONFIG "TLSCAFile" "${ZBX_TLSCAFILE}"
@@ -198,12 +195,6 @@ prepare_zbx_agent_config() {
 
     update_config_multiple_var $ZBX_AGENT_CONFIG "DenyKey" "${ZBX_DENYKEY}"
     update_config_multiple_var $ZBX_AGENT_CONFIG "AllowKey" "${ZBX_ALLOWKEY}"
-
-    if [ "$(id -u)" != '0' ]; then
-        update_config_var $ZBX_AGENT_CONFIG "User" "$(whoami)"
-    else
-        update_config_var $ZBX_AGENT_CONFIG "AllowRoot" "1"
-    fi
 }
 
 prepare_agent() {
