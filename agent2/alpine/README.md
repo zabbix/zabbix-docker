@@ -103,10 +103,6 @@ This variable is boolean (``true`` or ``false``) and enables or disables feature
 
 The variable is comma separated list of allowed Zabbix server or proxy hosts for connections to Zabbix agent 2 container. You may specify port of Zabbix server or Zabbix proxy in such syntax: ``zabbix-server:10061,zabbix-proxy:10072``.
 
-### `ZBX_LOADMODULE`
-
-The variable is list of comma separated loadable Zabbix modules. It works with  volume ``/var/lib/zabbix/modules``. The syntax of the variable is ``dummy1.so,dummy2.so``.
-
 ### `ZBX_DEBUGLEVEL`
 
 The variable is used to specify debug level. By default, value is ``3``. It is ``DebugLevel`` parameter in ``zabbix_agent2.conf``. Allowed values are listed below:
@@ -167,10 +163,6 @@ Please use official documentation for [``zabbix_agent2.conf``](https://www.zabbi
 ### ``/etc/zabbix/zabbix_agentd.d``
 
 The volume allows include ``*.conf`` files and extend Zabbix agent 2 using ``UserParameter`` feature.
-
-### ``/var/lib/zabbix/modules``
-
-The volume allows load additional modules and extend Zabbix agent 2 using ``LoadModule`` feature.
 
 ### ``/var/lib/zabbix/enc``
 
