@@ -2,8 +2,8 @@ FROM registry.access.redhat.com/ubi8/ubi
 MAINTAINER Alexey Pustovalov <alexey.pustovalov@zabbix.com>
 
 ARG MAJOR_VERSION=5.0
-ARG RELEASE=2
-ARG ZBX_VERSION=${MAJOR_VERSION}.2
+ARG RELEASE=3
+ARG ZBX_VERSION=${MAJOR_VERSION}.3
 
 ARG ZBX_SOURCES=https://git.zabbix.com/scm/zbx/zabbix.git
 ENV ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES}
