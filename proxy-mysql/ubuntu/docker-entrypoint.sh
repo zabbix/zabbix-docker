@@ -195,7 +195,8 @@ check_db_connect_mysql() {
     WAIT_TIMEOUT=5
 
     if [ -n "${ZBX_DBTLSCONNECT}" ]; then
-        ssl_opts="--ssl --ssl-ca=${ZBX_DBTLSCAFILE} --ssl-key=${ZBX_DBTLSKEYFILE} --ssl-cert=${ZBX_DBTLSCERTFILE}"
+        ssl_mode=${ZBX_DBTLSCONNECT//verify_full/verify_identity}
+        ssl_opts="--ssl-mode=$ssl_mode --ssl-ca=${ZBX_DBTLSCAFILE} --ssl-key=${ZBX_DBTLSKEYFILE} --ssl-cert=${ZBX_DBTLSCERTFILE}"
     fi
 
     while [ ! "$(mysqladmin ping -h ${DB_SERVER_HOST} -P ${DB_SERVER_PORT} -u ${DB_SERVER_ROOT_USER} \
@@ -210,7 +211,8 @@ mysql_query() {
     local result=""
 
     if [ -n "${ZBX_DBTLSCONNECT}" ]; then
-        ssl_opts="--ssl --ssl-ca=${ZBX_DBTLSCAFILE} --ssl-key=${ZBX_DBTLSKEYFILE} --ssl-cert=${ZBX_DBTLSCERTFILE}"
+        ssl_mode=${ZBX_DBTLSCONNECT//verify_full/verify_identity}
+        ssl_opts="--ssl-mode=$ssl_mode --ssl-ca=${ZBX_DBTLSCAFILE} --ssl-key=${ZBX_DBTLSKEYFILE} --ssl-cert=${ZBX_DBTLSCERTFILE}"
     fi
 
     result=$(mysql --silent --skip-column-names -h ${DB_SERVER_HOST} -P ${DB_SERVER_PORT} \
@@ -260,7 +262,8 @@ create_db_schema_mysql() {
         echo "** Creating '${DB_SERVER_DBNAME}' schema in MySQL"
 
         if [ -n "${ZBX_DBTLSCONNECT}" ]; then
-            ssl_opts="--ssl --ssl-ca=${ZBX_DBTLSCAFILE} --ssl-key=${ZBX_DBTLSKEYFILE} --ssl-cert=${ZBX_DBTLSCERTFILE}"
+            ssl_mode=${ZBX_DBTLSCONNECT//verify_full/verify_identity}
+            ssl_opts="--ssl-mode=$ssl_mode --ssl-ca=${ZBX_DBTLSCAFILE} --ssl-key=${ZBX_DBTLSKEYFILE} --ssl-cert=${ZBX_DBTLSCERTFILE}"
         fi
 
         zcat /usr/share/doc/zabbix-proxy-mysql/create.sql.gz | mysql --silent --skip-column-names \

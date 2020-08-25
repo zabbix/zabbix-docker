@@ -18,7 +18,7 @@ RUN set -eux && \
     mkdir -p /etc/zabbix/ && \
     mkdir -p /usr/sbin/zabbix_java/ && \
     dnf --quiet makecache && \
-    dnf -y install --setopt=tsflags=nodocs \
+    dnf -y install --setopt=tsflags=nodocs --setopt=install_weak_deps=False --best \
             java-1.8.0-openjdk-headless && \
     dnf -y clean all && \
     rm -rf /var/cache/yum /var/lib/yum/yumdb/* /usr/lib/udev/hwdb.d/* && \
@@ -38,7 +38,7 @@ COPY ["conf/etc/", "/etc/"]
 
 RUN set -eux && \
     dnf --quiet makecache && \
-    dnf -y install --setopt=tsflags=nodocs \
+    dnf -y install --setopt=tsflags=nodocs --setopt=install_weak_deps=False --best \
             autoconf \
             automake \
             java-1.8.0-openjdk-devel \

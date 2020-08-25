@@ -23,7 +23,7 @@ RUN set -eux && \
     mkdir -p /var/lib/zabbix/enc && \
     mkdir -p /var/lib/zabbix/modules && \
     dnf --quiet makecache && \
-    dnf -y install --setopt=tsflags=nodocs \
+    dnf -y install --setopt=tsflags=nodocs --setopt=install_weak_deps=False --best \
             libcurl-minimal \
             openssl-libs && \
     curl -L "https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini" -o /sbin/tini && \
@@ -56,7 +56,7 @@ LABEL org.opencontainers.image.documentation="https://www.zabbix.com/documentati
 
 RUN set -eux && \
     dnf --quiet makecache && \
-    dnf -y install --setopt=tsflags=nodocs \
+    dnf -y install --setopt=tsflags=nodocs --setopt=install_weak_deps=False --best \
             autoconf \
             automake \
             pcre-devel \

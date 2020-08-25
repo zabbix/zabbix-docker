@@ -63,7 +63,7 @@ RUN set -eux && \
     dnf --quiet makecache && \
     dnf -y install --setopt=install_weak_deps=False --best --setopt=tsflags=nodocs \
             glibc-locale-source && \
-    dnf -y install --setopt=tsflags=nodocs \
+    dnf -y install --setopt=install_weak_deps=False --best --setopt=tsflags=nodocs \
             gettext \
             git && \
     cd /usr/share/ && \
