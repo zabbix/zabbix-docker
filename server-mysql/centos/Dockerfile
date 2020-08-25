@@ -34,7 +34,7 @@ RUN set -eux && \
     mkdir -p /usr/share/doc/zabbix-server-mysql && \
     dnf --quiet makecache && \
     dnf -y install --setopt=tsflags=nodocs http://repo.zabbix.com/non-supported/rhel/8/x86_64/fping-3.16-1.el8.x86_64.rpm && \
-    dnf -y install --setopt=tsflags=nodocs \
+    dnf -y install --setopt=tsflags=nodocs --setopt=install_weak_deps=False --best \
             iputils \
             traceroute \
             libcurl-minimal \
@@ -80,7 +80,7 @@ LABEL org.opencontainers.image.documentation="https://www.zabbix.com/documentati
 RUN set -eux && \
     sed -i 's/enabled=0/enabled=1/g' /etc/yum.repos.d/CentOS-PowerTools.repo && \
     dnf --quiet makecache && \
-    dnf -y install --setopt=tsflags=nodocs \
+    dnf -y install --setopt=tsflags=nodocs --setopt=install_weak_deps=False --best \
             autoconf \
             automake \
             gcc \
@@ -90,7 +90,7 @@ RUN set -eux && \
             libssh-devel \
             libxml2-devel \
             make \
-            mariadb-devel \
+            mariadb-connector-c-devel \
             net-snmp-devel \
             OpenIPMI-devel \
             openldap-devel \

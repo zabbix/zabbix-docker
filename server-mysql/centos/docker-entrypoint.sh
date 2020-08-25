@@ -190,7 +190,10 @@ check_db_connect_mysql() {
     WAIT_TIMEOUT=5
 
     if [ -n "${ZBX_DBTLSCONNECT}" ]; then
-        ssl_opts="--ssl --ssl-ca=${ZBX_DBTLSCAFILE} --ssl-key=${ZBX_DBTLSKEYFILE} --ssl-cert=${ZBX_DBTLSCERTFILE}"
+        if [ "${ZBX_DBTLSCONNECT}" != "required" ]; then
+            verify_cert="--ssl-verify-server-cert"
+        fi
+        ssl_opts="--ssl --ssl-ca=${ZBX_DBTLSCAFILE} --ssl-key=${ZBX_DBTLSKEYFILE} --ssl-cert=${ZBX_DBTLSCERTFILE} $verify_cert"
     fi
 
     while [ ! "$(mysqladmin ping -h ${DB_SERVER_HOST} -P ${DB_SERVER_PORT} -u ${DB_SERVER_ROOT_USER} \
@@ -205,7 +208,10 @@ mysql_query() {
     local result=""
 
     if [ -n "${ZBX_DBTLSCONNECT}" ]; then
-        ssl_opts="--ssl --ssl-ca=${ZBX_DBTLSCAFILE} --ssl-key=${ZBX_DBTLSKEYFILE} --ssl-cert=${ZBX_DBTLSCERTFILE}"
+        if [ "${ZBX_DBTLSCONNECT}" != "required" ]; then
+            verify_cert="--ssl-verify-server-cert"
+        fi
+        ssl_opts="--ssl --ssl-ca=${ZBX_DBTLSCAFILE} --ssl-key=${ZBX_DBTLSKEYFILE} --ssl-cert=${ZBX_DBTLSCERTFILE} $verify_cert"
     fi
 
     result=$(mysql --silent --skip-column-names -h ${DB_SERVER_HOST} -P ${DB_SERVER_PORT} \
@@ -255,7 +261,10 @@ create_db_schema_mysql() {
         echo "** Creating '${DB_SERVER_DBNAME}' schema in MySQL"
 
         if [ -n "${ZBX_DBTLSCONNECT}" ]; then
-            ssl_opts="--ssl --ssl-ca=${ZBX_DBTLSCAFILE} --ssl-key=${ZBX_DBTLSKEYFILE} --ssl-cert=${ZBX_DBTLSCERTFILE}"
+            if [ "${ZBX_DBTLSCONNECT}" != "required" ]; then
+                verify_cert="--ssl-verify-server-cert"
+            fi
+            ssl_opts="--ssl --ssl-ca=${ZBX_DBTLSCAFILE} --ssl-key=${ZBX_DBTLSKEYFILE} --ssl-cert=${ZBX_DBTLSCERTFILE} $verify_cert"
         fi
 
         zcat /usr/share/doc/zabbix-server-mysql/create.sql.gz | mysql --silent --skip-column-names \

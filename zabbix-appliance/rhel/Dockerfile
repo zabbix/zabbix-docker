@@ -131,7 +131,7 @@ RUN set -eux && REPOLIST="rhel-8-for-x86_64-baseos-rpms,rhel-8-for-x86_64-appstr
             libssh-devel \
             libxml2-devel \
             make \
-            mariadb-devel \
+            mariadb-connector-c-devel \
             pcre-devel \
             net-snmp-devel \
 #            OpenIPMI-devel \
