@@ -76,59 +76,24 @@ escape_spec_char() {
     echo "$var_value"
 }
 
-configure_db_mysql() {
-    [ "${DB_SERVER_HOST}" != "localhost" ] && return
-
-    echo "** Configuring local MySQL server"
-
-    MYSQL_ALLOW_EMPTY_PASSWORD=true
-    MYSQL_DATA_DIR="/var/lib/mysql"
-
-    MYSQL_CONF_FILE="/etc/my.cnf.d/mariadb-server.cnf"
-    DB_SERVER_SOCKET="/var/lib/mysql/mysql.sock"
-
-    MYSQLD=/usr/libexec/mysqld
-
-    sed -Ei 's/^(bind-address|log)/#&/' "$MYSQL_CONF_FILE"
-
-    if [ ! -d "$MYSQL_DATA_DIR/mysql" ]; then
-        [ -d "$MYSQL_DATA_DIR" ] || mkdir -p "$MYSQL_DATA_DIR"
-
-        echo "** Installing initial MySQL database schemas"
-        mysql_install_db --datadir="$MYSQL_DATA_DIR" 2>&1
-    else
-        echo "**** MySQL data directory is not empty. Using already existing installation."
-    fi
-
-    echo "** Starting MySQL server in background mode"
-
-    if [ "$(id -u)" == '0' ]; then
-        mysql_user="--user=zabbix"
-    fi
-
-    nohup $MYSQLD --basedir=/usr --datadir=/var/lib/mysql --plugin-dir=/usr/lib/mysql/plugin \
-            --log-output=none --pid-file=/var/lib/mysql/mysqld.pid \
-            --port=3306 --character-set-server=utf8 --collation-server=utf8_bin $mysql_user &
-}
-
-prepare_system() {
-    echo "** Preparing the system"
-
-    configure_db_mysql
-}
-
 update_config_var() {
     local config_path=$1
     local var_name=$2
     local var_value=$3
     local is_multiple=$4
 
+    local masklist=("DBPassword TLSPSKIdentity")
+
     if [ ! -f "$config_path" ]; then
         echo "**** Configuration file '$config_path' does not exist"
         return
     fi
 
-    echo -n "** Updating '$config_path' parameter \"$var_name\": '$var_value'... "
+    if [[ " ${masklist[@]} " =~ " $var_name " ]] && [ ! -z "$var_value" ]; then
+        echo -n "** Updating '$config_path' parameter \"$var_name\": '****'. Enable DEBUG_MODE to view value ..."
+    else
+        echo -n "** Updating '$config_path' parameter \"$var_name\": '$var_value'..."
+    fi
 
     # Remove configuration parameter definition in case of unset parameter value
     if [ -z "$var_value" ]; then
@@ -182,6 +147,52 @@ update_config_multiple_var() {
     done
 }
 
+configure_db_mysql() {
+    [ "${DB_SERVER_HOST}" != "localhost" ] && return
+
+    echo "** Configuring local MySQL server"
+
+    if [ -n "${ZBX_DBTLSCONNECT}" ]; then
+        echo "**** Encryption with local MySQL instance is not supported"
+        unset ZBX_DBTLSCONNECT
+    fi
+
+    MYSQL_ALLOW_EMPTY_PASSWORD=true
+    MYSQL_DATA_DIR="/var/lib/mysql"
+
+    MYSQL_CONF_FILE="/etc/my.cnf.d/mariadb-server.cnf"
+    DB_SERVER_SOCKET="/var/lib/mysql/mysql.sock"
+
+    MYSQLD=/usr/libexec/mysqld
+
+    if [ "$(id -u)" == '0' ]; then
+        mysql_user="--user=zabbix"
+    fi
+
+    sed -Ei 's/^(bind-address|log)/#&/' "$MYSQL_CONF_FILE"
+
+    if [ ! -d "$MYSQL_DATA_DIR/mysql" ]; then
+        [ -d "$MYSQL_DATA_DIR" ] || mkdir -p "$MYSQL_DATA_DIR"
+
+        echo "** Installing initial MySQL database schemas"
+        mysql_install_db $mysql_user --datadir="$MYSQL_DATA_DIR" 1>/dev/null
+    else
+        echo "**** MySQL data directory is not empty. Using already existing installation."
+    fi
+
+    echo "** Starting MySQL server in background mode"
+
+    nohup $MYSQLD --basedir=/usr --datadir=/var/lib/mysql --plugin-dir=/usr/lib/mysql/plugin \
+            --log-output=none --pid-file=/var/lib/mysql/mysqld.pid \
+            --port=3306 --character-set-server=utf8 --collation-server=utf8_bin $mysql_user &
+}
+
+prepare_system() {
+    echo "** Preparing the system"
+
+    configure_db_mysql
+}
+
 # Check prerequisites for MySQL database
 check_variables_mysql() {
     USE_DB_ROOT_USER=false
@@ -189,9 +200,7 @@ check_variables_mysql() {
     file_env MYSQL_USER
     file_env MYSQL_PASSWORD
 
-    if [ "$type" != "" ]; then
-        file_env MYSQL_ROOT_PASSWORD
-    fi
+    file_env MYSQL_ROOT_PASSWORD
 
     if [ ! -n "${MYSQL_USER}" ] && [ "${MYSQL_RANDOM_ROOT_PASSWORD}" == "true" ]; then
         echo "**** Impossible to use MySQL server because of unknown Zabbix user and random 'root' password"
@@ -212,7 +221,7 @@ check_variables_mysql() {
     [ -n "${MYSQL_USER}" ] && CREATE_ZBX_DB_USER=true
 
     # If root password is not specified use provided credentials
-    DB_SERVER_ROOT_USER=${DB_SERVER_ROOT_USER:-${MYSQL_USER}}
+    : ${DB_SERVER_ROOT_USER:=${MYSQL_USER}}
     [ "${MYSQL_ALLOW_EMPTY_PASSWORD}" == "true" ] || DB_SERVER_ROOT_PASS=${DB_SERVER_ROOT_PASS:-${MYSQL_PASSWORD}}
     DB_SERVER_ZBX_USER=${MYSQL_USER:-"zabbix"}
     DB_SERVER_ZBX_PASS=${MYSQL_PASSWORD:-"zabbix"}
@@ -232,14 +241,16 @@ check_db_connect() {
         fi
         echo "* DB_SERVER_ZBX_USER: ${DB_SERVER_ZBX_USER}"
         echo "* DB_SERVER_ZBX_PASS: ${DB_SERVER_ZBX_PASS}"
-        echo "********************"
     fi
     echo "********************"
 
     WAIT_TIMEOUT=5
 
-    if [ "${ZBX_DB_ENCRYPTION}" == "true" ]; then
-        ssl_opts="--ssl --ssl-ca=${ZBX_DB_CA_FILE} --ssl-key=${ZBX_DB_KEY_FILE} --ssl-cert=${ZBX_DB_CERT_FILE}"
+    if [ -n "${ZBX_DBTLSCONNECT}" ]; then
+        if [ "${ZBX_DBTLSCONNECT}" != "required" ]; then
+            verify_cert="--ssl-verify-server-cert"
+        fi
+        ssl_opts="--ssl --ssl-ca=${ZBX_DBTLSCAFILE} --ssl-key=${ZBX_DBTLSKEYFILE} --ssl-cert=${ZBX_DBTLSCERTFILE} $verify_cert"
     fi
 
     while [ ! "$(mysqladmin ping -h ${DB_SERVER_HOST} -P ${DB_SERVER_PORT} -u ${DB_SERVER_ROOT_USER} \
@@ -254,7 +265,10 @@ mysql_query() {
     local result=""
 
     if [ -n "${ZBX_DBTLSCONNECT}" ]; then
-        ssl_opts="--ssl --ssl-ca=${ZBX_DBTLSCAFILE} --ssl-key=${ZBX_DBTLSKEYFILE} --ssl-cert=${ZBX_DBTLSCERTFILE}"
+        if [ "${ZBX_DBTLSCONNECT}" != "required" ]; then
+            verify_cert="--ssl-verify-server-cert"
+        fi
+        ssl_opts="--ssl --ssl-ca=${ZBX_DBTLSCAFILE} --ssl-key=${ZBX_DBTLSKEYFILE} --ssl-cert=${ZBX_DBTLSCERTFILE} $verify_cert"
     fi
 
     result=$(mysql --silent --skip-column-names -h ${DB_SERVER_HOST} -P ${DB_SERVER_PORT} \
@@ -304,7 +318,10 @@ create_db_schema_mysql() {
         echo "** Creating '${DB_SERVER_DBNAME}' schema in MySQL"
 
         if [ -n "${ZBX_DBTLSCONNECT}" ]; then
-            ssl_opts="--ssl --ssl-ca=${ZBX_DBTLSCAFILE} --ssl-key=${ZBX_DBTLSKEYFILE} --ssl-cert=${ZBX_DBTLSCERTFILE}"
+            if [ "${ZBX_DBTLSCONNECT}" != "required" ]; then
+                verify_cert="--ssl-verify-server-cert"
+            fi
+            ssl_opts="--ssl --ssl-ca=${ZBX_DBTLSCAFILE} --ssl-key=${ZBX_DBTLSKEYFILE} --ssl-cert=${ZBX_DBTLSCERTFILE} $verify_cert"
         fi
 
         zcat /usr/share/doc/zabbix-server-mysql/create.sql.gz | mysql --silent --skip-column-names \
@@ -342,9 +359,12 @@ prepare_web_server() {
 
 stop_databases() {
     if [ "${DB_SERVER_HOST}" == "localhost" ]; then
+        echo "** Stopping MySQL instance after initial configuration"
         mysql_query "DELETE FROM mysql.user WHERE host = 'localhost' AND user != 'root'" 1>/dev/null
 
         kill -TERM $(cat /var/lib/mysql/mysqld.pid)
+    else
+        rm -f /etc/supervisor/conf.d/supervisord_mysql.conf
     fi
 }
 
