@@ -16,6 +16,10 @@ fi
 # Default timezone for web interface
 : ${PHP_TZ:="Europe/Riga"}
 
+# Default MySQL instance location
+: ${DB_SERVER_HOST:="localhost"}
+: ${DB_SERVER_PORT:="3306"}
+
 # Default directories
 # User 'zabbix' home directory
 ZABBIX_USER_HOME_DIR="/var/lib/zabbix"
@@ -53,6 +57,23 @@ file_env() {
     fi
     export "$var"="$val"
     unset "$fileVar"
+}
+
+escape_spec_char() {
+    local var_value=$1
+
+    var_value="${var_value//\\/\\\\}"
+    var_value="${var_value//[$'\n']/}"
+    var_value="${var_value//\//\\/}"
+    var_value="${var_value//./\\.}"
+    var_value="${var_value//\*/\\*}"
+    var_value="${var_value//^/\\^}"
+    var_value="${var_value//\$/\\\$}"
+    var_value="${var_value//\&/\\\&}"
+    var_value="${var_value//\[/\\[}"
+    var_value="${var_value//\]/\\]}"
+
+    echo "$var_value"
 }
 
 configure_db_mysql() {
@@ -93,26 +114,7 @@ configure_db_mysql() {
 prepare_system() {
     echo "** Preparing the system"
 
-    DB_SERVER_HOST=${DB_SERVER_HOST:-"localhost"}
-
     configure_db_mysql
-}
-
-escape_spec_char() {
-    local var_value=$1
-
-    var_value="${var_value//\\/\\\\}"
-    var_value="${var_value//[$'\n']/}"
-    var_value="${var_value//\//\\/}"
-    var_value="${var_value//./\\.}"
-    var_value="${var_value//\*/\\*}"
-    var_value="${var_value//^/\\^}"
-    var_value="${var_value//\$/\\\$}"
-    var_value="${var_value//\&/\\\&}"
-    var_value="${var_value//\[/\\[}"
-    var_value="${var_value//\]/\\]}"
-
-    echo "$var_value"
 }
 
 update_config_var() {
@@ -182,8 +184,6 @@ update_config_multiple_var() {
 
 # Check prerequisites for MySQL database
 check_variables_mysql() {
-    DB_SERVER_HOST=${DB_SERVER_HOST:-"mysql-server"}
-    DB_SERVER_PORT=${DB_SERVER_PORT:-"3306"}
     USE_DB_ROOT_USER=false
     CREATE_ZBX_DB_USER=false
     file_env MYSQL_USER
@@ -338,10 +338,6 @@ prepare_web_server() {
     else
         echo "**** Impossible to enable SSL support for Nginx. Certificates are missed."
     fi
-
-    if [ -d "/var/log/nginx/" ]; then
-        ln -sf /dev/fd/2 /var/log/nginx/error.log
-    fi
 }
 
 stop_databases() {
@@ -480,6 +476,12 @@ update_zbx_config() {
     update_config_var $ZBX_CONFIG "TLSCRLFile" "${ZBX_TLSCRLFILE}"
 
     update_config_var $ZBX_CONFIG "TLSCertFile" "${ZBX_TLSCERTFILE}"
+    update_config_var $ZBX_CONFIG "TLSCipherAll" "${ZBX_TLSCIPHERALL}"
+    update_config_var $ZBX_CONFIG "TLSCipherAll13" "${ZBX_TLSCIPHERALL13}"
+    update_config_var $ZBX_CONFIG "TLSCipherCert" "${ZBX_TLSCIPHERCERT}"
+    update_config_var $ZBX_CONFIG "TLSCipherCert13" "${ZBX_TLSCIPHERCERT13}"
+    update_config_var $ZBX_CONFIG "TLSCipherPSK" "${ZBX_TLSCIPHERPSK}"
+    update_config_var $ZBX_CONFIG "TLSCipherPSK13" "${ZBX_TLSCIPHERPSK13}"
     update_config_var $ZBX_CONFIG "TLSKeyFile" "${ZBX_TLSKEYFILE}"
 
     update_config_var $ZBX_CONFIG "TLSPSKIdentity" "${ZBX_TLSPSKIDENTITY}"
@@ -525,6 +527,10 @@ prepare_zbx_web_config() {
     server_pass=$(escape_spec_char "${DB_SERVER_ZBX_PASS}")
     history_storage_url=$(escape_spec_char "${ZBX_HISTORYSTORAGEURL}")
     history_storage_types=$(escape_spec_char "${ZBX_HISTORYSTORAGETYPES}")
+
+    ZBX_DB_KEY_FILE=$(escape_spec_char "${ZBX_DB_KEY_FILE}")
+    ZBX_DB_CERT_FILE=$(escape_spec_char "${ZBX_DB_CERT_FILE}")
+    ZBX_DB_CA_FILE=$(escape_spec_char "${ZBX_DB_CA_FILE}")
 
     sed -i \
         -e "s/{DB_SERVER_HOST}/${DB_SERVER_HOST}/g" \
