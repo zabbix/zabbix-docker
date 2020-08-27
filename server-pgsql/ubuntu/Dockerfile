@@ -56,7 +56,7 @@ RUN set -eux && \
     apt-get -y clean && \
     rm -rf /var/lib/apt/lists/*
 
-ARG MAJOR_VERSION=5.0
+ARG MAJOR_VERSION=5.2
 ARG ZBX_VERSION=${MAJOR_VERSION}
 ARG ZBX_SOURCES=https://git.zabbix.com/scm/zbx/zabbix.git
 

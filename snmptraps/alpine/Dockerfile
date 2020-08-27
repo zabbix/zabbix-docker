@@ -1,6 +1,6 @@
 FROM alpine:3.12
 
-ARG MAJOR_VERSION=5.0
+ARG MAJOR_VERSION=5.2
 ARG ZBX_VERSION=${MAJOR_VERSION}
 ARG ZBX_SOURCES=https://git.zabbix.com/scm/zbx/zabbix.git
 
