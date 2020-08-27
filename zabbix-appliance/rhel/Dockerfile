@@ -1,39 +1,32 @@
-FROM registry.access.redhat.com/rhel7
+FROM registry.access.redhat.com/ubi8/ubi
 MAINTAINER Alexey Pustovalov <alexey.pustovalov@zabbix.com>
 
-ARG YUM_FLAGS_COMMON="-y"
-ARG YUM_FLAGS_PERSISTENT="${YUM_FLAGS_COMMON}"
-ARG YUM_FLAGS_DEV="${YUM_FLAGS_COMMON}"
-ENV TERM=xterm MIBDIRS=/usr/share/snmp/mibs:/var/lib/zabbix/mibs MIBS=+ALL \
-    ZBX_TYPE=server ZBX_DB_TYPE=mysql ZBX_OPT_TYPE=nginx \
-    MYSQL_ALLOW_EMPTY_PASSWORD=true ZBX_ADD_SERVER=true ZBX_ADD_WEB=true DB_SERVER_HOST=localhost MYSQL_USER=zabbix ZBX_ADD_JAVA_GATEWAY=true ZBX_JAVAGATEWAY_ENABLE=true ZBX_JAVAGATEWAY=localhost
-
-ARG BUILD_DATE
-ARG VCS_REF
-
-ARG MAJOR_VERSION=5.0
+ARG MAJOR_VERSION=5.2
 ARG RELEASE=0
-ARG ZBX_VERSION=${MAJOR_VERSION}
+ARG ZBX_VERSION=${MAJOR_VERSION}.0
+
 ARG ZBX_SOURCES=https://git.zabbix.com/scm/zbx/zabbix.git
-ENV ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES}
+ENV TERM=xterm ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES} \
+    MIBDIRS=/usr/share/snmp/mibs:/var/lib/zabbix/mibs MIBS=+ALL
+ENV TINI_VERSION=v0.19.0
 
 LABEL name="zabbix/zabbix-appliance" \
       maintainer="alexey.pustovalov@zabbix.com" \
       vendor="Zabbix LLC" \
       version="${MAJOR_VERSION}" \
       release="${RELEASE}" \
-      summary="Zabbix appliance with MySQL database support and ${ZBX_OPT_TYPE} web-server" \
+      summary="Zabbix appliance with MySQL database support and Nginx web-server" \
       description="Zabbix appliance contains MySQL database server, Zabbix server, Zabbix Java Gateway and Zabbix frontend based on Nginx web-server." \
       url="https://www.zabbix.com/" \
-      run="docker run --name zabbix-appliance -p 80:80 -p 10051:10051 -d registry.connect.redhat.com/zabbix/zabbix-appliance:${ZBX_VERSION}" \
-      io.k8s.description="Zabbix appliance with MySQL database support and ${ZBX_OPT_TYPE} web-server" \
+      run="docker run --name zabbix-appliance -p 80:8080 -p 10051:10051 -d registry.connect.redhat.com/zabbix/zabbix-appliance-52:${ZBX_VERSION}" \
+      io.k8s.description="Zabbix appliance with MySQL database support and Nginx web-server" \
       io.k8s.display-name="Zabbix Appliance" \
-      io.openshift.expose-services="http:http,https:https,10051:10051" \
+      io.openshift.expose-services="8080:http,8443:https,10051:10051" \
       io.openshift.tags="zabbix,zabbix-appliance,mysql,nginx" \
       org.label-schema.name="zabbix-appliance-rhel" \
       org.label-schema.vendor="Zabbix LLC" \
       org.label-schema.url="https://zabbix.com/" \
-      org.label-schema.description="Zabbix appliance with MySQL database support and ${ZBX_OPT_TYPE} web-server" \
+      org.label-schema.description="Zabbix appliance with MySQL database support and Nginx web-server" \
       org.label-schema.vcs-ref="${VCS_REF}" \
       org.label-schema.build-date="${BUILD_DATE}" \
       org.label-schema.schema-version="1.0" \
@@ -41,21 +34,20 @@ LABEL name="zabbix/zabbix-appliance" \
       org.label-schema.usage="https://www.zabbix.com/documentation/${MAJOR_VERSION}/manual/installation/containers" \
       org.label-schema.version="${ZBX_VERSION}" \
       org.label-schema.vcs-url="${ZBX_SOURCES}" \
-      org.label-schema.docker.cmd="docker run --name zabbix-appliance -p 80:80 -p 10051:10051 -d registry.connect.redhat.com/zabbix/zabbix-appliance:${ZBX_VERSION}"
+      org.label-schema.docker.cmd="docker run --name zabbix-appliance -p 80:8080 -p 10051:10051 -d registry.connect.redhat.com/zabbix/zabbix-appliance-52:${ZBX_VERSION}"
 
 STOPSIGNAL SIGTERM
 
 COPY ["conf/etc/yum.repo.d/nginx.repo", "/etc/yum.repos.d/nginx.repo"]
-
-### add licenses to this directory
 COPY ["licenses", "/licenses"]
 
-### Add necessary Red Hat repos here
-RUN INSTALL_PKGS="OpenIPMI-libs \
+RUN set -o xtrace && INSTALL_PKGS="OpenIPMI-libs \
             curl \
             fping \
             java-1.8.0-openjdk-headless \
+            pcre \
             libcurl \
+            libssh \
             libevent \
             libxml2 \
             mariadb \
@@ -68,22 +60,26 @@ RUN INSTALL_PKGS="OpenIPMI-libs \
             php-bcmath \
             php-fpm \
             php-gd \
+            php-json \
             php-ldap \
             php-mbstring \
-            python-setuptools \
-            php-mysql \
+            php-mysqlnd \
             php-xml \
+            python3-pip \
             unixODBC" && \
-    rpm -ivh https://repo.zabbix.com/zabbix/${MAJOR_VERSION}/rhel/7/x86_64/zabbix-release-${MAJOR_VERSION}-2.el7.noarch.rpm && \
-    REPOLIST="rhel-7-server-rpms,rhel-7-server-optional-rpms,zabbix-non-supported,nginx" && \
-    yum -y update-minimal --disablerepo "*" --enablerepo rhel-7-server-rpms --setopt=tsflags=nodocs \
-      --security --sec-severity=Important --sec-severity=Critical && \
-    echo ${REPOLIST} && \
-    yum -y install --disablerepo "*" --enablerepo "${REPOLIST}" --setopt=tsflags=nodocs ${INSTALL_PKGS} && \
-    groupadd --system zabbix && \
+    dnf -y install --disableplugin=subscription-manager --disablerepo "*" \
+        https://repo.zabbix.com/zabbix/${MAJOR_VERSION}/rhel/8/x86_64/zabbix-release-${MAJOR_VERSION}-1.el8.noarch.rpm && \
+    REPOLIST="rhel-8-for-x86_64-baseos-rpms,rhel-8-for-x86_64-appstream-rpms,zabbix-non-supported,nginx-stable" && \
+    dnf -y update-minimal --disablerepo "*" --enablerepo ubi-8-baseos --setopt=tsflags=nodocs \
+        --security --sec-severity=Important --sec-severity=Critical && \
+    dnf -y install --disablerepo "*" --enablerepo "${REPOLIST}" --setopt=install_weak_deps=False --best \
+        --setopt=tsflags=nodocs ${INSTALL_PKGS} && \
+    pip3 install supervisor && \
+    ln -s /usr/local/bin/supervisord /usr/bin/supervisord && \
+    groupadd -g 1995 --system zabbix && \
     adduser -r --shell /sbin/nologin \
-            -g zabbix -G dialout \
-            -d /var/lib/zabbix/ \
+            -g zabbix -G dialout -G root \
+            -d /var/lib/zabbix/ -u 1997 \
         zabbix && \
     mkdir -p /etc/zabbix && \
     mkdir -p /var/lib/zabbix && \
@@ -98,38 +94,54 @@ RUN INSTALL_PKGS="OpenIPMI-libs \
     mkdir -p /var/lib/zabbix/ssl/certs && \
     mkdir -p /var/lib/zabbix/ssl/keys && \
     mkdir -p /var/lib/zabbix/ssl/ssl_ca && \
-    chown --quiet -R zabbix:root /var/lib/zabbix && \
-    mkdir -p /usr/share/doc/zabbix-${ZBX_TYPE}-${ZBX_DB_TYPE}/ && \
-    rm -f /etc/php-fpm.d/www.conf && \
+    mkdir -p /usr/share/zabbix/ && \
+    mkdir -p /usr/sbin/zabbix_java/ && \
     mkdir -p /var/lib/php/ && \
-    chown --quiet -R nginx:nginx /var/lib/php/ && \
-    easy_install supervisor && \
-    mkdir -p /etc/supervisor/conf.d/ && \
-    yum ${YUM_FLAGS_COMMON} clean all && \
-    rm -rf /var/cache/yum && \
-    rm -rf /var/lib/yum/yumdb/* && \
-    rm -rf /usr/lib/udev/hwdb.d/*
+    mkdir -p /usr/share/doc/zabbix-server-mysql/ && \
+    curl -L https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini -o /sbin/tini && \
+    curl -L https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini.asc -o /tmp/tini.asc && \
+    export GNUPGHOME="$(mktemp -d)" && \
+    for server in $(shuf -e ha.pool.sks-keyservers.net \
+                            hkp://p80.pool.sks-keyservers.net:80 \
+                            ipv4.pool.sks-keyservers.net \
+                            keyserver.ubuntu.com \
+                            keyserver.pgp.com \
+                            pgp.mit.edu) ; do \
+        gpg --keyserver "$server" --recv-keys 595E85A6B1B4779EA4DAAEC70B588DFF0527A9B7 && break || : ; \
+    done && \
+    gpg --batch --verify /tmp/tini.asc /sbin/tini && \
+    rm -r "$GNUPGHOME" /tmp/tini.asc && \
+    chmod +x /sbin/tini && \
+    dnf -y clean all && \
+    rm -f /etc/php-fpm.d/www.conf /etc/nginx/conf.d/*.conf /etc/my.cnf.d/auth_gssapi.cnf && \
+    rm -rf /var/cache/yum /var/lib/yum/yumdb/* /usr/lib/udev/hwdb.d/* && \
+    rm -rf /var/cache/dnf /etc/udev/hwdb.bin /root/.pki
 
-RUN REPOLIST="rhel-7-server-rpms,rhel-7-server-optional-rpms,zabbix-non-supported" && \
+COPY ["conf/etc/", "/etc/"]
+
+RUN set -eux && REPOLIST="rhel-8-for-x86_64-baseos-rpms,rhel-8-for-x86_64-appstream-rpms" && \
     INSTALL_PKGS="autoconf \
             automake \
             gcc \
             gettext \
+            glibc-locale-source \
             java-1.8.0-openjdk-devel \
             libcurl-devel \
             libevent-devel \
-            libssh2-devel \
+            libssh-devel \
             libxml2-devel \
             make \
-            mariadb-devel \
+            mariadb-connector-c-devel \
+            pcre-devel \
             net-snmp-devel \
-            OpenIPMI-devel \
+#            OpenIPMI-devel \
             openldap-devel \
             git \
             unixODBC-devel" && \
-    yum -y install --disablerepo "*" --enablerepo "${REPOLIST}" --setopt=tsflags=nodocs ${INSTALL_PKGS} && \
+    dnf -y install --disablerepo "*" --enablerepo "${REPOLIST}" --setopt=install_weak_deps=False --best \
+        --setopt=tsflags=nodocs ${INSTALL_PKGS} && \
     cd /tmp/ && \
-    git clone ${ZBX_SOURCES} --branch ${ZBX_VERSION} --depth 1 --single-branch zabbix-${ZBX_VERSION} && \
+    git clone ${ZBX_SOURCES} --branch master --depth 1 --single-branch zabbix-${ZBX_VERSION} && \
     cd /tmp/zabbix-${ZBX_VERSION} && \
     zabbix_revision=`git rev-parse --short HEAD` && \
     sed -i "s/{ZABBIX_REVISION}/$zabbix_revision/g" include/version.h && \
@@ -143,74 +155,67 @@ RUN REPOLIST="rhel-7-server-rpms,rhel-7-server-optional-rpms,zabbix-non-supporte
             --prefix=/usr \
             --sysconfdir=/etc/zabbix \
             --enable-agent \
-            --enable-${ZBX_TYPE} \
-            --with-${ZBX_DB_TYPE} \
+            --enable-server \
+            --with-mysql \
             --with-ldap \
             --with-libcurl \
             --with-libxml2 \
             --enable-java \
             --with-net-snmp \
-            --with-openipmi \
+#            --with-openipmi \
             --with-openssl \
-            --with-ssh2 \
+            --with-ssh \
             --with-unixodbc \
             --enable-ipv6 \
             --silent && \
     make -j"$(nproc)" -s dbschema && \
     make -j"$(nproc)" -s && \
-    cp src/zabbix_${ZBX_TYPE}/zabbix_${ZBX_TYPE} /usr/sbin/zabbix_${ZBX_TYPE} && \
+    cp src/zabbix_server/zabbix_server /usr/sbin/zabbix_server && \
     cp src/zabbix_get/zabbix_get /usr/bin/zabbix_get && \
     cp src/zabbix_sender/zabbix_sender /usr/bin/zabbix_sender && \
-    cp conf/zabbix_${ZBX_TYPE}.conf /etc/zabbix/zabbix_${ZBX_TYPE}.conf && \
-    chown --quiet -R zabbix:root /etc/zabbix && \
-    cat database/${ZBX_DB_TYPE}/schema.sql > database/${ZBX_DB_TYPE}/create.sql && \
-    cat database/${ZBX_DB_TYPE}/images.sql >> database/${ZBX_DB_TYPE}/create.sql && \
-    cat database/${ZBX_DB_TYPE}/data.sql >> database/${ZBX_DB_TYPE}/create.sql && \
-    gzip database/${ZBX_DB_TYPE}/create.sql && \
-    cp database/${ZBX_DB_TYPE}/create.sql.gz /usr/share/doc/zabbix-${ZBX_TYPE}-${ZBX_DB_TYPE}/ && \
-    mkdir -p /usr/sbin/zabbix_java/ && \
+    cp conf/zabbix_server.conf /etc/zabbix/zabbix_server.conf && \
+    cat database/mysql/schema.sql > database/mysql/create.sql && \
+    cat database/mysql/images.sql >> database/mysql/create.sql && \
+    cat database/mysql/data.sql >> database/mysql/create.sql && \
+    gzip database/mysql/create.sql && \
+    cp database/mysql/create.sql.gz /usr/share/doc/zabbix-server-mysql/ && \
     cp -r src/zabbix_java/bin /usr/sbin/zabbix_java/ && \
     cp -r src/zabbix_java/lib /usr/sbin/zabbix_java/ && \
     rm -rf /usr/sbin/zabbix_java/lib/*.xml && \
+    cp -R /tmp/zabbix-${ZBX_VERSION}/ui/* /usr/share/zabbix/ && \
     cd /tmp/ && \
     rm -rf /tmp/zabbix-${ZBX_VERSION}/ && \
-    cd /usr/share/ && \
-    git clone ${ZBX_SOURCES} --branch ${ZBX_VERSION} --depth 1 --single-branch zabbix-${ZBX_VERSION} && \
-    mkdir /usr/share/zabbix/ && \
-    cp -R /usr/share/zabbix-${ZBX_VERSION}/ui/* /usr/share/zabbix/ && \
-    rm -rf /usr/share/zabbix-${ZBX_VERSION}/ && \
+    rm -f /usr/share/zabbix/conf/zabbix.conf.php && \
+    rm -rf /usr/share/zabbix/tests/ && \
     cd /usr/share/zabbix/ && \
-    rm -f conf/zabbix.conf.php && \
-    rm -rf tests && \
     ./locale/make_mo.sh && \
-    yum ${YUM_FLAGS_COMMON} history undo `yum history | sed -n 4p |column -t | cut -d' ' -f1` && \
-    yum ${YUM_FLAGS_COMMON} clean all && \
-    rm -rf /var/cache/yum && \
-    rm -rf /var/lib/yum/yumdb/* && \
-    rm -rf /usr/lib/udev/hwdb.d/* && \
-    rm -rf /etc/udev/hwdb.bin && \
-    rm -rf /root/.pki
+    ln -s "/etc/zabbix/web/zabbix.conf.php" "/usr/share/zabbix/conf/zabbix.conf.php" && \
+    cat /usr/share/zabbix/include/locales.inc.php | grep display | grep true | awk '{$1=$1};1' | \
+                cut -d"'" -f 2 | sort | \
+                xargs -I '{}' bash -c 'echo "{}" && localedef -c -i {} -f UTF-8 {}.UTF-8 2>/dev/null' && \
+    chown --quiet -R zabbix:root /etc/zabbix/ /var/lib/zabbix/ /usr/share/zabbix/conf/ && \
+    chgrp -R 0 /etc/zabbix/ /var/lib/zabbix/ /usr/share/zabbix/conf/ && \
+    chmod -R g=u /etc/zabbix/ /var/lib/zabbix/ /usr/share/zabbix/conf/ && \
+    chown --quiet -R zabbix:root /etc/nginx/ /etc/my.cnf.d/ /etc/my.cnf /etc/php-fpm.d/ /etc/php-fpm.conf && \
+    chgrp -R 0 /etc/nginx/ /etc/my.cnf.d/ /etc/my.cnf /etc/php-fpm.d/ /etc/php-fpm.conf && \
+    chmod -R g=u /etc/nginx/ /etc/my.cnf.d/ /etc/my.cnf /etc/php-fpm.d/ /etc/php-fpm.conf && \
+    chown --quiet -R zabbix:root /var/lib/mysql/ /var/lib/php/session/ && \
+    chgrp -R 0 /var/lib/mysql/ /var/lib/php/session/ && \
+    chmod -R g=u /var/lib/mysql/ /var/lib/php/session/ && \
+    dnf -y history undo `dnf history list last -q | sed -n 3p |column -t | cut -d' ' -f1` && \
+    dnf -y clean all && \
+    rm -rf /var/cache/yum /var/lib/yum/yumdb/* /usr/lib/udev/hwdb.d/* && \
+    rm -rf /var/cache/dnf /etc/udev/hwdb.bin /root/.pki
 
-EXPOSE 80/TCP 443/TCP 10051/TCP
+EXPOSE 8080/TCP 8443/TCP 10051/TCP
 
 WORKDIR /var/lib/zabbix
 
-VOLUME ["/etc/ssl/nginx"]
-VOLUME ["/usr/lib/zabbix/alertscripts", "/usr/lib/zabbix/externalscripts", "/var/lib/zabbix/enc", "/var/lib/zabbix/mibs", "/var/lib/zabbix/modules"]
-VOLUME ["/var/lib/zabbix/snmptraps", "/var/lib/zabbix/ssh_keys", "/var/lib/zabbix/ssl/certs", "/var/lib/zabbix/ssl/keys", "/var/lib/zabbix/ssl/ssl_ca"]
-VOLUME ["/var/lib/mysql/"]
+VOLUME ["/var/lib/zabbix/snmptraps", "/var/lib/zabbix/export"]
 
-COPY ["conf/etc/supervisor/", "/etc/supervisor/"]
-COPY ["conf/etc/zabbix/nginx.conf", "/etc/zabbix/"]
-COPY ["conf/etc/zabbix/nginx_ssl.conf", "/etc/zabbix/"]
-COPY ["conf/etc/zabbix/web/zabbix.conf.php", "/etc/zabbix/web/"]
-COPY ["conf/etc/nginx/nginx.conf", "/etc/nginx/"]
-COPY ["conf/etc/php-fpm.conf", "/etc/php-fpm.conf"]
-COPY ["conf/etc/php.d/99-zabbix.ini", "/etc/php.d/99-zabbix.ini"]
-COPY ["conf/etc/zabbix/zabbix_java_gateway_logback.xml", "/etc/zabbix/"]
 COPY ["conf/usr/sbin/zabbix_java_gateway", "/usr/sbin/"]
 COPY ["docker-entrypoint.sh", "/usr/bin/"]
 
-ENV ZBX_TYPE=appliance
+USER 1997
 
-ENTRYPOINT ["docker-entrypoint.sh"]
+ENTRYPOINT ["/sbin/tini", "--", "/usr/bin/docker-entrypoint.sh"]
