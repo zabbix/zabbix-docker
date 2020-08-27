@@ -154,6 +154,28 @@ check_variables() {
     DB_SERVER_DBNAME=${MYSQL_DATABASE:-"zabbix"}
 }
 
+db_tls_params() {
+    local result=""
+
+    if [ "${ZBX_DB_ENCRYPTION}" == "true" ]; then
+        result="--ssl-mode=required"
+
+        if [ -n "${ZBX_DB_CA_FILE}" ]; then
+            result="${result} --ssl-ca=${ZBX_DB_CA_FILE}"
+        fi
+
+        if [ -n "${ZBX_DB_KEY_FILE}" ]; then
+            result="${result} --ssl-key=${ZBX_DB_KEY_FILE}"
+        fi
+
+        if [ -n "${ZBX_DB_CERT_FILE}" ]; then
+            result="${result} --ssl-cert=${ZBX_DB_CERT_FILE}"
+        fi
+    fi
+
+    echo $result
+}
+
 check_db_connect() {
     echo "********************"
     echo "* DB_SERVER_HOST: ${DB_SERVER_HOST}"
@@ -171,9 +193,7 @@ check_db_connect() {
 
     WAIT_TIMEOUT=5
 
-    if [ "${ZBX_DB_ENCRYPTION}" == "true" ]; then
-        ssl_opts="--ssl-mode=required --ssl-ca=${ZBX_DB_CA_FILE} --ssl-key=${ZBX_DB_KEY_FILE} --ssl-cert=${ZBX_DB_CERT_FILE}"
-    fi
+    ssl_opts="$(db_tls_params)"
 
     while [ ! "$(mysqladmin ping -h ${DB_SERVER_HOST} -P ${DB_SERVER_PORT} -u ${DB_SERVER_ROOT_USER} \
                 --password="${DB_SERVER_ROOT_PASS}" --silent --connect_timeout=10 $ssl_opts)" ]; do
