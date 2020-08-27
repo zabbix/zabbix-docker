@@ -172,6 +172,32 @@ check_variables_mysql() {
     DB_SERVER_DBNAME=${MYSQL_DATABASE:-"zabbix"}
 }
 
+db_tls_params() {
+    local result=""
+
+    if [ -n "${ZBX_DBTLSCONNECT}" ]; then
+        result="--ssl"
+
+        if [ "${ZBX_DBTLSCONNECT}" != "required" ]; then
+            result="${result} --ssl-verify-server-cert"
+        fi
+
+        if [ -n "${ZBX_DBTLSCAFILE}" ]; then
+            result="${result} --ssl-ca=${ZBX_DBTLSCAFILE}"
+        fi
+
+        if [ -n "${ZBX_DBTLSKEYFILE}" ]; then
+            result="${result} --ssl-key=${ZBX_DBTLSKEYFILE}"
+        fi
+
+        if [ -n "${ZBX_DBTLSCERTFILE}" ]; then
+            result="${result} --ssl-cert=${ZBX_DBTLSCERTFILE}"
+        fi
+    fi
+
+    echo $result
+}
+
 check_db_connect_mysql() {
     echo "********************"
     echo "* DB_SERVER_HOST: ${DB_SERVER_HOST}"
@@ -189,9 +215,7 @@ check_db_connect_mysql() {
 
     WAIT_TIMEOUT=5
 
-    if [ -n "${ZBX_DBTLSCONNECT}" ]; then
-        ssl_opts="--ssl --ssl-ca=${ZBX_DBTLSCAFILE} --ssl-key=${ZBX_DBTLSKEYFILE} --ssl-cert=${ZBX_DBTLSCERTFILE}"
-    fi
+    ssl_opts="$(db_tls_params)"
 
     while [ ! "$(mysqladmin ping -h ${DB_SERVER_HOST} -P ${DB_SERVER_PORT} -u ${DB_SERVER_ROOT_USER} \
                 --password="${DB_SERVER_ROOT_PASS}" --silent --connect_timeout=10 $ssl_opts)" ]; do
@@ -204,9 +228,7 @@ mysql_query() {
     query=$1
     local result=""
 
-    if [ -n "${ZBX_DBTLSCONNECT}" ]; then
-        ssl_opts="--ssl --ssl-ca=${ZBX_DBTLSCAFILE} --ssl-key=${ZBX_DBTLSKEYFILE} --ssl-cert=${ZBX_DBTLSCERTFILE}"
-    fi
+    ssl_opts="$(db_tls_params)"
 
     result=$(mysql --silent --skip-column-names -h ${DB_SERVER_HOST} -P ${DB_SERVER_PORT} \
              -u ${DB_SERVER_ROOT_USER} --password="${DB_SERVER_ROOT_PASS}" -e "$query" $ssl_opts)
@@ -254,9 +276,7 @@ create_db_schema_mysql() {
     if [ -z "${ZBX_DB_VERSION}" ]; then
         echo "** Creating '${DB_SERVER_DBNAME}' schema in MySQL"
 
-        if [ -n "${ZBX_DBTLSCONNECT}" ]; then
-            ssl_opts="--ssl --ssl-ca=${ZBX_DBTLSCAFILE} --ssl-key=${ZBX_DBTLSKEYFILE} --ssl-cert=${ZBX_DBTLSCERTFILE}"
-        fi
+        ssl_opts="$(db_tls_params)"
 
         zcat /usr/share/doc/zabbix-server-mysql/create.sql.gz | mysql --silent --skip-column-names \
                     -h ${DB_SERVER_HOST} -P ${DB_SERVER_PORT} \
