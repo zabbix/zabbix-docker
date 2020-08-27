@@ -47,7 +47,8 @@ RUN set -eux && \
             net-snmp-agent-libs \
             openipmi-libs \
             pcre \
-            unixodbc && \
+            unixodbc \
+            tzdata && \
     rm -rf /var/cache/apk/*
 
 ARG MAJOR_VERSION=5.0

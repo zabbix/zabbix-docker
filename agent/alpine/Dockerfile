@@ -28,7 +28,8 @@ RUN set -eux && \
             iputils \
             pcre \
             libcurl \
-            libldap && \
+            libldap \
+            tzdata && \
     rm -rf /var/cache/apk/*
 
 ARG MAJOR_VERSION=5.0

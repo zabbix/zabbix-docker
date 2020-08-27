@@ -47,7 +47,8 @@ RUN set -eux && \
             pcre \
             postgresql-client \
             postgresql-libs \
-            unixodbc && \
+            unixodbc \
+            tzdata && \
     rm -rf /var/cache/apk/*
 
 ARG MAJOR_VERSION=5.0

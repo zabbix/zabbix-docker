@@ -26,7 +26,8 @@ RUN set -eux && \
             bash \
             pcre \
             coreutils \
-            iputils && \
+            iputils \
+            tzdata && \
     rm -rf /var/cache/apk/*
 
 ARG MAJOR_VERSION=5.0
