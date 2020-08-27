@@ -190,10 +190,23 @@ check_db_connect_mysql() {
     WAIT_TIMEOUT=5
 
     if [ -n "${ZBX_DBTLSCONNECT}" ]; then
+        ssl_opts="--ssl"
+
         if [ "${ZBX_DBTLSCONNECT}" != "required" ]; then
-            verify_cert="--ssl-verify-server-cert"
+            ssl_opts="${ssl_opts} --ssl-verify-server-cert"
         fi
-        ssl_opts="--ssl --ssl-ca=${ZBX_DBTLSCAFILE} --ssl-key=${ZBX_DBTLSKEYFILE} --ssl-cert=${ZBX_DBTLSCERTFILE} $verify_cert"
+
+        if [ -n "${ZBX_DBTLSCAFILE}" ]; then
+            ssl_opts="${ssl_opts} --ssl-ca=${ZBX_DBTLSCAFILE}"
+        fi
+
+        if [ -n "${ZBX_DBTLSKEYFILE}" ]; then
+            ssl_opts="${ssl_opts} --ssl-key=${ZBX_DBTLSKEYFILE}"
+        fi
+
+        if [ -n "${ZBX_DBTLSCERTFILE}" ]; then
+            ssl_opts="${ssl_opts} --ssl-cert=${ZBX_DBTLSCERTFILE}"
+        fi
     fi
 
     while [ ! "$(mysqladmin ping -h ${DB_SERVER_HOST} -P ${DB_SERVER_PORT} -u ${DB_SERVER_ROOT_USER} \
@@ -208,10 +221,23 @@ mysql_query() {
     local result=""
 
     if [ -n "${ZBX_DBTLSCONNECT}" ]; then
+        ssl_opts="--ssl"
+
         if [ "${ZBX_DBTLSCONNECT}" != "required" ]; then
-            verify_cert="--ssl-verify-server-cert"
+            ssl_opts="${ssl_opts} --ssl-verify-server-cert"
         fi
-        ssl_opts="--ssl --ssl-ca=${ZBX_DBTLSCAFILE} --ssl-key=${ZBX_DBTLSKEYFILE} --ssl-cert=${ZBX_DBTLSCERTFILE} $verify_cert"
+
+        if [ -n "${ZBX_DBTLSCAFILE}" ]; then
+            ssl_opts="${ssl_opts} --ssl-ca=${ZBX_DBTLSCAFILE}"
+        fi
+
+        if [ -n "${ZBX_DBTLSKEYFILE}" ]; then
+            ssl_opts="${ssl_opts} --ssl-key=${ZBX_DBTLSKEYFILE}"
+        fi
+
+        if [ -n "${ZBX_DBTLSCERTFILE}" ]; then
+            ssl_opts="${ssl_opts} --ssl-cert=${ZBX_DBTLSCERTFILE}"
+        fi
     fi
 
     result=$(mysql --silent --skip-column-names -h ${DB_SERVER_HOST} -P ${DB_SERVER_PORT} \
