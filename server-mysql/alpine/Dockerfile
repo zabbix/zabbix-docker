@@ -36,6 +36,7 @@ RUN set -eux && \
             tini \
             bash \
             fping \
+            tzdata \
             iputils \
             libcurl \
             libldap \

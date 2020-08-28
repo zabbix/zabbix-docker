@@ -27,6 +27,7 @@ RUN set -eux && \
     mkdir -p /var/lib/zabbix/modules && \
     apt-get -y update && \
     DEBIAN_FRONTEND=noninteractive apt-get -y --no-install-recommends install \
+            tzdata \
             curl \
             ca-certificates \
             gpg \

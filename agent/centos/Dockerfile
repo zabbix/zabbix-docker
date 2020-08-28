@@ -24,6 +24,7 @@ RUN set -eux && \
     mkdir -p /var/lib/zabbix/modules && \
     yum --quiet makecache && \
     yum -y install --setopt=tsflags=nodocs \
+            tzdata \
             libldap \
             libcurl \
             openssl-libs && \

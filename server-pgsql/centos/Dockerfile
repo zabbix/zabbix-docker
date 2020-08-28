@@ -37,6 +37,7 @@ RUN set -eux && \
                                         https://repo.zabbix.com/non-supported/rhel/7/x86_64/fping-3.10-1.el7.x86_64.rpm && \
     yum -y install --setopt=tsflags=nodocs \
             iputils \
+            tzdata \
             traceroute \
             libcurl \
             libxml2 \

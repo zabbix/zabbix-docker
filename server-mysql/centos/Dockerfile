@@ -36,6 +36,7 @@ RUN set -eux && \
     yum -y install --setopt=tsflags=nodocs https://repo.zabbix.com/non-supported/rhel/7/x86_64/iksemel-1.4-2.el7.centos.x86_64.rpm \
                                         https://repo.zabbix.com/non-supported/rhel/7/x86_64/fping-3.10-1.el7.x86_64.rpm && \
     yum -y install --setopt=tsflags=nodocs \
+            tzdata \
             iputils \
             traceroute \
             libcurl \

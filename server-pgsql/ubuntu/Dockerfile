@@ -38,6 +38,7 @@ RUN set -eux && \
     apt-get -y update && \
     DEBIAN_FRONTEND=noninteractive apt-get -y --no-install-recommends install \
             curl \
+            tzdata \
             ca-certificates \
             gpg \
             dirmngr \
