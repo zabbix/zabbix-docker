@@ -26,6 +26,7 @@ RUN set -eux && \
     apt-get -y update && \
     DEBIAN_FRONTEND=noninteractive apt-get -y --no-install-recommends install \
             tini \
+            tzdata \
             ca-certificates \
             libssl1.1 \
             libcurl4 \

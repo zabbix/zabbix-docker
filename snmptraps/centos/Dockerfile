@@ -30,6 +30,7 @@ RUN set -eux && \
     yum --quiet makecache && \
     yum -y install epel-release && \
     yum -y install --setopt=tsflags=nodocs \
+            tzdata \
             net-snmp \
             supervisor && \
     yum -y install --setopt=tsflags=nodocs \
