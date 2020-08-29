@@ -30,6 +30,7 @@ RUN set -eux && \
         zabbix && \
     apk update && \
     apk add --clean-protected --no-cache \
+            tzdata \
             net-snmp \
             supervisor && \
     apk add --no-cache --virtual build-dependencies \
