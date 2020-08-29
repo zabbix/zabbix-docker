@@ -110,7 +110,7 @@ RUN set -o xtrace && INSTALL_PKGS="OpenIPMI-libs \
         gpg --keyserver "$server" --recv-keys 595E85A6B1B4779EA4DAAEC70B588DFF0527A9B7 && break || : ; \
     done && \
     gpg --batch --verify /tmp/tini.asc /sbin/tini && \
-    rm -r "$GNUPGHOME" /tmp/tini.asc && \
+    rm -rf "$GNUPGHOME" /tmp/tini.asc && \
     chmod +x /sbin/tini && \
     dnf -y clean all && \
     rm -f /etc/php-fpm.d/www.conf /etc/nginx/conf.d/*.conf /etc/my.cnf.d/auth_gssapi.cnf && \
