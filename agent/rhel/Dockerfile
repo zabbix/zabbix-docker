@@ -40,6 +40,7 @@ STOPSIGNAL SIGTERM
 COPY ["licenses", "/licenses"]
 
 RUN set -eux && INSTALL_PKGS="bash \
+            tzdata \
             iputils \
             pcre \
             libcurl" && \

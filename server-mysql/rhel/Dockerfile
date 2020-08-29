@@ -42,6 +42,7 @@ COPY ["licenses", "/licenses"]
 
 RUN set -eux && INSTALL_PKGS="bash \
             fping \
+            tzdata \
             iputils \
             libcurl \
             libevent \

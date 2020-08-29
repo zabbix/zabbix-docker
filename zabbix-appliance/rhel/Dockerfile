@@ -42,6 +42,7 @@ COPY ["conf/etc/yum.repo.d/nginx.repo", "/etc/yum.repos.d/nginx.repo"]
 COPY ["licenses", "/licenses"]
 
 RUN set -o xtrace && INSTALL_PKGS="OpenIPMI-libs \
+            tzdata \
             curl \
             fping \
             java-1.8.0-openjdk-headless \

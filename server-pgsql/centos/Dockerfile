@@ -36,6 +36,7 @@ RUN set -eux && \
     dnf -y install --setopt=tsflags=nodocs https://repo.zabbix.com/non-supported/rhel/8/x86_64/fping-3.16-1.el8.x86_64.rpm && \
     dnf -y install --setopt=tsflags=nodocs --setopt=install_weak_deps=False --best \
             iputils \
+            tzdata \
             traceroute \
             libcurl-minimal \
             libevent \

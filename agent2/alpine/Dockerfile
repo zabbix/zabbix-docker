@@ -23,6 +23,7 @@ RUN set -eux && \
     mkdir -p /var/lib/zabbix/modules && \
     apk add --no-cache --clean-protected \
             tini \
+            tzdata \
             bash \
             pcre \
             coreutils \
