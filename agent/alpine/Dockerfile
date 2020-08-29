@@ -24,6 +24,7 @@ RUN set -eux && \
     apk add --no-cache --clean-protected \
             tini \
             bash \
+            tzdata \
             coreutils \
             iputils \
             libcurl \

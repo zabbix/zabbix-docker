@@ -458,6 +458,9 @@ metadata:
     tier: agent
   namespace: zabbix
 spec:
+  selector:
+   matchLabels:
+    name: zabbix-agent
   updateStrategy:
    type: RollingUpdate
    rollingUpdate:

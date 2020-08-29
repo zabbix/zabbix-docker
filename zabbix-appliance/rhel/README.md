@@ -206,7 +206,7 @@ The volume allows to add new MIB files. It does not support subdirectories, all 
 
 ### ``/etc/ssl/nginx``
 
-The volume allows to enable HTTPS for the Zabbix web interface. The volume must contains two files ``ssl.crt``, ``ssl.key`` and ``dhparam.pem`` prepared for Nginx SSL connections.
+The volume allows to enable HTTPS for the Zabbix web interface. The volume must contains three files ``ssl.crt``, ``ssl.key`` and ``dhparam.pem`` prepared for Nginx SSL connections.
 
 Please follow official Nginx [documentation](http://nginx.org/en/docs/http/configuring_https_servers.html) to get more details about how to create certificate files.
 

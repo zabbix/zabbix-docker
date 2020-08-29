@@ -38,6 +38,7 @@ RUN set -eux && \
     apt-get -y update && \
     DEBIAN_FRONTEND=noninteractive apt-get -y --no-install-recommends install \
             curl \
+            tzdata \
             ca-certificates \
             gpg \
             dirmngr \
@@ -68,7 +69,7 @@ RUN set -eux && \
         gpg --keyserver "$server" --recv-keys 595E85A6B1B4779EA4DAAEC70B588DFF0527A9B7 && break || : ; \
     done && \
     gpg --batch --verify /tmp/tini.asc /sbin/tini && \
-    rm -r "$GNUPGHOME" /tmp/tini.asc && \
+    rm -rf "$GNUPGHOME" /tmp/tini.asc && \
     chmod +x /sbin/tini && \
     apt-get -y purge curl gpg dirmngr gpg-agent && \
     apt-get -y autoremove && \

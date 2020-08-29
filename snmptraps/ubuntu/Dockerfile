@@ -32,6 +32,7 @@ RUN set -eux && \
         zabbix && \
     apt-get -y update && \
     DEBIAN_FRONTEND=noninteractive apt-get -y --no-install-recommends install \
+            tzdata \
             snmp-mibs-downloader \
             snmptrapd \
             supervisor && \

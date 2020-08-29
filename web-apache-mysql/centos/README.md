@@ -162,6 +162,30 @@ The varable is PHP ``upload_max_filesize`` option. By default, value is `2M`.
 
 The varable is PHP ``max_input_time`` option. By default, value is `300`.
 
+### `ZBX_DB_ENCRYPTION`
+
+The variable allows to activate encryption for connections to Zabbix database. Even if no other environment variables are specified, connections will be TLS-encrypted if `ZBX_DB_ENCRYPTION=true` specified. Available since 5.0.0. Disabled by default.
+
+### `ZBX_DB_KEY_FILE`
+
+The variable allows to specify the full path to a valid TLS key file. Available since 5.0.0.
+
+### `ZBX_DB_CERT_FILE`
+
+The variable allows to specify the full path to a valid TLS certificate file. Available since 5.0.0.
+
+### `ZBX_DB_CA_FILE`
+
+The variable allows to specify the full path to a valid TLS certificate authority file. Available since 5.0.0.
+
+### `ZBX_DB_VERIFY_HOST`
+
+The variable allows to activate host verification. Available since 5.0.0.
+
+### `ZBX_DB_CIPHER_LIST`
+
+The variable allows to specify a custom list of valid ciphers. The format of the cipher list must conform to the OpenSSL standard. Available since 5.0.0.
+
 ## Allowed volumes for the Zabbix web interface container
 
 ### ``/etc/ssl/apache2``

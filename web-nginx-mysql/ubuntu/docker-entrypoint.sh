@@ -248,6 +248,10 @@ prepare_zbx_web_config() {
     server_user=$(escape_spec_char "${DB_SERVER_ZBX_USER}")
     server_pass=$(escape_spec_char "${DB_SERVER_ZBX_PASS}")
 
+    ZBX_DB_KEY_FILE=$(escape_spec_char "${ZBX_DB_KEY_FILE}")
+    ZBX_DB_CERT_FILE=$(escape_spec_char "${ZBX_DB_CERT_FILE}")
+    ZBX_DB_CA_FILE=$(escape_spec_char "${ZBX_DB_CA_FILE}")
+
     sed -i \
         -e "s/{DB_SERVER_HOST}/${DB_SERVER_HOST}/g" \
         -e "s/{DB_SERVER_PORT}/${DB_SERVER_PORT}/g" \
