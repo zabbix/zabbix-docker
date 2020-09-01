@@ -97,6 +97,7 @@ RUN set -o xtrace && INSTALL_PKGS="OpenIPMI-libs \
     mkdir -p /var/lib/zabbix/ssl/ssl_ca && \
     mkdir -p /usr/share/zabbix/ && \
     mkdir -p /usr/sbin/zabbix_java/ && \
+    mkdir -p /usr/sbin/zabbix_java/ext_lib/ && \
     mkdir -p /var/lib/php/ && \
     mkdir -p /usr/share/doc/zabbix-server-mysql/ && \
     curl -L https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini -o /sbin/tini && \
@@ -203,6 +204,9 @@ RUN set -eux && REPOLIST="rhel-8-for-x86_64-baseos-rpms,rhel-8-for-x86_64-appstr
     chown --quiet -R zabbix:root /var/lib/mysql/ /var/lib/php/session/ && \
     chgrp -R 0 /var/lib/mysql/ /var/lib/php/session/ && \
     chmod -R g=u /var/lib/mysql/ /var/lib/php/session/ && \
+    chown --quiet -R zabbix:root /usr/share/zabbix/include/defines.inc.php && \
+    chgrp -R 0 /usr/share/zabbix/include/defines.inc.php && \
+    chmod -R g=u /usr/share/zabbix/include/defines.inc.php && \
     dnf -y history undo `dnf history list last -q | sed -n 3p |column -t | cut -d' ' -f1` && \
     dnf -y clean all && \
     rm -rf /var/cache/yum /var/lib/yum/yumdb/* /usr/lib/udev/hwdb.d/* && \
