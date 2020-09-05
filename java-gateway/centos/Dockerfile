@@ -17,6 +17,7 @@ RUN set -eux && \
         zabbix && \
     mkdir -p /etc/zabbix/ && \
     mkdir -p /usr/sbin/zabbix_java/ && \
+    mkdir -p /usr/sbin/zabbix_java/ext_lib/ && \
     yum --quiet makecache && \
     yum -y install --setopt=tsflags=nodocs \
             java-1.8.0-openjdk-headless && \

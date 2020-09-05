@@ -96,6 +96,9 @@ RUN set -eux && \
     chown --quiet -R zabbix:root /etc/apache2/ /etc/php/7.2/ && \
     chgrp -R 0 /etc/apache2/ /etc/php/7.2/ && \
     chmod -R g=u /etc/apache2/ /etc/php/7.2/ && \
+    chown --quiet -R zabbix:root /usr/share/zabbix/include/defines.inc.php && \
+    chgrp -R 0 /usr/share/zabbix/include/defines.inc.php && \
+    chmod -R g=u /usr/share/zabbix/include/defines.inc.php && \
     DEBIAN_FRONTEND=noninteractive apt-get -y purge \
             gettext \
             git && \
