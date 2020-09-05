@@ -109,6 +109,9 @@ RUN set -eux && \
     chown --quiet -R zabbix:root /var/lib/php/session/ && \
     chgrp -R 0 /var/lib/php/session/ && \
     chmod -R g=u /var/lib/php/session/ && \
+    chown --quiet -R zabbix:root /usr/share/zabbix/include/defines.inc.php && \
+    chgrp -R 0 /usr/share/zabbix/include/defines.inc.php && \
+    chmod -R g=u /usr/share/zabbix/include/defines.inc.php && \
     DEBIAN_FRONTEND=noninteractive apt-get -y purge \
             gettext \
             git && \

@@ -17,6 +17,7 @@ RUN set -eux && \
         zabbix && \
     mkdir -p /etc/zabbix/ && \
     mkdir -p /usr/sbin/zabbix_java/ && \
+    mkdir -p /usr/sbin/zabbix_java/ext_lib/ && \
     dnf --quiet makecache && \
     dnf -y install --setopt=tsflags=nodocs --setopt=install_weak_deps=False --best \
             java-1.8.0-openjdk-headless && \
