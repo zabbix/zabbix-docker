@@ -19,6 +19,8 @@ RUN set -eux && \
             --home /var/lib/zabbix/ \
         zabbix && \
     mkdir -p /etc/zabbix/ && \
+    mkdir -p /usr/sbin/zabbix_java/ && \
+    mkdir -p /usr/sbin/zabbix_java/ext_lib/ && \
     apt-get -y update && \
     DEBIAN_FRONTEND=noninteractive apt-get -y --no-install-recommends install \
             openjdk-8-jre-headless && \
