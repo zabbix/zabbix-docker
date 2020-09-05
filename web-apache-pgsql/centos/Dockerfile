@@ -79,15 +79,18 @@ RUN set -eux && \
     cat /usr/share/zabbix/include/locales.inc.php | grep display | grep true | awk '{$1=$1};1' | \
                 cut -d"'" -f 2 | sort | \
                 xargs -I '{}' bash -c 'echo "{}" && localedef -c -i {} -f UTF-8 {}.UTF-8 2>/dev/null' && \
-    chown --quiet -R zabbix:root /etc/zabbix/ /usr/share/zabbix/include/defines.inc.php /usr/share/zabbix/modules/ && \
-    chgrp -R 0 /etc/zabbix/ /usr/share/zabbix/include/defines.inc.php /usr/share/zabbix/modules/ && \
-    chmod -R g=u /etc/zabbix/ /usr/share/zabbix/include/defines.inc.php /usr/share/zabbix/modules/ && \
+    chown --quiet -R zabbix:root /etc/zabbix/ /usr/share/zabbix/modules/ && \
+    chgrp -R 0 /etc/zabbix/ /usr/share/zabbix/modules/ && \
+    chmod -R g=u /etc/zabbix/ /usr/share/zabbix/modules/ && \
     chown --quiet -R zabbix:root /etc/httpd/ /etc/php-fpm.d/ /etc/php-fpm.conf && \
     chgrp -R 0 /etc/httpd/ /etc/php-fpm.d/ /etc/php-fpm.conf && \
     chmod -R g=u /etc/httpd/ /etc/php-fpm.d/ /etc/php-fpm.conf && \
     chown --quiet -R zabbix:root /run/httpd/ /var/lib/php/session/ && \
     chgrp -R 0 /run/httpd/ /var/lib/php/session/ && \
     chmod -R g=u /run/httpd/ /var/lib/php/session/ && \
+    chown --quiet -R zabbix:root /usr/share/zabbix/include/defines.inc.php && \
+    chgrp -R 0 /usr/share/zabbix/include/defines.inc.php && \
+    chmod -R g=u /usr/share/zabbix/include/defines.inc.php && \
     dnf -y history undo `dnf -q history | sed -n 3p |column -t | cut -d' ' -f1` && \
     dnf -y erase glibc-locale-source glibc-langpack-en && \
     dnf -y clean all && \

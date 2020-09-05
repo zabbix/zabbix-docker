@@ -17,6 +17,8 @@ RUN set -eux && \
             -h /var/lib/zabbix/ \
         zabbix && \
     mkdir -p /etc/zabbix/ && \
+    mkdir -p /usr/sbin/zabbix_java/ && \
+    mkdir -p /usr/sbin/zabbix_java/ext_lib/ && \
     apk add --clean-protected --no-cache \
             bash \
             openjdk8-jre-base && \

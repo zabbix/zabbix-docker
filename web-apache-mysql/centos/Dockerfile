@@ -88,6 +88,9 @@ RUN set -eux && \
     chown --quiet -R zabbix:root /run/httpd/ /var/lib/php/session/ && \
     chgrp -R 0 /run/httpd/ /var/lib/php/session/ && \
     chmod -R g=u /run/httpd/ /var/lib/php/session/ && \
+    chown --quiet -R zabbix:root /usr/share/zabbix/include/defines.inc.php && \
+    chgrp -R 0 /usr/share/zabbix/include/defines.inc.php && \
+    chmod -R g=u /usr/share/zabbix/include/defines.inc.php && \
     dnf -y history undo `dnf -q history | sed -n 3p |column -t | cut -d' ' -f1` && \
     dnf -y erase glibc-locale-source glibc-langpack-en && \
     dnf -y clean all && \

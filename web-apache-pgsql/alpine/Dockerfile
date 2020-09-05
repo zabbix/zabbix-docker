@@ -86,6 +86,9 @@ RUN set -eux && \
     chown --quiet -R zabbix:root /etc/apache2/ /etc/php7/ && \
     chgrp -R 0 /etc/apache2/ /etc/php7/ && \
     chmod -R g=u /etc/apache2/ /etc/php7/ && \
+    chown --quiet -R zabbix:root /usr/share/zabbix/include/defines.inc.php && \
+    chgrp -R 0 /usr/share/zabbix/include/defines.inc.php && \
+    chmod -R g=u /usr/share/zabbix/include/defines.inc.php && \
     apk del --purge --no-network \
             build-dependencies && \
     rm -rf /var/cache/apk/*
