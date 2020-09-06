@@ -30,4 +30,4 @@ jobs:
         run: ls -lah && docker --help && pwd && ls -lah
 
       - name: Build something
-        run: docker build --platform linux/amd64 --output "type=image,push=false" --cache-to "type=local,dest=/tmp/cache" --tag zabbux/zabbbix-agent:latest --file ./agent/alpine/Dockerfile ./agent/alpine
+        run: docker buildx --platform linux/amd64 --output "type=image,push=false" --cache-to "type=local,dest=/tmp/cache" --tag zabbux/zabbbix-agent:latest --file ./agent/alpine/Dockerfile ./agent/alpine
