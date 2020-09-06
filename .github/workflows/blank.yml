@@ -43,4 +43,4 @@ jobs:
           docker buildx inspect --bootstrap && \
           docker info && \
           docker buildx inspect && \
-          docker buildx build --platform linux/amd64 --output "type=image,push=false" --cache-to "type=local,dest=/tmp/cache" --tag zabbux/zabbbix-agent:latest --file ./agent/alpine/Dockerfile ./agent/alpine
+          docker buildx build --platform linux/arm64 --output "type=image,push=false" --cache-to "type=local,dest=/tmp/cache" --tag zabbux/zabbbix-agent:latest --file ./agent/alpine/Dockerfile ./agent/alpine
