@@ -34,6 +34,10 @@ jobs:
           DOCKER_CLI_EXPERIMENTAL: enabled
         run: |
           set +e && \
+          mkdir -p ~/.docker/cli-plugins/ && \
+          curl -L https://github.com/docker/buildx/releases/download/v0.4.2/buildx-v0.4.2.linux-amd64 -o ~/.docker/cli-plugins/docker-buildx && \
+          docker pull -q multiarch/qemu-user-static:latest && \
+          docker run --rm --privileged multiarch/qemu-user-static:latest --reset -p yes --credential yes && \
           docker buildx create --name builder-${GITHUB_SHA::8} --driver docker-container --use && \
           docker buildx inspect --bootstrap && \
           docker info && \
