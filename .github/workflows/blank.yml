@@ -59,7 +59,6 @@ jobs:
           DOCKER_CLI_EXPERIMENTAL: enabled
         run: |
           docker buildx build --platform linux/amd64,linux/arm/v7,linux/arm64,linux/ppc64le \
-            --cache-from "type=local,src=/tmp/.buildx-cache" \
             --cache-to "type=local,dest=/tmp/.buildx-cache" \
             --output "type=image,push=false" \
             --build-arg BUILD_DATE=$(date -u +'%Y-%m-%dT%H:%M:%SZ') \
