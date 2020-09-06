@@ -30,7 +30,10 @@ jobs:
         run: ls -lah && docker --help && pwd && ls -lah
 
       - name: Build something
+        env:
+          DOCKER_CLI_EXPERIMENTAL: enabled
         run: |
+          set +e && \
           docker buildx create --name builder-${GITHUB_SHA::8} --driver docker-container --use && \
           docker buildx inspect --bootstrap && \
           docker info && \
