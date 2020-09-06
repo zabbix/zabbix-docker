@@ -23,7 +23,6 @@ jobs:
           - zabbix-java-gateway
         os:
          - alpine
-         - centos
          - ubuntu
         exclude:
           - os: centos
