@@ -31,7 +31,7 @@ jobs:
 
       - name: Build something
         run: |
-          docker buildx create --name builder-${GITHUB_SHA::8} --driver docker-container--use && \
+          docker buildx create --name builder-${GITHUB_SHA::8} --driver docker-container --use && \
           docker buildx inspect --bootstrap && \
           docker info && \
           docker buildx inspect && \
