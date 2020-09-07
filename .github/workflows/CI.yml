@@ -89,8 +89,7 @@ jobs:
           fi
 
           if [ "${{ matrix.os }}" == "centos" ]; then
-            #DOCKER_PLATFORM="linux/amd64,linux/arm64,linux/ppc64le"
-            DOCKER_PLATFORM="linux/amd64"
+            DOCKER_PLATFORM="linux/amd64,linux/arm64,linux/ppc64le"
           fi
 
           if [ "${{ matrix.build }}" == "java-gateway" ]; then
@@ -195,7 +194,7 @@ jobs:
           fi
 
           docker buildx build --cache-from "type=local,src=/tmp/.buildx-cache" \
-            --output "type=image,push=false" \
+            --output "type=image,push=true" \
             ${BUILDX_ARGS}
 
       - name: Inspect images
