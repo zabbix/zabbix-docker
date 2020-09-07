@@ -6,7 +6,10 @@ on:
       - published
   push:
     branches:
-      - dotneft-patch-1
+      - 3.0
+      - 4.0
+      - 5.0
+      - trunk
     paths-ignore:
       - '.env*'
       - 'docker-compose*.yaml'
@@ -25,10 +28,23 @@ jobs:
     strategy:
       fail-fast: false  
       matrix:
-        build: 
+        build:
           - agent
+          - agent2
+          - java-gateway
+          - proxy-mysql
+          - proxy-sqlite3
+          - server-mysql
+          - server-pgsql
+          - snmptraps
+          - web-apache-mysql
+          - web-apache-pgsql
+          - web-nginx-mysql
+          - web-nginx-pgsql
         os:
          - alpine
+         - ubuntu
+         - centos
         exclude:
           - os: centos
             build: agent2
@@ -37,30 +53,7 @@ jobs:
 
     runs-on: ubuntu-latest
     steps:
-      - name: Dump GitHub context
-        env:
-          GITHUB_CONTEXT: ${{ toJson(github) }}
-        run: echo "$GITHUB_CONTEXT"
-      - name: Dump job context
-        env:
-          JOB_CONTEXT: ${{ toJson(job) }}
-        run: echo "$JOB_CONTEXT"
-      - name: Dump steps context
-        env:
-          STEPS_CONTEXT: ${{ toJson(steps) }}
-        run: echo "$STEPS_CONTEXT"
-      - name: Dump runner context
-        env:
-          RUNNER_CONTEXT: ${{ toJson(runner) }}
-        run: echo "$RUNNER_CONTEXT"
-      - name: Dump strategy context
-        env:
-          STRATEGY_CONTEXT: ${{ toJson(strategy) }}
-        run: echo "$STRATEGY_CONTEXT"
-      - name: Dump matrix context
-        env:
-          MATRIX_CONTEXT: ${{ toJson(matrix) }}
-        run: echo "$MATRIX_CONTEXT"
+      - uses: actions/checkout@v2
 
       - name: Prepare platform list
         id: platform
@@ -72,9 +65,10 @@ jobs:
           fi
 
           if [ "${{ matrix.os }}" == "centos" ]; then
-            DOCKER_PLATFORM="linux/amd64,linux/arm64,linux/ppc64le"
+            #DOCKER_PLATFORM="linux/amd64,linux/arm64,linux/ppc64le"
+            DOCKER_PLATFORM="linux/amd64"
           fi
-          
+
           if [ "${{ matrix.build }}" == "java-gateway" ]; then
             DOCKER_PLATFORM=${DOCKER_PLATFORM%",linux/ppc64le"}
           fi
@@ -108,7 +102,6 @@ jobs:
           echo "::warning Tags - ${TAGS}"
 
           echo ::set-output name=image_name::${IMAGE_NAME}
-          echo ::set-output name=image_tag_version::${IMAGE_TAG_VERSION}
           echo ::set-output name=buildx_args::--platform "${{ steps.platform.outputs.list }}" \
             --build-arg BUILD_DATE=$(date -u +'%Y-%m-%dT%H:%M:%SZ') \
             --build-arg VCS_REF=${GITHUB_SHA::8} \
@@ -122,12 +115,13 @@ jobs:
           IMAGE_NAME="${{ env.DOCKER_REPOSITORY }}/zabbix-${{ matrix.build }}"
           RELEASE_VERSION="${{ github.ref }}"
           RELEASE_VERSION=${RELEASE_VERSION:10}
-          
-          echo "::warning Release version ${RELEASE_VERSION}"
+          GIT_BRANCH=${RELEASE_VERSION%.*}
+
+          echo "::warning Release version ${RELEASE_VERSION}. Branch ${GIT_BRANCH}"
 
           TAGS="$TAGS --tag $IMAGE_NAME:${{ matrix.os }}-${RELEASE_VERSION}"
 
-          if [ "${{ matrix.os }}" == "alpine" ]; then
+          if [ "${{ matrix.os }}" == "alpine" ] && [ "${LATEST_BRANCH}" == "${GIT_BRANCH}" ]; then
             TAGS="$TAGS --tag $IMAGE_NAME:latest"
           fi
 
