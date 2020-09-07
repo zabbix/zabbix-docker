@@ -76,7 +76,7 @@ jobs:
 
           echo ::set-output name=list::${DOCKER_PLATFORM}
 
-      - name: Prepare environment
+      - name: Prepare environment (push)
         if: github.event_name == 'push'
         id: prepare_push
         run: |
@@ -110,7 +110,7 @@ jobs:
             ${TAGS} \
             --file ./${{ matrix.build }}/${{ matrix.os }}/Dockerfile ./${{ matrix.build }}/${{ matrix.os }}
 
-      - name: Prepare environment
+      - name: Prepare environment (release)
         if: github.event_name == 'release' && github.event.action == 'created'
         id: prepare_release
         run: |
@@ -139,7 +139,7 @@ jobs:
             $TAGS \
             --file ./${{ matrix.build }}/${{ matrix.os }}/Dockerfile ./${{ matrix.build }}/${{ matrix.os }}
 
-      - name: Prepare environment output
+      - name: Continue
         run: |
           echo "::warning push - ${{ steps.prepare_push.outputs.buildx_args }}"
           echo "::warning release - ${{ steps.prepare_release.outputs.buildx_args }}"
