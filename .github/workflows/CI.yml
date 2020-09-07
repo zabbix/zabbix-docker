@@ -70,8 +70,9 @@ jobs:
           if [ "${{ github.event_name }}" == "release"]; then
             RELEASE_VERSION=${GITHUB_SHA:10}
             TAGS="$TAGS --tag $IMAGE_NAME:${{ matrix.os }}-${RELEASE_VERSION}"
-          else
           fi
+
+          echo "${{github.ref}}"
 
           if [ "${{ matrix.os }}" == "alpine" ]; then
             TAGS="$TAGS --tag $IMAGE_NAME:latest"
