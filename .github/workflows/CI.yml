@@ -1,30 +1,28 @@
-# This is a basic workflow to help you get started with Actions
-
 name: CI
 
-# Controls when the action will run. Triggers the workflow on push or pull request
-# events but only for the 5.0 branch
 on:
   release:
     types:
       - published
   push:
     branches:
-      - trunk
       - dotneft-patch-1
     paths-ignore:
       - '.env*'
       - 'docker-compose*.yaml'
       - '*/rhel/*'
-  pull_request:
-    branches:
-      - trunk   
+      - "**.md"
+
+defaults:
+  run:
+    shell: bash
 
 jobs:
   build:
     env:
       LATEST_BRANCH: "5.0"
       DOCKER_REPOSITORY: "zabbix"
+      IMAGE_NAME: "${{ env.DOCKER_REPOSITORY }}/zabbix-${{ matrix.build }}"
     strategy:
       fail-fast: false  
       matrix:
@@ -41,15 +39,70 @@ jobs:
 
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2                                                                      
+      - uses: actions/checkout@v2    
 
-      - name: test
+      - name: Prepare platform list
+        id: platform
         run: |
-          echo "${{ github.ref }}"
-          echo "${LATEST_BRANCH}"
-          echo "${{ env.LATEST_BRANCH }}"
-          echo "${{ env.DOCKER_REPOSITORY }}"
-          echo "${{ github.event_name }}"
-          echo "${{ github.base_ref }}"
-          echo "${{ github.head_ref }}"
-          echo "${{ github.action }}"
+          DOCKER_PLATFORM="linux/amd64,linux/arm/v6,linux/arm/v7,linux/arm64,linux/ppc64le"
+
+          if [ "${{ matrix.os }}" == "ubuntu" ]; then
+            DOCKER_PLATFORM="linux/amd64,linux/arm/v7,linux/arm64,linux/ppc64le"
+          fi
+
+          if [ "${{ matrix.os }}" == "centos" ]; then
+            DOCKER_PLATFORM="linux/amd64,linux/arm64,linux/ppc64le"
+          fi
+          
+          if [ "${{ matrix.build }}" == "java-gateway" ]; then
+            DOCKER_PLATFORM=${DOCKER_PLATFORM%",linux/ppc64le"}
+          fi
+
+          echo ::set-output name=list::${DOCKER_PLATFORM}
+
+      - name: Prepare environment
+        if: github.event_name == 'push'
+        id: prepare_env
+        run: |
+          DOCKER_PLATFORM="linux/amd64,linux/arm/v6,linux/arm/v7,linux/arm64,linux/ppc64le"
+
+          if [ "${{ matrix.os }}" == "ubuntu" ]; then
+            DOCKER_PLATFORM="linux/amd64,linux/arm/v7,linux/arm64,linux/ppc64le"
+          fi
+
+          if [ "${{ matrix.os }}" == "centos" ]; then
+            DOCKER_PLATFORM="linux/amd64,linux/arm64,linux/ppc64le"
+          fi
+          
+          if [ "${{ matrix.build }}" == "java-gateway" ]; then
+            DOCKER_PLATFORM=${DOCKER_PLATFORM%",linux/ppc64le"}
+          fi
+
+          IMAGE_NAME="${{ env.DOCKER_REPOSITORY }}/zabbix-${{ matrix.build }}"
+
+          TAGS=""
+
+          if [ "${{ github.event_name }}" == "release"]; then
+            RELEASE_VERSION=${GITHUB_SHA:10}
+            TAGS="$TAGS --tag $IMAGE_NAME:${{ matrix.os }}-${RELEASE_VERSION}"
+          else
+          fi
+
+          if [ "${{ matrix.os }}" == "alpine" ]; then
+            TAGS="$TAGS --tag $IMAGE_NAME:latest"
+          fi
+
+          echo "--platform ${{ steps.platform.list }} \
+            --build-arg BUILD_DATE=$(date -u +'%Y-%m-%dT%H:%M:%SZ') \
+            --build-arg VCS_REF=${GITHUB_SHA::8} \
+            ${TAGS} \
+            --file ./${{ matrix.build }}/${{ matrix.os }}/Dockerfile ./${{ matrix.build }}/${{ matrix.os }}"
+
+
+          echo ::set-output name=image_name::${IMAGE_NAME}
+          echo ::set-output name=image_tag_version::${IMAGE_TAG_VERSION}
+          echo ::set-output name=buildx_args::--platform ${{ steps.platform.list }} \
+            --build-arg BUILD_DATE=$(date -u +'%Y-%m-%dT%H:%M:%SZ') \
+            --build-arg VCS_REF=${GITHUB_SHA::8} \
+            ${TAGS} \
+            --file ./${{ matrix.build }}/${{ matrix.os }}/Dockerfile ./${{ matrix.build }}/${{ matrix.os }}
