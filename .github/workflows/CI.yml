@@ -151,7 +151,7 @@ jobs:
               IFS='|' read -r -a IMAGE_TAG_VERSIONS <<< "${{ steps.prepare_release.outputs.image_tag_versions }}"
               echo "::warning tags raw - ${{ steps.prepare_release.outputs.image_tag_versions }}"
           fi
-
+          echo "::warning tag value - $IMAGE_TAG_VERSIONS"
           for version in ${IMAGE_TAG_VERSIONS[@]}; do
               echo "::warning tag value - $version"
           done
