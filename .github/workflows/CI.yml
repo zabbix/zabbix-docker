@@ -154,8 +154,7 @@ jobs:
           
           IMAGE_TAG_VERSIONS=${IMAGE_TAG_VERSIONS%%+(|)}
           IFS='|' read -r -a IMAGE_TAG_VERSIONS <<< $IMAGE_TAG_VERSIONS
-          echo "::warning tag value - $IMAGE_TAG_VERSIONS"
           
           for version in ${IMAGE_TAG_VERSIONS[@]}; do
-              echo "::warning tag value2 - $version"
+              docker buildx imagetools inspect $version
           done
