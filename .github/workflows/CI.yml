@@ -20,7 +20,7 @@ defaults:
 jobs:
   build:
     env:
-      LATEST_BRANCH: "5.0"
+      LATEST_BRANCH: "${{ event.repository.master_branch }}"
       DOCKER_REPOSITORY: "zabbix"
     strategy:
       fail-fast: false  
@@ -83,7 +83,7 @@ jobs:
 
       - name: Prepare environment
         if: github.event_name == 'push'
-        id: prepare_push
+        id: prepare_env
         run: |
           IMAGE_NAME="${{ env.DOCKER_REPOSITORY }}/zabbix-${{ matrix.build }}"
           GIT_BRANCH="${{ github.ref }}"
@@ -110,7 +110,7 @@ jobs:
 
       - name: Prepare environment
         if: github.event_name == 'release' && github.event.action == 'created'
-        id: prepare_release
+        id: prepare_env
         run: |
           IMAGE_NAME="${{ env.DOCKER_REPOSITORY }}/zabbix-${{ matrix.build }}"
           RELEASE_VERSION="${{ github.ref }}"
@@ -132,5 +132,5 @@ jobs:
 
       - name: Prepare environment output
         run: |
-          echo "${{ steps.prepare_push.outputs.buildx_args }}"
-          echo "${{ steps.prepare_release.outputs.buildx_args }}"
+          echo "${{ steps.prepare_env.outputs.buildx_args }}"
+          echo "${{ steps.prepare_env.outputs.buildx_args }}"
