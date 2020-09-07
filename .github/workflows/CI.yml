@@ -64,7 +64,9 @@ jobs:
         id: prepare_env
         run: |
           IMAGE_NAME="${{ env.DOCKER_REPOSITORY }}/zabbix-${{ matrix.build }}"
-
+          GIT_BRANCH="${{ github.ref }}"
+          GIT_BRANCH=${GIT_BRANCH:11}
+          echo "${GIT_BRANCH}"
           TAGS=""
 
           if [ "${{ github.event_name }}" == "release" ]; then
@@ -72,23 +74,40 @@ jobs:
             TAGS="$TAGS --tag $IMAGE_NAME:${{ matrix.os }}-${RELEASE_VERSION}"
           fi
 
-          echo "${{github.ref}}"
+          if [ "${{ matrix.os }}" == "alpine" ]; then
+            TAGS="$TAGS --tag $IMAGE_NAME:latest"
+          fi
+
+          echo ::set-output name=image_name::${IMAGE_NAME}
+          echo ::set-output name=image_tag_version::${IMAGE_TAG_VERSION}
+          echo ::set-output name=buildx_args::--platform "${{ steps.platform.outputs.list }}" \
+            --build-arg BUILD_DATE=$(date -u +'%Y-%m-%dT%H:%M:%SZ') \
+            --build-arg VCS_REF=${GITHUB_SHA::8} \
+            ${TAGS} \
+            --file ./${{ matrix.build }}/${{ matrix.os }}/Dockerfile ./${{ matrix.build }}/${{ matrix.os }}
+
+      - name: Prepare environment
+        if: github.event_name == 'release' && github.event.action == 'created'
+        id: prepare_env
+        run: |
+          IMAGE_NAME="${{ env.DOCKER_REPOSITORY }}/zabbix-${{ matrix.build }}"
+          RELEASE_VERSION="${{ github.ref }}"
+          RELEASE_VERSION=${RELEASE_VERSION:10}
+
+          TAGS="$TAGS --tag $IMAGE_NAME:${{ matrix.os }}-${RELEASE_VERSION}"
 
           if [ "${{ matrix.os }}" == "alpine" ]; then
             TAGS="$TAGS --tag $IMAGE_NAME:latest"
           fi
 
-          echo "--platform ${{ steps.platform.list }} \
-            --build-arg BUILD_DATE=$(date -u +'%Y-%m-%dT%H:%M:%SZ') \
-            --build-arg VCS_REF=${GITHUB_SHA::8} \
-            ${TAGS} \
-            --file ./${{ matrix.build }}/${{ matrix.os }}/Dockerfile ./${{ matrix.build }}/${{ matrix.os }}"
-
-
           echo ::set-output name=image_name::${IMAGE_NAME}
           echo ::set-output name=image_tag_version::${IMAGE_TAG_VERSION}
-          echo ::set-output name=buildx_args::--platform ${{ steps.platform.outputs.list }} \
+          echo ::set-output name=buildx_args::--platform "${{ steps.platform.outputs.list }}" \
             --build-arg BUILD_DATE=$(date -u +'%Y-%m-%dT%H:%M:%SZ') \
             --build-arg VCS_REF=${GITHUB_SHA::8} \
             ${TAGS} \
             --file ./${{ matrix.build }}/${{ matrix.os }}/Dockerfile ./${{ matrix.build }}/${{ matrix.os }}
+
+      - name: Prepare environment output
+        run: |
+        echo "${{ steps.prepare_env.outputs.buildx_args }}"
