@@ -61,7 +61,7 @@ jobs:
 
       - name: Prepare environment
         if: github.event_name == 'push'
-        id: prepare_env
+        id: prepare_push
         run: |
           IMAGE_NAME="${{ env.DOCKER_REPOSITORY }}/zabbix-${{ matrix.build }}"
           GIT_BRANCH="${{ github.ref }}"
@@ -88,7 +88,7 @@ jobs:
 
       - name: Prepare environment
         if: github.event_name == 'release' && github.event.action == 'created'
-        id: prepare_env
+        id: prepare_release
         run: |
           IMAGE_NAME="${{ env.DOCKER_REPOSITORY }}/zabbix-${{ matrix.build }}"
           RELEASE_VERSION="${{ github.ref }}"
@@ -110,4 +110,5 @@ jobs:
 
       - name: Prepare environment output
         run: |
-        echo "${{ steps.prepare_env.outputs.buildx_args }}"
+        echo "${{ steps.prepare_push.outputs.buildx_args }}"
+        echo "${{ steps.prepare_release.outputs.buildx_args }}"
