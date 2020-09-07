@@ -19,9 +19,18 @@ jobs:
       fail-fast: false  
       matrix:
         build: 
-          - zabbix-agent
-          - zabbix-agent2
-          - zabbix-java-gateway
+          - agent
+          - agent2
+          - java-gateway
+          - proxy-mysql
+          - proxy-sqlite3
+          - server-mysql
+          - server-pgsql
+          - snmptraps
+          - web-apache-mysql
+          - web-apache-pgsql
+          - web-nginx-mysql
+          - web-nginx-pgsql
         os:
          - alpine
          - ubuntu
@@ -77,8 +86,8 @@ jobs:
             --output "type=image,push=false" \
             --build-arg BUILD_DATE=$(date -u +'%Y-%m-%dT%H:%M:%SZ') \
             --build-arg VCS_REF=${GITHUB_SHA::8} \
-            --tag zabbix/${{ matrix.build }}:${{ matrix.os }}-trunk-test \
-            --file ./$(echo "${{ matrix.build }}" | cut -d '-' -f2-)/${{ matrix.os }}/Dockerfile ./$(echo "${{ matrix.build }}" | cut -d '-' -f2-)/${{ matrix.os }}
+            --tag zabbix/zabbix-${{ matrix.build }}:${{ matrix.os }}-trunk-test \
+            --file ./${{ matrix.build }}/${{ matrix.os }}/Dockerfile ./${{ matrix.build }}/${{ matrix.os }}
 
       - name: Docker Hub login
         uses: docker/login-action@v1
@@ -109,11 +118,11 @@ jobs:
             --output "type=image,push=true" \
             --build-arg BUILD_DATE=$(date -u +'%Y-%m-%dT%H:%M:%SZ') \
             --build-arg VCS_REF=${GITHUB_SHA::8} \
-            --tag zabbix/${{ matrix.build }}:${{ matrix.os }}-trunk-test \
-            --file ./$(echo "${{ matrix.build }}" | cut -d '-' -f2-)/${{ matrix.os }}/Dockerfile ./$(echo "${{ matrix.build }}" | cut -d '-' -f2-)/${{ matrix.os }}
+            --tag zabbix/zabbix-${{ matrix.build }}:${{ matrix.os }}-trunk-test \
+            --file ./${{ matrix.build }}/${{ matrix.os }}/Dockerfile ./${{ matrix.build }}/${{ matrix.os }}
 
       - name: Inspect images
         env:
           DOCKER_CLI_EXPERIMENTAL: enabled
         run: |
-          docker buildx imagetools inspect zabbix/${{ matrix.build }}:${{ matrix.os }}-trunk-test
+          docker buildx imagetools inspect zabbix/zabbix-${{ matrix.build }}:${{ matrix.os }}-trunk-test
