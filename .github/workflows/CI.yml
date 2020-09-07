@@ -91,7 +91,7 @@ jobs:
 
           TAGS="--tag $IMAGE_NAME:${{ matrix.os }}-${GIT_BRANCH}"
 
-          if [ "${{ matrix.os }}" == "alpine" ]; then
+          if [ "${{ matrix.os }}" == "alpine" ] && [ "${LATEST_BRANCH}" == "${GIT_BRANCH}" ]; then
             TAGS="$TAGS --tag $IMAGE_NAME:latest"
           fi
 
