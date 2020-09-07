@@ -89,6 +89,8 @@ jobs:
           GIT_BRANCH="${{ github.ref }}"
           GIT_BRANCH=${GIT_BRANCH:11}
 
+          echo "::warning Branch - ${GIT_BRANCH}"
+
           TAGS="--tag $IMAGE_NAME:${{ matrix.os }}-${GIT_BRANCH}"
 
           if [ "${{ matrix.os }}" == "alpine" ] && [ "${LATEST_BRANCH}" == "${GIT_BRANCH}" ]; then
@@ -102,6 +104,8 @@ jobs:
           if [ "${GIT_BRANCH}" == "trunk" ]; then
             TAGS="--tag $IMAGE_NAME:${{ matrix.os }}-trunk"
           fi
+
+          echo "::warning Tags - ${TAGS}"
 
           echo ::set-output name=image_name::${IMAGE_NAME}
           echo ::set-output name=image_tag_version::${IMAGE_TAG_VERSION}
@@ -118,6 +122,8 @@ jobs:
           IMAGE_NAME="${{ env.DOCKER_REPOSITORY }}/zabbix-${{ matrix.build }}"
           RELEASE_VERSION="${{ github.ref }}"
           RELEASE_VERSION=${RELEASE_VERSION:10}
+          
+          echo "::warning Release version ${RELEASE_VERSION}"
 
           TAGS="$TAGS --tag $IMAGE_NAME:${{ matrix.os }}-${RELEASE_VERSION}"
 
@@ -135,5 +141,5 @@ jobs:
 
       - name: Prepare environment output
         run: |
-          echo "${{ steps.prepare_push.outputs.buildx_args }}"
-          echo "${{ steps.prepare_release.outputs.buildx_args }}"
+          echo "::warning ${{ steps.prepare_push.outputs.buildx_args }}"
+          echo "::warning ${{ steps.prepare_release.outputs.buildx_args }}"
