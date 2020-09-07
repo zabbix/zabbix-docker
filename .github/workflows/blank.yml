@@ -68,6 +68,10 @@ jobs:
             DOCKER_PLATFORM="linux/amd64,linux/arm64,linux/ppc64le"
           fi
           
+          if [ "${{ matrix.build }}" == "zabbix-java-gateway" ]; then
+            DOCKER_PLATFORM=${DOCKER_PLATFORM%",linux/ppc64le"}
+          fi
+          
           docker buildx build --platform ${DOCKER_PLATFORM} \
             --cache-to "type=local,dest=/tmp/.buildx-cache" \
             --output "type=image,push=false" \
@@ -94,6 +98,10 @@ jobs:
 
           if [ "${{ matrix.os }}" == "centos" ]; then
             DOCKER_PLATFORM="linux/amd64,linux/arm64,linux/ppc64le"
+          fi
+
+          if [ "${{ matrix.build }}" == "zabbix-java-gateway" ]; then
+            DOCKER_PLATFORM=${DOCKER_PLATFORM%",linux/ppc64le"}
           fi
           
           docker buildx build --platform ${DOCKER_PLATFORM} \
