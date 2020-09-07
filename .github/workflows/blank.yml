@@ -48,4 +48,5 @@ jobs:
           echo "${{ env.DOCKER_REPOSITORY }}"
           echo "${{ github.event_name }}"
           echo "${{ github.base_ref }}"
+          echo "${{ github.head_ref }}"
           echo "${{ github.action }}"
