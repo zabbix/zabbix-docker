@@ -36,7 +36,7 @@ RUN set -eux && \
             libcurl-minimal \
             libevent \
             libssh \
-            fping
+            fping \
             libxml2 \
             mariadb \
             net-snmp-libs \
