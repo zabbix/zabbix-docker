@@ -19,13 +19,20 @@ on:
 
 jobs:
   build:
+    env:
+      LATEST_BRANCH: 5.0
+      DOCKER_REPOSITORY: zabbix
     strategy:
       fail-fast: false  
       matrix:
         build: 
           - agent
+            - 
+              
         os:
          - alpine
+         - ubuntu
+         - centos
         exclude:
           - os: centos
             build: agent2
@@ -41,4 +48,21 @@ jobs:
         env:
           DOCKER_CLI_EXPERIMENTAL: enabled
         run: |
-          echo "${{ on.push.branches }}"
+          BUILDX_VERSION="0.4.2"
+          QEMU_TAG="latest"
+          mkdir -p ~/.docker/cli-plugins/ && \
+          curl -L https://github.com/docker/buildx/releases/download/v${BUILDX_VERSION}/buildx-v${BUILDX_VERSION}.linux-amd64 -o ~/.docker/cli-plugins/docker-buildx && \
+          chmod +x ~/.docker/cli-plugins/docker-buildx && \
+          docker pull -q multiarch/qemu-user-static:latest && \
+          docker run --rm --privileged multiarch/qemu-user-static:${QEMU_TAG} --reset -p yes --credential yes && \
+          docker buildx create --name builder-${GITHUB_SHA::8} --driver docker-container --use && \
+          docker buildx inspect --bootstrap && \
+          docker info && \
+          docker buildx inspect
+      
+      - name: Available platforms
+        run: docker buildx inspect | grep Platforms
+      
+      - name: test
+        run: |
+          echo "${{ github.ref }}"
