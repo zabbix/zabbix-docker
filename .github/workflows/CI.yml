@@ -20,7 +20,7 @@ defaults:
 jobs:
   build:
     env:
-      LATEST_BRANCH: "${{ event.repository.master_branch }}"
+      LATEST_BRANCH: "${{ github.event.repository.master_branch }}"
       DOCKER_REPOSITORY: "zabbix"
     strategy:
       fail-fast: false  
