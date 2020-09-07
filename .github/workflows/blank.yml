@@ -62,11 +62,11 @@ jobs:
 
           if [ "${{ matrix.os }}" == "ubuntu" ]; then
             DOCKER_PLATFORM="linux/amd64,linux/arm/v7,linux/arm64,linux/ppc64le"
-          endif
+          fi
 
           if [ "${{ matrix.os }}" == "centos" ]; then
             DOCKER_PLATFORM="linux/amd64,linux/arm64,linux/ppc64le"
-          endif
+          fi
           
           docker buildx build --platform ${DOCKER_PLATFORM} \
             --cache-to "type=local,dest=/tmp/.buildx-cache" \
@@ -90,11 +90,11 @@ jobs:
 
           if [ "${{ matrix.os }}" == "ubuntu" ]; then
             DOCKER_PLATFORM="linux/amd64,linux/arm/v7,linux/arm64,linux/ppc64le"
-          endif
+          fi
 
           if [ "${{ matrix.os }}" == "centos" ]; then
             DOCKER_PLATFORM="linux/amd64,linux/arm64,linux/ppc64le"
-          endif
+          fi
           
           docker buildx build --platform ${DOCKER_PLATFORM} \
             --cache-from "type=local,src=/tmp/.buildx-cache" \
