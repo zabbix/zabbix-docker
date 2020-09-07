@@ -33,9 +33,10 @@ RUN set -eux && \
     mkdir -p /usr/lib/zabbix/externalscripts && \
     mkdir -p /usr/share/doc/zabbix-server-mysql && \
     yum --quiet makecache && \
-    yum -y install --setopt=tsflags=nodocs https://repo.zabbix.com/non-supported/rhel/7/x86_64/iksemel-1.4-2.el7.centos.x86_64.rpm \
-                                        https://repo.zabbix.com/non-supported/rhel/7/x86_64/fping-3.10-1.el7.x86_64.rpm && \
+    yum -y install --setopt=tsflags=nodocs https://repo.zabbix.com/non-supported/rhel/7/x86_64/iksemel-1.4-2.el7.centos.x86_64.rpm && \
+    yum -y install epel-release && \
     yum -y install --setopt=tsflags=nodocs \
+            fping \
             tzdata \
             iputils \
             traceroute \

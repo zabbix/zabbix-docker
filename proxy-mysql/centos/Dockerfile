@@ -31,8 +31,9 @@ RUN set -eux && \
     mkdir -p /usr/lib/zabbix/externalscripts && \
     mkdir -p /usr/share/doc/zabbix-proxy-mysql && \
     yum --quiet makecache && \
-    yum -y install https://repo.zabbix.com/non-supported/rhel/7/x86_64/fping-3.10-1.el7.x86_64.rpm --setopt=tsflags=nodocs && \
+    yum -y install epel-release && \
     yum -y install --setopt=tsflags=nodocs \
+            fping
             libcurl \
             libxml2 \
             mariadb \
