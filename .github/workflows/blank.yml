@@ -37,9 +37,9 @@ jobs:
          - centos
         exclude:
           - os: centos
-            build: zabbix-agent2
+            build: agent2
           - os: ubuntu
-            build: zabbix-agent2
+            build: agent2
 
 
     runs-on: ubuntu-latest
