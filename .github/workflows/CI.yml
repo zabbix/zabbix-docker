@@ -51,10 +51,11 @@ jobs:
           - os: ubuntu
             build: agent2
 
+ 
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-
+      
       - name: Prepare platform list
         id: platform
         run: |
@@ -79,29 +80,30 @@ jobs:
         if: github.event_name == 'push'
         id: prepare_push
         run: |
+          TAGS_ARRAY=()
+
           IMAGE_NAME="${{ env.DOCKER_REPOSITORY }}/zabbix-${{ matrix.build }}"
           GIT_BRANCH="${{ github.ref }}"
           GIT_BRANCH=${GIT_BRANCH:11}
 
           echo "::warning Branch - ${GIT_BRANCH}"
 
-          TAGS="--tag $IMAGE_NAME:${{ matrix.os }}-${GIT_BRANCH}"
+          TAGS_ARRAY+=("$IMAGE_NAME:${{ matrix.os }}-${GIT_BRANCH}")
 
           if [ "${{ matrix.os }}" == "alpine" ] && [ "${LATEST_BRANCH}" == "${GIT_BRANCH}" ]; then
-            TAGS="$TAGS --tag $IMAGE_NAME:latest"
+            TAGS_ARRAY+=("$IMAGE_NAME:latest")
           fi
 
           if [ "${LATEST_BRANCH}" == "${GIT_BRANCH}" ]; then
-            TAGS="$TAGS --tag $IMAGE_NAME:${{ matrix.os }}-latest"
+            TAGS_ARRAY+=("$IMAGE_NAME:${{ matrix.os }}-latest")
           fi
 
-          if [ "${GIT_BRANCH}" == "trunk" ]; then
-            TAGS="--tag $IMAGE_NAME:${{ matrix.os }}-trunk"
-          fi
+          TAGS=$(printf -- "--tag %s " "${TAGS_ARRAY[@]}")
 
           echo "::warning Tags - ${TAGS}"
 
           echo ::set-output name=image_name::${IMAGE_NAME}
+          echo ::set-output name=image_tag_versions::$(printf -- "|%s" "${TAGS_ARRAY[@]}")
           echo ::set-output name=buildx_args::--platform "${{ steps.platform.outputs.list }}" \
             --build-arg BUILD_DATE=$(date -u +'%Y-%m-%dT%H:%M:%SZ') \
             --build-arg VCS_REF=${GITHUB_SHA::8} \
@@ -112,29 +114,44 @@ jobs:
         if: github.event_name == 'release' && github.event.action == 'created'
         id: prepare_release
         run: |
+          TAGS_ARRAY=()
+
           IMAGE_NAME="${{ env.DOCKER_REPOSITORY }}/zabbix-${{ matrix.build }}"
           RELEASE_VERSION="${{ github.ref }}"
           RELEASE_VERSION=${RELEASE_VERSION:10}
           GIT_BRANCH=${RELEASE_VERSION%.*}
 
-          echo "::warning Release version - ${RELEASE_VERSION}. Branch - ${GIT_BRANCH}"
+          echo "::warning Release version ${RELEASE_VERSION}. Branch ${GIT_BRANCH}"
 
-          TAGS="$TAGS --tag $IMAGE_NAME:${{ matrix.os }}-${RELEASE_VERSION}"
+          TAGS_ARRAY+=("$IMAGE_NAME:${{ matrix.os }}-${RELEASE_VERSION}")
 
           if [ "${{ matrix.os }}" == "alpine" ] && [ "${LATEST_BRANCH}" == "${GIT_BRANCH}" ]; then
-            TAGS="$TAGS --tag $IMAGE_NAME:latest"
+            TAGS_ARRAY+=("$IMAGE_NAME:latest")
           fi
 
-          echo "::warning Tags - ${TAGS}"
+          TAGS=$(printf -- "--tag %s " "${TAGS_ARRAY[@]}")
 
           echo ::set-output name=image_name::${IMAGE_NAME}
+          echo ::set-output name=image_tag_versions::$(printf -- "|%s" "${TAGS_ARRAY[@]}")
           echo ::set-output name=buildx_args::--platform "${{ steps.platform.outputs.list }}" \
             --build-arg BUILD_DATE=$(date -u +'%Y-%m-%dT%H:%M:%SZ') \
             --build-arg VCS_REF=${GITHUB_SHA::8} \
-            ${TAGS} \
+            $TAGS \
             --file ./${{ matrix.build }}/${{ matrix.os }}/Dockerfile ./${{ matrix.build }}/${{ matrix.os }}
 
       - name: Prepare environment output
         run: |
-          echo "::warning ${{ steps.prepare_push.outputs.buildx_args }}"
-          echo "::warning ${{ steps.prepare_release.outputs.buildx_args }}"
+          echo "::warning push - ${{ steps.prepare_push.outputs.buildx_args }}"
+          echo "::warning release - ${{ steps.prepare_release.outputs.buildx_args }}"
+
+          if [ ! -z "${{ steps.prepare_push.outputs.image_tag_versions }}" ]; then
+              IFS='|' read -r -a IMAGE_TAG_VERSIONS <<< "${{ steps.prepare_push.outputs.image_tag_versions }}"
+              echo "::warning tags raw - ${{ steps.prepare_push.outputs.image_tag_versions }}"
+          elif [ ! -z "${{ steps.prepare_release.outputs.image_tag_versions }}" ]; then
+              IFS='|' read -r -a IMAGE_TAG_VERSIONS <<< "${{ steps.prepare_release.outputs.image_tag_versions }}"
+              echo "::warning tags raw - ${{ steps.prepare_release.outputs.image_tag_versions }}"
+          fi
+
+          for version in ${IMAGE_TAG_VERSIONS[@]}; do
+              echo "::warning tag value - $version"
+          done
