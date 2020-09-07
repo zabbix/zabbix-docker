@@ -22,7 +22,7 @@ RUN set -eux && \
     dnf -y install epel-release && \
     dnf -y install --setopt=install_weak_deps=False --best --setopt=tsflags=nodocs \
             curl \
-            mariadb \
+            mysql \
             nginx \
             php-bcmath \
             php-fpm \
