@@ -50,11 +50,13 @@ jobs:
         env:
           DOCKER_CLI_EXPERIMENTAL: enabled
         run: |
+          BUILDX_VERSION="0.4.2"
+          QEMU_TAG="latest"
           mkdir -p ~/.docker/cli-plugins/ && \
-          curl -L https://github.com/docker/buildx/releases/download/v0.4.2/buildx-v0.4.2.linux-amd64 -o ~/.docker/cli-plugins/docker-buildx && \
+          curl -L https://github.com/docker/buildx/releases/download/v${BUILDX_VERSION}/buildx-v${BUILDX_VERSION}.linux-amd64 -o ~/.docker/cli-plugins/docker-buildx && \
           chmod +x ~/.docker/cli-plugins/docker-buildx && \
           docker pull -q multiarch/qemu-user-static:latest && \
-          docker run --rm --privileged multiarch/qemu-user-static:latest --reset -p yes --credential yes && \
+          docker run --rm --privileged multiarch/qemu-user-static:${QEMU_TAG} --reset -p yes --credential yes && \
           docker buildx create --name builder-${GITHUB_SHA::8} --driver docker-container --use && \
           docker buildx inspect --bootstrap && \
           docker info && \
@@ -62,10 +64,9 @@ jobs:
       
       - name: Available platforms
         run: docker buildx inspect | grep Platforms
-
-      - name: Build images
-        env:
-          DOCKER_CLI_EXPERIMENTAL: enabled
+      
+      - name: Prepare environment
+        id: prepare_env
         run: |
           DOCKER_PLATFORM="linux/amd64,linux/arm/v6,linux/arm/v7,linux/arm64,linux/ppc64le"
 
@@ -77,17 +78,28 @@ jobs:
             DOCKER_PLATFORM="linux/amd64,linux/arm64,linux/ppc64le"
           fi
           
-          if [ "${{ matrix.build }}" == "zabbix-java-gateway" ]; then
+          if [ "${{ matrix.build }}" == "java-gateway" ]; then
             DOCKER_PLATFORM=${DOCKER_PLATFORM%",linux/ppc64le"}
           fi
           
-          docker buildx build --platform ${DOCKER_PLATFORM} \
-            --cache-to "type=local,dest=/tmp/.buildx-cache" \
-            --output "type=image,push=false" \
+          IMAGE_TAG_VERSION="${{ matrix.os }}-trunk-test"
+          IMAGE_NAME="zabbix/zabbix-${{ matrix.build }}"
+
+          echo ::set-output name=image_name::${IMAGE_NAME}
+          echo ::set-output name=image_tag_version::${IMAGE_VERSION}
+          echo ::set-output name=buildx_args::--platform ${DOCKER_PLATFORM} \
             --build-arg BUILD_DATE=$(date -u +'%Y-%m-%dT%H:%M:%SZ') \
             --build-arg VCS_REF=${GITHUB_SHA::8} \
-            --tag zabbix/zabbix-${{ matrix.build }}:${{ matrix.os }}-trunk-test \
+            --tag $IMAGE_NAME:$IMAGE_TAG_VERSION \
             --file ./${{ matrix.build }}/${{ matrix.os }}/Dockerfile ./${{ matrix.build }}/${{ matrix.os }}
+
+      - name: Build images
+        env:
+          DOCKER_CLI_EXPERIMENTAL: enabled
+        run: |          
+          docker buildx build --cache-to "type=local,dest=/tmp/.buildx-cache" \
+            --output "type=image,push=false" \
+            ${{ steps.prepare_env.outputs.buildx_args }}
 
       - name: Docker Hub login
         uses: docker/login-action@v1
@@ -99,30 +111,12 @@ jobs:
         env:
           DOCKER_CLI_EXPERIMENTAL: enabled
         run: |
-          DOCKER_PLATFORM="linux/amd64,linux/arm/v6,linux/arm/v7,linux/arm64,linux/ppc64le"
-
-          if [ "${{ matrix.os }}" == "ubuntu" ]; then
-            DOCKER_PLATFORM="linux/amd64,linux/arm/v7,linux/arm64,linux/ppc64le"
-          fi
-
-          if [ "${{ matrix.os }}" == "centos" ]; then
-            DOCKER_PLATFORM="linux/amd64,linux/arm64,linux/ppc64le"
-          fi
-
-          if [ "${{ matrix.build }}" == "zabbix-java-gateway" ]; then
-            DOCKER_PLATFORM=${DOCKER_PLATFORM%",linux/ppc64le"}
-          fi
-          
-          docker buildx build --platform ${DOCKER_PLATFORM} \
-            --cache-from "type=local,src=/tmp/.buildx-cache" \
+          docker buildx build --cache-from "type=local,src=/tmp/.buildx-cache" \
             --output "type=image,push=true" \
-            --build-arg BUILD_DATE=$(date -u +'%Y-%m-%dT%H:%M:%SZ') \
-            --build-arg VCS_REF=${GITHUB_SHA::8} \
-            --tag zabbix/zabbix-${{ matrix.build }}:${{ matrix.os }}-trunk-test \
-            --file ./${{ matrix.build }}/${{ matrix.os }}/Dockerfile ./${{ matrix.build }}/${{ matrix.os }}
+            ${{ steps.prepare_env.outputs.buildx_args }}
 
       - name: Inspect images
         env:
           DOCKER_CLI_EXPERIMENTAL: enabled
         run: |
-          docker buildx imagetools inspect zabbix/zabbix-${{ matrix.build }}:${{ matrix.os }}-trunk-test
+          docker buildx imagetools inspect ${{ steps.prepare_env.outputs.image_name }}:${{ steps.prepare_env.outputs.image_tag_version }}
