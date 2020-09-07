@@ -20,19 +20,15 @@ on:
 jobs:
   build:
     env:
-      LATEST_BRANCH: 5.0
-      DOCKER_REPOSITORY: zabbix
+      LATEST_BRANCH: "5.0"
+      DOCKER_REPOSITORY: "zabbix"
     strategy:
       fail-fast: false  
       matrix:
         build: 
           - agent
-            - 
-              
         os:
          - alpine
-         - ubuntu
-         - centos
         exclude:
           - os: centos
             build: agent2
@@ -49,3 +45,4 @@ jobs:
           echo "${{ github.ref }}"
           echo "${LATEST_BRANCH}"
           echo "${{ env.LATEST_BRANCH }}"
+          echo "${{ env.DOCKER_REPOSITORY }}"
