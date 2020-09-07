@@ -33,8 +33,9 @@ RUN set -eux && \
     mkdir -p /usr/lib/zabbix/externalscripts && \
     mkdir -p /usr/share/doc/zabbix-server-mysql && \
     dnf --quiet makecache && \
-    dnf -y install --setopt=tsflags=nodocs http://repo.zabbix.com/non-supported/rhel/8/x86_64/fping-3.16-1.el8.x86_64.rpm && \
+    dnf -y install epel-release && \
     dnf -y install --setopt=tsflags=nodocs --setopt=install_weak_deps=False --best \
+            fping \
             tzdata \
             iputils \
             traceroute \
