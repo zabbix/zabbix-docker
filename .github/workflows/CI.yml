@@ -85,6 +85,10 @@ jobs:
             DOCKER_PLATFORM="linux/amd64,linux/arm/v7,linux/arm64,linux/ppc64le"
           fi
 
+          if [ "${{ matrix.os }}" == "ubuntu" ] && [ "${{ matrix.build }}" == "snmptraps" ]; then
+            DOCKER_PLATFORM="linux/amd64,linux/arm/v7,linux/arm64"
+          fi
+
           if [ "${{ matrix.os }}" == "centos" ]; then
             #DOCKER_PLATFORM="linux/amd64,linux/arm64,linux/ppc64le"
             DOCKER_PLATFORM="linux/amd64"
@@ -192,7 +196,7 @@ jobs:
           fi
           
           docker buildx build --cache-from "type=local,src=/tmp/.buildx-cache" \
-            --output "type=image,push=false" \
+            --output "type=image,push=true" \
             ${BUILDX_ARGS}
 
       - name: Inspect images
