@@ -117,7 +117,7 @@ jobs:
           RELEASE_VERSION=${RELEASE_VERSION:10}
           GIT_BRANCH=${RELEASE_VERSION%.*}
 
-          echo "::warning Release version ${RELEASE_VERSION}. Branch ${GIT_BRANCH}"
+          echo "::warning Release version - ${RELEASE_VERSION}. Branch - ${GIT_BRANCH}"
 
           TAGS="$TAGS --tag $IMAGE_NAME:${{ matrix.os }}-${RELEASE_VERSION}"
 
@@ -125,8 +125,9 @@ jobs:
             TAGS="$TAGS --tag $IMAGE_NAME:latest"
           fi
 
+          echo "::warning Tags - ${TAGS}"
+
           echo ::set-output name=image_name::${IMAGE_NAME}
-          echo ::set-output name=image_tag_version::${IMAGE_TAG_VERSION}
           echo ::set-output name=buildx_args::--platform "${{ steps.platform.outputs.list }}" \
             --build-arg BUILD_DATE=$(date -u +'%Y-%m-%dT%H:%M:%SZ') \
             --build-arg VCS_REF=${GITHUB_SHA::8} \
