@@ -42,6 +42,7 @@ jobs:
 
       - name: test
         run: |
+          env
           echo "${{ github.ref }}"
           echo "${LATEST_BRANCH}"
           echo "${{ env.LATEST_BRANCH }}"
