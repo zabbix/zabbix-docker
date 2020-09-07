@@ -132,5 +132,5 @@ jobs:
 
       - name: Prepare environment output
         run: |
-        echo "${{ steps.prepare_push.outputs.buildx_args }}"
-        echo "${{ steps.prepare_release.outputs.buildx_args }}"
+          echo "${{ steps.prepare_push.outputs.buildx_args }}"
+          echo "${{ steps.prepare_release.outputs.buildx_args }}"
