@@ -13,6 +13,8 @@ on:
       - '.env*'
       - 'docker-compose*.yaml'
       - '*/rhel/*'
+    tags:        
+      - test*             # Push events to v1 tag
   pull_request:
     branches:
       - trunk   
