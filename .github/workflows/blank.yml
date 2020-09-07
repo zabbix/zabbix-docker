@@ -86,7 +86,7 @@ jobs:
           IMAGE_NAME="zabbix/zabbix-${{ matrix.build }}"
 
           echo ::set-output name=image_name::${IMAGE_NAME}
-          echo ::set-output name=image_tag_version::${IMAGE_VERSION}
+          echo ::set-output name=image_tag_version::${IMAGE_TAG_VERSION}
           echo ::set-output name=buildx_args::--platform ${DOCKER_PLATFORM} \
             --build-arg BUILD_DATE=$(date -u +'%Y-%m-%dT%H:%M:%SZ') \
             --build-arg VCS_REF=${GITHUB_SHA::8} \
