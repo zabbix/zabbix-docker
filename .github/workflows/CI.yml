@@ -83,21 +83,24 @@ jobs:
 
       - name: Prepare environment
         if: github.event_name == 'push'
-        id: prepare_env
+        id: prepare_push
         run: |
           IMAGE_NAME="${{ env.DOCKER_REPOSITORY }}/zabbix-${{ matrix.build }}"
           GIT_BRANCH="${{ github.ref }}"
           GIT_BRANCH=${GIT_BRANCH:11}
-          echo "${GIT_BRANCH}"
-          TAGS=""
 
-          if [ "${{ github.event_name }}" == "release" ]; then
-            RELEASE_VERSION=${GITHUB_SHA:10}
-            TAGS="$TAGS --tag $IMAGE_NAME:${{ matrix.os }}-${RELEASE_VERSION}"
-          fi
+          TAGS="--tag $IMAGE_NAME:${{ matrix.os }}-${GIT_BRANCH}"
 
           if [ "${{ matrix.os }}" == "alpine" ]; then
             TAGS="$TAGS --tag $IMAGE_NAME:latest"
+          fi
+
+          if [ "${LATEST_BRANCH}" == "${GIT_BRANCH}" ]; then
+            TAGS="$TAGS --tag $IMAGE_NAME:${{ matrix.os }}-latest"
+          fi
+
+          if [ "${GIT_BRANCH}" == "trunk" ]; then
+            TAGS="--tag $IMAGE_NAME:${{ matrix.os }}-trunk"
           fi
 
           echo ::set-output name=image_name::${IMAGE_NAME}
@@ -110,7 +113,7 @@ jobs:
 
       - name: Prepare environment
         if: github.event_name == 'release' && github.event.action == 'created'
-        id: prepare_env
+        id: prepare_release
         run: |
           IMAGE_NAME="${{ env.DOCKER_REPOSITORY }}/zabbix-${{ matrix.build }}"
           RELEASE_VERSION="${{ github.ref }}"
@@ -132,5 +135,5 @@ jobs:
 
       - name: Prepare environment output
         run: |
-          echo "${{ steps.prepare_env.outputs.buildx_args }}"
-          echo "${{ steps.prepare_env.outputs.buildx_args }}"
+          echo "${{ steps.prepare_push.outputs.buildx_args }}"
+          echo "${{ steps.prepare_release.outputs.buildx_args }}"
