@@ -145,15 +145,17 @@ jobs:
           echo "::warning release - ${{ steps.prepare_release.outputs.buildx_args }}"
 
           if [ ! -z "${{ steps.prepare_push.outputs.image_tag_versions }}" ]; then
-              IFS='|' read -r -a IMAGE_TAG_VERSIONS <<< "${{ steps.prepare_push.outputs.image_tag_versions }}"
-              IMAGE_TAG_VERSIONS=${IMAGE_TAG_VERSIONS%%+(|)}
-              echo "::warning tags raw - ${{ steps.prepare_push.outputs.image_tag_versions }}"
+              IMAGE_TAG_VERSIONS="${{ steps.prepare_push.outputs.image_tag_versions }}"
+              echo "::warning tags push raw - $IMAGE_TAG_VERSIONS"
           elif [ ! -z "${{ steps.prepare_release.outputs.image_tag_versions }}" ]; then
-              IFS='|' read -r -a IMAGE_TAG_VERSIONS <<< "${{ steps.prepare_release.outputs.image_tag_versions }}"
-              IMAGE_TAG_VERSIONS=${IMAGE_TAG_VERSIONS%%+(|)}
-              echo "::warning tags raw - ${{ steps.prepare_release.outputs.image_tag_versions }}"
+              IMAGE_TAG_VERSIONS="${{ steps.prepare_release.outputs.image_tag_versions }}"
+              echo "::warning tags release raw - $IMAGE_TAG_VERSIONS"
           fi
+          
+          IMAGE_TAG_VERSIONS=${IMAGE_TAG_VERSIONS%%+(|)}
+          IFS='|' read -r -a IMAGE_TAG_VERSIONS <<< $IMAGE_TAG_VERSIONS
           echo "::warning tag value - $IMAGE_TAG_VERSIONS"
+          
           for version in ${IMAGE_TAG_VERSIONS[@]}; do
               echo "::warning tag value2 - $version"
           done
