@@ -139,6 +139,19 @@ jobs:
             $TAGS \
             --file ./${{ matrix.build }}/${{ matrix.os }}/Dockerfile ./${{ matrix.build }}/${{ matrix.os }}
 
+      - name: Build images
+        env:
+          DOCKER_CLI_EXPERIMENTAL: enabled
+        run: |
+          if [ ! -z "${{ steps.prepare_push.outputs.buildx_args }}" ]; then
+              BUILDX_ARGS=="${{ steps.prepare_push.outputs.buildx_args }}"
+          elif [ ! -z "${{ steps.prepare_release.outputs.buildx_args }}" ]; then
+              BUILDX_ARGS=="${{ steps.prepare_release.outputs.buildx_args }}"
+          fi
+          echo "docker buildx build --cache-to \"type=local,dest=/tmp/.buildx-cache\" \
+            --output \"type=image,push=false\" \
+            $BUILDX_ARGS"
+
       - name: Continue
         run: |
           echo "::warning push - ${{ steps.prepare_push.outputs.buildx_args }}"
@@ -156,5 +169,6 @@ jobs:
           IFS='|' read -r -a IMAGE_TAG_VERSIONS <<< $IMAGE_TAG_VERSIONS
           
           for version in ${IMAGE_TAG_VERSIONS[@]}; do
+              echo "Checking \"$version\"... "
               docker buildx imagetools inspect $version
           done
