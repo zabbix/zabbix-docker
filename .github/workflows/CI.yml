@@ -5,6 +5,9 @@ name: CI
 # Controls when the action will run. Triggers the workflow on push or pull request
 # events but only for the 5.0 branch
 on:
+  release:
+    types:
+      - published
   push:
     branches:
       - trunk
@@ -13,8 +16,6 @@ on:
       - '.env*'
       - 'docker-compose*.yaml'
       - '*/rhel/*'
-    tags:        
-      - test*             # Push events to v1 tag
   pull_request:
     branches:
       - trunk   
