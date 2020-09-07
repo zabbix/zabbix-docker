@@ -1,0 +1,134 @@
+name: CI
+
+on:
+  release:
+    types:
+      - published
+  push:
+    branches:
+      - dotneft-patch-1
+    paths-ignore:
+      - '.env*'
+      - 'docker-compose*.yaml'
+      - '*/rhel/*'
+      - "**.md"
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  build:
+    env:
+      LATEST_BRANCH: "5.0"
+      DOCKER_REPOSITORY: "zabbix"
+    strategy:
+      fail-fast: false  
+      matrix:
+        build: 
+          - agent
+        os:
+         - alpine
+        exclude:
+          - os: centos
+            build: agent2
+          - os: ubuntu
+            build: agent2
+
+      - name: Dump GitHub context
+        env:
+          GITHUB_CONTEXT: ${{ toJson(github) }}
+        run: echo "$GITHUB_CONTEXT"
+      - name: Dump job context
+        env:
+          JOB_CONTEXT: ${{ toJson(job) }}
+        run: echo "$JOB_CONTEXT"
+      - name: Dump steps context
+        env:
+          STEPS_CONTEXT: ${{ toJson(steps) }}
+        run: echo "$STEPS_CONTEXT"
+      - name: Dump runner context
+        env:
+          RUNNER_CONTEXT: ${{ toJson(runner) }}
+        run: echo "$RUNNER_CONTEXT"
+      - name: Dump strategy context
+        env:
+          STRATEGY_CONTEXT: ${{ toJson(strategy) }}
+        run: echo "$STRATEGY_CONTEXT"
+      - name: Dump matrix context
+        env:
+          MATRIX_CONTEXT: ${{ toJson(matrix) }}
+        run: echo "$MATRIX_CONTEXT"
+
+      - name: Prepare platform list
+        id: platform
+        run: |
+          DOCKER_PLATFORM="linux/amd64,linux/arm/v6,linux/arm/v7,linux/arm64,linux/ppc64le"
+
+          if [ "${{ matrix.os }}" == "ubuntu" ]; then
+            DOCKER_PLATFORM="linux/amd64,linux/arm/v7,linux/arm64,linux/ppc64le"
+          fi
+
+          if [ "${{ matrix.os }}" == "centos" ]; then
+            DOCKER_PLATFORM="linux/amd64,linux/arm64,linux/ppc64le"
+          fi
+          
+          if [ "${{ matrix.build }}" == "java-gateway" ]; then
+            DOCKER_PLATFORM=${DOCKER_PLATFORM%",linux/ppc64le"}
+          fi
+
+          echo ::set-output name=list::${DOCKER_PLATFORM}
+
+      - name: Prepare environment
+        if: github.event_name == 'push'
+        id: prepare_push
+        run: |
+          IMAGE_NAME="${{ env.DOCKER_REPOSITORY }}/zabbix-${{ matrix.build }}"
+          GIT_BRANCH="${{ github.ref }}"
+          GIT_BRANCH=${GIT_BRANCH:11}
+          echo "${GIT_BRANCH}"
+          TAGS=""
+
+          if [ "${{ github.event_name }}" == "release" ]; then
+            RELEASE_VERSION=${GITHUB_SHA:10}
+            TAGS="$TAGS --tag $IMAGE_NAME:${{ matrix.os }}-${RELEASE_VERSION}"
+          fi
+
+          if [ "${{ matrix.os }}" == "alpine" ]; then
+            TAGS="$TAGS --tag $IMAGE_NAME:latest"
+          fi
+
+          echo ::set-output name=image_name::${IMAGE_NAME}
+          echo ::set-output name=image_tag_version::${IMAGE_TAG_VERSION}
+          echo ::set-output name=buildx_args::--platform "${{ steps.platform.outputs.list }}" \
+            --build-arg BUILD_DATE=$(date -u +'%Y-%m-%dT%H:%M:%SZ') \
+            --build-arg VCS_REF=${GITHUB_SHA::8} \
+            ${TAGS} \
+            --file ./${{ matrix.build }}/${{ matrix.os }}/Dockerfile ./${{ matrix.build }}/${{ matrix.os }}
+
+      - name: Prepare environment
+        if: github.event_name == 'release' && github.event.action == 'created'
+        id: prepare_release
+        run: |
+          IMAGE_NAME="${{ env.DOCKER_REPOSITORY }}/zabbix-${{ matrix.build }}"
+          RELEASE_VERSION="${{ github.ref }}"
+          RELEASE_VERSION=${RELEASE_VERSION:10}
+
+          TAGS="$TAGS --tag $IMAGE_NAME:${{ matrix.os }}-${RELEASE_VERSION}"
+
+          if [ "${{ matrix.os }}" == "alpine" ]; then
+            TAGS="$TAGS --tag $IMAGE_NAME:latest"
+          fi
+
+          echo ::set-output name=image_name::${IMAGE_NAME}
+          echo ::set-output name=image_tag_version::${IMAGE_TAG_VERSION}
+          echo ::set-output name=buildx_args::--platform "${{ steps.platform.outputs.list }}" \
+            --build-arg BUILD_DATE=$(date -u +'%Y-%m-%dT%H:%M:%SZ') \
+            --build-arg VCS_REF=${GITHUB_SHA::8} \
+            ${TAGS} \
+            --file ./${{ matrix.build }}/${{ matrix.os }}/Dockerfile ./${{ matrix.build }}/${{ matrix.os }}
+
+      - name: Prepare environment output
+        run: |
+        echo "${{ steps.prepare_push.outputs.buildx_args }}"
+        echo "${{ steps.prepare_release.outputs.buildx_args }}"
