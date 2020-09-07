@@ -155,5 +155,5 @@ jobs:
           fi
           echo "::warning tag value - $IMAGE_TAG_VERSIONS"
           for version in ${IMAGE_TAG_VERSIONS[@]}; do
-              echo "::warning tag value - $version"
+              echo "::warning tag value2 - $version"
           done
