@@ -35,6 +35,8 @@ jobs:
           - os: ubuntu
             build: agent2
 
+    runs-on: ubuntu-latest
+    steps:
       - name: Dump GitHub context
         env:
           GITHUB_CONTEXT: ${{ toJson(github) }}
