@@ -33,7 +33,7 @@ RUN set -eux && \
     yum --quiet makecache && \
     yum -y install epel-release && \
     yum -y install --setopt=tsflags=nodocs \
-            fping
+            fping \
             libcurl \
             libxml2 \
             mariadb \
