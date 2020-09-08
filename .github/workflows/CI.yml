@@ -199,7 +199,7 @@ jobs:
           fi
 
           docker buildx build --cache-from "type=local,src=/tmp/.buildx-cache" \
-            --output "type=image,push=false" \
+            --output "type=image,push=true" \
             ${BUILDX_ARGS}
 
       - name: Inspect images
