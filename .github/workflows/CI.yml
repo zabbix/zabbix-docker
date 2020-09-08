@@ -6,10 +6,10 @@ on:
       - published
   push:
     branches:
-      - 3.0
-      - 4.0
-      - 5.0
-      - trunk
+      - '3.0'
+      - '4.0'
+      - '5.0'
+      - 'trunk'
     paths-ignore:
       - '.env*'
       - 'docker-compose*.yaml'
@@ -25,7 +25,6 @@ jobs:
     env:
       LATEST_BRANCH: "${{ github.event.repository.default_branch }}"
       DOCKER_REPOSITORY: "zabbix"
-      PUSH_IMAGES: "false"
     strategy:
       fail-fast: false  
       matrix:
@@ -201,7 +200,7 @@ jobs:
           fi
 
           docker buildx build --cache-from "type=local,src=/tmp/.buildx-cache" \
-            --output "type=image,push=${{ env.PUSH_IMAGES }}" \
+            --output "type=image,push=${{ secrets.AUTO_PUSH_IMAGES }}" \
             ${BUILDX_ARGS}
 
       - name: Inspect images
