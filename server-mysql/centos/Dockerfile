@@ -44,7 +44,8 @@ RUN set -eux && \
             libevent \
             libxml2 \
             libssh \
-            mariadb \
+            mysql \
+            mysql-libs \
             net-snmp-libs \
             OpenIPMI-libs \
             openldap \
@@ -93,7 +94,7 @@ RUN set -eux && \
             libssh-devel \
             libxml2-devel \
             make \
-            mariadb-connector-c-devel \
+            mysql-devel \
             net-snmp-devel \
             OpenIPMI-devel \
             openldap-devel \

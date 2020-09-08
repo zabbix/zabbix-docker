@@ -23,7 +23,7 @@ RUN set -eux && \
             dejavu-sans-fonts \
             curl \
             httpd \
-            mariadb \
+            mysql \
             mod_ssl \
             php \
             php-fpm \

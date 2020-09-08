@@ -32,13 +32,15 @@ RUN set -eux && \
     mkdir -p /usr/share/doc/zabbix-proxy-mysql && \
     dnf --quiet makecache && \
     dnf -y install epel-release && \
+    dnf -y module enable mysql && \
     dnf -y install --setopt=tsflags=nodocs --setopt=install_weak_deps=False --best \
             libcurl-minimal \
             libevent \
             libssh \
             fping \
             libxml2 \
-            mariadb \
+            mysql \
+            mysql-libs \
             net-snmp-libs \
             OpenIPMI-libs \
             openldap \
@@ -87,7 +89,7 @@ RUN set -eux && \
             libssh-devel \
             libxml2-devel \
             make \
-            mariadb-connector-c-devel \
+            mysql-devel \
             net-snmp-devel \
             OpenIPMI-devel \
             openldap-devel \
