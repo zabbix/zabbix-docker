@@ -87,7 +87,7 @@ jobs:
 
           echo ::set-output name=list::${DOCKER_PLATFORM}
 
-      - name: Prepare environment (push)
+      - name: Prepare environment (schedule)
         id: prepare
         run: |
           TAGS_ARRAY=()
