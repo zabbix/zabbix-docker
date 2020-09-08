@@ -138,7 +138,7 @@ jobs:
             --file ./${{ matrix.build }}/${{ matrix.os }}/Dockerfile ./${{ matrix.build }}/${{ matrix.os }}
 
       - name: Prepare environment (release)
-        if: github.event_name == 'release' && github.event.action == 'created'
+        if: github.event_name == 'release' && github.event.action == 'published'
         id: prepare_release
         run: |
           TAGS_ARRAY=()
