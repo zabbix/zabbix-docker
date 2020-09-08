@@ -96,6 +96,7 @@ jobs:
           GIT_BRANCH="refs/heads/trunk"
           GIT_BRANCH=${GIT_BRANCH:11}
           
+          env
           cat agent/alpine/Dockerfile | grep VERS
 
           echo "::debug::Branch - ${GIT_BRANCH}"
