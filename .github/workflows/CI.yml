@@ -23,7 +23,7 @@ defaults:
 jobs:
   build:
     env:
-      LATEST_BRANCH: "${{ github.event.repository.master_branch }}"
+      LATEST_BRANCH: "${{ github.event.repository.default_branch }}"
       DOCKER_REPOSITORY: "zabbix"
       PUSH_IMAGES: "false"
     strategy:
@@ -174,6 +174,8 @@ jobs:
               BUILDX_ARGS="${{ steps.prepare_push.outputs.buildx_args }}"
           elif [ ! -z "${{ steps.prepare_release.outputs.buildx_args }}" ]; then
               BUILDX_ARGS="${{ steps.prepare_release.outputs.buildx_args }}"
+          else
+              exit 1
           fi
 
           docker buildx build --cache-to "type=local,dest=/tmp/.buildx-cache" \
@@ -197,11 +199,9 @@ jobs:
           elif [ ! -z "${{ steps.prepare_release.outputs.buildx_args }}" ]; then
               BUILDX_ARGS="${{ steps.prepare_release.outputs.buildx_args }}"
           fi
-          
-          echo "::debug::push built images - ${{ env.PUSH_IMAGES }}"
 
           docker buildx build --cache-from "type=local,src=/tmp/.buildx-cache" \
-            --output "type=image,push=false" \
+            --output "type=image,push=${{ env.PUSH_IMAGES }}" \
             ${BUILDX_ARGS}
 
       - name: Inspect images
