@@ -189,19 +189,27 @@ check_db_connect_mysql() {
 
     WAIT_TIMEOUT=5
 
+    export MYSQL_PWD="${DB_SERVER_ROOT_PASS}"
+
     while [ ! "$(mysqladmin ping -h ${DB_SERVER_HOST} -P ${DB_SERVER_PORT} -u ${DB_SERVER_ROOT_USER} \
-                --password="${DB_SERVER_ROOT_PASS}" --silent --connect_timeout=10)" ]; do
+                --silent --connect_timeout=10)" ]; do
         echo "**** MySQL server is not available. Waiting $WAIT_TIMEOUT seconds..."
         sleep $WAIT_TIMEOUT
     done
+
+    unset MYSQL_PWD
 }
 
 mysql_query() {
     query=$1
     local result=""
 
+    export MYSQL_PWD="${DB_SERVER_ROOT_PASS}"
+
     result=$(mysql --silent --skip-column-names -h ${DB_SERVER_HOST} -P ${DB_SERVER_PORT} \
-             -u ${DB_SERVER_ROOT_USER} --password="${DB_SERVER_ROOT_PASS}" -e "$query")
+             -u ${DB_SERVER_ROOT_USER} -e "$query")
+
+    unset MYSQL_PWD
 
     echo $result
 }
@@ -246,10 +254,14 @@ create_db_schema_mysql() {
     if [ -z "${ZBX_DB_VERSION}" ]; then
         echo "** Creating '${DB_SERVER_DBNAME}' schema in MySQL"
 
+        export MYSQL_PWD="${DB_SERVER_ROOT_PASS}"
+
         zcat /usr/share/doc/zabbix-server-mysql/create.sql.gz | mysql --silent --skip-column-names \
                     -h ${DB_SERVER_HOST} -P ${DB_SERVER_PORT} \
-                    -u ${DB_SERVER_ROOT_USER} --password="${DB_SERVER_ROOT_PASS}"  \
+                    -u ${DB_SERVER_ROOT_USER}  \
                     ${DB_SERVER_DBNAME} 1>/dev/null
+
+        unset MYSQL_PWD
     fi
 }
 
