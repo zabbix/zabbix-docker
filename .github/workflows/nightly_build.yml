@@ -9,7 +9,7 @@ defaults:
     shell: bash
 
 jobs:
-  build:
+  trunkbuild:
     env:
       DOCKER_REPOSITORY: "zabbix"
     strategy:
