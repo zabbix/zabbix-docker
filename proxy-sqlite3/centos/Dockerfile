@@ -32,7 +32,6 @@ RUN set -eux && \
     mkdir -p /usr/share/doc/zabbix-proxy-sqlite3 && \
     dnf --quiet makecache && \
     dnf -y install epel-release && \
-    dnf -y install http://repo.zabbix.com/non-supported/rhel/8/x86_64/fping-3.16-1.el8.x86_64.rpm --setopt=tsflags=nodocs && \
     dnf -y install --setopt=tsflags=nodocs --setopt=install_weak_deps=False --best \
             libcurl-minimal \
             libevent \
