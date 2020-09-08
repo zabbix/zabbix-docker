@@ -89,7 +89,8 @@ jobs:
           fi
 
           if [ "${{ matrix.os }}" == "centos" ]; then
-            DOCKER_PLATFORM="linux/amd64,linux/arm64,linux/ppc64le"
+            #DOCKER_PLATFORM="linux/amd64,linux/arm64,linux/ppc64le"
+            DOCKER_PLATFORM="linux/amd64"
           fi
 
           if [ "${{ matrix.build }}" == "java-gateway" ]; then
@@ -110,7 +111,11 @@ jobs:
 
           echo "::warning Branch - ${GIT_BRANCH}"
 
-          TAGS_ARRAY+=("$IMAGE_NAME:${{ matrix.os }}-${GIT_BRANCH}")
+          if [ "${GIT_BRANCH}" == "trunk" ]; then
+            TAGS_ARRAY+=("$IMAGE_NAME:${{ matrix.os }}-${GIT_BRANCH}")
+          else
+            TAGS_ARRAY+=("$IMAGE_NAME:${{ matrix.os }}-${GIT_BRANCH}-latest")
+          fi
 
           if [ "${{ matrix.os }}" == "alpine" ] && [ "${LATEST_BRANCH}" == "${GIT_BRANCH}" ]; then
             TAGS_ARRAY+=("$IMAGE_NAME:latest")
