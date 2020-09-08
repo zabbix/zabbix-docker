@@ -176,11 +176,8 @@ db_tls_params() {
     local result=""
 
     if [ -n "${ZBX_DBTLSCONNECT}" ]; then
-        result="--ssl"
-
-        if [ "${ZBX_DBTLSCONNECT}" != "required" ]; then
-            result="${result} --ssl-verify-server-cert"
-        fi
+        ssl_mode=${ZBX_DBTLSCONNECT//verify_full/verify_identity}
+        result="--ssl-mode=$ssl_mode"
 
         if [ -n "${ZBX_DBTLSCAFILE}" ]; then
             result="${result} --ssl-ca=${ZBX_DBTLSCAFILE}"
@@ -287,10 +284,12 @@ create_db_schema_mysql() {
         ssl_opts="$(db_tls_params)"
 
         export MYSQL_PWD="${DB_SERVER_ROOT_PASS}"
+
         zcat /usr/share/doc/zabbix-server-mysql/create.sql.gz | mysql --silent --skip-column-names \
                     -h ${DB_SERVER_HOST} -P ${DB_SERVER_PORT} \
                     -u ${DB_SERVER_ROOT_USER} $ssl_opts  \
                     ${DB_SERVER_DBNAME} 1>/dev/null
+
         unset MYSQL_PWD
     fi
 }

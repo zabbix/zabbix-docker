@@ -158,7 +158,7 @@ db_tls_params() {
     local result=""
 
     if [ "${ZBX_DB_ENCRYPTION}" == "true" ]; then
-        result="--ssl"
+        result="--ssl-mode=required"
 
         if [ -n "${ZBX_DB_CA_FILE}" ]; then
             result="${result} --ssl-ca=${ZBX_DB_CA_FILE}"
@@ -195,11 +195,15 @@ check_db_connect() {
 
     ssl_opts="$(db_tls_params)"
 
+    export MYSQL_PWD="${DB_SERVER_ROOT_PASS}"
+
     while [ ! "$(mysqladmin ping -h ${DB_SERVER_HOST} -P ${DB_SERVER_PORT} -u ${DB_SERVER_ROOT_USER} \
-                --password="${DB_SERVER_ROOT_PASS}" --silent --connect_timeout=10 $ssl_opts)" ]; do
+                --silent --connect_timeout=10 $ssl_opts)" ]; do
         echo "**** MySQL server is not available. Waiting $WAIT_TIMEOUT seconds..."
         sleep $WAIT_TIMEOUT
     done
+
+    unset MYSQL_PWD
 }
 
 prepare_web_server() {

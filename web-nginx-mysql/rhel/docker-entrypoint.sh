@@ -176,7 +176,7 @@ db_tls_params() {
     local result=""
 
     if [ "${ZBX_DB_ENCRYPTION}" == "true" ]; then
-        result="--ssl"
+        result="--ssl-mode=required"
 
         if [ -n "${ZBX_DB_CA_FILE}" ]; then
             result="${result} --ssl-ca=${ZBX_DB_CA_FILE}"

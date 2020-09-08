@@ -181,11 +181,8 @@ db_tls_params() {
     local result=""
 
     if [ -n "${ZBX_DBTLSCONNECT}" ]; then
-        result="--ssl"
-
-        if [ "${ZBX_DBTLSCONNECT}" != "required" ]; then
-            result="${result} --ssl-verify-server-cert"
-        fi
+        ssl_mode=${ZBX_DBTLSCONNECT//verify_full/verify_identity}
+        result="--ssl-mode=$ssl_mode"
 
         if [ -n "${ZBX_DBTLSCAFILE}" ]; then
             result="${result} --ssl-ca=${ZBX_DBTLSCAFILE}"
@@ -202,7 +199,6 @@ db_tls_params() {
 
     echo $result
 }
-
 
 check_db_connect_mysql() {
     echo "********************"
