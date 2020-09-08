@@ -83,7 +83,11 @@ jobs:
           fi
 
           if [ "${{ matrix.os }}" == "centos" ]; then
-            DOCKER_PLATFORM="linux/amd64,linux/arm64,linux/ppc64le"
+            if [[ "${{ matrix.build }}" == "zabbix-server"* ]]; then
+                DOCKER_PLATFORM="linux/amd64"
+            else
+                DOCKER_PLATFORM="linux/amd64,linux/arm64,linux/ppc64le"
+            fi
           fi
 
           if [ "${{ matrix.build }}" == "java-gateway" ]; then
