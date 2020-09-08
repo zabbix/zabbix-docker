@@ -30,7 +30,6 @@ jobs:
       matrix:
         build:
           - agent
-          - agent2
           - java-gateway
           - proxy-mysql
           - proxy-sqlite3
@@ -45,11 +44,6 @@ jobs:
          - alpine
          - ubuntu
          - centos
-        exclude:
-          - os: centos
-            build: agent2
-          - os: ubuntu
-            build: agent2
 
     runs-on: ubuntu-latest
     steps:
@@ -89,7 +83,11 @@ jobs:
           fi
 
           if [ "${{ matrix.os }}" == "centos" ]; then
-            DOCKER_PLATFORM="linux/amd64,linux/arm64,linux/ppc64le"
+            if [[ "${{ matrix.os }}" == "zabbix-server"* ]]; then
+                DOCKER_PLATFORM="linux/amd64"
+            else
+                DOCKER_PLATFORM="linux/amd64,linux/arm64,linux/ppc64le"
+            fi
           fi
 
           if [ "${{ matrix.build }}" == "java-gateway" ]; then
