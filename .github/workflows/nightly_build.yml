@@ -42,7 +42,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
         with:
-          ref: trunk
+          ref: "refs/heads/trunk"
 
       - name: Install buildx
         env:
@@ -93,8 +93,10 @@ jobs:
           TAGS_ARRAY=()
 
           IMAGE_NAME="${{ env.DOCKER_REPOSITORY }}/zabbix-${{ matrix.build }}"
-          GIT_BRANCH="${{ github.ref }}"
+          GIT_BRANCH="refs/heads/trunk"
           GIT_BRANCH=${GIT_BRANCH:11}
+          
+          cat agent/alpine/Dockerfile | grep VERS
 
           echo "::debug::Branch - ${GIT_BRANCH}"
 
