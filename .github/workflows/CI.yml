@@ -6,10 +6,10 @@ on:
       - published
   push:
     branches:
-      - 3.0
-      - 4.0
-      - 5.0
-      - trunk
+      - '3.0'
+      - '4.0'
+      - '5.0'
+      - 'trunk'
     paths-ignore:
       - '.env*'
       - 'docker-compose*.yaml'
@@ -23,7 +23,7 @@ defaults:
 jobs:
   build:
     env:
-      LATEST_BRANCH: "${{ github.event.repository.master_branch }}"
+      LATEST_BRANCH: "${{ github.event.repository.default_branch }}"
       DOCKER_REPOSITORY: "zabbix"
     strategy:
       fail-fast: false  
@@ -108,7 +108,7 @@ jobs:
           GIT_BRANCH="${{ github.ref }}"
           GIT_BRANCH=${GIT_BRANCH:11}
 
-          echo "::warning Branch - ${GIT_BRANCH}"
+          echo "::debug::Branch - ${GIT_BRANCH}"
 
           if [ "${GIT_BRANCH}" == "trunk" ]; then
             TAGS_ARRAY+=("$IMAGE_NAME:${{ matrix.os }}-${GIT_BRANCH}")
@@ -126,7 +126,7 @@ jobs:
 
           TAGS=$(printf -- "--tag %s " "${TAGS_ARRAY[@]}")
 
-          echo "::warning Tags - ${TAGS}"
+          echo "::debug::Tags - ${TAGS}"
 
           echo ::set-output name=image_name::${IMAGE_NAME}
           echo ::set-output name=image_tag_versions::$(printf -- "|%s" "${TAGS_ARRAY[@]}")
@@ -137,7 +137,7 @@ jobs:
             --file ./${{ matrix.build }}/${{ matrix.os }}/Dockerfile ./${{ matrix.build }}/${{ matrix.os }}
 
       - name: Prepare environment (release)
-        if: github.event_name == 'release' && github.event.action == 'created'
+        if: github.event_name == 'release' && github.event.action == 'published'
         id: prepare_release
         run: |
           TAGS_ARRAY=()
@@ -147,7 +147,7 @@ jobs:
           RELEASE_VERSION=${RELEASE_VERSION:10}
           GIT_BRANCH=${RELEASE_VERSION%.*}
 
-          echo "::warning Release version ${RELEASE_VERSION}. Branch ${GIT_BRANCH}"
+          echo "::debug::Release version ${RELEASE_VERSION}. Branch ${GIT_BRANCH}"
 
           TAGS_ARRAY+=("$IMAGE_NAME:${{ matrix.os }}-${RELEASE_VERSION}")
 
@@ -173,6 +173,8 @@ jobs:
               BUILDX_ARGS="${{ steps.prepare_push.outputs.buildx_args }}"
           elif [ ! -z "${{ steps.prepare_release.outputs.buildx_args }}" ]; then
               BUILDX_ARGS="${{ steps.prepare_release.outputs.buildx_args }}"
+          else
+              exit 1
           fi
 
           docker buildx build --cache-to "type=local,dest=/tmp/.buildx-cache" \
@@ -198,20 +200,20 @@ jobs:
           fi
 
           docker buildx build --cache-from "type=local,src=/tmp/.buildx-cache" \
-            --output "type=image,push=true" \
+            --output "type=image,push=${{ secrets.AUTO_PUSH_IMAGES }}" \
             ${BUILDX_ARGS}
 
       - name: Inspect images
         run: |
-          echo "::warning push - ${{ steps.prepare_push.outputs.buildx_args }}"
-          echo "::warning release - ${{ steps.prepare_release.outputs.buildx_args }}"
+          echo "::debug::push - ${{ steps.prepare_push.outputs.buildx_args }}"
+          echo "::debug::release - ${{ steps.prepare_release.outputs.buildx_args }}"
 
           if [ ! -z "${{ steps.prepare_push.outputs.image_tag_versions }}" ]; then
               IMAGE_TAG_VERSIONS="${{ steps.prepare_push.outputs.image_tag_versions }}"
-              echo "::warning tags push raw - $IMAGE_TAG_VERSIONS"
+              echo "::debug::tags push raw - $IMAGE_TAG_VERSIONS"
           elif [ ! -z "${{ steps.prepare_release.outputs.image_tag_versions }}" ]; then
               IMAGE_TAG_VERSIONS="${{ steps.prepare_release.outputs.image_tag_versions }}"
-              echo "::warning tags release raw - $IMAGE_TAG_VERSIONS"
+              echo "::debug::tags release raw - $IMAGE_TAG_VERSIONS"
           fi
 
           IMAGE_TAG_VERSIONS=${IMAGE_TAG_VERSIONS%%+(|)}
