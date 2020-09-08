@@ -111,7 +111,11 @@ jobs:
 
           echo "::warning Branch - ${GIT_BRANCH}"
 
-          TAGS_ARRAY+=("$IMAGE_NAME:${{ matrix.os }}-${GIT_BRANCH}")
+          if [ "${GIT_BRANCH}" == "trunk" ]; then
+            TAGS_ARRAY+=("$IMAGE_NAME:${{ matrix.os }}-${GIT_BRANCH}")
+          else
+            TAGS_ARRAY+=("$IMAGE_NAME:${{ matrix.os }}-${GIT_BRANCH}-latest")
+          fi
 
           if [ "${{ matrix.os }}" == "alpine" ] && [ "${LATEST_BRANCH}" == "${GIT_BRANCH}" ]; then
             TAGS_ARRAY+=("$IMAGE_NAME:latest")
