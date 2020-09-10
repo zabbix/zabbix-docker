@@ -146,7 +146,7 @@ prepare_web_server() {
 prepare_zbx_web_config() {
     echo "** Preparing Zabbix frontend configuration file"
 
-    ZPHP_CONFIG_FILE="/etc/php-fpm.d/zabbix.conf"
+    PHP_CONFIG_FILE="/etc/php-fpm.d/zabbix.conf"
 
     if [ "$(id -u)" == '0' ]; then
         echo "user = zabbix" >> "$PHP_CONFIG_FILE"
