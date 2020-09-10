@@ -57,67 +57,6 @@ file_env() {
     unset "$fileVar"
 }
 
-escape_spec_char() {
-    local var_value=$1
-
-    var_value="${var_value//\\/\\\\}"
-    var_value="${var_value//[$'\n']/}"
-    var_value="${var_value//\//\\/}"
-    var_value="${var_value//./\\.}"
-    var_value="${var_value//\*/\\*}"
-    var_value="${var_value//^/\\^}"
-    var_value="${var_value//\$/\\\$}"
-    var_value="${var_value//\&/\\\&}"
-    var_value="${var_value//\[/\\[}"
-    var_value="${var_value//\]/\\]}"
-
-    echo "$var_value"
-}
-
-update_config_var() {
-    local config_path=$1
-    local var_name=$2
-    local var_value=$3
-    local is_multiple=$4
-
-    if [ ! -f "$config_path" ]; then
-        echo "**** Configuration file '$config_path' does not exist"
-        return
-    fi
-
-    echo -n "** Updating '$config_path' parameter \"$var_name\": '$var_value'... "
-
-    # Remove configuration parameter definition in case of unset parameter value
-    if [ -z "$var_value" ]; then
-        sed -i -e "/^$var_name=/d" "$config_path"
-        echo "removed"
-        return
-    fi
-
-    # Remove value from configuration parameter in case of double quoted parameter value
-    if [ "$var_value" == '""' ]; then
-        sed -i -e "/^$var_name=/s/=.*/=/" "$config_path"
-        echo "undefined"
-        return
-    fi
-
-    # Escaping characters in parameter value and name
-    var_value=$(escape_spec_char "$var_value")
-    var_name=$(escape_spec_char "$var_name")
-
-    if [ "$(grep -E "^$var_name=" $config_path)" ] && [ "$is_multiple" != "true" ]; then
-        sed -i -e "/^$var_name=/s/=.*/=$var_value/" "$config_path"
-        echo "updated"
-    elif [ "$(grep -Ec "^# $var_name=" $config_path)" -gt 1 ]; then
-        sed -i -e  "/^[#;] $var_name=$/i\\$var_name=$var_value" "$config_path"
-        echo "added first occurrence"
-    else
-        sed -i -e "/^[#;] $var_name=/s/.*/&\n$var_name=$var_value/" "$config_path"
-        echo "added"
-    fi
-
-}
-
 # Check prerequisites for MySQL database
 check_variables() {
     : ${DB_SERVER_HOST:="mysql-server"}
@@ -205,40 +144,25 @@ prepare_web_server() {
 }
 
 prepare_zbx_web_config() {
-    local server_name=""
-
     echo "** Preparing Zabbix frontend configuration file"
 
-    ZBX_WEB_CONFIG="$ZABBIX_ETC_DIR/web/zabbix.conf.php"
-    PHP_CONFIG_FILE="/etc/php/7.2/apache2/conf.d/99-zabbix.ini"
+    export ZBX_MAXEXECUTIONTIME=${ZBX_MAXEXECUTIONTIME:-"600"}
+    export ZBX_MEMORYLIMIT=${ZBX_MEMORYLIMIT:-"128M"}
+    export ZBX_POSTMAXSIZE=${ZBX_POSTMAXSIZE:-"16M"}
+    export ZBX_UPLOADMAXFILESIZE=${ZBX_UPLOADMAXFILESIZE:-"2M"}
+    export ZBX_MAXINPUTTIME=${ZBX_MAXINPUTTIME:-"300"}
+    export PHP_TZ=${PHP_TZ:-"Europe/Riga"}
 
-    update_config_var "$PHP_CONFIG_FILE" "max_execution_time" "${ZBX_MAXEXECUTIONTIME:-"600"}"
-    update_config_var "$PHP_CONFIG_FILE" "memory_limit" "${ZBX_MEMORYLIMIT:-"128M"}" 
-    update_config_var "$PHP_CONFIG_FILE" "post_max_size" "${ZBX_POSTMAXSIZE:-"16M"}"
-    update_config_var "$PHP_CONFIG_FILE" "upload_max_filesize" "${ZBX_UPLOADMAXFILESIZE:-"2M"}"
-    update_config_var "$PHP_CONFIG_FILE" "max_input_time" "${ZBX_MAXINPUTTIME:-"300"}"
-    update_config_var "$PHP_CONFIG_FILE" "date.timezone" "${PHP_TZ}"
-
-    # Escaping characters in parameter value
-    server_name=$(escape_spec_char "${ZBX_SERVER_NAME}")
-    server_user=$(escape_spec_char "${DB_SERVER_ZBX_USER}")
-    server_pass=$(escape_spec_char "${DB_SERVER_ZBX_PASS}")
-
-    ZBX_DB_KEY_FILE=$(escape_spec_char "${ZBX_DB_KEY_FILE}")
-    ZBX_DB_CERT_FILE=$(escape_spec_char "${ZBX_DB_CERT_FILE}")
-    ZBX_DB_CA_FILE=$(escape_spec_char "${ZBX_DB_CA_FILE}")
-
-    sed -i \
-        -e "s/{DB_SERVER_HOST}/${DB_SERVER_HOST}/g" \
-        -e "s/{DB_SERVER_PORT}/${DB_SERVER_PORT}/g" \
-        -e "s/{DB_SERVER_DBNAME}/${DB_SERVER_DBNAME}/g" \
-        -e "s/{DB_SERVER_SCHEMA}/${DB_SERVER_SCHEMA}/g" \
-        -e "s/{DB_SERVER_USER}/$server_user/g" \
-        -e "s/{DB_SERVER_PASS}/$server_pass/g" \
-        -e "s/{ZBX_SERVER_HOST}/${ZBX_SERVER_HOST}/g" \
-        -e "s/{ZBX_SERVER_PORT}/${ZBX_SERVER_PORT}/g" \
-        -e "s/{ZBX_SERVER_NAME}/$server_name/g" \
-    "$ZBX_WEB_CONFIG"
+    export DB_SERVER_TYPE="MYSQL"
+    export DB_SERVER_HOST=${DB_SERVER_HOST}
+    export DB_SERVER_PORT=${DB_SERVER_PORT}
+    export DB_SERVER_DBNAME=${DB_SERVER_DBNAME}
+    export DB_SERVER_SCHEMA=${DB_SERVER_SCHEMA}
+    export DB_SERVER_USER=${DB_SERVER_ZBX_USER}
+    export DB_SERVER_PASS=${DB_SERVER_ZBX_PASS}
+    export ZBX_SERVER_HOST=${ZBX_SERVER_HOST}
+    export ZBX_SERVER_PORT=${ZBX_SERVER_PORT:-"10051"}
+    export ZBX_SERVER_NAME=${ZBX_SERVER_NAME}
 
     if [ "${ENABLE_WEB_ACCESS_LOG:-"true"}" == "false" ]; then
         sed -ri \
