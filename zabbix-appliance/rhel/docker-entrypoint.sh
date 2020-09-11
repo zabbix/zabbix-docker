@@ -527,21 +527,9 @@ update_zbx_config() {
 
 
 prepare_zbx_web_config() {
-    local server_name=""
-
     echo "** Preparing Zabbix frontend configuration file"
 
-    ZBX_WWW_ROOT="/usr/share/zabbix"
-    ZBX_WEB_CONFIG="$ZABBIX_ETC_DIR/web/zabbix.conf.php"
-
     PHP_CONFIG_FILE="/etc/php-fpm.d/zabbix.conf"
-
-    update_config_var "$PHP_CONFIG_FILE" "php_value[max_execution_time]" "${ZBX_MAXEXECUTIONTIME:-"600"}"
-    update_config_var "$PHP_CONFIG_FILE" "php_value[memory_limit]" "${ZBX_MEMORYLIMIT:-"128M"}"
-    update_config_var "$PHP_CONFIG_FILE" "php_value[post_max_size]" "${ZBX_POSTMAXSIZE:-"16M"}"
-    update_config_var "$PHP_CONFIG_FILE" "php_value[upload_max_filesize]" "${ZBX_UPLOADMAXFILESIZE:-"2M"}"
-    update_config_var "$PHP_CONFIG_FILE" "php_value[max_input_time]" "${ZBX_MAXINPUTTIME:-"300"}"
-    update_config_var "$PHP_CONFIG_FILE" "php_value[date.timezone]" "${PHP_TZ}"
 
     if [ "$(id -u)" == '0' ]; then
         echo "user = zabbix" >> "$PHP_CONFIG_FILE"
@@ -550,40 +538,37 @@ prepare_zbx_web_config() {
         echo "listen.group = nginx" >> "$PHP_CONFIG_FILE"
     fi
 
-    ZBX_HISTORYSTORAGETYPES=${ZBX_HISTORYSTORAGETYPES:-"[]"}
+    export ZBX_MAXEXECUTIONTIME=${ZBX_MAXEXECUTIONTIME:-"600"}
+    export ZBX_MEMORYLIMIT=${ZBX_MEMORYLIMIT:-"128M"}
+    export ZBX_POSTMAXSIZE=${ZBX_POSTMAXSIZE:-"16M"}
+    export ZBX_UPLOADMAXFILESIZE=${ZBX_UPLOADMAXFILESIZE:-"2M"}
+    export ZBX_MAXINPUTTIME=${ZBX_MAXINPUTTIME:-"300"}
+    export PHP_TZ=${PHP_TZ:-"Europe/Riga"}
 
-    # Escaping characters in parameter value
-    server_name=$(escape_spec_char "${ZBX_SERVER_NAME}")
-    server_user=$(escape_spec_char "${DB_SERVER_ZBX_USER}")
-    server_pass=$(escape_spec_char "${DB_SERVER_ZBX_PASS}")
-    history_storage_url=$(escape_spec_char "${ZBX_HISTORYSTORAGEURL}")
-    history_storage_types=$(escape_spec_char "${ZBX_HISTORYSTORAGETYPES}")
+    export DB_SERVER_TYPE="MYSQL"
+    export DB_SERVER_HOST=${DB_SERVER_HOST}
+    export DB_SERVER_PORT=${DB_SERVER_PORT}
+    export DB_SERVER_DBNAME=${DB_SERVER_DBNAME}
+    export DB_SERVER_SCHEMA=${DB_SERVER_SCHEMA}
+    export DB_SERVER_USER=${DB_SERVER_ZBX_USER}
+    export DB_SERVER_PASS=${DB_SERVER_ZBX_PASS}
+    export ZBX_SERVER_HOST="localhost"
+    export ZBX_SERVER_PORT="10051"
+    export ZBX_SERVER_NAME=${ZBX_SERVER_NAME}
 
-    ZBX_DB_KEY_FILE=$(escape_spec_char "${ZBX_DB_KEY_FILE}")
-    ZBX_DB_CERT_FILE=$(escape_spec_char "${ZBX_DB_CERT_FILE}")
-    ZBX_DB_CA_FILE=$(escape_spec_char "${ZBX_DB_CA_FILE}")
+    export ZBX_DB_ENCRYPTION=${ZBX_DB_ENCRYPTION:-"false"}
+    export ZBX_DB_KEY_FILE=${ZBX_DB_KEY_FILE}
+    export ZBX_DB_CERT_FILE=${ZBX_DB_CERT_FILE}
+    export ZBX_DB_CA_FILE=${ZBX_DB_CA_FILE}
+    export ZBX_DB_VERIFY_HOST=${ZBX_DB_VERIFY_HOST-"false"}
 
-    sed -i \
-        -e "s/{DB_SERVER_HOST}/${DB_SERVER_HOST}/g" \
-        -e "s/{DB_SERVER_PORT}/${DB_SERVER_PORT}/g" \
-        -e "s/{DB_SERVER_DBNAME}/${DB_SERVER_DBNAME}/g" \
-        -e "s/{DB_SERVER_SCHEMA}/${DB_SERVER_SCHEMA}/g" \
-        -e "s/{DB_SERVER_USER}/$server_user/g" \
-        -e "s/{DB_SERVER_PASS}/$server_pass/g" \
-        -e "s/{ZBX_SERVER_HOST}/localhost/g" \
-        -e "s/{ZBX_SERVER_PORT}/10051/g" \
-        -e "s/{ZBX_SERVER_NAME}/$server_name/g" \
-        -e "s/{ZBX_DB_ENCRYPTION}/${ZBX_DB_ENCRYPTION:-"false"}/g" \
-        -e "s/{ZBX_DB_KEY_FILE}/${ZBX_DB_KEY_FILE}/g" \
-        -e "s/{ZBX_DB_CERT_FILE}/${ZBX_DB_CERT_FILE}/g" \
-        -e "s/{ZBX_DB_CA_FILE}/${ZBX_DB_CA_FILE}/g" \
-        -e "s/{ZBX_DB_VERIFY_HOST}/${ZBX_DB_VERIFY_HOST:-"false"}/g" \
-        -e "s/{ZBX_DB_CIPHER_LIST}/${ZBX_DB_CIPHER_LIST}/g" \
-        -e "s/{DB_DOUBLE_IEEE754}/${DB_DOUBLE_IEEE754:-"true"}/g" \
-        -e "s/{ZBX_HISTORYSTORAGEURL}/$history_storage_url/g" \
-        -e "s/{ZBX_HISTORYSTORAGETYPES}/$history_storage_types/g" \
-    "$ZBX_WEB_CONFIG"
-        
+    export DB_DOUBLE_IEEE754=${DB_DOUBLE_IEEE754:-"true"}
+
+    export ZBX_HISTORYSTORAGEURL=${ZBX_HISTORYSTORAGEURL}
+    export ZBX_HISTORYSTORAGETYPES=${ZBX_HISTORYSTORAGETYPES:-"[]"}
+
+    export ZBX_SSO_SETTINGS=${ZBX_SSO_SETTINGS:-""}
+
     if [ -n "${ZBX_SESSION_NAME}" ]; then
         cp "$ZBX_WWW_ROOT/include/defines.inc.php" "/tmp/defines.inc.php_tmp"
         sed "/ZBX_SESSION_NAME/s/'[^']*'/'${ZBX_SESSION_NAME}'/2" "/tmp/defines.inc.php_tmp" > "$ZBX_WWW_ROOT/include/defines.inc.php"
