@@ -155,6 +155,10 @@ prepare_zbx_web_config() {
         echo "listen.group = nginx" >> "$PHP_CONFIG_FILE"
     fi
 
+    export ZBX_DENY_GUI_ACCESS=${ZBX_DENY_GUI_ACCESS:-"false"}
+    export ZBX_GUI_ACCESS_IP_RANGE=${ZBX_GUI_ACCESS_IP_RANGE:-"['127.0.0.1']"}
+    export ZBX_GUI_WARNING_MSG=${ZBX_GUI_WARNING_MSG:-"Zabbix is under maintenance."}
+
     export ZBX_MAXEXECUTIONTIME=${ZBX_MAXEXECUTIONTIME:-"600"}
     export ZBX_MEMORYLIMIT=${ZBX_MEMORYLIMIT:-"128M"}
     export ZBX_POSTMAXSIZE=${ZBX_POSTMAXSIZE:-"16M"}
