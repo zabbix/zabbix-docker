@@ -62,7 +62,7 @@ jobs:
           DOCKER_CLI_EXPERIMENTAL: enabled
         run: |
           docker pull -q multiarch/qemu-user-static:latest
-          docker run --rm --privileged multiarch/qemu-user-static:${QEMU_TAG} --reset -p yes --credential yes
+          docker run --rm --privileged multiarch/qemu-user-static:latest --reset -p yes --credential yes
           docker buildx create --name builder-${GITHUB_SHA::8} --driver docker-container --use
 
       - name: Available platforms
