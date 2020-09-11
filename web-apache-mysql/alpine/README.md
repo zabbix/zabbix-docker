@@ -190,6 +190,10 @@ The variable allows to activate host verification. Available since 5.0.0.
 
 The variable allows to specify a custom list of valid ciphers. The format of the cipher list must conform to the OpenSSL standard. Available since 5.0.0.
 
+## `ZBX_SSO_SETTINGS`
+
+The variable allows to specify custom SSO settings in JSON format. Available since 5.0.0.
+
 ## Allowed volumes for the Zabbix web interface container
 
 ### ``/etc/ssl/apache2``
@@ -197,6 +201,10 @@ The variable allows to specify a custom list of valid ciphers. The format of the
 The volume allows to enable HTTPS for the Zabbix web interface. The volume must contains two files ``ssl.crt`` and ``ssl.key`` prepared for Apache2 SSL connections.
 
 Please follow official Apache2 [documentation](https://httpd.apache.org/docs/2.4/ssl/ssl_howto.html) to get more details about how to create certificate files.
+
+### ``/etc/zabbix/web/certs``
+
+The volume allows to use custom certificates for SAML authentification. The volume must contains three files ``sp.key``, ``sp.crt`` and ``idp.crt``. Available since 5.0.0.
 
 # The image variants
 
