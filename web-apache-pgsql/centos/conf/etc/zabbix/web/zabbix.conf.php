@@ -19,8 +19,9 @@ $ZBX_SERVER_NAME = getenv('ZBX_SERVER_NAME');
 $IMAGE_FORMAT_DEFAULT	= IMAGE_FORMAT_PNG;
 
 // Elasticsearch url (can be string if same url is used for all types).
-$HISTORY['url']   = getenv('ZBX_HISTORYSTORAGEURL');
+$history_url = str_replace("'","\"",getenv('ZBX_HISTORYSTORAGEURL'));
+$HISTORY['url']   = (json_decode($history_url)) ? json_decode($history_url) : $history_url;
+
 // Value types stored in Elasticsearch.
 $storage_types = str_replace("'","\"",getenv('ZBX_HISTORYSTORAGETYPES'));
-
 $HISTORY['types'] = (json_decode($storage_types)) ? json_decode($storage_types) : array();
