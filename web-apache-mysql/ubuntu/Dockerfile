@@ -20,6 +20,7 @@ RUN set -eux && \
         zabbix && \
     mkdir -p /etc/zabbix && \
     mkdir -p /etc/zabbix/web && \
+    mkdir -p /etc/zabbix/web/certs && \
     apt-get -y update && \
     DEBIAN_FRONTEND=noninteractive apt-get -y --no-install-recommends install \
             apache2 \

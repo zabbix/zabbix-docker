@@ -19,6 +19,7 @@ RUN set -eux && \
         zabbix && \
     mkdir -p /etc/zabbix && \
     mkdir -p /etc/zabbix/web && \
+    mkdir -p /etc/zabbix/web/certs && \
     apk add --clean-protected --no-cache \
             apache2 \
             bash \

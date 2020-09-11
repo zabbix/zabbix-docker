@@ -17,6 +17,7 @@ RUN set -eux && \
         zabbix && \
     mkdir -p /etc/zabbix && \
     mkdir -p /etc/zabbix/web && \
+    mkdir -p /etc/zabbix/web/certs && \
     dnf --quiet makecache && \
     dnf -y install epel-release && \
     dnf -y install --setopt=install_weak_deps=False --best --setopt=tsflags=nodocs \

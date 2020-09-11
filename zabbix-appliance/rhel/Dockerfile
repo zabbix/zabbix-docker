@@ -82,6 +82,8 @@ RUN set -o xtrace && INSTALL_PKGS="OpenIPMI-libs \
             -d /var/lib/zabbix/ -u 1997 \
         zabbix && \
     mkdir -p /etc/zabbix && \
+    mkdir -p /etc/zabbix/web && \
+    mkdir -p /etc/zabbix/web/certs && \
     mkdir -p /var/lib/zabbix && \
     mkdir -p /usr/lib/zabbix/alertscripts && \
     mkdir -p /var/lib/zabbix/enc && \

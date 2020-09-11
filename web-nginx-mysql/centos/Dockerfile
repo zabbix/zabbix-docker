@@ -17,6 +17,7 @@ RUN set -eux && \
         zabbix && \
     mkdir -p /etc/zabbix && \
     mkdir -p /etc/zabbix/web && \
+    mkdir -p /etc/zabbix/web/certs && \
     mkdir -p /var/lib/php/session && \
     dnf --quiet makecache && \
     dnf -y install epel-release && \

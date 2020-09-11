@@ -68,6 +68,7 @@ RUN set -eux && INSTALL_PKGS="bash \
         zabbix && \
     mkdir -p /etc/zabbix && \
     mkdir -p /etc/zabbix/web && \
+    mkdir -p /etc/zabbix/web/certs && \
     mkdir -p /var/lib/php/session && \
     rm -f /etc/nginx/conf.d/*.conf  && \
     rm -f /etc/php-fpm.d/www.conf && \
