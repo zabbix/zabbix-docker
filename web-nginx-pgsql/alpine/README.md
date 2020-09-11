@@ -184,6 +184,10 @@ The variable allows to specify the full path to a valid TLS certificate authorit
 
 The variable allows to activate host verification. Available since 5.0.0.
 
+## `ZBX_SSO_SETTINGS`
+
+The variable allows to specify custom SSO settings in JSON format. Available since 5.0.0.
+
 ## Allowed volumes for the Zabbix web interface container
 
 ### ``/etc/ssl/nginx``
@@ -191,6 +195,10 @@ The variable allows to activate host verification. Available since 5.0.0.
 The volume allows to enable HTTPS for the Zabbix web interface. The volume must contains three files ``ssl.crt``, ``ssl.key`` and ``dhparam.pem`` prepared for Nginx SSL connections.
 
 Please follow official Nginx [documentation](http://nginx.org/en/docs/http/configuring_https_servers.html) to get more details about how to create certificate files.
+
+### ``/etc/zabbix/web/certs``
+
+The volume allows to use custom certificates for SAML authentification. The volume must contains three files ``sp.key``, ``sp.crt`` and ``idp.crt``. Available since 5.0.0.
 
 # The image variants
 

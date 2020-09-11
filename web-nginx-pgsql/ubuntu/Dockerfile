@@ -59,7 +59,7 @@ RUN set -eux && \
     rm -rf /var/cache/nginx/ && \
     rm -f /etc/php/7.4/fpm/pool.d/www.conf && \
     ln -sf /dev/fd/2 /var/log/nginx/error.log && \
-    DEBIAN_FRONTEND=noninteractive apt-get -y purge curl gpg dirmngr gpg-agent && \
+    DEBIAN_FRONTEND=noninteractive apt-get -y purge gpg dirmngr gpg-agent && \
     apt-get -y autoremove && \
     apt-get -y clean && \
     rm -rf /var/lib/apt/lists/*
