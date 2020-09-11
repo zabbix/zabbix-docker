@@ -1,5 +1,8 @@
 ![logo](https://assets.zabbix.com/img/logo/zabbix_logo_500x131.png)
 
+![CI](https://github.com/zabbix/zabbix-docker/workflows/CI/badge.svg?branch=master&event=release)
+![CI](https://github.com/zabbix/zabbix-docker/workflows/CI/badge.svg?branch=master&event=push)
+
 # What is Zabbix?
 
 Zabbix is an enterprise-class open source distributed monitoring solution.
