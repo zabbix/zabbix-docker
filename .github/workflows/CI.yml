@@ -22,6 +22,7 @@ defaults:
 
 jobs:
   build:
+    timeout-minutes: 70
     env:
       LATEST_BRANCH: "${{ github.event.repository.default_branch }}"
       DOCKER_REPOSITORY: "zabbix"
@@ -51,28 +52,13 @@ jobs:
           - os: ubuntu
             build: agent2
 
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v2
 
-      - name: Install buildx
+      - name: Available platforms
         env:
           DOCKER_CLI_EXPERIMENTAL: enabled
-        run: |
-          BUILDX_VERSION="0.4.2"
-          QEMU_TAG="latest"
-          mkdir -p ~/.docker/cli-plugins/
-          curl -L https://github.com/docker/buildx/releases/download/v${BUILDX_VERSION}/buildx-v${BUILDX_VERSION}.linux-amd64 \
-                -o ~/.docker/cli-plugins/docker-buildx
-          chmod +x ~/.docker/cli-plugins/docker-buildx
-          docker pull -q multiarch/qemu-user-static:latest
-          docker run --rm --privileged multiarch/qemu-user-static:${QEMU_TAG} --reset -p yes --credential yes
-          docker buildx create --name builder-${GITHUB_SHA::8} --driver docker-container --use
-          docker buildx inspect --bootstrap
-          docker info
-          docker buildx inspect
-
-      - name: Available platforms
         run: docker buildx inspect | grep Platforms
 
       - name: Prepare platform list
