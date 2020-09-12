@@ -34,17 +34,17 @@ $IMAGE_FORMAT_DEFAULT	= IMAGE_FORMAT_PNG;
 
 // Elasticsearch url (can be string if same url is used for all types).
 $history_url = str_replace("'","\"",getenv('ZBX_HISTORYSTORAGEURL'));
-$HISTORY['url']   = (json_decode($history_url)) ? json_decode($history_url) : $history_url;
+$HISTORY['url']   = (json_decode($history_url)) ? json_decode($history_url, true) : $history_url;
 // Value types stored in Elasticsearch.
 $storage_types = str_replace("'","\"",getenv('ZBX_HISTORYSTORAGETYPES'));
 
-$HISTORY['types'] = (json_decode($storage_types)) ? json_decode($storage_types) : array();
+$HISTORY['types'] = (json_decode($storage_types)) ? json_decode($storage_types, true) : array();
 
 // Used for SAML authentication.
 // Uncomment to override the default paths to SP private key, SP and IdP X.509 certificates, and to set extra settings.
-$SSO['SP_KEY']			= file_exists('/etc/zabbix/web/certs/sp.key') ? '/etc/zabbix/web/certs/sp.key' : '';
-$SSO['SP_CERT']			= file_exists('/etc/zabbix/web/certs/sp.crt') ? '/etc/zabbix/web/certs/sp.crt' : '';
-$SSO['IDP_CERT']		= file_exists('/etc/zabbix/web/certs/idp.crt') ? '/etc/zabbix/web/certs/idp.crt' : '';
+$SSO['SP_KEY']			= file_exists('/etc/zabbix/web/certs/sp.key') ? '/etc/zabbix/web/certs/sp.key' : (file_exists(getenv('ZBX_SSO_SP_CERT')) ? getenv('ZBX_SSO_SP_CERT') : '');
+$SSO['SP_CERT']			= file_exists('/etc/zabbix/web/certs/sp.crt') ? '/etc/zabbix/web/certs/sp.crt' : (file_exists(getenv('ZBX_SSO_SP_KEY')) ? getenv('ZBX_SSO_SP_KEY') : '');
+$SSO['IDP_CERT']		= file_exists('/etc/zabbix/web/certs/idp.crt') ? '/etc/zabbix/web/certs/idp.crt' : (file_exists(getenv('ZBX_SSO_IDP_CERT')) ? getenv('ZBX_SSO_IDP_CERT') : '');
 
 $sso_settings = str_replace("'","\"",getenv('ZBX_SSO_SETTINGS'));
-$SSO['SETTINGS']		= (json_decode($sso_settings)) ? json_decode($sso_settings) : array();
+$SSO['SETTINGS']		= (json_decode($sso_settings)) ? json_decode($sso_settings, true) : array();

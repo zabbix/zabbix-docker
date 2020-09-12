@@ -25,7 +25,7 @@ if (getenv('ZBX_DENY_GUI_ACCESS') == 'true') {
 
     // IP range, who are allowed to connect to FrontEnd
     $ip_range = str_replace("'","\"",getenv('ZBX_GUI_ACCESS_IP_RANGE'));
-    $ZBX_GUI_ACCESS_IP_RANGE = (json_decode($ip_range)) ? json_decode($ip_range) : array();
+    $ZBX_GUI_ACCESS_IP_RANGE = (json_decode($ip_range)) ? json_decode($ip_range, true) : array();
 
     // MSG shown on Warning screen!
     $_REQUEST['warning_msg'] = getenv('ZBX_GUI_WARNING_MSG');
