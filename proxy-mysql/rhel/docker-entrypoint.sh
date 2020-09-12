@@ -260,6 +260,7 @@ create_db_user_mysql() {
     fi
 
     mysql_query "GRANT ALL PRIVILEGES ON $DB_SERVER_DBNAME. * TO '${DB_SERVER_ZBX_USER}'@'%'" 1>/dev/null
+    mysql_query "GRANT SESSION_VARIABLES_ADMIN ON *. * TO '${DB_SERVER_ZBX_USER}'@'%'" 1>/dev/null
 }
 
 create_db_database_mysql() {
