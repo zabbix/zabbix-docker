@@ -49,8 +49,7 @@ RUN set -eux && \
             git \
             pcre-dev \
             openssl-dev \
-            zlib-dev \
-            coreutils && \
+            zlib-dev && \
     cd /tmp/ && \
     git clone ${ZBX_SOURCES} --branch master --depth 1 --single-branch zabbix-${ZBX_VERSION} && \
     cd /tmp/zabbix-${ZBX_VERSION} && \
@@ -75,6 +74,9 @@ RUN set -eux && \
     cp /tmp/zabbix-${ZBX_VERSION}/src/zabbix_get/zabbix_get /usr/bin/zabbix_get && \
     cp /tmp/zabbix-${ZBX_VERSION}/src/zabbix_sender/zabbix_sender /usr/bin/zabbix_sender && \
     cp /tmp/zabbix-${ZBX_VERSION}/src/go/conf/zabbix_agent2.conf /etc/zabbix/zabbix_agent2.conf && \
+    strip /usr/sbin/zabbix_agent2 && \
+    strip /usr/bin/zabbix_get && \
+    strip /usr/bin/zabbix_sender && \
     cd /tmp/ && \
     rm -rf /tmp/zabbix-${ZBX_VERSION}/ && \
     chown --quiet -R zabbix:root /etc/zabbix/ /var/lib/zabbix/ && \
