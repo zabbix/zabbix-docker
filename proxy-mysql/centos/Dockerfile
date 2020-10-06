@@ -46,6 +46,7 @@ RUN set -eux && \
             openldap \
             openssl-libs \
             pcre \
+            zlib \
             unixODBC && \
     curl -L "https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini" -o /sbin/tini && \
     curl -L "https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini.asc" -o /tmp/tini.asc && \

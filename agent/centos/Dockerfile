@@ -25,6 +25,7 @@ RUN set -eux && \
     dnf --quiet makecache && \
     dnf -y install --setopt=tsflags=nodocs --setopt=install_weak_deps=False --best \
             libcurl-minimal \
+            zlib \
             tzdata \
             openssl-libs && \
     curl -L "https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini" -o /sbin/tini && \
