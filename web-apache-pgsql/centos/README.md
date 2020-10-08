@@ -196,6 +196,16 @@ The variable allows to activate host verification. Available since 5.0.0.
 
 The variable allows to specify custom SSO settings in JSON format. Available since 5.0.0.
 
+### Other variables
+
+Additionally the image allows to specify many other environment variables listed below:
+
+```
+ZBX_VAULTDBPATH= # Available since 5.2.0
+ZBX_VAULTURL=https://127.0.0.1:8200 # Available since 5.2.0
+VAULT_TOKEN= # Available since 5.2.0
+```
+
 ## Allowed volumes for the Zabbix web interface container
 
 ### ``/etc/ssl/apache2``

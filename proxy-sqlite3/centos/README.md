@@ -123,6 +123,9 @@ The variable enable communication with Zabbix Java Gateway to collect Java relat
 Additionally the image allows to specify many other environment variables listed below:
 
 ```
+ZBX_VAULTDBPATH= # Available since 5.2.0
+ZBX_VAULTURL=https://127.0.0.1:8200 # Available since 5.2.0
+VAULT_TOKEN= # Available since 5.2.0
 ZBX_ENABLEREMOTECOMMANDS=0 # Available since 3.4.0
 ZBX_LOGREMOTECOMMANDS=0 # Available since 3.4.0
 ZBX_SOURCEIP=
