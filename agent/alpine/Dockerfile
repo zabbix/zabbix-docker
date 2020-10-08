@@ -52,8 +52,7 @@ RUN set -eux && \
             g++ \
             pcre-dev \
             make \
-            git \
-            coreutils && \
+            git && \
     cd /tmp/ && \
     git clone ${ZBX_SOURCES} --branch master --depth 1 --single-branch zabbix-${ZBX_VERSION} && \
     cd /tmp/zabbix-${ZBX_VERSION} && \

@@ -16,7 +16,6 @@ Zabbix appliance contains MySQL database server, Zabbix server, Zabbix Java Gate
 
 These are the only official Zabbix appliance Docker images. They are based on Red Hat Enterprise Linux 8 images. The available versions of Zabbix appliance are:
 
-    Zabbix appliance 4.4
     Zabbix appliance 5.0
 
 Images are updated when new releases are published. The image with ``latest`` tag is based on Red Hat Enterprise Linux 8.
@@ -98,8 +97,8 @@ The varable is PHP ``upload_max_filesize`` option. By default, value is `2M`.
 The varable is PHP ``max_input_time`` option. By default, value is `300`.
 
 ### `ZBX_SESSION_NAME`
-                                                                                               
-The variable is Zabbix frontend [definition](https://www.zabbix.com/documentation/4.2/manual/web_interface/definitions). String used as the name of the Zabbix frontend session cookie. By default, value is `zbx_sessionid`.
+
+The variable is Zabbix frontend [definition](https://www.zabbix.com/documentation/current/manual/web_interface/definitions). String used as the name of the Zabbix frontend session cookie. By default, value is `zbx_sessionid`.
 
 ### Other variables
 
