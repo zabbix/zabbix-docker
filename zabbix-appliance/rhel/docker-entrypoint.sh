@@ -410,9 +410,19 @@ update_zbx_config() {
     update_config_var $ZBX_CONFIG "DBHost" "${DB_SERVER_HOST}"
     update_config_var $ZBX_CONFIG "DBName" "${DB_SERVER_DBNAME}"
     update_config_var $ZBX_CONFIG "DBSchema" "${DB_SERVER_SCHEMA}"
-    update_config_var $ZBX_CONFIG "DBUser" "${DB_SERVER_ZBX_USER}"
     update_config_var $ZBX_CONFIG "DBPort" "${DB_SERVER_PORT}"
-    update_config_var $ZBX_CONFIG "DBPassword" "${DB_SERVER_ZBX_PASS}"
+
+    if [ -n "${VAULT_TOKEN}" ]; then
+        update_config_var $ZBX_CONFIG "VaultDBPath" "${ZBX_VAULTDBPATH}"
+        update_config_var $ZBX_CONFIG "VaultURL" "${ZBX_VAULTURL}"
+        update_config_var $ZBX_CONFIG "DBUser"
+        update_config_var $ZBX_CONFIG "DBPassword"
+    else
+        update_config_var $ZBX_CONFIG "VaultDBPath"
+        update_config_var $ZBX_CONFIG "VaultURL"
+        update_config_var $ZBX_CONFIG "DBUser" "${DB_SERVER_ZBX_USER}"
+        update_config_var $ZBX_CONFIG "DBPassword" "${DB_SERVER_ZBX_PASS}"
+    fi
 
     update_config_var $ZBX_CONFIG "HistoryStorageURL" "${ZBX_HISTORYSTORAGEURL}"
     update_config_var $ZBX_CONFIG "HistoryStorageTypes" "${ZBX_HISTORYSTORAGETYPES}"
@@ -565,6 +575,10 @@ prepare_zbx_web_config() {
     export ZBX_DB_CERT_FILE=${ZBX_DB_CERT_FILE}
     export ZBX_DB_CA_FILE=${ZBX_DB_CA_FILE}
     export ZBX_DB_VERIFY_HOST=${ZBX_DB_VERIFY_HOST-"false"}
+
+    export ZBX_VAULTURL=${ZBX_VAULTURL}
+    export ZBX_VAULTDBPATH=${ZBX_VAULTDBPATH}
+    export VAULT_TOKEN=${VAULT_TOKEN}
 
     export DB_DOUBLE_IEEE754=${DB_DOUBLE_IEEE754:-"true"}
 

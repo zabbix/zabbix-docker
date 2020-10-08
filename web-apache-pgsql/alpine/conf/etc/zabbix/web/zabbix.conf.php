@@ -6,10 +6,10 @@ $DB['TYPE']     = getenv('DB_SERVER_TYPE');
 $DB['SERVER']   = getenv('DB_SERVER_HOST');
 $DB['PORT']     = getenv('DB_SERVER_PORT');
 $DB['DATABASE'] = getenv('DB_SERVER_DBNAME');
-$DB['USER']     = getenv('DB_SERVER_USER');
-$DB['PASSWORD'] = getenv('DB_SERVER_PASS');
+$DB['USER']     = ! getenv('VAULT_TOKEN') ? getenv('DB_SERVER_USER') : '';
+$DB['PASSWORD'] = ! getenv('VAULT_TOKEN') ? getenv('DB_SERVER_PASS') : '';
 
-// Schema name. Used for IBM DB2 and PostgreSQL.
+// Schema name. Used for PostgreSQL.
 $DB['SCHEMA'] = getenv('DB_SERVER_SCHEMA');
 
 $ZBX_SERVER      = getenv('ZBX_SERVER_HOST');
@@ -23,6 +23,11 @@ $DB['CERT_FILE']		= getenv('ZBX_DB_CERT_FILE');
 $DB['CA_FILE']			= getenv('ZBX_DB_CA_FILE');
 $DB['VERIFY_HOST']		= getenv('ZBX_DB_VERIFY_HOST') == 'true' ? true: false;
 $DB['CIPHER_LIST']		= getenv('ZBX_DB_CIPHER_LIST') ? getenv('ZBX_DB_CIPHER_LIST') : '';
+
+// Vault configuration. Used if database credentials are stored in Vault secrets manager.
+$DB['VAULT_URL']		= getenv('ZBX_VAULTURL');
+$DB['VAULT_DB_PATH']		= getenv('ZBX_VAULTDBPATH');
+$DB['VAULT_TOKEN']		= getenv('VAULT_TOKEN');
 
 // Use IEEE754 compatible value range for 64-bit Numeric (float) history values.
 // This option is enabled by default for new Zabbix installations.
@@ -41,7 +46,6 @@ $storage_types = str_replace("'","\"",getenv('ZBX_HISTORYSTORAGETYPES'));
 $HISTORY['types'] = (json_decode($storage_types)) ? json_decode($storage_types, true) : array();
 
 // Used for SAML authentication.
-// Uncomment to override the default paths to SP private key, SP and IdP X.509 certificates, and to set extra settings.
 $SSO['SP_KEY']			= file_exists('/etc/zabbix/web/certs/sp.key') ? '/etc/zabbix/web/certs/sp.key' : (file_exists(getenv('ZBX_SSO_SP_KEY')) ? getenv('ZBX_SSO_SP_KEY') : '');
 $SSO['SP_CERT']			= file_exists('/etc/zabbix/web/certs/sp.crt') ? '/etc/zabbix/web/certs/sp.crt' : (file_exists(getenv('ZBX_SSO_SP_CERT')) ? getenv('ZBX_SSO_SP_CERT') : '');
 $SSO['IDP_CERT']		= file_exists('/etc/zabbix/web/certs/idp.crt') ? '/etc/zabbix/web/certs/idp.crt' : (file_exists(getenv('ZBX_SSO_IDP_CERT')) ? getenv('ZBX_SSO_IDP_CERT') : '');

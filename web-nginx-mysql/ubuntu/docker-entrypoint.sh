@@ -211,6 +211,10 @@ prepare_zbx_web_config() {
     export ZBX_DB_CA_FILE=${ZBX_DB_CA_FILE}
     export ZBX_DB_VERIFY_HOST=${ZBX_DB_VERIFY_HOST-"false"}
 
+    export ZBX_VAULTURL=${ZBX_VAULTURL}
+    export ZBX_VAULTDBPATH=${ZBX_VAULTDBPATH}
+    export VAULT_TOKEN=${VAULT_TOKEN}
+
     export DB_DOUBLE_IEEE754=${DB_DOUBLE_IEEE754:-"true"}
 
     export ZBX_HISTORYSTORAGEURL=${ZBX_HISTORYSTORAGEURL}
