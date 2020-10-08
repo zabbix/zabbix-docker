@@ -126,7 +126,7 @@ Array of value types to be sent to the history storage. An example: ['uint', 'db
 
 ### `PHP_TZ`
 
-The variable is timezone in PHP format. Full list of supported timezones are available on [`php.net`](http://php.net/manual/en/timezones.php). By default, value is 'Europe/Riga'.
+The variable is timezone in PHP format. Full list of supported timezones are available on [`php.net`](http://php.net/manual/en/timezones.php). By default, value is 'Europe/Riga' and system timezone since Zabbix 5.2.0.
 
 ### `ZBX_SERVER_NAME`
 
