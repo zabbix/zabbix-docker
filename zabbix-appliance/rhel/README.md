@@ -16,7 +16,6 @@ Zabbix appliance contains MySQL database server, Zabbix server, Zabbix Java Gate
 
 These are the only official Zabbix appliance Docker images. They are based on Red Hat Enterprise Linux 8 images. The available versions of Zabbix appliance are:
 
-    Zabbix appliance 4.4
     Zabbix appliance 5.0
 
 Images are updated when new releases are published. The image with ``latest`` tag is based on Red Hat Enterprise Linux 8.

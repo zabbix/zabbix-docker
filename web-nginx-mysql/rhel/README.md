@@ -163,10 +163,21 @@ The varable is PHP ``upload_max_filesize`` option. By default, value is `2M`.
 
 The varable is PHP ``max_input_time`` option. By default, value is `300`.
 
-
 ### `ZBX_SESSION_NAME`
 
-The variable is Zabbix frontend [definition](https://www.zabbix.com/documentation/4.2/manual/web_interface/definitions). String used as the name of the Zabbix frontend session cookie. By default, value is `zbx_sessionid`.
+The variable is Zabbix frontend [definition](https://www.zabbix.com/documentation/current/manual/web_interface/definitions). String used as the name of the Zabbix frontend session cookie. By default, value is `zbx_sessionid`.
+
+### `ZBX_DENY_GUI_ACCESS`
+
+Enable (``true``) maintenance mode for Zabbix web-interface.
+
+### `ZBX_GUI_ACCESS_IP_RANGE`
+
+Array of IP addresses which are allowed for accessing to Zabbix web-interface during maintenance period.
+
+### `ZBX_GUI_WARNING_MSG`
+
+Information message about maintenance period for Zabbix web-interface.
 
 ### `ZBX_DB_ENCRYPTION`
 
@@ -192,13 +203,31 @@ The variable allows to activate host verification. Available since 5.0.0.
 
 The variable allows to specify a custom list of valid ciphers. The format of the cipher list must conform to the OpenSSL standard. Available since 5.0.0.
 
+## `ZBX_SSO_SETTINGS`
+
+The variable allows to specify custom SSO settings in JSON format. Available since 5.0.0.
+
+### Other variables
+
+Additionally the image allows to specify many other environment variables listed below:
+
+```
+ZBX_VAULTDBPATH= # Available since 5.2.0
+ZBX_VAULTURL=https://127.0.0.1:8200 # Available since 5.2.0
+VAULT_TOKEN= # Available since 5.2.0
+```
+
 ## Allowed volumes for the Zabbix web interface container
 
 ### ``/etc/ssl/nginx``
 
-The volume allows to enable HTTPS for the Zabbix web interface. The volume must contains two files ``ssl.crt``, ``ssl.key`` and ``dhparam.pem`` prepared for Nginx SSL connections.
+The volume allows to enable HTTPS for the Zabbix web interface. The volume must contains three files ``ssl.crt``, ``ssl.key`` and ``dhparam.pem`` prepared for Nginx SSL connections.
 
 Please follow official Nginx [documentation](http://nginx.org/en/docs/http/configuring_https_servers.html) to get more details about how to create certificate files.
+
+### ``/etc/zabbix/web/certs``
+
+The volume allows to use custom certificates for SAML authentification. The volume must contains three files ``sp.key``, ``sp.crt`` and ``idp.crt``. Available since 5.0.0.
 
 # The image variants
 
