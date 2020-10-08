@@ -17,9 +17,6 @@ ZBX_SERVER_HOST=${ZBX_SERVER_HOST:-"zabbix-server"}
 # Default Zabbix server port number
 ZBX_SERVER_PORT=${ZBX_SERVER_PORT:-"10051"}
 
-# Default timezone for web interface
-PHP_TZ=${PHP_TZ:-"Europe/Riga"}
-
 # Default directories
 # User 'zabbix' home directory
 ZABBIX_USER_HOME_DIR="/var/lib/zabbix"
@@ -192,7 +189,7 @@ prepare_zbx_web_config() {
     export ZBX_POSTMAXSIZE=${ZBX_POSTMAXSIZE:-"16M"}
     export ZBX_UPLOADMAXFILESIZE=${ZBX_UPLOADMAXFILESIZE:-"2M"}
     export ZBX_MAXINPUTTIME=${ZBX_MAXINPUTTIME:-"300"}
-    export PHP_TZ=${PHP_TZ:-"Europe/Riga"}
+    export PHP_TZ=${PHP_TZ}
 
     export DB_SERVER_TYPE="MYSQL"
     export DB_SERVER_HOST=${DB_SERVER_HOST}

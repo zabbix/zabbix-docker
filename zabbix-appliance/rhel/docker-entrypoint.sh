@@ -13,9 +13,6 @@ fi
 # Used only by Zabbix web-interface
 : ${ZBX_SERVER_NAME:="Zabbix docker"}
 
-# Default timezone for web interface
-: ${PHP_TZ:="Europe/Riga"}
-
 # Default MySQL instance location
 : ${DB_SERVER_HOST:="localhost"}
 : ${DB_SERVER_PORT:="3306"}
@@ -557,7 +554,7 @@ prepare_zbx_web_config() {
     export ZBX_POSTMAXSIZE=${ZBX_POSTMAXSIZE:-"16M"}
     export ZBX_UPLOADMAXFILESIZE=${ZBX_UPLOADMAXFILESIZE:-"2M"}
     export ZBX_MAXINPUTTIME=${ZBX_MAXINPUTTIME:-"300"}
-    export PHP_TZ=${PHP_TZ:-"Europe/Riga"}
+    export PHP_TZ=${PHP_TZ}
 
     export DB_SERVER_TYPE="MYSQL"
     export DB_SERVER_HOST=${DB_SERVER_HOST}

@@ -17,9 +17,6 @@ fi
 # Default Zabbix server port number
 : ${ZBX_SERVER_PORT:="10051"}
 
-# Default timezone for web interface
-: ${PHP_TZ:="Europe/Riga"}
-
 #Enable PostgreSQL timescaleDB feature:
 ENABLE_TIMESCALEDB=${ENABLE_TIMESCALEDB:-"false"}
 
@@ -170,7 +167,7 @@ prepare_zbx_web_config() {
     export ZBX_POSTMAXSIZE=${ZBX_POSTMAXSIZE:-"16M"}
     export ZBX_UPLOADMAXFILESIZE=${ZBX_UPLOADMAXFILESIZE:-"2M"}
     export ZBX_MAXINPUTTIME=${ZBX_MAXINPUTTIME:-"300"}
-    export PHP_TZ=${PHP_TZ:-"Europe/Riga"}
+    export PHP_TZ=${PHP_TZ}
 
     export DB_SERVER_TYPE="POSTGRESQL"
     export DB_SERVER_HOST=${DB_SERVER_HOST}
