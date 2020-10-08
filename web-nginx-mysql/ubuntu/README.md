@@ -165,7 +165,7 @@ The varable is PHP ``max_input_time`` option. By default, value is `300`.
 
 ### `ZBX_SESSION_NAME`
 
-The variable is Zabbix frontend [definition](https://www.zabbix.com/documentation/4.2/manual/web_interface/definitions). String used as the name of the Zabbix frontend session cookie. By default, value is `zbx_sessionid`.
+The variable is Zabbix frontend [definition](https://www.zabbix.com/documentation/current/manual/web_interface/definitions). String used as the name of the Zabbix frontend session cookie. By default, value is `zbx_sessionid`.
 
 ### `ZBX_DENY_GUI_ACCESS`
 
