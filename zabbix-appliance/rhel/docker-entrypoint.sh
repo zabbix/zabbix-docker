@@ -574,7 +574,18 @@ prepare_zbx_web_config() {
         sed "/ZBX_SESSION_NAME/s/'[^']*'/'${ZBX_SESSION_NAME}'/2" "/tmp/defines.inc.php_tmp" > "$ZBX_FRONTEND_PATH/include/defines.inc.php"
         rm -f "/tmp/defines.inc.php_tmp"
     fi
-        
+
+    FCGI_READ_TIMEOUT=$(expr ${ZBX_MAXEXECUTIONTIME} + 1)
+    sed -i \
+        -e "s/{FCGI_READ_TIMEOUT}/${FCGI_READ_TIMEOUT}/g" \
+    "$ZABBIX_ETC_DIR/nginx.conf"
+
+    if [ -f "$ZABBIX_ETC_DIR/nginx_ssl.conf" ]; then
+        sed -i \
+            -e "s/{FCGI_READ_TIMEOUT}/${FCGI_READ_TIMEOUT}/g" \
+        "$ZABBIX_ETC_DIR/nginx_ssl.conf"
+    fi
+
     if [ "${ENABLE_WEB_ACCESS_LOG:-"true"}" == "false" ]; then
         sed -ri \
             -e 's!^(\s*access_log).+\;!\1 off\;!g' \
