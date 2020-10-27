@@ -219,3 +219,4 @@ COPY ["docker-entrypoint.sh", "/usr/bin/"]
 USER 1997
 
 ENTRYPOINT ["/sbin/tini", "--", "/usr/bin/docker-entrypoint.sh"]
+
