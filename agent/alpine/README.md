@@ -18,19 +18,21 @@ These are the only official Zabbix agent Docker images. They are based on Alpine
 
     Zabbix agent 3.0 (tags: alpine-3.0-latest, ubuntu-3.0-latest, centos-3.0-latest)
     Zabbix agent 3.0.* (tags: alpine-3.0.*, ubuntu-3.0.*, centos-3.0.*)
-    Zabbix agent 3.2 (tags: alpine-3.2-latest, ubuntu-3.2-latest, centos-3.2.*) (unsupported)
+    Zabbix agent 3.2 (tags: alpine-3.2-latest, ubuntu-3.2-latest, centos-3.2-latest) (unsupported)
     Zabbix agent 3.2.* (tags: alpine-3.2.*, ubuntu-3.2.*, centos-3.2.*) (unsupported)
-    Zabbix agent 3.4 (tags: alpine-3.4-latest, ubuntu-3.4-latest, centos-3.4.*) (unsupported)
+    Zabbix agent 3.4 (tags: alpine-3.4-latest, ubuntu-3.4-latest, centos-3.4-latest) (unsupported)
     Zabbix agent 3.4.* (tags: alpine-3.4.*, ubuntu-3.4.*, centos-3.4.*) (unsupported)
     Zabbix agent 4.0 (tags: alpine-4.0-latest, ubuntu-4.0-latest, centos-4.0-latest)
     Zabbix agent 4.0.* (tags: alpine-4.0.*, ubuntu-4.0.*, centos-4.0.*)
-    Zabbix agent 4.2 (tags: alpine-4.2-latest, ubuntu-4.2-latest, centos-4.2.*) (unsupported)
+    Zabbix agent 4.2 (tags: alpine-4.2-latest, ubuntu-4.2-latest, centos-4.2-latest) (unsupported)
     Zabbix agent 4.2.* (tags: alpine-4.2.*, ubuntu-4.2.*, centos-4.2.*) (unsupported)
     Zabbix agent 4.4 (tags: alpine-4.4-latest, ubuntu-4.4-latest, centos-4.4-latest) (unsupported)
     Zabbix agent 4.4.* (tags: alpine-4.4.*, ubuntu-4.4.*, centos-4.4.*) (unsupported)
-    Zabbix agent 5.0 (tags: alpine-5.0-latest, ubuntu-5.0-latest, centos-5.0-latest, alpine-latest, ubuntu-latest, centos-latest, latest)
+    Zabbix agent 5.0 (tags: alpine-5.0-latest, ubuntu-5.0-latest, centos-5.0-latest)
     Zabbix agent 5.0.* (tags: alpine-5.0.*, ubuntu-5.0.*, centos-5.0.*)
-    Zabbix agent 5.2 (tags: alpine-trunk, ubuntu-trunk, centos-trunk)
+    Zabbix agent 5.2 (tags: alpine-5.2-latest, ubuntu-5.2-latest, centos-5.2-latest, alpine-latest, ubuntu-latest, centos-latest, latest)
+    Zabbix agent 5.2.* (tags: alpine-5.2.*, ubuntu-5.2.*, centos-5.2.*)
+    Zabbix agent 5.4 (tags: alpine-trunk, ubuntu-trunk, centos-trunk)
 
 Images are updated when new releases are published. The image with ``latest`` tag is based on Alpine Linux.
 
