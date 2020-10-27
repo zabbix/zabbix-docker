@@ -16,11 +16,13 @@ Zabbix agent 2 is deployed on a monitoring target to actively monitor local reso
 
 These are the only official Zabbix agent 2 Docker images. They are based on Alpine Linux v3.12 images. The available versions of Zabbix agent 2 are:
 
-    Zabbix agent 2 4.4 (tags: alpine-4.4-latest, alpine-latest, latest) (unsupported)
+    Zabbix agent 2 4.4 (tags: alpine-4.4-latest) (unsupported)
     Zabbix agent 2 4.4.* (tags: alpine-4.4.*) (unsupported)
     Zabbix agent 2 5.0 (tags: alpine-5.0-latest)
     Zabbix agent 2 5.0.* (tags: alpine-5.0.*)
-    Zabbix agent 2 5.2 (tags: alpine-trunk)
+    Zabbix agent 2 5.2 (tags: alpine-5.2-latest, alpine-latest, latest)
+    Zabbix agent 2 5.2.* (tags: alpine-5.2.*)
+    Zabbix agent 2 5.4 (tags: alpine-trunk)
 
 Images are updated when new releases are published. The image with ``latest`` tag is based on Alpine Linux.
 
