@@ -20,7 +20,9 @@ These are the only official Zabbix agent 2 Docker images. They are based on Alpi
     Zabbix agent 2 4.4.* (tags: alpine-4.4.*)
     Zabbix agent 2 5.0 (tags: alpine-5.0-latest)
     Zabbix agent 2 5.0.* (tags: alpine-5.0.*)
-    Zabbix agent 2 5.2 (tags: alpine-trunk)
+    Zabbix agent 2 5.2 (tags: alpine-5.2-latest)
+    Zabbix agent 2 5.2.* (tags: alpine-5.2.*)
+    Zabbix agent 2 5.4 (tags: alpine-trunk)
 
 Images are updated when new releases are published. The image with ``latest`` tag is based on Alpine Linux.
 
