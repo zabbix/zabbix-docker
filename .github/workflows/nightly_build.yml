@@ -1,0 +1,168 @@
+name: NightlyBuild
+
+on:
+  schedule:
+    - cron:  '5 2 * * *'
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  build:
+    env:
+      DOCKER_REPOSITORY: "zabbix"
+    strategy:
+      fail-fast: false  
+      matrix:
+        build:
+          - agent
+          - agent2
+          - java-gateway
+          - proxy-mysql
+          - proxy-sqlite3
+          - server-mysql
+          - server-pgsql
+          - snmptraps
+          - web-apache-mysql
+          - web-apache-pgsql
+          - web-nginx-mysql
+          - web-nginx-pgsql
+        os:
+         - alpine
+         - ubuntu
+         - centos
+        exclude:
+          - os: centos
+            build: agent2
+          - os: ubuntu
+            build: agent2
+
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          ref: "refs/heads/trunk"
+
+      - name: Install buildx
+        env:
+          DOCKER_CLI_EXPERIMENTAL: enabled
+        run: |
+          BUILDX_VERSION="0.4.2"
+          QEMU_TAG="latest"
+          mkdir -p ~/.docker/cli-plugins/
+          curl -L https://github.com/docker/buildx/releases/download/v${BUILDX_VERSION}/buildx-v${BUILDX_VERSION}.linux-amd64 \
+                -o ~/.docker/cli-plugins/docker-buildx
+          chmod +x ~/.docker/cli-plugins/docker-buildx
+          docker pull -q multiarch/qemu-user-static:latest
+          docker run --rm --privileged multiarch/qemu-user-static:${QEMU_TAG} --reset -p yes --credential yes
+          docker buildx create --name builder-${GITHUB_SHA::8} --driver docker-container --use
+          docker buildx inspect --bootstrap
+          docker info
+          docker buildx inspect
+
+      - name: Available platforms
+        run: docker buildx inspect | grep Platforms
+
+      - name: Prepare platform list
+        id: platform
+        run: |
+          DOCKER_PLATFORM="linux/amd64,linux/arm/v6,linux/arm/v7,linux/arm64,linux/s390x,linux/ppc64le"
+
+          if [ "${{ matrix.os }}" == "ubuntu" ]; then
+            DOCKER_PLATFORM="linux/amd64,linux/arm/v7,linux/arm64,linux/s390x,linux/ppc64le"
+          fi
+
+          if [ "${{ matrix.os }}" == "ubuntu" ] && [ "${{ matrix.build }}" == "snmptraps" ]; then
+            DOCKER_PLATFORM="linux/amd64,linux/arm64"
+          fi
+
+          if [ "${{ matrix.os }}" == "centos" ]; then
+            DOCKER_PLATFORM="linux/amd64,linux/arm64,linux/ppc64le"
+          fi
+
+          if [ "${{ matrix.build }}" == "java-gateway" ]; then
+            DOCKER_PLATFORM=${DOCKER_PLATFORM%",linux/ppc64le"}
+          fi
+
+          echo ::set-output name=list::${DOCKER_PLATFORM}
+
+      - name: Prepare environment (schedule)
+        id: prepare
+        run: |
+          TAGS_ARRAY=()
+
+          IMAGE_NAME="${{ env.DOCKER_REPOSITORY }}/zabbix-${{ matrix.build }}"
+          GIT_BRANCH="refs/heads/trunk"
+          GIT_BRANCH=${GIT_BRANCH:11}
+          
+          env
+
+          echo "::debug::Branch - ${GIT_BRANCH}"
+
+          if [ "${GIT_BRANCH}" == "trunk" ]; then
+            TAGS_ARRAY+=("$IMAGE_NAME:${{ matrix.os }}-${GIT_BRANCH}")
+          fi
+
+          TAGS=$(printf -- "--tag %s " "${TAGS_ARRAY[@]}")
+
+          echo "::debug::Tags - ${TAGS}"
+
+          echo ::set-output name=image_name::${IMAGE_NAME}
+          echo ::set-output name=image_tag_versions::$(printf -- "|%s" "${TAGS_ARRAY[@]}")
+          echo ::set-output name=buildx_args::--platform "${{ steps.platform.outputs.list }}" \
+            --build-arg BUILD_DATE=$(date -u +'%Y-%m-%dT%H:%M:%SZ') \
+            --build-arg VCS_REF=${GITHUB_SHA::8} \
+            ${TAGS} \
+            --file ./${{ matrix.build }}/${{ matrix.os }}/Dockerfile ./${{ matrix.build }}/${{ matrix.os }}
+
+      - name: Build images
+        env:
+          DOCKER_CLI_EXPERIMENTAL: enabled
+        run: |
+          if [ ! -z "${{ steps.prepare.outputs.buildx_args }}" ]; then
+              BUILDX_ARGS="${{ steps.prepare.outputs.buildx_args }}"
+          else
+              exit 1
+          fi
+
+          docker buildx build --cache-to "type=local,dest=/tmp/.buildx-cache" \
+            --output "type=image,push=false" \
+            ${BUILDX_ARGS}
+
+      - name: Docker Hub login
+        if: success()
+        uses: docker/login-action@v1
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Push images from cache
+        if: success()
+        env:
+          DOCKER_CLI_EXPERIMENTAL: enabled
+        run: |
+          if [ ! -z "${{ steps.prepare.outputs.buildx_args }}" ]; then
+              BUILDX_ARGS="${{ steps.prepare.outputs.buildx_args }}"
+          fi
+
+          docker buildx build --cache-from "type=local,src=/tmp/.buildx-cache" \
+            --output "type=image,push=${{ secrets.AUTO_PUSH_IMAGES }}" \
+            ${BUILDX_ARGS}
+
+      - name: Inspect images
+        run: |
+          echo "::debug::schedule - ${{ steps.prepare.outputs.buildx_args }}"
+
+          if [ ! -z "${{ steps.prepare.outputs.image_tag_versions }}" ]; then
+              IMAGE_TAG_VERSIONS="${{ steps.prepare.outputs.image_tag_versions }}"
+              echo "::debug::tags schedule raw - $IMAGE_TAG_VERSIONS"
+          fi
+
+          IMAGE_TAG_VERSIONS=${IMAGE_TAG_VERSIONS%%+(|)}
+          IFS='|' read -r -a IMAGE_TAG_VERSIONS <<< $IMAGE_TAG_VERSIONS
+
+          for version in ${IMAGE_TAG_VERSIONS[@]}; do
+              echo "Checking \"$version\"... "
+              docker buildx imagetools inspect $version
+          done
