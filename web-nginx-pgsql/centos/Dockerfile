@@ -39,7 +39,7 @@ RUN set -eux && \
     rm -rf /etc/udev/hwdb.bin /root/.pki
 
 ARG MAJOR_VERSION=4.0
-ARG ZBX_VERSION=${MAJOR_VERSION}.26
+ARG ZBX_VERSION=${MAJOR_VERSION}.27
 ARG ZBX_SOURCES=https://git.zabbix.com/scm/zbx/zabbix.git
 
 ENV TERM=xterm ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES}
