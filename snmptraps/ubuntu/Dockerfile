@@ -5,7 +5,7 @@ ARG ZBX_VERSION=${MAJOR_VERSION}
 ARG ZBX_SOURCES=https://git.zabbix.com/scm/zbx/zabbix.git
 
 ENV TERM=xterm ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES} \
-    MIBDIRS=/usr/share/snmp/mibs:/var/lib/zabbix/mibs MIBS=+ALL
+    MIBDIRS=/var/lib/snmp/mibs/ietf:/var/lib/snmp/mibs/iana:/usr/share/snmp/mibs:/var/lib/zabbix/mibs MIBS=+ALL
 
 LABEL org.opencontainers.image.title="zabbix-snmptraps-ubuntu" \
       org.opencontainers.image.authors="Alexey Pustovalov <alexey.pustovalov@zabbix.com>" \
@@ -19,7 +19,7 @@ LABEL org.opencontainers.image.title="zabbix-snmptraps-ubuntu" \
 STOPSIGNAL SIGTERM
 
 RUN set -eux && \
-    echo "#!/bin/sh\nexit 0" > /usr/sbin/policy-rc.d && \
+    echo "#!/bin/sh\nexit 101" > /usr/sbin/policy-rc.d && \
     addgroup --system --gid 1995 --quiet zabbix && \
     adduser --quiet \
             --system --disabled-login \
@@ -31,8 +31,7 @@ RUN set -eux && \
     DEBIAN_FRONTEND=noninteractive apt-get -y --no-install-recommends install \
             tzdata \
             snmp-mibs-downloader \
-            snmptrapd \
-            supervisor && \
+            snmptrapd && \
     download-mibs && \
     mkdir -p /var/lib/zabbix && \
     mkdir -p /var/lib/zabbix/snmptraps && \
@@ -40,7 +39,6 @@ RUN set -eux && \
     chown --quiet -R zabbix:root /etc/snmp/ /var/lib/zabbix/ /var/tmp/ /var/run/ && \
     chgrp -R 0 /etc/snmp/ /var/lib/zabbix/ /var/tmp/ /var/run/ && \
     chmod -R g=u /etc/snmp/ /var/lib/zabbix/ /var/tmp/ /var/run/ && \
-    apt-get -y autoremove && \
     rm -rf /var/lib/apt/lists/*
 
 EXPOSE 1162/UDP
