@@ -1,10 +1,10 @@
 FROM centos:centos8
 
-LABEL org.opencontainers.image.title="Zabbix proxy (MySQL)" \
+LABEL org.opencontainers.image.title="Zabbix server (MySQL)" \
       org.opencontainers.image.authors="Alexey Pustovalov <alexey.pustovalov@zabbix.com>" \
       org.opencontainers.image.vendor="Zabbix LLC" \
       org.opencontainers.image.url="https://zabbix.com/" \
-      org.opencontainers.image.description="Zabbix proxy with MySQL database support" \
+      org.opencontainers.image.description="Zabbix server with MySQL database support" \
       org.opencontainers.image.licenses="GPL v2.0"
 
 STOPSIGNAL SIGTERM
@@ -14,12 +14,13 @@ ENV TINI_VERSION=v0.19.0
 RUN set -eux && \
     groupadd -g 1995 --system zabbix && \
     adduser -r --shell /sbin/nologin \
-            -g zabbix -G root \
+            -g zabbix -G dialout -G root \
             -d /var/lib/zabbix/ -u 1997 \
         zabbix && \
     mkdir -p /etc/zabbix && \
     mkdir -p /var/lib/zabbix && \
     mkdir -p /var/lib/zabbix/enc && \
+    mkdir -p /var/lib/zabbix/export && \
     mkdir -p /var/lib/zabbix/mibs && \
     mkdir -p /var/lib/zabbix/modules && \
     mkdir -p /var/lib/zabbix/snmptraps && \
@@ -28,17 +29,21 @@ RUN set -eux && \
     mkdir -p /var/lib/zabbix/ssl/certs && \
     mkdir -p /var/lib/zabbix/ssl/keys && \
     mkdir -p /var/lib/zabbix/ssl/ssl_ca && \
+    mkdir -p /usr/lib/zabbix/alertscripts && \
     mkdir -p /usr/lib/zabbix/externalscripts && \
-    mkdir -p /usr/share/doc/zabbix-proxy-mysql && \
+    mkdir -p /usr/share/doc/zabbix-server-mysql && \
     dnf --quiet makecache && \
     dnf -y install epel-release && \
     dnf -y module enable mysql && \
     dnf -y install --setopt=tsflags=nodocs --setopt=install_weak_deps=False --best \
+            fping \
+            tzdata \
+            iputils \
+            traceroute \
             libcurl-minimal \
             libevent \
-            libssh \
-            fping \
             libxml2 \
+            libssh \
             mysql \
             mysql-libs \
             net-snmp-libs \
@@ -78,7 +83,7 @@ LABEL org.opencontainers.image.documentation="https://www.zabbix.com/documentati
       org.opencontainers.image.source="${ZBX_SOURCES}"
 
 RUN set -eux && \
-    sed -i 's/enabled=0/enabled=1/g' /etc/yum.repos.d/CentOS-Linux-PowerTools.repo && \
+    sed -i 's/enabled=0/enabled=1/g' /etc/yum.repos.d/CentOS-PowerTools.repo && \
     dnf --quiet makecache && \
     dnf -y install --setopt=tsflags=nodocs --setopt=install_weak_deps=False --best \
             autoconf \
@@ -106,10 +111,10 @@ RUN set -eux && \
     ./configure \
             --datadir=/usr/lib \
             --libdir=/usr/lib/zabbix \
-            --sysconfdir=/etc/zabbix \
             --prefix=/usr \
+            --sysconfdir=/etc/zabbix \
             --enable-agent \
-            --enable-proxy \
+            --enable-server \
             --with-mysql \
             --with-ldap \
             --with-libcurl \
@@ -123,13 +128,15 @@ RUN set -eux && \
             --silent && \
     make -j"$(nproc)" -s dbschema && \
     make -j"$(nproc)" -s && \
-    cp src/zabbix_proxy/zabbix_proxy /usr/sbin/zabbix_proxy && \
+    cp src/zabbix_server/zabbix_server /usr/sbin/zabbix_server && \
     cp src/zabbix_get/zabbix_get /usr/bin/zabbix_get && \
     cp src/zabbix_sender/zabbix_sender /usr/bin/zabbix_sender && \
-    cp conf/zabbix_proxy.conf /etc/zabbix/zabbix_proxy.conf && \
+    cp conf/zabbix_server.conf /etc/zabbix/zabbix_server.conf && \
     cat database/mysql/schema.sql > database/mysql/create.sql && \
+    cat database/mysql/images.sql >> database/mysql/create.sql && \
+    cat database/mysql/data.sql >> database/mysql/create.sql && \
     gzip database/mysql/create.sql && \
-    cp database/mysql/create.sql.gz /usr/share/doc/zabbix-proxy-mysql/ && \
+    cp database/mysql/create.sql.gz /usr/share/doc/zabbix-server-mysql/ && \
     cd /tmp/ && \
     rm -rf /tmp/zabbix-${ZBX_VERSION}/ && \
     chown --quiet -R zabbix:root /etc/zabbix/ /var/lib/zabbix/ && \
@@ -137,7 +144,7 @@ RUN set -eux && \
     chmod -R g=u /etc/zabbix/ /var/lib/zabbix/ && \
     dnf -y history undo `dnf -q history | sed -n 3p |column -t | cut -d' ' -f1` && \
     dnf -y clean all && \
-    sed -i 's/enabled=1/enabled=0/g' /etc/yum.repos.d/CentOS-Linux-PowerTools.repo && \
+    sed -i 's/enabled=1/enabled=0/g' /etc/yum.repos.d/CentOS-PowerTools.repo && \
     rm -rf /var/cache/yum /var/lib/yum/yumdb/* /usr/lib/udev/hwdb.d/* && \
     rm -rf /var/cache/dnf /etc/udev/hwdb.bin /root/.pki
 
@@ -145,7 +152,7 @@ EXPOSE 10051/TCP
 
 WORKDIR /var/lib/zabbix
 
-VOLUME ["/var/lib/zabbix/snmptraps"]
+VOLUME ["/var/lib/zabbix/snmptraps", "/var/lib/zabbix/export"]
 
 COPY ["docker-entrypoint.sh", "/usr/bin/"]
 
@@ -153,4 +160,4 @@ ENTRYPOINT ["/sbin/tini", "--", "/usr/bin/docker-entrypoint.sh"]
 
 USER 1997
 
-CMD ["/usr/sbin/zabbix_proxy", "--foreground", "-c", "/etc/zabbix/zabbix_proxy.conf"]
+CMD ["/usr/sbin/zabbix_server", "--foreground", "-c", "/etc/zabbix/zabbix_server.conf"]
