@@ -75,7 +75,7 @@ LABEL org.opencontainers.image.documentation="https://www.zabbix.com/documentati
       org.opencontainers.image.source="${ZBX_SOURCES}"
 
 RUN set -eux && \
-    sed -i 's/enabled=0/enabled=1/g' /etc/yum.repos.d/CentOS-PowerTools.repo && \
+    sed -i 's/enabled=0/enabled=1/g' /etc/yum.repos.d/CentOS-Linux-PowerTools.repo && \
     dnf --quiet makecache && \
     dnf -y install --setopt=tsflags=nodocs --setopt=install_weak_deps=False --best \
             autoconf \
@@ -134,7 +134,7 @@ RUN set -eux && \
     chmod -R g=u /etc/zabbix/ /var/lib/zabbix/ && \
     dnf -y history undo `dnf -q history | sed -n 3p |column -t | cut -d' ' -f1` && \
     dnf -y clean all && \
-    sed -i 's/enabled=1/enabled=0/g' /etc/yum.repos.d/CentOS-PowerTools.repo && \
+    sed -i 's/enabled=1/enabled=0/g' /etc/yum.repos.d/CentOS-Linux-PowerTools.repo && \
     rm -rf /var/cache/yum /var/lib/yum/yumdb/* /usr/lib/udev/hwdb.d/* && \
     rm -rf /var/cache/dnf /etc/udev/hwdb.bin /root/.pki
 
