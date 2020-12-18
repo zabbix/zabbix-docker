@@ -20,19 +20,21 @@ These are the only official Zabbix server Docker images. They are based on Alpin
 
     Zabbix server 3.0 (tags: alpine-3.0-latest, ubuntu-3.0-latest, centos-3.0-latest)
     Zabbix server 3.0.* (tags: alpine-3.0.*, ubuntu-3.0.*, centos-3.0.*)
-    Zabbix server 3.2 (tags: alpine-3.2-latest, ubuntu-3.2-latest, centos-3.2.*) (unsupported)
+    Zabbix server 3.2 (tags: alpine-3.2-latest, ubuntu-3.2-latest, centos-3.2-latest) (unsupported)
     Zabbix server 3.2.* (tags: alpine-3.2.*, ubuntu-3.2.*, centos-3.2.*) (unsupported)
-    Zabbix server 3.4 (tags: alpine-3.4-latest, ubuntu-3.4-latest, centos-3.4.*) (unsupported)
+    Zabbix server 3.4 (tags: alpine-3.4-latest, ubuntu-3.4-latest, centos-3.4-latest) (unsupported)
     Zabbix server 3.4.* (tags: alpine-3.4.*, ubuntu-3.4.*, centos-3.4.*) (unsupported)
     Zabbix server 4.0 (tags: alpine-4.0-latest, ubuntu-4.0-latest, centos-4.0-latest)
     Zabbix server 4.0.* (tags: alpine-4.0.*, ubuntu-4.0.*, centos-4.0.*)
-    Zabbix server 4.2 (tags: alpine-4.2-latest, ubuntu-4.2-latest, centos-4.2.*) (unsupported)
+    Zabbix server 4.2 (tags: alpine-4.2-latest, ubuntu-4.2-latest, centos-4.2-latest) (unsupported)
     Zabbix server 4.2.* (tags: alpine-4.2.*, ubuntu-4.2.*, centos-4.2.*) (unsupported)
     Zabbix server 4.4 (tags: alpine-4.4-latest, ubuntu-4.4-latest, centos-4.4-latest) (unsupported)
     Zabbix server 4.4.* (tags: alpine-4.4.*, ubuntu-4.4.*, centos-4.4.*) (unsupported)
-    Zabbix server 5.0 (tags: alpine-5.0-latest, ubuntu-5.0-latest, centos-5.0-latest, alpine-latest, ubuntu-latest, centos-latest, latest)
+    Zabbix server 5.0 (tags: alpine-5.0-latest, ubuntu-5.0-latest, centos-5.0-latest)
     Zabbix server 5.0.* (tags: alpine-5.0.*, ubuntu-5.0.*, centos-5.0.*)
-    Zabbix server 5.2 (tags: alpine-trunk, ubuntu-trunk, centos-trunk)
+    Zabbix server 5.2 (tags: alpine-5.2-latest, ubuntu-5.2-latest, centos-5.2-latest, alpine-latest, ubuntu-latest, centos-latest, latest)
+    Zabbix server 5.2.* (tags: alpine-5.2.*, ubuntu-5.2.*, centos-5.2.*)
+    Zabbix server 5.4 (tags: alpine-trunk, ubuntu-trunk, centos-trunk)
 
 Images are updated when new releases are published. The image with ``latest`` tag is based on Alpine Linux.
 
@@ -132,6 +134,9 @@ ZBX_DBTLSCERTFILE= # Available since 5.0.0
 ZBX_DBTLSKEYFILE= # Available since 5.0.0
 ZBX_DBTLSCIPHER= # Available since 5.0.0
 ZBX_DBTLSCIPHER13= # Available since 5.0.0
+ZBX_VAULTDBPATH= # Available since 5.2.0
+ZBX_VAULTURL=https://127.0.0.1:8200 # Available since 5.2.0
+VAULT_TOKEN= # Available since 5.2.0
 ZBX_LISTENIP=
 ZBX_HISTORYSTORAGEURL= # Available since 3.4.0
 ZBX_HISTORYSTORAGETYPES=uint,dbl,str,log,text # Available since 3.4.0

@@ -4,7 +4,7 @@ LABEL org.opencontainers.image.title="Zabbix web-interface (Nginx, PostgreSQL)" 
       org.opencontainers.image.authors="Alexey Pustovalov <alexey.pustovalov@zabbix.com>" \
       org.opencontainers.image.vendor="Zabbix LLC" \
       org.opencontainers.image.url="https://zabbix.com/" \
-      org.opencontainers.image.description="abbix web-interface based on Nginx web server with PostgreSQL database support" \
+      org.opencontainers.image.description="Zabbix web-interface based on Nginx web server with PostgreSQL database support" \
       org.opencontainers.image.licenses="GPL v2.0"
 
 STOPSIGNAL SIGTERM
