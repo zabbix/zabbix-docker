@@ -49,9 +49,4 @@ COPY ["conf/etc/snmp/snmptrapd.conf", "/etc/snmp/"]
 
 USER 1997
 
-<<<<<<< HEAD
-CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/supervisord.conf"]
-
-=======
 CMD ["/usr/sbin/snmptrapd", "-n", "-C", "-c", "/etc/snmp/snmptrapd.conf", "-Lo", "-A"]
->>>>>>> master
