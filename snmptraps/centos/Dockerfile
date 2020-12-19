@@ -1,4 +1,4 @@
-FROM centos:centos7
+FROM centos:centos8
 
 ARG MAJOR_VERSION=5.4
 ARG ZBX_VERSION=${MAJOR_VERSION}
