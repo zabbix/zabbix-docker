@@ -19,10 +19,13 @@ LABEL org.opencontainers.image.title="zabbix-snmptraps-centos" \
 STOPSIGNAL SIGTERM
 
 RUN set -eux && \
-    groupadd -g 1995 --system zabbix && \
-    adduser -r --shell /sbin/nologin \
+    groupadd --system --gid 1995 zabbix && \
+    useradd \
+            --system --comment "Zabbix monitoring system" \
             -g zabbix -G root \
-            -d /var/lib/zabbix/ -u 1997 \
+            --uid 1997 \
+            --shell /sbin/nologin \
+            --home-dir /var/lib/zabbix/ \
         zabbix && \
     yum --quiet makecache && \
     yum -y install epel-release && \

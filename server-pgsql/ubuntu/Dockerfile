@@ -12,14 +12,14 @@ STOPSIGNAL SIGTERM
 ENV TINI_VERSION=v0.19.0
 
 RUN set -eux && \
-    addgroup --system --gid 1995 --quiet zabbix && \
-    adduser --quiet \
-            --system --disabled-login \
-            --ingroup zabbix --ingroup root \
+    groupadd --system --gid 1995 zabbix && \
+    useradd \
+            --system --comment "Zabbix monitoring system" \
+            -g zabbix -G root -G dialout \
             --uid 1997 \
-            --home /var/lib/zabbix/ \
+            --shell /sbin/nologin \
+            --home-dir /var/lib/zabbix/ \
         zabbix && \
-    usermod -G zabbix,dialout zabbix && \
     mkdir -p /etc/zabbix && \
     mkdir -p /var/lib/zabbix && \
     mkdir -p /var/lib/zabbix/enc && \

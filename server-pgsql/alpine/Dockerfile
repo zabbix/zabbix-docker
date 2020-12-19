@@ -10,12 +10,16 @@ LABEL org.opencontainers.image.title="Zabbix server (PostgreSQL)" \
 STOPSIGNAL SIGTERM
 
 RUN set -eux && \
-    addgroup -S -g 1995 zabbix && \
-    adduser -S \
-            -D -G zabbix -G dialout -G root \
-            -u 1997 \
-            -h /var/lib/zabbix/ \
+    addgroup --system --gid 1995 zabbix && \
+    adduser --system \
+            --gecos "Zabbix monitoring system" \
+            --disabled-password \
+            --uid 1997 \
+            --ingroup zabbix \
+            --shell /sbin/nologin \
+            --home /var/lib/zabbix/ \
         zabbix && \
+    adduser zabbix root && \
     adduser zabbix dialout && \
     mkdir -p /etc/zabbix && \
     mkdir -p /var/lib/zabbix && \
