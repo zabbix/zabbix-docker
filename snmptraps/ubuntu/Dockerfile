@@ -20,12 +20,13 @@ STOPSIGNAL SIGTERM
 
 RUN set -eux && \
     echo "#!/bin/sh\nexit 101" > /usr/sbin/policy-rc.d && \
-    addgroup --system --gid 1995 --quiet zabbix && \
-    adduser --quiet \
-            --system --disabled-login \
-            --ingroup zabbix --ingroup root \
+    groupadd --system --gid 1995 zabbix && \
+    useradd \
+            --system --comment "Zabbix monitoring system" \
+            -g zabbix -G root \
             --uid 1997 \
-            --home /var/lib/zabbix/ \
+            --shell /sbin/nologin \
+            --home-dir /var/lib/zabbix/ \
         zabbix && \
     apt-get -y update && \
     DEBIAN_FRONTEND=noninteractive apt-get -y --no-install-recommends install \
