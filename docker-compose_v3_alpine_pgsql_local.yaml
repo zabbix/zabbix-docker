@@ -4,7 +4,7 @@ services:
   build:
    context: ./server-pgsql/alpine
    cache_from:
-    - alpine:3.11
+    - alpine:3.12
   image: zabbix-server-pgsql:alpine-local
   ports:
    - "10051:10051"
@@ -75,7 +75,7 @@ services:
   build:
    context: ./proxy-sqlite3/alpine
    cache_from:
-    - alpine:3.11
+    - alpine:3.12
   image: zabbix-proxy-sqlite3:alpine-local
   ports:
    - "10061:10051"
@@ -129,7 +129,7 @@ services:
   build:
    context: ./proxy-mysql/alpine
    cache_from:
-    - alpine:3.11
+    - alpine:3.12
   image: zabbix-proxy-mysql:alpine-local
   ports:
    - "10071:10051"
@@ -189,7 +189,7 @@ services:
   build:
    context: ./web-apache-pgsql/alpine
    cache_from:
-    - alpine:3.11
+    - alpine:3.12
   image: zabbix-web-apache-pgsql:alpine-local
   ports:
    - "80:8080"
@@ -250,7 +250,7 @@ services:
   build:
    context: ./web-nginx-pgsql/alpine
    cache_from:
-    - alpine:3.11
+    - alpine:3.12
   image: zabbix-web-nginx-pgsql:alpine-local
   ports:
    - "8081:8080"
@@ -311,7 +311,7 @@ services:
   build:
    context: ./agent/alpine
    cache_from:
-    - alpine:3.11
+    - alpine:3.12
   image: zabbix-agent:alpine-local
   ports:
    - "10050:10050"
@@ -354,7 +354,7 @@ services:
   build:
    context: ./java-gateway/alpine
    cache_from:
-    - alpine:3.11
+    - alpine:3.12
   image: zabbix-java-gateway:alpine-local
   ports:
    - "10052:10052"
@@ -384,7 +384,7 @@ services:
   build:
    context: ./snmptraps/alpine
    cache_from:
-    - alpine:3.11
+    - alpine:3.12
   image: zabbix-snmptraps:alpine-local
   ports:
    - "162:1162/udp"

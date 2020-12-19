@@ -4,7 +4,7 @@ services:
   build:
    context: ./server-pgsql/ubuntu
    cache_from:
-    - ubuntu:bionic
+    - ubuntu:focal
   image: zabbix-server-pgsql:ubuntu-local
   ports:
    - "10051:10051"
@@ -74,7 +74,7 @@ services:
   build:
    context: ./proxy-sqlite3/ubuntu
    cache_from:
-    - ubuntu:bionic
+    - ubuntu:focal
   image: zabbix-proxy-sqlite3:ubuntu-local
   ports:
    - "10061:10051"
@@ -127,7 +127,7 @@ services:
   build:
    context: ./proxy-mysql/ubuntu
    cache_from:
-    - ubuntu:bionic
+    - ubuntu:focal
   image: zabbix-proxy-mysql:ubuntu-local
   ports:
    - "10071:10051"
@@ -186,7 +186,7 @@ services:
   build:
    context: ./web-apache-pgsql/ubuntu
    cache_from:
-    - ubuntu:bionic
+    - ubuntu:focal
   image: zabbix-web-apache-pgsql:ubuntu-local
   ports:
    - "80:8080"
@@ -246,7 +246,7 @@ services:
   build:
    context: ./web-nginx-pgsql/ubuntu
    cache_from:
-    - ubuntu:bionic
+    - ubuntu:focal
   image: zabbix-web-nginx-pgsql:ubuntu-local
   ports:
    - "8081:8080"
@@ -306,7 +306,7 @@ services:
   build:
    context: ./agent/ubuntu
    cache_from:
-    - ubuntu:bionic
+    - ubuntu:focal
   image: zabbix-agent:ubuntu-local
   ports:
    - "10050:10050"
@@ -348,7 +348,7 @@ services:
   build:
    context: ./java-gateway/ubuntu
    cache_from:
-    - ubuntu:bionic
+    - ubuntu:focal
   image: zabbix-java-gateway:ubuntu-local
   ports:
    - "10052:10052"
@@ -378,7 +378,7 @@ services:
   build:
    context: ./snmptraps/ubuntu
    cache_from:
-    - ubuntu:bionic
+    - ubuntu:focal
   image: zabbix-snmptraps:ubuntu-local
   ports:
    - "162:1162/udp"

@@ -4,7 +4,7 @@ services:
   build:
    context: ./server-pgsql/centos
    cache_from:
-    - centos:centos7
+    - centos:centos8
   image: zabbix-server-pgsql:centos-local
   ports:
    - "10051:10051"
@@ -75,7 +75,7 @@ services:
   build:
    context: ./proxy-sqlite3/centos
    cache_from:
-    - centos:centos7
+    - centos:centos8
   image: zabbix-proxy-sqlite3:centos-local
   ports:
    - "10061:10051"
@@ -129,7 +129,7 @@ services:
   build:
    context: ./proxy-mysql/centos
    cache_from:
-    - centos:centos7
+    - centos:centos8
   image: zabbix-proxy-mysql:centos-local
   ports:
    - "10071:10051"
@@ -311,7 +311,7 @@ services:
   build:
    context: ./agent/centos
    cache_from:
-    - centos:centos7
+    - centos:centos8
   image: zabbix-agent:centos-local
   ports:
    - "10050:10050"
@@ -354,7 +354,7 @@ services:
   build:
    context: ./java-gateway/centos
    cache_from:
-    - centos:centos7
+    - centos:centos8
   image: zabbix-java-gateway:centos-local
   ports:
    - "10052:10052"
@@ -384,7 +384,7 @@ services:
   build:
    context: ./snmptraps/centos
    cache_from:
-    - centos:centos7
+    - centos:centos8
   image: zabbix-snmptraps:centos-local
   ports:
    - "162:1162/udp"
