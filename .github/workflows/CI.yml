@@ -74,7 +74,7 @@ jobs:
       - name: Prepare platform list
         id: platform
         run: |
-          DOCKER_PLATFORM="linux/amd64,linux/arm/v6,linux/arm/v7,linux/arm64,linux/s390x,linux/ppc64le"
+          DOCKER_PLATFORM="linux/amd64,linux/arm/v6,linux/arm/v7,linux/arm64,linux/ppc64le"
 
           if [ "${{ matrix.os }}" == "ubuntu" ]; then
             DOCKER_PLATFORM="linux/amd64,linux/arm/v7,linux/arm64,linux/ppc64le"
