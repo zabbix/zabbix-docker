@@ -10,7 +10,7 @@ LABEL org.opencontainers.image.title="Zabbix web-interface (Apache, PostgreSQL)"
 STOPSIGNAL SIGTERM
 
 RUN set -eux && \
-    echo "#!/bin/sh\nexit 0" > /usr/sbin/policy-rc.d && \
+    echo "#!/bin/sh\nexit 101" > /usr/sbin/policy-rc.d && \
     groupadd --system --gid 1995 zabbix && \
     useradd \
             --system --comment "Zabbix monitoring system" \
