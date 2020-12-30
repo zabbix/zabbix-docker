@@ -38,7 +38,7 @@ RUN set -eux && \
     yum --quiet makecache && \
     yum -y install --setopt=tsflags=nodocs \
             tzdata \
-            libldap \
+            openldap \
             libcurl \
             openssl-libs && \
     curl -L "https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini-${ARCH_SUFFIX}" -o /sbin/tini && \
