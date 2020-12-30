@@ -15,7 +15,7 @@ RUN set -eux && \
     ARCH_SUFFIX="$(arch)"; \
     case "$ARCH_SUFFIX" in \
         i686) export ARCH_SUFFIX='i386' ;; \
-        x86_64) [ -f /lib/ld-linux-x86-64.so.2 ] && export ARCH_SUFFIX='amd64' || export ARCH_SUFFIX='i386' ;; \
+        x86_64) [ -f /lib/x86_64-linux-gnu/ld-linux-x86-64.so.2 ] && export ARCH_SUFFIX='amd64' || export ARCH_SUFFIX='i386' ;; \
         aarch64) export ARCH_SUFFIX='arm64' ;; \
         armv7l) export ARCH_SUFFIX='armhf' ;; \
         ppc64el|ppc64le) export ARCH_SUFFIX='ppc64le' ;; \
