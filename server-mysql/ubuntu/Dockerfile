@@ -12,6 +12,17 @@ STOPSIGNAL SIGTERM
 ENV TINI_VERSION=v0.19.0
 
 RUN set -eux && \
+    ARCH_SUFFIX="$(arch)"; \
+    case "$ARCH_SUFFIX" in \
+        i686) export ARCH_SUFFIX='i386' ;; \
+        x86_64) [ -f /lib/ld-linux-x86-64.so.2 ] && export ARCH_SUFFIX='amd64' || export ARCH_SUFFIX='i386' ;; \
+        aarch64) export ARCH_SUFFIX='arm64' ;; \
+        armv7l) export ARCH_SUFFIX='armhf' ;; \
+        ppc64el|ppc64le) export ARCH_SUFFIX='ppc64le' ;; \
+        s390x) export ARCH_SUFFIX='s390x' ;; \
+        *) echo "Unknown ARCH_SUFFIX=${ARCH_SUFFIX-}"; exit 1 ;; \
+    esac; \
+    echo "#!/bin/sh\nexit 101" > /usr/sbin/policy-rc.d && \
     groupadd --system --gid 1995 zabbix && \
     useradd \
             --system --comment "Zabbix monitoring system" \
@@ -57,8 +68,8 @@ RUN set -eux && \
             mysql-client \
             snmp-mibs-downloader \
             unixodbc && \
-    curl -L "https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini" -o /sbin/tini && \
-    curl -L "https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini.asc" -o /tmp/tini.asc && \
+    curl -L "https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini-${ARCH_SUFFIX}" -o /sbin/tini && \
+    curl -L "https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini-${ARCH_SUFFIX}.asc" -o /tmp/tini.asc && \
     export GNUPGHOME="$(mktemp -d)" && \
     for server in $(shuf -e ha.pool.sks-keyservers.net \
                             hkp://p80.pool.sks-keyservers.net:80 \
