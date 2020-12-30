@@ -10,13 +10,14 @@ LABEL org.opencontainers.image.title="Zabbix Java Gateway" \
 STOPSIGNAL SIGTERM
 
 RUN set -eux && \
-    echo "#!/bin/sh\nexit 0" > /usr/sbin/policy-rc.d && \
-    addgroup --system --gid 1995 --quiet zabbix && \
-    adduser --quiet \
-            --system --disabled-login \
-            --ingroup zabbix --ingroup root \
+    echo "#!/bin/sh\nexit 101" > /usr/sbin/policy-rc.d && \
+    groupadd --system --gid 1995 zabbix && \
+    useradd \
+            --system --comment "Zabbix monitoring system" \
+            -g zabbix -G root \
             --uid 1997 \
-            --home /var/lib/zabbix/ \
+            --shell /sbin/nologin \
+            --home-dir /var/lib/zabbix/ \
         zabbix && \
     mkdir -p /etc/zabbix/ && \
     mkdir -p /usr/sbin/zabbix_java/ && \
