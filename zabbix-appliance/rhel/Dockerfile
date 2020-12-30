@@ -82,10 +82,13 @@ RUN INSTALL_PKGS="OpenIPMI-libs \
       --security --sec-severity=Important --sec-severity=Critical && \
     echo ${REPOLIST} && \
     yum -y install --disablerepo "*" --enablerepo "${REPOLIST}" --setopt=tsflags=nodocs ${INSTALL_PKGS} && \
-    groupadd --system zabbix && \
-    adduser -r --shell /sbin/nologin \
-            -g zabbix -G dialout \
-            -d /var/lib/zabbix/ \
+    groupadd --system --gid 1995 zabbix && \
+    useradd \
+            --system --comment "Zabbix monitoring system" \
+            -g zabbix -G root,dialout \
+            --uid 1997 \
+            --shell /sbin/nologin \
+            --home-dir /var/lib/zabbix/ \
         zabbix && \
     mkdir -p /etc/zabbix && \
     mkdir -p /var/lib/zabbix && \
