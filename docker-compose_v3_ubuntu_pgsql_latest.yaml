@@ -396,7 +396,7 @@ services:
      - mysql-database
 
  postgres-server:
-  image: postgres:latest
+  image: postgres:alpine
 #  command: -c ssl=on -c ssl_cert_file=/run/secrets/server-cert.pem -c ssl_key_file=/run/secrets/server-key.pem -c ssl_ca_file=/run/secrets/root-ca.pem
   volumes:
    - ./zbx_env/var/lib/postgresql/data:/var/lib/postgresql/data:rw
