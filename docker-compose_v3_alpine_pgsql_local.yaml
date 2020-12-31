@@ -422,7 +422,7 @@ services:
      - mysql-database
 
  postgres-server:
-  image: postgres:latest
+  image: postgres:alpine
   volumes:
    - ./zbx_env/var/lib/postgresql/data:/var/lib/postgresql/data:rw
   env_file:
