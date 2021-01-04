@@ -26,8 +26,6 @@ This repository contains **Dockerfile** of [Zabbix](https://zabbix.com/) for [Do
 
 Please follow usage instructions of each Zabbix component image:
 
-* [zabbix-appliance](https://hub.docker.com/r/zabbix/zabbix-appliance/) - Zabbix appliance with built-in MySQL server, Zabbix server, Zabbix Java Gateway and Zabbix frontend based on Nginx web-server
-
 * [zabbix-agent](https://hub.docker.com/r/zabbix/zabbix-agent/) - Zabbix agent
 * [zabbix-server-mysql](https://hub.docker.com/r/zabbix/zabbix-server-mysql/) - Zabbix server with MySQL database support
 * [zabbix-server-pgsql](https://hub.docker.com/r/zabbix/zabbix-server-pgsql/) - Zabbix server with PostgreSQL database support
@@ -39,6 +37,20 @@ Please follow usage instructions of each Zabbix component image:
 * [zabbix-proxy-mysql](https://hub.docker.com/r/zabbix/zabbix-proxy-mysql/) - Zabbix proxy with MySQL database support
 * [zabbix-java-gateway](https://hub.docker.com/r/zabbix/zabbix-java-gateway/) - Zabbix Java Gateway
 * [zabbix-snmptraps](https://hub.docker.com/r/zabbix/zabbix-snmptraps/) - Additional container image for Zabbix server and Zabbix proxy to support SNMP traps
+
+* [zabbix-appliance](https://hub.docker.com/r/zabbix/zabbix-appliance/) - **deprecated, please do not use this any longer** Zabbix appliance with built-in MySQL server, Zabbix server, Zabbix Java Gateway and Zabbix frontend based on Nginx web-server
+
+## Deploy via docker-compose
+
+### Usage
+
+Instead of using zabbix-appliance that was packing every service into one container you should now use the provided docker-compose files.
+
+1. pull the repository
+2. rename the docker-compose-os-db-buildtype.yaml file you want to docker-compose.yaml
+3. review the .env and .User / Password files
+3. run `docker-compose up -d` from inside the directory
+4. Have your full stack zabbix instance available at localhost:80
 
 ## Issues
 
