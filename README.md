@@ -46,11 +46,11 @@ Please follow usage instructions of each Zabbix component image:
 
 Instead of using zabbix-appliance that was packing every service into one container you should now use the provided docker-compose files.
 
-1. pull the repository
-2. rename the docker-compose-os-db-buildtype.yaml file you want to docker-compose.yaml
-3. review the .env and .User / Password files
-3. run `docker-compose up -d` from inside the directory
-4. Have your full stack zabbix instance available at localhost:80
+1. Pull the repository.
+2. Choose the docker-compose file you want to use and remove / comment extra services (for example proxy) you don't want.
+3. Review the `.env` and ._DATABASE__USER/PASSWORD files.
+3. Run `docker-compose -f YOUR_SUITABLE_DOCKER_COMPOSE up -d` from inside the directory.
+4. Have your full stack zabbix instance available at localhost:80.
 
 ## Issues
 
