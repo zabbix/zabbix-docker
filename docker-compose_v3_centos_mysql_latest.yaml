@@ -1,12 +1,16 @@
+#
+# Zabbix frontend on Nginx web-server with MySQL database support
+# REMOVED Apache and sqlite3
+#
+
 version: '3.5'
 services:
  zabbix-server:
-  image: zabbix/zabbix-server-mysql:centos-5.0-latest
+  image: zabbix/zabbix-server-mysql:ubuntu-5.0-latest
   ports:
    - "10051:10051"
   volumes:
    - /etc/localtime:/etc/localtime:ro
-   - /etc/timezone:/etc/timezone:ro 
    - ./zbx_env/usr/lib/zabbix/alertscripts:/usr/lib/zabbix/alertscripts:ro
    - ./zbx_env/usr/lib/zabbix/externalscripts:/usr/lib/zabbix/externalscripts:ro
    - ./zbx_env/var/lib/zabbix/export:/var/lib/zabbix/export:rw
@@ -50,8 +54,8 @@ services:
      aliases:
       - zabbix-server
       - zabbix-server-mysql
-      - zabbix-server-centos-mysql
-      - zabbix-server-mysql-centos
+      - zabbix-server-ubuntu-mysql
+      - zabbix-server-mysql-ubuntu
    zbx_net_frontend:
 #  devices:
 #   - "/dev/ttyUSB0:/dev/ttyUSB0"
@@ -66,65 +70,14 @@ services:
    com.zabbix.company: "Zabbix LLC"
    com.zabbix.component: "zabbix-server"
    com.zabbix.dbtype: "mysql"
-   com.zabbix.os: "centos"
-
- zabbix-proxy-sqlite3:
-  image: zabbix/zabbix-proxy-sqlite3:centos-5.0-latest
-  ports:
-   - "10061:10051"
-  volumes:
-   - /etc/localtime:/etc/localtime:ro
-   - /etc/timezone:/etc/timezone:ro 
-   - ./zbx_env/usr/lib/zabbix/externalscripts:/usr/lib/zabbix/externalscripts:ro
-   - ./zbx_env/var/lib/zabbix/modules:/var/lib/zabbix/modules:ro
-   - ./zbx_env/var/lib/zabbix/enc:/var/lib/zabbix/enc:ro
-   - ./zbx_env/var/lib/zabbix/ssh_keys:/var/lib/zabbix/ssh_keys:ro
-   - ./zbx_env/var/lib/zabbix/mibs:/var/lib/zabbix/mibs:ro
-   - snmptraps:/var/lib/zabbix/snmptraps:rw
-  links:
-   - zabbix-server:zabbix-server
-   - zabbix-java-gateway:zabbix-java-gateway
-  ulimits:
-   nproc: 65535
-   nofile:
-    soft: 20000
-    hard: 40000
-  deploy:
-   resources:
-    limits:
-      cpus: '0.70'
-      memory: 512M
-    reservations:
-      cpus: '0.3'
-      memory: 256M
-  env_file:
-   - .env_prx
-   - .env_prx_sqlite3
-  depends_on:
-   - zabbix-java-gateway
-   - zabbix-snmptraps
-  networks:
-   zbx_net_backend:
-    aliases:
-     - zabbix-proxy-sqlite3
-     - zabbix-proxy-centos-sqlite3
-     - zabbix-proxy-sqlite3-centos
-   zbx_net_frontend:
-  stop_grace_period: 30s
-  labels:
-   com.zabbix.description: "Zabbix proxy with SQLite3 database support"
-   com.zabbix.company: "Zabbix LLC"
-   com.zabbix.component: "zabbix-proxy"
-   com.zabbix.dbtype: "sqlite3"
-   com.zabbix.os: "centos"
+   com.zabbix.os: "ubuntu"
 
  zabbix-proxy-mysql:
-  image: zabbix/zabbix-proxy-mysql:centos-5.0-latest
+  image: zabbix/zabbix-proxy-mysql:ubuntu-5.0-latest
   ports:
    - "10071:10051"
   volumes:
    - /etc/localtime:/etc/localtime:ro
-   - /etc/timezone:/etc/timezone:ro
    - ./zbx_env/usr/lib/zabbix/externalscripts:/usr/lib/zabbix/externalscripts:ro
    - ./zbx_env/var/lib/zabbix/modules:/var/lib/zabbix/modules:ro
    - ./zbx_env/var/lib/zabbix/enc:/var/lib/zabbix/enc:ro
@@ -166,8 +119,8 @@ services:
    zbx_net_backend:
     aliases:
      - zabbix-proxy-mysql
-     - zabbix-proxy-centos-mysql
-     - zabbix-proxy-mysql-centos
+     - zabbix-proxy-ubuntu-mysql
+     - zabbix-proxy-mysql-ubuntu
    zbx_net_frontend:
   stop_grace_period: 30s
   labels:
@@ -175,67 +128,10 @@ services:
    com.zabbix.company: "Zabbix LLC"
    com.zabbix.component: "zabbix-proxy"
    com.zabbix.dbtype: "mysql"
-   com.zabbix.os: "centos"
-
- zabbix-web-apache-mysql:
-  image: zabbix/zabbix-web-apache-mysql:centos-5.0-latest
-  ports:
-   - "80:8080"
-   - "443:8443"
-  links:
-   - mysql-server:mysql-server
-   - zabbix-server:zabbix-server
-  volumes:
-   - /etc/localtime:/etc/localtime:ro
-   - /etc/timezone:/etc/timezone:ro
-   - ./zbx_env/etc/ssl/apache2:/etc/ssl/apache2:ro
-   - ./zbx_env/usr/share/zabbix/modules/:/usr/share/zabbix/modules/:ro
-  deploy:
-   resources:
-    limits:
-      cpus: '0.70'
-      memory: 512M
-    reservations:
-      cpus: '0.5'
-      memory: 256M
-  env_file:
-   - .env_db_mysql
-   - .env_web
-  secrets:
-   - MYSQL_USER
-   - MYSQL_PASSWORD
-#   - client-key.pem
-#   - client-cert.pem
-#   - root-ca.pem
-  depends_on:
-   - mysql-server
-   - zabbix-server
-  healthcheck:
-   test: ["CMD", "curl", "-f", "http://localhost:8080/"]
-   interval: 10s
-   timeout: 5s
-   retries: 3
-   start_period: 30s
-  networks:
-   zbx_net_backend:
-    aliases:
-     - zabbix-web-apache-mysql
-     - zabbix-web-apache-centos-mysql
-     - zabbix-web-apache-mysql-centos
-   zbx_net_frontend:
-  stop_grace_period: 10s
-  sysctls:
-   - net.core.somaxconn=65535
-  labels:
-   com.zabbix.description: "Zabbix frontend on Apache web-server with MySQL database support"
-   com.zabbix.company: "Zabbix LLC"
-   com.zabbix.component: "zabbix-frontend"
-   com.zabbix.webserver: "apache2"
-   com.zabbix.dbtype: "mysql"
-   com.zabbix.os: "centos"
-
+   com.zabbix.os: "ubuntu"
+ 
  zabbix-web-nginx-mysql:
-  image: zabbix/zabbix-web-nginx-mysql:centos-5.0-latest
+  image: zabbix/zabbix-web-nginx-mysql:ubuntu-5.0-latest
   ports:
    - "8081:8080"
    - "8443:8443"
@@ -244,7 +140,6 @@ services:
    - zabbix-server:zabbix-server
   volumes:
    - /etc/localtime:/etc/localtime:ro
-   - /etc/timezone:/etc/timezone:ro
    - ./zbx_env/etc/ssl/nginx:/etc/ssl/nginx:ro
    - ./zbx_env/usr/share/zabbix/modules/:/usr/share/zabbix/modules/:ro
   deploy:
@@ -277,8 +172,8 @@ services:
    zbx_net_backend:
     aliases:
      - zabbix-web-nginx-mysql
-     - zabbix-web-nginx-centos-mysql
-     - zabbix-web-nginx-mysql-centos
+     - zabbix-web-nginx-ubuntu-mysql
+     - zabbix-web-nginx-mysql-ubuntu
    zbx_net_frontend:
   stop_grace_period: 10s
   sysctls:
@@ -289,15 +184,14 @@ services:
    com.zabbix.component: "zabbix-frontend"
    com.zabbix.webserver: "nginx"
    com.zabbix.dbtype: "mysql"
-   com.zabbix.os: "centos"
+   com.zabbix.os: "ubuntu"
 
  zabbix-agent:
-  image: zabbix/zabbix-agent:centos-5.0-latest
+  image: zabbix/zabbix-agent:ubuntu-5.0-latest
   ports:
    - "10050:10050"
   volumes:
    - /etc/localtime:/etc/localtime:ro
-   - /etc/timezone:/etc/timezone:ro
    - ./zbx_env/etc/zabbix/zabbix_agentd.d:/etc/zabbix/zabbix_agentd.d:ro
    - ./zbx_env/var/lib/zabbix/modules:/var/lib/zabbix/modules:ro
    - ./zbx_env/var/lib/zabbix/enc:/var/lib/zabbix/enc:ro
@@ -322,16 +216,16 @@ services:
     aliases:
      - zabbix-agent
      - zabbix-agent-passive
-     - zabbix-agent-centos
+     - zabbix-agent-ubuntu
   stop_grace_period: 5s
   labels:
    com.zabbix.description: "Zabbix agent"
    com.zabbix.company: "Zabbix LLC"
    com.zabbix.component: "zabbix-agentd"
-   com.zabbix.os: "centos"
+   com.zabbix.os: "ubuntu"
 
  zabbix-java-gateway:
-  image: zabbix/zabbix-java-gateway:centos-5.0-latest
+  image: zabbix/zabbix-java-gateway:ubuntu-5.0-latest
   ports:
    - "10052:10052"
   deploy:
@@ -348,16 +242,16 @@ services:
    zbx_net_backend:
     aliases:
      - zabbix-java-gateway
-     - zabbix-java-gateway-centos
+     - zabbix-java-gateway-ubuntu
   stop_grace_period: 5s
   labels:
    com.zabbix.description: "Zabbix Java Gateway"
    com.zabbix.company: "Zabbix LLC"
    com.zabbix.component: "java-gateway"
-   com.zabbix.os: "centos"
+   com.zabbix.os: "ubuntu"
 
  zabbix-snmptraps:
-  image: zabbix/zabbix-snmptraps:centos-5.0-latest
+  image: zabbix/zabbix-snmptraps:ubuntu-5.0-latest
   ports:
    - "162:1162/udp"
   volumes:
@@ -380,7 +274,7 @@ services:
    com.zabbix.description: "Zabbix snmptraps"
    com.zabbix.company: "Zabbix LLC"
    com.zabbix.component: "snmptraps"
-   com.zabbix.os: "centos"
+   com.zabbix.os: "ubuntu"
 
  mysql-server:
   image: mysql:8.0
