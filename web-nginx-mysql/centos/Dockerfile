@@ -77,7 +77,7 @@ RUN set -eux && \
                 cut -d"'" -f 2 | sort | \
                 xargs -I '{}' bash -c 'echo "{}" && localedef -c -i {} -f UTF-8 {}.UTF-8 2>/dev/null'
 COPY ["simkai.ttf", "/usr/share/zabbix/assets/fonts/"]
-RUN sed -i 's//DejaVuSans/simkai/g' /usr/share/zabbix/include/defines.inc.php && \
+RUN sed -i 's/DejaVuSans/simkai/g' /usr/share/zabbix/include/defines.inc.php && \
     chown --quiet -R zabbix:root /etc/zabbix/ /usr/share/zabbix/modules/ && \
     chgrp -R 0 /etc/zabbix/ /usr/share/zabbix/modules/ && \
     chmod -R g=u /etc/zabbix/ /usr/share/zabbix/modules/ && \
