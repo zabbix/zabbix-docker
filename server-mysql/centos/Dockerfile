@@ -49,6 +49,8 @@ RUN set -eux && \
     dnf -y install epel-release && \
     dnf -y module enable mysql && \
     dnf -y install --setopt=tsflags=nodocs --setopt=install_weak_deps=False --best \
+            python3 \
+            python3-pip \
             fping \
             tzdata \
             iputils \
@@ -66,6 +68,7 @@ RUN set -eux && \
             pcre \
             zlib \
             unixODBC && \
+            pip3 install requests datetime aliyun-python-sdk-core-v3 && \
     curl -L "https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini-${ARCH_SUFFIX}" -o /sbin/tini && \
     curl -L "https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini-${ARCH_SUFFIX}.asc" -o /tmp/tini.asc && \
     export GNUPGHOME="$(mktemp -d)" && \
