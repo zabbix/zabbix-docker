@@ -43,7 +43,7 @@ RUN set -eux && \
     rm -rf /var/cache/dnf /etc/udev/hwdb.bin /root/.pki
 
 ARG MAJOR_VERSION=5.2
-ARG ZBX_VERSION=${MAJOR_VERSION}.3
+ARG ZBX_VERSION=${MAJOR_VERSION}.4
 ARG ZBX_SOURCES=https://git.zabbix.com/scm/zbx/zabbix.git
 
 ENV TERM=xterm ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES}
