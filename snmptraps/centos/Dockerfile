@@ -5,7 +5,8 @@ ARG ZBX_VERSION=${MAJOR_VERSION}
 ARG ZBX_SOURCES=https://git.zabbix.com/scm/zbx/zabbix.git
 
 ENV TERM=xterm ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES} \
-    MIBDIRS=/usr/share/snmp/mibs:/var/lib/zabbix/mibs MIBS=+ALL
+    MIBDIRS=/usr/share/snmp/mibs:/var/lib/zabbix/mibs MIBS=+ALL \
+    ZBX_SNMP_TRAP_DATE_FORMAT=+%Y%m%d.%H%M%S ZBX_SNMP_TRAP_FORMAT=" "
 
 LABEL org.opencontainers.image.title="zabbix-snmptraps-centos" \
       org.opencontainers.image.authors="Alexey Pustovalov <alexey.pustovalov@zabbix.com>" \
@@ -35,7 +36,7 @@ RUN set -eux && \
     mkdir -p /var/lib/zabbix && \
     mkdir -p /var/lib/zabbix/snmptraps && \
     mkdir -p /var/lib/zabbix/mibs && \
-     touch /var/lib/net-snmp/snmptrapd.conf && \
+    touch /var/lib/net-snmp/snmptrapd.conf && \
     chown --quiet -R zabbix:root /etc/snmp/ /var/lib/zabbix/ /var/tmp/ /var/run/ && \
     chgrp -R 0 /etc/snmp/ /var/lib/zabbix/ /var/tmp/ /var/run/ && \
     chmod -R g=u /etc/snmp/ /var/lib/zabbix/ /var/tmp/ /var/run/ && \
@@ -51,6 +52,7 @@ VOLUME ["/var/lib/zabbix/snmptraps"]
 
 COPY ["conf/etc/logrotate.d/zabbix_snmptraps", "/etc/logrotate.d/"]
 COPY ["conf/etc/snmp/snmptrapd.conf", "/etc/snmp/"]
+COPY ["conf/usr/sbin/zabbix_trap_handler.sh", "/usr/sbin/"]
 
 USER 1997
 
