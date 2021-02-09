@@ -5,7 +5,8 @@ ARG ZBX_VERSION=${MAJOR_VERSION}
 ARG ZBX_SOURCES=https://git.zabbix.com/scm/zbx/zabbix.git
 
 ENV TERM=xterm ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES} \
-    MIBDIRS=/var/lib/snmp/mibs/ietf:/var/lib/snmp/mibs/iana:/usr/share/snmp/mibs:/var/lib/zabbix/mibs MIBS=+ALL
+    MIBDIRS=/var/lib/snmp/mibs/ietf:/var/lib/snmp/mibs/iana:/usr/share/snmp/mibs:/var/lib/zabbix/mibs MIBS=+ALL \
+    ZBX_SNMP_TRAP_DATE_FORMAT=+%Y%m%d.%H%M%S ZBX_SNMP_TRAP_FORMAT=" "
 
 LABEL org.opencontainers.image.title="zabbix-snmptraps-ubuntu" \
       org.opencontainers.image.authors="Alexey Pustovalov <alexey.pustovalov@zabbix.com>" \
@@ -50,6 +51,7 @@ VOLUME ["/var/lib/zabbix/snmptraps"]
 
 COPY ["conf/etc/logrotate.d/zabbix_snmptraps", "/etc/logrotate.d/"]
 COPY ["conf/etc/snmp/snmptrapd.conf", "/etc/snmp/"]
+COPY ["conf/usr/sbin/zabbix_trap_handler.sh", "/usr/sbin/"]
 
 USER 1997
 
