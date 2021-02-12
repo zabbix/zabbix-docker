@@ -4,7 +4,7 @@ ZABBIX_TRAPS_FILE="/var/lib/zabbix/snmptraps/snmptraps.log"
 
 ZBX_SNMP_TRAP_DATE_FORMAT=${ZBX_SNMP_TRAP_DATE_FORMAT:-"+%Y%m%d.%H%M%S"}
 
-ZBX_SNMP_TRAP_FORMAT=${ZBX_SNMP_TRAP_FORMAT:"\n"}
+ZBX_SNMP_TRAP_FORMAT=${ZBX_SNMP_TRAP_FORMAT:-" "}
 
 date=$(date "$ZBX_SNMP_TRAP_DATE_FORMAT")
 
@@ -40,4 +40,4 @@ done
 
 ! [ -z $trap_address ] && sender_addr=$trap_address
 
-echo -e "$date ZBXTRAP $sender_addr$ZBX_SNMP_TRAP_FORMAT$vars" >> $ZABBIX_TRAPS_FILE
+echo -e "$date ZBXTRAP $sender_addr$ZBX_SNMP_TRAP_FORMAT$sender$ZBX_SNMP_TRAP_FORMAT$vars" >> $ZABBIX_TRAPS_FILE
