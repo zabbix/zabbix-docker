@@ -9,6 +9,7 @@ on:
       - '3.0'
       - '4.0'
       - '5.0'
+      - '5.2'
       - 'trunk'
     paths-ignore:
       - '.env*'
@@ -22,6 +23,7 @@ defaults:
 
 jobs:
   build:
+    timeout-minutes: 70
     env:
       LATEST_BRANCH: "${{ github.event.repository.default_branch }}"
       DOCKER_REPOSITORY: "zabbix"
@@ -51,41 +53,31 @@ jobs:
           - os: ubuntu
             build: agent2
 
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     steps:
-      - uses: actions/checkout@v2
+      - 
+        uses: actions/checkout@v2
 
-      - name: Install buildx
-        env:
-          DOCKER_CLI_EXPERIMENTAL: enabled
-        run: |
-          BUILDX_VERSION="0.4.2"
-          QEMU_TAG="latest"
-          mkdir -p ~/.docker/cli-plugins/
-          curl -L https://github.com/docker/buildx/releases/download/v${BUILDX_VERSION}/buildx-v${BUILDX_VERSION}.linux-amd64 \
-                -o ~/.docker/cli-plugins/docker-buildx
-          chmod +x ~/.docker/cli-plugins/docker-buildx
-          docker pull -q multiarch/qemu-user-static:latest
-          docker run --rm --privileged multiarch/qemu-user-static:${QEMU_TAG} --reset -p yes --credential yes
-          docker buildx create --name builder-${GITHUB_SHA::8} --driver docker-container --use
-          docker buildx inspect --bootstrap
-          docker info
-          docker buildx inspect
-
-      - name: Available platforms
-        run: docker buildx inspect | grep Platforms
+      -
+        name: Set up QEMU
+        uses: docker/setup-qemu-action@v1
+      -
+        name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
+      -
+        name: Login to DockerHub
+        uses: docker/login-action@v1 
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
 
       - name: Prepare platform list
         id: platform
         run: |
-          DOCKER_PLATFORM="linux/amd64,linux/arm/v6,linux/arm/v7,linux/arm64,linux/s390x,linux/ppc64le"
+          DOCKER_PLATFORM="linux/amd64,linux/arm/v6,linux/arm/v7,linux/arm64,linux/ppc64le"
 
           if [ "${{ matrix.os }}" == "ubuntu" ]; then
-            DOCKER_PLATFORM="linux/amd64,linux/arm/v7,linux/arm64,linux/s390x,linux/ppc64le"
-          fi
-
-          if [ "${{ matrix.os }}" == "ubuntu" ] && [ "${{ matrix.build }}" == "snmptraps" ]; then
-            DOCKER_PLATFORM="linux/amd64,linux/arm64"
+            DOCKER_PLATFORM="linux/amd64,linux/arm/v7,linux/arm64,linux/ppc64le"
           fi
 
           if [ "${{ matrix.os }}" == "centos" ]; then
@@ -124,17 +116,12 @@ jobs:
             TAGS_ARRAY+=("$IMAGE_NAME:${{ matrix.os }}-latest")
           fi
 
-          TAGS=$(printf -- "--tag %s " "${TAGS_ARRAY[@]}")
+          TAGS=$(printf -- "%s, " "${TAGS_ARRAY[@]}")
 
           echo "::debug::Tags - ${TAGS}"
 
           echo ::set-output name=image_name::${IMAGE_NAME}
-          echo ::set-output name=image_tag_versions::$(printf -- "|%s" "${TAGS_ARRAY[@]}")
-          echo ::set-output name=buildx_args::--platform "${{ steps.platform.outputs.list }}" \
-            --build-arg BUILD_DATE=$(date -u +'%Y-%m-%dT%H:%M:%SZ') \
-            --build-arg VCS_REF=${GITHUB_SHA::8} \
-            ${TAGS} \
-            --file ./${{ matrix.build }}/${{ matrix.os }}/Dockerfile ./${{ matrix.build }}/${{ matrix.os }}
+          echo ::set-output name=image_tag_versions::$(printf -- "%s," "${TAGS_ARRAY[@]}")
 
       - name: Prepare environment (release)
         if: github.event_name == 'release' && github.event.action == 'published'
@@ -158,68 +145,35 @@ jobs:
           TAGS=$(printf -- "--tag %s " "${TAGS_ARRAY[@]}")
 
           echo ::set-output name=image_name::${IMAGE_NAME}
-          echo ::set-output name=image_tag_versions::$(printf -- "|%s" "${TAGS_ARRAY[@]}")
-          echo ::set-output name=buildx_args::--platform "${{ steps.platform.outputs.list }}" \
-            --build-arg BUILD_DATE=$(date -u +'%Y-%m-%dT%H:%M:%SZ') \
-            --build-arg VCS_REF=${GITHUB_SHA::8} \
-            $TAGS \
-            --file ./${{ matrix.build }}/${{ matrix.os }}/Dockerfile ./${{ matrix.build }}/${{ matrix.os }}
+          echo ::set-output name=image_tag_versions::$(printf -- ",%s" "${TAGS_ARRAY[@]}")
 
-      - name: Build images
-        env:
-          DOCKER_CLI_EXPERIMENTAL: enabled
+      - name: Prepare tags
+        id: prepare_tags
         run: |
-          if [ ! -z "${{ steps.prepare_push.outputs.buildx_args }}" ]; then
-              BUILDX_ARGS="${{ steps.prepare_push.outputs.buildx_args }}"
-          elif [ ! -z "${{ steps.prepare_release.outputs.buildx_args }}" ]; then
-              BUILDX_ARGS="${{ steps.prepare_release.outputs.buildx_args }}"
+          if [ ! -z "${{ steps.prepare_push.outputs.image_tag_versions }}" ]; then
+              TAGS="${{ steps.prepare_push.outputs.image_tag_versions }}"
+              IMAGE_NAME="${{ steps.prepare_push.outputs.image_name }}"
+          elif [ ! -z "${{ steps.prepare_release.outputs.image_tag_versions }}" ]; then
+              TAGS="${{ steps.prepare_release.outputs.image_tag_versions }}"
+              IMAGE_NAME="${{ steps.prepare_release.outputs.image_name }}"
           else
               exit 1
           fi
 
-          docker buildx build --cache-to "type=local,dest=/tmp/.buildx-cache" \
-            --output "type=image,push=false" \
-            ${BUILDX_ARGS}
+          echo ::set-output name=image_tag_versions::${TAGS}
+          echo ::set-output name=image_name::${IMAGE_NAME}
 
-      - name: Docker Hub login
-        if: success()
-        uses: docker/login-action@v1
+      -
+        name: Build and push
+        id: docker_build
+        uses: docker/build-push-action@v2
         with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
+          context: ./${{ matrix.build }}/${{ matrix.os }}
+          file: ./${{ matrix.build }}/${{ matrix.os }}/Dockerfile
+          platforms: ${{ steps.platform.outputs.list }}
+          push: ${{ secrets.AUTO_PUSH_IMAGES }}
+          tags: ${{ steps.prepare_tags.outputs.image_tag_versions }}
 
-      - name: Push images from cache
-        if: success()
-        env:
-          DOCKER_CLI_EXPERIMENTAL: enabled
-        run: |
-          if [ ! -z "${{ steps.prepare_push.outputs.buildx_args }}" ]; then
-              BUILDX_ARGS="${{ steps.prepare_push.outputs.buildx_args }}"
-          elif [ ! -z "${{ steps.prepare_release.outputs.buildx_args }}" ]; then
-              BUILDX_ARGS="${{ steps.prepare_release.outputs.buildx_args }}"
-          fi
-
-          docker buildx build --cache-from "type=local,src=/tmp/.buildx-cache" \
-            --output "type=image,push=${{ secrets.AUTO_PUSH_IMAGES }}" \
-            ${BUILDX_ARGS}
-
-      - name: Inspect images
-        run: |
-          echo "::debug::push - ${{ steps.prepare_push.outputs.buildx_args }}"
-          echo "::debug::release - ${{ steps.prepare_release.outputs.buildx_args }}"
-
-          if [ ! -z "${{ steps.prepare_push.outputs.image_tag_versions }}" ]; then
-              IMAGE_TAG_VERSIONS="${{ steps.prepare_push.outputs.image_tag_versions }}"
-              echo "::debug::tags push raw - $IMAGE_TAG_VERSIONS"
-          elif [ ! -z "${{ steps.prepare_release.outputs.image_tag_versions }}" ]; then
-              IMAGE_TAG_VERSIONS="${{ steps.prepare_release.outputs.image_tag_versions }}"
-              echo "::debug::tags release raw - $IMAGE_TAG_VERSIONS"
-          fi
-
-          IMAGE_TAG_VERSIONS=${IMAGE_TAG_VERSIONS%%+(|)}
-          IFS='|' read -r -a IMAGE_TAG_VERSIONS <<< $IMAGE_TAG_VERSIONS
-
-          for version in ${IMAGE_TAG_VERSIONS[@]}; do
-              echo "Checking \"$version\"... "
-              docker buildx imagetools inspect $version
-          done
+      -
+        name: Image digest
+        run: echo ${{ steps.docker_build.outputs.digest }}
