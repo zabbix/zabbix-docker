@@ -1,6 +1,5 @@
 ![logo](https://assets.zabbix.com/img/logo/zabbix_logo_500x131.png)
 
-
 # What is Zabbix?
 
 Zabbix is an enterprise-class open source distributed monitoring solution.
