@@ -106,7 +106,7 @@ jobs:
           echo "::debug::Tags - ${TAGS}"
 
           echo ::set-output name=image_name::${IMAGE_NAME}
-          echo ::set-output name=image_tag_versions::$(printf -- "|%s" "${TAGS_ARRAY[@]}")
+          echo ::set-output name=image_tag_versions::$(printf -- " %s" "${TAGS_ARRAY[@]}")
 
       - name: Prepare environment (release)
         if: github.event_name == 'release' && github.event.action == 'published'
@@ -130,7 +130,7 @@ jobs:
           TAGS=$(printf -- "--tag %s " "${TAGS_ARRAY[@]}")
 
           echo ::set-output name=image_name::${IMAGE_NAME}
-          echo ::set-output name=image_tag_versions::$(printf -- "|%s" "${TAGS_ARRAY[@]}")
+          echo ::set-output name=image_tag_versions::$(printf -- " %s" "${TAGS_ARRAY[@]}")
 
       - name: Prepare tags
         id: prepare_tags
