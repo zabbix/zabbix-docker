@@ -3,7 +3,7 @@ name: DockerHub Description
 on:
   push:
     branches:
-      - 'master'
+      - 'trunk'
     paths:
       - "*/*/README.md"
   workflow_dispatch:
