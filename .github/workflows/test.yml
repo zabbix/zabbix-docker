@@ -135,10 +135,10 @@ jobs:
       - name: Prepare tags
         id: prepare_tags
         run: |
-          if [ ! -z "${{ steps.prepare_push.outputs.buildx_args }}" ]; then
-              TAGS="${{ steps.prepare_push.outputs.buildx_args }}"
-          elif [ ! -z "${{ steps.prepare_release.outputs.buildx_args }}" ]; then
-              TAGS="${{ steps.prepare_release.outputs.buildx_args }}"
+          if [ ! -z "${{ steps.prepare_push.outputs.image_tag_versions }}" ]; then
+              TAGS="${{ steps.prepare_push.outputs.image_tag_versions }}"
+          elif [ ! -z "${{ steps.prepare_release.outputs.image_tag_versions }}" ]; then
+              TAGS="${{ steps.prepare_release.outputs.image_tag_versions }}"
           else
               exit 1
           fi
