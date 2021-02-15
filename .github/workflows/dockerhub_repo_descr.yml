@@ -1,14 +1,15 @@
-name: DockerHub Repository Description
+name: Repository Description
 
 on:
   push:
-    branches: master
-    paths:
-      - "**.md"
+    branches:
+      - master
 
 jobs:
   main:
     runs-on: ubuntu-latest
+    env:
+      DOCKER_REPOSITORY: "zabbix"
     strategy:
       fail-fast: false
       matrix:
