@@ -3,7 +3,9 @@ name: DockerHub Description
 on:
   push:
     branches:
-      - 'master'
+      - 'trunk'
+    paths:
+      - "*/*/README.md"
   workflow_dispatch:
 
 jobs:
@@ -11,6 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       DOCKER_REPOSITORY: "zabbix"
+      SUBDIR: "alpine"
     strategy:
       fail-fast: false
       matrix:
@@ -27,8 +30,6 @@ jobs:
           - web-apache-pgsql
           - web-nginx-mysql
           - web-nginx-pgsql
-        os:
-         - alpine
     steps:
       -
         uses: actions/checkout@v2
@@ -39,4 +40,4 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
           repository: ${{ env.DOCKER_REPOSITORY }}/zabbix-${{ matrix.build }}
-          readme-filepath: ./${{ matrix.build }}/${{ matrix.os }}/README.md
+          readme-filepath: ./${{ matrix.build }}/${{ env.SUBDIR }}/README.md
