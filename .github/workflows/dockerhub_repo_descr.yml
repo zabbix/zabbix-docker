@@ -3,7 +3,7 @@ name: Repository Description
 on:
   push:
     branches:
-      - master
+      - 'master'
 
 jobs:
   main:
