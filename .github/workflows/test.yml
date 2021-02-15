@@ -144,6 +144,8 @@ jobs:
           else
               exit 1
           fi
+          ls -lah ./
+          ls -lah ./${{ matrix.build }}/${{ matrix.os }}
           echo ::set-output name=image_tag_versions::${TAGS}
 
       -
