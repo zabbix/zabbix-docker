@@ -154,7 +154,7 @@ jobs:
         uses: docker/build-push-action@v2
         with:
           path: ./${{ matrix.build }}/${{ matrix.os }}
-          file: ./Dockerfile
+          file: ./${{ matrix.build }}/${{ matrix.os }}/Dockerfile
           platforms: ${{ steps.platform.outputs.list }}
           push: false
           tags: ${{ steps.prepare_tags.outputs.image_tag_versions }}
