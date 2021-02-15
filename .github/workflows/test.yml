@@ -77,7 +77,7 @@ jobs:
 
       - name: Prepare environment (push)
         if: github.event_name == 'push'
-        id: prepare_tags
+        id: prepare_push
         run: |
           TAGS_ARRAY=()
 
@@ -110,7 +110,7 @@ jobs:
 
       - name: Prepare environment (release)
         if: github.event_name == 'release' && github.event.action == 'published'
-        id: prepare_tags
+        id: prepare_release
         run: |
           TAGS_ARRAY=()
 
@@ -131,6 +131,18 @@ jobs:
 
           echo ::set-output name=image_name::${IMAGE_NAME}
           echo ::set-output name=image_tag_versions::$(printf -- "|%s" "${TAGS_ARRAY[@]}")
+
+      - name: Prepare tags
+        id: prepare_tags
+        run: |
+          if [ ! -z "${{ steps.prepare_push.outputs.buildx_args }}" ]; then
+              TAGS="${{ steps.prepare_push.outputs.buildx_args }}"
+          elif [ ! -z "${{ steps.prepare_release.outputs.buildx_args }}" ]; then
+              TAGS="${{ steps.prepare_release.outputs.buildx_args }}"
+          else
+              exit 1
+          fi
+          echo ::set-output name=image_tag_versions::${TAGS}
 
       -
         name: Build and push
