@@ -1,6 +1,5 @@
 ![logo](https://assets.zabbix.com/img/logo/zabbix_logo_500x131.png)
 
-
 # What is Zabbix?
 
 Zabbix is an enterprise-class open source distributed monitoring solution.
@@ -29,7 +28,7 @@ These are the only official Zabbix agent Docker images. They are based on Alpine
     Zabbix agent 4.2.* (tags: alpine-4.2.*, ubuntu-4.2.*, centos-4.2.*) (unsupported)
     Zabbix agent 4.4 (tags: alpine-4.4-latest, ubuntu-4.4-latest, centos-4.4-latest) (unsupported)
     Zabbix agent 4.4.* (tags: alpine-4.4.*, ubuntu-4.4.*, centos-4.4.*) (unsupported)
-    Zabbix agent 5.0 (tags: alpine-5.0-latest, ubuntu-5.0-latest, centos-5.0-latest)
+    Zabbix agent 5.0 (tags: alpine-5.0-latest, ubuntu-5.0-latest, centos-5.0-latest )
     Zabbix agent 5.0.* (tags: alpine-5.0.*, ubuntu-5.0.*, centos-5.0.*)
     Zabbix agent 5.2 (tags: alpine-5.2-latest, ubuntu-5.2-latest, centos-5.2-latest, alpine-latest, ubuntu-latest, centos-latest, latest)
     Zabbix agent 5.2.* (tags: alpine-5.2.*, ubuntu-5.2.*, centos-5.2.*)
