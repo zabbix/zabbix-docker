@@ -79,9 +79,8 @@ jobs:
 
           echo ::set-output name=list::${DOCKER_PLATFORM}
 
-      - name: Prepare environment (push)
-        if: github.event_name == 'push'
-        id: prepare_push
+      - name: Prepare environment (schedule)
+        id: prepare
         run: |
           TAGS_ARRAY=()
 
@@ -111,7 +110,7 @@ jobs:
           file: ./${{ matrix.build }}/${{ matrix.os }}/Dockerfile
           platforms: ${{ steps.platform.outputs.list }}
           push: ${{ secrets.AUTO_PUSH_IMAGES }}
-          tags: ${{ steps.prepare_push.outputs.image_tag_versions }}
+          tags: ${{ steps.prepare.outputs.image_tag_versions }}
 
       -
         name: Image digest
