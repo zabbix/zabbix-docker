@@ -104,8 +104,10 @@ jobs:
 
           if [ "${GIT_BRANCH}" == "trunk" ]; then
             TAGS_ARRAY+=("$IMAGE_NAME:${{ matrix.os }}-${GIT_BRANCH}")
+            TAGS_ARRAY+=("$IMAGE_NAME:${GIT_BRANCH}-${{ matrix.os }}")
           else
             TAGS_ARRAY+=("$IMAGE_NAME:${{ matrix.os }}-${GIT_BRANCH}-latest")
+            TAGS_ARRAY+=("$IMAGE_NAME:${GIT_BRANCH}-${{ matrix.os }}-latest")
           fi
 
           if [ "${{ matrix.os }}" == "alpine" ] && [ "${LATEST_BRANCH}" == "${GIT_BRANCH}" ]; then
@@ -137,6 +139,7 @@ jobs:
           echo "::debug::Release version ${RELEASE_VERSION}. Branch ${GIT_BRANCH}"
 
           TAGS_ARRAY+=("$IMAGE_NAME:${{ matrix.os }}-${RELEASE_VERSION}")
+          TAGS_ARRAY+=("$IMAGE_NAME:${RELEASE_VERSION}-${{ matrix.os }}")
 
           if [ "${{ matrix.os }}" == "alpine" ] && [ "${LATEST_BRANCH}" == "${GIT_BRANCH}" ]; then
             TAGS_ARRAY+=("$IMAGE_NAME:latest")
