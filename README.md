@@ -1,7 +1,7 @@
 ![logo](https://assets.zabbix.com/img/logo/zabbix_logo_500x131.png)
 
-![CI](https://github.com/zabbix/zabbix-docker/workflows/CI/badge.svg?branch=trunk&event=release)
-![CI](https://github.com/zabbix/zabbix-docker/workflows/CI/badge.svg?branch=trunk&event=push)
+![CI](https://github.com/zabbix/zabbix-docker/workflows/CI/badge.svg?branch=5.2&event=release)
+![CI](https://github.com/zabbix/zabbix-docker/workflows/CI/badge.svg?branch=5.2&event=push)
 
 # What is Zabbix?
 

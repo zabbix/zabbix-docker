@@ -17,9 +17,6 @@ fi
 # Default Zabbix server port number
 : ${ZBX_SERVER_PORT:="10051"}
 
-#Enable PostgreSQL timescaleDB feature:
-ENABLE_TIMESCALEDB=${ENABLE_TIMESCALEDB:-"false"}
-
 # Default directories
 # Configuration files directory
 ZABBIX_ETC_DIR="/etc/zabbix"
@@ -198,8 +195,8 @@ prepare_zbx_web_config() {
     export ZBX_SSO_SETTINGS=${ZBX_SSO_SETTINGS:-""}
 
     if [ -n "${ZBX_SESSION_NAME}" ]; then
-        cp "$ZBX_FRONTEND_PATH/include/defines.inc.php" "/tmp/defines.inc.php_tmp"
-        sed "/ZBX_SESSION_NAME/s/'[^']*'/'${ZBX_SESSION_NAME}'/2" "/tmp/defines.inc.php_tmp" > "$ZBX_FRONTEND_PATH/include/defines.inc.php"
+        cp "$ZABBIX_WWW_ROOT/include/defines.inc.php" "/tmp/defines.inc.php_tmp"
+        sed "/ZBX_SESSION_NAME/s/'[^']*'/'${ZBX_SESSION_NAME}'/2" "/tmp/defines.inc.php_tmp" > "$ZABBIX_WWW_ROOT/include/defines.inc.php"
         rm -f "/tmp/defines.inc.php_tmp"
     fi
 
