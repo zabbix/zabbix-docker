@@ -11,22 +11,20 @@ fi
 
 # Default Zabbix installation name
 # Used only by Zabbix web-interface
-ZBX_SERVER_NAME=${ZBX_SERVER_NAME:-"Zabbix docker"}
+: ${ZBX_SERVER_NAME:="Zabbix docker"}
 # Default Zabbix server host
-ZBX_SERVER_HOST=${ZBX_SERVER_HOST:-"zabbix-server"}
+: ${ZBX_SERVER_HOST:="zabbix-server"}
 # Default Zabbix server port number
-ZBX_SERVER_PORT=${ZBX_SERVER_PORT:-"10051"}
+: ${ZBX_SERVER_PORT:="10051"}
 
-#Enable PostgreSQL timescaleDB feature:
-ENABLE_TIMESCALEDB=${ENABLE_TIMESCALEDB:-"false"}
+# Default timezone for web interface
+: ${PHP_TZ:="Europe/Riga"}
 
 # Default directories
-# User 'zabbix' home directory
-ZABBIX_USER_HOME_DIR="/var/lib/zabbix"
 # Configuration files directory
 ZABBIX_ETC_DIR="/etc/zabbix"
 # Web interface www-root directory
-ZBX_FRONTEND_PATH="/usr/share/zabbix"
+ZABBIX_WWW_ROOT="/usr/share/zabbix"
 
 # usage: file_env VAR [DEFAULT]
 # as example: file_env 'MYSQL_PASSWORD' 'zabbix'
@@ -204,8 +202,8 @@ prepare_zbx_web_config() {
     export ZBX_HISTORYSTORAGETYPES=${ZBX_HISTORYSTORAGETYPES:-"[]"}
 
     if [ -n "${ZBX_SESSION_NAME}" ]; then
-        cp "$ZBX_FRONTEND_PATH/include/defines.inc.php" "/tmp/defines.inc.php_tmp"
-        sed "/ZBX_SESSION_NAME/s/'[^']*'/'${ZBX_SESSION_NAME}'/2" "/tmp/defines.inc.php_tmp" > "$ZBX_FRONTEND_PATH/include/defines.inc.php"
+        cp "$ZABBIX_WWW_ROOT/include/defines.inc.php" "/tmp/defines.inc.php_tmp"
+        sed "/ZBX_SESSION_NAME/s/'[^']*'/'${ZBX_SESSION_NAME}'/2" "/tmp/defines.inc.php_tmp" > "$ZABBIX_WWW_ROOT/include/defines.inc.php"
         rm -f "/tmp/defines.inc.php_tmp"
     fi
 
