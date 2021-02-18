@@ -11,22 +11,20 @@ fi
 
 # Default Zabbix installation name
 # Used only by Zabbix web-interface
-ZBX_SERVER_NAME=${ZBX_SERVER_NAME:-"Zabbix docker"}
+: ${ZBX_SERVER_NAME:="Zabbix docker"}
 # Default Zabbix server host
-ZBX_SERVER_HOST=${ZBX_SERVER_HOST:-"zabbix-server"}
+: ${ZBX_SERVER_HOST:="zabbix-server"}
 # Default Zabbix server port number
-ZBX_SERVER_PORT=${ZBX_SERVER_PORT:-"10051"}
+: ${ZBX_SERVER_PORT:="10051"}
 
 # Default timezone for web interface
-PHP_TZ=${PHP_TZ:-"Europe/Riga"}
+: ${PHP_TZ:="Europe/Riga"}
 
 # Default directories
-# User 'zabbix' home directory
-ZABBIX_USER_HOME_DIR="/var/lib/zabbix"
 # Configuration files directory
 ZABBIX_ETC_DIR="/etc/zabbix"
 # Web interface www-root directory
-ZBX_FRONTEND_PATH="/usr/share/zabbix"
+ZABBIX_WWW_ROOT="/usr/share/zabbix"
 
 # usage: file_env VAR [DEFAULT]
 # as example: file_env 'MYSQL_PASSWORD' 'zabbix'
@@ -57,83 +55,6 @@ file_env() {
     fi
     export "$var"="$val"
     unset "$fileVar"
-}
-
-escape_spec_char() {
-    local var_value=$1
-
-    var_value="${var_value//\\/\\\\}"
-    var_value="${var_value//[$'\n']/}"
-    var_value="${var_value//\//\\/}"
-    var_value="${var_value//./\\.}"
-    var_value="${var_value//\*/\\*}"
-    var_value="${var_value//^/\\^}"
-    var_value="${var_value//\$/\\\$}"
-    var_value="${var_value//\&/\\\&}"
-    var_value="${var_value//\[/\\[}"
-    var_value="${var_value//\]/\\]}"
-
-    echo "$var_value"
-}
-
-update_config_var() {
-    local config_path=$1
-    local var_name=$2
-    local var_value=$3
-    local is_multiple=$4
-
-    if [ ! -f "$config_path" ]; then
-        echo "**** Configuration file '$config_path' does not exist"
-        return
-    fi
-
-    echo -n "** Updating '$config_path' parameter \"$var_name\": '$var_value'... "
-
-    # Remove configuration parameter definition in case of unset parameter value
-    if [ -z "$var_value" ]; then
-        sed -i -e "/^$var_name=/d" "$config_path"
-        echo "removed"
-        return
-    fi
-
-    # Remove value from configuration parameter in case of double quoted parameter value
-    if [ "$var_value" == '""' ]; then
-        sed -i -e "/^$var_name=/s/=.*/=/" "$config_path"
-        echo "undefined"
-        return
-    fi
-
-    # Escaping characters in parameter value and name
-    var_value=$(escape_spec_char "$var_value")
-    var_name=$(escape_spec_char "$var_name")
-
-    if [ "$(grep -E "^$var_name=" $config_path)" ] && [ "$is_multiple" != "true" ]; then
-        sed -i -e "/^$var_name=/s/=.*/=$var_value/" "$config_path"
-        echo "updated"
-    elif [ "$(grep -Ec "^# $var_name=" $config_path)" -gt 1 ]; then
-        sed -i -e  "/^[#;] $var_name=$/i\\$var_name=$var_value" "$config_path"
-        echo "added first occurrence"
-    else
-        sed -i -e "/^[#;] $var_name=/s/.*/&\n$var_name=$var_value/" "$config_path"
-        echo "added"
-    fi
-
-}
-
-update_config_multiple_var() {
-    local config_path=$1
-    local var_name=$2
-    local var_value=$3
-
-    var_value="${var_value%\"}"
-    var_value="${var_value#\"}"
-
-    local IFS=,
-    local OPT_LIST=($var_value)
-
-    for value in "${OPT_LIST[@]}"; do
-        update_config_var $config_path $var_name $value true
-    done
 }
 
 # Check prerequisites for MySQL database
@@ -206,7 +127,6 @@ check_db_connect() {
         fi
         echo "* DB_SERVER_ZBX_USER: ${DB_SERVER_ZBX_USER}"
         echo "* DB_SERVER_ZBX_PASS: ${DB_SERVER_ZBX_PASS}"
-        echo "********************"
     fi
     echo "********************"
 
@@ -296,8 +216,8 @@ prepare_zbx_web_config() {
     export ZBX_SSO_SETTINGS=${ZBX_SSO_SETTINGS:-""}
 
     if [ -n "${ZBX_SESSION_NAME}" ]; then
-        cp "$ZBX_FRONTEND_PATH/include/defines.inc.php" "/tmp/defines.inc.php_tmp"
-        sed "/ZBX_SESSION_NAME/s/'[^']*'/'${ZBX_SESSION_NAME}'/2" "/tmp/defines.inc.php_tmp" > "$ZBX_FRONTEND_PATH/include/defines.inc.php"
+        cp "$ZABBIX_WWW_ROOT/include/defines.inc.php" "/tmp/defines.inc.php_tmp"
+        sed "/ZBX_SESSION_NAME/s/'[^']*'/'${ZBX_SESSION_NAME}'/2" "/tmp/defines.inc.php_tmp" > "$ZABBIX_WWW_ROOT/include/defines.inc.php"
         rm -f "/tmp/defines.inc.php_tmp"
     fi
 
