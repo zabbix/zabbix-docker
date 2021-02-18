@@ -278,6 +278,7 @@ update_zbx_config() {
 
     ZBX_CONFIG=$ZABBIX_ETC_DIR/zabbix_server.conf
 
+    update_config_var $ZBX_CONFIG "ListenIP" "${ZBX_LISTENIP}"
     update_config_var $ZBX_CONFIG "ListenPort" "${ZBX_LISTENPORT}"
 
     update_config_var $ZBX_CONFIG "SourceIP" "${ZBX_SOURCEIP}"

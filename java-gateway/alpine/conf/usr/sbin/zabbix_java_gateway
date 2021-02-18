@@ -1,26 +1,31 @@
+
 JAVA=${JAVA:-"/usr/bin/java"}
-DAEMON=${DAEMON:-"/usr/sbin/zabbix_java"}
 
 JAVA_OPTIONS="-server $JAVA_OPTIONS"
 JAVA_OPTIONS="$JAVA_OPTIONS -Dlogback.configurationFile=/etc/zabbix/zabbix_java_gateway_logback.xml"
 
-cd $DAEMON
+cd /usr/sbin/zabbix_java
 
-CLASSPATH="$DAEMON/lib"
-for jar in `find lib bin -name "*.jar"`; do
-    if [ $jar != *junit* ]; then
-        CLASSPATH="$CLASSPATH:$DAEMON/$jar"
-    fi
+CLASSPATH="lib"
+for jar in `find lib bin ext_lib -name "*.jar"`; do
+    CLASSPATH="$CLASSPATH:$jar"
 done
 
-ZABBIX_OPTIONS=""
+if [ -n "$ZBX_LISTEN_IP" ]; then
+    ZABBIX_OPTIONS="$ZABBIX_OPTIONS -Dzabbix.listenIP=$ZBX_LISTEN_IP"
+fi
+if [ -n "$ZBX_LISTEN_PORT" ]; then
+    ZABBIX_OPTIONS="$ZABBIX_OPTIONS -Dzabbix.listenPort=$ZBX_LISTEN_PORT"
+fi
 if [ -n "$ZBX_START_POLLERS" ]; then
     ZABBIX_OPTIONS="$ZABBIX_OPTIONS -Dzabbix.startPollers=$ZBX_START_POLLERS"
 fi
 if [ -n "$ZBX_TIMEOUT" ]; then
-    ZABBIX_OPTIONS="$ZABBIX_OPTIONS -Dzabbix.timeout=$ZBX_TIMEOUT -Dsun.rmi.transport.tcp.responseTimeout=${ZBX_TIMEOUT}000"
+    ZABBIX_OPTIONS="$ZABBIX_OPTIONS -Dzabbix.timeout=$ZBX_TIMEOUT"
 fi
 
+tcp_timeout=${ZBX_TIMEOUT:=3}000
+ZABBIX_OPTIONS="$ZABBIX_OPTIONS -Dsun.rmi.transport.tcp.responseTimeout=$tcp_timeout"
 
 COMMAND_LINE="$JAVA $JAVA_OPTIONS -classpath $CLASSPATH $ZABBIX_OPTIONS com.zabbix.gateway.JavaGateway"
 
