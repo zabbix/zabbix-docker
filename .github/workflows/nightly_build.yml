@@ -3,6 +3,7 @@ name: NightlyBuild
 on:
   schedule:
     - cron:  '5 2 * * *'
+  workflow_dispatch:
 
 defaults:
   run:
@@ -83,7 +84,7 @@ jobs:
           TAGS_ARRAY=()
 
           IMAGE_NAME="${{ env.DOCKER_REPOSITORY }}/zabbix-${{ matrix.build }}"
-          GIT_BRANCH="${{ github.ref }}"
+          GIT_BRANCH="refs/heads/trunk"
           GIT_BRANCH=${GIT_BRANCH:11}
 
           echo "::debug::Branch - ${GIT_BRANCH}"
