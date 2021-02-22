@@ -17,12 +17,9 @@ fi
 # Default Zabbix server port number
 : ${ZBX_SERVER_PORT:="10051"}
 
-<<<<<<< HEAD
-=======
 # Default timezone for web interface
 : ${PHP_TZ:="Europe/Riga"}
 
->>>>>>> master
 # Default directories
 # Configuration files directory
 ZABBIX_ETC_DIR="/etc/zabbix"
