@@ -5,7 +5,7 @@ set -o pipefail
 set +e
 
 # Script trace mode
-if [ "${DEBUG_MODE}" == "true" ]; then
+if [ "${DEBUG_MODE,,}" == "true" ]; then
     set -o xtrace
 fi
 
@@ -83,8 +83,8 @@ check_db_connect() {
     echo "* DB_SERVER_PORT: ${DB_SERVER_PORT}"
     echo "* DB_SERVER_DBNAME: ${DB_SERVER_DBNAME}"
     echo "* DB_SERVER_SCHEMA: ${DB_SERVER_SCHEMA}"
-    if [ "${DEBUG_MODE}" == "true" ]; then
-        if [ "${USE_DB_ROOT_USER}" == "true" ]; then
+    if [ "${DEBUG_MODE,,}" == "true" ]; then
+        if [ "${USE_DB_ROOT_USER,,}" == "true" ]; then
             echo "* DB_SERVER_ROOT_USER: ${DB_SERVER_ROOT_USER}"
             echo "* DB_SERVER_ROOT_PASS: ${DB_SERVER_ROOT_PASS}"
         fi
@@ -103,7 +103,7 @@ check_db_connect() {
     fi
 
     WAIT_TIMEOUT=5
-    
+
     if [ -n "${DB_SERVER_SCHEMA}" ]; then
         PGOPTIONS="--search_path=${DB_SERVER_SCHEMA}"
         export PGOPTIONS

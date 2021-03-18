@@ -5,7 +5,7 @@ set -o pipefail
 set +e
 
 # Script trace mode
-if [ "${DEBUG_MODE}" == "true" ]; then
+if [ "${DEBUG_MODE,,}" == "true" ]; then
     set -o xtrace
 fi
 
