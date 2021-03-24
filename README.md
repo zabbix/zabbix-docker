@@ -24,7 +24,7 @@ This repository contains **Dockerfile** of [Zabbix](https://zabbix.com/) for [Do
 
 ### Usage
 
-There is some documentation and examples in the [official Zabbix Documentation](https://www.zabbix.com/documentation/current/manual/installation/containers/)!
+There is some documentation and examples in the [official Zabbix Documentation](https://www.zabbix.com/documentation/current/manual/installation/containers)!
 
 Please also follow usage instructions of each Zabbix component image:
 
