@@ -17,9 +17,6 @@ services:
    - ./zbx_env/var/lib/zabbix/ssh_keys:/var/lib/zabbix/ssh_keys:ro
    - ./zbx_env/var/lib/zabbix/mibs:/var/lib/zabbix/mibs:ro
    - snmptraps:/var/lib/zabbix/snmptraps:rw
-  links:
-   - mysql-server:mysql-server
-   - zabbix-java-gateway:zabbix-java-gateway
   ulimits:
    nproc: 65535
    nofile:
@@ -42,8 +39,6 @@ services:
    - MYSQL_ROOT_PASSWORD
   depends_on:
    - mysql-server
-   - zabbix-java-gateway
-   - zabbix-snmptraps
   networks:
    zbx_net_backend:
      aliases:
@@ -73,6 +68,8 @@ services:
    cache_from:
     - ubuntu:bionic
   image: zabbix-proxy-sqlite3:ubuntu-local
+  profiles:
+   - all
   ports:
    - "10061:10051"
   volumes:
@@ -83,9 +80,6 @@ services:
    - ./zbx_env/var/lib/zabbix/ssh_keys:/var/lib/zabbix/ssh_keys:ro
    - ./zbx_env/var/lib/zabbix/mibs:/var/lib/zabbix/mibs:ro
    - snmptraps:/var/lib/zabbix/snmptraps:rw
-  links:
-   - zabbix-server:zabbix-server
-   - zabbix-java-gateway:zabbix-java-gateway
   ulimits:
    nproc: 65535
    nofile:
@@ -126,6 +120,8 @@ services:
    cache_from:
     - ubuntu:bionic
   image: zabbix-proxy-mysql:ubuntu-local
+  profiles:
+   - all
   ports:
    - "10071:10051"
   volumes:
@@ -136,9 +132,6 @@ services:
    - ./zbx_env/var/lib/zabbix/ssh_keys:/var/lib/zabbix/ssh_keys:ro
    - ./zbx_env/var/lib/zabbix/mibs:/var/lib/zabbix/mibs:ro
    - snmptraps:/var/lib/zabbix/snmptraps:rw
-  links:
-   - zabbix-server:zabbix-server
-   - zabbix-java-gateway:zabbix-java-gateway
   ulimits:
    nproc: 65535
    nofile:
@@ -160,6 +153,10 @@ services:
    - mysql-server
    - zabbix-java-gateway
    - zabbix-snmptraps
+  secrets:
+   - MYSQL_USER
+   - MYSQL_PASSWORD
+   - MYSQL_ROOT_PASSWORD
   networks:
    zbx_net_backend:
     aliases:
@@ -181,12 +178,11 @@ services:
    cache_from:
     - ubuntu:bionic
   image: zabbix-web-apache-mysql:ubuntu-local
+  profiles:
+   - all
   ports:
-   - "80:8080"
-   - "443:8443"
-  links:
-   - mysql-server:mysql-server
-   - zabbix-server:zabbix-server
+   - "8081:8080"
+   - "8443:8443"
   volumes:
    - /etc/localtime:/etc/localtime:ro
    - ./zbx_env/etc/ssl/apache2:/etc/ssl/apache2:ro
@@ -238,11 +234,8 @@ services:
     - ubuntu:bionic
   image: zabbix-web-nginx-mysql:ubuntu-local
   ports:
-   - "8081:8080"
-   - "8443:8443"
-  links:
-   - mysql-server:mysql-server
-   - zabbix-server:zabbix-server
+   - "80:8080"
+   - "443:8443"
   volumes:
    - /etc/localtime:/etc/localtime:ro
    - ./zbx_env/etc/ssl/nginx:/etc/ssl/nginx:ro
@@ -293,6 +286,9 @@ services:
    cache_from:
     - ubuntu:bionic
   image: zabbix-agent:ubuntu-local
+  profiles:
+   - full
+   - all
   ports:
    - "10050:10050"
   volumes:
@@ -301,8 +297,6 @@ services:
    - ./zbx_env/var/lib/zabbix/modules:/var/lib/zabbix/modules:ro
    - ./zbx_env/var/lib/zabbix/enc:/var/lib/zabbix/enc:ro
    - ./zbx_env/var/lib/zabbix/ssh_keys:/var/lib/zabbix/ssh_keys:ro
-  links:
-   - zabbix-server:zabbix-server
   deploy:
    resources:
     limits:
@@ -335,6 +329,9 @@ services:
    cache_from:
     - ubuntu:bionic
   image: zabbix-java-gateway:ubuntu-local
+  profiles:
+   - full
+   - all
   ports:
    - "10052:10052"
   deploy:
@@ -365,6 +362,9 @@ services:
    cache_from:
     - ubuntu:bionic
   image: zabbix-snmptraps:ubuntu-local
+  profiles:
+   - full
+   - all
   ports:
    - "162:1162/udp"
   volumes:
