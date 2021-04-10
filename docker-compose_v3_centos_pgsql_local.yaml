@@ -16,9 +16,6 @@ services:
    - ./zbx_env/var/lib/zabbix/ssh_keys:/var/lib/zabbix/ssh_keys:ro
    - ./zbx_env/var/lib/zabbix/mibs:/var/lib/zabbix/mibs:ro
    - ./zbx_env/var/lib/zabbix/snmptraps:/var/lib/zabbix/snmptraps:ro
-  links:
-   - postgres-server:postgres-server
-   - zabbix-java-gateway:zabbix-java-gateway
   ulimits:
    nproc: 65535
    nofile:
@@ -40,8 +37,6 @@ services:
    - POSTGRES_PASSWORD
   depends_on:
    - postgres-server
-   - zabbix-java-gateway
-   - zabbix-snmptraps
   networks:
    zbx_net_backend:
      aliases:
@@ -68,6 +63,8 @@ services:
  zabbix-proxy-sqlite3:
   build: ./proxy-sqlite3/centos
   image: zabbix-proxy-sqlite3:centos-local
+  profiles:
+   - all
   ports:
    - "10061:10051"
   volumes:
@@ -79,9 +76,6 @@ services:
    - ./zbx_env/var/lib/zabbix/ssh_keys:/var/lib/zabbix/ssh_keys:ro
    - ./zbx_env/var/lib/zabbix/mibs:/var/lib/zabbix/mibs:ro
    - snmptraps:/var/lib/zabbix/snmptraps:rw
-  links:
-   - zabbix-server:zabbix-server
-   - zabbix-java-gateway:zabbix-java-gateway
   ulimits:
    nproc: 65535
    nofile:
@@ -119,6 +113,8 @@ services:
  zabbix-proxy-mysql:
   build: ./proxy-mysql/centos
   image: zabbix-proxy-mysql:centos-local
+  profiles:
+   - all
   ports:
    - "10071:10051"
   volumes:
@@ -130,9 +126,6 @@ services:
    - ./zbx_env/var/lib/zabbix/ssh_keys:/var/lib/zabbix/ssh_keys:ro
    - ./zbx_env/var/lib/zabbix/mibs:/var/lib/zabbix/mibs:ro
    - snmptraps:/var/lib/zabbix/snmptraps:rw
-  links:
-   - zabbix-server:zabbix-server
-   - zabbix-java-gateway:zabbix-java-gateway
   ulimits:
    nproc: 65535
    nofile:
@@ -177,12 +170,11 @@ services:
  zabbix-web-apache-pgsql:
   build: ./web-apache-pgsql/centos
   image: zabbix-web-apache-pgsql:centos-local
+  profiles:
+   - all
   ports:
-   - "80:8080"
-   - "443:8443"
-  links:
-   - postgres-server:postgres-server
-   - zabbix-server:zabbix-server
+   - "8081:8080"
+   - "8443:8443"
   volumes:
    - /etc/localtime:/etc/localtime:ro
    - /etc/timezone:/etc/timezone:ro
@@ -232,11 +224,8 @@ services:
   build: ./web-nginx-pgsql/centos
   image: zabbix-web-nginx-pgsql:centos-local
   ports:
-   - "8081:8080"
-   - "8443:8443"
-  links:
-   - postgres-server:postgres-server
-   - zabbix-server:zabbix-server
+   - "80:8080"
+   - "443:8443"
   volumes:
    - /etc/localtime:/etc/localtime:ro
    - /etc/timezone:/etc/timezone:ro
@@ -285,6 +274,9 @@ services:
  zabbix-agent:
   build: ./agent/centos
   image: zabbix-agent:centos-local
+  profiles:
+   - full
+   - all
   ports:
    - "10050:10050"
   volumes:
@@ -294,8 +286,6 @@ services:
    - ./zbx_env/var/lib/zabbix/modules:/var/lib/zabbix/modules:ro
    - ./zbx_env/var/lib/zabbix/enc:/var/lib/zabbix/enc:ro
    - ./zbx_env/var/lib/zabbix/ssh_keys:/var/lib/zabbix/ssh_keys:ro
-  links:
-   - zabbix-server:zabbix-server
   deploy:
    resources:
     limits:
@@ -325,6 +315,9 @@ services:
  zabbix-java-gateway:
   build: ./java-gateway/centos
   image: zabbix-java-gateway:centos-local
+  profiles:
+   - full
+   - all
   ports:
    - "10052:10052"
   deploy:
@@ -355,6 +348,9 @@ services:
    cache_from:
     - centos:centos7
   image: zabbix-snmptraps:centos-local
+  profiles:
+   - full
+   - all
   ports:
    - "162:1162/udp"
   volumes:
@@ -381,6 +377,8 @@ services:
 
  mysql-server:
   image: mysql:8.0
+  profiles:
+   - all
   command:
    - mysqld
    - --character-set-server=utf8
@@ -421,6 +419,8 @@ services:
 
  db_data_mysql:
   image: busybox
+  profiles:
+   - all
   volumes:
    - ./zbx_env/var/lib/mysql:/var/lib/mysql:rw
 
@@ -431,6 +431,9 @@ services:
 
 # elasticsearch:
 #  image: elasticsearch
+#  profiles:
+#   - full
+#   - all
 #  environment:
 #   - transport.host=0.0.0.0
 #   - discovery.zen.minimum_master_nodes=1
