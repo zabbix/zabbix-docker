@@ -18,9 +18,6 @@ services:
    - ./zbx_env/var/lib/zabbix/ssh_keys:/var/lib/zabbix/ssh_keys:ro
    - ./zbx_env/var/lib/zabbix/mibs:/var/lib/zabbix/mibs:ro
    - ./zbx_env/var/lib/zabbix/snmptraps:/var/lib/zabbix/snmptraps:ro
-  links:
-   - postgres-server:postgres-server
-   - zabbix-java-gateway:zabbix-java-gateway
   ulimits:
    nproc: 65535
    nofile:
@@ -42,8 +39,6 @@ services:
    - POSTGRES_PASSWORD
   depends_on:
    - postgres-server
-   - zabbix-java-gateway
-   - zabbix-snmptraps
   networks:
    zbx_net_backend:
      aliases:
@@ -73,6 +68,8 @@ services:
    cache_from:
     - alpine:3.11
   image: zabbix-proxy-sqlite3:alpine-local
+  profiles:
+   - all
   ports:
    - "10061:10051"
   volumes:
@@ -84,9 +81,6 @@ services:
    - ./zbx_env/var/lib/zabbix/ssh_keys:/var/lib/zabbix/ssh_keys:ro
    - ./zbx_env/var/lib/zabbix/mibs:/var/lib/zabbix/mibs:ro
    - snmptraps:/var/lib/zabbix/snmptraps:rw
-  links:
-   - zabbix-server:zabbix-server
-   - zabbix-java-gateway:zabbix-java-gateway
   ulimits:
    nproc: 65535
    nofile:
@@ -127,6 +121,8 @@ services:
    cache_from:
     - alpine:3.11
   image: zabbix-proxy-mysql:alpine-local
+  profiles:
+   - all
   ports:
    - "10071:10051"
   volumes:
@@ -138,9 +134,6 @@ services:
    - ./zbx_env/var/lib/zabbix/ssh_keys:/var/lib/zabbix/ssh_keys:ro
    - ./zbx_env/var/lib/zabbix/mibs:/var/lib/zabbix/mibs:ro
    - snmptraps:/var/lib/zabbix/snmptraps:rw
-  links:
-   - zabbix-server:zabbix-server
-   - zabbix-java-gateway:zabbix-java-gateway
   ulimits:
    nproc: 65535
    nofile:
@@ -188,12 +181,11 @@ services:
    cache_from:
     - alpine:3.11
   image: zabbix-web-apache-pgsql:alpine-local
+  profiles:
+   - all
   ports:
-   - "80:8080"
-   - "443:8443"
-  links:
-   - postgres-server:postgres-server
-   - zabbix-server:zabbix-server
+   - "8081:8080"
+   - "8443:8443"
   volumes:
    - /etc/localtime:/etc/localtime:ro
    - /etc/timezone:/etc/timezone:ro
@@ -246,11 +238,8 @@ services:
     - alpine:3.11
   image: zabbix-web-nginx-pgsql:alpine-local
   ports:
-   - "8081:8080"
-   - "8443:8443"
-  links:
-   - postgres-server:postgres-server
-   - zabbix-server:zabbix-server
+   - "80:8080"
+   - "443:8443"
   volumes:
    - /etc/localtime:/etc/localtime:ro
    - /etc/timezone:/etc/timezone:ro
@@ -302,6 +291,9 @@ services:
    cache_from:
     - alpine:3.11
   image: zabbix-agent:alpine-local
+  profiles:
+   - full
+   - all
   ports:
    - "10050:10050"
   volumes:
@@ -311,8 +303,6 @@ services:
    - ./zbx_env/var/lib/zabbix/modules:/var/lib/zabbix/modules:ro
    - ./zbx_env/var/lib/zabbix/enc:/var/lib/zabbix/enc:ro
    - ./zbx_env/var/lib/zabbix/ssh_keys:/var/lib/zabbix/ssh_keys:ro
-  links:
-   - zabbix-server:zabbix-server
   deploy:
    resources:
     limits:
@@ -345,6 +335,9 @@ services:
    cache_from:
     - alpine:3.11
   image: zabbix-java-gateway:alpine-local
+  profiles:
+   - full
+   - all
   ports:
    - "10052:10052"
   deploy:
@@ -375,6 +368,9 @@ services:
    cache_from:
     - alpine:3.11
   image: zabbix-snmptraps:alpine-local
+  profiles:
+   - full
+   - all
   ports:
    - "162:1162/udp"
   volumes:
@@ -401,6 +397,8 @@ services:
 
  mysql-server:
   image: mysql:5.7
+  profiles:
+   - all
   command:
    - mysqld
    - --character-set-server=utf8
@@ -440,6 +438,8 @@ services:
 
  db_data_mysql:
   image: busybox
+  profiles:
+   - all
   volumes:
    - ./zbx_env/var/lib/mysql:/var/lib/mysql:rw
 
