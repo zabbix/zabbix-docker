@@ -41,6 +41,7 @@ RUN set -eux && \
             ca-certificates \
             libssl1.1 \
             libcurl4 \
+            libmodbus5 \
             libldap-2.4 && \
     apt-get -y autoremove && \
     apt-get -y clean && \
@@ -63,6 +64,7 @@ RUN set -eux && \
             automake \
             libcurl4-openssl-dev \
             libc6-dev \
+            libmodbus-dev \
             libldap2-dev \
             libpcre3-dev \
             libssl-dev \
@@ -84,6 +86,7 @@ RUN set -eux && \
             --prefix=/usr \
             --enable-agent \
             --with-libcurl \
+            --with-libmodbus \
             --with-ldap \
             --with-openssl \
             --enable-ipv6 \
@@ -100,6 +103,7 @@ RUN set -eux && \
             automake \
             libcurl4-openssl-dev \
             libc6-dev \
+            libmodbus-dev \
             libldap2-dev \
             libssl-dev \
             make \
