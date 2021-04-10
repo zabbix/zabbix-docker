@@ -14,10 +14,10 @@ The image is used to receive SNMP traps, store them to a log file and provide ac
 
 # Zabbix snmptraps images
 
-These are the only official Zabbix snmptraps Docker images. They are based on Alpine Linux v3.11, Ubuntu 18.04 (bionic) and CentOS 7 images. The available versions of Zabbix snmptraps are:
+These are the only official Zabbix snmptraps Docker images. They are based on Alpine Linux v3.12, Ubuntu 20.04 (focal) and CentOS 8 images. The available versions of Zabbix snmptraps are:
 
-    Zabbix snmptraps 3.0 (tags: alpine-3.0-latest, ubuntu-3.0-latest, centos-3.0-latest)
-    Zabbix snmptraps 3.0.* (tags: alpine-3.0.*, ubuntu-3.0.*, centos-3.0.*)
+    Zabbix snmptraps 3.0 (tags: alpine-3.0-latest, ubuntu-3.0-latest, centos-3.0-latest) (unsupported)
+    Zabbix snmptraps 3.0.* (tags: alpine-3.0.*, ubuntu-3.0.*, centos-3.0.*) (unsupported)
     Zabbix snmptraps 3.2 (tags: alpine-3.2-latest, ubuntu-3.2-latest, centos-3.2-latest) (unsupported)
     Zabbix snmptraps 3.2.* (tags: alpine-3.2.*, ubuntu-3.2.*, centos-3.2.*) (unsupported)
     Zabbix snmptraps 3.4 (tags: alpine-3.4-latest, ubuntu-3.4-latest, centos-3.4-latest) (unsupported)
@@ -42,13 +42,13 @@ Images are updated when new releases are published.
 
 Start a Zabbix snmptraps container as follows:
 
-    docker run --name some-zabbix-snmptraps -d zabbix/zabbix-snmptraps:tag
+    docker run --name some-zabbix-snmptraps -p 162:1162/udp -d zabbix/zabbix-snmptraps:tag
 
 Where `some-zabbix-snmptraps` is the name you want to assign to your container and `tag` is the tag specifying the version you want. See the list above for relevant tags, or look at the [full list of tags](https://hub.docker.com/r/zabbix/zabbix-snmptraps/tags/).
 
 ## Linking Zabbix server or Zabbix proxy with the container
 
-    docker run --name some-zabbix-server --link some-zabbix-snmptraps:zabbix-snmptraps --volumes-from some-zabbix-snmptraps -d zabbix/zabbix-server:tag
+    docker run --name some-zabbix-server --link some-zabbix-snmptraps:zabbix-snmptraps --volumes-from some-zabbix-snmptraps -p 162:1162/udp -d zabbix/zabbix-server:tag
 
 ## Container shell access and viewing Zabbix snmptraps logs
 
