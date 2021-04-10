@@ -48,7 +48,7 @@ Where `some-zabbix-snmptraps` is the name you want to assign to your container a
 
 ## Linking Zabbix server or Zabbix proxy with the container
 
-    docker run --name some-zabbix-server --link some-zabbix-snmptraps:zabbix-snmptraps --volumes-from some-zabbix-snmptraps -p 162:1162/udp -d zabbix/zabbix-server:tag
+    docker run --name some-zabbix-server --link some-zabbix-snmptraps:zabbix-snmptraps --volumes-from some-zabbix-snmptraps -d zabbix/zabbix-server:tag
 
 ## Container shell access and viewing Zabbix snmptraps logs
 
