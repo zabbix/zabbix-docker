@@ -5,7 +5,7 @@ set -o pipefail
 set +e
 
 # Script trace mode
-if [ "${DEBUG_MODE}" == "true" ]; then
+if [ "${DEBUG_MODE,,}" == "true" ]; then
     set -o xtrace
 fi
 
@@ -83,7 +83,7 @@ check_db_connect() {
     echo "* DB_SERVER_PORT: ${DB_SERVER_PORT}"
     echo "* DB_SERVER_DBNAME: ${DB_SERVER_DBNAME}"
     echo "* DB_SERVER_SCHEMA: ${DB_SERVER_SCHEMA}"
-    if [ "${DEBUG_MODE}" == "true" ]; then
+    if [ "${DEBUG_MODE,,}" == "true" ]; then
         if [ "${USE_DB_ROOT_USER}" == "true" ]; then
             echo "* DB_SERVER_ROOT_USER: ${DB_SERVER_ROOT_USER}"
             echo "* DB_SERVER_ROOT_PASS: ${DB_SERVER_ROOT_PASS}"
@@ -165,7 +165,9 @@ prepare_zbx_web_config() {
     export ZBX_SERVER_PORT=${ZBX_SERVER_PORT:-"10051"}
     export ZBX_SERVER_NAME=${ZBX_SERVER_NAME}
 
-    if [ "${ENABLE_WEB_ACCESS_LOG:-"true"}" == "false" ]; then
+    ENABLE_WEB_ACCESS_LOG=${ENABLE_WEB_ACCESS_LOG:-"true"}
+
+    if [ "${ENABLE_WEB_ACCESS_LOG,,}" == "false" ]; then
         sed -ri \
             -e 's!^(\s*CustomLog)\s+\S+!\1 /dev/null!g' \
             "/etc/apache2/httpd.conf"

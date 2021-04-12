@@ -5,7 +5,7 @@ set -o pipefail
 set +e
 
 # Script trace mode
-if [ "${DEBUG_MODE}" == "true" ]; then
+if [ "${DEBUG_MODE,,}" == "true" ]; then
     set -o xtrace
 fi
 
@@ -158,7 +158,7 @@ update_zbx_config() {
     update_config_var $ZBX_CONFIG "StartHTTPPollers" "${ZBX_STARTHTTPPOLLERS}"
 
     : ${ZBX_JAVAGATEWAY_ENABLE:="false"}
-    if [ "${ZBX_JAVAGATEWAY_ENABLE}" == "true" ]; then
+    if [ "${ZBX_JAVAGATEWAY_ENABLE,,}" == "true" ]; then
         update_config_var $ZBX_CONFIG "JavaGateway" "${ZBX_JAVAGATEWAY:-"zabbix-java-gateway"}"
         update_config_var $ZBX_CONFIG "JavaGatewayPort" "${ZBX_JAVAGATEWAYPORT}"
         update_config_var $ZBX_CONFIG "StartJavaPollers" "${ZBX_STARTJAVAPOLLERS:-"5"}"
@@ -175,7 +175,7 @@ update_zbx_config() {
     update_config_var $ZBX_CONFIG "VMwareTimeout" "${ZBX_VMWARETIMEOUT}"
 
     : ${ZBX_ENABLE_SNMP_TRAPS:="false"}
-    if [ "${ZBX_ENABLE_SNMP_TRAPS}" == "true" ]; then
+    if [ "${ZBX_ENABLE_SNMP_TRAPS,,}" == "true" ]; then
         update_config_var $ZBX_CONFIG "SNMPTrapperFile" "${ZABBIX_USER_HOME_DIR}/snmptraps/snmptraps.log"
         update_config_var $ZBX_CONFIG "StartSNMPTrapper" "1"
     else
