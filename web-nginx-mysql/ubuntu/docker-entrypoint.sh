@@ -5,7 +5,7 @@ set -o pipefail
 set +e
 
 # Script trace mode
-if [ "${DEBUG_MODE}" == "true" ]; then
+if [ "${DEBUG_MODE,,}" == "true" ]; then
     set -o xtrace
 fi
 
@@ -66,17 +66,17 @@ check_variables() {
     file_env MYSQL_USER
     file_env MYSQL_PASSWORD
 
-    if [ ! -n "${MYSQL_USER}" ] && [ "${MYSQL_RANDOM_ROOT_PASSWORD}" == "true" ]; then
+    if [ ! -n "${MYSQL_USER}" ] && [ "${MYSQL_RANDOM_ROOT_PASSWORD,,}" == "true" ]; then
         echo "**** Impossible to use MySQL server because of unknown Zabbix user and random 'root' password"
         exit 1
     fi
 
-    if [ ! -n "${MYSQL_USER}" ] && [ ! -n "${MYSQL_ROOT_PASSWORD}" ] && [ "${MYSQL_ALLOW_EMPTY_PASSWORD}" != "true" ]; then
+    if [ ! -n "${MYSQL_USER}" ] && [ ! -n "${MYSQL_ROOT_PASSWORD}" ] && [ "${MYSQL_ALLOW_EMPTY_PASSWORD,,}" != "true" ]; then
         echo "*** Impossible to use MySQL server because 'root' password is not defined and it is not empty"
         exit 1
     fi
 
-    if [ "${MYSQL_ALLOW_EMPTY_PASSWORD}" == "true" ] || [ -n "${MYSQL_ROOT_PASSWORD}" ]; then
+    if [ "${MYSQL_ALLOW_EMPTY_PASSWORD,,}" == "true" ] || [ -n "${MYSQL_ROOT_PASSWORD}" ]; then
         USE_DB_ROOT_USER=true
         DB_SERVER_ROOT_USER="root"
         DB_SERVER_ROOT_PASS=${MYSQL_ROOT_PASSWORD:-""}
@@ -85,8 +85,8 @@ check_variables() {
     [ -n "${MYSQL_USER}" ] && CREATE_ZBX_DB_USER=true
 
     # If root password is not specified use provided credentials
-    : ${DB_SERVER_ROOT_USER:=${MYSQL_USER}}....
-    [ "${MYSQL_ALLOW_EMPTY_PASSWORD}" == "true" ] || DB_SERVER_ROOT_PASS=${DB_SERVER_ROOT_PASS:-${MYSQL_PASSWORD}}
+    : ${DB_SERVER_ROOT_USER:=${MYSQL_USER}}
+    [ "${MYSQL_ALLOW_EMPTY_PASSWORD,,}" == "true" ] || DB_SERVER_ROOT_PASS=${DB_SERVER_ROOT_PASS:-${MYSQL_PASSWORD}}
     DB_SERVER_ZBX_USER=${MYSQL_USER:-"zabbix"}
     DB_SERVER_ZBX_PASS=${MYSQL_PASSWORD:-"zabbix"}
 
@@ -98,7 +98,7 @@ check_db_connect() {
     echo "* DB_SERVER_HOST: ${DB_SERVER_HOST}"
     echo "* DB_SERVER_PORT: ${DB_SERVER_PORT}"
     echo "* DB_SERVER_DBNAME: ${DB_SERVER_DBNAME}"
-    if [ "${DEBUG_MODE}" == "true" ]; then
+    if [ "${DEBUG_MODE,,}" == "true" ]; then
         if [ "${USE_DB_ROOT_USER}" == "true" ]; then
             echo "* DB_SERVER_ROOT_USER: ${DB_SERVER_ROOT_USER}"
             echo "* DB_SERVER_ROOT_PASS: ${DB_SERVER_ROOT_PASS}"
@@ -189,7 +189,9 @@ prepare_zbx_web_config() {
         "$ZABBIX_ETC_DIR/nginx_ssl.conf"
     fi
 
-    if [ "${ENABLE_WEB_ACCESS_LOG:-"true"}" == "false" ]; then
+    ENABLE_WEB_ACCESS_LOG=${ENABLE_WEB_ACCESS_LOG:-"true"}
+
+    if [ "${ENABLE_WEB_ACCESS_LOG,,}" == "false" ]; then
         sed -ri \
             -e 's!^(\s*access_log).+\;!\1 off\;!g' \
             "/etc/nginx/nginx.conf"
