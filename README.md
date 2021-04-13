@@ -25,7 +25,9 @@ This repository contains **Dockerfile** of [Zabbix](https://zabbix.com/) for [Do
 
 ### Usage
 
-Please follow usage instructions of each Zabbix component image:
+There is some documentation and examples in the [official Zabbix Documentation](https://www.zabbix.com/documentation/current/manual/installation/containers)!
+
+Please also follow usage instructions of each Zabbix component image:
 
 * [zabbix-appliance](https://hub.docker.com/r/zabbix/zabbix-appliance/) - Zabbix appliance with built-in MySQL server, Zabbix server, Zabbix Java Gateway and Zabbix frontend based on Nginx web-server
     > **Important information: Zabbix Docker Appliance has been decommissioned (except Red Hat edition) and will not be available for 3.0.31, 4.0.19, 4.4.7, 5.0.0 and newer releases. Please use a separate Docker images for each component instead of the all-in-one solution.**
