@@ -156,7 +156,8 @@ prepare_zbx_web_config() {
         echo "listen.group = nginx" >> "$PHP_CONFIG_FILE"
     fi
 
-    export ZBX_DENY_GUI_ACCESS=${ZBX_DENY_GUI_ACCESS:-"false"}
+    : ${ZBX_DENY_GUI_ACCESS:="false"}
+    export ZBX_DENY_GUI_ACCESS=${ZBX_DENY_GUI_ACCESS,,}
     export ZBX_GUI_ACCESS_IP_RANGE=${ZBX_GUI_ACCESS_IP_RANGE:-"['127.0.0.1']"}
     export ZBX_GUI_WARNING_MSG=${ZBX_GUI_WARNING_MSG:-"Zabbix is under maintenance."}
 
@@ -189,7 +190,7 @@ prepare_zbx_web_config() {
         "$ZABBIX_ETC_DIR/nginx_ssl.conf"
     fi
 
-    ENABLE_WEB_ACCESS_LOG=${ENABLE_WEB_ACCESS_LOG:-"true"}
+    : ${ENABLE_WEB_ACCESS_LOG:="true"}
 
     if [ "${ENABLE_WEB_ACCESS_LOG,,}" == "false" ]; then
         sed -ri \
