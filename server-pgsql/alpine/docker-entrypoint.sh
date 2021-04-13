@@ -5,12 +5,12 @@ set -o pipefail
 set +e
 
 # Script trace mode
-if [ "${DEBUG_MODE}" == "true" ]; then
+if [ "${DEBUG_MODE,,}" == "true" ]; then
     set -o xtrace
 fi
 
 #Enable PostgreSQL timescaleDB feature:
-ENABLE_TIMESCALEDB=${ENABLE_TIMESCALEDB:-"false"}
+: ${ENABLE_TIMESCALEDB:="false"}
 
 # Default directories
 # User 'zabbix' home directory
@@ -162,7 +162,7 @@ check_db_connect_postgresql() {
     echo "* DB_SERVER_PORT: ${DB_SERVER_PORT}"
     echo "* DB_SERVER_DBNAME: ${DB_SERVER_DBNAME}"
     echo "* DB_SERVER_SCHEMA: ${DB_SERVER_SCHEMA}"
-    if [ "${DEBUG_MODE}" == "true" ]; then
+    if [ "${DEBUG_MODE,,}" == "true" ]; then
         echo "* DB_SERVER_ZBX_USER: ${DB_SERVER_ZBX_USER}"
         echo "* DB_SERVER_ZBX_PASS: ${DB_SERVER_ZBX_PASS}"
     fi
@@ -288,7 +288,7 @@ create_db_schema_postgresql() {
     if [ -z "${ZBX_DB_VERSION}" ]; then
         echo "** Creating '${DB_SERVER_DBNAME}' schema in PostgreSQL"
 
-        if [ "${ENABLE_TIMESCALEDB}" == "true" ]; then
+        if [ "${ENABLE_TIMESCALEDB,,}" == "true" ]; then
             psql_query "CREATE EXTENSION IF NOT EXISTS timescaledb CASCADE;"
         fi
 
@@ -312,7 +312,7 @@ create_db_schema_postgresql() {
                 --host "${DB_SERVER_HOST}" --port "${DB_SERVER_PORT}" \
                 --username "${DB_SERVER_ZBX_USER}" --dbname "${DB_SERVER_DBNAME}" 1>/dev/null || exit 1
 
-        if [ "${ENABLE_TIMESCALEDB}" == "true" ]; then
+        if [ "${ENABLE_TIMESCALEDB,,}" == "true" ]; then
             cat /usr/share/doc/zabbix-server-postgresql/timescaledb.sql | psql --quiet \
                 --host ${DB_SERVER_HOST} --port ${DB_SERVER_PORT} \
                 --username ${DB_SERVER_ZBX_USER} --dbname ${DB_SERVER_DBNAME} 1>/dev/null || exit 1
@@ -399,7 +399,7 @@ update_zbx_config() {
     update_config_var $ZBX_CONFIG "StartLLDProcessors" "${ZBX_STARTLLDPROCESSORS}"
 
     : ${ZBX_JAVAGATEWAY_ENABLE:="false"}
-    if [ "${ZBX_JAVAGATEWAY_ENABLE}" == "true" ]; then
+    if [ "${ZBX_JAVAGATEWAY_ENABLE,,}" == "true" ]; then
         update_config_var $ZBX_CONFIG "JavaGateway" "${ZBX_JAVAGATEWAY:-"zabbix-java-gateway"}"
         update_config_var $ZBX_CONFIG "JavaGatewayPort" "${ZBX_JAVAGATEWAYPORT}"
         update_config_var $ZBX_CONFIG "StartJavaPollers" "${ZBX_STARTJAVAPOLLERS:-"5"}"
@@ -416,7 +416,7 @@ update_zbx_config() {
     update_config_var $ZBX_CONFIG "VMwareTimeout" "${ZBX_VMWARETIMEOUT}"
 
     : ${ZBX_ENABLE_SNMP_TRAPS:="false"}
-    if [ "${ZBX_ENABLE_SNMP_TRAPS}" == "true" ]; then
+    if [ "${ZBX_ENABLE_SNMP_TRAPS,,}" == "true" ]; then
         update_config_var $ZBX_CONFIG "SNMPTrapperFile" "${ZABBIX_USER_HOME_DIR}/snmptraps/snmptraps.log"
         update_config_var $ZBX_CONFIG "StartSNMPTrapper" "1"
     else

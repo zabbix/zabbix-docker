@@ -5,7 +5,7 @@ set -o pipefail
 set +e
 
 # Script trace mode
-if [ "${DEBUG_MODE}" == "true" ]; then
+if [ "${DEBUG_MODE,,}" == "true" ]; then
     set -o xtrace
 fi
 
@@ -16,6 +16,9 @@ fi
 # Default MySQL instance location
 : ${DB_SERVER_HOST:="localhost"}
 : ${DB_SERVER_PORT:="3306"}
+
+# Default timezone for web interface
+: ${PHP_TZ:="Europe/Riga"}
 
 # Default directories
 # User 'zabbix' home directory
@@ -199,17 +202,17 @@ check_variables_mysql() {
 
     file_env MYSQL_ROOT_PASSWORD
 
-    if [ ! -n "${MYSQL_USER}" ] && [ "${MYSQL_RANDOM_ROOT_PASSWORD}" == "true" ]; then
+    if [ ! -n "${MYSQL_USER}" ] && [ "${MYSQL_RANDOM_ROOT_PASSWORD,,}" == "true" ]; then
         echo "**** Impossible to use MySQL server because of unknown Zabbix user and random 'root' password"
         exit 1
     fi
 
-    if [ ! -n "${MYSQL_USER}" ] && [ ! -n "${MYSQL_ROOT_PASSWORD}" ] && [ "${MYSQL_ALLOW_EMPTY_PASSWORD}" != "true" ]; then
+    if [ ! -n "${MYSQL_USER}" ] && [ ! -n "${MYSQL_ROOT_PASSWORD}" ] && [ "${MYSQL_ALLOW_EMPTY_PASSWORD,,}" != "true" ]; then
         echo "*** Impossible to use MySQL server because 'root' password is not defined and it is not empty"
         exit 1
     fi
 
-    if [ "${MYSQL_ALLOW_EMPTY_PASSWORD}" == "true" ] || [ -n "${MYSQL_ROOT_PASSWORD}" ]; then
+    if [ "${MYSQL_ALLOW_EMPTY_PASSWORD,,}" == "true" ] || [ -n "${MYSQL_ROOT_PASSWORD}" ]; then
         USE_DB_ROOT_USER=true
         DB_SERVER_ROOT_USER="root"
         DB_SERVER_ROOT_PASS=${MYSQL_ROOT_PASSWORD:-""}
@@ -219,7 +222,7 @@ check_variables_mysql() {
 
     # If root password is not specified use provided credentials
     : ${DB_SERVER_ROOT_USER:=${MYSQL_USER}}
-    [ "${MYSQL_ALLOW_EMPTY_PASSWORD}" == "true" ] || DB_SERVER_ROOT_PASS=${DB_SERVER_ROOT_PASS:-${MYSQL_PASSWORD}}
+    [ "${MYSQL_ALLOW_EMPTY_PASSWORD,,}" == "true" ] || DB_SERVER_ROOT_PASS=${DB_SERVER_ROOT_PASS:-${MYSQL_PASSWORD}}
     DB_SERVER_ZBX_USER=${MYSQL_USER:-"zabbix"}
     DB_SERVER_ZBX_PASS=${MYSQL_PASSWORD:-"zabbix"}
 
@@ -257,7 +260,7 @@ check_db_connect() {
     echo "* DB_SERVER_HOST: ${DB_SERVER_HOST}"
     echo "* DB_SERVER_PORT: ${DB_SERVER_PORT}"
     echo "* DB_SERVER_DBNAME: ${DB_SERVER_DBNAME}"
-    if [ "${DEBUG_MODE}" == "true" ]; then
+    if [ "${DEBUG_MODE,,}" == "true" ]; then
         if [ "${USE_DB_ROOT_USER}" == "true" ]; then
             echo "* DB_SERVER_ROOT_USER: ${DB_SERVER_ROOT_USER}"
             echo "* DB_SERVER_ROOT_PASS: ${DB_SERVER_ROOT_PASS}"
@@ -457,7 +460,7 @@ update_zbx_config() {
     update_config_var $ZBX_CONFIG "VMwareTimeout" "${ZBX_VMWARETIMEOUT}"
 
     : ${ZBX_ENABLE_SNMP_TRAPS:="false"}
-    if [ "${ZBX_ENABLE_SNMP_TRAPS}" == "true" ]; then
+    if [ "${ZBX_ENABLE_SNMP_TRAPS,,}" == "true" ]; then
         update_config_var $ZBX_CONFIG "SNMPTrapperFile" "${ZABBIX_USER_HOME_DIR}/snmptraps/snmptraps.log"
         update_config_var $ZBX_CONFIG "StartSNMPTrapper" "1"
     else
@@ -545,7 +548,8 @@ prepare_zbx_web_config() {
         echo "listen.group = nginx" >> "$PHP_CONFIG_FILE"
     fi
 
-    export ZBX_DENY_GUI_ACCESS=${ZBX_DENY_GUI_ACCESS:-"false"}
+    : ${ZBX_DENY_GUI_ACCESS:="false"}
+    export ZBX_DENY_GUI_ACCESS=${ZBX_DENY_GUI_ACCESS,,}
     export ZBX_GUI_ACCESS_IP_RANGE=${ZBX_GUI_ACCESS_IP_RANGE:-"['127.0.0.1']"}
     export ZBX_GUI_WARNING_MSG=${ZBX_GUI_WARNING_MSG:-"Zabbix is under maintenance."}
 
@@ -567,17 +571,20 @@ prepare_zbx_web_config() {
     export ZBX_SERVER_PORT="10051"
     export ZBX_SERVER_NAME=${ZBX_SERVER_NAME}
 
-    export ZBX_DB_ENCRYPTION=${ZBX_DB_ENCRYPTION:-"false"}
+    : ${ZBX_DB_ENCRYPTION:-"false"}
+    export ZBX_DB_ENCRYPTION=${ZBX_DB_ENCRYPTION,,}
     export ZBX_DB_KEY_FILE=${ZBX_DB_KEY_FILE}
     export ZBX_DB_CERT_FILE=${ZBX_DB_CERT_FILE}
     export ZBX_DB_CA_FILE=${ZBX_DB_CA_FILE}
-    export ZBX_DB_VERIFY_HOST=${ZBX_DB_VERIFY_HOST-"false"}
+    : ${ZBX_DB_VERIFY_HOST:="false"}
+    export ZBX_DB_VERIFY_HOST=${ZBX_DB_VERIFY_HOST,,}
 
     export ZBX_VAULTURL=${ZBX_VAULTURL}
     export ZBX_VAULTDBPATH=${ZBX_VAULTDBPATH}
     export VAULT_TOKEN=${VAULT_TOKEN}
 
-    export DB_DOUBLE_IEEE754=${DB_DOUBLE_IEEE754:-"true"}
+    : ${DB_DOUBLE_IEEE754:="true"}
+    export DB_DOUBLE_IEEE754=${DB_DOUBLE_IEEE754,,}
 
     export ZBX_HISTORYSTORAGEURL=${ZBX_HISTORYSTORAGEURL}
     export ZBX_HISTORYSTORAGETYPES=${ZBX_HISTORYSTORAGETYPES:-"[]"}
@@ -601,7 +608,9 @@ prepare_zbx_web_config() {
         "$ZABBIX_ETC_DIR/nginx_ssl.conf"
     fi
 
-    if [ "${ENABLE_WEB_ACCESS_LOG:-"true"}" == "false" ]; then
+    : ${ENABLE_WEB_ACCESS_LOG:="true"}
+
+    if [ "${ENABLE_WEB_ACCESS_LOG,,}" == "false" ]; then
         sed -ri \
             -e 's!^(\s*access_log).+\;!\1 off\;!g' \
             "/etc/nginx/nginx.conf"
