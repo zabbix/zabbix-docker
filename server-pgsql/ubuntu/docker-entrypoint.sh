@@ -10,7 +10,7 @@ if [ "${DEBUG_MODE,,}" == "true" ]; then
 fi
 
 #Enable PostgreSQL timescaleDB feature:
-ENABLE_TIMESCALEDB=${ENABLE_TIMESCALEDB:-"false"}
+: ${ENABLE_TIMESCALEDB:="false"}
 
 # Default directories
 # User 'zabbix' home directory

@@ -17,6 +17,9 @@ fi
 : ${DB_SERVER_HOST:="localhost"}
 : ${DB_SERVER_PORT:="3306"}
 
+# Default timezone for web interface
+: ${PHP_TZ:="Europe/Riga"}
+
 # Default directories
 # User 'zabbix' home directory
 ZABBIX_USER_HOME_DIR="/var/lib/zabbix"
