@@ -143,7 +143,8 @@ prepare_web_server() {
 prepare_zbx_web_config() {
     echo "** Preparing Zabbix frontend configuration file"
 
-    export ZBX_DENY_GUI_ACCESS=${ZBX_DENY_GUI_ACCESS:-"false"}
+    : ${ZBX_DENY_GUI_ACCESS:="false"}
+    export ZBX_DENY_GUI_ACCESS=${ZBX_DENY_GUI_ACCESS,,}
     export ZBX_GUI_ACCESS_IP_RANGE=${ZBX_GUI_ACCESS_IP_RANGE:-"['127.0.0.1']"}
     export ZBX_GUI_WARNING_MSG=${ZBX_GUI_WARNING_MSG:-"Zabbix is under maintenance."}
 
@@ -152,7 +153,7 @@ prepare_zbx_web_config() {
     export ZBX_POSTMAXSIZE=${ZBX_POSTMAXSIZE:-"16M"}
     export ZBX_UPLOADMAXFILESIZE=${ZBX_UPLOADMAXFILESIZE:-"2M"}
     export ZBX_MAXINPUTTIME=${ZBX_MAXINPUTTIME:-"300"}
-    export PHP_TZ=${PHP_TZ:-"Europe/Riga"}
+    export PHP_TZ=${PHP_TZ}
 
     export DB_SERVER_TYPE="POSTGRESQL"
     export DB_SERVER_HOST=${DB_SERVER_HOST}
@@ -165,7 +166,7 @@ prepare_zbx_web_config() {
     export ZBX_SERVER_PORT=${ZBX_SERVER_PORT:-"10051"}
     export ZBX_SERVER_NAME=${ZBX_SERVER_NAME}
 
-    ENABLE_WEB_ACCESS_LOG=${ENABLE_WEB_ACCESS_LOG:-"true"}
+    : ${ENABLE_WEB_ACCESS_LOG:="true"}
 
     if [ "${ENABLE_WEB_ACCESS_LOG,,}" == "false" ]; then
         sed -ri \
