@@ -50,8 +50,6 @@ jobs:
         exclude:
           - os: centos
             build: agent2
-          - os: ubuntu
-            build: agent2
 
     runs-on: ubuntu-20.04
     steps:

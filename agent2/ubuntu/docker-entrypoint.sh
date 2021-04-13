@@ -5,7 +5,7 @@ set -o pipefail
 set +e
 
 # Script trace mode
-if [ "${DEBUG_MODE}" == "true" ]; then
+if [ "${DEBUG_MODE,,}" == "true" ]; then
     set -o xtrace
 fi
 
@@ -136,7 +136,7 @@ prepare_zbx_agent_config() {
     update_config_var $ZBX_AGENT_CONFIG "LogRemoteCommands" "${ZBX_LOGREMOTECOMMANDS}"
 
     : ${ZBX_PASSIVE_ALLOW:="true"}
-    if [ "$ZBX_PASSIVE_ALLOW" == "true" ]; then
+    if [ "${ZBX_PASSIVE_ALLOW,,}" == "true" ]; then
         echo "** Using '$ZBX_PASSIVESERVERS' servers for passive checks"
         update_config_var $ZBX_AGENT_CONFIG "Server" "${ZBX_PASSIVESERVERS}"
     else
@@ -147,14 +147,14 @@ prepare_zbx_agent_config() {
     update_config_var $ZBX_AGENT_CONFIG "ListenIP" "${ZBX_LISTENIP}"
 
     : ${ZBX_ACTIVE_ALLOW:="true"}
-    if [ "$ZBX_ACTIVE_ALLOW" == "true" ]; then
+    if [ "${ZBX_ACTIVE_ALLOW,,}" == "true" ]; then
         echo "** Using '$ZBX_ACTIVESERVERS' servers for active checks"
         update_config_var $ZBX_AGENT_CONFIG "ServerActive" "${ZBX_ACTIVESERVERS}"
     else
         update_config_var $ZBX_AGENT_CONFIG "ServerActive"
     fi
 
-    if [ "$ZBX_ENABLESTATUSPORT" == "true" ]; then
+    if [ "${ZBX_ENABLEPERSISTENTBUFFER,,}" == "true" ]; then
         update_config_var $ZBX_AGENT_CONFIG "EnablePersistentBuffer" "1"
         update_config_var $ZBX_AGENT_CONFIG "PersistentBufferFile" "$ZABBIX_USER_HOME_DIR/buffer/"
         update_config_var $ZBX_AGENT_CONFIG "PersistentBufferPeriod" "${ZBX_PERSISTENTBUFFERPERIOD}"
@@ -162,7 +162,7 @@ prepare_zbx_agent_config() {
         update_config_var $ZBX_AGENT_CONFIG "EnablePersistentBuffer" "0"
     fi
 
-    if [ "$ZBX_ENABLESTATUSPORT" == "true" ]; then
+    if [ "${ZBX_ENABLESTATUSPORT,,}" == "true" ]; then
         update_config_var $ZBX_AGENT_CONFIG "StatusPort" "31999"
     fi
 

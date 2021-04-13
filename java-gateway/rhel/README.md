@@ -14,21 +14,25 @@ Zabbix Java Gateway performs native support for monitoring JMX applications. Jav
 
 # Zabbix Java Gateway images
 
-These are the only official Zabbix Java Gateway Docker images. They are based on Alpine Linux v3.9, Ubuntu 18.04 (bionic) and CentOS 7 images. The available versions of Zabbix Java Gateway are:
+These are the only official Zabbix Java Gateway Docker images. They are based on Alpine Linux v3.12, Ubuntu 20.04 (focal) and CentOS 8 images. The available versions of Zabbix Java Gateway are:
 
-    Zabbix Java Gateway 3.0 (tags: alpine-3.0-latest, ubuntu-3.0-latest, centos-3.0-latest)
-    Zabbix Java Gateway 3.0.* (tags: alpine-3.0.*, ubuntu-3.0.*, centos-3.0.*)
-    Zabbix Java Gateway 3.2 (tags: alpine-3.2-latest, ubuntu-3.2-latest, centos-3.2-latest)
-    Zabbix Java Gateway 3.2.* (tags: alpine-3.2.*, ubuntu-3.2.*, centos-3.2.*)
-    Zabbix Java Gateway 3.4 (tags: alpine-3.4-latest, ubuntu-3.4-latest, centos-3.4-latest)
-    Zabbix Java Gateway 3.4.* (tags: alpine-3.4.*, ubuntu-3.4.*, centos-3.4.*)
+    Zabbix Java Gateway 3.0 (tags: alpine-3.0-latest, ubuntu-3.0-latest, centos-3.0-latest) (unsupported)
+    Zabbix Java Gateway 3.0.* (tags: alpine-3.0.*, ubuntu-3.0.*, centos-3.0.*) (unsupported)
+    Zabbix Java Gateway 3.2 (tags: alpine-3.2-latest, ubuntu-3.2-latest, centos-3.2-latest) (unsupported)
+    Zabbix Java Gateway 3.2.* (tags: alpine-3.2.*, ubuntu-3.2.*, centos-3.2.*) (unsupported)
+    Zabbix Java Gateway 3.4 (tags: alpine-3.4-latest, ubuntu-3.4-latest, centos-3.4-latest) (unsupported)
+    Zabbix Java Gateway 3.4.* (tags: alpine-3.4.*, ubuntu-3.4.*, centos-3.4.*) (unsupported)
     Zabbix Java Gateway 4.0 (tags: alpine-4.0-latest, ubuntu-4.0-latest, centos-4.0-latest)
     Zabbix Java Gateway 4.0.* (tags: alpine-4.0.*, ubuntu-4.0.*, centos-4.0.*)
-    Zabbix Java Gateway 4.2 (tags: alpine-4.2-latest, ubuntu-4.2-latest, centos-4.2-latest)
-    Zabbix Java Gateway 4.2.* (tags: alpine-4.2.*, ubuntu-4.2.*, centos-4.2.*)
-    Zabbix Java Gateway 4.4 (tags: alpine-4.4-latest, ubuntu-4.4-latest, centos-4.4-latest, alpine-latest, ubuntu-latest, centos-latest, latest)
-    Zabbix Java Gateway 4.4.* (tags: alpine-4.4.*, ubuntu-4.4.*, centos-4.4.*)
-    Zabbix Java Gateway 5.0 (tags: alpine-trunk, ubuntu-trunk, centos-trunk)
+    Zabbix Java Gateway 4.2 (tags: alpine-4.2-latest, ubuntu-4.2-latest, centos-4.2-latest) (unsupported)
+    Zabbix Java Gateway 4.2.* (tags: alpine-4.2.*, ubuntu-4.2.*, centos-4.2.*) (unsupported)
+    Zabbix Java Gateway 4.4 (tags: alpine-4.4-latest, ubuntu-4.4-latest, centos-4.4-latest) (unsupported)
+    Zabbix Java Gateway 4.4.* (tags: alpine-4.4.*, ubuntu-4.4.*, centos-4.4.*) (unsupported)
+    Zabbix Java Gateway 5.0 (tags: alpine-5.0-latest, ubuntu-5.0-latest, centos-5.0-latest)
+    Zabbix Java Gateway 5.0.* (tags: alpine-5.0.*, ubuntu-5.0.*, centos-5.0.*)
+    Zabbix Java Gateway 5.2 (tags: alpine-5.2-latest, ubuntu-5.2-latest, centos-5.2-latest, alpine-latest, ubuntu-latest, centos-latest, latest)
+    Zabbix Java Gateway 5.2.* (tags: alpine-5.2.*, ubuntu-5.2.*, centos-5.2.*)
+    Zabbix Java Gateway 5.4 (tags: alpine-trunk, ubuntu-trunk, centos-trunk)
 
 Images are updated when new releases are published. The image with ``latest`` tag is based on Alpine Linux.
 
@@ -76,6 +80,14 @@ This variable is used to specify timeout for outgoing connections. By default, v
 
 This variable is used to specify log level. By default, value is `info`. The variable allows next values: ``trace``, ``debug``, ``info``, ``want``, ``error``, ``all``, ``off``
 
+### `ZBX_PROPERTIES_FILE`
+
+Name of properties file. Can be used to set additional properties using a key-value format in such a way that they are not visible on a command line or to overwrite existing ones.
+
+### `ZABBIX_OPTIONS`
+
+Additional arguments for Zabbix Java Gateway. Useful to enable additional libraries and features.
+
 ## Allowed volumes for the Zabbix Java Gateway container
 
 ### ``/usr/sbin/zabbix_java/ext_lib``
@@ -110,7 +122,7 @@ Please see [the Docker installation documentation](https://docs.docker.com/insta
 
 ## Documentation
 
-Documentation for this image is stored in the [`java-gateway/` directory](https://github.com/zabbix/zabbix-docker/tree/3.0/java-gateway) of the [`zabbix/zabbix-docker` GitHub repo](https://github.com/zabbix/zabbix-docker/). Be sure to familiarize yourself with the [repository's `README.md` file](https://github.com/zabbix/zabbix-docker/blob/master/README.md) before attempting a pull request.
+Documentation for this image is stored in the [`java-gateway/` directory](https://github.com/zabbix/zabbix-docker/tree/current/java-gateway) of the [`zabbix/zabbix-docker` GitHub repo](https://github.com/zabbix/zabbix-docker/). Be sure to familiarize yourself with the [repository's `README.md` file](https://github.com/zabbix/zabbix-docker/blob/master/README.md) before attempting a pull request.
 
 ## Issues
 
