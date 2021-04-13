@@ -96,7 +96,7 @@ check_variables() {
 db_tls_params() {
     local result=""
 
-    if [ "${ZBX_DB_ENCRYPTION}" == "true" ]; then
+    if [ "${ZBX_DB_ENCRYPTION,,}" == "true" ]; then
         result="--ssl-mode=required"
 
         if [ -n "${ZBX_DB_CA_FILE}" ]; then
@@ -207,7 +207,7 @@ prepare_zbx_web_config() {
     export ZBX_DB_KEY_FILE=${ZBX_DB_KEY_FILE}
     export ZBX_DB_CERT_FILE=${ZBX_DB_CERT_FILE}
     export ZBX_DB_CA_FILE=${ZBX_DB_CA_FILE}
-    : ${ZBX_DB_VERIFY_HOST="false"}
+    : ${ZBX_DB_VERIFY_HOST:="false"}
     export ZBX_DB_VERIFY_HOST=${ZBX_DB_VERIFY_HOST,,}
 
     export ZBX_VAULTURL=${ZBX_VAULTURL}
