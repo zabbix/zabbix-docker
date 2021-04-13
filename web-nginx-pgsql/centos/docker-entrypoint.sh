@@ -20,9 +20,6 @@ fi
 # Default timezone for web interface
 : ${PHP_TZ:="Europe/Riga"}
 
-#Enable PostgreSQL timescaleDB feature:
-ENABLE_TIMESCALEDB=${ENABLE_TIMESCALEDB:-"false"}
-
 # Default directories
 # Configuration files directory
 ZABBIX_ETC_DIR="/etc/zabbix"
