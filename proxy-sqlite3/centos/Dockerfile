@@ -50,6 +50,7 @@ RUN set -eux && \
             libevent \
             libssh \
             fping \
+            file-libs \
             libxml2 \
             net-snmp-libs \
             OpenIPMI-libs \

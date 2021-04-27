@@ -51,6 +51,7 @@ RUN set -eux && \
             libevent \
             libssh \
             fping \
+            file-libs \
             libxml2 \
             mysql \
             mysql-libs \

@@ -49,6 +49,7 @@ RUN set -eux && \
     dnf -y install epel-release && \
     dnf -y install --setopt=tsflags=nodocs --setopt=install_weak_deps=False --best \
             fping \
+            file-libs \
             iputils \
             tzdata \
             traceroute \
