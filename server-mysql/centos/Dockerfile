@@ -65,6 +65,7 @@ RUN set -eux && \
             openssl-libs \
             pcre \
             zlib \
+            file-libs \
             unixODBC && \
     curl -L "https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini-${ARCH_SUFFIX}" -o /sbin/tini && \
     curl -L "https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini-${ARCH_SUFFIX}.asc" -o /tmp/tini.asc && \

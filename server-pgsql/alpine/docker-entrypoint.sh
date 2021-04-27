@@ -372,6 +372,10 @@ update_zbx_config() {
         update_config_var $ZBX_CONFIG "DBPassword" "${DB_SERVER_ZBX_PASS}"
     fi
 
+    update_config_var $ZBX_CONFIG "StartReportWriters" "${ZBX_STARTREPORTWRITERS}"
+    : ${ZBX_WEBSERVICEURL:="http://zabbix-web-service:10053/report"}
+    update_config_var $ZBX_CONFIG "WebServiceURL" "${ZBX_WEBSERVICEURL}"
+
     update_config_var $ZBX_CONFIG "HistoryStorageURL" "${ZBX_HISTORYSTORAGEURL}"
     update_config_var $ZBX_CONFIG "HistoryStorageTypes" "${ZBX_HISTORYSTORAGETYPES}"
     update_config_var $ZBX_CONFIG "HistoryStorageDateIndex" "${ZBX_HISTORYSTORAGEDATEINDEX}"

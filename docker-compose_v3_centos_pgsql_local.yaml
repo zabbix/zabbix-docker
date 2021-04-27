@@ -406,6 +406,41 @@ services:
    com.zabbix.component: "snmptraps"
    com.zabbix.os: "centos"
 
+ zabbix-web-service:
+  build:
+   context: ./web-service/centos
+   cache_from:
+    - centos:centos8
+  image: zabbix-web-service:centos-local
+  profiles:
+   - full
+   - all
+  ports:
+   - "10053:10053"
+  cap_add:
+   - SYS_ADMIN
+  deploy:
+   resources:
+    limits:
+      cpus: '0.5'
+      memory: 512M
+    reservations:
+      cpus: '0.25'
+      memory: 256M
+  env_file:
+   - .env_web_service
+  networks:
+   zbx_net_backend:
+    aliases:
+     - zabbix-web-service
+     - zabbix-web-service-centos
+  stop_grace_period: 5s
+  labels:
+   com.zabbix.description: "Zabbix web service"
+   com.zabbix.company: "Zabbix LLC"
+   com.zabbix.component: "web-service"
+   com.zabbix.os: "centos"
+
  mysql-server:
   image: mysql:8.0
   profiles:
