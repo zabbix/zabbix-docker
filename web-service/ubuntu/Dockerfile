@@ -45,6 +45,8 @@ RUN set -eux && \
     apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 112695A0E562B32A && \
     apt-get -y update && \
     DEBIAN_FRONTEND=noninteractive apt-get -y --no-install-recommends install chromium chromium-sandbox && \
+    DEBIAN_FRONTEND=noninteractive apt-get -y purge \
+            gnupg && \
     apt-get -y autoremove && \
     apt-get -y clean && \
     rm -rf /var/lib/apt/lists/* 

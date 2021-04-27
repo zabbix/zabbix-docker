@@ -52,10 +52,6 @@ The Zabbix web service log is available through Docker's container log:
 $ docker logs some-zabbix-web-service
 ```
 
-## Capaibilities
-
-
-
 ## Environment Variables
 
 When you start the `zabbix-web-service` image, you can adjust the configuration of the Zabbix web service by passing one or more environment variables on the `docker run` command line.
@@ -138,6 +134,13 @@ Documentation for this image is stored in the [`web-service/` directory](https:/
 If you have any problems with or questions about this image, please contact us through a [GitHub issue](https://github.com/zabbix/zabbix-docker/issues).
 
 ### Known issues
+
+Zabbix web services uses Google Chromium with headless mode. Because of restrictions you may see the following error during report generation:
+```
+Failed to move to new namespace: PID namespaces supported, Network namespace supported, but failed: errno = Operation not permitted
+```
+
+To avoid the issue it is required to add ``SYS_ADMIN`` capability for Zabbix web service. The capability is redundant and allow too much.
 
 ## Contributing
 
