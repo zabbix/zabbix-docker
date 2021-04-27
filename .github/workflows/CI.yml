@@ -51,10 +51,6 @@ jobs:
         exclude:
           - os: centos
             build: agent2
-          - os: centos
-            build: web-service
-          - os: ubuntu
-            build: web-service
 
     runs-on: ubuntu-20.04
     steps:
