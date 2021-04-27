@@ -67,7 +67,7 @@ RUN set -eux && \
             make \
             pkg-config \
             git \
-            gcc \
+            g++ \
             golang && \
     cd /tmp/ && \
     git clone ${ZBX_SOURCES} --branch master --depth 1 --single-branch zabbix-${ZBX_VERSION} && \
@@ -106,7 +106,7 @@ RUN set -eux && \
             make \
             pkg-config \
             git \
-            gcc \
+            g++ \
             golang && \ 
     chown --quiet -R zabbix:root /etc/zabbix/ /var/lib/zabbix/ && \
     chgrp -R 0 /etc/zabbix/ /var/lib/zabbix/ && \
