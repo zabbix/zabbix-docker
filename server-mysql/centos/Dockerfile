@@ -50,6 +50,7 @@ RUN set -eux && \
     dnf -y module enable mysql && \
     dnf -y install --setopt=tsflags=nodocs --setopt=install_weak_deps=False --best \
             fping \
+            file-libs \
             tzdata \
             iputils \
             traceroute \

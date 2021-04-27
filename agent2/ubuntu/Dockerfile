@@ -67,7 +67,7 @@ RUN set -eux && \
             make \
             pkg-config \
             git \
-            gcc \
+            g++ \
             golang && \
     cd /tmp/ && \
     git clone ${ZBX_SOURCES} --branch ${ZBX_VERSION} --depth 1 --single-branch zabbix-${ZBX_VERSION} && \
