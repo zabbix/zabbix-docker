@@ -48,7 +48,7 @@ RUN set -eux && \
             automake \
             libc6-dev \
             make \
-            openjdk-8-jdk \
+            openjdk-8-jdk-headless \
             pkg-config \
             git \
             gcc && \
