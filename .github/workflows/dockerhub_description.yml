@@ -30,6 +30,7 @@ jobs:
           - web-apache-pgsql
           - web-nginx-mysql
           - web-nginx-pgsql
+          - web-service
     steps:
       -
         uses: actions/checkout@v2
