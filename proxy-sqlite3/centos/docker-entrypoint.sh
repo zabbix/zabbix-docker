@@ -167,7 +167,7 @@ update_zbx_config() {
     update_config_var $ZBX_CONFIG "StartTrappers" "${ZBX_STARTTRAPPERS}"
     update_config_var $ZBX_CONFIG "StartPingers" "${ZBX_STARTPINGERS}"
     update_config_var $ZBX_CONFIG "StartDiscoverers" "${ZBX_STARTDISCOVERERS}"
-    update_config_var $ZBX_CONFIG "StartHistoryPollers" "${ZBX_HISTORYPOLLERS}"
+    update_config_var $ZBX_CONFIG "StartHistoryPollers" "${ZBX_STARTHISTORYPOLLERS}"
     update_config_var $ZBX_CONFIG "StartHTTPPollers" "${ZBX_STARTHTTPPOLLERS}"
 
     : ${ZBX_JAVAGATEWAY_ENABLE:="false"}
