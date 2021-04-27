@@ -78,9 +78,13 @@ jobs:
         id: platform
         run: |
           DOCKER_PLATFORM="linux/amd64,linux/arm/v6,linux/arm/v7,linux/arm64,linux/s390x,linux/ppc64le"
-          
+
           if [ "${{ matrix.build }}" == "agent2" ]; then
             DOCKER_PLATFORM="linux/amd64,linux/arm/v6,linux/arm/v7,linux/arm64,linux/ppc64le"
+          fi
+
+          if [ "${{ matrix.build }}" == "web-service" ]; then
+            DOCKER_PLATFORM="linux/amd64,linux/arm64"
           fi
 
           if [ "${{ matrix.os }}" == "ubuntu" ]; then
