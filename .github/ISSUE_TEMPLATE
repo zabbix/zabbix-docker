@@ -1,0 +1,37 @@
+<!--- Please create issues about Zabbix images only. Zabbix official bug and feature tracker is available on https://support.zabbix.com/ -->
+<!--- Verify first that your issue is not already reported on GitHub or covered in the Wiki -->
+<!--- Have you had a look in the official Zabbix Documentation? -->
+
+##### SUMMARY
+<!--- Explain the problem briefly below -->
+
+
+##### OS / ENVIRONMENT / Used docker-compose files
+<!--- Provide all relevant information below, e.g. Docker/Container versions, used OS and OS-versions, which docker-compose_* template used -->
+
+
+##### CONFIGURATION
+<!--- Consider adding information about what .env_* files you changed or add the actual docker-compose you used -->
+<!--- HINT: You can paste gist.github.com links for larger files -->
+
+##### STEPS TO REPRODUCE
+<!--- Describe exactly how to reproduce the problem, using a minimal test-case -->
+
+<!--- Paste example commands between quotes below -->
+```yaml
+
+```
+
+<!--- HINT: You can paste gist.github.com links for larger files -->
+
+##### EXPECTED RESULTS
+<!--- Describe what you expected to happen when running the steps above -->
+
+
+##### ACTUAL RESULTS
+<!--- Describe what actually happened. If possible run with extra verbosity (higher ZABBIX_LOGLEVEL) -->
+
+<!--- Paste verbatim command output between quotes -->
+```paste below
+
+```
