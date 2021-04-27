@@ -95,6 +95,10 @@ jobs:
             DOCKER_PLATFORM=${DOCKER_PLATFORM%",linux/ppc64le"}
           fi
 
+          if [ "${{ matrix.build }}" == "web-service" ]; then
+            DOCKER_PLATFORM=${DOCKER_PLATFORM%",linux/ppc64le"}
+          fi
+
           echo ::set-output name=list::${DOCKER_PLATFORM}
 
       - name: Prepare environment (push)
