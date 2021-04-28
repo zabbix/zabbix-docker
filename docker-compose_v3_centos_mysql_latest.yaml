@@ -387,6 +387,8 @@ services:
    - "10053:10053"
   cap_add:
    - SYS_ADMIN
+  volumes:
+   - ./zbx_env/var/lib/zabbix/enc:/var/lib/zabbix/enc:ro
   deploy:
    resources:
     limits:

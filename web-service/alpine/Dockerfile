@@ -59,7 +59,6 @@ RUN set -eux && \
             --prefix=/usr \
             --sysconfdir=/etc/zabbix \
             --prefix=/usr \
-            --enable-ipv6 \
             --enable-webservice \
             --silent && \
     make -j"$(nproc)" -s && \

@@ -22,7 +22,8 @@ RUN set -eux && \
     mkdir -p /var/lib/zabbix && \
     mkdir -p /var/lib/zabbix/enc && \
     dnf --quiet makecache && \
-    dnf -y install epel-release && \
+    dnf -y install --setopt=tsflags=nodocs --setopt=install_weak_deps=False --best \
+            epel-release && \
     dnf -y install --setopt=tsflags=nodocs --setopt=install_weak_deps=False --best \
             chromium \
             openssl-libs \
@@ -63,7 +64,6 @@ RUN set -eux && \
             --prefix=/usr \
             --sysconfdir=/etc/zabbix \
             --prefix=/usr \
-            --enable-ipv6 \
             --enable-webservice \
             --silent && \
     make -j"$(nproc)" -s && \

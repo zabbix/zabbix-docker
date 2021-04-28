@@ -84,43 +84,27 @@ update_config_var() {
 
 }
 
-update_config_multiple_var() {
-    local config_path=$1
-    local var_name=$2
-    local var_value=$3
-
-    var_value="${var_value%\"}"
-    var_value="${var_value#\"}"
-
-    local IFS=,
-    local OPT_LIST=($var_value)
-
-    for value in "${OPT_LIST[@]}"; do
-        update_config_var $config_path $var_name $value true
-    done
-}
-
 prepare_zbx_web_service_config() {
     echo "** Preparing Zabbix web service configuration file"
-    ZBX_WEB_SERVICE_CONFIG=$ZABBIX_ETC_DIR/zabbix_web_service.conf
+    ZBX_CONFIG=$ZABBIX_ETC_DIR/zabbix_web_service.conf
 
-    update_config_var $ZBX_WEB_SERVICE_CONFIG "LogType" "console"
-    update_config_var $ZBX_WEB_SERVICE_CONFIG "LogFile"
-    update_config_var $ZBX_WEB_SERVICE_CONFIG "LogFileSize"
-    update_config_var $ZBX_WEB_SERVICE_CONFIG "DebugLevel" "${ZBX_DEBUGLEVEL}"
+    update_config_var $ZBX_CONFIG "LogType" "console"
+    update_config_var $ZBX_CONFIG "LogFile"
+    update_config_var $ZBX_CONFIG "LogFileSize"
+    update_config_var $ZBX_CONFIG "DebugLevel" "${ZBX_DEBUGLEVEL}"
 
     : ${ZBX_ALLOWEDIP:="zabbix-server"}
-    update_config_var $ZBX_WEB_SERVICE_CONFIG "AllowedIP" "${ZBX_ALLOWEDIP}"
+    update_config_var $ZBX_CONFIG "AllowedIP" "${ZBX_ALLOWEDIP}"
 
-    update_config_var $ZBX_WEB_SERVICE_CONFIG "ListenPort" "${ZBX_LISTENPORT}"
+    update_config_var $ZBX_CONFIG "ListenPort" "${ZBX_LISTENPORT}"
 
-    update_config_var $ZBX_WEB_SERVICE_CONFIG "Timeout" "${ZBX_TIMEOUT}"
+    update_config_var $ZBX_CONFIG "Timeout" "${ZBX_TIMEOUT}"
 
-    update_config_var $ZBX_WEB_SERVICE_CONFIG "TLSAccept" "${ZBX_TLSACCEPT}"
-    update_config_var $ZBX_WEB_SERVICE_CONFIG "TLSCAFile" "${ZBX_TLSCAFILE}"
+    update_config_var $ZBX_CONFIG "TLSAccept" "${ZBX_TLSACCEPT}"
+    update_config_var $ZBX_CONFIG "TLSCAFile" "${ZBX_TLSCAFILE}"
 
-    update_config_var $ZBX_WEB_SERVICE_CONFIG "TLSCertFile" "${ZBX_TLSCERTFILE}"
-    update_config_var $ZBX_WEB_SERVICE_CONFIG "TLSKeyFile" "${ZBX_TLSKEYFILE}"
+    update_config_var $ZBX_CONFIG "TLSCertFile" "${ZBX_TLSCERTFILE}"
+    update_config_var $ZBX_CONFIG "TLSKeyFile" "${ZBX_TLSKEYFILE}"
 }
 
 prepare_web_service() {
