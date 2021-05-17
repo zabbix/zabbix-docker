@@ -1,0 +1,127 @@
+name: NightlyBuild
+
+on:
+  schedule:
+    - cron:  '5 2 * * *'
+  workflow_dispatch:
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  build:
+    env:
+      DOCKER_REPOSITORY: "zabbix"
+    strategy:
+      fail-fast: false  
+      matrix:
+        build:
+          - agent
+          - agent2
+          - java-gateway
+          - proxy-mysql
+          - proxy-sqlite3
+          - server-mysql
+          - server-pgsql
+          - snmptraps
+          - web-apache-mysql
+          - web-apache-pgsql
+          - web-nginx-mysql
+          - web-nginx-pgsql
+          - web-service
+        os:
+         - alpine
+         - ubuntu
+         - centos
+        exclude:
+          - os: centos
+            build: agent2
+
+    runs-on: ubuntu-20.04
+    steps:
+      -
+        uses: actions/checkout@v2
+        with:
+          ref: "refs/heads/trunk"
+
+      -
+        name: Set up QEMU
+        uses: docker/setup-qemu-action@v1
+      -
+        name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
+      -
+        name: Login to DockerHub
+        uses: docker/login-action@v1 
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Prepare platform list
+        id: platform
+        run: |
+          DOCKER_PLATFORM="linux/amd64,linux/arm/v6,linux/arm/v7,linux/arm64,linux/s390x,linux/ppc64le"
+
+          if [ "${{ matrix.build }}" == "agent2" ]; then
+            DOCKER_PLATFORM="linux/amd64,linux/arm/v6,linux/arm/v7,linux/arm64,linux/ppc64le"
+          fi
+
+          if [ "${{ matrix.build }}" == "web-service" ]; then
+            DOCKER_PLATFORM="linux/amd64,linux/arm64"
+          fi
+
+          if [ "${{ matrix.os }}" == "ubuntu" ]; then
+            DOCKER_PLATFORM="linux/amd64,linux/arm/v7,linux/arm64,linux/ppc64le"
+          fi
+
+          if [ "${{ matrix.os }}" == "centos" ]; then
+            DOCKER_PLATFORM="linux/amd64,linux/arm64,linux/ppc64le"
+          fi
+
+          if [ "${{ matrix.build }}" == "java-gateway" ]; then
+            DOCKER_PLATFORM=${DOCKER_PLATFORM%",linux/ppc64le"}
+          fi
+
+          if [ "${{ matrix.build }}" == "web-service" ]; then
+            DOCKER_PLATFORM=${DOCKER_PLATFORM%",linux/ppc64le"}
+          fi
+
+          echo ::set-output name=list::${DOCKER_PLATFORM}
+
+      - name: Prepare environment (schedule)
+        id: prepare
+        run: |
+          TAGS_ARRAY=()
+
+          IMAGE_NAME="${{ env.DOCKER_REPOSITORY }}/zabbix-${{ matrix.build }}"
+          GIT_BRANCH="refs/heads/trunk"
+          GIT_BRANCH=${GIT_BRANCH:11}
+
+          echo "::debug::Branch - ${GIT_BRANCH}"
+
+          if [ "${GIT_BRANCH}" == "trunk" ]; then
+            TAGS_ARRAY+=("$IMAGE_NAME:${{ matrix.os }}-${GIT_BRANCH}")
+          fi
+
+          TAGS=$(printf -- "%s, " "${TAGS_ARRAY[@]}")
+
+          echo "::debug::Tags - ${TAGS}"
+
+          echo ::set-output name=image_name::${IMAGE_NAME}
+          echo ::set-output name=image_tag_versions::$(printf -- "%s," "${TAGS_ARRAY[@]}")
+
+      -
+        name: Build and push
+        id: docker_build
+        uses: docker/build-push-action@v2
+        with:
+          context: ./${{ matrix.build }}/${{ matrix.os }}
+          file: ./${{ matrix.build }}/${{ matrix.os }}/Dockerfile
+          platforms: ${{ steps.platform.outputs.list }}
+          push: ${{ secrets.AUTO_PUSH_IMAGES }}
+          tags: ${{ steps.prepare.outputs.image_tag_versions }}
+
+      -
+        name: Image digest
+        run: echo ${{ steps.docker_build.outputs.digest }}
