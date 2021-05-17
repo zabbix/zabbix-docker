@@ -1,7 +1,7 @@
 version: '3.5'
 services:
  zabbix-server:
-  image: zabbix/zabbix-server-mysql:alpine-5.4-latest
+  image: zabbix/zabbix-server-mysql:alpine-trunk
   ports:
    - "10051:10051"
   volumes:
@@ -64,7 +64,7 @@ services:
    com.zabbix.os: "alpine"
 
  zabbix-proxy-sqlite3:
-  image: zabbix/zabbix-proxy-sqlite3:alpine-5.4-latest
+  image: zabbix/zabbix-proxy-sqlite3:alpine-trunk
   profiles:
    - all
   ports:
@@ -113,7 +113,7 @@ services:
    com.zabbix.os: "alpine"
 
  zabbix-proxy-mysql:
-  image: zabbix/zabbix-proxy-mysql:alpine-5.4-latest
+  image: zabbix/zabbix-proxy-mysql:alpine-trunk
   profiles:
    - all
   ports:
@@ -171,7 +171,7 @@ services:
    com.zabbix.os: "alpine"
 
  zabbix-web-apache-mysql:
-  image: zabbix/zabbix-web-apache-mysql:alpine-5.4-latest
+  image: zabbix/zabbix-web-apache-mysql:alpine-trunk
   profiles:
    - all
   ports:
@@ -227,7 +227,7 @@ services:
    com.zabbix.os: "alpine"
 
  zabbix-web-nginx-mysql:
-  image: zabbix/zabbix-web-nginx-mysql:alpine-5.4-latest
+  image: zabbix/zabbix-web-nginx-mysql:alpine-trunk
   ports:
    - "80:8080"
    - "443:8443"
@@ -281,7 +281,7 @@ services:
    com.zabbix.os: "alpine"
 
  zabbix-agent:
-  image: zabbix/zabbix-agent:alpine-5.4-latest
+  image: zabbix/zabbix-agent:alpine-trunk
   profiles:
    - full
    - all
@@ -321,7 +321,7 @@ services:
    com.zabbix.os: "alpine"
 
  zabbix-java-gateway:
-  image: zabbix/zabbix-java-gateway:alpine-5.4-latest
+  image: zabbix/zabbix-java-gateway:alpine-trunk
   profiles:
    - full
    - all
@@ -350,7 +350,7 @@ services:
    com.zabbix.os: "alpine"
 
  zabbix-snmptraps:
-  image: zabbix/zabbix-snmptraps:alpine-5.4-latest
+  image: zabbix/zabbix-snmptraps:alpine-trunk
   profiles:
    - full
    - all
@@ -379,7 +379,7 @@ services:
    com.zabbix.os: "alpine"
 
  zabbix-web-service:
-  image: zabbix/zabbix-web-service:alpine-5.4-latest
+  image: zabbix/zabbix-web-service:alpine-trunk
   profiles:
    - full
    - all

@@ -1,7 +1,7 @@
 version: '3.5'
 services:
  zabbix-server:
-  image: zabbix/zabbix-server-mysql:ubuntu-5.4-latest
+  image: zabbix/zabbix-server-mysql:ubuntu-trunk
   ports:
    - "10051:10051"
   volumes:
@@ -111,7 +111,7 @@ services:
    com.zabbix.os: "ubuntu"
 
  zabbix-proxy-mysql:
-  image: zabbix/zabbix-proxy-mysql:ubuntu-5.4-latest
+  image: zabbix/zabbix-proxy-mysql:ubuntu-trunk
   profiles:
    - all
   ports:
@@ -166,7 +166,7 @@ services:
    com.zabbix.os: "ubuntu"
 
  zabbix-web-apache-mysql:
-  image: zabbix/zabbix-web-apache-mysql:ubuntu-5.4-latest
+  image: zabbix/zabbix-web-apache-mysql:ubuntu-trunk
   profiles:
    - all
   ports:
@@ -221,7 +221,7 @@ services:
    com.zabbix.os: "ubuntu"
 
  zabbix-web-nginx-mysql:
-  image: zabbix/zabbix-web-nginx-mysql:ubuntu-5.4-latest
+  image: zabbix/zabbix-web-nginx-mysql:ubuntu-trunk
   ports:
    - "80:8080"
    - "443:8443"
@@ -274,7 +274,7 @@ services:
    com.zabbix.os: "ubuntu"
 
  zabbix-agent:
-  image: zabbix/zabbix-agent:ubuntu-5.4-latest
+  image: zabbix/zabbix-agent:ubuntu-trunk
   profiles:
    - full
    - all
@@ -313,7 +313,7 @@ services:
    com.zabbix.os: "ubuntu"
 
  zabbix-java-gateway:
-  image: zabbix/zabbix-java-gateway:ubuntu-5.4-latest
+  image: zabbix/zabbix-java-gateway:ubuntu-trunk
   profiles:
    - full
    - all
@@ -342,7 +342,7 @@ services:
    com.zabbix.os: "ubuntu"
 
  zabbix-snmptraps:
-  image: zabbix/zabbix-snmptraps:ubuntu-5.4-latest
+  image: zabbix/zabbix-snmptraps:ubuntu-trunk
   profiles:
    - full
    - all
@@ -371,7 +371,7 @@ services:
    com.zabbix.os: "ubuntu"
 
  zabbix-web-service:
-  image: zabbix/zabbix-web-service:ubuntu-5.4-latest
+  image: zabbix/zabbix-web-service:ubuntu-trunk
   profiles:
    - full
    - all
