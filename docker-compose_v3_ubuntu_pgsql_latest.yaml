@@ -375,6 +375,8 @@ services:
    - all
   ports:
    - "10053:10053"
+  volumes:
+   - ./zbx_env/var/lib/zabbix/enc:/var/lib/zabbix/enc:ro
   cap_add:
    - SYS_ADMIN
   deploy:

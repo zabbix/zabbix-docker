@@ -9,20 +9,9 @@ LABEL org.opencontainers.image.title="Zabbix web service" \
 
 STOPSIGNAL SIGTERM
 
-COPY ["conf/etc/apt/sources.list.d/debian.list", "/etc/apt/sources.list.d/debian.list"]
 COPY ["conf/etc/apt/preferences.d/chromium.pref", "/etc/apt/preferences.d/chromium.pref"]
 
 RUN set -eux && \
-    ARCH_SUFFIX="$(arch)"; \
-    case "$ARCH_SUFFIX" in \
-        i686) export ARCH_SUFFIX='i386' ;; \
-        x86_64) [ -f /lib/x86_64-linux-gnu/ld-linux-x86-64.so.2 ] && export ARCH_SUFFIX='amd64' || export ARCH_SUFFIX='i386' ;; \
-        aarch64) export ARCH_SUFFIX='arm64' ;; \
-        armv7l) export ARCH_SUFFIX='armhf' ;; \
-        ppc64el|ppc64le) export ARCH_SUFFIX='ppc64le' ;; \
-        s390x) export ARCH_SUFFIX='s390x' ;; \
-        *) echo "Unknown ARCH_SUFFIX=${ARCH_SUFFIX-}"; exit 1 ;; \
-    esac; \
     echo "#!/bin/sh\nexit 101" > /usr/sbin/policy-rc.d && \
     groupadd --system --gid 1995 zabbix && \
     useradd \
@@ -35,7 +24,7 @@ RUN set -eux && \
     mkdir -p /etc/zabbix && \
     mkdir -p /var/lib/zabbix && \
     mkdir -p /var/lib/zabbix/enc && \
-    apt-get -y update | true && \
+    apt-get -y update && \
     DEBIAN_FRONTEND=noninteractive apt-get -y --no-install-recommends install \
             ca-certificates \
             gnupg && \
@@ -43,8 +32,13 @@ RUN set -eux && \
     apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 648ACFD622F3D138 && \
     apt-key adv --keyserver keyserver.ubuntu.com --recv-keys AA8E81B4331F7F50 && \
     apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 112695A0E562B32A && \
+    echo "deb http://deb.debian.org/debian buster main" > /etc/apt/sources.list.d/debian.list && \
+    echo "deb http://deb.debian.org/debian buster-updates main" >> /etc/apt/sources.list.d/debian.list && \
+    echo "deb http://deb.debian.org/debian-security buster/updates main" >> /etc/apt/sources.list.d/debian.list && \
     apt-get -y update && \
-    DEBIAN_FRONTEND=noninteractive apt-get -y --no-install-recommends install chromium chromium-sandbox && \
+    DEBIAN_FRONTEND=noninteractive apt-get -y --no-install-recommends install \
+            chromium \
+            chromium-sandbox && \
     DEBIAN_FRONTEND=noninteractive apt-get -y purge \
             gnupg && \
     apt-get -y autoremove && \
@@ -84,7 +78,6 @@ RUN set -eux && \
             --prefix=/usr \
             --sysconfdir=/etc/zabbix \
             --prefix=/usr \
-            --enable-ipv6 \
             --enable-webservice \
             --silent && \
     make -j"$(nproc)" -s && \
