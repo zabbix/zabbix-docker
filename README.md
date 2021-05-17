@@ -1,7 +1,7 @@
 ![logo](https://assets.zabbix.com/img/logo/zabbix_logo_500x131.png)
 
-![CI](https://github.com/zabbix/zabbix-docker/workflows/CI/badge.svg?branch=trunk&event=release)
-![CI](https://github.com/zabbix/zabbix-docker/workflows/CI/badge.svg?branch=trunk&event=push)
+![CI](https://github.com/zabbix/zabbix-docker/workflows/CI/badge.svg?branch=5.4&event=release)
+![CI](https://github.com/zabbix/zabbix-docker/workflows/CI/badge.svg?branch=5.4&event=push)
 
 # What is Zabbix?
 
@@ -42,6 +42,7 @@ Please also follow usage instructions of each Zabbix component image:
 * [zabbix-proxy-sqlite3](https://hub.docker.com/r/zabbix/zabbix-proxy-sqlite3/) - Zabbix proxy with SQLite3 database support
 * [zabbix-proxy-mysql](https://hub.docker.com/r/zabbix/zabbix-proxy-mysql/) - Zabbix proxy with MySQL database support
 * [zabbix-java-gateway](https://hub.docker.com/r/zabbix/zabbix-java-gateway/) - Zabbix Java Gateway
+* [zabbix-zabbix-web-service](https://hub.docker.com/r/zabbix/zabbix-web-service/) - Zabbix web servce for performing various tasks using headless web browser (for example, reporting)
 * [zabbix-snmptraps](https://hub.docker.com/r/zabbix/zabbix-snmptraps/) - Additional container image for Zabbix server and Zabbix proxy to support SNMP traps
 
 ## Issues and Wiki
