@@ -27,8 +27,8 @@ RUN set -eux && \
             chromium && \
     rm -rf /var/cache/apk/*
 
-ARG MAJOR_VERSION=5.4
-ARG ZBX_VERSION=${MAJOR_VERSION}.0
+ARG MAJOR_VERSION=6.0
+ARG ZBX_VERSION=${MAJOR_VERSION}
 ARG ZBX_SOURCES=https://git.zabbix.com/scm/zbx/zabbix.git
 
 ENV TERM=xterm ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES}
