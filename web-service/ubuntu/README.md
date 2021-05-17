@@ -16,7 +16,9 @@ Zabbix web servce for performing various tasks using headless web browser (for e
 
 These are the only official Zabbix web service Docker images. They are based on Alpine Linux v3.13, Ubuntu 20.04 (focal) and CentOS 8 images. The available versions of Zabbix web service are:
 
-    Zabbix web service 5.4 (tags: alpine-trunk, ubuntu-trunk, centos-trunk)
+    Zabbix web service 5.4 (tags: alpine-5.4-latest, ubuntu-5.4-latest, centos-5.4-latest, alpine-latest, ubuntu-latest, centos-latest, latest)
+    Zabbix web service 5.4.* (tags: alpine-5.4.*, ubuntu-5.4.*, centos-5.4.*)
+    Zabbix web service 6.0 (tags: alpine-trunk, ubuntu-trunk, centos-trunk)
 
 Images are updated when new releases are published. The image with ``latest`` tag is based on Alpine Linux.
 
