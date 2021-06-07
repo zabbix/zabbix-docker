@@ -545,7 +545,7 @@ prepare_web_server_apache() {
 
     echo "** Adding Zabbix virtual host (HTTP)"
     if [ -f "$ZABBIX_ETC_DIR/apache.conf" ]; then
-        ln -s "$ZABBIX_ETC_DIR/apache.conf" "$APACHE_SITES_DIR/zabbix.conf"
+        ln -sfT "$ZABBIX_ETC_DIR/apache.conf" "$APACHE_SITES_DIR/zabbix.conf"
         if [ -f "/usr/sbin/a2dissite" ]; then
             /usr/sbin/a2ensite zabbix.conf 1>/dev/null
         fi
@@ -565,7 +565,7 @@ prepare_web_server_apache() {
 
         echo "** Adding Zabbix virtual host (HTTPS)"
         if [ -f "$ZABBIX_ETC_DIR/apache_ssl.conf" ]; then
-            ln -s "$ZABBIX_ETC_DIR/apache_ssl.conf" "$APACHE_SITES_DIR/zabbix_ssl.conf"
+            ln -sfT "$ZABBIX_ETC_DIR/apache_ssl.conf" "$APACHE_SITES_DIR/zabbix_ssl.conf"
             if [ -f "/usr/sbin/a2dissite" ]; then
                 /usr/sbin/a2ensite zabbix_ssl.conf 1>/dev/null
             fi
@@ -630,7 +630,7 @@ prepare_web_server_nginx() {
 
     echo "** Adding Zabbix virtual host (HTTP)"
     if [ -f "$ZABBIX_ETC_DIR/nginx.conf" ]; then
-        ln -s "$ZABBIX_ETC_DIR/nginx.conf" "$NGINX_CONFD_DIR"
+        ln -sfT "$ZABBIX_ETC_DIR/nginx.conf" "$NGINX_CONFD_DIR/nginx.conf"
     else
         echo "**** Impossible to enable HTTP virtual host"
     fi
@@ -638,7 +638,7 @@ prepare_web_server_nginx() {
     if [ -f "$NGINX_SSL_CONFIG/ssl.crt" ] && [ -f "$NGINX_SSL_CONFIG/ssl.key" ] && [ -f "$NGINX_SSL_CONFIG/dhparam.pem" ]; then
         echo "** Enable SSL support for Nginx"
         if [ -f "$ZABBIX_ETC_DIR/nginx_ssl.conf" ]; then
-            ln -s "$ZABBIX_ETC_DIR/nginx_ssl.conf" "$NGINX_CONFD_DIR"
+            ln -sfT "$ZABBIX_ETC_DIR/nginx_ssl.conf" "$NGINX_CONFD_DIR/nginx_ssl.conf"
         else
             echo "**** Impossible to enable HTTPS virtual host"
         fi
@@ -892,7 +892,7 @@ prepare_zbx_web_config() {
         rm -f "$ZBX_WWW_ROOT/conf/zabbix.conf.php"
     fi
 
-    ln -s "$ZBX_WEB_CONFIG" "$ZBX_WWW_ROOT/conf/zabbix.conf.php"
+    ln -sfT "$ZBX_WEB_CONFIG" "$ZBX_WWW_ROOT/conf/zabbix.conf.php"
 
     # Different places of PHP configuration file
     if [ -f "/etc/php5/conf.d/99-zabbix.ini" ]; then
