@@ -351,7 +351,7 @@ prepare_web_server() {
 
     echo "** Adding Zabbix virtual host (HTTP)"
     if [ -f "$ZABBIX_ETC_DIR/nginx.conf" ]; then
-        ln -s "$ZABBIX_ETC_DIR/nginx.conf" "$NGINX_CONFD_DIR"
+        ln -sfT "$ZABBIX_ETC_DIR/nginx.conf" "$NGINX_CONFD_DIR/nginx.conf"
     else
         echo "**** Impossible to enable HTTP virtual host"
     fi
@@ -359,7 +359,7 @@ prepare_web_server() {
     if [ -f "$NGINX_SSL_CONFIG/ssl.crt" ] && [ -f "$NGINX_SSL_CONFIG/ssl.key" ] && [ -f "$NGINX_SSL_CONFIG/dhparam.pem" ]; then
         echo "** Enable SSL support for Nginx"
         if [ -f "$ZABBIX_ETC_DIR/nginx_ssl.conf" ]; then
-            ln -s "$ZABBIX_ETC_DIR/nginx_ssl.conf" "$NGINX_CONFD_DIR"
+            ln -sfT "$ZABBIX_ETC_DIR/nginx_ssl.conf" "$NGINX_CONFD_DIR/nginx_ssl.conf"
         else
             echo "**** Impossible to enable HTTPS virtual host"
         fi
