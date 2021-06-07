@@ -150,7 +150,7 @@ prepare_web_server() {
 
     echo "** Adding Zabbix virtual host (HTTP)"
     if [ -f "$ZABBIX_ETC_DIR/apache.conf" ]; then
-        ln -s "$ZABBIX_ETC_DIR/apache.conf" "$APACHE_SITES_DIR/zabbix.conf"
+        ln -sfT "$ZABBIX_ETC_DIR/apache.conf" "$APACHE_SITES_DIR/zabbix.conf"
     else
         echo "**** Impossible to enable HTTP virtual host"
     fi
@@ -158,7 +158,7 @@ prepare_web_server() {
     if [ -f "/etc/ssl/apache2/ssl.crt" ] && [ -f "/etc/ssl/apache2/ssl.key" ]; then
         echo "** Adding Zabbix virtual host (HTTPS)"
         if [ -f "$ZABBIX_ETC_DIR/apache_ssl.conf" ]; then
-            ln -s "$ZABBIX_ETC_DIR/apache_ssl.conf" "$APACHE_SITES_DIR/zabbix_ssl.conf"
+            ln -sfT "$ZABBIX_ETC_DIR/apache_ssl.conf" "$APACHE_SITES_DIR/zabbix_ssl.conf"
         else
             echo "**** Impossible to enable HTTPS virtual host"
         fi
