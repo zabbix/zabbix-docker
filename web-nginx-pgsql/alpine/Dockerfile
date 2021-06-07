@@ -72,10 +72,10 @@ RUN set -eux && \
     cp -R /usr/share/zabbix-${ZBX_VERSION}/frontends/php/* /usr/share/zabbix/ && \
     rm -rf /usr/share/zabbix-${ZBX_VERSION}/ && \
     cd /usr/share/zabbix/ && \
-    rm -f conf/zabbix.conf.php && \
-    rm -f conf/maintenance.inc.php && \
-    rm -rf tests && \
     ./locale/make_mo.sh && \
+    rm -f conf/zabbix.conf.php conf/maintenance.inc.php conf/zabbix.conf.php.example && \
+    rm -rf tests && \
+    rm -f locale/add_new_language.sh locale/update_po.sh locale/make_mo.sh && \
     ln -s "/etc/zabbix/web/zabbix.conf.php" "/usr/share/zabbix/conf/zabbix.conf.php" && \
     ln -s "/etc/zabbix/web/maintenance.inc.php" "/usr/share/zabbix/conf/maintenance.inc.php" && \
     chown --quiet -R zabbix:root /etc/zabbix/ && \
