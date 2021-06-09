@@ -6,7 +6,6 @@ on:
       - published
   push:
     branches:
-      - '3.0'
       - '4.0'
       - '5.0'
       - '5.2'
@@ -48,10 +47,7 @@ jobs:
         os:
          - alpine
          - ubuntu
-         - centos
-        exclude:
-          - os: centos
-            build: agent2
+         - ol
 
     runs-on: ubuntu-20.04
     steps:
