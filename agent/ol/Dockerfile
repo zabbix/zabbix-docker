@@ -84,7 +84,9 @@ RUN set -eux && REPOLIST="ol8_baseos_latest,ol8_appstream" && \
             gcc" && \
     microdnf -y install --setopt=install_weak_deps=0 --best \
         --nodocs dnf && \
-    dnf -y install --setopt=install_weak_deps=False --best \
+    mkdir -p /etc/yum/vars/ && \
+    echo "" > /etc/yum/vars/ociregion && \
+    dnf -y install --disablerepo "*" --enablerepo "${REPOLIST}" --setopt=install_weak_deps=False --best \
         --setopt=tsflags=nodocs ${INSTALL_PKGS} && \
     cd /tmp/ && \
     git -c advice.detachedHead=false clone ${ZBX_SOURCES} --branch ${ZBX_VERSION} --depth 1 --single-branch zabbix-${ZBX_VERSION} && \
@@ -115,6 +117,7 @@ RUN set -eux && REPOLIST="ol8_baseos_latest,ol8_appstream" && \
     dnf -y history undo last && \
     dnf -y clean all && \
     microdnf -y remove dnf && \
+    rm -rf /etc/yum/ && \
     chown --quiet -R zabbix:root /etc/zabbix/ /var/lib/zabbix/ && \
     chgrp -R 0 /etc/zabbix/ /var/lib/zabbix/ && \
     chmod -R g=u /etc/zabbix/ /var/lib/zabbix/ && \
