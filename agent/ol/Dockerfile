@@ -84,7 +84,7 @@ RUN set -eux && REPOLIST="ol8_baseos_latest,ol8_appstream" && \
             gcc" && \
     microdnf -y install --setopt=install_weak_deps=0 --best \
         --nodocs dnf && \
-    dnf -y install --disablerepo "*" --enablerepo "${REPOLIST}" --setopt=install_weak_deps=False --best \
+    dnf -y install --setopt=install_weak_deps=False --best \
         --setopt=tsflags=nodocs ${INSTALL_PKGS} && \
     cd /tmp/ && \
     git -c advice.detachedHead=false clone ${ZBX_SOURCES} --branch ${ZBX_VERSION} --depth 1 --single-branch zabbix-${ZBX_VERSION} && \
