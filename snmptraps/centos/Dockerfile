@@ -28,9 +28,9 @@ RUN set -eux && \
             --shell /sbin/nologin \
             --home-dir /var/lib/zabbix/ \
         zabbix && \
-    yum --quiet makecache && \
-    yum -y install epel-release && \
-    yum -y install --setopt=tsflags=nodocs \
+    dnf --quiet makecache && \
+    dnf -y install epel-release && \
+    dnf -y install --setopt=tsflags=nodocs --setopt=install_weak_deps=False --best \
             tzdata \
             net-snmp && \
     mkdir -p /var/lib/zabbix && \
@@ -40,7 +40,7 @@ RUN set -eux && \
     chown --quiet -R zabbix:root /etc/snmp/ /var/lib/zabbix/ /var/tmp/ /var/run/ && \
     chgrp -R 0 /etc/snmp/ /var/lib/zabbix/ /var/tmp/ /var/run/ && \
     chmod -R g=u /etc/snmp/ /var/lib/zabbix/ /var/tmp/ /var/run/ && \
-    yum -y clean all && \
+    dnf -y clean all && \
     rm -rf /var/cache/yum /var/lib/yum/yumdb/* /usr/lib/udev/hwdb.d/* && \
     rm -rf /var/cache/dnf /etc/udev/hwdb.bin /root/.pki
 
