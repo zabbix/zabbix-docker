@@ -111,6 +111,8 @@ RUN set -eux && \
             unixODBC-devel" && \
     microdnf -y install --setopt=install_weak_deps=0 --best \
         --nodocs dnf && \
+    mkdir -p /etc/yum/vars/ && \
+    echo "" > /etc/yum/vars/ociregion && \
     dnf -y install --disablerepo "*" --enablerepo "${REPOLIST}" --setopt=install_weak_deps=False --best \
         --setopt=tsflags=nodocs ${INSTALL_PKGS} && \
     cd /tmp/ && \
@@ -155,6 +157,7 @@ RUN set -eux && \
     dnf -y history undo last && \
     dnf -y clean all && \
     microdnf -y remove dnf && \
+    rm -rf /etc/yum/ && \
     rm -rf /var/cache/yum /var/lib/yum/yumdb/* /usr/lib/udev/hwdb.d/* && \
     rm -rf /var/cache/dnf /etc/udev/hwdb.bin /root/.pki
 
