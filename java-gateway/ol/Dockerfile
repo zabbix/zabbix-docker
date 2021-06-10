@@ -52,6 +52,7 @@ RUN set -eux && REPOLIST="ol8_baseos_latest,ol8_appstream" && \
         --nodocs dnf && \
     mkdir -p /etc/yum/vars/ && \
     echo "" > /etc/yum/vars/ociregion && \
+    echo "oracle.com" > /etc/yum/vars/ocidomain && \
     dnf -y install --disablerepo "*" --enablerepo "${REPOLIST}" --setopt=install_weak_deps=False --best \
         --setopt=tsflags=nodocs ${INSTALL_PKGS} && \
     cd /tmp/ && \
