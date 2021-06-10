@@ -73,7 +73,7 @@ RUN set -eux && \
     dnf -y install --disablerepo "*" --enablerepo "${REPOLIST}" --setopt=install_weak_deps=False --best \
         --setopt=tsflags=nodocs ${INSTALL_PKGS} && \
     cd /usr/share/ && \
-    git clone ${ZBX_SOURCES} --branch ${ZBX_VERSION} --depth 1 --single-branch zabbix-${ZBX_VERSION} && \
+    git -c advice.detachedHead=false clone ${ZBX_SOURCES} --branch ${ZBX_VERSION} --depth 1 --single-branch zabbix-${ZBX_VERSION} && \
     mkdir /usr/share/zabbix/ && \
     cp -R /usr/share/zabbix-${ZBX_VERSION}/ui/* /usr/share/zabbix/ && \
     rm -rf /usr/share/zabbix-${ZBX_VERSION}/ && \
