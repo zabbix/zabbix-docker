@@ -122,7 +122,7 @@ RUN set -o xtrace && INSTALL_PKGS="OpenIPMI-libs \
 
 COPY ["conf/etc/", "/etc/"]
 
-RUN set -eux && REPOLIST="rhel-8-for-x86_64-baseos-rpms,rhel-8-for-x86_64-appstream-rpms" && \
+RUN set -eux && REPOLIST="rhel-8-for-x86_64-baseos-rpms,rhel-8-for-x86_64-appstream-rpms,codeready-builder-for-rhel-8-x86_64-rpms" && \
     INSTALL_PKGS="autoconf \
             automake \
             gcc \
@@ -137,14 +137,14 @@ RUN set -eux && REPOLIST="rhel-8-for-x86_64-baseos-rpms,rhel-8-for-x86_64-appstr
             mariadb-connector-c-devel \
             pcre-devel \
             net-snmp-devel \
-#            OpenIPMI-devel \
+            OpenIPMI-devel \
             openldap-devel \
             git \
             unixODBC-devel" && \
     dnf -y install --disablerepo "*" --enablerepo "${REPOLIST}" --setopt=install_weak_deps=False --best \
         --setopt=tsflags=nodocs ${INSTALL_PKGS} && \
     cd /tmp/ && \
-    git clone ${ZBX_SOURCES} --branch master --depth 1 --single-branch zabbix-${ZBX_VERSION} && \
+    git -c advice.detachedHead=false clone ${ZBX_SOURCES} --branch master --depth 1 --single-branch zabbix-${ZBX_VERSION} && \
     cd /tmp/zabbix-${ZBX_VERSION} && \
     zabbix_revision=`git rev-parse --short HEAD` && \
     sed -i "s/{ZABBIX_REVISION}/$zabbix_revision/g" include/version.h && \
@@ -165,7 +165,7 @@ RUN set -eux && REPOLIST="rhel-8-for-x86_64-baseos-rpms,rhel-8-for-x86_64-appstr
             --with-libxml2 \
             --enable-java \
             --with-net-snmp \
-#            --with-openipmi \
+            --with-openipmi \
             --with-openssl \
             --with-ssh \
             --with-unixodbc \

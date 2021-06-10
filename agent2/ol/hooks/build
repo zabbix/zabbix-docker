@@ -1,0 +1,13 @@
+#!/bin/bash
+#
+# Additional information: https://docs.docker.com/docker-cloud/builds/advanced/
+#
+
+MAJOR_VERSION=$(cat Dockerfile | grep "ARG MAJOR_VERSION" | cut -f2 -d"=")
+MINOR_VERSION=$(cat Dockerfile | grep "ARG ZBX_VERSION" | cut -f2 -d".")
+
+VCS_REF=$MAJOR_VERSION.$MINOR_VERSION
+BUILD_DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+
+echo "$BUILD_DATE - Building $VCS_REF version..."
+docker build --build-arg VCS_REF="$VCS_REF" --build-arg BUILD_DATE="$BUILD_DATE" -t $IMAGE_NAME .

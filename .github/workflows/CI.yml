@@ -6,7 +6,6 @@ on:
       - published
   push:
     branches:
-      - '3.0'
       - '4.0'
       - '5.0'
       - '5.2'
@@ -48,10 +47,7 @@ jobs:
         os:
          - alpine
          - ubuntu
-         - centos
-        exclude:
-          - os: centos
-            build: agent2
+         - ol
 
     runs-on: ubuntu-20.04
     steps:
@@ -88,16 +84,16 @@ jobs:
             DOCKER_PLATFORM="linux/amd64,linux/arm/v7,linux/arm64,linux/ppc64le"
           fi
 
-          if [ "${{ matrix.os }}" == "centos" ]; then
-            DOCKER_PLATFORM="linux/amd64,linux/arm64,linux/ppc64le"
-          fi
-
           if [ "${{ matrix.build }}" == "java-gateway" ]; then
             DOCKER_PLATFORM=${DOCKER_PLATFORM%",linux/ppc64le"}
           fi
 
           if [ "${{ matrix.build }}" == "web-service" ]; then
             DOCKER_PLATFORM=${DOCKER_PLATFORM%",linux/ppc64le"}
+          fi
+  
+          if [ "${{ matrix.os }}" == "ol" ]; then
+            DOCKER_PLATFORM="linux/amd64,linux/arm64"
           fi
 
           echo ::set-output name=list::${DOCKER_PLATFORM}
