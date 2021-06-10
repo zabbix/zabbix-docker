@@ -84,16 +84,16 @@ jobs:
             DOCKER_PLATFORM="linux/amd64,linux/arm/v7,linux/arm64,linux/ppc64le"
           fi
 
-          if [ "${{ matrix.os }}" == "centos" ]; then
-            DOCKER_PLATFORM="linux/amd64,linux/arm64,linux/ppc64le"
-          fi
-
           if [ "${{ matrix.build }}" == "java-gateway" ]; then
             DOCKER_PLATFORM=${DOCKER_PLATFORM%",linux/ppc64le"}
           fi
 
           if [ "${{ matrix.build }}" == "web-service" ]; then
             DOCKER_PLATFORM=${DOCKER_PLATFORM%",linux/ppc64le"}
+          fi
+  
+          if [ "${{ matrix.os }}" == "ol" ]; then
+            DOCKER_PLATFORM="linux/amd64,linux/arm64"
           fi
 
           echo ::set-output name=list::${DOCKER_PLATFORM}
