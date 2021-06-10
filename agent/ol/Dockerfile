@@ -35,6 +35,9 @@ RUN set -eux && \
     mkdir -p /var/lib/zabbix && \
     mkdir -p /var/lib/zabbix/enc && \
     mkdir -p /var/lib/zabbix/modules && \
+    mkdir -p /etc/yum/vars/ && \
+    echo "" > /etc/yum/vars/ociregion && \
+    echo "oracle.com" > /etc/yum/vars/ocidomain && \
     INSTALL_PKGS="bash \
             tzdata \
             iputils \
@@ -42,8 +45,9 @@ RUN set -eux && \
             libcurl \
             openssl-libs \
             zlib" && \
-    microdnf -y install --setopt=install_weak_deps=0 --best \
-        --nodocs ${INSTALL_PKGS} && \
+    microdnf -y --disablerepo="*" --enablerepo="ol8_baseos_latest" \
+        --enablerepo="ol8_appstream" \
+        install --setopt=install_weak_deps=0 --best --nodocs ${INSTALL_PKGS} && \
     curl -L "https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini-${ARCH_SUFFIX}" -o /sbin/tini && \
     curl -L "https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini-${ARCH_SUFFIX}.asc" -o /tmp/tini.asc && \
     export GNUPGHOME="$(mktemp -d)" && \
@@ -83,10 +87,7 @@ RUN set -eux && REPOLIST="ol8_baseos_latest,ol8_appstream" && \
             git \
             gcc" && \
     microdnf -y install --setopt=install_weak_deps=0 --best \
-        --nodocs dnf dnf-plugins-core && \
-    mkdir -p /etc/yum/vars/ && \
-    echo "" > /etc/yum/vars/ociregion && \
-    echo "oracle.com" > /etc/yum/vars/ocidomain && \
+        --nodocs dnf && \
     dnf -y install --disablerepo "*" --enablerepo "${REPOLIST}" --setopt=install_weak_deps=False --best \
         --setopt=tsflags=nodocs ${INSTALL_PKGS} && \
     cd /tmp/ && \
@@ -117,8 +118,7 @@ RUN set -eux && REPOLIST="ol8_baseos_latest,ol8_appstream" && \
     rm -rf /tmp/zabbix-${ZBX_VERSION}/ && \
     dnf -y history undo last && \
     dnf -y clean all && \
-    microdnf -y remove dnf dnf-plugins-core && \
-    rm -rf /etc/yum/ && \
+    microdnf -y remove dnf && \
     chown --quiet -R zabbix:root /etc/zabbix/ /var/lib/zabbix/ && \
     chgrp -R 0 /etc/zabbix/ /var/lib/zabbix/ && \
     chmod -R g=u /etc/zabbix/ /var/lib/zabbix/ && \

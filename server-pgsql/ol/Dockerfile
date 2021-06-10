@@ -47,6 +47,9 @@ RUN set -eux && \
     mkdir -p /usr/lib/zabbix/alertscripts && \
     mkdir -p /usr/lib/zabbix/externalscripts && \
     mkdir -p /usr/share/doc/zabbix-server-postgresql && \
+    mkdir -p /etc/yum/vars/ && \
+    echo "" > /etc/yum/vars/ociregion && \
+    echo "oracle.com" > /etc/yum/vars/ocidomain && \
     INSTALL_PKGS="fping \
             file-libs \
             iputils \
@@ -64,8 +67,10 @@ RUN set -eux && \
             postgresql-libs \
             zlib \
             unixODBC" && \
-    microdnf -y install --setopt=install_weak_deps=0 --best \
-        --nodocs ${INSTALL_PKGS} && \
+    microdnf -y --disablerepo="*" --enablerepo="ol8_baseos_latest" \
+        --enablerepo="ol8_appstream" \
+        --enablerepo="ol8_developer_EPEL" \
+        install --setopt=install_weak_deps=0 --best --nodocs ${INSTALL_PKGS} && \
     curl -L "https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini-${ARCH_SUFFIX}" -o /sbin/tini && \
     curl -L "https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini-${ARCH_SUFFIX}.asc" -o /tmp/tini.asc && \
     export GNUPGHOME="$(mktemp -d)" && \
@@ -114,9 +119,6 @@ RUN set -eux && \
             unixODBC-devel" && \
     microdnf -y install --setopt=install_weak_deps=0 --best \
         --nodocs dnf && \
-    mkdir -p /etc/yum/vars/ && \
-    echo "" > /etc/yum/vars/ociregion && \
-    echo "oracle.com" > /etc/yum/vars/ocidomain && \
     dnf -y install --disablerepo "*" --enablerepo "${REPOLIST}" --setopt=install_weak_deps=False --best \
         --setopt=tsflags=nodocs ${INSTALL_PKGS} && \
     cd /tmp/ && \
@@ -164,7 +166,6 @@ RUN set -eux && \
     dnf -y history undo last && \
     dnf -y clean all && \
     microdnf -y remove dnf && \
-    rm -rf /etc/yum/ && \
     rm -rf /var/cache/yum /var/lib/yum/yumdb/* /usr/lib/udev/hwdb.d/* && \
     rm -rf /var/cache/dnf /etc/udev/hwdb.bin /root/.pki
 

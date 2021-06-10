@@ -24,6 +24,9 @@ RUN set -eux && \
     mkdir -p /etc/zabbix/web && \
     mkdir -p /etc/zabbix/web/certs && \
     mkdir -p /var/lib/php/session && \
+    mkdir -p /etc/yum/vars/ && \
+    echo "" > /etc/yum/vars/ociregion && \
+    echo "oracle.com" > /etc/yum/vars/ocidomain && \
     microdnf -y module enable mysql && \
     microdnf -y module enable php:7.4 && \
     INSTALL_PKGS="curl \
@@ -38,8 +41,10 @@ RUN set -eux && \
             php-json \
             php-xml \
             supervisor" && \
-    microdnf -y install --setopt=install_weak_deps=0 --best \
-        --nodocs ${INSTALL_PKGS} && \
+    microdnf -y --disablerepo="*" --enablerepo="ol8_baseos_latest" \
+        --enablerepo="ol8_appstream" \
+        --enablerepo="ol8_developer_EPEL" \
+        install --setopt=install_weak_deps=0 --best --nodocs ${INSTALL_PKGS} && \
     rm -f /etc/nginx/conf.d/*.conf  && \
     rm -f /etc/php-fpm.d/www.conf && \
     microdnf -y clean all && \
@@ -66,9 +71,6 @@ RUN set -eux && \
             git" && \
     microdnf -y install --setopt=install_weak_deps=0 --best \
         --nodocs dnf && \
-    mkdir -p /etc/yum/vars/ && \
-    echo "" > /etc/yum/vars/ociregion && \
-    echo "oracle.com" > /etc/yum/vars/ocidomain && \
     dnf -y install --disablerepo "*" --enablerepo "${REPOLIST}" --setopt=install_weak_deps=False --best \
         --setopt=tsflags=nodocs ${INSTALL_PKGS} && \
     cd /usr/share/ && \
@@ -101,7 +103,6 @@ RUN set -eux && \
     dnf -y history undo last && \
     dnf -y clean all && \
     microdnf -y remove dnf && \
-    rm -rf /etc/yum/ && \
     rm -rf /var/cache/yum /var/lib/yum/yumdb/* /usr/lib/udev/hwdb.d/* && \
     rm -rf /var/cache/dnf /etc/udev/hwdb.bin /root/.pki
 

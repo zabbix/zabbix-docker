@@ -30,8 +30,9 @@ RUN set -eux && \
             --shell /sbin/nologin \
             --home-dir /var/lib/zabbix/ \
         zabbix && \
-    microdnf -y install --setopt=install_weak_deps=0 --best \
-        --nodocs ${INSTALL_PKGS} && \
+    microdnf -y --disablerepo="*" --enablerepo="ol8_baseos_latest" \
+        --enablerepo="ol8_appstream" \
+        install --setopt=install_weak_deps=0 --best --nodocs ${INSTALL_PKGS} && \
     mkdir -p /var/lib/zabbix && \
     mkdir -p /var/lib/zabbix/snmptraps && \
     mkdir -p /var/lib/zabbix/mibs && \
