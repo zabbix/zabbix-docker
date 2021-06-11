@@ -8,7 +8,6 @@ ARG ZBX_VERSION=${MAJOR_VERSION}.12
 ARG ZBX_SOURCES=https://git.zabbix.com/scm/zbx/zabbix.git
 ENV TERM=xterm ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES} \
     MIBDIRS=/usr/share/snmp/mibs:/var/lib/zabbix/mibs MIBS=+ALL
-ENV TINI_VERSION=v0.19.0
 
 LABEL name="zabbix/zabbix-appliance" \
       maintainer="alexey.pustovalov@zabbix.com" \
@@ -38,7 +37,6 @@ LABEL name="zabbix/zabbix-appliance" \
 
 STOPSIGNAL SIGTERM
 
-COPY ["conf/etc/yum.repo.d/nginx.repo", "/etc/yum.repos.d/nginx.repo"]
 COPY ["licenses", "/licenses"]
 
 RUN set -o xtrace && INSTALL_PKGS="OpenIPMI-libs \
@@ -66,16 +64,15 @@ RUN set -o xtrace && INSTALL_PKGS="OpenIPMI-libs \
             php-mbstring \
             php-mysqlnd \
             php-xml \
-            python3-pip \
+            supervisor \
             unixODBC" && \
-    REPOLIST="rhel-8-for-x86_64-baseos-rpms,rhel-8-for-x86_64-appstream-rpms,epel,nginx-stable" && \
+    REPOLIST="rhel-8-for-x86_64-baseos-rpms,rhel-8-for-x86_64-appstream-rpms,epel" && \
     dnf -y update-minimal --disablerepo "*" --enablerepo ubi-8-baseos --setopt=tsflags=nodocs \
         --security --sec-severity=Important --sec-severity=Critical && \
+    dnf -y module enable php:7.4 nginx:1.18 && \
     dnf -y install https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm && \
     dnf -y install --disablerepo "*" --enablerepo "${REPOLIST}" --setopt=install_weak_deps=False --best \
         --setopt=tsflags=nodocs ${INSTALL_PKGS} && \
-    pip3 install supervisor && \
-    ln -s /usr/local/bin/supervisord /usr/bin/supervisord && \
     groupadd --system --gid 1995 zabbix && \
     useradd \
             --system --comment "Zabbix monitoring system" \
@@ -104,20 +101,6 @@ RUN set -o xtrace && INSTALL_PKGS="OpenIPMI-libs \
     mkdir -p /usr/sbin/zabbix_java/ext_lib/ && \
     mkdir -p /var/lib/php/ && \
     mkdir -p /usr/share/doc/zabbix-server-mysql/ && \
-    curl -L https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini -o /sbin/tini && \
-    curl -L https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini.asc -o /tmp/tini.asc && \
-    export GNUPGHOME="$(mktemp -d)" && \
-    for server in $(shuf -e ha.pool.sks-keyservers.net \
-                            hkp://p80.pool.sks-keyservers.net:80 \
-                            ipv4.pool.sks-keyservers.net \
-                            keyserver.ubuntu.com \
-                            keyserver.pgp.com \
-                            pgp.mit.edu) ; do \
-        gpg --keyserver "$server" --recv-keys 595E85A6B1B4779EA4DAAEC70B588DFF0527A9B7 && break || : ; \
-    done && \
-    gpg --batch --verify /tmp/tini.asc /sbin/tini && \
-    rm -r "$GNUPGHOME" /tmp/tini.asc && \
-    chmod +x /sbin/tini && \
     dnf -y clean all && \
     rm -f /etc/php-fpm.d/www.conf /etc/nginx/conf.d/*.conf /etc/my.cnf.d/auth_gssapi.cnf && \
     rm -rf /var/cache/yum /var/lib/yum/yumdb/* /usr/lib/udev/hwdb.d/* && \
@@ -125,7 +108,7 @@ RUN set -o xtrace && INSTALL_PKGS="OpenIPMI-libs \
 
 COPY ["conf/etc/", "/etc/"]
 
-RUN set -eux && REPOLIST="rhel-8-for-x86_64-baseos-rpms,rhel-8-for-x86_64-appstream-rpms" && \
+RUN set -eux && REPOLIST="rhel-8-for-x86_64-baseos-rpms,rhel-8-for-x86_64-appstream-rpms,codeready-builder-for-rhel-8-x86_64-rpms" && \
     INSTALL_PKGS="autoconf \
             automake \
             gcc \
@@ -140,7 +123,7 @@ RUN set -eux && REPOLIST="rhel-8-for-x86_64-baseos-rpms,rhel-8-for-x86_64-appstr
             mariadb-connector-c-devel \
             pcre-devel \
             net-snmp-devel \
-#            OpenIPMI-devel \
+            OpenIPMI-devel \
             openldap-devel \
             git \
             unixODBC-devel" && \
@@ -150,7 +133,6 @@ RUN set -eux && REPOLIST="rhel-8-for-x86_64-baseos-rpms,rhel-8-for-x86_64-appstr
     git -c advice.detachedHead=false clone ${ZBX_SOURCES} --branch ${ZBX_VERSION} --depth 1 --single-branch zabbix-${ZBX_VERSION} && \
     cd /tmp/zabbix-${ZBX_VERSION} && \
     zabbix_revision=`git rev-parse --short HEAD` && \
-    sed -i "s/{ZABBIX_REVISION}/$zabbix_revision/g" include/version.h && \
     sed -i "s/{ZABBIX_REVISION}/$zabbix_revision/g" include/version.h && \
     sed -i "s/{ZABBIX_REVISION}/$zabbix_revision/g" src/zabbix_java/src/com/zabbix/gateway/GeneralInformation.java && \
     ./bootstrap.sh && \
@@ -168,7 +150,7 @@ RUN set -eux && REPOLIST="rhel-8-for-x86_64-baseos-rpms,rhel-8-for-x86_64-appstr
             --with-libxml2 \
             --enable-java \
             --with-net-snmp \
-#            --with-openipmi \
+            --with-openipmi \
             --with-openssl \
             --with-ssh \
             --with-unixodbc \
@@ -192,7 +174,6 @@ RUN set -eux && REPOLIST="rhel-8-for-x86_64-baseos-rpms,rhel-8-for-x86_64-appstr
     cd /tmp/ && \
     rm -rf /tmp/zabbix-${ZBX_VERSION}/ && \
     rm -f /usr/share/zabbix/conf/zabbix.conf.php && \
-    rm -f /usr/share/zabbix/conf/maintenance.inc.php && \
     rm -rf /usr/share/zabbix/tests/ && \
     cd /usr/share/zabbix/ && \
     ./locale/make_mo.sh && \
@@ -216,7 +197,7 @@ RUN set -eux && REPOLIST="rhel-8-for-x86_64-baseos-rpms,rhel-8-for-x86_64-appstr
     chown --quiet -R zabbix:root /usr/share/zabbix/include/defines.inc.php && \
     chgrp -R 0 /usr/share/zabbix/include/defines.inc.php && \
     chmod -R g=u /usr/share/zabbix/include/defines.inc.php && \
-    dnf -y history undo `dnf history list last -q | sed -n 3p |column -t | cut -d' ' -f1` && \
+    dnf -y history undo last && \
     dnf -y clean all && \
     rm -rf /var/cache/yum /var/lib/yum/yumdb/* /usr/lib/udev/hwdb.d/* && \
     rm -rf /var/cache/dnf /etc/udev/hwdb.bin /root/.pki
@@ -232,4 +213,4 @@ COPY ["docker-entrypoint.sh", "/usr/bin/"]
 
 USER 1997
 
-ENTRYPOINT ["/sbin/tini", "--", "/usr/bin/docker-entrypoint.sh"]
+ENTRYPOINT ["/usr/bin/docker-entrypoint.sh"]

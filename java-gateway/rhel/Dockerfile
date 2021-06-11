@@ -93,7 +93,7 @@ RUN set -eux && INSTALL_PKGS="autoconf \
     rm -rf /usr/sbin/zabbix_java/lib/*.xml && \
     cd /tmp/ && \
     rm -rf /tmp/zabbix-${ZBX_VERSION}/ && \
-    dnf -y history undo `dnf history list last -q | sed -n 3p |column -t | cut -d' ' -f1` && \
+    dnf -y history undo last && \
     dnf -y clean all && \
     chown --quiet -R zabbix:root /etc/zabbix/ /usr/sbin/zabbix_java/ && \
     chgrp -R 0 /etc/zabbix/ /usr/sbin/zabbix_java/ && \
