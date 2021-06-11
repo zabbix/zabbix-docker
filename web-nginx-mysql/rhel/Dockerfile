@@ -42,6 +42,7 @@ COPY ["licenses", "/licenses"]
 
 RUN set -eux && INSTALL_PKGS="bash \
             curl \
+            supervisor \
             mysql \
             nginx \
             php-bcmath \
@@ -50,17 +51,16 @@ RUN set -eux && INSTALL_PKGS="bash \
             php-json \
             php-ldap \
             php-mbstring \
-            python3-pip \
             php-mysqlnd \
             php-xml" && \
-    REPOLIST="rhel-8-for-x86_64-baseos-rpms,rhel-8-for-x86_64-appstream-rpms,nginx-stable" && \
+    REPOLIST="rhel-8-for-x86_64-baseos-rpms,rhel-8-for-x86_64-appstream-rpms,epel" && \
     dnf -y update-minimal --disablerepo "*" --enablerepo ubi-8-baseos --setopt=tsflags=nodocs \
         --security --sec-severity=Important --sec-severity=Critical && \
     dnf -y module enable mysql && \
+    dnf -y module enable php:7.4 nginx:1.18 && \
+    dnf -y install https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm && \
     dnf -y install --disablerepo "*" --enablerepo "${REPOLIST}" --setopt=install_weak_deps=False --best \
         --setopt=tsflags=nodocs ${INSTALL_PKGS} && \
-    pip3 install supervisor && \
-    ln -s /usr/local/bin/supervisord /usr/bin/supervisord && \
     groupadd --system --gid 1995 zabbix && \
     useradd \
             --system --comment "Zabbix monitoring system" \
@@ -113,8 +113,8 @@ RUN set -eux && REPOLIST="rhel-8-for-x86_64-baseos-rpms,rhel-8-for-x86_64-appstr
     chown --quiet -R zabbix:root /usr/share/zabbix/include/defines.inc.php && \
     chgrp -R 0 /usr/share/zabbix/include/defines.inc.php && \
     chmod -R g=u /usr/share/zabbix/include/defines.inc.php && \
-    dnf -y history undo `dnf history list last -q | sed -n 3p |column -t | cut -d' ' -f1` && \
-    dnf -y erase glibc-locale-source glibc-langpack-en && \
+    dnf -y history undo last && \
+    dnf -y autoremove glibc-langpack-en && \
     dnf -y clean all && \
     rm -rf /var/cache/yum /var/lib/yum/yumdb/* /usr/lib/udev/hwdb.d/* && \
     rm -rf /var/cache/dnf /etc/udev/hwdb.bin /root/.pki

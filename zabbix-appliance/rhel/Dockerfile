@@ -8,7 +8,6 @@ ARG ZBX_VERSION=${MAJOR_VERSION}.1
 ARG ZBX_SOURCES=https://git.zabbix.com/scm/zbx/zabbix.git
 ENV TERM=xterm ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES} \
     MIBDIRS=/usr/share/snmp/mibs:/var/lib/zabbix/mibs MIBS=+ALL
-ENV TINI_VERSION=v0.19.0
 
 LABEL name="zabbix/zabbix-appliance" \
       maintainer="alexey.pustovalov@zabbix.com" \
@@ -38,10 +37,10 @@ LABEL name="zabbix/zabbix-appliance" \
 
 STOPSIGNAL SIGTERM
 
-COPY ["conf/etc/yum.repo.d/nginx.repo", "/etc/yum.repos.d/nginx.repo"]
 COPY ["licenses", "/licenses"]
 
 RUN set -o xtrace && INSTALL_PKGS="OpenIPMI-libs \
+            tzdata \
             curl \
             fping \
             java-1.8.0-openjdk-headless \
@@ -65,17 +64,15 @@ RUN set -o xtrace && INSTALL_PKGS="OpenIPMI-libs \
             php-mbstring \
             php-mysqlnd \
             php-xml \
-            python3-pip \
+            supervisor \
             unixODBC" && \
-    dnf -y install --disableplugin=subscription-manager --disablerepo "*" \
-        https://repo.zabbix.com/zabbix/${MAJOR_VERSION}/rhel/8/x86_64/zabbix-release-${MAJOR_VERSION}-1.el8.noarch.rpm && \
-    REPOLIST="rhel-8-for-x86_64-baseos-rpms,rhel-8-for-x86_64-appstream-rpms,zabbix-non-supported,nginx-stable" && \
+    REPOLIST="rhel-8-for-x86_64-baseos-rpms,rhel-8-for-x86_64-appstream-rpms,epel" && \
     dnf -y update-minimal --disablerepo "*" --enablerepo ubi-8-baseos --setopt=tsflags=nodocs \
         --security --sec-severity=Important --sec-severity=Critical && \
+    dnf -y module enable php:7.4 nginx:1.18 && \
+    dnf -y install https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm && \
     dnf -y install --disablerepo "*" --enablerepo "${REPOLIST}" --setopt=install_weak_deps=False --best \
         --setopt=tsflags=nodocs ${INSTALL_PKGS} && \
-    pip3 install supervisor && \
-    ln -s /usr/local/bin/supervisord /usr/bin/supervisord && \
     groupadd --system --gid 1995 zabbix && \
     useradd \
             --system --comment "Zabbix monitoring system" \
@@ -85,6 +82,8 @@ RUN set -o xtrace && INSTALL_PKGS="OpenIPMI-libs \
             --home-dir /var/lib/zabbix/ \
         zabbix && \
     mkdir -p /etc/zabbix && \
+    mkdir -p /etc/zabbix/web && \
+    mkdir -p /etc/zabbix/web/certs && \
     mkdir -p /var/lib/zabbix && \
     mkdir -p /usr/lib/zabbix/alertscripts && \
     mkdir -p /var/lib/zabbix/enc && \
@@ -99,22 +98,9 @@ RUN set -o xtrace && INSTALL_PKGS="OpenIPMI-libs \
     mkdir -p /var/lib/zabbix/ssl/ssl_ca && \
     mkdir -p /usr/share/zabbix/ && \
     mkdir -p /usr/sbin/zabbix_java/ && \
+    mkdir -p /usr/sbin/zabbix_java/ext_lib/ && \
     mkdir -p /var/lib/php/ && \
     mkdir -p /usr/share/doc/zabbix-server-mysql/ && \
-    curl -L https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini -o /sbin/tini && \
-    curl -L https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini.asc -o /tmp/tini.asc && \
-    export GNUPGHOME="$(mktemp -d)" && \
-    for server in $(shuf -e ha.pool.sks-keyservers.net \
-                            hkp://p80.pool.sks-keyservers.net:80 \
-                            ipv4.pool.sks-keyservers.net \
-                            keyserver.ubuntu.com \
-                            keyserver.pgp.com \
-                            pgp.mit.edu) ; do \
-        gpg --keyserver "$server" --recv-keys 595E85A6B1B4779EA4DAAEC70B588DFF0527A9B7 && break || : ; \
-    done && \
-    gpg --batch --verify /tmp/tini.asc /sbin/tini && \
-    rm -rf "$GNUPGHOME" /tmp/tini.asc && \
-    chmod +x /sbin/tini && \
     dnf -y clean all && \
     rm -f /etc/php-fpm.d/www.conf /etc/nginx/conf.d/*.conf /etc/my.cnf.d/auth_gssapi.cnf && \
     rm -rf /var/cache/yum /var/lib/yum/yumdb/* /usr/lib/udev/hwdb.d/* && \
@@ -147,7 +133,6 @@ RUN set -eux && REPOLIST="rhel-8-for-x86_64-baseos-rpms,rhel-8-for-x86_64-appstr
     git -c advice.detachedHead=false clone ${ZBX_SOURCES} --branch ${ZBX_VERSION} --depth 1 --single-branch zabbix-${ZBX_VERSION} && \
     cd /tmp/zabbix-${ZBX_VERSION} && \
     zabbix_revision=`git rev-parse --short HEAD` && \
-    sed -i "s/{ZABBIX_REVISION}/$zabbix_revision/g" include/version.h && \
     sed -i "s/{ZABBIX_REVISION}/$zabbix_revision/g" include/version.h && \
     sed -i "s/{ZABBIX_REVISION}/$zabbix_revision/g" src/zabbix_java/src/com/zabbix/gateway/GeneralInformation.java && \
     ./bootstrap.sh && \
@@ -196,6 +181,7 @@ RUN set -eux && REPOLIST="rhel-8-for-x86_64-baseos-rpms,rhel-8-for-x86_64-appstr
     rm -rf tests && \
     rm -f locale/add_new_language.sh locale/update_po.sh locale/make_mo.sh && \
     ln -s "/etc/zabbix/web/zabbix.conf.php" "/usr/share/zabbix/conf/zabbix.conf.php" && \
+    ln -s "/etc/zabbix/web/maintenance.inc.php" "/usr/share/zabbix/conf/maintenance.inc.php" && \
     cat /usr/share/zabbix/include/locales.inc.php | grep display | grep true | awk '{$1=$1};1' | \
                 cut -d"'" -f 2 | sort | \
                 xargs -I '{}' bash -c 'echo "{}" && localedef -c -i {} -f UTF-8 {}.UTF-8 2>/dev/null' && \
@@ -208,7 +194,10 @@ RUN set -eux && REPOLIST="rhel-8-for-x86_64-baseos-rpms,rhel-8-for-x86_64-appstr
     chown --quiet -R zabbix:root /var/lib/mysql/ /var/lib/php/session/ && \
     chgrp -R 0 /var/lib/mysql/ /var/lib/php/session/ && \
     chmod -R g=u /var/lib/mysql/ /var/lib/php/session/ && \
-    dnf -y history undo `dnf history list last -q | sed -n 3p |column -t | cut -d' ' -f1` && \
+    chown --quiet -R zabbix:root /usr/share/zabbix/include/defines.inc.php && \
+    chgrp -R 0 /usr/share/zabbix/include/defines.inc.php && \
+    chmod -R g=u /usr/share/zabbix/include/defines.inc.php && \
+    dnf -y history undo last && \
     dnf -y clean all && \
     rm -rf /var/cache/yum /var/lib/yum/yumdb/* /usr/lib/udev/hwdb.d/* && \
     rm -rf /var/cache/dnf /etc/udev/hwdb.bin /root/.pki
@@ -224,4 +213,4 @@ COPY ["docker-entrypoint.sh", "/usr/bin/"]
 
 USER 1997
 
-ENTRYPOINT ["/sbin/tini", "--", "/usr/bin/docker-entrypoint.sh"]
+ENTRYPOINT ["/usr/bin/docker-entrypoint.sh"]

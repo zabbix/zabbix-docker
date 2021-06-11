@@ -45,7 +45,7 @@ RUN set -eux && INSTALL_PKGS="bash \
             iputils \
             libcurl \
             libevent \
-#            libldap \
+            openldap \
             libssh \
             libxml2 \
             net-snmp-agent-libs \
@@ -149,7 +149,7 @@ RUN set -eux && INSTALL_PKGS="autoconf \
     chown --quiet -R zabbix:root /etc/zabbix && \
     cd /tmp/ && \
     rm -rf /tmp/zabbix-${ZBX_VERSION}/ && \
-    dnf -y history undo `dnf history list last -q | sed -n 3p |column -t | cut -d' ' -f1` && \
+    dnf -y history undo last && \
     dnf -y clean all && \
     chown --quiet -R zabbix:root /etc/zabbix/ /var/lib/zabbix/ && \
     chgrp -R 0 /etc/zabbix/ /var/lib/zabbix/ && \
