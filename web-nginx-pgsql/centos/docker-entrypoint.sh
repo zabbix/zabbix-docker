@@ -205,6 +205,8 @@ prepare_zbx_web_config() {
     export ZBX_HISTORYSTORAGEURL=${ZBX_HISTORYSTORAGEURL}
     export ZBX_HISTORYSTORAGETYPES=${ZBX_HISTORYSTORAGETYPES:-"[]"}
 
+    export ZBX_SSO_SETTINGS=${ZBX_SSO_SETTINGS:-""}
+
     if [ -n "${ZBX_SESSION_NAME}" ]; then
         cp "$ZABBIX_WWW_ROOT/include/defines.inc.php" "/tmp/defines.inc.php_tmp"
         sed "/ZBX_SESSION_NAME/s/'[^']*'/'${ZBX_SESSION_NAME}'/2" "/tmp/defines.inc.php_tmp" > "$ZABBIX_WWW_ROOT/include/defines.inc.php"
