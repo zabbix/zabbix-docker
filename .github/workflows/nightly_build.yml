@@ -98,6 +98,7 @@ jobs:
           echo "::debug::Branch - ${GIT_BRANCH}"
 
           if [ "${GIT_BRANCH}" == "trunk" ]; then
+            TAGS_ARRAY+=("$IMAGE_NAME:${GIT_BRANCH}-${{ matrix.os }}")
             TAGS_ARRAY+=("$IMAGE_NAME:${{ matrix.os }}-${GIT_BRANCH}")
           fi
 
