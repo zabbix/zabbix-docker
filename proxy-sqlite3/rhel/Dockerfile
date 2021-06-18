@@ -69,6 +69,7 @@ RUN set -eux && INSTALL_PKGS="bash \
         zabbix && \
     mkdir -p /etc/zabbix && \
     mkdir -p /var/lib/zabbix && \
+    mkdir -p /var/lib/zabbix/sqlite3 && \
     mkdir -p /var/lib/zabbix/enc && \
     mkdir -p /usr/lib/zabbix/externalscripts && \
     mkdir -p /var/lib/zabbix/mibs && \
