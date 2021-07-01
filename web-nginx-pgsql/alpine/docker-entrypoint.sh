@@ -130,7 +130,7 @@ check_db_connect() {
 }
 
 prepare_web_server() {
-    NGINX_CONFD_DIR="/etc/nginx/conf.d"
+    NGINX_CONFD_DIR="/etc/nginx/http.d"
     NGINX_SSL_CONFIG="/etc/ssl/nginx"
 
     echo "** Adding Zabbix virtual host (HTTP)"
