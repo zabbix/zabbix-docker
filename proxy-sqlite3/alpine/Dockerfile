@@ -22,6 +22,7 @@ RUN set -eux && \
     adduser zabbix root && \
     mkdir -p /etc/zabbix && \
     mkdir -p /var/lib/zabbix && \
+    mkdir -p /var/lib/zabbix/db_data && \
     mkdir -p /var/lib/zabbix/enc && \
     mkdir -p /var/lib/zabbix/mibs && \
     mkdir -p /var/lib/zabbix/modules && \
