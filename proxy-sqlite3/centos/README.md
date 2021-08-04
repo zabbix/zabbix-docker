@@ -199,6 +199,10 @@ Please use official documentation for [``zabbix_proxy.conf``](https://www.zabbix
 
 The volume is used by External checks (type of items). It is `ExternalScripts` parameter in ``zabbix_proxy.conf``.
 
+### ``/var/lib/zabbix/db_data``
+
+The volume stores SQLite3 database file and could be used for external database file storage.
+
 ### ``/var/lib/zabbix/modules``
 
 The volume allows load additional modules and extend Zabbix proxy using ``LoadModule`` feature.
