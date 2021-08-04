@@ -206,7 +206,7 @@ ZBX_CACHESIZE=8M
 ZBX_STARTDBSYNCERS=4
 ZBX_HISTORYCACHESIZE=16M
 ZBX_HISTORYINDEXCACHESIZE=4M
-ZBX_TRAPPERIMEOUT=300
+ZBX_TRAPPERTIMEOUT=300
 ZBX_UNREACHABLEPERIOD=45
 ZBX_UNAVAILABLEDELAY=60
 ZBX_UNREACHABLEDELAY=15
@@ -290,7 +290,7 @@ To minimize image size, it's uncommon for additional related tools (such as `git
 
 This is the defacto image. If you are unsure about what your needs are, you probably want to use this one. It is designed to be used both as a throw away container (mount your source code and start the container to start your app), as well as the base to build other images off of.
 
-## `zabbix-agent:ol-<version>`
+## `zabbix-proxy-mysql:ol-<version>`
 
 Oracle Linux is an open-source operating system available under the GNU General Public License (GPLv2). Suitable for general purpose or Oracle workloads, it benefits from rigorous testing of more than 128,000 hours per day with real-world workloads and includes unique innovations such as Ksplice for zero-downtime kernel patching, DTrace for real-time diagnostics, the powerful Btrfs file system, and more.
 
