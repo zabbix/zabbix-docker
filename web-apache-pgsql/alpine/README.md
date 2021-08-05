@@ -120,6 +120,10 @@ By default, values for `POSTGRES_USER` and `POSTGRES_PASSWORD` are `zabbix`, `za
 
 The variable is Zabbix database name. By default, value is `zabbix`.
 
+### `POSTGRES_USE_IMPLICIT_SEARCH_PATH`
+
+In some setups, for example including [PgBouncer](https://www.pgbouncer.org), setting the `search_path` via connection parameters fails. If this variable is set to `"true"`, the image skips setting the `search_path` and trusts that the `search_path` of the Zabbix user is setup correctly in PostgreSQL database.
+
 ### `ZBX_HISTORYSTORAGEURL`
 
 History storage HTTP[S] URL. This parameter is used for Elasticsearch setup. Available since 3.4.5.
