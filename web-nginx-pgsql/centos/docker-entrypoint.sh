@@ -75,6 +75,8 @@ check_variables() {
     : ${DB_SERVER_SCHEMA:="public"}
 
     DB_SERVER_DBNAME=${POSTGRES_DB:-"zabbix"}
+
+    : ${POSTGRES_USE_IMPLICIT_SEARCH_PATH:="false"}
 }
 
 check_db_connect() {
@@ -103,8 +105,8 @@ check_db_connect() {
     fi
 
     WAIT_TIMEOUT=5
-    
-    if [ -n "${DB_SERVER_SCHEMA}" ]; then
+
+    if [ "${POSTGRES_USE_IMPLICIT_SEARCH_PATH,,}" == "false" ] && [ -n "${DB_SERVER_SCHEMA}" ]; then
         PGOPTIONS="--search_path=${DB_SERVER_SCHEMA}"
         export PGOPTIONS
     fi
