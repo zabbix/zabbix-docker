@@ -38,49 +38,49 @@ These are the only official Zabbix web interface Docker images. They are based o
 
 Images are updated when new releases are published. The image with ``latest`` tag is based on Alpine Linux.
 
-Zabbix web interface available in three editions:
+Zabbix web interface available in four editions:
 - Zabbix web-interface based on Apache2 web server with MySQL database support
 - Zabbix web-interface based on Apache2 web server with PostgreSQL database support
 - Zabbix web-interface based on Nginx web server with MySQL database support
 - Zabbix web-interface based on Nginx web server with PostgreSQL database support
 
-The image based on Nginx web server with PostgreSQL database support.
+The image based on Apache2 web server with PostgreSQL database support.
 
 # How to use this image
 
-## Start `zabbix-web-nginx-pgsql`
+## Start `zabbix-web-apache-pgsql`
 
 Start a Zabbix web-interface container as follows:
 
-    docker run --name some-zabbix-web-nginx-pgsql -e DB_SERVER_HOST="some-postgres-server" -e POSTGRES_USER="some-user" -e POSTGRES_PASSWORD="some-password" -e ZBX_SERVER_HOST="some-zabbix-server" -e PHP_TZ="some-timezone" -d zabbix/zabbix-web-nginx-pgsql:tag
+    docker run --name some-zabbix-web-apache-pgsql -e DB_SERVER_HOST="some-postgres-server" -e POSTGRES_USER="some-user" -e POSTGRES_PASSWORD="some-password" -e ZBX_SERVER_HOST="some-zabbix-server" -e PHP_TZ="some-timezone" -d zabbix/zabbix-web-apache-pgsql:tag
 
-Where `some-zabbix-web-nginx-pgsql` is the name you want to assign to your container, `some-postgres-server` is IP or DNS name of PostgreSQL server, `some-user` is user to connect to Zabbix database on PostgreSQL server, `some-password` is the password to connect to PostgreSQL server, `some-zabbix-server` is IP or DNS name of Zabbix server or proxy, `some-timezone` is PHP like timezone name and `tag` is the tag specifying the version you want. See the list above for relevant tags, or look at the [full list of tags](https://hub.docker.com/r/zabbix/zabbix-web-nginx-pgsql/tags/).
+Where `some-zabbix-web-apache-pgsql` is the name you want to assign to your container, `some-postgres-server` is IP or DNS name of PostgreSQL server, `some-user` is user to connect to Zabbix database on PostgreSQL server, `some-password` is the password to connect to PostgreSQL server, `some-zabbix-server` is IP or DNS name of Zabbix server or proxy, `some-timezone` is PHP like timezone name and `tag` is the tag specifying the version you want. See the list above for relevant tags, or look at the [full list of tags](https://hub.docker.com/r/zabbix/zabbix-web-apache-pgsql/tags/).
 
 ## Linking the container to Zabbix server
 
-    docker run --name some-zabbix-web-nginx-pgsql --link some-zabbix-server:zabbix-server -e DB_SERVER_HOST="some-postgres-server" -e POSTGRES_USER="some-user" -e POSTGRES_PASSWORD="some-password" -e ZBX_SERVER_HOST="some-zabbix-server" -e PHP_TZ="some-timezone" -d zabbix/zabbix-web-nginx-pgsql:tag
+    docker run --name some-zabbix-web-apache-pgsql --link some-zabbix-server:zabbix-server -e DB_SERVER_HOST="some-postgres-server" -e POSTGRES_USER="some-user" -e POSTGRES_PASSWORD="some-password" -e ZBX_SERVER_HOST="some-zabbix-server" -e PHP_TZ="some-timezone" -d zabbix/zabbix-web-apache-pgsql:tag
 
 ## Linking the container to PostgreSQL database
 
-    docker run --name some-zabbix-web-nginx-pgsql --link some-postgres-server:postgres -e DB_SERVER_HOST="some-postgres-server" -e POSTGRES_USER="some-user" -e POSTGRES_PASSWORD="some-password" -e ZBX_SERVER_HOST="some-zabbix-server" -e PHP_TZ="some-timezone" -d zabbix/zabbix-web-nginx-pgsql:tag
+    docker run --name some-zabbix-web-apache-pgsql --link some-postgres-server:postgres -e DB_SERVER_HOST="some-postgres-server" -e POSTGRES_USER="some-user" -e POSTGRES_PASSWORD="some-password" -e ZBX_SERVER_HOST="some-zabbix-server" -e PHP_TZ="some-timezone" -d zabbix/zabbix-web-apache-pgsql:tag
 
 ## Container shell access and viewing Zabbix web interface logs
 
-The `docker exec` command allows you to run commands inside a Docker container. The following command line will give you a bash shell inside your `zabbix-web-nginx-pgsql` container:
+The `docker exec` command allows you to run commands inside a Docker container. The following command line will give you a bash shell inside your `zabbix-web-apache-pgsql` container:
 
 ```console
-$ docker exec -ti some-zabbix-web-nginx-pgsql /bin/bash
+$ docker exec -ti some-zabbix-web-apache-pgsql /bin/bash
 ```
 
 The Zabbix web interface log is available through Docker's container log:
 
 ```console
-$ docker logs  some-zabbix-web-nginx-pgsql
+$ docker logs  some-zabbix-web-apache-pgsql
 ```
 
 ## Environment Variables
 
-When you start the `zabbix-web-nginx-pgsql` image, you can adjust the configuration of the Zabbix web interface by passing one or more environment variables on the `docker run` command line.
+When you start the `zabbix-web-apache-pgsql` image, you can adjust the configuration of the Zabbix web interface by passing one or more environment variables on the `docker run` command line.
 
 ### `ZBX_SERVER_HOST`
 
@@ -103,7 +103,7 @@ This variable is port of PostgreSQL server. By default, value is '5432'.
 These variables are used by Zabbix web interface to connect to Zabbix database. With the `_FILE` variables you can instead provide the path to a file which contains the user / the password instead. Without Docker Swarm or Kubernetes you also have to map the files. Those are exclusive so you can just provide one type - either `POSTGRES_USER` or `POSTGRES_USER_FILE`!
 
 ```console
-docker run --name some-zabbix-web-nginx-pgsql -e DB_SERVER_HOST="some-postgres-server" -v ./.POSTGRES_USER:/run/secrets/POSTGRES_USER -e POSTGRES_USER_FILE=/run/secrets/POSTGRES_USER -v ./.POSTGRES_PASSWORD:/run/secrets/POSTGRES_PASSWORD -e POSTGRES_PASSWORD_FILE=/var/run/secrets/POSTGRES_PASSWORD -e ZBX_SERVER_HOST="some-zabbix-server" -e PHP_TZ="some-timezone" -d zabbix/zabbix-web-nginx-pgsql:tag
+docker run --name some-zabbix-web-apache-pgsql -e DB_SERVER_HOST="some-postgres-server" -v ./.POSTGRES_USER:/run/secrets/POSTGRES_USER -e POSTGRES_USER_FILE=/run/secrets/POSTGRES_USER -v ./.POSTGRES_PASSWORD:/run/secrets/POSTGRES_PASSWORD -e POSTGRES_PASSWORD_FILE=/var/run/secrets/POSTGRES_PASSWORD -e ZBX_SERVER_HOST="some-zabbix-server" -e PHP_TZ="some-timezone" -d zabbix/zabbix-web-apache-pgsql:tag
 ```
 
 With Docker Swarm or Kubernetes this works with secrets. That way it is replicated in your cluster!
@@ -111,7 +111,7 @@ With Docker Swarm or Kubernetes this works with secrets. That way it is replicat
 ```console
 printf "zabbix" | docker secret create POSTGRES_USER -
 printf "zabbix" | docker secret create POSTGRES_PASSWORD -
-docker run --name some-zabbix-web-nginx-pgsql -e DB_SERVER_HOST="some-postgres-server" -e POSTGRES_USER_FILE=/run/secrets/POSTGRES_USER -e POSTGRES_PASSWORD_FILE=/run/secrets/POSTGRES_PASSWORD -e ZBX_SERVER_HOST="some-zabbix-server" -e PHP_TZ="some-timezone" -d zabbix/zabbix-web-nginx-pgsql:tag
+docker run --name some-zabbix-web-apache-pgsql -e DB_SERVER_HOST="some-postgres-server" -e POSTGRES_USER_FILE=/run/secrets/POSTGRES_USER -e POSTGRES_PASSWORD_FILE=/run/secrets/POSTGRES_PASSWORD -e ZBX_SERVER_HOST="some-zabbix-server" -e PHP_TZ="some-timezone" -d zabbix/zabbix-web-apache-pgsql:tag
 ```
 
 By default, values for `POSTGRES_USER` and `POSTGRES_PASSWORD` are `zabbix`, `zabbix`.
@@ -119,6 +119,10 @@ By default, values for `POSTGRES_USER` and `POSTGRES_PASSWORD` are `zabbix`, `za
 ### `POSTGRES_DB`
 
 The variable is Zabbix database name. By default, value is `zabbix`.
+
+### `POSTGRES_USE_IMPLICIT_SEARCH_PATH`
+
+In some setups, for example including [PgBouncer](https://www.pgbouncer.org), setting the `search_path` via connection parameters fails. If this variable is set to `"true"`, the image skips setting the `search_path` and trusts that the `search_path` of the Zabbix user is setup correctly in PostgreSQL database.
 
 ### `ZBX_HISTORYSTORAGEURL`
 
@@ -216,11 +220,11 @@ VAULT_TOKEN= # Available since 5.2.0
 
 ## Allowed volumes for the Zabbix web interface container
 
-### ``/etc/ssl/nginx``
+### ``/etc/ssl/apache2``
 
-The volume allows to enable HTTPS for the Zabbix web interface. The volume must contains three files ``ssl.crt``, ``ssl.key`` and ``dhparam.pem`` prepared for Nginx SSL connections.
+The volume allows to enable HTTPS for the Zabbix web interface. The volume must contains two files ``ssl.crt`` and ``ssl.key`` prepared for Apache2 SSL connections.
 
-Please follow official Nginx [documentation](http://nginx.org/en/docs/http/configuring_https_servers.html) to get more details about how to create certificate files.
+Please follow official Apache2 [documentation](https://httpd.apache.org/docs/2.4/ssl/ssl_howto.html) to get more details about how to create certificate files.
 
 ### ``/etc/zabbix/web/certs``
 
@@ -228,9 +232,9 @@ The volume allows to use custom certificates for SAML authentification. The volu
 
 # The image variants
 
-The `zabbix-web-nginx-pgsql` images come in many flavors, each designed for a specific use case.
+The `zabbix-web-apache-pgsql` images come in many flavors, each designed for a specific use case.
 
-## `zabbix-agent2:alpine-<version>`
+## `zabbix-web-apache-pgsql:alpine-<version>`
 
 This image is based on the popular [Alpine Linux project](http://alpinelinux.org), available in [the `alpine` official image](https://hub.docker.com/_/alpine). Alpine Linux is much smaller than most distribution base images (~5MB), and thus leads to much slimmer images in general.
 
@@ -238,11 +242,11 @@ This variant is highly recommended when final image size being as small as possi
 
 To minimize image size, it's uncommon for additional related tools (such as `git` or `bash`) to be included in Alpine-based images. Using this image as a base, add the things you need in your own Dockerfile (see the [`alpine` image description](https://hub.docker.com/_/alpine/) for examples of how to install packages if you are unfamiliar).
 
-## `zabbix-agent:ubuntu-<version>`
+## `zabbix-web-apache-pgsql:ubuntu-<version>`
 
 This is the defacto image. If you are unsure about what your needs are, you probably want to use this one. It is designed to be used both as a throw away container (mount your source code and start the container to start your app), as well as the base to build other images off of.
 
-## `zabbix-agent:ol-<version>`
+## `zabbix-web-apache-pgsql:ol-<version>`
 
 Oracle Linux is an open-source operating system available under the GNU General Public License (GPLv2). Suitable for general purpose or Oracle workloads, it benefits from rigorous testing of more than 128,000 hours per day with real-world workloads and includes unique innovations such as Ksplice for zero-downtime kernel patching, DTrace for real-time diagnostics, the powerful Btrfs file system, and more.
 
@@ -258,7 +262,7 @@ Please see [the Docker installation documentation](https://docs.docker.com/insta
 
 ## Documentation
 
-Documentation for this image is stored in the [`web-nginx-pgsql/` directory](https://github.com/zabbix/zabbix-docker/tree/3.0/web-nginx-pgsql) of the [`zabbix/zabbix-docker` GitHub repo](https://github.com/zabbix/zabbix-docker/). Be sure to familiarize yourself with the [repository's `README.md` file](https://github.com/zabbix/zabbix-docker/blob/master/README.md) before attempting a pull request.
+Documentation for this image is stored in the [`web-apache-pgsql/` directory](https://github.com/zabbix/zabbix-docker/tree/3.0/web-apache-pgsql) of the [`zabbix/zabbix-docker` GitHub repo](https://github.com/zabbix/zabbix-docker/). Be sure to familiarize yourself with the [repository's `README.md` file](https://github.com/zabbix/zabbix-docker/blob/master/README.md) before attempting a pull request.
 
 ## Issues
 
