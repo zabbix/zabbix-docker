@@ -60,8 +60,8 @@ jobs:
           service_principal_password: ${{ secrets.azure_service_principal_password }}
           tenant: ${{ secrets.azure_tenant }}
           registry: ${{ secrets.azure_registry }}
-          repository: zabbix-${{ matrix.build }}
-          image: ${{ matrix.build }}
+          repository: ${{ matrix.build }}
+          image: zabbix-${{ matrix.build }}
           folder: ${{ matrix.build }}/${{ matrix.os }}
           branch: ${{ steps.extract_branch.outputs.branch }}
           dockerfile: Dockerfile
