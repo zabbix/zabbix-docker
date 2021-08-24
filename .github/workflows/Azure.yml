@@ -42,27 +42,46 @@ jobs:
           - web-nginx-pgsql
         os:
          - alpine
+#         - ubuntu
+#         - ol
 
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v2
 
-      - name: Extract branch name
+      - name: Detect branch name
+        id: extract_branch
         shell: bash
         run: echo "##[set-output name=branch;]$(echo ${GITHUB_REF#refs/heads/})"
-        id: extract_branch
+             echo "##[set-output name=release_version;]$(echo ${GITHUB_REF#refs/tags/})"
 
-      - name: ACR build
-        id: acr
+      - name: ACR build (all)
+        id: acr_push
         uses: ams0/acr-task-github-action@v2
         with:
           service_principal: ${{ secrets.azure_service_principal }}
           service_principal_password: ${{ secrets.azure_service_principal_password }}
           tenant: ${{ secrets.azure_tenant }}
           registry: ${{ secrets.azure_registry }}
-          repository: ${{ matrix.build }}
+          repository: ${{ matrix.os }}
           image: zabbix-${{ matrix.build }}
           folder: ${{ matrix.build }}/${{ matrix.os }}
           branch: ${{ steps.extract_branch.outputs.branch }}
-          tag: ${{ steps.extract_branch.outputs.branch }}-${{ matrix.os }}
+          tag: ${{ steps.extract_branch.outputs.branch }}
+          dockerfile: Dockerfile
+
+      - name: ACR build (release)
+        if: github.event_name == 'release' && github.event.action == 'published'
+        id: acr_push
+        uses: ams0/acr-task-github-action@v2
+        with:
+          service_principal: ${{ secrets.azure_service_principal }}
+          service_principal_password: ${{ secrets.azure_service_principal_password }}
+          tenant: ${{ secrets.azure_tenant }}
+          registry: ${{ secrets.azure_registry }}
+          repository: ${{ matrix.os }}
+          image: zabbix-${{ matrix.build }}
+          folder: ${{ matrix.build }}/${{ matrix.os }}
+          branch: ${{ github.ref }}
+          tag: ${{ steps.extract_branch.outputs.release_version}}
           dockerfile: Dockerfile
