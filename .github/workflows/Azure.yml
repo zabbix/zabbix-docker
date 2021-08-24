@@ -87,6 +87,6 @@ jobs:
           repository: ${{ matrix.os }}
           image: zabbix-${{ matrix.build }}
           folder: ${{ matrix.build }}/${{ matrix.os }}
-          branch: ${{ github.ref }}
+#          branch: ${{ github.ref }}
           tag: v${{ steps.extract_release.outputs.release_version}}
           dockerfile: Dockerfile
