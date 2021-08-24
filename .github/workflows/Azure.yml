@@ -64,4 +64,4 @@ jobs:
           image: zabbix-${{ matrix.build }}
           folder: ${{ matrix.build }}/${{ matrix.os }}
           branch: ${{ steps.extract_branch.outputs.branch }}
-          dockerfile: ${{ matrix.build }}/${{ matrix.os }}/Dockerfile
+          dockerfile: Dockerfile
