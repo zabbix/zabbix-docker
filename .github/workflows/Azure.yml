@@ -29,17 +29,17 @@ jobs:
       matrix:
         build:
           - agent
-          - agent2
-          - java-gateway
-          - proxy-mysql
-          - proxy-sqlite3
-          - server-mysql
-          - server-pgsql
-          - snmptraps
-          - web-apache-mysql
-          - web-apache-pgsql
-          - web-nginx-mysql
-          - web-nginx-pgsql
+#          - agent2
+#          - java-gateway
+#          - proxy-mysql
+##          - proxy-sqlite3
+#          - server-mysql
+#          - server-pgsql
+#          - snmptraps
+#          - web-apache-mysql
+#          - web-apache-pgsql
+#          - web-nginx-mysql
+#          - web-nginx-pgsql
         os:
          - alpine
 #         - ubuntu
@@ -59,7 +59,8 @@ jobs:
         shell: bash
         run: echo "##[set-output name=release_version;]$(echo ${GITHUB_REF#refs/tags/})"
 
-      - name: ACR build (all)
+      - name: ACR build (push)
+        if: github.event_name == 'push'
         id: acr_push
         uses: ams0/acr-task-github-action@v2
         with:
