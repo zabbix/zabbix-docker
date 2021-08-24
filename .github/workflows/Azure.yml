@@ -53,7 +53,11 @@ jobs:
         id: extract_branch
         shell: bash
         run: echo "##[set-output name=branch;]$(echo ${GITHUB_REF#refs/heads/})"
-             echo "##[set-output name=release_version;]$(echo ${GITHUB_REF#refs/tags/})"
+
+      - name: Detect Zabbix version
+        id: extract_release
+        shell: bash
+        run: echo "##[set-output name=release_version;]$(echo ${GITHUB_REF#refs/tags/})"
 
       - name: ACR build (all)
         id: acr_push
@@ -83,5 +87,5 @@ jobs:
           image: zabbix-${{ matrix.build }}
           folder: ${{ matrix.build }}/${{ matrix.os }}
           branch: ${{ github.ref }}
-          tag: v${{ steps.extract_branch.outputs.release_version}}
+          tag: v${{ steps.extract_release.outputs.release_version}}
           dockerfile: Dockerfile
