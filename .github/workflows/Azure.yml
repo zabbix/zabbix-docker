@@ -1,4 +1,4 @@
-name: Azure
+name: Azure Images
 
 on:
   release:
