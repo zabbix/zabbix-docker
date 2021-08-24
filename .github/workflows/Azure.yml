@@ -67,12 +67,12 @@ jobs:
           image: zabbix-${{ matrix.build }}
           folder: ${{ matrix.build }}/${{ matrix.os }}
           branch: ${{ steps.extract_branch.outputs.branch }}
-          tag: ${{ steps.extract_branch.outputs.branch }}
+          tag: v${{ steps.extract_branch.outputs.branch }}
           dockerfile: Dockerfile
 
       - name: ACR build (release)
         if: github.event_name == 'release' && github.event.action == 'published'
-        id: acr_push
+        id: acr_release
         uses: ams0/acr-task-github-action@v2
         with:
           service_principal: ${{ secrets.azure_service_principal }}
@@ -83,5 +83,5 @@ jobs:
           image: zabbix-${{ matrix.build }}
           folder: ${{ matrix.build }}/${{ matrix.os }}
           branch: ${{ github.ref }}
-          tag: ${{ steps.extract_branch.outputs.release_version}}
+          tag: v${{ steps.extract_branch.outputs.release_version}}
           dockerfile: Dockerfile
