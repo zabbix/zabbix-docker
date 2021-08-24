@@ -52,12 +52,15 @@ jobs:
       - name: Detect branch name
         id: extract_branch
         shell: bash
-        run: echo "##[set-output name=branch;]$(echo ${GITHUB_REF#refs/heads/})"
+        run: |
+            GIT_BRANCH="${GITHUB_REF##*/}"
+            GIT_BRANCH=`expr "$GITHUB_REF" : '\([0-9]*\.[0-9]*\).*'`
+            echo "##[set-output name=branch;]${GIT_BRANCH}"
 
       - name: Detect Zabbix version
         id: extract_release
         shell: bash
-        run: echo "##[set-output name=release_version;]$(echo ${GITHUB_REF#refs/tags/})"
+        run: echo "##[set-output name=release_version;]$(echo ${GITHUB_REF##*/})"
 
       - name: ACR build (push)
         if: github.event_name == 'push'
@@ -87,6 +90,6 @@ jobs:
           repository: ${{ matrix.os }}
           image: zabbix-${{ matrix.build }}
           folder: ${{ matrix.build }}/${{ matrix.os }}
-#          branch: ${{ github.ref }}
+          branch: ${{ steps.extract_branch.outputs.branch }}
           tag: v${{ steps.extract_release.outputs.release_version}}
           dockerfile: Dockerfile
