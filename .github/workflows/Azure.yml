@@ -1,0 +1,64 @@
+name: Azure
+
+on:
+  release:
+    types:
+      - published
+  push:
+    branches:
+      - '4.0'
+      - '5.0'
+      - '5.2'
+      - '5.4'
+      - 'trunk'
+    paths-ignore:
+      - '.env*'
+      - 'docker-compose*.yaml'
+      - '*/rhel/*'
+      - "**.md"
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  build:
+    timeout-minutes: 70
+    env:
+      LATEST_BRANCH: "${{ github.event.repository.default_branch }}"
+      DOCKER_REPOSITORY: "zabbix"
+    strategy:
+      fail-fast: false  
+      matrix:
+        build:
+          - agent
+          - agent2
+          - java-gateway
+          - proxy-mysql
+          - proxy-sqlite3
+          - server-mysql
+          - server-pgsql
+          - snmptraps
+          - web-apache-mysql
+          - web-apache-pgsql
+          - web-nginx-mysql
+          - web-nginx-pgsql
+        os:
+         - alpine
+
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: ACR build
+        id: acr
+        uses: ams0/acr-task-github-action@v1
+        with:
+          service_principal: ${{ secrets.azure_service_principal }}
+          service_principal_password: ${{ secrets.azure_service_principal_password }}
+          tenant: ${{ secrets.azure_tenant }}
+          registry: ${{ secrets.aure_registry }}
+          repository: zabbix-${{ matrix.build }}
+          image: zabbix-${{ matrix.build }}
+          folder: ${{ matrix.build }}/${{ matrix.os }}
+          dockerfile: ${{ matrix.build }}/${{ matrix.os }}/Dockerfile
