@@ -50,9 +50,14 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
+      - name: Extract branch name
+        shell: bash
+        run: echo "##[set-output name=branch;]$(echo ${GITHUB_REF#refs/heads/})"
+        id: extract_branch
+
       - name: ACR build
         id: acr
-        uses: ams0/acr-task-github-action@v1
+        uses: ams0/acr-task-github-action@v2
         with:
           service_principal: ${{ secrets.azure_service_principal }}
           service_principal_password: ${{ secrets.azure_service_principal_password }}
@@ -61,4 +66,5 @@ jobs:
           repository: zabbix-${{ matrix.build }}
           image: zabbix-${{ matrix.build }}
           folder: ${{ matrix.build }}/${{ matrix.os }}
+          branch: ${{ steps.extract_branch.outputs.branch }}
           dockerfile: ${{ matrix.build }}/${{ matrix.os }}/Dockerfile
