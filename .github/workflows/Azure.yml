@@ -62,7 +62,7 @@ jobs:
           service_principal: ${{ secrets.azure_service_principal }}
           service_principal_password: ${{ secrets.azure_service_principal_password }}
           tenant: ${{ secrets.azure_tenant }}
-          registry: ${{ secrets.aure_registry }}
+          registry: ${{ secrets.azure_registry }}
           repository: zabbix-${{ matrix.build }}
           image: zabbix-${{ matrix.build }}
           folder: ${{ matrix.build }}/${{ matrix.os }}
