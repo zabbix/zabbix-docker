@@ -60,7 +60,7 @@ jobs:
 
           IMAGE_NAME="${{ secrets.azure_registry }}.azurecr.io/${{ matrix.os }}/zabbix-${{ matrix.build }}"
 
-          TAGS_ARRAY+=("$IMAGE_NAME:${GIT_BRANCH}")
+          TAGS_ARRAY+=("$IMAGE_NAME:trunk")
 
           TAGS=$(printf -- "%s, " "${TAGS_ARRAY[@]}")
 
