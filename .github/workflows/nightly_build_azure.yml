@@ -1,4 +1,4 @@
-name: NightlyBuild (Azure)
+name: Azure (nightly build)
 
 on:
   schedule:
