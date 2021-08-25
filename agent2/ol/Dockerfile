@@ -35,6 +35,7 @@ RUN set -eux && \
     mkdir -p /var/lib/zabbix && \
     mkdir -p /var/lib/zabbix/enc && \
     mkdir -p /var/lib/zabbix/modules && \
+    mkdir -p /var/lib/zabbix/buffer && \
     mkdir -p /etc/yum/vars/ && \
     echo "" > /etc/yum/vars/ociregion && \
     echo "oracle.com" > /etc/yum/vars/ocidomain && \
