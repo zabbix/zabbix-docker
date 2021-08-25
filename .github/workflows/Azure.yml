@@ -134,7 +134,7 @@ jobs:
           file: ./${{ matrix.build }}/${{ matrix.os }}/Dockerfile
           platforms: ${{ steps.platform.outputs.list }}
           push: ${{ secrets.AUTO_PUSH_IMAGES }}
-          tags: ${{ steps.prepare.outputs.image_tag_versions }}
+          tags: ${{ steps.prepare_tags.outputs.image_tag_versions }}
 
       -
         name: Image digest
