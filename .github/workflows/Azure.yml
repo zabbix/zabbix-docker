@@ -76,15 +76,15 @@ jobs:
 
           IMAGE_NAME="${{ secrets.azure_registry }}.azurecr.io/${{ matrix.os }}/zabbix-${{ matrix.build }}"
           GIT_BRANCH="${GITHUB_REF##*/}"
-          GIT_BRANCH=`expr "${GIT_BRANCH}" : '\([0-9]*\.[0-9]*\).*'`
-
-          echo "::debug::Branch - ${GIT_BRANCH}"
 
           if [ "${GIT_BRANCH}" == "trunk" ]; then
             TAGS_ARRAY+=("$IMAGE_NAME:trunk")
           else
+            GIT_BRANCH=`expr "${GIT_BRANCH}" : '\([0-9]*\.[0-9]*\).*'`
             TAGS_ARRAY+=("$IMAGE_NAME:v${GIT_BRANCH}")
           fi
+
+          echo "::debug::Branch - ${GIT_BRANCH}"
 
           TAGS=$(printf -- "%s, " "${TAGS_ARRAY[@]}")
 
