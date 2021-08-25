@@ -62,6 +62,7 @@ RUN set -eux && INSTALL_PKGS="bash \
     mkdir -p /var/lib/zabbix && \
     mkdir -p /var/lib/zabbix/enc && \
     mkdir -p /var/lib/zabbix/modules && \
+    mkdir -p /var/lib/zabbix/buffer && \
     curl -L https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini -o /sbin/tini && \
     curl -L https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini.asc -o /tmp/tini.asc && \
     export GNUPGHOME="$(mktemp -d)" && \
