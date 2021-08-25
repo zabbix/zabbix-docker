@@ -1,0 +1,96 @@
+name: Azure
+
+on:
+  release:
+    types:
+      - published
+  push:
+    branches:
+      - '5.0'
+      - '5.4'
+    paths-ignore:
+      - '.env*'
+      - 'docker-compose*.yaml'
+      - '*/rhel/*'
+      - "**.md"
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  build:
+    timeout-minutes: 70
+    env:
+      LATEST_BRANCH: "${{ github.event.repository.default_branch }}"
+      DOCKER_REPOSITORY: "zabbix"
+    strategy:
+      fail-fast: false  
+      matrix:
+        build:
+          - agent
+          - agent2
+          - java-gateway
+          - proxy-mysql
+          - proxy-sqlite3
+          - server-mysql
+          - server-pgsql
+          - snmptraps
+          - web-apache-mysql
+          - web-apache-pgsql
+          - web-nginx-mysql
+          - web-nginx-pgsql
+          - web-service
+        os:
+         - alpine
+         - ubuntu
+         - ol
+
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Detect branch name
+        id: extract_branch
+        shell: bash
+        run: |
+            GIT_BRANCH="${GITHUB_REF##*/}"
+            GIT_BRANCH=`expr "${GIT_BRANCH}" : '\([0-9]*\.[0-9]*\).*'`
+            echo ::set-output name=branch::${GIT_BRANCH}
+
+      - name: Detect Zabbix version
+        id: extract_release
+        shell: bash
+        run: echo "##[set-output name=release_version;]$(echo ${GITHUB_REF##*/})"
+
+      - name: ACR build (push)
+        if: github.event_name == 'push'
+        id: acr_push
+        uses: ams0/acr-task-github-action@v2
+        with:
+          service_principal: ${{ secrets.azure_service_principal }}
+          service_principal_password: ${{ secrets.azure_service_principal_password }}
+          tenant: ${{ secrets.azure_tenant }}
+          registry: ${{ secrets.azure_registry }}
+          repository: ${{ matrix.os }}
+          image: zabbix-${{ matrix.build }}
+          folder: ${{ matrix.build }}/${{ matrix.os }}
+          branch: ${{ steps.extract_branch.outputs.branch }}
+          tag: v${{ steps.extract_branch.outputs.branch }}
+          dockerfile: Dockerfile
+
+      - name: ACR build (release)
+        if: github.event_name == 'release' && github.event.action == 'published'
+        id: acr_release
+        uses: ams0/acr-task-github-action@v2
+        with:
+          service_principal: ${{ secrets.azure_service_principal }}
+          service_principal_password: ${{ secrets.azure_service_principal_password }}
+          tenant: ${{ secrets.azure_tenant }}
+          registry: ${{ secrets.azure_registry }}
+          repository: ${{ matrix.os }}
+          image: zabbix-${{ matrix.build }}
+          folder: ${{ matrix.build }}/${{ matrix.os }}
+          branch: ${{ steps.extract_branch.outputs.branch }}
+          tag: v${{ steps.extract_release.outputs.release_version}}
+          dockerfile: Dockerfile
