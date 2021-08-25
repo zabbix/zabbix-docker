@@ -80,7 +80,11 @@ jobs:
 
           echo "::debug::Branch - ${GIT_BRANCH}"
 
-          TAGS_ARRAY+=("$IMAGE_NAME:${GIT_BRANCH}")
+          if [ "${GIT_BRANCH}" == "trunk" ]; then
+            TAGS_ARRAY+=("$IMAGE_NAME:trunk")
+          else
+            TAGS_ARRAY+=("$IMAGE_NAME:v${GIT_BRANCH}")
+          fi
 
           TAGS=$(printf -- "%s, " "${TAGS_ARRAY[@]}")
 
@@ -102,7 +106,7 @@ jobs:
 
           echo "::debug::Release version ${RELEASE_VERSION}. Branch ${GIT_BRANCH}"
 
-          TAGS_ARRAY+=("$IMAGE_NAME:${RELEASE_VERSION}")
+          TAGS_ARRAY+=("$IMAGE_NAME:v${RELEASE_VERSION}")
 
           TAGS=$(printf -- "--tag %s " "${TAGS_ARRAY[@]}")
 
