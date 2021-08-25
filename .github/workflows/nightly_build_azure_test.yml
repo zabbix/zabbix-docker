@@ -73,6 +73,7 @@ jobs:
         name: Login to Azure
         uses: docker/login-action@v1
         with:
+          registry: ${{ secrets.azure_registry }}.azurecr.io
           username: ${{ secrets.AZURE_USERNAME }}
           password: ${{ secrets.AZURE_PASSWORD }}
 
