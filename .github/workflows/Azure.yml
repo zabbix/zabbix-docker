@@ -38,6 +38,7 @@ jobs:
           - web-apache-pgsql
           - web-nginx-mysql
           - web-nginx-pgsql
+          - web-service
         os:
          - alpine
          - ubuntu
