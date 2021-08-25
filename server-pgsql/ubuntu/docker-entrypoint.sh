@@ -154,6 +154,8 @@ check_variables_postgresql() {
     : ${DB_SERVER_SCHEMA:="public"}
 
     DB_SERVER_DBNAME=${POSTGRES_DB:-"zabbix"}
+
+    : ${POSTGRES_USE_IMPLICIT_SEARCH_PATH:="false"}
 }
 
 check_db_connect_postgresql() {
@@ -174,7 +176,7 @@ check_db_connect_postgresql() {
 
     WAIT_TIMEOUT=5
 
-    if [ -n "${DB_SERVER_SCHEMA}" ]; then
+    if [ "${POSTGRES_USE_IMPLICIT_SEARCH_PATH,,}" == "false" ] && [ -n "${DB_SERVER_SCHEMA}" ]; then
         PGOPTIONS="--search_path=${DB_SERVER_SCHEMA}"
         export PGOPTIONS
     fi
@@ -213,7 +215,7 @@ psql_query() {
         export PGPASSWORD="${DB_SERVER_ZBX_PASS}"
     fi
 
-    if [ -n "${DB_SERVER_SCHEMA}" ]; then
+    if [ "${POSTGRES_USE_IMPLICIT_SEARCH_PATH,,}" == "false" ] && [ -n "${DB_SERVER_SCHEMA}" ]; then
         PGOPTIONS="--search_path=${DB_SERVER_SCHEMA}"
         export PGOPTIONS
     fi
@@ -248,7 +250,7 @@ create_db_database_postgresql() {
             export PGPASSWORD="${DB_SERVER_ZBX_PASS}"
         fi
 
-        if [ -n "${DB_SERVER_SCHEMA}" ]; then
+        if [ "${POSTGRES_USE_IMPLICIT_SEARCH_PATH,,}" == "false" ] && [ -n "${DB_SERVER_SCHEMA}" ]; then
             PGOPTIONS="--search_path=${DB_SERVER_SCHEMA}"
             export PGOPTIONS
         fi
@@ -296,7 +298,7 @@ create_db_schema_postgresql() {
             export PGPASSWORD="${DB_SERVER_ZBX_PASS}"
         fi
 
-        if [ -n "${DB_SERVER_SCHEMA}" ]; then
+        if [ "${POSTGRES_USE_IMPLICIT_SEARCH_PATH,,}" == "false" ] && [ -n "${DB_SERVER_SCHEMA}" ]; then
             PGOPTIONS="--search_path=${DB_SERVER_SCHEMA}"
             export PGOPTIONS
         fi
@@ -446,7 +448,7 @@ update_zbx_config() {
     update_config_var $ZBX_CONFIG "ValueCacheSize" "${ZBX_VALUECACHESIZE}"
 
     update_config_var $ZBX_CONFIG "Timeout" "${ZBX_TIMEOUT}"
-    update_config_var $ZBX_CONFIG "TrapperTimeout" "${ZBX_TRAPPERIMEOUT}"
+    update_config_var $ZBX_CONFIG "TrapperTimeout" "${ZBX_TRAPPERTIMEOUT}"
     update_config_var $ZBX_CONFIG "UnreachablePeriod" "${ZBX_UNREACHABLEPERIOD}"
     update_config_var $ZBX_CONFIG "UnavailableDelay" "${ZBX_UNAVAILABLEDELAY}"
     update_config_var $ZBX_CONFIG "UnreachableDelay" "${ZBX_UNREACHABLEDELAY}"

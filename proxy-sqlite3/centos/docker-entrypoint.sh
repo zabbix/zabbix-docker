@@ -139,7 +139,7 @@ update_zbx_config() {
     update_config_var $ZBX_CONFIG "LogRemoteCommands" "${ZBX_LOGREMOTECOMMANDS}"
 
     update_config_var $ZBX_CONFIG "DBHost"
-    update_config_var $ZBX_CONFIG "DBName" "/var/lib/zabbix/zabbix_proxy_db"
+    update_config_var $ZBX_CONFIG "DBName" "/var/lib/zabbix/db_data/${ZBX_HOSTNAME:-"zabbix-proxy-sqlite3"}.sqlite"
     update_config_var $ZBX_CONFIG "DBUser"
     update_config_var $ZBX_CONFIG "DBPort"
     update_config_var $ZBX_CONFIG "DBPassword"
@@ -205,7 +205,7 @@ update_zbx_config() {
     update_config_var $ZBX_CONFIG "HistoryIndexCacheSize" "${ZBX_HISTORYINDEXCACHESIZE}"
 
     update_config_var $ZBX_CONFIG "Timeout" "${ZBX_TIMEOUT}"
-    update_config_var $ZBX_CONFIG "TrapperTimeout" "${ZBX_TRAPPERIMEOUT}"
+    update_config_var $ZBX_CONFIG "TrapperTimeout" "${ZBX_TRAPPERTIMEOUT}"
     update_config_var $ZBX_CONFIG "UnreachablePeriod" "${ZBX_UNREACHABLEPERIOD}"
     update_config_var $ZBX_CONFIG "UnavailableDelay" "${ZBX_UNAVAILABLEDELAY}"
     update_config_var $ZBX_CONFIG "UnreachableDelay" "${ZBX_UNREACHABLEDELAY}"

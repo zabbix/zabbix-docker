@@ -164,7 +164,7 @@ ZBX_CACHESIZE=8M
 ZBX_STARTDBSYNCERS=4
 ZBX_HISTORYCACHESIZE=16M
 ZBX_HISTORYINDEXCACHESIZE=4M
-ZBX_TRAPPERIMEOUT=300
+ZBX_TRAPPERTIMEOUT=300
 ZBX_UNREACHABLEPERIOD=45
 ZBX_UNAVAILABLEDELAY=60
 ZBX_UNREACHABLEDELAY=15
@@ -198,6 +198,10 @@ Please use official documentation for [``zabbix_proxy.conf``](https://www.zabbix
 ### ``/usr/lib/zabbix/externalscripts``
 
 The volume is used by External checks (type of items). It is `ExternalScripts` parameter in ``zabbix_proxy.conf``.
+
+### ``/var/lib/zabbix/db_data``
+
+The volume stores SQLite3 database file and could be used for external database file storage.
 
 ### ``/var/lib/zabbix/modules``
 

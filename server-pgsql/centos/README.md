@@ -103,6 +103,10 @@ By default, values for `POSTGRES_USER` and `POSTGRES_PASSWORD` are `zabbix`, `za
 
 The variable is Zabbix database name. By default, value is `zabbix`.
 
+### `POSTGRES_USE_IMPLICIT_SEARCH_PATH`
+
+In some setups, for example including [PgBouncer](https://www.pgbouncer.org), setting the `search_path` via connection parameters fails. If this variable is set to `"true"`, the image skips setting the `search_path` and trusts that the `search_path` of the Zabbix user is setup correctly in PostgreSQL database.
+
 ### `ZBX_LOADMODULE`
 
 The variable is list of comma separated loadable Zabbix modules. It works with  volume ``/var/lib/zabbix/modules``. The syntax of the variable is ``dummy1.so,dummy2.so``.
@@ -181,7 +185,7 @@ ZBX_HISTORYINDEXCACHESIZE=4M
 ZBX_HISTORYSTORAGEDATEINDEX=0 # Available since 4.0.0
 ZBX_TRENDCACHESIZE=4M
 ZBX_VALUECACHESIZE=8M
-ZBX_TRAPPERIMEOUT=300
+ZBX_TRAPPERTIMEOUT=300
 ZBX_UNREACHABLEPERIOD=45
 ZBX_UNAVAILABLEDELAY=60
 ZBX_UNREACHABLEDELAY=15
