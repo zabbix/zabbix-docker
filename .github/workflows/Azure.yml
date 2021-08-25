@@ -29,21 +29,21 @@ jobs:
       matrix:
         build:
           - agent
-#          - agent2
-#          - java-gateway
-#          - proxy-mysql
-##          - proxy-sqlite3
-#          - server-mysql
-#          - server-pgsql
-#          - snmptraps
-#          - web-apache-mysql
-#          - web-apache-pgsql
-#          - web-nginx-mysql
-#          - web-nginx-pgsql
+          - agent2
+          - java-gateway
+          - proxy-mysql
+          - proxy-sqlite3
+          - server-mysql
+          - server-pgsql
+          - snmptraps
+          - web-apache-mysql
+          - web-apache-pgsql
+          - web-nginx-mysql
+          - web-nginx-pgsql
         os:
          - alpine
-#         - ubuntu
-#         - ol
+         - ubuntu
+         - ol
 
     runs-on: ubuntu-20.04
     steps:
