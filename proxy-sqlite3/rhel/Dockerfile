@@ -53,9 +53,9 @@ RUN set -eux && INSTALL_PKGS="bash \
             pcre \
             sqlite-libs \
             unixODBC" && \
-    REPOLIST="rhel-8-for-x86_64-baseos-rpms,rhel-8-for-x86_64-appstream-rpms,epel" && \
-    dnf -y update-minimal --disablerepo "*" --enablerepo ubi-8-baseos --setopt=tsflags=nodocs \
-        --security --sec-severity=Important --sec-severity=Critical && \
+    REPOLIST="ubi-8-baseos,ubi-8-appstream,rhel-8-for-x86_64-baseos-rpms,rhel-8-for-x86_64-appstream-rpms,epel" && \
+    dnf -y update-minimal --disablerepo "*" --enablerepo "ubi-8-baseos" --setopt=tsflags=nodocs \
+        --security --sec-severity=Important --setopt=install_weak_deps=False --sec-severity=Critical && \
     dnf -y install https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm && \
     dnf -y install --disablerepo "*" --enablerepo "${REPOLIST}" --setopt=install_weak_deps=False --best \
         --setopt=tsflags=nodocs ${INSTALL_PKGS} && \
@@ -107,12 +107,13 @@ RUN set -eux && INSTALL_PKGS="autoconf \
             sqlite-devel \
             net-snmp-devel \
             openldap-devel \
+            OpenIPMI-devel \
             pcre-devel \
             git \
             gcc \
             make \
             unixODBC-devel" && \
-    REPOLIST="rhel-8-for-x86_64-baseos-rpms,rhel-8-for-x86_64-appstream-rpms" && \
+    REPOLIST="ubi-8-baseos,ubi-8-appstream,rhel-8-for-x86_64-baseos-rpms,rhel-8-for-x86_64-appstream-rpms,codeready-builder-for-rhel-8-x86_64-rpms" && \
     dnf -y install --disablerepo "*" --enablerepo "${REPOLIST}" --setopt=install_weak_deps=False --best \
         --setopt=tsflags=nodocs ${INSTALL_PKGS} && \
     cd /tmp/ && \
@@ -134,7 +135,7 @@ RUN set -eux && INSTALL_PKGS="autoconf \
             --with-libcurl \
             --with-libxml2 \
             --with-net-snmp \
-#            --with-openipmi \
+            --with-openipmi \
             --with-openssl \
             --with-ssh \
             --with-unixodbc \

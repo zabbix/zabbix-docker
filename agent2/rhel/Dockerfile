@@ -44,9 +44,9 @@ RUN set -eux && INSTALL_PKGS="bash \
             iputils \
             pcre \
             libcurl" && \
-    REPOLIST="rhel-8-for-x86_64-baseos-rpms,rhel-8-for-x86_64-appstream-rpms" && \
-    dnf -y update-minimal --disablerepo "*" --enablerepo ubi-8-baseos --setopt=tsflags=nodocs \
-        --security --sec-severity=Important --sec-severity=Critical && \
+    REPOLIST="ubi-8-baseos,ubi-8-appstream" && \
+    dnf -y update-minimal --disablerepo "*" --enablerepo "ubi-8-baseos" --setopt=tsflags=nodocs \
+        --security --sec-severity=Important --setopt=install_weak_deps=False --sec-severity=Critical && \
     dnf -y install --disablerepo "*" --enablerepo "${REPOLIST}" --setopt=install_weak_deps=False --best \
         --setopt=tsflags=nodocs ${INSTALL_PKGS} && \
     groupadd --system --gid 1995 zabbix && \
@@ -81,7 +81,7 @@ RUN set -eux && INSTALL_PKGS="bash \
     rm -rf /var/cache/yum /var/lib/yum/yumdb/* /usr/lib/udev/hwdb.d/* && \
     rm -rf /var/cache/dnf /etc/udev/hwdb.bin /root/.pki
 
-RUN set -eux && REPOLIST="rhel-8-for-x86_64-baseos-rpms,rhel-8-for-x86_64-appstream-rpms" && \
+RUN set -eux && REPOLIST="ubi-8-baseos,ubi-8-appstream" && \
     INSTALL_PKGS="autoconf \
             automake \
             libcurl-devel \
