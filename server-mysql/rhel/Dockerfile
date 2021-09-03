@@ -55,9 +55,9 @@ RUN set -eux && INSTALL_PKGS="bash \
             OpenIPMI-libs \
             pcre \
             unixODBC" && \
-    REPOLIST="rhel-8-for-x86_64-baseos-rpms,rhel-8-for-x86_64-appstream-rpms,epel" && \
-    dnf -y update-minimal --disablerepo "*" --enablerepo ubi-8-baseos --setopt=tsflags=nodocs \
-        --security --sec-severity=Important --sec-severity=Critical && \
+    REPOLIST="ubi-8-baseos,ubi-8-appstream,rhel-8-for-x86_64-baseos-rpms,rhel-8-for-x86_64-appstream-rpms,epel" && \
+    dnf -y update-minimal --disablerepo "*" --enablerepo "ubi-8-baseos" --setopt=tsflags=nodocs \
+        --security --sec-severity=Important --setopt=install_weak_deps=False --sec-severity=Critical && \
     dnf -y install https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm && \
     dnf -y module enable mysql && \
     dnf -y install --disablerepo "*" --enablerepo "${REPOLIST}" --setopt=install_weak_deps=False --best \
@@ -117,7 +117,7 @@ RUN set -eux && INSTALL_PKGS="autoconf \
             gcc \
             make \
             unixODBC-devel" && \
-    REPOLIST="rhel-8-for-x86_64-baseos-rpms,rhel-8-for-x86_64-appstream-rpms,codeready-builder-for-rhel-8-x86_64-rpms" && \
+    REPOLIST="ubi-8-baseos,ubi-8-appstream,rhel-8-for-x86_64-baseos-rpms,rhel-8-for-x86_64-appstream-rpms,codeready-builder-for-rhel-8-x86_64-rpms" && \
     dnf -y install --disablerepo "*" --enablerepo "${REPOLIST}" --setopt=install_weak_deps=False --best \
         --setopt=tsflags=nodocs ${INSTALL_PKGS} && \
     cd /tmp/ && \

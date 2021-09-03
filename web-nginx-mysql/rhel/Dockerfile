@@ -53,9 +53,9 @@ RUN set -eux && INSTALL_PKGS="bash \
             php-mbstring \
             php-mysqlnd \
             php-xml" && \
-    REPOLIST="rhel-8-for-x86_64-baseos-rpms,rhel-8-for-x86_64-appstream-rpms,epel" && \
-    dnf -y update-minimal --disablerepo "*" --enablerepo ubi-8-baseos --setopt=tsflags=nodocs \
-        --security --sec-severity=Important --sec-severity=Critical && \
+    REPOLIST="ubi-8-baseos,ubi-8-appstream,rhel-8-for-x86_64-baseos-rpms,rhel-8-for-x86_64-appstream-rpms,epel" && \
+    dnf -y update-minimal --disablerepo "*" --enablerepo "ubi-8-baseos" --setopt=tsflags=nodocs \
+        --security --sec-severity=Important --setopt=install_weak_deps=False --sec-severity=Critical && \
     dnf -y module enable mysql && \
     dnf -y module enable php:7.4 nginx:1.18 && \
     dnf -y install https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm && \
@@ -81,7 +81,7 @@ RUN set -eux && INSTALL_PKGS="bash \
 
 COPY ["conf/etc/", "/etc/"]
 
-RUN set -eux && REPOLIST="rhel-8-for-x86_64-baseos-rpms,rhel-8-for-x86_64-appstream-rpms" && \
+RUN set -eux && REPOLIST="ubi-8-baseos,ubi-8-appstream,rhel-8-for-x86_64-baseos-rpms,rhel-8-for-x86_64-appstream-rpms" && \
     INSTALL_PKGS="glibc-locale-source gettext \
             git" && \
     dnf -y install --disablerepo "*" --enablerepo "${REPOLIST}" --setopt=install_weak_deps=False --best \
