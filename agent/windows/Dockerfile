@@ -130,7 +130,7 @@ RUN Set-Location -Path "$env:SystemDrive"; `
     Enter-VsDevShell -VsInstallPath """${env:ProgramFiles(x86)}\Microsoft Visual Studio\2019\BuildTools""" -DevCmdArguments """-arch=$env:BUILD_ARCH"""; `
     Start-Process -FilePath "${env:ProgramFiles}\Git\bin\git.exe" -Wait -ArgumentList """-c advice.detachedHead=false clone $env:LIBMODBUS_URL --branch $env:LIBMODBUS_VERSION --depth 1 --single-branch libmodbus"""; `
     Copy-Item -Path "$env:SystemDrive\modbus.vs16.vcxproj" "$env:SystemDrive\libmodbus\src\win32\modbus.vs16.vcxproj"; `
-    Copy-Item -Path "$env:SystemDrive\modbus.vs16.sln" $env:SystemDrive\libmodbus\src\win32\modbus.vs16.sln"; `
+    Copy-Item -Path "$env:SystemDrive\modbus.vs16.sln" "$env:SystemDrive\libmodbus\src\win32\modbus.vs16.sln"; `
     Copy-Item -Path "$env:SystemDrive\modbus.vs16.vcxproj.filters" "$env:SystemDrive\libmodbus\src\win32\modbus.vs16.vcxproj.filters"; `
     Set-Location -Path "$env:SystemDrive\libmodbus\src\win32"; `
     cscript .\configure.js; `
