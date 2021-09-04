@@ -23,7 +23,7 @@ ENV BUILD_ARCH=x64 CPU_MODEL=AMD64 `
 
 SHELL ["powershell", "-Command", "$ErrorActionPreference = 'Stop'; $ProgressPreference = 'SilentlyContinue';"]
 
-RUN Set-Location -Path "$env:SystemDrive"; `
+RUN Set-Location -Path "$env:SystemDrive"\; `
     Write-Verbose -Message 'Visual Studio components installing...'; `
     Invoke-WebRequest -OutFile "$env:SystemDrive\git-installer.exe" $env:GIT_URL; `
     $sha256 = 'a5704733c219e9a0c96bfeb0febef62bc2518bdd4e358bc9519dbc5e63a3b5fe'; `
@@ -72,7 +72,7 @@ RUN Set-Location -Path "$env:SystemDrive"; `
     Get-ChildItem -Path """${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer""" -Directory -Recurse | Remove-Item -Force –Recurse; `
     Remove-Item -Force -Recurse "$env:TEMP\*";
 
-RUN Set-Location -Path "$env:SystemDrive"; `
+RUN Set-Location -Path "$env:SystemDrive"\; `
     Import-Module """${env:ProgramFiles(x86)}\Microsoft Visual Studio\2019\BuildTools\Common7\Tools\Microsoft.VisualStudio.DevShell.dll"""; `
     Enter-VsDevShell -VsInstallPath """${env:ProgramFiles(x86)}\Microsoft Visual Studio\2019\BuildTools""" -DevCmdArguments """-arch=$env:BUILD_ARCH"""; `
     Invoke-WebRequest -OutFile "$env:SystemDrive\pcre-$env:PCRE_VERSION.zip" https://ftp.pcre.org/pub/pcre/pcre-$env:PCRE_VERSION.zip; `
@@ -93,7 +93,7 @@ RUN Set-Location -Path "$env:SystemDrive"; `
 		/target:pcre; `
     Remove-Item -Force -Path "$env:SystemDrive\pcre-$env:PCRE_VERSION.zip"
 
-RUN Set-Location -Path "$env:SystemDrive"; `
+RUN Set-Location -Path "$env:SystemDrive"\; `
     $env:PATH+=""";$env:SystemDrive\Strawberry\perl\bin;$env:SystemDrive\Program Files\NASM"""; `
     Import-Module """${env:ProgramFiles(x86)}\Microsoft Visual Studio\2019\BuildTools\Common7\Tools\Microsoft.VisualStudio.DevShell.dll"""; `
     Enter-VsDevShell -VsInstallPath """${env:ProgramFiles(x86)}\Microsoft Visual Studio\2019\BuildTools""" -DevCmdArguments """-arch=$env:BUILD_ARCH"""; `
@@ -150,7 +150,7 @@ ARG ZBX_SOURCES=https://git.zabbix.com/scm/zbx/zabbix.git
 ARG ZBX_COMPONENT=all
 ENV ZBX_SOURCES=$ZBX_SOURCES MAJOR_VERSION=$MAJOR_VERSION ZBX_VERSION=$ZBX_VERSION ZABBIX_VERSION_RC_NUM=$ZABBIX_VERSION_RC_NUM
 
-RUN Set-Location -Path "$env:SystemDrive"; `
+RUN Set-Location -Path "$env:SystemDrive"\; `
     Import-Module """${env:ProgramFiles(x86)}\Microsoft Visual Studio\2019\BuildTools\Common7\Tools\Microsoft.VisualStudio.DevShell.dll"""; `
     Enter-VsDevShell -VsInstallPath """${env:ProgramFiles(x86)}\Microsoft Visual Studio\2019\BuildTools""" -DevCmdArguments """-arch=$env:BUILD_ARCH"""; `
     Start-Process -FilePath "${env:ProgramFiles}\Git\bin\git.exe" -Wait -ArgumentList """-c advice.detachedHead=false clone $env:ZBX_SOURCES --branch master --depth 1 --single-branch zabbix-$env:ZBX_VERSION"""; `
@@ -207,18 +207,18 @@ COPY [".\\docker-entrypoint.ps1", "C:\\zabbix"]
 
 USER ContainerAdministrator
 
-RUN setx /M PATH """$env:PATH;C:\zabbix\sbin;C:\zabbix\bin;"""; `
-	setx /M ZbxDir """C:\zabbix"""
+RUN setx /M PATH """$env:PATH;$env:SystemDrive\zabbix\sbin;$env:SystemDrive\zabbix\bin;"""; `
+    setx /M ZbxDir """$env:SystemDrive\zabbix"""
 
-RUN Set-Location -Path "$env:SystemDrive"; `
-	New-Item -ItemType directory -Path "$env:ZbxDir\conf\zabbix_agentd.d" | Out-Null; `
-	New-Item -ItemType directory -Path "$env:ZbxDir\enc" | Out-Null; `
-	New-Item -ItemType directory -Path "$env:ZbxDir\modules" | Out-Null; `
-	net user /add zabbix; `
-	$acl = Get-Acl -Path $env:ZbxDir; `
-	$ace = New-Object Security.AccessControl.FileSystemAccessRule ('zabbix', 'Modify', 'ContainerInherit, ObjectInherit', 'InheritOnly', 'Allow'); `
-	$acl.AddAccessRule($ace); `
-	Set-Acl -AclObject $acl -Path $env:ZbxDir
+RUN Set-Location -Path "$env:SystemDrive"\; `
+    New-Item -ItemType directory -Path "$env:ZbxDir\conf\zabbix_agentd.d" | Out-Null; `
+    New-Item -ItemType directory -Path "$env:ZbxDir\enc" | Out-Null; `
+    New-Item -ItemType directory -Path "$env:ZbxDir\modules" | Out-Null; `
+    net user /add zabbix; `
+    $acl = Get-Acl -Path $env:ZbxDir; `
+    $ace = New-Object Security.AccessControl.FileSystemAccessRule ('zabbix', 'Modify', 'ContainerInherit, ObjectInherit', 'InheritOnly', 'Allow'); `
+    $acl.AddAccessRule($ace); `
+    Set-Acl -AclObject $acl -Path $env:ZbxDir
 
 USER zabbix
 
