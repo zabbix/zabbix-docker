@@ -26,36 +26,47 @@ SHELL ["powershell", "-Command", "$ErrorActionPreference = 'Stop'; $ProgressPref
 RUN Set-Location -Path "$env:SystemDrive"; `
     Write-Verbose -Message 'Visual Studio components installing...'; `
     Invoke-WebRequest -OutFile "$env:SystemDrive\git-installer.exe" $env:GIT_URL; `
+    $sha256 = 'a5704733c219e9a0c96bfeb0febef62bc2518bdd4e358bc9519dbc5e63a3b5fe'; `
+    if ((Get-FileHash "$env:SystemDrive\git-installer.exe" -Algorithm sha256).Hash -ne $sha256) { `
+        Write-Host "Checksum GIT for Windows failed!"; `
+        exit 1; `
+    }; `
     Start-Process -FilePath "$env:SystemDrive\git-installer.exe" -argumentlist '/VERYSILENT /SUPPRESSMSGBOXES /NORESTART /NOCANCEL /SP- /LOG /COMPONENTS="icons,assoc,assoc_sh,ext,ext\shellhere,gitlfs' -wait; `
     Remove-Item -Force -Path "$env:SystemDrive\git-installer.exe"; `
     Invoke-WebRequest -OutFile "$env:SystemDrive\nasm-installer.exe" $env:NASM_URL; `
+    $sha256 = 'a02325b9fe54f917f5d6a3036637b38dbb6addf6f7ba9d344d9b943a143fe7d0'; `
+    if ((Get-FileHash "$env:SystemDrive\nasm-installer.exe" -Algorithm sha256).Hash -ne $sha256) { `
+        Write-Host "Checksum NASM failed!"; `
+        exit 1; `
+    }; `
     Start-Process -FilePath "$env:SystemDrive\nasm-installer.exe" -argumentlist '/S'; `
     Invoke-WebRequest -OutFile "$env:SystemDrive\perl-installer.msi" $env:PERL_URL; `
+    $sha256 = '241a881670164feb0b91bb69d39fbbf84c981bec0d9f8c19959f8f48fd177768'; `
+    if ((Get-FileHash "$env:SystemDrive\perl-installer.msi" -Algorithm sha256).Hash -ne $sha256) { `
+        Write-Host "Checksum Strawberry Perl failed!"; `
+        exit 1; `
+    }; `
     Start-Process -FilePath "msiexec.exe" -argumentlist """/i C:\perl-installer.msi /qn /norestart INSTALLDIR=$env:SystemDrive\Strawberry""" -wait; `
     $env:PATH+=""";$env:SystemDrive\Strawberry\perl\bin"""; `
     cpan Text::Template; `
     Remove-Item -Force -Path "$env:SystemDrive\nasm-installer.exe"; `
     Remove-Item -Force -Path  "$env:SystemDrive\perl-installer.msi"; `
     Invoke-WebRequest -OutFile "$env:SystemDrive\vs_buildtools.exe" $env:VS_BUILDTOOLS_URL; `
+    $sha256 = 'f3a7e2868c203490a4095231e20e628bf661b7469f2d53626f3fbbdfc161d471'; `
+    if ((Get-FileHash "$env:SystemDrive\vs_buildtools.exe" -Algorithm sha256).Hash -ne $sha256) { `
+        Write-Host "Checksum Visual Studio Build tools failed!"; `
+        exit 1; `
+    }; `
     Write-Host "Visual Studio components installing..."; `
     cmd /C start /w "$env:SystemDrive\vs_buildtools.exe" --quiet --wait --norestart --nocache modify `
         --installPath """${env:ProgramFiles(x86)}\Microsoft Visual Studio\2019\BuildTools""" `
         # https://docs.microsoft.com/en-us/visualstudio/install/workload-component-id-vs-build-tools?view=vs-2019
         --add Microsoft.VisualStudio.Component.Windows10SDK.19041 `
-        --add Microsoft.VisualStudio.Component.VC.Tools.x86.x64 `
-        --add Microsoft.VisualStudio.Component.VC.CMake.Project `
-        --add Microsoft.VisualStudio.Workload.MSBuildTools `
-        --add Microsoft.VisualStudio.Workload.NetCoreBuildTools `
-        --add Microsoft.Net.Component.4.8.SDK `
-        --remove Microsoft.VisualStudio.Component.Windows10SDK.10240 `
-        --remove Microsoft.VisualStudio.Component.Windows10SDK.10586 `
-        --remove Microsoft.VisualStudio.Component.Windows10SDK.14393 `
-        --remove Microsoft.VisualStudio.Component.Windows81SDK `
-        --remove Microsoft.VisualStudio.Component.WebDeploy `
-        --remove Microsoft.Component.ClickOnce.MSBuild; `
+        --add Microsoft.VisualStudio.Component.VC.CMake.Project; `
     if ($err = dir $Env:TEMP -Filter dd_setup_*_errors.log | where Length -gt 0 | Get-Content) { `
-	throw $err; `
+        throw $err; `
     }; `
+    Wait-Process -name msiexec; `
     Write-Host "Visual Studio components installed"; `
     Remove-Item -Force -Path "$env:SystemDrive\vs_buildtools.exe"; `
     Get-ChildItem -Path """${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer""" -Directory -Recurse | Remove-Item -Force –Recurse; `
@@ -65,6 +76,11 @@ RUN Set-Location -Path "$env:SystemDrive"; `
     Import-Module """${env:ProgramFiles(x86)}\Microsoft Visual Studio\2019\BuildTools\Common7\Tools\Microsoft.VisualStudio.DevShell.dll"""; `
     Enter-VsDevShell -VsInstallPath """${env:ProgramFiles(x86)}\Microsoft Visual Studio\2019\BuildTools""" -DevCmdArguments """-arch=$env:BUILD_ARCH"""; `
     Invoke-WebRequest -OutFile "$env:SystemDrive\pcre-$env:PCRE_VERSION.zip" https://ftp.pcre.org/pub/pcre/pcre-$env:PCRE_VERSION.zip; `
+    $sha256 = '5b709aa45ea3b8bb73052947200ad187f651a2049158fb5bbfed329e4322a977'; `
+    if ((Get-FileHash "$env:SystemDrive\pcre-$env:PCRE_VERSION.zip" -Algorithm sha256).Hash -ne $sha256) { `
+        Write-Host "Checksum PCRE library failed!"; `
+        exit 1; `
+    }; `
     Expand-Archive -Path "$env:SystemDrive\pcre-$env:PCRE_VERSION.zip" -DestinationPath $env:SystemDrive ; `
     Rename-Item -Path "$env:SystemDrive\pcre-$env:PCRE_VERSION" -NewName "$env:SystemDrive\pcre_build"; `
     New-Item -ItemType directory -Path "$env:SystemDrive\pcre_build\build" | Out-Null; `
@@ -82,19 +98,24 @@ RUN Set-Location -Path "$env:SystemDrive"; `
     Import-Module """${env:ProgramFiles(x86)}\Microsoft Visual Studio\2019\BuildTools\Common7\Tools\Microsoft.VisualStudio.DevShell.dll"""; `
     Enter-VsDevShell -VsInstallPath """${env:ProgramFiles(x86)}\Microsoft Visual Studio\2019\BuildTools""" -DevCmdArguments """-arch=$env:BUILD_ARCH"""; `
     Invoke-WebRequest -OutFile "$env:SystemDrive\openssl-$env:OPENSSL_VERSION.tar.gz" https://www.openssl.org/source/openssl-$env:OPENSSL_VERSION.tar.gz; `
+    $sha256 = '0b7a3e5e59c34827fe0c3a74b7ec8baef302b98fa80088d7f9153aa16fa76bd1'; `
+    if ((Get-FileHash "$env:SystemDrive\openssl-$env:OPENSSL_VERSION.tar.gz" -Algorithm sha256).Hash -ne $sha256) { `
+        Write-Host "Checksum OpenSSL library failed!"; `
+        exit 1; `
+    }; `
     tar -zxf $env:SystemDrive\openssl-$env:OPENSSL_VERSION.tar.gz; `
     Rename-Item -Path "$env:SystemDrive\openssl-$env:OPENSSL_VERSION" -NewName "$env:SystemDrive\openssl_build"; `
     Set-Location -Path "$env:SystemDrive\openssl_build"; `
     perl $env:SystemDrive\openssl_build\Configure `
-		VC-WIN64A `
-		no-shared `
-		no-ui-console `
-		no-tests `
-#		enable-capieng `
-		no-capieng `
-		--api=1.1.0 `
-        --prefix="$env:SystemDrive\openssl_output_$env:BUILD_ARCH `
-		--openssldir="$env:SystemDrive\openssl_output_ssl"; `
+        VC-WIN64A `
+        no-shared `
+        no-ui-console `
+        no-tests `
+#        enable-capieng `
+        no-capieng `
+        --api=1.1.0 `
+        --prefix="$env:SystemDrive\openssl_output_$env:BUILD_ARCH" `
+        --openssldir="$env:SystemDrive\openssl_output_ssl"; `
     set CL=/MP; `
     nmake; `
     nmake install_sw; `
@@ -114,15 +135,15 @@ RUN Set-Location -Path "$env:SystemDrive"; `
     Set-Location -Path "$env:SystemDrive\libmodbus\src\win32"; `
     cscript .\configure.js; `
     msbuild modbus.vs16.sln `
-		-maxcpucount:"""$env:NUMBER_OF_PROCESSORS""" `
-		/property:Configuration="Release" `
-		/property:Platform="$env:BUILD_ARCH"
+        -maxcpucount:"""$env:NUMBER_OF_PROCESSORS""" `
+        /property:Configuration="Release" `
+        /property:Platform="$env:BUILD_ARCH"
 
 FROM builder_base as builder_zabbix
 
 SHELL ["powershell", "-Command", "$ErrorActionPreference = 'Stop'; $ProgressPreference = 'SilentlyContinue';"]
 
-ARG MAJOR_VERSION=6,0
+ARG MAJOR_VERSION=6.0
 ARG ZBX_VERSION=${MAJOR_VERSION}.0
 ARG ZABBIX_VERSION_RC_NUM=2400
 ARG ZBX_SOURCES=https://git.zabbix.com/scm/zbx/zabbix.git
@@ -140,17 +161,17 @@ RUN Set-Location -Path "$env:SystemDrive"; `
     Set-Location -Path "$env:SystemDrive\zabbix-$env:ZBX_VERSION\build\win32\project"; `
     set CL=/MP; `
     nmake -f Makefile `
-		CPU=$env:CPU_MODEL `
-		CFLAGS="""/D ZABBIX_VERSION_REVISION=$ZbxRevision /D HAVE_LIBMODBUS_STATIC""" `
-		PCREINCDIR="$env:SystemDrive\pcre_build\build" `
-		PCRELIBDIR="$env:SystemDrive\pcre_build\build\Release" TLS=openssl `
-		RFLAGS="""/D ZABBIX_VERSION_REVISION=$ZbxRevision /D ZABBIX_VERSION_RC_NUM=$env:ZABBIX_VERSION_RC_NUM""" `
-#		LIBS="Crypt32.lib" `
-		TLSINCDIR="$env:SystemDrive\openssl_output_$env:BUILD_ARCH\include" `
-		TLSLIBDIR="$env:SystemDrive\openssl_output_$env:BUILD_ARCH\lib" `
-		MODBINCDIR="$env:SystemDrive\libmodbus\src" `
-		MODBLIBDIR="$env:SystemDrive\libmodbus\src\win32\$env:BUILD_ARCH\Release" `
-			$env:ZBX_COMPONENT; `
+        CPU=$env:CPU_MODEL `
+        CFLAGS="""/D ZABBIX_VERSION_REVISION=$ZbxRevision /D HAVE_LIBMODBUS_STATIC""" `
+        PCREINCDIR="$env:SystemDrive\pcre_build\build" `
+        PCRELIBDIR="$env:SystemDrive\pcre_build\build\Release" TLS=openssl `
+        RFLAGS="""/D ZABBIX_VERSION_REVISION=$ZbxRevision /D ZABBIX_VERSION_RC_NUM=$env:ZABBIX_VERSION_RC_NUM""" `
+#        LIBS="Crypt32.lib" `
+        TLSINCDIR="$env:SystemDrive\openssl_output_$env:BUILD_ARCH\include" `
+        TLSLIBDIR="$env:SystemDrive\openssl_output_$env:BUILD_ARCH\lib" `
+        MODBINCDIR="$env:SystemDrive\libmodbus\src" `
+        MODBLIBDIR="$env:SystemDrive\libmodbus\src\win32\$env:BUILD_ARCH\Release" `
+            $env:ZBX_COMPONENT; `
     New-Item -ItemType directory -Path "$env:SystemDrive\zabbix" | Out-Null; `
     New-Item -ItemType directory -Path "$env:SystemDrive\zabbix\sbin" | Out-Null; `
     New-Item -ItemType directory -Path "$env:SystemDrive\zabbix\conf" | Out-Null; `
