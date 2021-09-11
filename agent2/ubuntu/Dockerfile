@@ -58,6 +58,7 @@ LABEL org.opencontainers.image.documentation="https://www.zabbix.com/documentati
       org.opencontainers.image.source="${ZBX_SOURCES}"
 
 RUN set -eux && \
+    export PATH=/usr/lib/go-1.16/bin:$PATH && \
     apt-get -y update && \
     DEBIAN_FRONTEND=noninteractive apt-get -y --no-install-recommends install \
             autoconf \
@@ -69,7 +70,7 @@ RUN set -eux && \
             pkg-config \
             git \
             g++ \
-            golang && \
+            golang-1.16 && \
     cd /tmp/ && \
     git -c advice.detachedHead=false clone ${ZBX_SOURCES} --branch master --depth 1 --single-branch zabbix-${ZBX_VERSION} && \
     cd /tmp/zabbix-${ZBX_VERSION} && \
