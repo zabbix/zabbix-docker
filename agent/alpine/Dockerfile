@@ -33,6 +33,7 @@ RUN set -eux && \
             iputils \
             pcre \
             libcurl \
+            libmodbus \
             libldap && \
     rm -rf /var/cache/apk/*
 
@@ -53,6 +54,7 @@ RUN set -eux && \
             curl-dev \
             openssl-dev \
             openldap-dev \
+            libmodbus-dev \
             g++ \
             pcre-dev \
             make \
@@ -72,6 +74,7 @@ RUN set -eux && \
             --prefix=/usr \
             --enable-agent \
             --with-libcurl \
+            --with-libmodbus \
             --with-ldap \
             --with-openssl \
             --enable-ipv6 \
