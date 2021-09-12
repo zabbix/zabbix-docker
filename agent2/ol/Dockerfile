@@ -55,20 +55,44 @@ LABEL org.opencontainers.image.documentation="https://www.zabbix.com/documentati
       org.opencontainers.image.source="${ZBX_SOURCES}"
 
 RUN set -eux && REPOLIST="ol8_baseos_latest,ol8_appstream" && \
+    PATH=/usr/local/go/bin:$PATH && \
     INSTALL_PKGS="autoconf \
             automake \
             pcre-devel \
             libcurl-devel \
-            go \
             make \
             openssl-devel \
             openldap-devel \
             git \
+            wget \
+            tar \
             gcc" && \
     microdnf -y install --setopt=install_weak_deps=0 --best \
         --nodocs dnf && \
     dnf -y install --disablerepo "*" --enablerepo "${REPOLIST}" --setopt=install_weak_deps=False --best \
         --setopt=tsflags=nodocs ${INSTALL_PKGS} && \
+    ARCH_SUFFIX="$(arch)"; \
+    case "$ARCH_SUFFIX" in \
+        x86_64) \
+            url='https://dl.google.com/go/go1.17.1.linux-amd64.tar.gz'; \
+            sha256='dab7d9c34361dc21ec237d584590d72500652e7c909bf082758fb63064fca0ef'; \
+            ;; \
+        aarch64) \
+            url='https://dl.google.com/go/go1.17.1.linux-arm64.tar.gz'; \
+            sha256='53b29236fa03ed862670a5e5e2ab2439a2dc288fe61544aa392062104ac0128c'; \
+            ;; \
+        *) echo "Unknown ARCH_SUFFIX=${ARCH_SUFFIX-}"; exit 1 ;; \
+    esac; \
+    wget -O go.tgz.asc "$url.asc" && \
+    wget -O go.tgz "$url" --progress=dot:giga && \
+    echo "$sha256 *go.tgz" | sha256sum -c - && \
+    GNUPGHOME="$(mktemp -d)"; export GNUPGHOME; \
+    gpg --batch --keyserver keyserver.ubuntu.com --recv-keys 'EB4C 1BFD 4F04 2F6D DDCC EC91 7721 F63B D38B 4796' && \
+    gpg --batch --verify go.tgz.asc go.tgz && \
+    gpgconf --kill all && \
+    rm -rf "$GNUPGHOME" go.tgz.asc && \
+    tar -C /usr/local -xzf go.tgz && \
+    rm go.tgz && \
     cd /tmp/ && \
     git -c advice.detachedHead=false clone ${ZBX_SOURCES} --branch master --depth 1 --single-branch zabbix-${ZBX_VERSION} && \
     cd /tmp/zabbix-${ZBX_VERSION} && \
@@ -98,6 +122,7 @@ RUN set -eux && REPOLIST="ol8_baseos_latest,ol8_appstream" && \
     strip /usr/bin/zabbix_sender && \
     cd /tmp/ && \
     rm -rf /tmp/zabbix-${ZBX_VERSION}/ && \
+    rm -rf /usr/local/go/ && \
     dnf -y history undo last && \
     dnf -y clean all && \
     microdnf -y remove dnf && \
