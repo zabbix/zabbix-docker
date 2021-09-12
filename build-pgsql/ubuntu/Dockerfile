@@ -1,0 +1,71 @@
+# syntax=docker/dockerfile:1
+ARG MAJOR_VERSION=6.0
+ARG ZBX_VERSION=${MAJOR_VERSION}
+ARG BUILD_BASE_IMAGE=zabbix-build-base:ubuntu-${ZBX_VERSION}
+
+FROM ${BUILD_BASE_IMAGE} as builder
+
+ARG MAJOR_VERSION
+ARG ZBX_VERSION
+ARG ZBX_SOURCES=https://git.zabbix.com/scm/zbx/zabbix.git
+
+LABEL org.opencontainers.image.title="Zabbix build base (PostgreSQL)" \
+      org.opencontainers.image.authors="Alexey Pustovalov <alexey.pustovalov@zabbix.com>" \
+      org.opencontainers.image.vendor="Zabbix LLC" \
+      org.opencontainers.image.url="https://zabbix.com/" \
+      org.opencontainers.image.description="Zabbix build base for PostgreSQL based images" \
+      org.opencontainers.image.licenses="GPL v2.0" \
+      org.opencontainers.image.documentation="https://www.zabbix.com/documentation/${MAJOR_VERSION}/manual/installation/containers" \
+      org.opencontainers.image.version="${ZBX_VERSION}" \
+      org.opencontainers.image.source="${ZBX_SOURCES}"
+
+RUN set -eux && \
+    cd /tmp/ && \
+    git -c advice.detachedHead=false clone ${ZBX_SOURCES} --branch master --depth 1 --single-branch /tmp/zabbix-${ZBX_VERSION} && \
+    cd /tmp/zabbix-${ZBX_VERSION} && \
+    zabbix_revision=`git rev-parse --short HEAD` && \
+    sed -i "s/{ZABBIX_REVISION}/$zabbix_revision/g" include/version.h && \
+    sed -i "s/{ZABBIX_REVISION}/$zabbix_revision/g" src/go/pkg/version/version.go && \
+    sed -i "s/{ZABBIX_REVISION}/$zabbix_revision/g" src/zabbix_java/src/com/zabbix/gateway/GeneralInformation.java && \
+    ./bootstrap.sh && \
+    export CFLAGS="-fPIC -pie -Wl,-z,relro -Wl,-z,now" && \
+    ./configure \
+            --datadir=/usr/lib \
+            --libdir=/usr/lib/zabbix \
+            --prefix=/usr \
+            --sysconfdir=/etc/zabbix \
+            --enable-agent \
+            --enable-agent2 \
+            --enable-server \
+            --enable-proxy \
+            --enable-webservice \
+            --with-postgresql \
+            --with-ldap \
+            --with-libcurl \
+            --with-libxml2 \
+            --enable-java \
+            --with-net-snmp \
+            --with-openipmi \
+            --with-openssl \
+            --with-ssh \
+            --with-libmodbus \
+            --with-unixodbc \
+            --enable-ipv6 \
+            --silent && \
+    make -j"$(nproc)" -s dbschema && \
+    make -j"$(nproc)" -s && \
+    make -j"$(nproc)" -s gettext && \
+    cat database/postgresql/schema.sql > database/postgresql/create.sql && \
+    cat database/postgresql/images.sql >> database/postgresql/create.sql && \
+    cat database/postgresql/data.sql >> database/postgresql/create.sql && \
+    gzip -c database/postgresql/create.sql > database/postgresql/create_server.sql.gz && \
+    rm -rf database/postgresql/create.sql && \
+    cat database/postgresql/schema.sql > database/postgresql/create.sql && \
+    gzip -c database/postgresql/create.sql > database/postgresql/create_proxy.sql.gz && \
+    rm -rf database/postgresql/create.sql && \
+    strip /tmp/zabbix-${ZBX_VERSION}/src/zabbix_agent/zabbix_agentd && \
+    strip /tmp/zabbix-${ZBX_VERSION}/src/zabbix_server/zabbix_server && \
+    strip /tmp/zabbix-${ZBX_VERSION}/src/zabbix_proxy/zabbix_proxy && \
+    strip /tmp/zabbix-${ZBX_VERSION}/src/go/bin/zabbix_agent2 && \
+    strip /tmp/zabbix-${ZBX_VERSION}/src/zabbix_get/zabbix_get && \
+    strip /tmp/zabbix-${ZBX_VERSION}/src/zabbix_sender/zabbix_sender

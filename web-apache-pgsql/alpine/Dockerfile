@@ -1,13 +1,33 @@
+# syntax=docker/dockerfile:1
+ARG MAJOR_VERSION=6.0
+ARG ZBX_VERSION=${MAJOR_VERSION}
+ARG BUILD_BASE_IMAGE=zabbix-build-pgsql:alpine-${ZBX_VERSION}
+ARG ZBX_SOURCES=https://git.zabbix.com/scm/zbx/zabbix.git
+
+FROM ${BUILD_BASE_IMAGE} as builder
+
 FROM alpine:3.14
+
+ARG MAJOR_VERSION
+ARG ZBX_VERSION
+ARG ZBX_SOURCES
+
+ENV TERM=xterm ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES}
 
 LABEL org.opencontainers.image.title="Zabbix web-interface (Apache, PostgreSQL)" \
       org.opencontainers.image.authors="Alexey Pustovalov <alexey.pustovalov@zabbix.com>" \
       org.opencontainers.image.vendor="Zabbix LLC" \
       org.opencontainers.image.url="https://zabbix.com/" \
       org.opencontainers.image.description="Zabbix web-interface based on Apache2 web server with PostgreSQL database support" \
-      org.opencontainers.image.licenses="GPL v2.0"
+      org.opencontainers.image.licenses="GPL v2.0" \
+      org.opencontainers.image.documentation="https://www.zabbix.com/documentation/${MAJOR_VERSION}/manual/installation/containers" \
+      org.opencontainers.image.version="${ZBX_VERSION}" \
+      org.opencontainers.image.source="${ZBX_SOURCES}"
 
 STOPSIGNAL SIGTERM
+
+COPY --from=builder ["/tmp/zabbix-${ZBX_VERSION}/ui", "/usr/share/zabbix"]
+COPY ["conf/etc/", "/etc/"]
 
 RUN set -eux && \
     addgroup --system --gid 1995 zabbix && \
@@ -32,7 +52,7 @@ RUN set -eux && \
             php7-gd \
             php7-gettext \
             php7-json \
-            php7-ldap \    
+            php7-ldap \
             php7-pgsql \
             php7-mbstring \
             php7-session \
@@ -55,31 +75,7 @@ RUN set -eux && \
         "/etc/apache2/conf.d/mpm.conf" && \
     sed -i 's/Listen 80/Listen 8080/g' /etc/apache2/httpd.conf && \
     rm -rf "/var/run/apache2/" && \
-    rm -rf /var/cache/apk/*
-
-ARG MAJOR_VERSION=6.0
-ARG ZBX_VERSION=${MAJOR_VERSION}
-ARG ZBX_SOURCES=https://git.zabbix.com/scm/zbx/zabbix.git
-
-ENV TERM=xterm ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES}
-
-LABEL org.opencontainers.image.documentation="https://www.zabbix.com/documentation/${MAJOR_VERSION}/manual/installation/containers" \
-      org.opencontainers.image.version="${ZBX_VERSION}" \
-      org.opencontainers.image.source="${ZBX_SOURCES}"
-
-COPY ["conf/etc/", "/etc/"]
-
-RUN set -eux && \
-    apk add --no-cache --virtual build-dependencies \
-            gettext \
-            git && \
-    cd /usr/share/ && \
-    git -c advice.detachedHead=false clone ${ZBX_SOURCES} --branch master --depth 1 --single-branch zabbix-${ZBX_VERSION} && \
-    mkdir /usr/share/zabbix/ && \
-    cp -R /usr/share/zabbix-${ZBX_VERSION}/ui/* /usr/share/zabbix/ && \
-    rm -rf /usr/share/zabbix-${ZBX_VERSION}/ && \
     cd /usr/share/zabbix/ && \
-    ./locale/make_mo.sh && \
     rm -f conf/zabbix.conf.php conf/maintenance.inc.php conf/zabbix.conf.php.example && \
     rm -rf tests && \
     rm -f locale/add_new_language.sh locale/update_po.sh locale/make_mo.sh && \
@@ -94,8 +90,6 @@ RUN set -eux && \
     chown --quiet -R zabbix:root /usr/share/zabbix/include/defines.inc.php && \
     chgrp -R 0 /usr/share/zabbix/include/defines.inc.php && \
     chmod -R g=u /usr/share/zabbix/include/defines.inc.php && \
-    apk del --purge --no-network \
-            build-dependencies && \
     rm -rf /var/cache/apk/*
 
 EXPOSE 8080/TCP 8443/TCP
