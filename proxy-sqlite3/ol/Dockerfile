@@ -14,16 +14,6 @@ ENV TINI_VERSION=v0.19.0
 COPY ["conf/etc/yum.repos.d/oracle-epel-ol8.repo", "/etc/yum.repos.d/oracle-epel-ol8.repo"]
 
 RUN set -eux && \
-    ARCH_SUFFIX="$(arch)"; \
-    case "$ARCH_SUFFIX" in \
-        i686) export ARCH_SUFFIX='i386' ;; \
-        x86_64) [ -f /lib64/ld-linux-x86-64.so.2 ] && export ARCH_SUFFIX='amd64' || export ARCH_SUFFIX='i386' ;; \
-        aarch64) export ARCH_SUFFIX='arm64' ;; \
-        armv7l) export ARCH_SUFFIX='armhf' ;; \
-        ppc64el|ppc64le) export ARCH_SUFFIX='ppc64le' ;; \
-        s390x) export ARCH_SUFFIX='s390x' ;; \
-        *) echo "Unknown ARCH_SUFFIX=${ARCH_SUFFIX-}"; exit 1 ;; \
-    esac; \
     groupadd --system --gid 1995 zabbix && \
     useradd \
             --system --comment "Zabbix monitoring system" \
@@ -50,6 +40,7 @@ RUN set -eux && \
     echo "" > /etc/yum/vars/ociregion && \
     echo "oracle.com" > /etc/yum/vars/ocidomain && \
     INSTALL_PKGS="libevent \
+            tini \
             libssh \
             fping \
             file-libs \
@@ -66,20 +57,6 @@ RUN set -eux && \
         --enablerepo="ol8_appstream" \
         --enablerepo="ol8_developer_EPEL" \
         install --setopt=install_weak_deps=0 --best --nodocs ${INSTALL_PKGS} && \
-    curl -L "https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini-${ARCH_SUFFIX}" -o /sbin/tini && \
-    curl -L "https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini-${ARCH_SUFFIX}.asc" -o /tmp/tini.asc && \
-    export GNUPGHOME="$(mktemp -d)" && \
-    for server in $(shuf -e ha.pool.sks-keyservers.net \
-                            hkp://p80.pool.sks-keyservers.net:80 \
-                            ipv4.pool.sks-keyservers.net \
-                            keyserver.ubuntu.com \
-                            keyserver.pgp.com \
-                            pgp.mit.edu) ; do \
-        gpg --keyserver "$server" --recv-keys 595E85A6B1B4779EA4DAAEC70B588DFF0527A9B7 && break || : ; \
-    done && \
-    gpg --batch --verify /tmp/tini.asc /sbin/tini && \
-    rm -rf "$GNUPGHOME" /tmp/tini.asc && \
-    chmod +x /sbin/tini && \
     microdnf -y clean all && \
     rm -rf /var/cache/yum /var/lib/yum/yumdb/* /usr/lib/udev/hwdb.d/* && \
     rm -rf /var/cache/dnf /etc/udev/hwdb.bin /root/.pki
@@ -169,7 +146,7 @@ VOLUME ["/var/lib/zabbix/snmptraps"]
 
 COPY ["docker-entrypoint.sh", "/usr/bin/"]
 
-ENTRYPOINT ["/sbin/tini", "--", "/usr/bin/docker-entrypoint.sh"]
+ENTRYPOINT ["/usr/bin/tini", "--", "/usr/bin/docker-entrypoint.sh"]
 
 USER 1997
 
