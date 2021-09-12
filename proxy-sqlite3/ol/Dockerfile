@@ -9,8 +9,6 @@ LABEL org.opencontainers.image.title="Zabbix proxy (SQLite3)" \
 
 STOPSIGNAL SIGTERM
 
-ENV TINI_VERSION=v0.19.0
-
 COPY ["conf/etc/yum.repos.d/oracle-epel-ol8.repo", "/etc/yum.repos.d/oracle-epel-ol8.repo"]
 
 RUN set -eux && \

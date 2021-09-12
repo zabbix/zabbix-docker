@@ -7,7 +7,6 @@ ARG ZBX_VERSION=${MAJOR_VERSION}
 
 ARG ZBX_SOURCES=https://git.zabbix.com/scm/zbx/zabbix.git
 ENV ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES}
-ENV TINI_VERSION=v0.19.0
 
 LABEL name="zabbix/zabbix-web-service-trunk" \
       maintainer="alexey.pustovalov@zabbix.com" \
