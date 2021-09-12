@@ -1,4 +1,4 @@
-FROM alpine:3.13
+FROM alpine:3.14
 
 LABEL org.opencontainers.image.title="Zabbix agent" \
       org.opencontainers.image.authors="Alexey Pustovalov <alexey.pustovalov@zabbix.com>" \
@@ -33,6 +33,7 @@ RUN set -eux && \
             iputils \
             pcre \
             libcurl \
+            libmodbus \
             libldap && \
     rm -rf /var/cache/apk/*
 
@@ -53,6 +54,7 @@ RUN set -eux && \
             curl-dev \
             openssl-dev \
             openldap-dev \
+            libmodbus-dev \
             g++ \
             pcre-dev \
             make \
@@ -74,6 +76,7 @@ RUN set -eux && \
             --with-libcurl \
             --with-ldap \
             --with-openssl \
+            --with-libmodbus \
             --enable-ipv6 \
             --silent && \
     make -j"$(nproc)" -s && \
