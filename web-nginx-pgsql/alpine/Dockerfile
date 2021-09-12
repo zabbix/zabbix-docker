@@ -46,7 +46,7 @@ RUN set -eux && \
             postgresql-client \
             supervisor && \
     rm -rf /etc/php7/php-fpm.d/www.conf && \
-    rm -f /etc/nginx/conf.d/*.conf && \
+    rm -f /etc/nginx/http.d/*.conf && \
     ln -sf /dev/fd/2 /var/lib/nginx/logs/error.log && \
     rm -rf /var/cache/apk/*
 
