@@ -21,6 +21,7 @@ defaults:
 jobs:
   build_base:
     timeout-minutes: 70
+    name: Build ${{ matrix.build }} base on ${{ matrix.os }}
     env:
       LATEST_BRANCH: "${{ github.event.repository.default_branch }}"
       DOCKER_REPOSITORY: "zabbix"
@@ -152,7 +153,9 @@ jobs:
           tags: ${{ steps.prepare_tags.outputs.image_tag_versions }}
 
       - name: Image digest
-        run: echo ${{ steps.docker_build.outputs.digest }}
+        run: |
+            echo ${{ steps.docker_build.outputs.digest }}
+            echo "${{ steps.docker_build.outputs.digest }}" > /tmp/${{ matrix.build }}_${{ matrix.os }}
 
   build_base_database:
     timeout-minutes: 70
@@ -165,9 +168,9 @@ jobs:
       fail-fast: false  
       matrix:
         build:
-          - build-base-mysql
-          - build-base-pgsql
-          - build-base-sqlite3
+          - base-mysql
+          - base-pgsql
+          - base-sqlite3
         os:
          - alpine
          - ubuntu
@@ -280,6 +283,8 @@ jobs:
           else
               exit 1
           fi
+
+          cat /tmp/build-base_${{ matrix.os }}
 
           echo ::set-output name=image_tag_versions::${TAGS}
           echo ::set-output name=image_name::${IMAGE_NAME}
