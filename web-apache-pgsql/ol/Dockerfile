@@ -23,9 +23,6 @@ RUN set -eux && \
     mkdir -p /etc/zabbix && \
     mkdir -p /etc/zabbix/web && \
     mkdir -p /etc/zabbix/web/certs && \
-    mkdir -p /etc/yum/vars/ && \
-    echo "" > /etc/yum/vars/ociregion && \
-    echo "oracle.com" > /etc/yum/vars/ocidomain && \
     microdnf -y module enable php:7.4 && \
     INSTALL_PKGS="curl \
             httpd \

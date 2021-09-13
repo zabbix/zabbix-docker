@@ -23,9 +23,6 @@ RUN set -eux && \
     mkdir -p /etc/zabbix && \
     mkdir -p /var/lib/zabbix && \
     mkdir -p /var/lib/zabbix/enc && \
-    mkdir -p /etc/yum/vars/ && \
-    echo "" > /etc/yum/vars/ociregion && \
-    echo "oracle.com" > /etc/yum/vars/ocidomain && \
     INSTALL_PKGS="chromium \
             openssl-libs \
             zlib" && \

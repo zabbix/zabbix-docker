@@ -33,9 +33,6 @@ RUN set -eux && \
     mkdir -p /var/lib/zabbix/ssl/ssl_ca && \
     mkdir -p /usr/lib/zabbix/externalscripts && \
     mkdir -p /usr/share/doc/zabbix-proxy-mysql && \
-    mkdir -p /etc/yum/vars/ && \
-    echo "" > /etc/yum/vars/ociregion && \
-    echo "oracle.com" > /etc/yum/vars/ocidomain && \
     microdnf -y module enable mysql && \
     INSTALL_PKGS="libevent \
             tini \

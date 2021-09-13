@@ -35,9 +35,6 @@ RUN set -eux && \
     mkdir -p /usr/lib/zabbix/alertscripts && \
     mkdir -p /usr/lib/zabbix/externalscripts && \
     mkdir -p /usr/share/doc/zabbix-server-postgresql && \
-    mkdir -p /etc/yum/vars/ && \
-    echo "" > /etc/yum/vars/ociregion && \
-    echo "oracle.com" > /etc/yum/vars/ocidomain && \
     INSTALL_PKGS="fping \
             file-libs \
             tini \
