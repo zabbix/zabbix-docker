@@ -155,14 +155,12 @@ jobs:
       - name: Image digest
         run: |
             echo ${{ steps.docker_build.outputs.digest }}
-            pwd
-            mkdir base_build/
-            echo "${{ steps.docker_build.outputs.digest }}" > base_build/${{ matrix.build }}_${{ matrix.os }}
+            echo "${{ steps.docker_build.outputs.digest }}" > ${{ matrix.build }}_${{ matrix.os }}
 
       - uses: actions/upload-artifact@v2
         with:
          name: ${{ matrix.build }}_${{ matrix.os }}
-         path: base_build/${{ matrix.build }}_${{ matrix.os }}
+         path: ${{ matrix.build }}_${{ matrix.os }}
          if-no-files-found: error
 
   build_base_database:
@@ -279,8 +277,7 @@ jobs:
 
       - uses: actions/download-artifact@v2
         with:
-          name: ${{ matrix.build }}_${{ matrix.os }}
-          path: base_build
+          name: base-build_${{ matrix.os }}
 
       - name: Display structure of downloaded files
         run: ls -R
@@ -300,7 +297,7 @@ jobs:
               exit 1
           fi
 
-          BASE_TAG=$(cat base_build/${{ matrix.build }}_${{ matrix.os }})
+          BASE_TAG=$(cat ${{ matrix.build }}_${{ matrix.os }})
 
           echo ::set-output name=image_tag_versions::${TAGS}
           echo ::set-output name=image_name::${IMAGE_NAME}
