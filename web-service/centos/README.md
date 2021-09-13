@@ -10,7 +10,7 @@ For more information and related downloads for Zabbix components, please visit h
 
 # What is Zabbix web service?
 
-Zabbix web servce for performing various tasks using headless web browser (for example, reporting).
+Zabbix web service for performing various tasks using headless web browser (for example, reporting).
 
 # Zabbix web service images
 

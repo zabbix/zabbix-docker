@@ -4,7 +4,7 @@ LABEL org.opencontainers.image.title="Zabbix web service" \
       org.opencontainers.image.authors="Alexey Pustovalov <alexey.pustovalov@zabbix.com>" \
       org.opencontainers.image.vendor="Zabbix LLC" \
       org.opencontainers.image.url="https://zabbix.com/" \
-      org.opencontainers.image.description="Zabbix web servce for performing various tasks using headless web browser" \
+      org.opencontainers.image.description="Zabbix web service for performing various tasks using headless web browser" \
       org.opencontainers.image.licenses="GPL v2.0"
 
 STOPSIGNAL SIGTERM
