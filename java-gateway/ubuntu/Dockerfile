@@ -46,7 +46,8 @@ RUN set -eux && \
     apt-get -y update && \
     DEBIAN_FRONTEND=noninteractive apt-get -y --no-install-recommends install \
             openjdk-8-jre-headless && \
-    rm -rf /usr/sbin/zabbix_java/lib/*.xml && \
+    rm -rf /usr/sbin/zabbix_java/lib/logback.xml && \
+    mv /usr/sbin/zabbix_java/lib/logback-console.xml /etc/zabbix/zabbix_java_gateway_logback.xml && \
     apt-get -y autoremove && \
     apt-get -y clean && \
     chown --quiet -R zabbix:root /etc/zabbix/ /usr/sbin/zabbix_java/ && \

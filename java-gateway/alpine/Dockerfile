@@ -48,7 +48,8 @@ RUN set -eux && \
     apk add --clean-protected --no-cache \
             bash \
             openjdk8-jre-base && \
-    rm -rf /usr/sbin/zabbix_java/lib/*.xml && \
+    rm -rf /usr/sbin/zabbix_java/lib/logback.xml && \
+    mv /usr/sbin/zabbix_java/lib/logback-console.xml /etc/zabbix/zabbix_java_gateway_logback.xml && \
     chown --quiet -R zabbix:root /etc/zabbix/ /usr/sbin/zabbix_java/ && \
     chgrp -R 0 /etc/zabbix/ /usr/sbin/zabbix_java/ && \
     chmod -R g=u /etc/zabbix/ /usr/sbin/zabbix_java/ && \
