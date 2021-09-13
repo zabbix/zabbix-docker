@@ -155,12 +155,15 @@ jobs:
       - name: Image digest
         run: |
             echo ${{ steps.docker_build.outputs.digest }}
+            pwd
+            mkdir base_build/
             echo "${{ steps.docker_build.outputs.digest }}" > base_build/${{ matrix.build }}_${{ matrix.os }}
 
       - uses: actions/upload-artifact@v2
         with:
-         name: my-artifact
+         name: ${{ matrix.build }}_${{ matrix.os }}
          path: base_build/${{ matrix.build }}_${{ matrix.os }}
+         if-no-files-found: error
 
   build_base_database:
     timeout-minutes: 70
@@ -276,7 +279,7 @@ jobs:
 
       - uses: actions/download-artifact@v2
         with:
-          name: my-artifact
+          name: ${{ matrix.build }}_${{ matrix.os }}
           path: base_build
 
       - name: Display structure of downloaded files
