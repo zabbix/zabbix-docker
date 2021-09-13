@@ -6,6 +6,7 @@ ARG ZBX_VERSION=${MAJOR_VERSION}
 ARG ZBX_SOURCES=https://git.zabbix.com/scm/zbx/zabbix.git
 
 ENV TERM=xterm ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES} \
+    PATH=/usr/local/go/bin:$PATH \
     PATH=${PATH}:/usr/lib/jvm/default-jvm/bin/ JAVA_HOME=/usr/lib/jvm/default-jvm
 
 LABEL org.opencontainers.image.title="Zabbix build base" \
@@ -40,8 +41,10 @@ RUN set -eux && \
             gettext \
             git \
             g++ \
-            go \
             make \
             openjdk8-jre-base \
             unixodbc-dev && \
     rm -rf /var/cache/apk/*
+
+COPY --from=golang@sha256:55f55d3232f63391e0797acaf145ade8f6fca2ff36795dd5ae446de360724dec ["/usr/local/go", "/usr/local/go"]
+
