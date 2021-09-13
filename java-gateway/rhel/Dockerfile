@@ -90,7 +90,8 @@ RUN set -eux && INSTALL_PKGS="autoconf \
     mkdir -p /usr/sbin/zabbix_java/ && \
     cp -r src/zabbix_java/bin /usr/sbin/zabbix_java/ && \
     cp -r src/zabbix_java/lib /usr/sbin/zabbix_java/ && \
-    rm -rf /usr/sbin/zabbix_java/lib/*.xml && \
+    rm -rf /usr/sbin/zabbix_java/lib/logback.xml && \
+    mv /usr/sbin/zabbix_java/lib/logback-console.xml /etc/zabbix/zabbix_java_gateway_logback.xml && \
     cd /tmp/ && \
     rm -rf /tmp/zabbix-${ZBX_VERSION}/ && \
     dnf -y history undo last && \
