@@ -46,8 +46,9 @@ RUN set -eux && \
             git \
             tar \
             wget \
+            gnupg \
             unixodbc-dev && \
-    ARCH_SUFFIX="$(dpkg --print-architecture)"; arch="${arch##*-}"; \
+    ARCH_SUFFIX="$(dpkg --print-architecture)"; ARCH_SUFFIX="${ARCH_SUFFIX##*-}"; \
     case "$ARCH_SUFFIX" in \
         'amd64') \
             url='https://dl.google.com/go/go1.17.1.linux-amd64.tar.gz'; \
