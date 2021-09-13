@@ -40,8 +40,6 @@ LABEL org.opencontainers.image.documentation="https://www.zabbix.com/documentati
       org.opencontainers.image.version="${ZBX_VERSION}" \
       org.opencontainers.image.source="${ZBX_SOURCES}"
 
-COPY ["conf/etc/", "/etc/"]
-
 RUN set -eux && REPOLIST="ol8_baseos_latest,ol8_appstream" && \
     INSTALL_PKGS="autoconf \
             automake \
