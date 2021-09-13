@@ -155,7 +155,12 @@ jobs:
       - name: Image digest
         run: |
             echo ${{ steps.docker_build.outputs.digest }}
-            echo "${{ steps.docker_build.outputs.digest }}" > /tmp/${{ matrix.build }}_${{ matrix.os }}
+            echo "${{ steps.docker_build.outputs.digest }}" > base_build/${{ matrix.build }}_${{ matrix.os }}
+
+      - uses: actions/upload-artifact@v2
+        with:
+         name: my-artifact
+         path: base_build/${{ matrix.build }}_${{ matrix.os }}
 
   build_base_database:
     timeout-minutes: 70
@@ -269,6 +274,14 @@ jobs:
           echo ::set-output name=image_tag_versions::$(printf -- ",%s" "${TAGS_ARRAY[@]}")
           echo ::set-output name=base_tag::${TAGS_ARRAY[1]#*:}
 
+      - uses: actions/download-artifact@v2
+        with:
+          name: my-artifact
+          path: base_build
+
+      - name: Display structure of downloaded files
+        run: ls -R
+
       - name: Prepare tags
         id: prepare_tags
         run: |
@@ -284,11 +297,12 @@ jobs:
               exit 1
           fi
 
-          cat /tmp/build-base_${{ matrix.os }}
+          BASE_TAG=$(cat base_build/${{ matrix.build }}_${{ matrix.os }})
 
           echo ::set-output name=image_tag_versions::${TAGS}
           echo ::set-output name=image_name::${IMAGE_NAME}
           echo ::set-output name=base_tag::${BASE_TAG}
+
 
       - name: Build and push
         id: docker_build
@@ -299,7 +313,7 @@ jobs:
           platforms: ${{ steps.platform.outputs.list }}
           push: ${{ secrets.AUTO_PUSH_IMAGES }}
           tags: ${{ steps.prepare_tags.outputs.image_tag_versions }}
-          build-args: zabbix/zabbix-build-base:${{ steps.prepare_tags.outputs.base_tag }}
+          build-args: zabbix/zabbix-build-base@${{ steps.prepare_tags.outputs.base_tag }}
 
       - name: Image digest
         run: echo ${{ steps.docker_build.outputs.digest }}
