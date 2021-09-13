@@ -174,9 +174,9 @@ jobs:
       fail-fast: false  
       matrix:
         build:
-          - base-mysql
-          - base-pgsql
-          - base-sqlite3
+          - build-mysql
+          - build-pgsql
+          - build-sqlite3
         os:
          - alpine
          - ubuntu
@@ -313,7 +313,7 @@ jobs:
           platforms: ${{ steps.platform.outputs.list }}
           push: ${{ secrets.AUTO_PUSH_IMAGES }}
           tags: ${{ steps.prepare_tags.outputs.image_tag_versions }}
-          build-args: zabbix/zabbix-build-base@${{ steps.prepare_tags.outputs.base_tag }}
+          build-args: BUILD_BASE_IMAGE=zabbix/zabbix-build-base@${{ steps.prepare_tags.outputs.base_tag }}
 
       - name: Image digest
         run: echo ${{ steps.docker_build.outputs.digest }}
