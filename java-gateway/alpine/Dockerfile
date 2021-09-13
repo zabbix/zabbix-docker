@@ -39,8 +39,6 @@ LABEL org.opencontainers.image.documentation="https://www.zabbix.com/documentati
       org.opencontainers.image.version="${ZBX_VERSION}" \
       org.opencontainers.image.source="${ZBX_SOURCES}"
 
-COPY ["conf/etc/", "/etc/"]
-
 RUN set -eux && \
     apk add --no-cache --virtual build-dependencies \
             autoconf \
@@ -69,7 +67,8 @@ RUN set -eux && \
     mkdir -p /usr/sbin/zabbix_java/ && \
     cp -r src/zabbix_java/bin /usr/sbin/zabbix_java/ && \
     cp -r src/zabbix_java/lib /usr/sbin/zabbix_java/ && \
-    rm -rf /usr/sbin/zabbix_java/lib/*.xml && \
+    rm -rf /usr/sbin/zabbix_java/lib/logback.xml && \
+    mv /usr/sbin/zabbix_java/lib/logback-console.xml /etc/zabbix/zabbix_java_gateway_logback.xml && \
     cd /tmp/ && \
     rm -rf /tmp/zabbix-${ZBX_VERSION}/ && \
     chown --quiet -R zabbix:root /etc/zabbix/ /usr/sbin/zabbix_java/ && \
