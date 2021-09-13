@@ -169,7 +169,8 @@ RUN set -eux && REPOLIST="rhel-8-for-x86_64-baseos-rpms,rhel-8-for-x86_64-appstr
     cp database/mysql/create.sql.gz /usr/share/doc/zabbix-server-mysql/ && \
     cp -r src/zabbix_java/bin /usr/sbin/zabbix_java/ && \
     cp -r src/zabbix_java/lib /usr/sbin/zabbix_java/ && \
-    rm -rf /usr/sbin/zabbix_java/lib/*.xml && \
+    rm -rf /usr/sbin/zabbix_java/lib/logback.xml && \
+    mv /usr/sbin/zabbix_java/lib/logback-console.xml /etc/zabbix/zabbix_java_gateway_logback.xml && \
     cp -R /tmp/zabbix-${ZBX_VERSION}/ui/* /usr/share/zabbix/ && \
     cd /tmp/ && \
     rm -rf /tmp/zabbix-${ZBX_VERSION}/ && \
