@@ -1,10 +1,52 @@
 version: '3.5'
 services:
+ zabbix-build-base:
+  build:
+   context: ./build-base/ol
+   cache_from:
+    - oraclelinux:8-slim
+  image: zabbix-build-base:ol-local
+
+ zabbix-build-pgsql:
+  build:
+   context: ./build-pgsql/ol
+   cache_from:
+    - oraclelinux:8-slim
+   args:
+    BUILD_BASE_IMAGE: zabbix-build-base:ol-local
+  image: zabbix-build-pgsql:ol-local
+  depends_on:
+   - zabbix-build-base
+
+ zabbix-build-mysql:
+  build:
+   context: ./build-mysql/ol
+   cache_from:
+    - oraclelinux:8-slim
+   args:
+    BUILD_BASE_IMAGE: zabbix-build-base:ol-local
+  image: zabbix-build-mysql:ol-local
+  depends_on:
+   - zabbix-build-base
+
+ zabbix-build-sqlite3:
+  build:
+   context: ./build-sqlite3/ol
+   cache_from:
+    - oraclelinux:8-slim
+   args:
+    BUILD_BASE_IMAGE: zabbix-build-base:ol-local
+  image: zabbix-build-sqlite3:ol-local
+  depends_on:
+   - zabbix-build-base
+
  zabbix-server:
   build:
    context: ./server-pgsql/ol
    cache_from:
     - oraclelinux:8-slim
+   args:
+    BUILD_BASE_IMAGE: zabbix-build-pgsql:ol-local
   image: zabbix-server-pgsql:ol-local
   ports:
    - "10051:10051"
@@ -43,6 +85,7 @@ services:
    - POSTGRES_PASSWORD
   depends_on:
    - postgres-server
+   - zabbix-build-pgsql
   networks:
    zbx_net_backend:
      aliases:
@@ -71,6 +114,8 @@ services:
    context: ./proxy-sqlite3/ol
    cache_from:
     - oraclelinux:8-slim
+   args:
+    BUILD_BASE_IMAGE: zabbix-build-sqlite3:ol-local
   image: zabbix-proxy-sqlite3:ol-local
   profiles:
    - all
@@ -104,6 +149,7 @@ services:
   depends_on:
    - zabbix-java-gateway
    - zabbix-snmptraps
+   - zabbix-build-sqlite3
   networks:
    zbx_net_backend:
     aliases:
@@ -124,6 +170,8 @@ services:
    context: ./proxy-mysql/ol
    cache_from:
     - oraclelinux:8-slim
+   args:
+    BUILD_BASE_IMAGE: zabbix-build-mysql:ol-local
   image: zabbix-proxy-mysql:ol-local
   profiles:
    - all
@@ -163,6 +211,7 @@ services:
    - mysql-server
    - zabbix-java-gateway
    - zabbix-snmptraps
+   - zabbix-build-mysql
   networks:
    zbx_net_backend:
     aliases:
@@ -183,6 +232,8 @@ services:
    context: ./web-apache-pgsql/ol
    cache_from:
     - oraclelinux:8-slim
+   args:
+    BUILD_BASE_IMAGE: zabbix-build-pgsql:ol-local
   image: zabbix-web-apache-pgsql:ol-local
   profiles:
    - all
@@ -214,6 +265,7 @@ services:
   depends_on:
    - postgres-server
    - zabbix-server
+   - zabbix-build-pgsql
   healthcheck:
    test: ["CMD", "curl", "-f", "http://localhost:8080/"]
    interval: 10s
@@ -243,6 +295,8 @@ services:
    context: ./web-nginx-pgsql/ol
    cache_from:
     - oraclelinux:8-slim
+   args:
+    BUILD_BASE_IMAGE: zabbix-build-pgsql:ol-local
   image: zabbix-web-nginx-pgsql:ol-local
   ports:
    - "80:8080"
@@ -272,6 +326,7 @@ services:
   depends_on:
    - postgres-server
    - zabbix-server
+   - zabbix-build-pgsql
   healthcheck:
    test: ["CMD", "curl", "-f", "http://localhost:8080/"]
    interval: 10s
@@ -301,6 +356,8 @@ services:
    context: ./agent/ol
    cache_from:
     - oraclelinux:8-slim
+   args:
+    BUILD_BASE_IMAGE: zabbix-build-pgsql:ol-local
   image: zabbix-agent:ol-local
   profiles:
    - full
@@ -327,6 +384,8 @@ services:
    - .env_agent
   privileged: true
   pid: "host"
+  depends_on:
+   - zabbix-build-pgsql
   networks:
    zbx_net_backend:
     aliases:
@@ -345,6 +404,8 @@ services:
    context: ./java-gateway/ol
    cache_from:
     - oraclelinux:8-slim
+   args:
+    BUILD_BASE_IMAGE: zabbix-build-pgsql:ol-local
   image: zabbix-java-gateway:ol-local
   profiles:
    - full
@@ -361,6 +422,8 @@ services:
       memory: 256M
   env_file:
    - .env_java
+  depends_on:
+   - zabbix-build-pgsql
   networks:
    zbx_net_backend:
     aliases:
@@ -411,6 +474,8 @@ services:
    context: ./web-service/ol
    cache_from:
     - oraclelinux:8-slim
+   args:
+    BUILD_BASE_IMAGE: zabbix-build-pgsql:ol-local
   image: zabbix-web-service:ol-local
   profiles:
    - full
@@ -431,6 +496,8 @@ services:
       memory: 256M
   env_file:
    - .env_web_service
+  depends_on:
+   - zabbix-build-pgsql
   networks:
    zbx_net_backend:
     aliases:

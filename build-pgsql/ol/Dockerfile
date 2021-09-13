@@ -1,19 +1,19 @@
 # syntax=docker/dockerfile:1
 ARG MAJOR_VERSION=6.0
 ARG ZBX_VERSION=${MAJOR_VERSION}
-ARG BUILD_BASE_IMAGE=zabbix-build-base:alpine-${ZBX_VERSION}
+ARG BUILD_BASE_IMAGE=zabbix-build-base:ol-${ZBX_VERSION}
 
 FROM ${BUILD_BASE_IMAGE} as builder
 
 ARG MAJOR_VERSION
 ARG ZBX_VERSION
-ARG ZBX_SOURCES
+ARG ZBX_SOURCES=https://git.zabbix.com/scm/zbx/zabbix.git
 
-LABEL org.opencontainers.image.title="Zabbix build base (SQLite3)" \
+LABEL org.opencontainers.image.title="Zabbix build base (PostgreSQL)" \
       org.opencontainers.image.authors="Alexey Pustovalov <alexey.pustovalov@zabbix.com>" \
       org.opencontainers.image.vendor="Zabbix LLC" \
       org.opencontainers.image.url="https://zabbix.com/" \
-      org.opencontainers.image.description="Zabbix build base for SQLite3 based images" \
+      org.opencontainers.image.description="Zabbix build base for PostgreSQL based images" \
       org.opencontainers.image.licenses="GPL v2.0" \
       org.opencontainers.image.documentation="https://www.zabbix.com/documentation/${MAJOR_VERSION}/manual/installation/containers" \
       org.opencontainers.image.version="${ZBX_VERSION}" \
@@ -36,8 +36,10 @@ RUN set -eux && \
             --sysconfdir=/etc/zabbix \
             --enable-agent \
             --enable-agent2 \
+            --enable-server \
             --enable-proxy \
-            --with-sqlite3 \
+            --enable-webservice \
+            --with-postgresql \
             --with-ldap \
             --with-libcurl \
             --with-libxml2 \
@@ -46,13 +48,23 @@ RUN set -eux && \
             --with-openipmi \
             --with-openssl \
             --with-ssh \
-            --with-libmodbus \
+#            --with-libmodbus \
             --with-unixodbc \
             --enable-ipv6 \
             --silent && \
     make -j"$(nproc)" -s dbschema && \
     make -j"$(nproc)" -s && \
+    make -j"$(nproc)" -s gettext && \
+    cat database/postgresql/schema.sql > database/postgresql/create.sql && \
+    cat database/postgresql/images.sql >> database/postgresql/create.sql && \
+    cat database/postgresql/data.sql >> database/postgresql/create.sql && \
+    gzip -c database/postgresql/create.sql > database/postgresql/create_server.sql.gz && \
+    rm -rf database/postgresql/create.sql && \
+    cat database/postgresql/schema.sql > database/postgresql/create.sql && \
+    gzip -c database/postgresql/create.sql > database/postgresql/create_proxy.sql.gz && \
+    rm -rf database/postgresql/create.sql && \
     strip /tmp/zabbix-${ZBX_VERSION}/src/zabbix_agent/zabbix_agentd && \
+    strip /tmp/zabbix-${ZBX_VERSION}/src/zabbix_server/zabbix_server && \
     strip /tmp/zabbix-${ZBX_VERSION}/src/zabbix_proxy/zabbix_proxy && \
     strip /tmp/zabbix-${ZBX_VERSION}/src/go/bin/zabbix_agent2 && \
     strip /tmp/zabbix-${ZBX_VERSION}/src/zabbix_get/zabbix_get && \

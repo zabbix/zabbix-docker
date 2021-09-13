@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1
 ARG MAJOR_VERSION=6.0
 ARG ZBX_VERSION=${MAJOR_VERSION}
-ARG BUILD_BASE_IMAGE=zabbix-build-base:alpine-${ZBX_VERSION}
+ARG BUILD_BASE_IMAGE=zabbix-build-base:ol-${ZBX_VERSION}
 
 FROM ${BUILD_BASE_IMAGE} as builder
 
@@ -46,7 +46,6 @@ RUN set -eux && \
             --with-openipmi \
             --with-openssl \
             --with-ssh \
-            --with-libmodbus \
             --with-unixodbc \
             --enable-ipv6 \
             --silent && \
