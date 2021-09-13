@@ -297,7 +297,7 @@ jobs:
               exit 1
           fi
 
-          BASE_TAG=$(cat ${{ build-base_${{ matrix.os }})
+          BASE_TAG=$(cat build-base_${{ matrix.os }})
 
           echo ::set-output name=image_tag_versions::${TAGS}
           echo ::set-output name=image_name::${IMAGE_NAME}
