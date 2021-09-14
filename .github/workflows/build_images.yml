@@ -188,7 +188,7 @@ jobs:
         id: base_build
         run: |
           BASE_TAG=$(cat build-base_${{ matrix.os }})
-          BUILD_BASE_IMAGE=${{ env.DOCKER_REPOSITORY }}/zabbix-build-base@${{ steps.base_build.outputs.base_tag }}
+          BUILD_BASE_IMAGE=${{ env.DOCKER_REPOSITORY }}/zabbix-build-base@${BASE_TAG}
 
           echo ::set-output name=base_tag::${BASE_TAG}
           echo ::set-output name=base_build_image::${BUILD_BASE_IMAGE}
