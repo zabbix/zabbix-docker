@@ -33,7 +33,7 @@ jobs:
       components: ${{ steps.components.outputs.list }}
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v2.3.4
         with:
           fetch-depth: 1
 
@@ -85,7 +85,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v2.3.4
         with:
           fetch-depth: 1
 
@@ -134,7 +134,7 @@ jobs:
             echo ${{ steps.docker_build.outputs.digest }}
             echo "${{ steps.docker_build.outputs.digest }}" > ${{ env.BASE_BUILD_NAME }}_${{ matrix.os }}
 
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v2.2.4
         with:
          name: ${{ env.BASE_BUILD_NAME }}_${{ matrix.os }}
          path: ${{ env.BASE_BUILD_NAME }}_${{ matrix.os }}
@@ -152,7 +152,7 @@ jobs:
 
     runs-on: ubuntu-20.04
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v2.3.4
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v1
@@ -184,7 +184,7 @@ jobs:
           flavor: |
             latest=auto
 
-      - uses: actions/download-artifact@v2
+      - uses: actions/download-artifact@v2.0.10
         with:
           name: build-base_${{ matrix.os }}
 
@@ -213,7 +213,7 @@ jobs:
             echo ${{ steps.docker_build.outputs.digest }}
             echo "${{ steps.docker_build.outputs.digest }}" > ${{ matrix.build }}_${{ matrix.os }}
 
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v2.2.4
         with:
          name: ${{ matrix.build }}_${{ matrix.os }}
          path: ${{ matrix.build }}_${{ matrix.os }}
@@ -231,7 +231,7 @@ jobs:
 
     runs-on: ubuntu-20.04
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v2.3.4
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v1
@@ -263,12 +263,14 @@ jobs:
           flavor: |
             latest=auto
 
-      - uses: actions/download-artifact@v2
+      - uses: actions/download-artifact@v2.0.10
+        if: ${{ matrix.build != "snmptraps" }}
         with:
           name: ${{ steps.build_base_image.outputs.build_base }}_${{ matrix.os }}
 
       - name: Retrieve base build SHA256 tag
         id: base_build
+        if: ${{ matrix.build != "snmptraps" }}
         run: |
           BASE_TAG=$(cat ${{ steps.build_base_image.outputs.build_base }}_${{ matrix.os }})
           BUILD_BASE_IMAGE=${{ env.DOCKER_REPOSITORY }}/zabbix-${{ steps.build_base_image.outputs.build_base }}@${BASE_TAG}
