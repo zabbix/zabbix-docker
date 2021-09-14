@@ -19,6 +19,17 @@ defaults:
     shell: bash
 
 jobs:
+  init_build:
+    name: Initialize build
+    runs-on: ubuntu-latest
+    outputs:
+      os: ["alpine", "ol", "ubuntu"]
+    steps:
+      - name: Checkout the repository
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 1
+
   build_base:
     timeout-minutes: 70
     name: Build ${{ matrix.build }} base on ${{ matrix.os }}
@@ -30,14 +41,13 @@ jobs:
       matrix:
         build:
           - build-base
-        os:
-         - alpine
-         - ubuntu
-         - ol
+        os: ${{ fromJson(needs.init_build.outputs.os) }}
 
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v2
+        with:
+          fetch-depth: 1
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v1
@@ -178,10 +188,7 @@ jobs:
           - build-mysql
           - build-pgsql
           - build-sqlite3
-        os:
-         - alpine
-         - ubuntu
-         - ol
+        os: ${{ fromJson(needs.init_build.outputs.os) }}
 
     runs-on: ubuntu-20.04
     steps:
@@ -339,10 +346,7 @@ jobs:
           - agent2
           - proxy-mysql
           - java-gateway
-        os:
-         - alpine
-         - ubuntu
-         - ol
+        os: ${{ fromJson(needs.init_build.outputs.os) }}
 
     runs-on: ubuntu-20.04
     steps:
