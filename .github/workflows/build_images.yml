@@ -18,6 +18,10 @@ defaults:
   run:
     shell: bash
 
+env:
+  DOCKER_REPOSITORY: "zabbix"
+  LATEST_BRANCH: ${{ github.event.repository.default_branch }}
+
 jobs:
   init_build:
     name: Initialize build
@@ -26,32 +30,38 @@ jobs:
       os: ${{ steps.os.outputs.list }}
       database: ${{ steps.database.outputs.list }}
       components: ${{ steps.components.outputs.list }}
-      latest_branch: ${{ github.event.repository.default_branch }}
-      docker_repository: "zabbix"
     steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 1
+
       - shell: bash
         id: os
         run: |
-          jq
-          echo "::set-output name=list::[\"alpine\", \"ol\", \"ubuntu\"]"
+            if [[ -f "./build.xml" ]]; then
+                os=$(jq -r '.os |  keys | [ .[] | tostring ] | @json' "./build.xml")
+            else
+                os=[]
+            fi
+
+            echo "::set-output name=list::$os"
 
       - shell: bash
         id: database
         run: |
-          echo "::set-output name=list::[\"build-mysql\", \"build-pgsql\", \"build-sqlite3\"]"
+          database=$(jq -r '[.components | values[] ] | sort | unique | del(.. | select ( . == "" ) ) | [ .[] | tostring ] | @json' "./build.xml")
+          echo "::set-output name=list::$database"
 
       - shell: bash
         id: components
         run: |
-          echo "::set-output name=list::[\"agent\", \"agent2\", \"java-gateway\", \"proxy-mysql\", \"proxy-sqlite3\", \"server-mysql\", \"server-pgsql\", \"snmptraps\", \"web-apache-mysql\", \"web-apache-pgsql\", \"web-nginx-mysql\", \"web-nginx-pgsql\", \"web-service\"]"
+          components=$(jq -r '.components | keys | [ .[] | tostring ] | @json' "./build.xml")
+          echo "::set-output name=list::$components"
 
   build_base:
     timeout-minutes: 70
     name: Build ${{ matrix.build }} base on ${{ matrix.os }}
     needs: init_build
-    env:
-      LATEST_BRANCH: "${{ needs.init_build.outputs.latest_branch }}"
-      DOCKER_REPOSITORY: "${{ needs.init_build.outputs.docker_repository }}"
     strategy:
       fail-fast: false
       matrix:
@@ -195,9 +205,6 @@ jobs:
     timeout-minutes: 70
     needs: [ "build_base", "init_build"]
     name: Build ${{ matrix.build }} base on ${{ matrix.os }}
-    env:
-      LATEST_BRANCH: "${{ needs.init_build.outputs.latest_branch }}"
-      DOCKER_REPOSITORY: "${{ needs.init_build.outputs.docker_repository }}"
     strategy:
       fail-fast: false  
       matrix:
@@ -351,9 +358,6 @@ jobs:
     timeout-minutes: 70
     needs: [ "build_base_database", "init_build"]
     name: Build ${{ matrix.build }} base on ${{ matrix.os }}
-    env:
-      LATEST_BRANCH: "${{ needs.init_build.outputs.latest_branch }}"
-      DOCKER_REPOSITORY: "${{ needs.init_build.outputs.docker_repository }}"
     strategy:
       fail-fast: false  
       matrix:
@@ -385,6 +389,11 @@ jobs:
           if [ "${{ matrix.os }}" == "ubuntu" ]; then
             DOCKER_PLATFORM="linux/amd64,linux/arm/v7,linux/arm64"
             #,linux/ppc64le"
+          fi
+
+          # Chromium package does not have additional architectures support
+          if [ "${{ matrix.build }}" == "web-service" ]; then
+            DOCKER_PLATFORM="linux/amd64,linux/arm64"
           fi
 
           if [ "${{ matrix.os }}" == "ol" ]; then

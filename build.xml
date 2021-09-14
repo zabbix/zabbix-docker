@@ -1,0 +1,35 @@
+{
+  "os": {
+    "alpine": [
+      "linux/amd64",
+      "linux/arm/v6",
+      "linux/arm/v7",
+      "linux/arm64",
+      "linux/s390x"
+    ],
+    "ol": [
+      "linux/amd64",
+      "linux/arm64"
+    ],
+    "ubuntu": [
+      "linux/amd64",
+      "linux/arm/v7",
+      "linux/arm64"
+    ]
+  },
+  "components": {
+    "agent": "build-mysql",
+    "agent2": "build-mysql",
+    "java-gateway": "build-mysql",
+    "proxy-mysql": "build-mysql",
+    "proxy-sqlite3": "build-sqlite3",
+    "server-mysql": "build-mysql",
+    "server-pgsql": "build-pgsql",
+    "snmptraps": "",
+    "web-apache-mysql": "build-mysql",
+    "web-apache-pgsql": "build-pgsql",
+    "web-nginx-mysql": "build-mysql",
+    "web-nginx-pgsql": "build-mysql",
+    "web-service": "build-mysql"
+  }
+}
