@@ -97,8 +97,8 @@ jobs:
           tags: |
             type=raw,value=${{matrix.os}}-{{ branch }}test1
             type=raw,value={{branch}}-${{ matrix.os }}test2
-            type=ref,event=push,prefix=${{ matrix.os }}-test3
-            type=ref,event=push,suffix=-${{ matrix.os }}-test4
+            type=ref,event=branch,prefix=${{ matrix.os }}-test3
+            type=ref,event=branch,suffix=-${{ matrix.os }}-test4
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v1
