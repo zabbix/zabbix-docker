@@ -236,7 +236,7 @@ jobs:
         run: |
             platform_list=$(jq -r '.os.${{ matrix.os }} | join(",")' "./build.xml")
 
-            echo ::set-output name=list::${DOCKER_PLATFORM}
+            echo ::set-output name=list::$platform_list
 
       - name: Prepare environment (push)
         if: github.event_name == 'push'
