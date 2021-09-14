@@ -71,7 +71,7 @@ jobs:
         run: |
             component_list=$(jq -r '.components | keys | [ .[] | tostring ] | @json' "./build.xml")
 
-          echo "::set-output name=list::$component_list"
+            echo "::set-output name=list::$component_list"
 
   build_base:
     timeout-minutes: 70
