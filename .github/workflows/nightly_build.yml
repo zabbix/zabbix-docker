@@ -107,8 +107,8 @@ jobs:
         with:
           images: ${{ env.DOCKER_REPOSITORY }}/zabbix-${{ env.BASE_BUILD_NAME }}
           tags: |
-            type=ref,event=branch,prefix=${{ matrix.os }}-
-            type=ref,event=branch,suffix=-${{ matrix.os }}
+            type=raw,value=${{ matrix.os }}-trunk
+            type=raw,value=trunk-${{ matrix.os }}
           flavor: |
             latest=auto
 
@@ -174,8 +174,8 @@ jobs:
         with:
           images: ${{ env.DOCKER_REPOSITORY }}/zabbix-${{ matrix.build }}
           tags: |
-            type=ref,event=branch,prefix=${{ matrix.os }}-
-            type=ref,event=branch,suffix=-${{ matrix.os }}
+            type=raw,value=${{ matrix.os }}-trunk
+            type=raw,value=trunk-${{ matrix.os }}
           flavor: |
             latest=auto
 
@@ -255,8 +255,8 @@ jobs:
         with:
           images: ${{ env.DOCKER_REPOSITORY }}/zabbix-${{ matrix.build }}
           tags: |
-            type=ref,event=branch,prefix=${{ matrix.os }}-
-            type=ref,event=branch,suffix=-${{ matrix.os }}
+            type=raw,value=${{ matrix.os }}-trunk
+            type=raw,value=trunk-${{ matrix.os }}
           flavor: |
             latest=auto
 
