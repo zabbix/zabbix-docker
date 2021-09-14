@@ -95,15 +95,10 @@ jobs:
         with:
           images: ${{ env.DOCKER_REPOSITORY }}/zabbix-${{ env.BASE_BUILD_NAME }}
           tags: |
-            type=semver,pattern={{version}}
-            type=semver,pattern={{major}}.{{minor}}
-            type=raw,value=${{matrix.os}}-{{ branch }}
-            type=raw,value={{branch}}-${{ matrix.os }}
-            type=pep440,pattern={{version}},
-            type=semver,pattern={{version}}
-            type=semver,pattern={{major}}.{{minor}}
-            type=ref,event=branch,prefix=${{ matrix.os }}-
-            type=ref,event=pr,suffix=-${{ matrix.os }}
+            type=raw,value=${{matrix.os}}-{{ branch }}test1
+            type=raw,value={{branch}}-${{ matrix.os }}test2
+            type=ref,event=push,prefix=${{ matrix.os }}-test3
+            type=ref,event=push,suffix=-${{ matrix.os }}-test4
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v1
