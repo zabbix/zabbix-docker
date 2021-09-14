@@ -23,7 +23,7 @@ jobs:
     name: Initialize build
     runs-on: ubuntu-latest
     outputs:
-      os: ["alpine", "ol", "ubuntu"]
+      os: "[\"alpine\", \"ol\", \"ubuntu\"]"
     steps:
       - name: Checkout the repository
         uses: actions/checkout@v2
