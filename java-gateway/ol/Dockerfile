@@ -28,7 +28,6 @@ STOPSIGNAL SIGTERM
 
 COPY --from=builder ["/tmp/zabbix-${ZBX_VERSION}/src/zabbix_java/bin", "/usr/sbin/zabbix_java/bin"]
 COPY --from=builder ["/tmp/zabbix-${ZBX_VERSION}/src/zabbix_java/lib", "/usr/sbin/zabbix_java/lib"]
-COPY ["conf/etc/", "/etc/"]
 
 RUN set -eux && \
     groupadd --system --gid 1995 zabbix && \

@@ -498,7 +498,7 @@ jobs:
           context: ./${{ matrix.build }}/${{ matrix.os }}
           file: ./${{ matrix.build }}/${{ matrix.os }}/Dockerfile
           platforms: ${{ steps.platform.outputs.list }}
-          push: false
+          push: ${{ secrets.AUTO_PUSH_IMAGES }}
           tags: ${{ steps.prepare_tags.outputs.image_tag_versions }}
           build-args: BUILD_BASE_IMAGE=${{ env.DOCKER_REPOSITORY }}/zabbix-${{ steps.build_base_image.outputs.build_base }}@${{ steps.prepare_tags.outputs.base_tag }}
 
