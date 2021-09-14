@@ -114,7 +114,7 @@ jobs:
         run: |
           TAGS_ARRAY=()
 
-          IMAGE_NAME="${{ env.DOCKER_REPOSITORY }}/zabbix-${{ $env.BASE_BUILD_NAME }}"
+          IMAGE_NAME="${{ env.DOCKER_REPOSITORY }}/zabbix-${{ env.BASE_BUILD_NAME }}"
           GIT_BRANCH="${{ github.ref }}"
           GIT_BRANCH=${GIT_BRANCH:11}
 
@@ -149,7 +149,7 @@ jobs:
         run: |
           TAGS_ARRAY=()
 
-          IMAGE_NAME="${{ env.DOCKER_REPOSITORY }}/zabbix-${{ $env.BASE_BUILD_NAME }}"
+          IMAGE_NAME="${{ env.DOCKER_REPOSITORY }}/zabbix-${{ env.BASE_BUILD_NAME }}"
           RELEASE_VERSION="${{ github.ref }}"
           RELEASE_VERSION=${RELEASE_VERSION:10}
           GIT_BRANCH=${RELEASE_VERSION%.*}
@@ -188,8 +188,8 @@ jobs:
         id: docker_build
         uses: docker/build-push-action@v2
         with:
-          context: ./${{ $env.BASE_BUILD_NAME }}/${{ matrix.os }}
-          file: ./${{ $env.BASE_BUILD_NAME }}/${{ matrix.os }}/Dockerfile
+          context: ./${{ env.BASE_BUILD_NAME }}/${{ matrix.os }}
+          file: ./${{ env.BASE_BUILD_NAME }}/${{ matrix.os }}/Dockerfile
           platforms: ${{ steps.platform.outputs.list }}
           push: ${{ secrets.AUTO_PUSH_IMAGES }}
           tags: ${{ steps.prepare_tags.outputs.image_tag_versions }}
@@ -197,12 +197,12 @@ jobs:
       - name: Image digest
         run: |
             echo ${{ steps.docker_build.outputs.digest }}
-            echo "${{ steps.docker_build.outputs.digest }}" > ${{ $env.BASE_BUILD_NAME }}_${{ matrix.os }}
+            echo "${{ steps.docker_build.outputs.digest }}" > ${{ env.BASE_BUILD_NAME }}_${{ matrix.os }}
 
       - uses: actions/upload-artifact@v2
         with:
-         name: ${{ $env.BASE_BUILD_NAME }}_${{ matrix.os }}
-         path: ${{ $env.BASE_BUILD_NAME }}_${{ matrix.os }}
+         name: ${{ env.BASE_BUILD_NAME }}_${{ matrix.os }}
+         path: ${{ env.BASE_BUILD_NAME }}_${{ matrix.os }}
          if-no-files-found: error
 
   build_base_database:
