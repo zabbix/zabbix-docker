@@ -33,6 +33,7 @@ jobs:
   build_base:
     timeout-minutes: 70
     name: Build ${{ matrix.build }} base on ${{ matrix.os }}
+    needs: init_build
     env:
       LATEST_BRANCH: "${{ github.event.repository.default_branch }}"
       DOCKER_REPOSITORY: "zabbix"
@@ -176,7 +177,7 @@ jobs:
 
   build_base_database:
     timeout-minutes: 70
-    needs: build_base
+    needs: [ "build_base", "init_build"]
     name: Build ${{ matrix.build }} base on ${{ matrix.os }}
     env:
       LATEST_BRANCH: "${{ github.event.repository.default_branch }}"
@@ -333,7 +334,7 @@ jobs:
 
   build_images:
     timeout-minutes: 70
-    needs: build_base_database
+    needs: [ "build_base_database", "init_build"]
     name: Build ${{ matrix.build }} base on ${{ matrix.os }}
     env:
       LATEST_BRANCH: "${{ github.event.repository.default_branch }}"
