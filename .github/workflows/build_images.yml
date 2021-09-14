@@ -89,17 +89,6 @@ jobs:
         with:
           fetch-depth: 1
 
-      - name: Docker meta
-        id: meta
-        uses: docker/metadata-action@v3
-        with:
-          images: ${{ env.DOCKER_REPOSITORY }}/zabbix-${{ env.BASE_BUILD_NAME }}
-          tags: |
-            type=raw,value=${{matrix.os}}-{{ branch }}test1
-            type=raw,value={{branch}}-${{ matrix.os }}test2
-            type=ref,event=branch,prefix=${{ matrix.os }}-test3
-            type=ref,event=branch,suffix=-${{ matrix.os }}-test4
-
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v1
 
@@ -119,81 +108,14 @@ jobs:
 
             echo ::set-output name=list::$platform_list
 
-      - name: Prepare environment (${{ github.event_name }})
-        if: github.event_name == 'push'
-        id: prepare_push
-        run: |
-          TAGS_ARRAY=()
-
-          IMAGE_NAME="${{ env.DOCKER_REPOSITORY }}/zabbix-${{ env.BASE_BUILD_NAME }}"
-          GIT_BRANCH="${{ github.ref }}"
-          GIT_BRANCH=${GIT_BRANCH:11}
-
-          echo "::debug::Branch - ${GIT_BRANCH}"
-
-          if [ "${GIT_BRANCH}" == "trunk" ]; then
-            TAGS_ARRAY+=("$IMAGE_NAME:${{ matrix.os }}-${GIT_BRANCH}")
-            TAGS_ARRAY+=("$IMAGE_NAME:${GIT_BRANCH}-${{ matrix.os }}")
-          else
-            TAGS_ARRAY+=("$IMAGE_NAME:${{ matrix.os }}-${GIT_BRANCH}-latest")
-            TAGS_ARRAY+=("$IMAGE_NAME:${GIT_BRANCH}-${{ matrix.os }}-latest")
-          fi
-
-          if [ "${{ matrix.os }}" == "alpine" ] && [ "${LATEST_BRANCH}" == "${GIT_BRANCH}" ]; then
-            TAGS_ARRAY+=("$IMAGE_NAME:latest")
-          fi
-
-          if [ "${LATEST_BRANCH}" == "${GIT_BRANCH}" ]; then
-            TAGS_ARRAY+=("$IMAGE_NAME:${{ matrix.os }}-latest")
-          fi
-
-          TAGS=$(printf -- "%s, " "${TAGS_ARRAY[@]}")
-
-          echo "::debug::Tags - ${TAGS}"
-
-          echo ::set-output name=image_name::${IMAGE_NAME}
-          echo ::set-output name=image_tag_versions::$(printf -- "%s," "${TAGS_ARRAY[@]}")
-
-      - name: Prepare environment (${{ github.event_name }})
-        if: github.event_name == 'release' && github.event.action == 'published'
-        id: prepare_release
-        run: |
-          TAGS_ARRAY=()
-
-          IMAGE_NAME="${{ env.DOCKER_REPOSITORY }}/zabbix-${{ env.BASE_BUILD_NAME }}"
-          RELEASE_VERSION="${{ github.ref }}"
-          RELEASE_VERSION=${RELEASE_VERSION:10}
-          GIT_BRANCH=${RELEASE_VERSION%.*}
-
-          echo "::debug::Release version ${RELEASE_VERSION}. Branch ${GIT_BRANCH}"
-
-          TAGS_ARRAY+=("$IMAGE_NAME:${{ matrix.os }}-${RELEASE_VERSION}")
-          TAGS_ARRAY+=("$IMAGE_NAME:${RELEASE_VERSION}-${{ matrix.os }}")
-
-          if [ "${{ matrix.os }}" == "alpine" ] && [ "${LATEST_BRANCH}" == "${GIT_BRANCH}" ]; then
-            TAGS_ARRAY+=("$IMAGE_NAME:latest")
-          fi
-
-          TAGS=$(printf -- "--tag %s " "${TAGS_ARRAY[@]}")
-
-          echo ::set-output name=image_name::${IMAGE_NAME}
-          echo ::set-output name=image_tag_versions::$(printf -- ",%s" "${TAGS_ARRAY[@]}")
-
-      - name: Prepare tags
-        id: prepare_tags
-        run: |
-          if [ ! -z "${{ steps.prepare_push.outputs.image_tag_versions }}" ]; then
-              TAGS="${{ steps.prepare_push.outputs.image_tag_versions }}"
-              IMAGE_NAME="${{ steps.prepare_push.outputs.image_name }}"
-          elif [ ! -z "${{ steps.prepare_release.outputs.image_tag_versions }}" ]; then
-              TAGS="${{ steps.prepare_release.outputs.image_tag_versions }}"
-              IMAGE_NAME="${{ steps.prepare_release.outputs.image_name }}"
-          else
-              exit 1
-          fi
-
-          echo ::set-output name=image_tag_versions::${TAGS}
-          echo ::set-output name=image_name::${IMAGE_NAME}
+      - name: Docker meta
+        id: meta
+        uses: docker/metadata-action@v3
+        with:
+          images: ${{ env.DOCKER_REPOSITORY }}/zabbix-${{ env.BASE_BUILD_NAME }}
+          tags: |
+            type=ref,event=branch,prefix=${{ matrix.os }}-
+            type=ref,event=branch,suffix=-${{ matrix.os }}
 
       - name: Build and push
         id: docker_build
@@ -203,7 +125,7 @@ jobs:
           file: ./${{ env.BASE_BUILD_NAME }}/${{ matrix.os }}/Dockerfile
           platforms: ${{ steps.platform.outputs.list }}
           push: ${{ secrets.AUTO_PUSH_IMAGES }}
-          tags: ${{ steps.prepare_tags.outputs.image_tag_versions }}
+          tags: ${{ steps.meta.outputs.tags }}
 
       - name: Image digest
         run: |
@@ -249,93 +171,23 @@ jobs:
 
             echo ::set-output name=list::$platform_list
 
-      - name: Prepare environment (push)
-        if: github.event_name == 'push'
-        id: prepare_push
-        run: |
-          TAGS_ARRAY=()
-
-          IMAGE_NAME="${{ env.DOCKER_REPOSITORY }}/zabbix-${{ matrix.build }}"
-          GIT_BRANCH="${{ github.ref }}"
-          GIT_BRANCH=${GIT_BRANCH:11}
-
-          echo "::debug::Branch - ${GIT_BRANCH}"
-
-          if [ "${GIT_BRANCH}" == "trunk" ]; then
-            TAGS_ARRAY+=("$IMAGE_NAME:${{ matrix.os }}-${GIT_BRANCH}")
-            TAGS_ARRAY+=("$IMAGE_NAME:${GIT_BRANCH}-${{ matrix.os }}")
-          else
-            TAGS_ARRAY+=("$IMAGE_NAME:${{ matrix.os }}-${GIT_BRANCH}-latest")
-            TAGS_ARRAY+=("$IMAGE_NAME:${GIT_BRANCH}-${{ matrix.os }}-latest")
-          fi
-
-          if [ "${{ matrix.os }}" == "alpine" ] && [ "${LATEST_BRANCH}" == "${GIT_BRANCH}" ]; then
-            TAGS_ARRAY+=("$IMAGE_NAME:latest")
-          fi
-
-          if [ "${LATEST_BRANCH}" == "${GIT_BRANCH}" ]; then
-            TAGS_ARRAY+=("$IMAGE_NAME:${{ matrix.os }}-latest")
-          fi
-
-          TAGS=$(printf -- "%s, " "${TAGS_ARRAY[@]}")
-
-          echo "::debug::Tags - ${TAGS}"
-
-          echo ::set-output name=image_name::${IMAGE_NAME}
-          echo ::set-output name=image_tag_versions::$(printf -- "%s," "${TAGS_ARRAY[@]}")
-          echo ::set-output name=base_tag::${TAGS_ARRAY[1]#*:}
-
-      - name: Prepare environment (release)
-        if: github.event_name == 'release' && github.event.action == 'published'
-        id: prepare_release
-        run: |
-          TAGS_ARRAY=()
-
-          IMAGE_NAME="${{ env.DOCKER_REPOSITORY }}/zabbix-${{ matrix.build }}"
-          RELEASE_VERSION="${{ github.ref }}"
-          RELEASE_VERSION=${RELEASE_VERSION:10}
-          GIT_BRANCH=${RELEASE_VERSION%.*}
-
-          echo "::debug::Release version ${RELEASE_VERSION}. Branch ${GIT_BRANCH}"
-
-          TAGS_ARRAY+=("$IMAGE_NAME:${{ matrix.os }}-${RELEASE_VERSION}")
-          TAGS_ARRAY+=("$IMAGE_NAME:${RELEASE_VERSION}-${{ matrix.os }}")
-
-          if [ "${{ matrix.os }}" == "alpine" ] && [ "${LATEST_BRANCH}" == "${GIT_BRANCH}" ]; then
-            TAGS_ARRAY+=("$IMAGE_NAME:latest")
-          fi
-
-          TAGS=$(printf -- "--tag %s " "${TAGS_ARRAY[@]}")
-
-          echo ::set-output name=image_name::${IMAGE_NAME}
-          echo ::set-output name=image_tag_versions::$(printf -- ",%s" "${TAGS_ARRAY[@]}")
-          echo ::set-output name=base_tag::${TAGS_ARRAY[1]#*:}
-
-      - uses: actions/download-artifact@v2
+      - name: Docker meta
+        id: meta
+        uses: docker/metadata-action@v3
         with:
-          name: build-base_${{ matrix.os }}
+          images: ${{ env.DOCKER_REPOSITORY }}/zabbix-${{ matrix.build }}
+          tags: |
+            type=ref,event=branch,prefix=${{ matrix.os }}-
+            type=ref,event=branch,suffix=-${{ matrix.os }}
 
-      - name: Prepare tags
-        id: prepare_tags
+      - name: Retrieve base build SHA256 tag
+        id: base_build
         run: |
-          if [ ! -z "${{ steps.prepare_push.outputs.image_tag_versions }}" ]; then
-              TAGS="${{ steps.prepare_push.outputs.image_tag_versions }}"
-              IMAGE_NAME="${{ steps.prepare_push.outputs.image_name }}"
-              BASE_TAG="${{ steps.prepare_push.outputs.base_tag }}"
-          elif [ ! -z "${{ steps.prepare_release.outputs.image_tag_versions }}" ]; then
-              TAGS="${{ steps.prepare_release.outputs.image_tag_versions }}"
-              IMAGE_NAME="${{ steps.prepare_release.outputs.image_name }}"
-              BASE_TAG="${{ steps.prepare_release.outputs.base_tag }}"
-          else
-              exit 1
-          fi
-
           BASE_TAG=$(cat build-base_${{ matrix.os }})
+          BUILD_BASE_IMAGE=${{ env.DOCKER_REPOSITORY }}/zabbix-build-base@${{ steps.base_build.outputs.base_tag }}
 
-          echo ::set-output name=image_tag_versions::${TAGS}
-          echo ::set-output name=image_name::${IMAGE_NAME}
           echo ::set-output name=base_tag::${BASE_TAG}
-
+          echo ::set-output name=base_build_image::${BUILD_BASE_IMAGE}
 
       - name: Build and push
         id: docker_build
@@ -345,8 +197,8 @@ jobs:
           file: ./${{ matrix.build }}/${{ matrix.os }}/Dockerfile
           platforms: ${{ steps.platform.outputs.list }}
           push: ${{ secrets.AUTO_PUSH_IMAGES }}
-          tags: ${{ steps.prepare_tags.outputs.image_tag_versions }}
-          build-args: BUILD_BASE_IMAGE=${{ env.DOCKER_REPOSITORY }}/zabbix-build-base@${{ steps.prepare_tags.outputs.base_tag }}
+          tags: ${{ steps.meta.outputs.tags }}
+          build-args: BUILD_BASE_IMAGE=${{ steps.base_build.outputs.base_build_image }}
 
       - name: Image digest
         run: |
@@ -364,7 +216,7 @@ jobs:
     needs: [ "build_base_database", "init_build"]
     name: Build ${{ matrix.build }} base on ${{ matrix.os }}
     strategy:
-      fail-fast: false  
+      fail-fast: false
       matrix:
         build: ${{ fromJson(needs.init_build.outputs.components) }}
         os: ${{ fromJson(needs.init_build.outputs.os) }}
@@ -385,100 +237,10 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: Prepare platform list
-        id: platform
-        run: |
-          DOCKER_PLATFORM="linux/amd64,linux/arm/v6,linux/arm/v7,linux/arm64"
-          # ,linux/s390x"
-
-          if [ "${{ matrix.os }}" == "ubuntu" ]; then
-            DOCKER_PLATFORM="linux/amd64,linux/arm/v7,linux/arm64"
-            #,linux/ppc64le"
-          fi
-
-          # Chromium package does not have additional architectures support
-          if [ "${{ matrix.build }}" == "web-service" ]; then
-            DOCKER_PLATFORM="linux/amd64,linux/arm64"
-          fi
-
-          if [ "${{ matrix.os }}" == "ol" ]; then
-            DOCKER_PLATFORM="linux/amd64,linux/arm64"
-          fi
-
-          echo ::set-output name=list::${DOCKER_PLATFORM}
-
-      - name: Prepare environment (push)
-        if: github.event_name == 'push'
-        id: prepare_push
-        run: |
-          TAGS_ARRAY=()
-
-          IMAGE_NAME="${{ env.DOCKER_REPOSITORY }}/zabbix-${{ matrix.build }}"
-          GIT_BRANCH="${{ github.ref }}"
-          GIT_BRANCH=${GIT_BRANCH:11}
-
-          echo "::debug::Branch - ${GIT_BRANCH}"
-
-          if [ "${GIT_BRANCH}" == "trunk" ]; then
-            TAGS_ARRAY+=("$IMAGE_NAME:${{ matrix.os }}-${GIT_BRANCH}")
-            TAGS_ARRAY+=("$IMAGE_NAME:${GIT_BRANCH}-${{ matrix.os }}")
-          else
-            TAGS_ARRAY+=("$IMAGE_NAME:${{ matrix.os }}-${GIT_BRANCH}-latest")
-            TAGS_ARRAY+=("$IMAGE_NAME:${GIT_BRANCH}-${{ matrix.os }}-latest")
-          fi
-
-          if [ "${{ matrix.os }}" == "alpine" ] && [ "${LATEST_BRANCH}" == "${GIT_BRANCH}" ]; then
-            TAGS_ARRAY+=("$IMAGE_NAME:latest")
-          fi
-
-          if [ "${LATEST_BRANCH}" == "${GIT_BRANCH}" ]; then
-            TAGS_ARRAY+=("$IMAGE_NAME:${{ matrix.os }}-latest")
-          fi
-
-          TAGS=$(printf -- "%s, " "${TAGS_ARRAY[@]}")
-
-          echo "::debug::Tags - ${TAGS}"
-
-          echo ::set-output name=image_name::${IMAGE_NAME}
-          echo ::set-output name=image_tag_versions::$(printf -- "%s," "${TAGS_ARRAY[@]}")
-          echo ::set-output name=base_tag::${TAGS_ARRAY[1]#*:}
-
-      - name: Prepare environment (release)
-        if: github.event_name == 'release' && github.event.action == 'published'
-        id: prepare_release
-        run: |
-          TAGS_ARRAY=()
-
-          IMAGE_NAME="${{ env.DOCKER_REPOSITORY }}/zabbix-${{ matrix.build }}"
-          RELEASE_VERSION="${{ github.ref }}"
-          RELEASE_VERSION=${RELEASE_VERSION:10}
-          GIT_BRANCH=${RELEASE_VERSION%.*}
-
-          echo "::debug::Release version ${RELEASE_VERSION}. Branch ${GIT_BRANCH}"
-
-          TAGS_ARRAY+=("$IMAGE_NAME:${{ matrix.os }}-${RELEASE_VERSION}")
-          TAGS_ARRAY+=("$IMAGE_NAME:${RELEASE_VERSION}-${{ matrix.os }}")
-
-          if [ "${{ matrix.os }}" == "alpine" ] && [ "${LATEST_BRANCH}" == "${GIT_BRANCH}" ]; then
-            TAGS_ARRAY+=("$IMAGE_NAME:latest")
-          fi
-
-          TAGS=$(printf -- "--tag %s " "${TAGS_ARRAY[@]}")
-
-
-          echo ::set-output name=image_name::${IMAGE_NAME}
-          echo ::set-output name=image_tag_versions::$(printf -- ",%s" "${TAGS_ARRAY[@]}")
-
       - name: Detect Build Base Image
         id: build_base_image
         run: |
-          BUILD_BASE="build-mysql"
-          if [[ "${{ matrix.build }}" == *"pgsql" ]]; then
-              BUILD_BASE="build-pgsql"
-          fi
-          if [[ "${{ matrix.build }}" == *"sqlite3" ]]; then
-              BUILD_BASE="build-mysql"
-          fi
+          BUILD_BASE=$(jq -r '.components."${{ matrix.build }}"' "./build.xml")
 
           echo ::set-output name=build_base::${BUILD_BASE}
 
@@ -486,24 +248,14 @@ jobs:
         with:
           name: ${{ steps.build_base_image.outputs.build_base }}_${{ matrix.os }}
 
-      - name: Prepare tags
-        id: prepare_tags
+      - name: Retrieve base build SHA256 tag
+        id: base_build
         run: |
-          if [ ! -z "${{ steps.prepare_push.outputs.image_tag_versions }}" ]; then
-              TAGS="${{ steps.prepare_push.outputs.image_tag_versions }}"
-              IMAGE_NAME="${{ steps.prepare_push.outputs.image_name }}"
-          elif [ ! -z "${{ steps.prepare_release.outputs.image_tag_versions }}" ]; then
-              TAGS="${{ steps.prepare_release.outputs.image_tag_versions }}"
-              IMAGE_NAME="${{ steps.prepare_release.outputs.image_name }}"
-          else
-              exit 1
-          fi
-
           BASE_TAG=$(cat ${{ steps.build_base_image.outputs.build_base }}_${{ matrix.os }})
+          BUILD_BASE_IMAGE=${{ env.DOCKER_REPOSITORY }}/zabbix-${{ steps.build_base_image.outputs.build_base }}@${BASE_TAG}
 
-          echo ::set-output name=image_tag_versions::${TAGS}
-          echo ::set-output name=image_name::${IMAGE_NAME}
           echo ::set-output name=base_tag::${BASE_TAG}
+          echo ::set-output name=base_build_image::${BUILD_BASE_IMAGE}
 
       - name: Build and push
         id: docker_build
@@ -514,7 +266,7 @@ jobs:
           platforms: ${{ steps.platform.outputs.list }}
           push: ${{ secrets.AUTO_PUSH_IMAGES }}
           tags: ${{ steps.prepare_tags.outputs.image_tag_versions }}
-          build-args: BUILD_BASE_IMAGE=${{ env.DOCKER_REPOSITORY }}/zabbix-${{ steps.build_base_image.outputs.build_base }}@${{ steps.prepare_tags.outputs.base_tag }}
+          build-args: BUILD_BASE_IMAGE=${{ steps.base_build.outputs.base_build_image }}
 
       - name: Image digest
         run: echo ${{ steps.docker_build.outputs.digest }}
