@@ -180,6 +180,10 @@ jobs:
             type=ref,event=branch,prefix=${{ matrix.os }}-
             type=ref,event=branch,suffix=-${{ matrix.os }}
 
+      - uses: actions/download-artifact@v2
+        with:
+          name: build-base_${{ matrix.os }}
+
       - name: Retrieve base build SHA256 tag
         id: base_build
         run: |
