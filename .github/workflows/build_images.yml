@@ -23,28 +23,47 @@ jobs:
     name: Initialize build
     runs-on: ubuntu-latest
     outputs:
-      os: "[\"alpine\", \"ol\", \"ubuntu\"]"
+      os: ${{ steps.os.outputs.list }}
+      database: ${{ steps.database.outputs.list }}
+      components: ${{ steps.components.outputs.list }}
+      latest_branch: ${{ github.event.repository.default_branch }}
+      docker_repository: "zabbix"
     steps:
       - name: Checkout the repository
         uses: actions/checkout@v2
         with:
           fetch-depth: 1
 
+      - shell: bash
+        id: os
+        run: |
+          echo "::set-output name=list::[\"alpine\", \"ol\", \"ubuntu\"]"
+
+      - shell: bash
+        id: database
+        run: |
+          echo "::set-output name=list::[\"build-mysql\", \"build-pgsql\", \"build-sqlite3\"]"
+
+      - shell: bash
+        id: components
+        run: |
+          echo "::set-output name=list::[\"agent\", \"agent2\", \"proxy-mysql\", \"java-gateway\"]"
+
   build_base:
     timeout-minutes: 70
     name: Build ${{ matrix.build }} base on ${{ matrix.os }}
     needs: init_build
     env:
-      LATEST_BRANCH: "${{ github.event.repository.default_branch }}"
-      DOCKER_REPOSITORY: "zabbix"
+      LATEST_BRANCH: "${{ needs.init_build.outputs.latest_branch }}"
+      DOCKER_REPOSITORY: "${{ needs.init_build.outputs.docker_repository }}"
     strategy:
-      fail-fast: false  
+      fail-fast: false
       matrix:
         build:
           - build-base
         os: ${{ fromJson(needs.init_build.outputs.os) }}
 
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
         with:
@@ -180,15 +199,12 @@ jobs:
     needs: [ "build_base", "init_build"]
     name: Build ${{ matrix.build }} base on ${{ matrix.os }}
     env:
-      LATEST_BRANCH: "${{ github.event.repository.default_branch }}"
-      DOCKER_REPOSITORY: "zabbix"
+      LATEST_BRANCH: "${{ needs.init_build.outputs.latest_branch }}"
+      DOCKER_REPOSITORY: "${{ needs.init_build.outputs.docker_repository }}"
     strategy:
       fail-fast: false  
       matrix:
-        build:
-          - build-mysql
-          - build-pgsql
-          - build-sqlite3
+        build: ${{ fromJson(needs.init_build.outputs.database) }}
         os: ${{ fromJson(needs.init_build.outputs.os) }}
 
     runs-on: ubuntu-20.04
@@ -337,16 +353,12 @@ jobs:
     needs: [ "build_base_database", "init_build"]
     name: Build ${{ matrix.build }} base on ${{ matrix.os }}
     env:
-      LATEST_BRANCH: "${{ github.event.repository.default_branch }}"
-      DOCKER_REPOSITORY: "zabbix"
+      LATEST_BRANCH: "${{ needs.init_build.outputs.latest_branch }}"
+      DOCKER_REPOSITORY: "${{ needs.init_build.outputs.docker_repository }}"
     strategy:
       fail-fast: false  
       matrix:
-        build:
-          - agent
-          - agent2
-          - proxy-mysql
-          - java-gateway
+        build: ${{ fromJson(needs.init_build.outputs.components) }}
         os: ${{ fromJson(needs.init_build.outputs.os) }}
 
     runs-on: ubuntu-20.04
