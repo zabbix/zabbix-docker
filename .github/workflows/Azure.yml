@@ -1,4 +1,4 @@
-name: Azure
+name: Build images (Azure)
 
 on:
   release:
