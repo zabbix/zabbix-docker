@@ -89,6 +89,22 @@ jobs:
         with:
           fetch-depth: 1
 
+      - name: Docker meta
+        id: meta
+        uses: docker/metadata-action@v3
+        with:
+          images: ${{ env.DOCKER_REPOSITORY }}/zabbix-${{ env.BASE_BUILD_NAME }}
+          tags: |
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=raw,value=${{matrix.os}}-{{ branch }}
+            type=raw,value={{branch}}-${{ matrix.os }}
+            type=pep440,pattern={{version}},
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=ref,event=branch,prefix=${{ matrix.os }}-
+            type=ref,event=pr,suffix=-${{ matrix.os }}
+
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v1
 
@@ -107,23 +123,6 @@ jobs:
             platform_list=$(jq -r '.os.${{ matrix.os }} | join(",")' "./build.xml")
 
             echo ::set-output name=list::$platform_list
-
-      - name: Docker meta
-        id: meta
-        uses: docker/metadata-action@v3
-        with:
-          images: ${{ env.DOCKER_REPOSITORY }}/zabbix-${{ env.BASE_BUILD_NAME }}
-          tags: |
-            type=semver,pattern={{version}}
-            type=semver,pattern={{major}}.{{minor}}
-            type=raw,value=${{matrix.os}}-{{ branch }}
-            type=raw,value={{branch}}-${{ matrix.os }}
-            type=pep440,pattern={{version}},
-            type=semver,pattern={{version}}
-            type=semver,pattern={{major}}.{{minor}}
-            type=ref,event=push,prefix=${{ matrix.os }}-
-            type=ref,event=push,suffix=-${{ matrix.os }}
-
 
       - name: Prepare environment (${{ github.event_name }})
         if: github.event_name == 'push'
