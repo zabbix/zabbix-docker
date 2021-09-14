@@ -6,7 +6,7 @@ ARG ZBX_VERSION=${MAJOR_VERSION}
 ARG ZBX_SOURCES=https://git.zabbix.com/scm/zbx/zabbix.git
 
 ENV TERM=xterm ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES} \
-    PATH=/usr/local/go/bin:/usr/lib/jvm/default-jvm/bin:$PATH \
+    PATH=/usr/lib/jvm/default-jvm/bin:$PATH \
     JAVA_HOME=/usr/lib/jvm/default-jvm
 
 LABEL org.opencontainers.image.title="Zabbix build base" \

@@ -29,11 +29,6 @@ jobs:
       latest_branch: ${{ github.event.repository.default_branch }}
       docker_repository: "zabbix"
     steps:
-      - name: Checkout the repository
-        uses: actions/checkout@v2
-        with:
-          fetch-depth: 1
-
       - shell: bash
         id: os
         run: |
@@ -342,8 +337,9 @@ jobs:
           build-args: BUILD_BASE_IMAGE=${{ env.DOCKER_REPOSITORY }}/zabbix-build-base@${{ steps.prepare_tags.outputs.base_tag }}
 
       - name: Image digest
-        run: echo ${{ steps.docker_build.outputs.digest }}
-             echo "${{ steps.docker_build.outputs.digest }}" > ${{ matrix.build }}_${{ matrix.os }}
+        run: |
+            echo ${{ steps.docker_build.outputs.digest }}
+            echo "${{ steps.docker_build.outputs.digest }}" > ${{ matrix.build }}_${{ matrix.os }}
 
       - uses: actions/upload-artifact@v2
         with:
