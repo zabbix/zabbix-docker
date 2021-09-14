@@ -54,6 +54,22 @@ jobs:
       - 
         uses: actions/checkout@v2
 
+      - name: Docker meta
+        id: meta
+        uses: docker/metadata-action@v3
+        with:
+          images: ${{ env.DOCKER_REPOSITORY }}/zabbix-${{ matrix.build }}
+          tags: |
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=raw,value=${{matrix.os}}-{{ branch }}
+            type=raw,value={{branch}}-${{ matrix.os }}
+            type=pep440,pattern={{version}},
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=ref,event=branch,prefix=${{ matrix.os }}-
+            type=ref,event=pr,suffix=-${{ matrix.os }}
+
       -
         name: Set up QEMU
         uses: docker/setup-qemu-action@v1
