@@ -21,6 +21,7 @@ defaults:
 env:
   DOCKER_REPOSITORY: "zabbix"
   LATEST_BRANCH: ${{ github.event.repository.default_branch }}
+  BASE_BUILD_NAME: "build-base"
 
 jobs:
   init_build:
@@ -31,47 +32,60 @@ jobs:
       database: ${{ steps.database.outputs.list }}
       components: ${{ steps.components.outputs.list }}
     steps:
-      - uses: actions/checkout@v2
+      - name: Checkout repository
+        uses: actions/checkout@v2
         with:
           fetch-depth: 1
 
-      - shell: bash
-        id: os
+      - name: Check build.xml file
+        id: build_exists
         run: |
-            if [[ -f "./build.xml" ]]; then
-                os=$(jq -r '.os |  keys | [ .[] | tostring ] | @json' "./build.xml")
-            else
-                os=[]
+            if [[ ! -f "./build.xml" ]]; then
+                echo "::error::File build.xml is missing"
+                exit 1
             fi
 
-            echo "::set-output name=list::$os"
+      - name: Prepare Operating System list
+        id: os
+        run: |
+            os_list=$(jq -r '.os |  keys | [ .[] | tostring ] | @json' "./build.xml")
 
-      - shell: bash
+            echo "::set-output name=list::$os_list"
+
+      - name: Prepare Platform list
+        id: platform_list
+        run: |
+            platform_list=$(jq -r '.os | tostring  | @json' "./build.xml")
+
+            echo "::set-output name=list::$platform_list"
+
+      - name: Prepare Database engine list
         id: database
         run: |
-          database=$(jq -r '[.components | values[] ] | sort | unique | del(.. | select ( . == "" ) ) | [ .[] | tostring ] | @json' "./build.xml")
-          echo "::set-output name=list::$database"
+            database_list=$(jq -r '[.components | values[] ] | sort | unique | del(.. | select ( . == "" ) ) | [ .[] | tostring ] | @json' "./build.xml")
 
-      - shell: bash
+            echo "::set-output name=list::$database_list"
+
+      - name: Prepare Zabbix component list
         id: components
         run: |
-          components=$(jq -r '.components | keys | [ .[] | tostring ] | @json' "./build.xml")
-          echo "::set-output name=list::$components"
+            component_list=$(jq -r '.components | keys | [ .[] | tostring ] | @json' "./build.xml")
+
+          echo "::set-output name=list::$component_list"
 
   build_base:
     timeout-minutes: 70
-    name: Build ${{ matrix.build }} base on ${{ matrix.os }}
+    name: Build base on ${{ matrix.os }}
     needs: init_build
     strategy:
       fail-fast: false
       matrix:
-        build:
-          - build-base
         os: ${{ fromJson(needs.init_build.outputs.os) }}
 
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - name: Checkout repository
+        uses: actions/checkout@v2
         with:
           fetch-depth: 1
 
@@ -87,30 +101,20 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: Prepare platform list
-        id: platform
+      - name: Prepare Platform list
+        id: platform_list
         run: |
-          DOCKER_PLATFORM="linux/amd64,linux/arm/v6,linux/arm/v7,linux/arm64"
-          #,linux/s390x"
+            platform_list=$(jq -r '.os.${{ matrix.os }} | join(",")' "./build.xml")
 
-          if [ "${{ matrix.os }}" == "ubuntu" ]; then
-            DOCKER_PLATFORM="linux/amd64,linux/arm/v7,linux/arm64"
-            #,linux/ppc64le"
-          fi
+            echo ::set-output name=list::${DOCKER_PLATFORM}
 
-          if [ "${{ matrix.os }}" == "ol" ]; then
-            DOCKER_PLATFORM="linux/amd64,linux/arm64"
-          fi
-
-          echo ::set-output name=list::${DOCKER_PLATFORM}
-
-      - name: Prepare environment (push)
+      - name: Prepare environment (${{ github.event_name }})
         if: github.event_name == 'push'
         id: prepare_push
         run: |
           TAGS_ARRAY=()
 
-          IMAGE_NAME="${{ env.DOCKER_REPOSITORY }}/zabbix-${{ matrix.build }}"
+          IMAGE_NAME="${{ env.DOCKER_REPOSITORY }}/zabbix-${{ $env.BASE_BUILD_NAME }}"
           GIT_BRANCH="${{ github.ref }}"
           GIT_BRANCH=${GIT_BRANCH:11}
 
@@ -139,13 +143,13 @@ jobs:
           echo ::set-output name=image_name::${IMAGE_NAME}
           echo ::set-output name=image_tag_versions::$(printf -- "%s," "${TAGS_ARRAY[@]}")
 
-      - name: Prepare environment (release)
+      - name: Prepare environment (${{ github.event_name }})
         if: github.event_name == 'release' && github.event.action == 'published'
         id: prepare_release
         run: |
           TAGS_ARRAY=()
 
-          IMAGE_NAME="${{ env.DOCKER_REPOSITORY }}/zabbix-${{ matrix.build }}"
+          IMAGE_NAME="${{ env.DOCKER_REPOSITORY }}/zabbix-${{ $env.BASE_BUILD_NAME }}"
           RELEASE_VERSION="${{ github.ref }}"
           RELEASE_VERSION=${RELEASE_VERSION:10}
           GIT_BRANCH=${RELEASE_VERSION%.*}
@@ -184,8 +188,8 @@ jobs:
         id: docker_build
         uses: docker/build-push-action@v2
         with:
-          context: ./${{ matrix.build }}/${{ matrix.os }}
-          file: ./${{ matrix.build }}/${{ matrix.os }}/Dockerfile
+          context: ./${{ $env.BASE_BUILD_NAME }}/${{ matrix.os }}
+          file: ./${{ $env.BASE_BUILD_NAME }}/${{ matrix.os }}/Dockerfile
           platforms: ${{ steps.platform.outputs.list }}
           push: ${{ secrets.AUTO_PUSH_IMAGES }}
           tags: ${{ steps.prepare_tags.outputs.image_tag_versions }}
@@ -193,12 +197,12 @@ jobs:
       - name: Image digest
         run: |
             echo ${{ steps.docker_build.outputs.digest }}
-            echo "${{ steps.docker_build.outputs.digest }}" > ${{ matrix.build }}_${{ matrix.os }}
+            echo "${{ steps.docker_build.outputs.digest }}" > ${{ $env.BASE_BUILD_NAME }}_${{ matrix.os }}
 
       - uses: actions/upload-artifact@v2
         with:
-         name: ${{ matrix.build }}_${{ matrix.os }}
-         path: ${{ matrix.build }}_${{ matrix.os }}
+         name: ${{ $env.BASE_BUILD_NAME }}_${{ matrix.os }}
+         path: ${{ $env.BASE_BUILD_NAME }}_${{ matrix.os }}
          if-no-files-found: error
 
   build_base_database:
@@ -227,22 +231,12 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: Prepare platform list
-        id: platform
+      - name: Prepare Platform list
+        id: platform_list
         run: |
-          DOCKER_PLATFORM="linux/amd64,linux/arm/v6,linux/arm/v7,linux/arm64"
-          # ,linux/s390x"
+            platform_list=$(jq -r '.os.${{ matrix.os }} | join(",")' "./build.xml")
 
-          if [ "${{ matrix.os }}" == "ubuntu" ]; then
-            DOCKER_PLATFORM="linux/amd64,linux/arm/v7,linux/arm64"
-            #,linux/ppc64le"
-          fi
-
-          if [ "${{ matrix.os }}" == "ol" ]; then
-            DOCKER_PLATFORM="linux/amd64,linux/arm64"
-          fi
-
-          echo ::set-output name=list::${DOCKER_PLATFORM}
+            echo ::set-output name=list::${DOCKER_PLATFORM}
 
       - name: Prepare environment (push)
         if: github.event_name == 'push'
