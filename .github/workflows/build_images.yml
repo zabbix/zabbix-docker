@@ -264,13 +264,13 @@ jobs:
             latest=auto
 
       - uses: actions/download-artifact@v2.0.10
-        if: ${{ matrix.build != "snmptraps" }}
+        if: ${{ matrix.build != 'snmptraps' }}
         with:
           name: ${{ steps.build_base_image.outputs.build_base }}_${{ matrix.os }}
 
       - name: Retrieve base build SHA256 tag
         id: base_build
-        if: ${{ matrix.build != "snmptraps" }}
+        if: ${{ matrix.build != 'snmptraps' }}
         run: |
           BASE_TAG=$(cat ${{ steps.build_base_image.outputs.build_base }}_${{ matrix.os }})
           BUILD_BASE_IMAGE=${{ env.DOCKER_REPOSITORY }}/zabbix-${{ steps.build_base_image.outputs.build_base }}@${BASE_TAG}
