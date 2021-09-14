@@ -114,8 +114,6 @@ jobs:
         with:
           images: ${{ env.DOCKER_REPOSITORY }}/zabbix-${{ env.BASE_BUILD_NAME }}
           tags: |
-            type=ref,event=branch
-            type=ref,event=pr
             type=semver,pattern={{ version }}
             type=semver,pattern={{ major }}.{{ minor }}
             type=raw,value=${{ matrix.os }}-{{ branch }}
