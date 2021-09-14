@@ -43,7 +43,7 @@ jobs:
       - shell: bash
         id: components
         run: |
-          echo "::set-output name=list::[\"agent\", \"agent2\", \"proxy-mysql\", \"java-gateway\"]"
+          echo "::set-output name=list::[\"agent\", \"agent2\", \"java-gateway\", \"proxy-mysql\", \"proxy-sqlite3\", \"server-mysql\", \"server-pgsql\", \"snmptraps\", \"web-apache-mysql\", \"web-apache-pgsql\", \"web-nginx-mysql\", \"web-nginx-pgsql\", \"web-service\"]"
 
   build_base:
     timeout-minutes: 70
