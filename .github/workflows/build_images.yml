@@ -128,6 +128,9 @@ jobs:
           platforms: ${{ steps.platform.outputs.list }}
           push: ${{ secrets.AUTO_PUSH_IMAGES }}
           tags: ${{ steps.meta.outputs.tags }}
+          labels: |
+            org.opencontainers.image.revision=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.revision'] }}
+            org.opencontainers.image.created=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.created'] }}
 
       - name: Image digest
         run: |
@@ -215,7 +218,8 @@ jobs:
             echo ${{ steps.docker_build.outputs.digest }}
             echo "${{ steps.docker_build.outputs.digest }}" > ${{ matrix.build }}_${{ matrix.os }}
 
-      - uses: actions/upload-artifact@v2.2.4
+      - name: Upload SHA256 tag
+        uses: actions/upload-artifact@v2.2.4
         with:
          name: ${{ matrix.build }}_${{ matrix.os }}
          path: ${{ matrix.build }}_${{ matrix.os }}
@@ -261,7 +265,7 @@ jobs:
 
           echo ::set-output name=build_base::${BUILD_BASE}
 
-      - name: Docker meta
+      - name: Generate tags
         id: meta
         uses: docker/metadata-action@v3
         with:
@@ -272,7 +276,8 @@ jobs:
           flavor: |
             latest=auto
 
-      - uses: actions/download-artifact@v2.0.10
+      - name: Download SHA256 tag
+        uses: actions/download-artifact@v2.0.10
         if: ${{ matrix.build != 'snmptraps' }}
         with:
           name: ${{ steps.build_base_image.outputs.build_base }}_${{ matrix.os }}
