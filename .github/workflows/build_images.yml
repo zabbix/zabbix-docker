@@ -108,7 +108,7 @@ jobs:
 
             echo ::set-output name=list::$platform_list
 
-      - name: Docker meta
+      - name: Generate tags
         id: meta
         uses: docker/metadata-action@v3
         with:
@@ -134,7 +134,8 @@ jobs:
             echo ${{ steps.docker_build.outputs.digest }}
             echo "${{ steps.docker_build.outputs.digest }}" > ${{ env.BASE_BUILD_NAME }}_${{ matrix.os }}
 
-      - uses: actions/upload-artifact@v2.2.4
+      - name: Upload SHA256 tag
+        uses: actions/upload-artifact@v2.2.4
         with:
          name: ${{ env.BASE_BUILD_NAME }}_${{ matrix.os }}
          path: ${{ env.BASE_BUILD_NAME }}_${{ matrix.os }}
@@ -173,7 +174,7 @@ jobs:
 
             echo ::set-output name=list::$platform_list
 
-      - name: Docker meta
+      - name: Generate tags
         id: meta
         uses: docker/metadata-action@v3
         with:
@@ -184,7 +185,8 @@ jobs:
           flavor: |
             latest=auto
 
-      - uses: actions/download-artifact@v2.0.10
+      - name: Download SHA256 tag
+        uses: actions/download-artifact@v2.0.10
         with:
           name: build-base_${{ matrix.os }}
 
