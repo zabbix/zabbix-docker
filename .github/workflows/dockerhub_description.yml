@@ -5,7 +5,7 @@ on:
     branches:
       - 'trunk'
     paths:
-      - "*/*/README.md"
+      - "Dockerfiles/*/*/README.md"
   workflow_dispatch:
 
 jobs:
@@ -41,4 +41,4 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
           repository: ${{ env.DOCKER_REPOSITORY }}/zabbix-${{ matrix.build }}
-          readme-filepath: ./${{ matrix.build }}/${{ env.SUBDIR }}/README.md
+          readme-filepath: ./Dockerfiles/${{ matrix.build }}/${{ env.SUBDIR }}/README.md

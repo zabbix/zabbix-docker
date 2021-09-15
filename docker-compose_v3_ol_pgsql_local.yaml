@@ -2,14 +2,14 @@ version: '3.5'
 services:
  zabbix-build-base:
   build:
-   context: ./build-base/ol
+   context: ./Dockerfiles/build-base/ol
    cache_from:
     - oraclelinux:8-slim
   image: zabbix-build-base:ol-local
 
  zabbix-build-pgsql:
   build:
-   context: ./build-pgsql/ol
+   context: ./Dockerfiles/build-pgsql/ol
    cache_from:
     - oraclelinux:8-slim
    args:
@@ -20,7 +20,7 @@ services:
 
  zabbix-build-mysql:
   build:
-   context: ./build-mysql/ol
+   context: ./Dockerfiles/build-mysql/ol
    cache_from:
     - oraclelinux:8-slim
    args:
@@ -31,7 +31,7 @@ services:
 
  zabbix-build-sqlite3:
   build:
-   context: ./build-sqlite3/ol
+   context: ./Dockerfiles/build-sqlite3/ol
    cache_from:
     - oraclelinux:8-slim
    args:
@@ -42,7 +42,7 @@ services:
 
  zabbix-server:
   build:
-   context: ./server-pgsql/ol
+   context: ./Dockerfiles/server-pgsql/ol
    cache_from:
     - oraclelinux:8-slim
    args:
@@ -78,8 +78,8 @@ services:
       cpus: '0.5'
       memory: 512M
   env_file:
-   - .env_db_pgsql
-   - .env_srv
+   - ./env_vars/env_db_pgsql
+   - ./env_vars/env_srv
   secrets:
    - POSTGRES_USER
    - POSTGRES_PASSWORD
@@ -111,7 +111,7 @@ services:
 
  zabbix-proxy-sqlite3:
   build:
-   context: ./proxy-sqlite3/ol
+   context: ./Dockerfiles/proxy-sqlite3/ol
    cache_from:
     - oraclelinux:8-slim
    args:
@@ -144,8 +144,8 @@ services:
       cpus: '0.3'
       memory: 256M
   env_file:
-   - .env_prx
-   - .env_prx_sqlite3
+   - ./env_vars/env_prx
+   - ./env_vars/env_prx_sqlite3
   depends_on:
    - zabbix-java-gateway
    - zabbix-snmptraps
@@ -167,7 +167,7 @@ services:
 
  zabbix-proxy-mysql:
   build:
-   context: ./proxy-mysql/ol
+   context: ./Dockerfiles/proxy-mysql/ol
    cache_from:
     - oraclelinux:8-slim
    args:
@@ -200,9 +200,9 @@ services:
       cpus: '0.3'
       memory: 256M
   env_file:
-   - .env_db_mysql_proxy
-   - .env_prx
-   - .env_prx_mysql
+   - ./env_vars/env_db_mysql_proxy
+   - ./env_vars/env_prx
+   - ./env_vars/env_prx_mysql
   secrets:
    - MYSQL_USER
    - MYSQL_PASSWORD
@@ -229,7 +229,7 @@ services:
 
  zabbix-web-apache-pgsql:
   build:
-   context: ./web-apache-pgsql/ol
+   context: ./Dockerfiles/web-apache-pgsql/ol
    cache_from:
     - oraclelinux:8-slim
    args:
@@ -257,8 +257,8 @@ services:
       cpus: '0.5'
       memory: 256M
   env_file:
-   - .env_db_pgsql
-   - .env_web
+   - ./env_vars/env_db_pgsql
+   - ./env_vars/env_web
   secrets:
    - POSTGRES_USER
    - POSTGRES_PASSWORD
@@ -292,7 +292,7 @@ services:
 
  zabbix-web-nginx-pgsql:
   build:
-   context: ./web-nginx-pgsql/ol
+   context: ./Dockerfiles/web-nginx-pgsql/ol
    cache_from:
     - oraclelinux:8-slim
    args:
@@ -318,8 +318,8 @@ services:
       cpus: '0.5'
       memory: 256M
   env_file:
-   - .env_db_pgsql
-   - .env_web
+   - ./env_vars/env_db_pgsql
+   - ./env_vars/env_web
   secrets:
    - POSTGRES_USER
    - POSTGRES_PASSWORD
@@ -353,7 +353,7 @@ services:
 
  zabbix-agent:
   build:
-   context: ./agent/ol
+   context: ./Dockerfiles/agent/ol
    cache_from:
     - oraclelinux:8-slim
    args:
@@ -381,7 +381,7 @@ services:
       memory: 64M
    mode: global
   env_file:
-   - .env_agent
+   - ./env_vars/env_agent
   privileged: true
   pid: "host"
   depends_on:
@@ -401,7 +401,7 @@ services:
 
  zabbix-java-gateway:
   build:
-   context: ./java-gateway/ol
+   context: ./Dockerfiles/java-gateway/ol
    cache_from:
     - oraclelinux:8-slim
    args:
@@ -421,7 +421,7 @@ services:
       cpus: '0.25'
       memory: 256M
   env_file:
-   - .env_java
+   - ./env_vars/env_java
   depends_on:
    - zabbix-build-pgsql
   networks:
@@ -438,7 +438,7 @@ services:
 
  zabbix-snmptraps:
   build:
-   context: ./snmptraps/ol
+   context: ./Dockerfiles/snmptraps/ol
    cache_from:
     - oraclelinux:8-slim
   image: zabbix-snmptraps:ol-local
@@ -471,7 +471,7 @@ services:
 
  zabbix-web-service:
   build:
-   context: ./web-service/ol
+   context: ./Dockerfiles/web-service/ol
    cache_from:
     - oraclelinux:8-slim
    args:
@@ -495,7 +495,7 @@ services:
       cpus: '0.25'
       memory: 256M
   env_file:
-   - .env_web_service
+   - ./env_vars/env_web_service
   depends_on:
    - zabbix-build-pgsql
   networks:
@@ -522,7 +522,7 @@ services:
   volumes:
    - ./zbx_env/var/lib/mysql:/var/lib/mysql:rw
   env_file:
-   - .env_db_mysql
+   - ./env_vars/env_db_mysql
   secrets:
    - MYSQL_USER
    - MYSQL_PASSWORD
@@ -540,11 +540,11 @@ services:
 #  command: -c ssl=on -c ssl_cert_file=/run/secrets/server-cert.pem -c ssl_key_file=/run/secrets/server-key.pem -c ssl_ca_file=/run/secrets/root-ca.pem
   volumes:
    - ./zbx_env/var/lib/postgresql/data:/var/lib/postgresql/data:rw
-   - ./.ZBX_DB_CA_FILE:/run/secrets/root-ca.pem:ro
-   - ./.ZBX_DB_CERT_FILE:/run/secrets/server-cert.pem:ro
-   - ./.ZBX_DB_KEY_FILE:/run/secrets/server-key.pem:ro
+   - ./env_vars/.ZBX_DB_CA_FILE:/run/secrets/root-ca.pem:ro
+   - ./env_vars/.ZBX_DB_CERT_FILE:/run/secrets/server-cert.pem:ro
+   - ./env_vars/.ZBX_DB_KEY_FILE:/run/secrets/server-key.pem:ro
   env_file:
-   - .env_db_pgsql
+   - ./env_vars/env_db_pgsql
   secrets:
    - POSTGRES_USER
    - POSTGRES_PASSWORD
@@ -605,12 +605,12 @@ volumes:
 
 secrets:
   MYSQL_USER:
-    file: ./.MYSQL_USER
+    file: ./env_vars/.MYSQL_USER
   MYSQL_PASSWORD:
-    file: ./.MYSQL_PASSWORD
+    file: ./env_vars/.MYSQL_PASSWORD
   MYSQL_ROOT_PASSWORD:
-    file: ./.MYSQL_ROOT_PASSWORD
+    file: ./env_vars/.MYSQL_ROOT_PASSWORD
   POSTGRES_USER:
-    file: ./.POSTGRES_USER
+    file: ./env_vars/.POSTGRES_USER
   POSTGRES_PASSWORD:
-    file: ./.POSTGRES_PASSWORD
+    file: ./env_vars/.POSTGRES_PASSWORD

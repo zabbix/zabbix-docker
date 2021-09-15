@@ -2,14 +2,14 @@ version: '3.5'
 services:
  zabbix-build-base:
   build:
-   context: ./build-base/alpine
+   context: ./Dockerfiles/build-base/alpine
    cache_from:
     - alpine:3.14
   image: zabbix-build-base:alpine-local
 
  zabbix-build-mysql:
   build:
-   context: ./build-mysql/alpine
+   context: ./Dockerfiles/build-mysql/alpine
    cache_from:
     - alpine:3.14
    args:
@@ -20,7 +20,7 @@ services:
 
  zabbix-build-sqlite3:
   build:
-   context: ./build-sqlite3/alpine
+   context: ./Dockerfiles/build-sqlite3/alpine
    cache_from:
     - alpine:3.14
    args:
@@ -31,7 +31,7 @@ services:
 
  zabbix-server:
   build:
-   context: ./server-mysql/alpine
+   context: ./Dockerfiles/server-mysql/alpine
    cache_from:
     - alpine:3.14
    args:
@@ -64,8 +64,8 @@ services:
       cpus: '0.5'
       memory: 512M
   env_file:
-   - .env_db_mysql
-   - .env_srv
+   - ./env_vars/.env_db_mysql
+   - ./env_vars/.env_srv
   secrets:
    - MYSQL_USER
    - MYSQL_PASSWORD
@@ -101,7 +101,7 @@ services:
 
  zabbix-proxy-sqlite3:
   build:
-   context: ./proxy-sqlite3/alpine
+   context: ./Dockerfiles/proxy-sqlite3/alpine
    cache_from:
     - alpine:3.14
    args:
@@ -134,8 +134,8 @@ services:
       cpus: '0.3'
       memory: 256M
   env_file:
-   - .env_prx
-   - .env_prx_sqlite3
+   - ./env_vars/.env_prx
+   - ./env_vars/.env_prx_sqlite3
   depends_on:
    - zabbix-java-gateway
    - zabbix-snmptraps
@@ -157,7 +157,7 @@ services:
 
  zabbix-proxy-mysql:
   build:
-   context: ./proxy-mysql/alpine
+   context: ./Dockerfiles/proxy-mysql/alpine
    cache_from:
     - alpine:3.14
    args:
@@ -190,9 +190,9 @@ services:
       cpus: '0.3'
       memory: 256M
   env_file:
-   - .env_db_mysql_proxy
-   - .env_prx
-   - .env_prx_mysql
+   - ./env_vars/.env_db_mysql_proxy
+   - ./env_vars/.env_prx
+   - ./env_vars/.env_prx_mysql
   depends_on:
    - mysql-server
    - zabbix-java-gateway
@@ -222,7 +222,7 @@ services:
 
  zabbix-web-apache-mysql:
   build:
-   context: ./web-apache-mysql/alpine
+   context: ./Dockerfiles/web-apache-mysql/alpine
    cache_from:
     - alpine:3.14
    args:
@@ -247,8 +247,8 @@ services:
       cpus: '0.5'
       memory: 256M
   env_file:
-   - .env_db_mysql
-   - .env_web
+   - ./env_vars/.env_db_mysql
+   - ./env_vars/.env_web
   secrets:
    - MYSQL_USER
    - MYSQL_PASSWORD
@@ -285,7 +285,7 @@ services:
 
  zabbix-web-nginx-mysql:
   build:
-   context: ./web-nginx-mysql/alpine
+   context: ./Dockerfiles/web-nginx-mysql/alpine
    cache_from:
     - alpine:3.14
    args:
@@ -308,8 +308,8 @@ services:
       cpus: '0.5'
       memory: 256M
   env_file:
-   - .env_db_mysql
-   - .env_web
+   - ./env_vars/.env_db_mysql
+   - ./env_vars/.env_web
   secrets:
    - MYSQL_USER
    - MYSQL_PASSWORD
@@ -346,7 +346,7 @@ services:
 
  zabbix-agent:
   build:
-   context: ./agent/alpine
+   context: ./Dockerfiles/agent/alpine
    cache_from:
     - alpine:3.14
    args:
@@ -376,7 +376,7 @@ services:
       memory: 64M
    mode: global
   env_file:
-   - .env_agent
+   - ./env_vars/.env_agent
   privileged: true
   pid: "host"
   depends_on:
@@ -396,7 +396,7 @@ services:
 
  zabbix-java-gateway:
   build:
-   context: ./java-gateway/alpine
+   context: ./Dockerfiles/java-gateway/alpine
    cache_from:
     - alpine:3.14
    args:
@@ -416,7 +416,7 @@ services:
       cpus: '0.25'
       memory: 256M
   env_file:
-   - .env_java
+   - ./env_vars/.env_java
   depends_on:
    - zabbix-build-mysql
   networks:
@@ -433,7 +433,7 @@ services:
 
  zabbix-snmptraps:
   build:
-   context: ./snmptraps/alpine
+   context: ./Dockerfiles/snmptraps/alpine
    cache_from:
     - alpine:3.14
   image: zabbix-snmptraps:alpine-local
@@ -466,7 +466,7 @@ services:
 
  zabbix-web-service:
   build:
-   context: ./web-service/alpine
+   context: ./Dockerfiles/web-service/alpine
    cache_from:
     - alpine:3.14
    args:
@@ -490,7 +490,7 @@ services:
       cpus: '0.25'
       memory: 256M
   env_file:
-   - .env_web_service
+   - ./env_vars/.env_web_service
   depends_on:
    - zabbix-build-mysql
   networks:
@@ -519,7 +519,7 @@ services:
   volumes:
    - ./zbx_env/var/lib/mysql:/var/lib/mysql:rw
   env_file:
-   - .env_db_mysql
+   - ./env_vars/.env_db_mysql
   secrets:
    - MYSQL_USER
    - MYSQL_PASSWORD
@@ -577,18 +577,18 @@ volumes:
 
 secrets:
   MYSQL_USER:
-    file: ./.MYSQL_USER
+    file: ./env_vars/.MYSQL_USER
   MYSQL_PASSWORD:
-    file: ./.MYSQL_PASSWORD
+    file: ./env_vars/.MYSQL_PASSWORD
   MYSQL_ROOT_PASSWORD:
-    file: ./.MYSQL_ROOT_PASSWORD
+    file: ./env_vars/.MYSQL_ROOT_PASSWORD
 #  client-key.pem:
-#    file: ./.ZBX_DB_KEY_FILE
+#    file: ./env_vars/.ZBX_DB_KEY_FILE
 #  client-cert.pem:
-#    file: ./.ZBX_DB_CERT_FILE
+#    file: ./env_vars/.ZBX_DB_CERT_FILE
 #  root-ca.pem:
-#    file: ./.ZBX_DB_CA_FILE
+#    file: ./env_vars/.ZBX_DB_CA_FILE
 #  server-cert.pem:
-#    file: ./.DB_CERT_FILE
+#    file: ./env_vars/.DB_CERT_FILE
 #  server-key.pem:
-#    file: ./.DB_KEY_FILE
+#    file: ./env_vars/.DB_KEY_FILE

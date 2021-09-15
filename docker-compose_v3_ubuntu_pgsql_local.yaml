@@ -42,7 +42,7 @@ services:
 
  zabbix-server:
   build:
-   context: ./server-pgsql/ubuntu
+   context: ./Dockerfiles/server-pgsql/ubuntu
    cache_from:
     - ubuntu:focal
    args:
@@ -60,9 +60,9 @@ services:
    - ./zbx_env/var/lib/zabbix/ssh_keys:/var/lib/zabbix/ssh_keys:ro
    - ./zbx_env/var/lib/zabbix/mibs:/var/lib/zabbix/mibs:ro
    - ./zbx_env/var/lib/zabbix/snmptraps:/var/lib/zabbix/snmptraps:ro
-#   - ./.ZBX_DB_CA_FILE:/run/secrets/root-ca.pem:ro
-#   - ./.ZBX_DB_CERT_FILE:/run/secrets/client-cert.pem:ro
-#   - ./.ZBX_DB_KEY_FILE:/run/secrets/client-key.pem:ro
+#   - ./env_vars/.ZBX_DB_CA_FILE:/run/secrets/root-ca.pem:ro
+#   - ./env_vars/.ZBX_DB_CERT_FILE:/run/secrets/client-cert.pem:ro
+#   - ./env_vars/.ZBX_DB_KEY_FILE:/run/secrets/client-key.pem:ro
   ulimits:
    nproc: 65535
    nofile:
@@ -77,8 +77,8 @@ services:
       cpus: '0.5'
       memory: 512M
   env_file:
-   - .env_db_pgsql
-   - .env_srv
+   - ./env_vars/.env_db_pgsql
+   - ./env_vars/.env_srv
   secrets:
    - POSTGRES_USER
    - POSTGRES_PASSWORD
@@ -110,7 +110,7 @@ services:
 
  zabbix-proxy-sqlite3:
   build:
-   context: ./proxy-sqlite3/ubuntu
+   context: ./Dockerfiles/proxy-sqlite3/ubuntu
    cache_from:
     - ubuntu:focal
    args:
@@ -142,8 +142,8 @@ services:
       cpus: '0.3'
       memory: 256M
   env_file:
-   - .env_prx
-   - .env_prx_sqlite3
+   - ./env_vars/.env_prx
+   - ./env_vars/.env_prx_sqlite3
   depends_on:
    - zabbix-java-gateway
    - zabbix-snmptraps
@@ -165,7 +165,7 @@ services:
 
  zabbix-proxy-mysql:
   build:
-   context: ./proxy-mysql/ubuntu
+   context: ./Dockerfiles/proxy-mysql/ubuntu
    cache_from:
     - ubuntu:focal
    args:
@@ -197,9 +197,9 @@ services:
       cpus: '0.3'
       memory: 256M
   env_file:
-   - .env_db_mysql_proxy
-   - .env_prx
-   - .env_prx_mysql
+   - ./env_vars/.env_db_mysql_proxy
+   - ./env_vars/.env_prx
+   - ./env_vars/.env_prx_mysql
   secrets:
    - MYSQL_USER
    - MYSQL_PASSWORD
@@ -226,7 +226,7 @@ services:
 
  zabbix-web-apache-pgsql:
   build:
-   context: ./web-apache-pgsql/ubuntu
+   context: ./Dockerfiles/web-apache-pgsql/ubuntu
    cache_from:
     - ubuntu:focal
    args:
@@ -241,9 +241,9 @@ services:
    - /etc/localtime:/etc/localtime:ro
    - ./zbx_env/etc/ssl/apache2:/etc/ssl/apache2:ro
    - ./zbx_env/usr/share/zabbix/modules/:/usr/share/zabbix/modules/:ro
-#   - ./.ZBX_DB_CA_FILE:/run/secrets/root-ca.pem:ro
-#   - ./.ZBX_DB_CERT_FILE:/run/secrets/client-cert.pem:ro
-#   - ./.ZBX_DB_KEY_FILE:/run/secrets/client-key.pem:ro
+#   - ./env_vars/.ZBX_DB_CA_FILE:/run/secrets/root-ca.pem:ro
+#   - ./env_vars/.ZBX_DB_CERT_FILE:/run/secrets/client-cert.pem:ro
+#   - ./env_vars/.ZBX_DB_KEY_FILE:/run/secrets/client-key.pem:ro
   deploy:
    resources:
     limits:
@@ -253,8 +253,8 @@ services:
       cpus: '0.5'
       memory: 256M
   env_file:
-   - .env_db_pgsql
-   - .env_web
+   - ./env_vars/.env_db_pgsql
+   - ./env_vars/.env_web
   secrets:
    - POSTGRES_USER
    - POSTGRES_PASSWORD
@@ -288,7 +288,7 @@ services:
 
  zabbix-web-nginx-pgsql:
   build:
-   context: ./web-nginx-pgsql/ubuntu
+   context: ./Dockerfiles/web-nginx-pgsql/ubuntu
    cache_from:
     - ubuntu:focal
    args:
@@ -301,9 +301,9 @@ services:
    - /etc/localtime:/etc/localtime:ro
    - ./zbx_env/etc/ssl/nginx:/etc/ssl/nginx:ro
    - ./zbx_env/usr/share/zabbix/modules/:/usr/share/zabbix/modules/:ro
-#   - ./.ZBX_DB_CA_FILE:/run/secrets/root-ca.pem:ro
-#   - ./.ZBX_DB_CERT_FILE:/run/secrets/client-cert.pem:ro
-#   - ./.ZBX_DB_KEY_FILE:/run/secrets/client-key.pem:ro
+#   - ./env_vars/.ZBX_DB_CA_FILE:/run/secrets/root-ca.pem:ro
+#   - ./env_vars/.ZBX_DB_CERT_FILE:/run/secrets/client-cert.pem:ro
+#   - ./env_vars/.ZBX_DB_KEY_FILE:/run/secrets/client-key.pem:ro
   deploy:
    resources:
     limits:
@@ -313,8 +313,8 @@ services:
       cpus: '0.5'
       memory: 256M
   env_file:
-   - .env_db_pgsql
-   - .env_web
+   - ./env_vars/.env_db_pgsql
+   - ./env_vars/.env_web
   secrets:
    - POSTGRES_USER
    - POSTGRES_PASSWORD
@@ -348,7 +348,7 @@ services:
 
  zabbix-agent:
   build:
-   context: ./agent/ubuntu
+   context: ./Dockerfiles/agent/ubuntu
    cache_from:
     - ubuntu:focal
    args:
@@ -375,7 +375,7 @@ services:
       memory: 64M
    mode: global
   env_file:
-   - .env_agent
+   - ./env_vars/.env_agent
   privileged: true
   pid: "host"
   depends_on:
@@ -395,7 +395,7 @@ services:
 
  zabbix-java-gateway:
   build:
-   context: ./java-gateway/ubuntu
+   context: ./Dockerfiles/java-gateway/ubuntu
    cache_from:
     - ubuntu:focal
    args:
@@ -415,7 +415,7 @@ services:
       cpus: '0.25'
       memory: 256M
   env_file:
-   - .env_java
+   - ./env_vars/.env_java
   depends_on:
    - zabbix-build-pgsql
   networks:
@@ -432,7 +432,7 @@ services:
 
  zabbix-snmptraps:
   build:
-   context: ./snmptraps/ubuntu
+   context: ./Dockerfiles/snmptraps/ubuntu
    cache_from:
     - ubuntu:focal
   image: zabbix-snmptraps:ubuntu-local
@@ -465,7 +465,7 @@ services:
 
  zabbix-web-service:
   build:
-   context: ./web-service/ubuntu
+   context: ./Dockerfiles/web-service/ubuntu
    cache_from:
     - ubuntu:focal
    args:
@@ -489,7 +489,7 @@ services:
       cpus: '0.25'
       memory: 256M
   env_file:
-   - .env_web_service
+   - ./env_vars/.env_web_service
   depends_on:
    - zabbix-build-pgsql
   networks:
@@ -516,7 +516,7 @@ services:
   volumes:
    - ./zbx_env/var/lib/mysql:/var/lib/mysql:rw
   env_file:
-   - .env_db_mysql
+   - ./env_vars/.env_db_mysql
   secrets:
    - MYSQL_USER
    - MYSQL_PASSWORD
@@ -534,11 +534,11 @@ services:
 #  command: -c ssl=on -c ssl_cert_file=/run/secrets/server-cert.pem -c ssl_key_file=/run/secrets/server-key.pem -c ssl_ca_file=/run/secrets/root-ca.pem
   volumes:
    - ./zbx_env/var/lib/postgresql/data:/var/lib/postgresql/data:rw
-   - ./.ZBX_DB_CA_FILE:/run/secrets/root-ca.pem:ro
-   - ./.ZBX_DB_CERT_FILE:/run/secrets/server-cert.pem:ro
-   - ./.ZBX_DB_KEY_FILE:/run/secrets/server-key.pem:ro
+   - ./env_vars/.ZBX_DB_CA_FILE:/run/secrets/root-ca.pem:ro
+   - ./env_vars/.ZBX_DB_CERT_FILE:/run/secrets/server-cert.pem:ro
+   - ./env_vars/.ZBX_DB_KEY_FILE:/run/secrets/server-key.pem:ro
   env_file:
-   - .env_db_pgsql
+   - ./env_vars/.env_db_pgsql
   secrets:
    - POSTGRES_USER
    - POSTGRES_PASSWORD
@@ -599,12 +599,12 @@ volumes:
 
 secrets:
   MYSQL_USER:
-    file: ./.MYSQL_USER
+    file: ./env_vars/.MYSQL_USER
   MYSQL_PASSWORD:
-    file: ./.MYSQL_PASSWORD
+    file: ./env_vars/.MYSQL_PASSWORD
   MYSQL_ROOT_PASSWORD:
-    file: ./.MYSQL_ROOT_PASSWORD
+    file: ./env_vars/.MYSQL_ROOT_PASSWORD
   POSTGRES_USER:
-    file: ./.POSTGRES_USER
+    file: ./env_vars/.POSTGRES_USER
   POSTGRES_PASSWORD:
-    file: ./.POSTGRES_PASSWORD
+    file: ./env_vars/.POSTGRES_PASSWORD
