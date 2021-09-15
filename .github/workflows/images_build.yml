@@ -123,8 +123,8 @@ jobs:
         id: docker_build
         uses: docker/build-push-action@v2
         with:
-          context: ./${{ env.BASE_BUILD_NAME }}/${{ matrix.os }}
-          file: ./${{ env.BASE_BUILD_NAME }}/${{ matrix.os }}/Dockerfile
+          context: ./Dockerfiles/${{ env.BASE_BUILD_NAME }}/${{ matrix.os }}
+          file: ./Dockerfiles/${{ env.BASE_BUILD_NAME }}/${{ matrix.os }}/Dockerfile
           platforms: ${{ steps.platform.outputs.list }}
           push: ${{ secrets.AUTO_PUSH_IMAGES }}
           tags: ${{ steps.meta.outputs.tags }}
@@ -207,8 +207,8 @@ jobs:
         id: docker_build
         uses: docker/build-push-action@v2
         with:
-          context: ./${{ matrix.build }}/${{ matrix.os }}
-          file: ./${{ matrix.build }}/${{ matrix.os }}/Dockerfile
+          context: ./Dockerfiles/${{ matrix.build }}/${{ matrix.os }}
+          file: ./Dockerfiles/${{ matrix.build }}/${{ matrix.os }}/Dockerfile
           platforms: ${{ steps.platform.outputs.list }}
           push: ${{ secrets.AUTO_PUSH_IMAGES }}
           tags: ${{ steps.meta.outputs.tags }}
@@ -305,8 +305,8 @@ jobs:
         id: docker_build
         uses: docker/build-push-action@v2
         with:
-          context: ./${{ matrix.build }}/${{ matrix.os }}
-          file: ./${{ matrix.build }}/${{ matrix.os }}/Dockerfile
+          context: ./Dockerfiles/${{ matrix.build }}/${{ matrix.os }}
+          file: ./Dockerfiles/${{ matrix.build }}/${{ matrix.os }}/Dockerfile
           platforms: ${{ steps.platform.outputs.list }}
           push: ${{ secrets.AUTO_PUSH_IMAGES }}
           tags: ${{ steps.meta.outputs.tags }}
