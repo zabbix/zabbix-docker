@@ -212,6 +212,9 @@ jobs:
           push: ${{ secrets.AUTO_PUSH_IMAGES }}
           tags: ${{ steps.meta.outputs.tags }}
           build-args: BUILD_BASE_IMAGE=${{ steps.base_build.outputs.base_build_image }}
+          labels: |
+            org.opencontainers.image.revision=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.revision'] }}
+            org.opencontainers.image.created=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.created'] }}
 
       - name: Image digest
         run: |
@@ -302,6 +305,9 @@ jobs:
           push: ${{ secrets.AUTO_PUSH_IMAGES }}
           tags: ${{ steps.meta.outputs.tags }}
           build-args: BUILD_BASE_IMAGE=${{ steps.base_build.outputs.base_build_image }}
+          labels: |
+            org.opencontainers.image.revision=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.revision'] }}
+            org.opencontainers.image.created=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.created'] }}
 
       - name: Image digest
         run: echo ${{ steps.docker_build.outputs.digest }}
