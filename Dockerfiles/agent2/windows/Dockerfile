@@ -64,9 +64,9 @@ RUN Set-Location -Path $env:SystemDrive\.; `
     }; `
     Write-Host 'Installing ...'; `
     Start-Process `
-		-FilePath $env:SystemDrive\go-amd64.msi `
-		-Wait `
-		-ArgumentList '/qn /norestart'; `
+        -FilePath $env:SystemDrive\go-amd64.msi `
+        -Wait `
+        -ArgumentList '/qn /norestart'; `
     Remove-Item -Force -Path $env:SystemDrive\go-amd64.msi; `
     `
     $env:PATH = [string]::Format('{0}\Go\bin;', ${env:ProgramFiles}) + $env:PATH; `
@@ -87,9 +87,9 @@ RUN Set-Location -Path $env:SystemDrive\.; `
     `
     Write-Host 'Installing ...'; `
     Start-Process `
-		-FilePath $env:SystemDrive\7z.msi `
-		-Wait `
-		-ArgumentList '/qn /norestart'; `
+        -FilePath $env:SystemDrive\7z.msi `
+        -Wait `
+        -ArgumentList '/qn /norestart'; `
     Remove-Item -Force -Path $env:SystemDrive\7z.msi; `
     $env:PATH = [string]::Format('{0}\7-Zip;', ${env:ProgramFiles}) + $env:PATH; `
     [Environment]::SetEnvironmentVariable('PATH', $env:PATH, [EnvironmentVariableTarget]::Machine); `
@@ -208,7 +208,7 @@ RUN Set-Location -Path $env:SystemDrive\.; `
     `
     Write-Host 'Extracting archive ...'; `
     tar -zxf $env:SystemDrive\openssl.tar.gz; `
-	Remove-Item -Force -Path $env:SystemDrive\openssl.tar.gz; `
+    Remove-Item -Force -Path $env:SystemDrive\openssl.tar.gz; `
     Rename-Item -Path $env:SystemDrive\openssl-$env:OPENSSL_VERSION -NewName $env:SystemDrive\openssl_build; `
     `
     Write-Host 'Building OpenSSL library...'; `

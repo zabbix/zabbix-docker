@@ -39,8 +39,8 @@ RUN Set-Location -Path $env:SystemDrive\.; `
     `
     Write-Host 'Installing ...'; `
     Expand-Archive `
-		-Path git.zip `
-		-DestinationPath $env:SystemDrive\git\.; `
+        -Path git.zip `
+        -DestinationPath $env:SystemDrive\git\.; `
     Remove-Item -Force -Path $env:SystemDrive\git.zip; `
     $env:PATH = [string]::Format('{0}\git\cmd;{0}\git\mingw64\bin;{0}\git\usr\bin;', $env:SystemDrive) + $env:PATH; `
     [Environment]::SetEnvironmentVariable('PATH', $env:PATH, [EnvironmentVariableTarget]::Machine); `
@@ -48,50 +48,50 @@ RUN Set-Location -Path $env:SystemDrive\.; `
     Write-Host 'Verifying install ("git version") ...'; `
     git version; `
     `
-	Write-Host ('Downloading {0} ...' -f $env:NASM_URL); `
-	[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; `
+    Write-Host ('Downloading {0} ...' -f $env:NASM_URL); `
+    [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; `
     Invoke-WebRequest -OutFile $env:SystemDrive\nasm_installer.exe -Uri $env:NASM_URL; `
     $sha256 = 'a02325b9fe54f917f5d6a3036637b38dbb6addf6f7ba9d344d9b943a143fe7d0'; `
-	Write-Host ('Verifying SHA256 ({0}) ...' -f $sha256); `
+    Write-Host ('Verifying SHA256 ({0}) ...' -f $sha256); `
     if ((Get-FileHash $env:SystemDrive\nasm_installer.exe -Algorithm sha256).Hash -ne $sha256) { `
         Write-Host 'Checksum NASM failed!'; `
         exit 1; `
     }; `
-	Write-Host 'Installing ...'; `
+    Write-Host 'Installing ...'; `
     Start-Process `
-		-FilePath $env:SystemDrive\nasm_installer.exe `
-		-ArgumentList '/S' -Wait; `
+        -FilePath $env:SystemDrive\nasm_installer.exe `
+        -ArgumentList '/S' -Wait; `
     Remove-Item -Force -Path $env:SystemDrive\nasm_installer.exe; `
-	`
-	$env:PATH = [string]::Format('{0}\NASM;', ${env:ProgramFiles}) + $env:PATH; `
-	[Environment]::SetEnvironmentVariable('PATH', $env:PATH, [EnvironmentVariableTarget]::Machine); `
-	`
-	Write-Host 'Verifying install ("nasm -v") ...'; `
-	nasm -v; `
-	`
-	Write-Host ('Downloading {0} ...' -f $env:PERL_URL); `
-	[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; `
+    `
+    $env:PATH = [string]::Format('{0}\NASM;', ${env:ProgramFiles}) + $env:PATH; `
+    [Environment]::SetEnvironmentVariable('PATH', $env:PATH, [EnvironmentVariableTarget]::Machine); `
+    `
+    Write-Host 'Verifying install ("nasm -v") ...'; `
+    nasm -v; `
+    `
+    Write-Host ('Downloading {0} ...' -f $env:PERL_URL); `
+    [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; `
     Invoke-WebRequest -OutFile $env:SystemDrive\perl_installer.msi -Uri $env:PERL_URL; `
-	`
+    `
     $sha256 = '241a881670164feb0b91bb69d39fbbf84c981bec0d9f8c19959f8f48fd177768'; `
-	Write-Host ('Verifying SHA256 ({0}) ...' -f $sha256); `
+    Write-Host ('Verifying SHA256 ({0}) ...' -f $sha256); `
     if ((Get-FileHash $env:SystemDrive\perl_installer.msi -Algorithm sha256).Hash -ne $sha256) { `
         Write-Host 'Checksum Strawberry Perl failed!'; `
         exit 1; `
     }; `
-	Write-Host 'Installing ...'; `
+    Write-Host 'Installing ...'; `
     Start-Process `
-		-FilePath 'msiexec.exe' `
-		-ArgumentList """/i $env:SystemDrive\perl_installer.msi /qn /norestart INSTALLDIR=$env:SystemDrive\Strawberry""" `
-		-Wait; `
+        -FilePath 'msiexec.exe' `
+        -ArgumentList """/i $env:SystemDrive\perl_installer.msi /qn /norestart INSTALLDIR=$env:SystemDrive\Strawberry""" `
+        -Wait; `
     Remove-Item -Force -Path  $env:SystemDrive\perl_installer.msi; `
-	$env:PATH = [string]::Format('{0}\Strawberry\perl\bin;', $env:SystemDrive) + $env:PATH; `
-	[Environment]::SetEnvironmentVariable('PATH', $env:PATH, [EnvironmentVariableTarget]::Machine); `
-	`
-	Write-Host 'Verifying install ("perl -V") ...'; `
-	perl -V; `
-	`
-	Write-Host 'Installing Text::Template...'; `
+    $env:PATH = [string]::Format('{0}\Strawberry\perl\bin;', $env:SystemDrive) + $env:PATH; `
+    [Environment]::SetEnvironmentVariable('PATH', $env:PATH, [EnvironmentVariableTarget]::Machine); `
+    `
+    Write-Host 'Verifying install ("perl -V") ...'; `
+    perl -V; `
+    `
+    Write-Host 'Installing Text::Template...'; `
     cpan Text::Template; `
 	`
     Write-Host ('Downloading {0} ...' -f $env:VS_BUILDTOOLS_URL); `
@@ -139,30 +139,30 @@ RUN Set-Location -Path $env:SystemDrive\.; `
     Expand-Archive -Path $env:SystemDrive\pcre.zip -DestinationPath $env:SystemDrive; `
     Remove-Item -Force -Path $env:SystemDrive\pcre.zip; `
     Rename-Item -Path $env:SystemDrive\pcre-$env:PCRE_VERSION -NewName $env:SystemDrive\pcre_build; `
-	New-Item -ItemType directory -Path "$env:SystemDrive\pcre_build\build" | Out-Null; `
+    New-Item -ItemType directory -Path "$env:SystemDrive\pcre_build\build" | Out-Null; `
     `
     Set-Location -Path $env:SystemDrive\pcre_build\build; `
     Write-Host 'Building PCRE library ...'; `
     cmake --log-level=ERROR `
-		-G 'Visual Studio 16 2019' `
-		-A $env:BUILD_ARCH `
-		-DPCRE_SUPPORT_UNICODE_PROPERTIES=ON `
-		-DPCRE_SUPPORT_UTF=ON `
-		-DCMAKE_C_FLAGS_RELEASE:string="""/MT""" ..; `
+        -G 'Visual Studio 16 2019' `
+	-A $env:BUILD_ARCH `
+        -DPCRE_SUPPORT_UNICODE_PROPERTIES=ON `
+        -DPCRE_SUPPORT_UTF=ON `
+        -DCMAKE_C_FLAGS_RELEASE:string="""/MT""" ..; `
     msbuild PCRE.sln `
-		-maxcpucount:"""$env:NUMBER_OF_PROCESSORS""" `
-		/verbosity:quiet `
-		/property:Configuration=Release `
-		/property:Platform=$env:BUILD_ARCH `
-		/target:pcre; `
-	`
-	Write-Host 'PCRE is ready...';
+        -maxcpucount:"""$env:NUMBER_OF_PROCESSORS""" `
+        /verbosity:quiet `
+        /property:Configuration=Release `
+        /property:Platform=$env:BUILD_ARCH `
+        /target:pcre; `
+    `
+    Write-Host 'PCRE is ready...';
 
 RUN Set-Location -Path $env:SystemDrive\.; `
-	`
+    `
     Import-Module ('{0}\Microsoft Visual Studio\2019\BuildTools\Common7\Tools\Microsoft.VisualStudio.DevShell.dll' -f ${env:ProgramFiles(x86)} ); `
     Enter-VsDevShell -VsInstallPath ('{0}\Microsoft Visual Studio\2019\BuildTools' -f ${env:ProgramFiles(x86)}) -DevCmdArguments """-arch=$env:BUILD_ARCH"""; `
-	`
+    `
     Write-Host ('Downloading {0} ...' -f $env:OPENSSL_URL); `
     [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; `
     Invoke-WebRequest -OutFile $env:SystemDrive\openssl.tar.gz -Uri $env:OPENSSL_URL; `
@@ -176,7 +176,7 @@ RUN Set-Location -Path $env:SystemDrive\.; `
     `
     Write-Host 'Extracting archive ...'; `
     tar -zxf $env:SystemDrive\openssl.tar.gz; `
-	Remove-Item -Force -Path $env:SystemDrive\openssl.tar.gz; `
+    Remove-Item -Force -Path $env:SystemDrive\openssl.tar.gz; `
     Rename-Item -Path $env:SystemDrive\openssl-$env:OPENSSL_VERSION -NewName $env:SystemDrive\openssl_build; `
     `
     Write-Host 'Building OpenSSL library...'; `
@@ -194,21 +194,21 @@ RUN Set-Location -Path $env:SystemDrive\.; `
     set CL=/MP; `
     nmake /S; `
     nmake /S install_sw; `
-	Write-Host 'OpenSSL is ready...';
+    Write-Host 'OpenSSL is ready...';
 
 COPY modbus.vs16.vcxproj c:\
 COPY modbus.vs16.sln c:\
 COPY modbus.vs16.vcxproj.filters c:\
 
 RUN Set-Location -Path $env:SystemDrive\.; `
-	`
+    `
     Import-Module ('{0}\Microsoft Visual Studio\2019\BuildTools\Common7\Tools\Microsoft.VisualStudio.DevShell.dll' -f ${env:ProgramFiles(x86)} ); `
     Enter-VsDevShell -VsInstallPath ('{0}\Microsoft Visual Studio\2019\BuildTools' -f ${env:ProgramFiles(x86)}) -DevCmdArguments """-arch=$env:BUILD_ARCH"""; `
-	`
-	Write-Host ('Checkout GIT {0} repository ...' -f $env:LIBMODBUS_URL); `
+    `
+    Write-Host ('Checkout GIT {0} repository ...' -f $env:LIBMODBUS_URL); `
     git -c advice.detachedHead=false clone $env:LIBMODBUS_URL --branch $env:LIBMODBUS_VERSION --depth 1 --single-branch $env:SystemDrive\libmodbus; `
-	`
-	Write-Host 'Building Libmodbus library...'; `
+    `
+    Write-Host 'Building Libmodbus library...'; `
     Copy-Item -Path $env:SystemDrive\modbus.vs16.vcxproj $env:SystemDrive\libmodbus\src\win32\modbus.vs16.vcxproj; `
     Copy-Item -Path $env:SystemDrive\modbus.vs16.sln $env:SystemDrive\libmodbus\src\win32\modbus.vs16.sln; `
     Copy-Item -Path $env:SystemDrive\modbus.vs16.vcxproj.filters $env:SystemDrive\libmodbus\src\win32\modbus.vs16.vcxproj.filters; `
@@ -216,10 +216,10 @@ RUN Set-Location -Path $env:SystemDrive\.; `
     cscript .\configure.js; `
     msbuild modbus.vs16.sln `
         -maxcpucount:"""$env:NUMBER_OF_PROCESSORS""" `
-		/verbosity:quiet `
+        /verbosity:quiet `
         /property:Configuration=Release `
         /property:Platform=$env:BUILD_ARCH; `
-	Write-Host 'Libmodbus is ready...';
+    Write-Host 'Libmodbus is ready...';
 
 FROM builder_base as builder_zabbix
 
@@ -233,7 +233,7 @@ ARG ZBX_COMPONENT=all
 ENV ZBX_SOURCES=$ZBX_SOURCES MAJOR_VERSION=$MAJOR_VERSION ZBX_VERSION=$ZBX_VERSION ZABBIX_VERSION_RC_NUM=$ZABBIX_VERSION_RC_NUM
 
 RUN Set-Location -Path $env:SystemDrive\.; `
-	`
+    `
     Import-Module ('{0}\Microsoft Visual Studio\2019\BuildTools\Common7\Tools\Microsoft.VisualStudio.DevShell.dll' -f ${env:ProgramFiles(x86)} ); `
     Enter-VsDevShell -VsInstallPath ('{0}\Microsoft Visual Studio\2019\BuildTools' -f ${env:ProgramFiles(x86)}) -DevCmdArguments """-arch=$env:BUILD_ARCH"""; `
     `
@@ -258,15 +258,15 @@ RUN Set-Location -Path $env:SystemDrive\.; `
         MODBINCDIR=$env:SystemDrive\libmodbus\src `
         MODBLIBDIR=$env:SystemDrive\libmodbus\src\win32\$env:BUILD_ARCH\Release `
         $env:ZBX_COMPONENT; `
-	`
+    `
     Write-Host 'Verifying build ("zabbix_agent2.exe -V") ...'; `
     & $env:SystemDrive\zabbix-$env:ZBX_VERSION\bin\win64\zabbix_agentd.exe -V; `
     dumpbin /dependents $env:SystemDrive\zabbix-$env:ZBX_VERSION\bin\win64\zabbix_agentd.exe; `
-	`
+    `
     New-Item -ItemType directory -Path $env:SystemDrive\zabbix | Out-Null; `
     New-Item -ItemType directory -Path $env:SystemDrive\zabbix\sbin | Out-Null; `
     New-Item -ItemType directory -Path $env:SystemDrive\zabbix\conf | Out-Null; `
-	`
+    `
     Copy-Item -Path $env:SystemDrive\zabbix-$env:ZBX_VERSION\bin\win64\zabbix_agentd.exe $env:SystemDrive\zabbix\sbin; `
     Copy-Item -Path $env:SystemDrive\zabbix-$env:ZBX_VERSION\bin\win64\zabbix_get.exe $env:SystemDrive\zabbix\sbin; `
     Copy-Item -Path $env:SystemDrive\zabbix-$env:ZBX_VERSION\bin\win64\zabbix_sender.exe $env:SystemDrive\zabbix\sbin; `
