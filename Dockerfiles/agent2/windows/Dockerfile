@@ -286,14 +286,17 @@ USER ContainerAdministrator
 
 RUN $env:PATH = [string]::Format('{0}\zabbix\sbin;{0}\zabbix\bin;', $env:SystemDrive) + $env:PATH; `
     [Environment]::SetEnvironmentVariable('PATH', $env:PATH, [EnvironmentVariableTarget]::Machine); `
+    `
     $env:ZBX_HOME = [string]::Format('{0}\zabbix', $env:SystemDrive); `
     [Environment]::SetEnvironmentVariable('ZBX_HOME', $env:ZBX_HOME, [EnvironmentVariableTarget]::Machine);
 
-RUN Set-Location -Path "$env:SystemDrive"\; `
+RUN Set-Location -Path $env:SystemDrive\.; `
+    `
     New-Item -ItemType directory -Path "$env:ZBX_HOME\conf\zabbix_agentd.d" | Out-Null; `
     New-Item -ItemType directory -Path "$env:ZBX_HOME\enc" | Out-Null; `
     New-Item -ItemType directory -Path "$env:ZBX_HOME\modules" | Out-Null; `
     New-Item -ItemType directory -Path "$env:ZBX_HOME\buffer" | Out-Null; `
+    `
     net user /add zabbix; `
     $acl = Get-Acl -Path $env:ZBX_HOME; `
     $ace = New-Object Security.AccessControl.FileSystemAccessRule ('zabbix', 'Modify', 'ContainerInherit, ObjectInherit', 'InheritOnly', 'Allow'); `
