@@ -11,7 +11,7 @@ on:
       - 'env_vars/*'
       - 'docker-compose*.yaml'
       - 'Dockerfiles/*/rhel/*'
-      - '*/windows/*'
+      - 'Dockerfiles/*/windows/*'
       - "**.md"
 
 defaults:
@@ -37,39 +37,39 @@ jobs:
         with:
           fetch-depth: 1
 
-      - name: Check build.xml file
+      - name: Check build.json file
         id: build_exists
         run: |
-            if [[ ! -f "./build.xml" ]]; then
-                echo "::error::File build.xml is missing"
+            if [[ ! -f "./build.json" ]]; then
+                echo "::error::File build.json is missing"
                 exit 1
             fi
 
       - name: Prepare Operating System list
         id: os
         run: |
-            os_list=$(jq -r '.os |  keys | [ .[] | tostring ] | @json' "./build.xml")
+            os_list=$(jq -r '.os |  keys | [ .[] | tostring ] | @json' "./build.json")
 
             echo "::set-output name=list::$os_list"
 
       - name: Prepare Platform list
         id: platform_list
         run: |
-            platform_list=$(jq -r '.os | tostring  | @json' "./build.xml")
+            platform_list=$(jq -r '.os | tostring  | @json' "./build.json")
 
             echo "::set-output name=list::$platform_list"
 
       - name: Prepare Database engine list
         id: database
         run: |
-            database_list=$(jq -r '[.components | values[] ] | sort | unique | del(.. | select ( . == "" ) ) | [ .[] | tostring ] | @json' "./build.xml")
+            database_list=$(jq -r '[.components | values[] ] | sort | unique | del(.. | select ( . == "" ) ) | [ .[] | tostring ] | @json' "./build.json")
 
             echo "::set-output name=list::$database_list"
 
       - name: Prepare Zabbix component list
         id: components
         run: |
-            component_list=$(jq -r '.components | keys | [ .[] | tostring ] | @json' "./build.xml")
+            component_list=$(jq -r '.components | keys | [ .[] | tostring ] | @json' "./build.json")
 
             echo "::set-output name=list::$component_list"
 
@@ -104,7 +104,7 @@ jobs:
       - name: Prepare Platform list
         id: platform
         run: |
-            platform_list=$(jq -r '.os.${{ matrix.os }} | join(",")' "./build.xml")
+            platform_list=$(jq -r '.os.${{ matrix.os }} | join(",")' "./build.json")
 
             echo ::set-output name=list::$platform_list
 
@@ -174,7 +174,7 @@ jobs:
       - name: Prepare Platform list
         id: platform
         run: |
-            platform_list=$(jq -r '.os.${{ matrix.os }} | join(",")' "./build.xml")
+            platform_list=$(jq -r '.os.${{ matrix.os }} | join(",")' "./build.json")
 
             echo ::set-output name=list::$platform_list
 
@@ -262,7 +262,7 @@ jobs:
             if [ "${{ matrix.os }}" == "alpine" ] && [ "${{ matrix.build }}" == "web-service" ]; then
                 platform_list="linux/amd64,linux/arm64"
             else
-                platform_list=$(jq -r '.os.${{ matrix.os }} | join(",")' "./build.xml")
+                platform_list=$(jq -r '.os.${{ matrix.os }} | join(",")' "./build.json")
             fi
 
             echo ::set-output name=list::$platform_list
@@ -270,7 +270,7 @@ jobs:
       - name: Detect Build Base Image
         id: build_base_image
         run: |
-          BUILD_BASE=$(jq -r '.components."${{ matrix.build }}"' "./build.xml")
+          BUILD_BASE=$(jq -r '.components."${{ matrix.build }}"' "./build.json")
 
           echo ::set-output name=build_base::${BUILD_BASE}
 
