@@ -71,8 +71,6 @@ RUN set -eux && \
             libssh-4 \
             libssl1.1 \
             libxml2 \
-#            Temporary!
-            libmodbus5 \
             mysql-client \
             snmp-mibs-downloader \
             unixodbc && \

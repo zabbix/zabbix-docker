@@ -67,8 +67,6 @@ RUN set -eux && \
             libxml2 \
             net-snmp-agent-libs \
             openipmi-libs \
-#           Temporary!
-            libmodbus \
             pcre \
             sqlite-libs \
             unixodbc && \
