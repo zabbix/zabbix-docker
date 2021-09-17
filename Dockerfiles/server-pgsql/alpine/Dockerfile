@@ -75,8 +75,6 @@ RUN set -eux && \
             net-snmp-agent-libs \
             openipmi-libs \
             pcre \
-#           Termporay!
-            libmodbus \
             postgresql-client \
             postgresql-libs \
             unixodbc && \

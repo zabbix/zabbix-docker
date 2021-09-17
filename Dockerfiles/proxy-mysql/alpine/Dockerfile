@@ -72,8 +72,6 @@ RUN set -eux && \
             openipmi-libs \
             pcre \
             unixodbc \
-#           Temporary!!
-            libmodbus \
             fping && \
     chown --quiet -R zabbix:root /etc/zabbix/ /var/lib/zabbix/ && \
     chgrp -R 0 /etc/zabbix/ /var/lib/zabbix/ && \

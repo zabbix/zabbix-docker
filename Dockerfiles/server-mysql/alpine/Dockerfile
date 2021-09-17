@@ -69,7 +69,6 @@ RUN set -eux && \
             libcurl \
             libevent \
             libldap \
-            libmodbus \
             libssh \
             libxml2 \
             mariadb-client \
