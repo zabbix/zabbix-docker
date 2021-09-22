@@ -29,39 +29,39 @@ jobs:
           ref: "refs/heads/trunk"
           fetch-depth: 1
 
-      - name: Check build.xml file
+      - name: Check build.json file
         id: build_exists
         run: |
-            if [[ ! -f "./build.xml" ]]; then
-                echo "::error::File build.xml is missing"
+            if [[ ! -f "./build.json" ]]; then
+                echo "::error::File build.json is missing"
                 exit 1
             fi
 
       - name: Prepare Operating System list
         id: os
         run: |
-            os_list=$(jq -r '.os |  keys | [ .[] | tostring ] | @json' "./build.xml")
+            os_list=$(jq -r '.os |  keys | [ .[] | tostring ] | @json' "./build.json")
 
             echo "::set-output name=list::$os_list"
 
       - name: Prepare Platform list
         id: platform_list
         run: |
-            platform_list=$(jq -r '.os | tostring  | @json' "./build.xml")
+            platform_list=$(jq -r '.os | tostring  | @json' "./build.json")
 
             echo "::set-output name=list::$platform_list"
 
       - name: Prepare Database engine list
         id: database
         run: |
-            database_list=$(jq -r '[.components | values[] ] | sort | unique | del(.. | select ( . == "" ) ) | [ .[] | tostring ] | @json' "./build.xml")
+            database_list=$(jq -r '[.components | values[] ] | sort | unique | del(.. | select ( . == "" ) ) | [ .[] | tostring ] | @json' "./build.json")
 
             echo "::set-output name=list::$database_list"
 
       - name: Prepare Zabbix component list
         id: components
         run: |
-            component_list=$(jq -r '.components | keys | [ .[] | tostring ] | @json' "./build.xml")
+            component_list=$(jq -r '.components | keys | [ .[] | tostring ] | @json' "./build.json")
 
             echo "::set-output name=list::$component_list"
 
@@ -97,11 +97,11 @@ jobs:
       - name: Prepare Platform list
         id: platform
         run: |
-            platform_list=$(jq -r '.os.${{ matrix.os }} | join(",")' "./build.xml")
+            platform_list=$(jq -r '.os.${{ matrix.os }} | join(",")' "./build.json")
 
             echo ::set-output name=list::$platform_list
 
-      - name: Docker meta
+      - name: Generate tags
         id: meta
         uses: docker/metadata-action@v3
         with:
@@ -110,24 +110,28 @@ jobs:
             type=raw,value=${{ matrix.os }}-trunk
             type=raw,value=trunk-${{ matrix.os }}
           flavor: |
-            latest=auto
+            latest=false
 
-      - name: Build and push
+      - name: Build ${{ env.BASE_BUILD_NAME }}/${{ matrix.os }} and push
         id: docker_build
         uses: docker/build-push-action@v2
         with:
-          context: ./${{ env.BASE_BUILD_NAME }}/${{ matrix.os }}
-          file: ./${{ env.BASE_BUILD_NAME }}/${{ matrix.os }}/Dockerfile
+          context: ./Dockerfiles/${{ env.BASE_BUILD_NAME }}/${{ matrix.os }}
+          file: ./Dockerfiles/${{ env.BASE_BUILD_NAME }}/${{ matrix.os }}/Dockerfile
           platforms: ${{ steps.platform.outputs.list }}
           push: ${{ secrets.AUTO_PUSH_IMAGES }}
           tags: ${{ steps.meta.outputs.tags }}
+          labels: |
+            org.opencontainers.image.revision=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.revision'] }}
+            org.opencontainers.image.created=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.created'] }}
 
       - name: Image digest
         run: |
             echo ${{ steps.docker_build.outputs.digest }}
             echo "${{ steps.docker_build.outputs.digest }}" > ${{ env.BASE_BUILD_NAME }}_${{ matrix.os }}
 
-      - uses: actions/upload-artifact@v2.2.4
+      - name: Upload SHA256 tag
+        uses: actions/upload-artifact@v2.2.4
         with:
          name: ${{ env.BASE_BUILD_NAME }}_${{ matrix.os }}
          path: ${{ env.BASE_BUILD_NAME }}_${{ matrix.os }}
@@ -145,9 +149,11 @@ jobs:
 
     runs-on: ubuntu-20.04
     steps:
-      - uses: actions/checkout@v2.3.4
+      - name: Checkout repository
+        uses: actions/checkout@v2.3.4
         with:
           ref: "refs/heads/trunk"
+          fetch-depth: 1
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v1
@@ -164,11 +170,11 @@ jobs:
       - name: Prepare Platform list
         id: platform
         run: |
-            platform_list=$(jq -r '.os.${{ matrix.os }} | join(",")' "./build.xml")
+            platform_list=$(jq -r '.os.${{ matrix.os }} | join(",")' "./build.json")
 
             echo ::set-output name=list::$platform_list
 
-      - name: Docker meta
+      - name: Generate tags
         id: meta
         uses: docker/metadata-action@v3
         with:
@@ -177,13 +183,14 @@ jobs:
             type=raw,value=${{ matrix.os }}-trunk
             type=raw,value=trunk-${{ matrix.os }}
           flavor: |
-            latest=auto
+            latest=false
 
-      - uses: actions/download-artifact@v2.0.10
+      - name: Download SHA256 tag  build-base:${{ matrix.os }}
+        uses: actions/download-artifact@v2.0.10
         with:
           name: build-base_${{ matrix.os }}
 
-      - name: Retrieve base build SHA256 tag
+      - name: Retrieve build-base:${{ matrix.os }} SHA256 tag
         id: base_build
         run: |
           BASE_TAG=$(cat build-base_${{ matrix.os }})
@@ -192,23 +199,27 @@ jobs:
           echo ::set-output name=base_tag::${BASE_TAG}
           echo ::set-output name=base_build_image::${BUILD_BASE_IMAGE}
 
-      - name: Build and push
+      - name: Build ${{ matrix.build }}/${{ matrix.os }} and push
         id: docker_build
         uses: docker/build-push-action@v2
         with:
-          context: ./${{ matrix.build }}/${{ matrix.os }}
-          file: ./${{ matrix.build }}/${{ matrix.os }}/Dockerfile
+          context: ./Dockerfiles/${{ matrix.build }}/${{ matrix.os }}
+          file: ./Dockerfiles/${{ matrix.build }}/${{ matrix.os }}/Dockerfile
           platforms: ${{ steps.platform.outputs.list }}
           push: ${{ secrets.AUTO_PUSH_IMAGES }}
           tags: ${{ steps.meta.outputs.tags }}
           build-args: BUILD_BASE_IMAGE=${{ steps.base_build.outputs.base_build_image }}
+          labels: |
+            org.opencontainers.image.revision=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.revision'] }}
+            org.opencontainers.image.created=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.created'] }}
 
       - name: Image digest
         run: |
             echo ${{ steps.docker_build.outputs.digest }}
             echo "${{ steps.docker_build.outputs.digest }}" > ${{ matrix.build }}_${{ matrix.os }}
 
-      - uses: actions/upload-artifact@v2.2.4
+      - name: Upload SHA256 tag
+        uses: actions/upload-artifact@v2.2.4
         with:
          name: ${{ matrix.build }}_${{ matrix.os }}
          path: ${{ matrix.build }}_${{ matrix.os }}
@@ -226,9 +237,11 @@ jobs:
 
     runs-on: ubuntu-20.04
     steps:
-      - uses: actions/checkout@v2.3.4
+      - name: Checkout repository
+        uses: actions/checkout@v2.3.4
         with:
           ref: "refs/heads/trunk"
+          fetch-depth: 1
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v1
@@ -245,18 +258,23 @@ jobs:
       - name: Prepare Platform list
         id: platform
         run: |
-            platform_list=$(jq -r '.os.${{ matrix.os }} | join(",")' "./build.xml")
+            # Chromium on Alpine is available only on linux/amd64, linux/arm64 platforms
+            if [ "${{ matrix.os }}" == "alpine" ] && [ "${{ matrix.build }}" == "web-service" ]; then
+                platform_list="linux/amd64,linux/arm64"
+            else
+                platform_list=$(jq -r '.os.${{ matrix.os }} | join(",")' "./build.json")
+            fi
 
             echo ::set-output name=list::$platform_list
 
       - name: Detect Build Base Image
         id: build_base_image
         run: |
-          BUILD_BASE=$(jq -r '.components."${{ matrix.build }}"' "./build.xml")
+          BUILD_BASE=$(jq -r '.components."${{ matrix.build }}"' "./build.json")
 
           echo ::set-output name=build_base::${BUILD_BASE}
 
-      - name: Docker meta
+      - name: Generate tags
         id: meta
         uses: docker/metadata-action@v3
         with:
@@ -265,14 +283,15 @@ jobs:
             type=raw,value=${{ matrix.os }}-trunk
             type=raw,value=trunk-${{ matrix.os }}
           flavor: |
-            latest=auto
+            latest=false
 
-      - uses: actions/download-artifact@v2.0.10
+      - name: Download SHA256 tag for ${{ steps.build_base_image.outputs.build_base }}:${{ matrix.os }}
+        uses: actions/download-artifact@v2.0.10
         if: ${{ matrix.build != 'snmptraps' }}
         with:
           name: ${{ steps.build_base_image.outputs.build_base }}_${{ matrix.os }}
 
-      - name: Retrieve base build SHA256 tag
+      - name: Retrieve ${{ steps.build_base_image.outputs.build_base }}:${{ matrix.os }} SHA256 tag
         id: base_build
         if: ${{ matrix.build != 'snmptraps' }}
         run: |
@@ -282,16 +301,19 @@ jobs:
           echo ::set-output name=base_tag::${BASE_TAG}
           echo ::set-output name=base_build_image::${BUILD_BASE_IMAGE}
 
-      - name: Build and push
+      - name: Build ${{ matrix.build }}/${{ matrix.os }} and push
         id: docker_build
         uses: docker/build-push-action@v2
         with:
-          context: ./${{ matrix.build }}/${{ matrix.os }}
-          file: ./${{ matrix.build }}/${{ matrix.os }}/Dockerfile
+          context: ./Dockerfiles/${{ matrix.build }}/${{ matrix.os }}
+          file: ./Dockerfiles/${{ matrix.build }}/${{ matrix.os }}/Dockerfile
           platforms: ${{ steps.platform.outputs.list }}
-          push: false
+          push: ${{ secrets.AUTO_PUSH_IMAGES }}
           tags: ${{ steps.meta.outputs.tags }}
           build-args: BUILD_BASE_IMAGE=${{ steps.base_build.outputs.base_build_image }}
+          labels: |
+            org.opencontainers.image.revision=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.revision'] }}
+            org.opencontainers.image.created=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.created'] }}
 
       - name: Image digest
         run: echo ${{ steps.docker_build.outputs.digest }}
