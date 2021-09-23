@@ -5,6 +5,42 @@ metadata:
   labels:
     name: zabbix
 ---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: zabbix-agent
+  namespace: zabbix
+rules:
+- verbs:
+  - use
+  apiGroups:
+  - security.openshift.io
+  resources:
+  - securitycontextconstraints
+  resourceNames:
+  - privileged
+  - hostaccess
+  - hostnetwork
+---
+kind: RoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: zabbix-agent
+  namespace: zabbix
+subjects:
+- kind: ServiceAccount
+  name: zabbix-agent
+roleRef:
+  kind: Role
+  name: zabbix-agent
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: zabbix-agent
+  namespace: zabbix
+---
 apiVersion: v1
 kind: Service
 metadata:
@@ -22,8 +58,8 @@ spec:
     name: web-https
   selector:
     name: zabbix-web
-  externalIPs:
-  - <Specify external IP here>
+  sessionAffinity: None
+  type: ClusterIP
 ---
 apiVersion: v1
 kind: Service
@@ -59,8 +95,8 @@ spec:
     name: snmp-trap
   selector:
     name: zabbix-server
-  externalIPs:
-  - <Specify external IP here>
+  sessionAffinity: None
+  type: ClusterIP
 ---
 apiVersion: v1
 kind: Service
@@ -80,6 +116,8 @@ spec:
     name: snmp-trap
   selector:
     name: zabbix-proxy-sqlite3
+  sessionAffinity: None
+  type: ClusterIP
 ---
 apiVersion: v1
 kind: Service
@@ -118,6 +156,21 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
+  name: zabbix-web-service
+  labels:
+    app: zabbix
+  namespace: zabbix
+spec:
+  ports:
+  - port: 10053
+    targetPort: 10053
+    name: zabbix-web-svc
+  selector:
+    name: zabbix-web-service
+---
+apiVersion: v1
+kind: Service
+metadata:
   name: zabbix-agent
   labels:
     app: zabbix
@@ -146,10 +199,14 @@ spec:
         name: zabbix-web
         app: zabbix
     spec:
+      volumes:
+       - name: mysql-tls-certs
+         secret:
+          secretName: zabbix-mysql-client-tls-certs
       containers:
         - name: zabbix-web
           image: zabbix/zabbix-web-nginx-mysql:alpine-trunk
-          imagePullPolicy: Always
+          imagePullPolicy: IfNotPresent
           ports:
           - containerPort: 8080
             name: web-http
@@ -184,9 +241,11 @@ spec:
             failureThreshold: 5
           env:
           - name: ZBX_SERVER_NAME
-            value: "Zabbix kubernetes"
+            value: "Zabbix Kubernetes"
           - name: PHP_TZ
             value: "Europe/Riga"
+          - name: DB_SERVER_HOST
+            value: "mysql-server"
           - name: MYSQL_USER
             valueFrom:
              secretKeyRef:
@@ -204,17 +263,49 @@ spec:
               key: db-root-pass
           - name: MYSQL_DATABASE
             value: "zabbix"
+          - name: ZBX_DB_ENCRYPTION
+            value: "true"
+          - name: ZBX_DB_CA_FILE
+            value: "/tmp/secrets/root-ca.pem"
+          - name: ZBX_DB_CERT_FILE
+            value: "/tmp/secrets/client-cert.pem"
+          - name: ZBX_DB_KEY_FILE
+            value: "/tmp/secrets/client-key.pem"
+          - name: ZBX_DB_VERIFY_HOST
+            value: "false"
+          - name: ZBX_DB_CIPHER_LIST
+            value: ""
+#          - name: ZBX_HISTORYSTORAGEURL
+#            value: ""
+#          - name: ZBX_HISTORYSTORAGETYPES
+#            value: ""
+#          - name: ZBX_MAXEXECUTIONTIME
+#            value: ""
+#          - name: ZBX_MEMORYLIMIT
+#            value: ""
+#          - name: ZBX_POSTMAXSIZE
+#            value: ""
+#          - name: ZBX_UPLOADMAXFILESIZE
+#            value: ""
+#          - name: ZBX_MAXINPUTTIME
+#            value: ""
+#          - name: ZBX_SESSION_NAME
+#            value: ""
+#          - name: DB_DOUBLE_IEEE754
+#            value: "true"
+          - name: ZBX_SSO_SETTINGS
+            value: "[]"
+          - name: ENABLE_WEB_ACCESS_LOG
+            value: "true"
+          - name: DEBUG_MODE
+            value: "false"
           volumeMounts:
-          - name: zabbix-web-ssl
-            mountPath: /etc/ssl/nginx
+          - mountPath: "/tmp/secrets"
+            name: mysql-tls-certs
             readOnly: true
-      volumes:
-       - hostPath:
-          path: ./zbx_env/etc/ssl/nginx/
-         name: zabbix-web-ssl
 ---
-apiVersion: v1
-kind: ReplicationController
+apiVersion: apps/v1
+kind: Deployment
 metadata:
   name: mysql-server
   labels:
@@ -222,7 +313,13 @@ metadata:
     tier: mysql-server
   namespace: zabbix
 spec:
-  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      name: mysql-server
+      app: zabbix
+      tier: mysql-server
   template:
     metadata:
       labels:
@@ -234,12 +331,38 @@ spec:
        - name: zabbix-mysql-data
          persistentVolumeClaim:
           claimName: zabbix-mysql-data-claim
+       - name: mysql-tls-certs
+         secret:
+          secretName: zabbix-mysql-server-tls-certs
       containers:
         - name: zabbix-db
-          image: mysql:5.7
+          image: mysql:8.0
+          args:
+           - mysqld
+           - --character-set-server=utf8
+           - --collation-server=utf8_bin
+           - --default-authentication-plugin=mysql_native_password
+           - --require-secure-transport
+           - --ssl-ca=/tmp/secrets/root-ca.pem
+           - --ssl-cert=/tmp/secrets/server-cert.pem
+           - --ssl-key=/tmp/secrets/server-key.pem
+           - --tls-version=TLSv1.2,TLSv1.3
           ports:
           - containerPort: 3306
             name: mysql
+          livenessProbe:
+            exec:
+              command: ["bash", "-c", "mysqladmin -u root -p$MYSQL_ROOT_PASSWORD ping"]
+            timeoutSeconds: 3
+            failureThreshold: 3
+            periodSeconds: 10
+          startupProbe:
+            exec:
+              command: ["bash", "-c", "mysql -u root -p$MYSQL_ROOT_PASSWORD -e 'SELECT 1'"]
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 30
           env:
           - name: MYSQL_USER
             valueFrom:
@@ -259,12 +382,18 @@ spec:
           - name: MYSQL_DATABASE
             value: "zabbix"
           volumeMounts:
-           - mountPath: "/var/lib/mysql/"
+           - mountPath: "/var/lib/mysql"
              name: zabbix-mysql-data
              readOnly: false
+           - mountPath: "/tmp/secrets"
+             name: mysql-tls-certs
+             readOnly: true
+          securityContext:
+            capabilities: {}
+            privileged: false
 ---
-apiVersion: v1
-kind: ReplicationController
+apiVersion: apps/v1
+kind: Deployment
 metadata:
   name: zabbix-server
   labels:
@@ -273,17 +402,30 @@ metadata:
     environment: dev
   namespace: zabbix
 spec:
-  replicas: 1
+  strategy:
+    type: Recreate
+    rollingUpdate: null
+  selector:
+    matchLabels:
+      name: zabbix-server
+      app: zabbix
   template:
     metadata:
       labels:
         name: zabbix-server
         app: zabbix
     spec:
+      volumes:
+       - name: zabbix-snmptraps
+         persistentVolumeClaim:
+          claimName: zabbix-snmptraps-claim
+       - name: mysql-tls-certs
+         secret:
+           secretName: zabbix-mysql-client-tls-certs
       containers:
         - name: zabbix-server
           image: zabbix/zabbix-server-mysql:alpine-trunk
-          imagePullPolicy: Always
+          imagePullPolicy: IfNotPresent
           ports:
           - containerPort: 10051
             protocol: TCP
@@ -316,38 +458,178 @@ spec:
               key: db-root-pass
           - name: MYSQL_DATABASE
             value: "zabbix"
+          - name: ZBX_DBTLSCONNECT
+            value: "required"
+          - name: ZBX_DBTLSCAFILE
+            value: "/tmp/secrets/root-ca.pem"
+          - name: ZBX_DBTLSCERTFILE
+            value: "/tmp/secrets/client-cert.pem"
+          - name: ZBX_DBTLSKEYFILE
+            value: "/tmp/secrets/client-key.pem"
+          - name: ZBX_DBTLSCIPHER
+            value: ""
+          - name: ZBX_DBTLSCIPHER13
+            value: ""
+          - name: ZBX_HISTORYSTORAGEURL
+            value: ""
+          - name: ZBX_HISTORYSTORAGETYPES
+            value: ""
+          - name: ZBX_HISTORYSTORAGEDATEINDEX
+            value: "1"
+          - name: ZBX_STARTREPORTWRITERS
+            value: "3"
+          - name: ZBX_WEBSERVICEURL
+            value: "http://zabbix-web-service:10053/report"
+          - name: ZBX_DEBUGLEVEL
+            value: "3"
+          - name: ZBX_STARTPOLLERS
+            value: ""
+          - name: ZBX_STARTPREPROCESSORS
+            value: ""
+          - name: ZBX_STARTPOLLERSUNREACHABLE
+            value: ""
+          - name: ZBX_STARTTRAPPERS
+            value: ""
+          - name: ZBX_STARTPINGERS
+            value: ""
+          - name: ZBX_STARTDISCOVERERS
+            value: ""
+          - name: ZBX_STARTHTTPPOLLERS
+            value: ""
+          - name: ZBX_IPMIPOLLERS
+            value: ""
+          - name: ZBX_STARTTIMERS
+            value: ""
+          - name: ZBX_STARTESCALATORS
+            value: ""
+          - name: ZBX_STARTALERTERS
+            value: ""
           - name: ZBX_JAVAGATEWAY_ENABLE
             value: "true"
+          - name: ZBX_JAVAGATEWAY
+            value: "zabbix-java-gateway"
+          - name: ZBX_JAVAGATEWAYPORT
+            value: "10052"
           - name: ZBX_STARTJAVAPOLLERS
             value: "5"
+          - name: ZBX_STARTLLDPROCESSORS
+            value: ""
+          - name: ZBX_STATSALLOWEDIP
+            value: ""
+          - name: ZBX_STARTVMWARECOLLECTORS
+            value: ""
+          - name: ZBX_VMWAREFREQUENCY
+            value: ""
+          - name: ZBX_VMWAREPERFFREQUENCY
+            value: ""
+          - name: ZBX_VMWARECACHESIZE
+            value: ""
+          - name: ZBX_VMWARETIMEOUT
+            value: ""
           - name: ZBX_ENABLE_SNMP_TRAPS
             value: "true"
+          - name: ZBX_HOUSEKEEPINGFREQUENCY
+            value: ""
+          - name: ZBX_MAXHOUSEKEEPERDELETE
+            value: ""
+          - name: ZBX_CACHESIZE
+            value: ""
+          - name: ZBX_CACHEUPDATEFREQUENCY
+            value: ""
+          - name: ZBX_STARTDBSYNCERS
+            value: ""
+          - name: ZBX_HISTORYCACHESIZE
+            value: ""
+          - name: ZBX_HISTORYINDEXCACHESIZE
+            value: ""
+          - name: ZBX_TRENDCACHESIZE
+            value: ""
+          - name: ZBX_VALUECACHESIZE
+            value: ""
+          - name: ZBX_TIMEOUT
+            value: "4"
+          - name: ZBX_TRAPPERIMEOUT
+            value: ""
+          - name: ZBX_UNREACHABLEPERIOD
+            value: ""
+          - name: ZBX_UNAVAILABLEDELAY
+            value: ""
+          - name: ZBX_UNREACHABLEDELAY
+            value: ""
+          - name: ZBX_LOGSLOWQUERIES
+            value: "3000"
           - name: ZBX_STARTPROXYPOLLERS
-            value: "5"
+            value: ""
           - name: ZBX_PROXYCONFIGFREQUENCY
-            value: "60"
+            value: ""
+          - name: ZBX_PROXYDATAFREQUENCY
+            value: ""
+          - name: ZBX_EXPORTFILESIZE
+            value: ""
+          - name: ZBX_LOADMODULE
+            value: ""
+          - name: ZBX_TLSCAFILE
+            value: ""
+          - name: ZBX_TLSCRLFILE
+            value: ""
+          - name: ZBX_TLSCERTFILE
+            value: ""
+          - name: ZBX_TLSKEYFILE
+            value: ""
+          - name: ZBX_TLSCIPHERALL
+            value: ""
+          - name: ZBX_TLSCIPHERALL13
+            value: ""
+          - name: ZBX_TLSCIPHERCERT
+            value: ""
+          - name: ZBX_TLSCIPHERCERT13
+            value: ""
+          - name: ZBX_TLSCIPHERPSK
+            value: ""
+          - name: ZBX_TLSCIPHERPSK13
+            value: ""
+          - name: DEBUG_MODE
+            value: "false"
           volumeMounts:
-          - name: zabbix-db-storage
-            mountPath: /var/lib/zabbix/snmptraps/
+          - name: zabbix-snmptraps
+            mountPath: "/var/lib/zabbix/snmptraps"
             readOnly: true
+          - mountPath: "/tmp/secrets"
+            name: mysql-tls-certs
+            readOnly: true
+          startupProbe:
+            tcpSocket:
+              port: 10051
+            initialDelaySeconds: 15
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 40
+          livenessProbe:
+            tcpSocket:
+              port: 10051
+            timeoutSeconds: 3
+            failureThreshold: 3
+            periodSeconds: 10
+          securityContext:
+            capabilities: {}
+            privileged: false
         - name: zabbix-snmptraps
           image: zabbix/zabbix-snmptraps:alpine-trunk
-          imagePullPolicy: Always
+          imagePullPolicy: IfNotPresent
           ports:
           - containerPort: 1162
             protocol: UDP
             name: snmp-trap
           volumeMounts:
-          - name: zabbix-db-storage
+          - name: zabbix-snmptraps
             mountPath: /var/lib/zabbix/snmptraps/
             readOnly: false
-      volumes:
-       - hostPath:
-          path: /zabbix/
-         name: zabbix-db-storage
+          securityContext:
+            capabilities: {}
+            privileged: false
 ---
-apiVersion: v1
-kind: ReplicationController
+apiVersion: apps/v1
+kind: Deployment
 metadata:
   name: zabbix-proxy-sqlite3
   labels:
@@ -355,7 +637,13 @@ metadata:
     tier: proxy
   namespace: zabbix
 spec:
-  replicas: 1
+  strategy:
+    type: Recreate
+    rollingUpdate: null
+  selector:
+    matchLabels:
+      name: zabbix-proxy-sqlite3
+      app: zabbix
   template:
     metadata:
       labels:
@@ -365,21 +653,140 @@ spec:
       containers:
         - name: zabbix-proxy-sqlite3
           image: zabbix/zabbix-proxy-sqlite3:alpine-trunk
-          imagePullPolicy: Always
+          imagePullPolicy: IfNotPresent
           ports:
           - containerPort: 10051
             protocol: TCP
             name: zabbix-trapper
+          startupProbe:
+            tcpSocket:
+              port: 10051
+            initialDelaySeconds: 15
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 40
+          livenessProbe:
+            tcpSocket:
+              port: 10051
+            timeoutSeconds: 3
+            failureThreshold: 3
+            periodSeconds: 10
           env:
-          - name: ZBX_HOSTNAME
-            value: "zabbix-proxy-passive"
-          - name: ZBX_CONFIGFREQUENCY
-            value: "60"
           - name: ZBX_PROXYMODE
             value: "1"
+          - name: ZBX_SERVER_HOST
+            value: ""
+          - name: ZBX_SERVER_PORT
+            value: ""
+          - name: ZBX_HOSTNAME
+            value: "zabbix-proxy-sqlite"
+          - name: ZBX_ENABLEREMOTECOMMANDS
+            value: "0"
+          - name: ZBX_LOGREMOTECOMMANDS
+            value: "1"
+          - name: ZBX_HOSTNAMEITEM
+            value: ""
+          - name: ZBX_DEBUGLEVEL
+            value: "3"
+          - name: ZBX_PROXYLOCALBUFFER
+            value: ""
+          - name: ZBX_PROXYOFFLINEBUFFER
+            value: ""
+          - name: ZBX_STARTPOLLERS
+            value: ""
+          - name: ZBX_IPMIPOLLERS
+            value: ""
+          - name: ZBX_STARTPOLLERSUNREACHABLE
+            value: ""
+          - name: ZBX_STARTTRAPPERS
+            value: ""
+          - name: ZBX_STARTPINGERS
+            value: ""
+          - name: ZBX_STARTDISCOVERERS
+            value: ""
+          - name: ZBX_STARTHTTPPOLLERS
+            value: ""
+          - name: ZBX_JAVAGATEWAY_ENABLE
+            value: "true"
+          - name: ZBX_JAVAGATEWAY
+            value: "zabbix-java-gateway"
+          - name: ZBX_JAVAGATEWAYPORT
+            value: "10052"
+          - name: ZBX_STARTJAVAPOLLERS
+            value: "5"
+          - name: ZBX_STARTVMWARECOLLECTORS
+            value: ""
+          - name: ZBX_VMWAREFREQUENCY
+            value: ""
+          - name: ZBX_VMWAREPERFFREQUENCY
+            value: ""
+          - name: ZBX_VMWARECACHESIZE
+            value: ""
+          - name: ZBX_VMWARETIMEOUT
+            value: ""
+          - name: ZBX_HOUSEKEEPINGFREQUENCY
+            value: ""
+          - name: ZBX_CACHESIZE
+            value: ""
+          - name: ZBX_STARTDBSYNCERS
+            value: ""
+          - name: ZBX_HISTORYCACHESIZE
+            value: ""
+          - name: ZBX_HISTORYINDEXCACHESIZE
+            value: ""
+          - name: ZBX_TIMEOUT
+            value: "4"
+          - name: ZBX_TRAPPERIMEOUT
+            value: ""
+          - name: ZBX_UNREACHABLEPERIOD
+            value: ""
+          - name: ZBX_UNAVAILABLEDELAY
+            value: ""
+          - name: ZBX_UNREACHABLEDELAY
+            value: ""
+          - name: ZBX_LOGSLOWQUERIES
+          - name: ZBX_LOADMODULE
+            value: ""
+          - name: ZBX_TLSCONNECT
+            value: ""
+          - name: ZBX_TLSACCEPT
+            value: ""
+          - name: ZBX_TLSCAFILE
+            value: ""
+          - name: ZBX_TLSCRLFILE
+            value: ""
+          - name: ZBX_TLSSERVERCERTISSUER
+            value: ""
+          - name: ZBX_TLSSERVERCERTSUBJECT
+            value: ""
+          - name: ZBX_TLSCERTFILE
+            value: ""
+          - name: ZBX_TLSKEYFILE
+            value: ""
+          - name: ZBX_TLSPSKIDENTITY
+            value: ""
+          - name: ZBX_TLSPSKFILE
+            value: ""
+          - name: ZBX_TLSCIPHERALL
+            value: ""
+          - name: ZBX_TLSCIPHERALL13
+            value: ""
+          - name: ZBX_TLSCIPHERCERT
+            value: ""
+          - name: ZBX_TLSCIPHERCERT13
+            value: ""
+          - name: ZBX_TLSCIPHERPSK
+            value: ""
+          - name: ZBX_TLSCIPHERPSK13
+            value: ""
+          - name: DEBUG_MODE
+            value: "false"
+          securityContext:
+            capabilities: {}
+            privileged: false
 ---
-apiVersion: v1
-kind: ReplicationController
+apiVersion: apps/v1
+kind: Deployment
 metadata:
   name: zabbix-proxy-mysql
   labels:
@@ -387,21 +794,41 @@ metadata:
     tier: proxy
   namespace: zabbix
 spec:
-  replicas: 1
+  strategy:
+    type: Recreate
+    rollingUpdate: null
+  selector:
+    matchLabels:
+      name: zabbix-proxy-mysql
+      app: zabbix
   template:
     metadata:
       labels:
         name: zabbix-proxy-mysql
         app: zabbix
     spec:
+      volumes:
+       - name: mysql-tls-certs
+         secret:
+           secretName: zabbix-mysql-client-tls-certs
       containers:
         - name: zabbix-proxy-mysql
           image: zabbix/zabbix-proxy-mysql:alpine-trunk
-          imagePullPolicy: Always
+          imagePullPolicy: IfNotPresent
           ports:
           - containerPort: 10051
             protocol: TCP
             name: zabbix-trapper
+          readinessProbe:
+            tcpSocket:
+              port: zabbix-trapper
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            tcpSocket:
+              port: zabbix-trapper
+            initialDelaySeconds: 15
+            periodSeconds: 20
           env:
           - name: MYSQL_USER
             valueFrom:
@@ -420,9 +847,144 @@ spec:
               key: db-root-pass
           - name: MYSQL_DATABASE
             value: "zabbix_proxy"
+          - name: ZBX_DBTLSCONNECT
+            value: "required"
+          - name: ZBX_DBTLSCAFILE
+            value: "/tmp/secrets/root-ca.pem"
+          - name: ZBX_DBTLSCERTFILE
+            value: "/tmp/secrets/client-cert.pem"
+          - name: ZBX_DBTLSKEYFILE
+            value: "/tmp/secrets/client-key.pem"
+          - name: ZBX_DBTLSCIPHER
+            value: ""
+          - name: ZBX_DBTLSCIPHER13
+            value: ""
+          - name: ZBX_PROXYMODE
+            value: "0"
+          - name: ZBX_SERVER_HOST
+            value: "zabbix-server"
+          - name: ZBX_SERVER_PORT
+            value: "10051"
+          - name: ZBX_HOSTNAME
+            value: "zabbix-proxy-mysql"
+          - name: ZBX_ENABLEREMOTECOMMANDS
+            value: "0"
+          - name: ZBX_LOGREMOTECOMMANDS
+            value: "1"
+          - name: ZBX_HOSTNAMEITEM
+            value: ""
+          - name: ZBX_DEBUGLEVEL
+            value: "3"
+          - name: ZBX_PROXYLOCALBUFFER
+            value: ""
+          - name: ZBX_PROXYOFFLINEBUFFER
+            value: ""
+          - name: ZBX_PROXYHEARTBEATFREQUENCY
+            value: ""
+          - name: ZBX_CONFIGFREQUENCY
+            value: ""
+          - name: ZBX_DATASENDERFREQUENCY
+            value: ""
+          - name: ZBX_STARTPOLLERS
+            value: ""
+          - name: ZBX_IPMIPOLLERS
+            value: ""
+          - name: ZBX_STARTPOLLERSUNREACHABLE
+            value: ""
+          - name: ZBX_STARTTRAPPERS
+            value: ""
+          - name: ZBX_STARTPINGERS
+            value: ""
+          - name: ZBX_STARTDISCOVERERS
+            value: ""
+          - name: ZBX_STARTHTTPPOLLERS
+            value: ""
+          - name: ZBX_JAVAGATEWAY_ENABLE
+            value: "true"
+          - name: ZBX_JAVAGATEWAY
+            value: "zabbix-java-gateway"
+          - name: ZBX_JAVAGATEWAYPORT
+            value: "10052"
+          - name: ZBX_STARTJAVAPOLLERS
+            value: "5"
+          - name: ZBX_STARTVMWARECOLLECTORS
+            value: ""
+          - name: ZBX_VMWAREFREQUENCY
+            value: ""
+          - name: ZBX_VMWAREPERFFREQUENCY
+            value: ""
+          - name: ZBX_VMWARECACHESIZE
+            value: ""
+          - name: ZBX_VMWARETIMEOUT
+            value: ""
+          - name: ZBX_HOUSEKEEPINGFREQUENCY
+            value: ""
+          - name: ZBX_CACHESIZE
+            value: ""
+          - name: ZBX_STARTDBSYNCERS
+            value: ""
+          - name: ZBX_HISTORYCACHESIZE
+            value: ""
+          - name: ZBX_HISTORYINDEXCACHESIZE
+            value: ""
+          - name: ZBX_TIMEOUT
+            value: "4"
+          - name: ZBX_TRAPPERIMEOUT
+            value: ""
+          - name: ZBX_UNREACHABLEPERIOD
+            value: ""
+          - name: ZBX_UNAVAILABLEDELAY
+            value: ""
+          - name: ZBX_UNREACHABLEDELAY
+            value: ""
+          - name: ZBX_LOGSLOWQUERIES
+            value: ""
+          - name: ZBX_LOADMODULE
+            value: ""
+          - name: ZBX_TLSCONNECT
+            value: ""
+          - name: ZBX_TLSACCEPT
+            value: ""
+          - name: ZBX_TLSCAFILE
+            value: ""
+          - name: ZBX_TLSCRLFILE
+            value: ""
+          - name: ZBX_TLSSERVERCERTISSUER
+            value: ""
+          - name: ZBX_TLSSERVERCERTSUBJECT
+            value: ""
+          - name: ZBX_TLSCERTFILE
+            value: ""
+          - name: ZBX_TLSKEYFILE
+            value: ""
+          - name: ZBX_TLSPSKIDENTITY
+            value: ""
+          - name: ZBX_TLSPSKFILE
+            value: ""
+          - name: ZBX_TLSCIPHERALL
+            value: ""
+          - name: ZBX_TLSCIPHERALL13
+            value: ""
+          - name: ZBX_TLSCIPHERCERT
+            value: ""
+          - name: ZBX_TLSCIPHERCERT13
+            value: ""
+          - name: ZBX_TLSCIPHERPSK
+            value: ""
+          - name: ZBX_TLSCIPHERPSK13
+            value: ""
+          - name: DEBUG_MODE
+            value: "false"
+          volumeMounts:
+          - mountPath: "/tmp/secrets"
+            name: mysql-tls-certs
+            readOnly: true
+          securityContext:
+            capabilities: {}
+            privileged: false
 ---
-apiVersion: v1
-kind: ReplicationController
+apiVersion: apps/v1
+kind: Deployment
 metadata:
   name: zabbix-java-gateway
   labels:
@@ -430,7 +992,10 @@ metadata:
     tier: java
   namespace: zabbix
 spec:
-  replicas: 1
+  selector:
+    matchLabels:
+     name: zabbix-java-gateway
+     app: zabbix
   template:
     metadata:
       labels:
@@ -440,14 +1005,94 @@ spec:
       containers:
         - name: zabbix-java-gateway
           image: zabbix/zabbix-java-gateway:alpine-trunk
-          imagePullPolicy: Always
+          imagePullPolicy: IfNotPresent
           ports:
           - containerPort: 10052
             protocol: TCP
-            name: zabbix-jmx
+            name: zabbix-java
+          livenessProbe:
+            tcpSocket:
+              port: 10052
+            initialDelaySeconds: 5
+            failureThreshold: 3
+            periodSeconds: 2
           env:
-          - name: ZBX_TIMEOUT
+          - name: ZBX_START_POLLERS
             value: "5"
+          - name: ZBX_TIMEOUT
+            value: "3"
+          - name: ZBX_DEBUGLEVEL
+            value: "info"
+          - name: JAVA_OPTIONS
+            value: ""
+          - name: DEBUG_MODE
+            value: "false"
+          securityContext:
+            capabilities: {}
+            privileged: false
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: zabbix-web-service
+  labels:
+    app: zabbix
+    tier: web-service
+  namespace: zabbix
+spec:
+  selector:
+    matchLabels:
+     name: zabbix-web-service
+     app: zabbix
+  template:
+    metadata:
+      labels:
+        name: zabbix-web-service
+        app: zabbix
+    spec:
+      containers:
+        - name: zabbix-web-service
+          image: zabbix/zabbix-web-service:alpine-trunk
+          imagePullPolicy: IfNotPresent
+          resources:
+           limits:
+            cpu: 100m
+            memory: 512Mi
+           requests:
+            cpu: 100m
+            memory: 512Mi
+          ports:
+          - containerPort: 10053
+            protocol: TCP
+            name: zabbix-web-svc
+          livenessProbe:
+            tcpSocket:
+              port: 10053
+            initialDelaySeconds: 5
+            failureThreshold: 3
+            periodSeconds: 2
+          env:
+          - name: ZBX_ALLOWEDIP
+            value: "0.0.0.0/0"
+          - name: ZBX_LISTENPORT
+            value: "10053"
+          - name: ZBX_DEBUGLEVEL
+            value: "3"
+          - name: ZBX_TIMEOUT
+            value: "3"
+          - name: ZBX_TLSACCEPT
+            value: ""
+          - name: ZBX_TLSCAFILE
+            value: ""
+          - name: ZBX_TLSCERTFILE
+            value: ""
+          - name: ZBX_TLSKEYFILE
+            value: ""
+          - name: DEBUG_MODE
+            value: "false"
+          securityContext:
+            capabilities: {}
+            privileged: false
 ---
 apiVersion: apps/v1
 kind: DaemonSet
@@ -471,10 +1116,17 @@ spec:
         name: zabbix-agent
         app: zabbix
     spec:
+      hostNetwork: true
+      hostIPC: true
+      hostPID: true
+      automountServiceAccountToken: true
+      serviceAccountName: zabbix-agent
+      nodeSelector:
+       beta.kubernetes.io/os: linux
       containers:
         - name: zabbix-agent
           image: zabbix/zabbix-agent:alpine-trunk
-          imagePullPolicy: Always
+          imagePullPolicy: IfNotPresent
           resources:
            limits:
             cpu: 100m
@@ -485,17 +1137,134 @@ spec:
           ports:
           - containerPort: 10050
             name: zabbix-agent
+          livenessProbe:
+            tcpSocket:
+              port: 10050
+            initialDelaySeconds: 5
+            failureThreshold: 3
+            periodSeconds: 2
           env:
-          - name: ZBX_SERVER_HOST
-            value: "zabbix-server"
-          - name: ZBX_PASSIVE_ALLOW
-            value: "true"
-          - name: ZBX_STARTAGENTS
-            value: "3"
-          - name: ZBX_TIMEOUT
-            value: "10"
+            - name: ZBX_DEBUGLEVEL
+              value: "3"
+            - name: ZBX_DENYKEY
+              value: "system.run[*]"
+            - name: ZBX_ALLOWKEY
+              value: ""
+            - name: ZBX_LOGREMOTECOMMANDS
+              value: "1"
+            - name: ZBX_SERVER_HOST
+              value: "zabbix-server"
+            - name: ZBX_PASSIVE_ALLOW
+              value: "true"
+            - name: ZBX_PASSIVESERVERS
+              value: ""
+            - name: ZBX_ACTIVE_ALLOW
+              value: "true"
+            - name: ZBX_ACTIVESERVERS
+              value: ""
+            - name: ZBX_STARTAGENTS
+              value: ""
+            - name: ZBX_HOSTNAME
+              valueFrom:
+               fieldRef:
+                 fieldPath: spec.nodeName
+            - name: ZBX_HOSTNAMEITEM
+              value: ""
+            - name: ZBX_METADATA
+              value: ""
+            - name: ZBX_METADATAITEM
+              value: ""
+            - name: ZBX_TIMEOUT
+              value: ""
+            - name: ZBX_BUFFERSEND
+              value: ""
+            - name: ZBX_BUFFERSIZE
+              value: ""
+            - name: ZBX_MAXLINESPERSECOND
+              value: ""
+            - name: ZBX_UNSAFEUSERPARAMETERS
+              value: "0"
+            - name: ZBX_LOADMODULE
+              value: ""
+            - name: ZBX_HOSTINTERFACE
+              value: ""
+            - name: ZBX_HOSTINTERFACEITEM
+              value: ""
+            - name: ZBX_REFRESHACTIVECHECKS
+              value: ""
+            - name: DEBUG_MODE
+              value: "3"
+            - name: ZBX_TLSCONNECT
+              value: ""
+            - name: ZBX_TLSACCEPT
+              value: ""
+            - name: ZBX_TLSCAFILE
+              value: ""
+            - name: ZBX_TLSCRLFILE
+              value: ""
+            - name: ZBX_TLSSERVERCERTISSUER
+              value: ""
+            - name: ZBX_TLSSERVERCERTSUBJECT
+              value: ""
+            - name: ZBX_TLSCERTFILE
+              value: ""
+            - name: ZBX_TLSKEYFILE
+              value: ""
+            - name: ZBX_TLSPSKIDENTITY
+              value: ""
+            - name: ZBX_TLSPSKFILE
+              value: ""
+            - name: ZBX_TLSCIPHERALL
+              value: ""
+            - name: ZBX_TLSCIPHERALL13
+              value: ""
+            - name: ZBX_TLSCIPHERCERT
+              value: ""
+            - name: ZBX_TLSCIPHERCERT13
+              value: ""
+            - name: ZBX_TLSCIPHERPSK
+              value: ""
+            - name: ZBX_TLSCIPHERPSK13
+              value: ""
           securityContext:
+            capabilities: {}
             privileged: true
+            readOnlyRootFilesystem: false
+            runAsNonRoot: true
+          volumeMounts:
+            - name: dev-volume
+              mountPath: /node/dev
+            - name: procfs-volume
+              readOnly: true
+              mountPath: /node/proc
+            - name: boot-volume
+              readOnly: true
+              mountPath: /node/boot
+            - name: run-volume
+              mountPath: /node/run
+            - name: var-run-volume
+              mountPath: /node/var/run
+      volumes:
+        - name: dev-volume
+          hostPath:
+            path: /dev
+            type: ''
+        - name: procfs-volume
+          hostPath:
+            path: /proc
+            type: ''
+        - name: boot-volume
+          hostPath:
+            path: /boot
+            type: ''
+        - name: run-volume
+          hostPath:
+            path: /run
+            type: ''
+        - name: var-run-volume
+          hostPath:
+            path: /var/run
+            type: ''
 ---
 apiVersion: autoscaling/v2beta1
 kind: HorizontalPodAutoscaler
@@ -515,23 +1284,8 @@ spec:
       name: cpu
       targetAverageUtilization: 70
 ---
-kind: PersistentVolume
 apiVersion: v1
-metadata:
-  name: zabbix-mysql-data
-  labels:
-    type: local
-  namespace: zabbix
-spec:
-  capacity:
-    storage: 1Gi
-  accessModes:
-    - ReadWriteOnce
-  hostPath:
-    path: "/data"
----
 kind: PersistentVolumeClaim
-apiVersion: v1
 metadata:
   name: zabbix-mysql-data-claim
   namespace: zabbix
@@ -540,8 +1294,19 @@ spec:
     - ReadWriteOnce
   resources:
     requests:
+      storage: 20Gi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: zabbix-snmptraps-claim
+  namespace: zabbix
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
       storage: 1Gi
-  volumeName: zabbix-mysql-data
 ---
 apiVersion: v1
 kind: List
@@ -558,3 +1323,25 @@ items:
      db-root-pass: "c29tZV90ZXN0X3Bhc3M="
      db-zbx-user: "emFiYml4"
      db-zbx-pass: "emJ4X3Bhc3N3b3Jk"
+---
+apiVersion: v1
+data:
+  root-ca.pem: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSURVekNDQWp1Z0F3SUJBZ0lKQUxNWTFSWlB5VVZsTUEwR0NTcUdTSWIzRFFFQkN3VUFNRUF4RXpBUkJnb0oKa2lhSmsvSXNaQUVaRmdOamIyMHhGekFWQmdvSmtpYUprL0lzWkFFWkZnZGxlR0Z0Y0d4bE1SQXdEZ1lEVlFRRApEQWRHWVd0bExVTkJNQjRYRFRJeE1Ea3lNakV4TlRJMU1Gb1hEVE14TURnd01URXhOVEkxTUZvd1FERVRNQkVHCkNnbVNKb21UOGl4a0FSa1dBMk52YlRFWE1CVUdDZ21TSm9tVDhpeGtBUmtXQjJWNFlXMXdiR1V4RURBT0JnTlYKQkFNTUIwWmhhMlV0UTBFd2dnRWlNQTBHQ1NxR1NJYjNEUUVCQVFVQUE0SUJEd0F3Z2dFS0FvSUJBUURqRjQ1NApXTVVKc1NqZ3ZzSk4rNE5na3dET2thUWdOMjdXVnJyVWRIVjhoVW9sYU4vMWdSeE80cTNES2lPRnhIZlBITzVXCmg0am1YQ3VVSTA0NXRwaEVaZDlCZDd4eUU2dUF3VGtya2pVWTczMExQRmZsYzJYQXE3TkYvMElidHB1aXQ3cFIKdUV2dTc0aVNMampLWVFaWHlxUGJLazlIaitWa2xCcTV2MjJUNTlxUmwzeFV5QUNRZGVEWVdPbTg2ZFgrY2FUVAorWWt6VXhDOHFRVVdBT2JUVThBWWZXbHA3NjRpY0NuMEdab3BCalN2dXQrZWxoTnl2eHk2alhRdU0xemZYMXUrCm56bVdiQzdOMTFqK2JDZWxVd2kwQUhIZUZrRFFrcHdPaGdycW9hbG5XUHk4VVNjMDFJRTIwZnlmTEptc3ZaVU4KZ3pnK0EwOGNqOThwemF2REFnTUJBQUdqVURCT01CMEdBMVVkRGdRV0JCVGtEenFQVEV0UGFHWWhBSzkrNjB6dgpBdklmS1RBZkJnTlZIU01FR0RBV2dCVGtEenFQVEV0UGFHWWhBSzkrNjB6dkF2SWZLVEFNQmdOVkhSTUVCVEFECkFRSC9NQTBHQ1NxR1NJYjNEUUVCQ3dVQUE0SUJBUURaY1A2cmJPWFMvSFcray8yczU1Nk14VU9vTkRNenRhdlIKQXJCa01HUGk5N2FGSW1MV2h6MVJqWGw3UjZKUmE0a3VVSGdiRXBuL3F1OUFISk1LejZ6UnVSRW9EM2UzTlIwVApJL3hkbHFJOVBzTmdIaDVwSzcvb281TzUrR21vTURoK3pRTHlnbXVYcWlSenpXV3NBOVcwaXpoMFJiZHRwQzR5CmdSYmxLMVBsTVhNeWs0eFArcHljV0treExMbWhqOWhuTDdkQlR3KzQzOW13eW5MZjlhSkdHajZaNmI2ZjJTS1EKWGlPZUNFOTVQRlR4S1BCbzRvQmdjOHI2NGFxc0FNelVCa0lQZWtnQ2xQWkJJSnJtKzZZdU9HbUROVUFtUCs3RApKdmRIbGVucGJ3RXJBZ3FKYWx4NjdxVGM2eVUzWUY5bTZMTkprRHlCYXJ6VU01MVdQc1JUCi0tLS0tRU5EIENFUlRJRklDQVRFLS0tLS0K
+  server-cert.pem: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUMrVENDQWVFQ0FRRXdEUVlKS29aSWh2Y05BUUVMQlFBd1FERVRNQkVHQ2dtU0pvbVQ4aXhrQVJrV0EyTnYKYlRFWE1CVUdDZ21TSm9tVDhpeGtBUmtXQjJWNFlXMXdiR1V4RURBT0JnTlZCQU1NQjBaaGEyVXRRMEV3SGhjTgpNakV3T1RJeU1URTFNalV4V2hjTk16RXdPREF4TVRFMU1qVXhXakJGTVJNd0VRWUtDWkltaVpQeUxHUUJHUllEClkyOXRNUmN3RlFZS0NaSW1pWlB5TEdRQkdSWUhaWGhoYlhCc1pURVZNQk1HQTFVRUF3d01iWGx6Y1d3dGMyVnkKZG1WeU1JSUJJakFOQmdrcWhraUc5dzBCQVFFRkFBT0NBUThBTUlJQkNnS0NBUUVBb0U2OVRZcFNqMDhTMmZoNQorYUtIQVlwT2JmbkR1Z01XNTlsOXljUFdoYUVqVzNaaXp1UkNoMWV1eUR0YnFlUzRubnpIY3RlKzF2TE9xcHA2CnQ2RmM5azROcDFqYkMyRUoxUWUyRDNvVTdpdEVTMnBXV2g1Rm4xR1dwek5FOXhxM2c2MFdBd1BZTG1MMUdDTloKNUdpU0ZENjBSei85WTdUYjFrVDl1RzVPUUVLeUg2dk42QjZ0N2ZTRk9TRmhVaVc4QVc1bTBZNngxdHhNSkcvRgpqamJGTGdHTTV2SXhuTHlwRW5uNm01UXV5enlSbm9rQVNESCtieVVtV1hhWUcvODUwODNEN0FBblN2UmZzb2pyCjhaQkVPd0QwVUtmNFZDaVl0b0hPanFhWmdUMElSWmhabGozR3U1TG9uZkx1S3lMN0ZtZmhLRmwrZnNOVGx3OGEKMVlqSkN3SURBUUFCTUEwR0NTcUdTSWIzRFFFQkN3VUFBNElCQVFCaUMxWjNLcUV2clRZU0V6eDJPcExnNFpKMwo1OTFjUFI2UEs2OXBESmQ0MWFCdnY5Mko3TmdxVUpqZ0VvZ0FsUWpZZmFJNDQ4MUZTUngvbDBKeDdwaXNPSTY0Cm1BSy96bXh6bXEzKzJCY016aXc1a09ZUFpHVGh3a0NUYnRjaWNYSTBveVNNUC8yN3hjTmFyZEdyaVdRMGJBZFcKOEIyNTY5TFQwWDA2ZWtHdktOS0xucnBBQk5FanBJelJyZXgyaSsrQnEybUVhTHRYQWVMVmtvbmUxNzFjUDFBWgpuVktmekNqQ3U1T0ZsNm1ST2dCRnMyMUtiU2RnQzl2K0JITFhmK3pXeTB1NDZjUmg1U09vb0VDSkJPNVlEVERrCm5ldDB2dUZtdUFZS3NINjRLMm9jU3IwYjBBZVlmbFRnalBKZktTS2ZXbnhKQnFnMnJ5azBlT3lUQnRVTgotLS0tLUVORCBDRVJUSUZJQ0FURS0tLS0tCg==
+  server-key.pem: LS0tLS1CRUdJTiBSU0EgUFJJVkFURSBLRVktLS0tLQpNSUlFb2dJQkFBS0NBUUVBb0U2OVRZcFNqMDhTMmZoNSthS0hBWXBPYmZuRHVnTVc1OWw5eWNQV2hhRWpXM1ppCnp1UkNoMWV1eUR0YnFlUzRubnpIY3RlKzF2TE9xcHA2dDZGYzlrNE5wMWpiQzJFSjFRZTJEM29VN2l0RVMycFcKV2g1Rm4xR1dwek5FOXhxM2c2MFdBd1BZTG1MMUdDTlo1R2lTRkQ2MFJ6LzlZN1RiMWtUOXVHNU9RRUt5SDZ2Tgo2QjZ0N2ZTRk9TRmhVaVc4QVc1bTBZNngxdHhNSkcvRmpqYkZMZ0dNNXZJeG5MeXBFbm42bTVRdXl6eVJub2tBClNESCtieVVtV1hhWUcvODUwODNEN0FBblN2UmZzb2pyOFpCRU93RDBVS2Y0VkNpWXRvSE9qcWFaZ1QwSVJaaFoKbGozR3U1TG9uZkx1S3lMN0ZtZmhLRmwrZnNOVGx3OGExWWpKQ3dJREFRQUJBb0lCQUh0NWlxZmlCZ3RxSFp3VQpubWJnZjlwNDNFWXJIazMxT1R4bHNsU3BhbC9OS1AyMjV3NXlsS2ZJcXRDQm4rM3hSUjZWLzgzK1RYa2sxbmhqCnVtZ2NldzBnTzdZTlk5S1U4TXpNUHJnWEVXNE5sM0g3T3YzNDJTbUkzMkJ6eGdnSzVSVWdTWmNTNi8xMnJVL2wKVXNUeW9xbkRUbnFlMkI1blhQamlkUWNNdDJzWWUralpUcGRWVHhVUUxlUWZsVC9ZcWVsM2pxZTJwZXVzK25USAp6dHRGRkFvb05IN0xtVHpJSFJtNnhuSDVoMmptcFZOZVRudkczb09sRk9mNmlObWp5blE3d3p6U1BWRHNQa3lJCmdpMGwrT0VGZFY5bUwyS2xEbnlpL25xM1d1d3E5L1NpVStXbFNmUjhMd21JaXYrY0ZOSVl6SnYyUTAvSkRmRGwKN2g5Y3FkRUNnWUVBMHFMazZzZ3d2ckZqam5weHhKMmRsMi9IWGZoaUxRWC9FcXVQVUJUYllCM0EwMUR1dDlHQQp0T3V2VlVEQWREV2lpMkZMQ1pwdFh0OUZ5c1A1UW1USkxaY2JsNG14L2ptdmxvb2ZPQzNDY0JBaEZLOGdoU2FTCjNFMGZmWVJmalE2U2F4WkF3WEJwR3lUSHpYY2c5dzViNCtJWUx2TWg5aGZha0JpVFpwY09HVU1DZ1lFQXd0VU0KZ3F4Y3piK0dMQThpOHc4Z3hmM1FNWXpXWUtwSlVqRUV3SFJjcTlRdVFHVDFFVlMzNzJwbU5mRXZQWmVTKyszUQp2Y01KS1hpeXUwZ0FUaFVSMDhndkpxVXdscHFwSUsvQ2c2b0tYRzV2SjM1Z1ZJSExKSFFMK3UzUlRXVVhRTlRXCkUrdS9NeTMzYlhaUHlodWUrb2VYU1NVQ1kxaEw3OE5BbE5jaWtKa0NnWUFKMDBGY1ZrUTMwT3gwNis4OG5hR0oKTzlTUDVKTW55SHpTY1NBNU93L1VsdTYwckxURjdFYlZxWnkvSEVzZDRKYVphOHRsUWtmUndoWnVVOS9mb2ZYawpZNFVNOTRaTzluL2pSTVFhQ2NCbEc4dC9QSUFHMWZySnZlczNIcUthWU5DaG9DTWJJdFEwU08zcy9wNlNCNkJ2CnE4ODIrVzVmSFZPN252blpNamlkSXdLQmdFend4OHorOW5OR05GMUg2UHhsdUFLWWRsUnJFdW4vdFk3Z3pzaVYKNjFic0p3dkZFc2F5VnlVVU5xTU15U1FncktvU3c0RjgrU3hJZndUWXJVNG9vZTZwdW4wZmRTMjBqQi9kYVFxSAo1eW1UYnhBQXAxZ1lIYm9hbmZTTllEK1pNWEtuMnBicFhZdC9scHZDd2tYRlhLWUJUK3hSMGp5YlRQbTFlTmFPCmt4YlpBb0dBWjNiZk5EUGpBRlYwWjhYTktGZjcrTStHaHNaLzZRdFpGSFRBRnZEZk1KU1pBQmozZmJOQkRJSmoKemJTenlGT2xPSklaN21rWWNxNE50MGNseldUQ0FoRHlBbDdkbTZ2dkdQZ2xhOUZ2OHpKN0JhVEtRaVFGL1pPWQpOZGRpT3ZiMXBTUTFwL2ZOUkN2SUU2Z1hZeXdnUXN2VU80czV4OTg5OEZuMGtTMWRXK0E9Ci0tLS0tRU5EIFJTQSBQUklWQVRFIEtFWS0tLS0tCg==
+kind: Secret
+metadata:
+  name: zabbix-mysql-server-tls-certs
+  namespace: zabbix
+type: Opaque
+---
+apiVersion: v1
+data:
+  client-cert.pem: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUM4ekNDQWRzQ0FRRXdEUVlKS29aSWh2Y05BUUVMQlFBd1FERVRNQkVHQ2dtU0pvbVQ4aXhrQVJrV0EyTnYKYlRFWE1CVUdDZ21TSm9tVDhpeGtBUmtXQjJWNFlXMXdiR1V4RURBT0JnTlZCQU1NQjBaaGEyVXRRMEV3SGhjTgpNakV3T1RJeU1URTFNalV4V2hjTk16RXdPREF4TVRFMU1qVXhXakEvTVJNd0VRWUtDWkltaVpQeUxHUUJHUllEClkyOXRNUmN3RlFZS0NaSW1pWlB5TEdRQkdSWUhaWGhoYlhCc1pURVBNQTBHQTFVRUF3d0dZMnhwWlc1ME1JSUIKSWpBTkJna3Foa2lHOXcwQkFRRUZBQU9DQVE4QU1JSUJDZ0tDQVFFQXVZTllXVUp3Y2Nsd0oxbnYwS1YyNGVncQpUQW1vM1N5cTFwMS9OTGZIdGd1UVcyZllSUXJkVFZ5OU80R0VyWmUwVCtmMnFwRUtPN2JoSExvVElnMFZXQmNoClU4K2g1dVhSZlVhZC90eHVKNWh0QnBIL1hpR0NEbVFpSFVtd0hxbHJwK0pDL3lmTzJwb3pDalpaOVF4RVBlYjgKQmEwaHgycUZXUEtKc1ZSY0JTejMzMm1tY1ZjeGE5YmtsWVVQZHgwUTVGSHFWZ1pXOTI0QXdHOC95QThxcUFiNApPcVkxbUZkUW9VaW9kTjRGUDQzSkVGSWxrMnExWUVjenlSMHlidVJIelBIQjhJUG1Fa2lNaHlpSitsdnJaSzZLCjR5NWZVSzQ0SXkxanYveEJDSnJ3TmNnVVZBdGFYTStiV2RXS3U4dDNudGV6ME02ZWU2Ym5WSHhTeDh0NWF3SUQKQVFBQk1BMEdDU3FHU0liM0RRRUJDd1VBQTRJQkFRQW9SOE5SZEo4YUJsWnZBOWFCVzQ1SFdnWGF0Z1ExcGRpNwo3R1BpL3Qzem5MWTNNamMrUVZSdmZLUlFvU2wwc095NUZ5NFlZWHdwZDlQRUsxVXBReFRaK201SGtVWm9LR095CnlISzZ1aGZ6NFY5NXNRdkcvdGcvaS9ESHQvVlJYMEpsc2lpTW1zalFYRFpPcUpaOUNPTnhOYUlObkdSZGZEUVoKNVRneUEraXVyTU5mcThpUU9HcDhYRGkzNStvMlp4enpDWHl3SGRRVDExcTdSbThBZDNGaG5xKzJQVGR0UDduYwpZWFB4Ym1ibkxMeTBReFl3Y1BYQlkrWjNrTFlxbk1wK2ozajIwcE0rTE1sMkNBbTNDblJsdU9yKytrTTV1T29hCnkxOHN6QWJRSjF4L0RoMEFmQUZKOG90THMrUU9IU2prdUoveEJCelkxelNETnRNdmxUMDEKLS0tLS1FTkQgQ0VSVElGSUNBVEUtLS0tLQo=
+  client-key.pem: LS0tLS1CRUdJTiBSU0EgUFJJVkFURSBLRVktLS0tLQpNSUlFb2dJQkFBS0NBUUVBdVlOWVdVSndjY2x3SjFudjBLVjI0ZWdxVEFtbzNTeXExcDEvTkxmSHRndVFXMmZZClJRcmRUVnk5TzRHRXJaZTBUK2YycXBFS083YmhITG9USWcwVldCY2hVOCtoNXVYUmZVYWQvdHh1SjVodEJwSC8KWGlHQ0RtUWlIVW13SHFscnArSkMveWZPMnBvekNqWlo5UXhFUGViOEJhMGh4MnFGV1BLSnNWUmNCU3ozMzJtbQpjVmN4YTlia2xZVVBkeDBRNUZIcVZnWlc5MjRBd0c4L3lBOHFxQWI0T3FZMW1GZFFvVWlvZE40RlA0M0pFRklsCmsycTFZRWN6eVIweWJ1Ukh6UEhCOElQbUVraU1oeWlKK2x2clpLNks0eTVmVUs0NEl5MWp2L3hCQ0pyd05jZ1UKVkF0YVhNK2JXZFdLdTh0M250ZXowTTZlZTZiblZIeFN4OHQ1YXdJREFRQUJBb0lCQUdYaVRlNVB2K091Und0RgpxS0RGanlJSTJOb0Q0QnNBZ2g3MlJydVVSM21pcGppZE1yalFlN1FXUDlOamtaT3BJcDFUL3pPMERwTzNIN0VnClBJdlI5YXY0b0JRZ2o0RjVMSEdLREJIQnpEbXd6QWYwdlBSY29NbjRrb2ZWUllYQmRGK3lzeXJoR1FrVDhQNGwKMVlmd29iWUJtdDRmTk5NSm5JeTZQNGNGbHJnOEJlcmVnRFp2Z3FqWlN3Q3RoUDV4QzMzeEFEaGtJazVuVk80QQpTNEpEUGNSTDNkaU5IK3YxRkVhY2EraGc3dzNpY09XZWQ4Y0xMQnJqZmpkaXJkTUpXRW52NnYrSlgzZ2N4bjg2CkxpeXZkSk9ZNTdqSFZpTndLQ0NwQlJOVUJmbWFhK2lXNEs5QTE3K0h5VmdUTFZnLzhoeGZwV292Nkc3UEh2NTcKaXlJelBya0NnWUVBOXpjV042bW95Q0VCc0ZYRzBDTk5DdE54RHVjU290ZVoxK0JqZENBbnZycnRiQVNubUZUOAppdG5LaFR3Nkl4K3lkNzJaeXNHWkI2MGloTXZsRlhMUnRtQ0pUVGpWY0xDOXVhM2t1OHZYUzdBdmQ4YWZUcmJoCmlLeVRLMmg5NklxYUpxQzR6R0tkNStLejhKZFM0RGpjdmRUTlhSOHp6MGQxLzg1c0hXZDhsNDhDZ1lFQXdCcjAKZXZpbFN0cjdhZGxWY0tONnQ0ZWxlVXJjVTdYdElSZDhncjNpSk5jUGo0MENVUW0xTXZ5WXhTckR5MEpTQVdLbwpHWkswQVE3S1oyY2FoK2JWV3dvUnVES1hBR0NHQVE3ODRrU3lqQisrQkpqaWhDNHZkNERrcGFpSVYvdVY1NEwxCnZQVDNQcC9PdncyQU4yU0lHcWJwMjM0SmJzWlNCWVVYbWVKNmNtVUNnWUFhN1BNTWlQd0xJQjB3K1lhMzhNQloKWjRJdTMxZ1dTR2xISy9kcEZIOS90SmhiWlg1amh3NGlpV29YYk9IZ0pYbW90UXZsRzRUeFl4Z1pZcVBHM0VTZgpHcENaeXBEa3Z6dEsxL2ZMeEgza2pvSDlCN01lUGFqKzI5MERvMVBqV2dWRUk4azg2WmpOUXRIYWFJRHNUd1VyCjM5dW1RdG0vdjhiSVg5RkN1cHpGWFFLQmdBbDhTejRYTVBJMVJkekFJbnZoVnBuaFZNWmNiK3lpT3djN1JhYWYKQVorWUR1aWpxYzJla1JmbmFST3pQTis0Y3B3bTV1MzhWRzhJNysyVEpiZzRLYWpKSW43WjRLTGdJVDNFSTdCNAplK2gzV01hWlZmWDQ0ZGNnd2lsNzNOK2JTSmVaMjlCc3VCaWJnM1hqa01VcmJaMERTT0RScEYyWDVVem9lWFhiCnZQZ1JBb0dBSjVvLzNIOWJCbEp3b3Z0WjF5VUY2KzRjaFpodGhiU1VJOS9zSXFueHllNEtZMGtMaEpxU013ZkEKZ1hPSW10cmxzNllxU3VkVGovaGNwbi85VDIzbnFOSEpyd3RKWXJVMk9zdUYrdnNHUE5DeFQwZTUrSXZlQ015QQplZFhuSU9BaTBjSXhxUjluWVNXNDR0cjFEcG8rN1c5SEZ5aXZ5eVZ4M09uMzlMUi9EUHM9Ci0tLS0tRU5EIFJTQSBQUklWQVRFIEtFWS0tLS0tCg==
+  root-ca.pem: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSURVekNDQWp1Z0F3SUJBZ0lKQUxNWTFSWlB5VVZsTUEwR0NTcUdTSWIzRFFFQkN3VUFNRUF4RXpBUkJnb0oKa2lhSmsvSXNaQUVaRmdOamIyMHhGekFWQmdvSmtpYUprL0lzWkFFWkZnZGxlR0Z0Y0d4bE1SQXdEZ1lEVlFRRApEQWRHWVd0bExVTkJNQjRYRFRJeE1Ea3lNakV4TlRJMU1Gb1hEVE14TURnd01URXhOVEkxTUZvd1FERVRNQkVHCkNnbVNKb21UOGl4a0FSa1dBMk52YlRFWE1CVUdDZ21TSm9tVDhpeGtBUmtXQjJWNFlXMXdiR1V4RURBT0JnTlYKQkFNTUIwWmhhMlV0UTBFd2dnRWlNQTBHQ1NxR1NJYjNEUUVCQVFVQUE0SUJEd0F3Z2dFS0FvSUJBUURqRjQ1NApXTVVKc1NqZ3ZzSk4rNE5na3dET2thUWdOMjdXVnJyVWRIVjhoVW9sYU4vMWdSeE80cTNES2lPRnhIZlBITzVXCmg0am1YQ3VVSTA0NXRwaEVaZDlCZDd4eUU2dUF3VGtya2pVWTczMExQRmZsYzJYQXE3TkYvMElidHB1aXQ3cFIKdUV2dTc0aVNMampLWVFaWHlxUGJLazlIaitWa2xCcTV2MjJUNTlxUmwzeFV5QUNRZGVEWVdPbTg2ZFgrY2FUVAorWWt6VXhDOHFRVVdBT2JUVThBWWZXbHA3NjRpY0NuMEdab3BCalN2dXQrZWxoTnl2eHk2alhRdU0xemZYMXUrCm56bVdiQzdOMTFqK2JDZWxVd2kwQUhIZUZrRFFrcHdPaGdycW9hbG5XUHk4VVNjMDFJRTIwZnlmTEptc3ZaVU4KZ3pnK0EwOGNqOThwemF2REFnTUJBQUdqVURCT01CMEdBMVVkRGdRV0JCVGtEenFQVEV0UGFHWWhBSzkrNjB6dgpBdklmS1RBZkJnTlZIU01FR0RBV2dCVGtEenFQVEV0UGFHWWhBSzkrNjB6dkF2SWZLVEFNQmdOVkhSTUVCVEFECkFRSC9NQTBHQ1NxR1NJYjNEUUVCQ3dVQUE0SUJBUURaY1A2cmJPWFMvSFcray8yczU1Nk14VU9vTkRNenRhdlIKQXJCa01HUGk5N2FGSW1MV2h6MVJqWGw3UjZKUmE0a3VVSGdiRXBuL3F1OUFISk1LejZ6UnVSRW9EM2UzTlIwVApJL3hkbHFJOVBzTmdIaDVwSzcvb281TzUrR21vTURoK3pRTHlnbXVYcWlSenpXV3NBOVcwaXpoMFJiZHRwQzR5CmdSYmxLMVBsTVhNeWs0eFArcHljV0treExMbWhqOWhuTDdkQlR3KzQzOW13eW5MZjlhSkdHajZaNmI2ZjJTS1EKWGlPZUNFOTVQRlR4S1BCbzRvQmdjOHI2NGFxc0FNelVCa0lQZWtnQ2xQWkJJSnJtKzZZdU9HbUROVUFtUCs3RApKdmRIbGVucGJ3RXJBZ3FKYWx4NjdxVGM2eVUzWUY5bTZMTkprRHlCYXJ6VU01MVdQc1JUCi0tLS0tRU5EIENFUlRJRklDQVRFLS0tLS0K
+kind: Secret
+metadata:
+  name: zabbix-mysql-client-tls-certs
+  namespace: zabbix
+type: Opaque
