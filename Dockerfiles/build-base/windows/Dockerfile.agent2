@@ -57,6 +57,7 @@ RUN Set-Location -Path $env:SystemDrive\.; `
     `
     Write-Host 'Installing ...'; `
     Expand-Archive -Path git.zip -DestinationPath $env:SystemDrive\git\.; `
+    Write-Host 'Removing downloaded...'; `
     Remove-Item -Force -Path $env:SystemDrive\git.zip; `
     $env:PATH = [string]::Format('{0}\git\cmd;{0}\git\mingw64\bin;{0}\git\usr\bin;', $env:SystemDrive) + $env:PATH; `
     [Environment]::SetEnvironmentVariable('PATH', $env:PATH, [EnvironmentVariableTarget]::Machine); `
@@ -79,6 +80,7 @@ RUN Set-Location -Path $env:SystemDrive\.; `
         -FilePath $env:SystemDrive\go-amd64.msi `
         -Wait `
         -ArgumentList '/qn /norestart'; `
+    Write-Host 'Removing downloaded...'; `
     Remove-Item -Force -Path $env:SystemDrive\go-amd64.msi; `
     `
     $env:PATH = [string]::Format('{0}\Go\bin;', ${env:ProgramFiles}) + $env:PATH; `
@@ -102,6 +104,7 @@ RUN Set-Location -Path $env:SystemDrive\.; `
         -FilePath $env:SystemDrive\7z.msi `
         -Wait `
         -ArgumentList '/qn /norestart'; `
+    Write-Host 'Removing downloaded...'; `
     Remove-Item -Force -Path $env:SystemDrive\7z.msi; `
     $env:PATH = [string]::Format('{0}\7-Zip;', ${env:ProgramFiles}) + $env:PATH; `
     [Environment]::SetEnvironmentVariable('PATH', $env:PATH, [EnvironmentVariableTarget]::Machine); `
@@ -122,6 +125,7 @@ RUN Set-Location -Path $env:SystemDrive\.; `
     `
     Write-Host 'Installing ...'; `
     7z x $env:SystemDrive\mingw.7z; `
+    Write-Host 'Removing downloaded...'; `
     Remove-Item -Force -Path $env:SystemDrive\mingw.7z; `
     $env:PATH = [string]::Format('{0}\mingw64\bin;', $env:SystemDrive) + $env:PATH; `
     [Environment]::SetEnvironmentVariable('PATH', $env:PATH, [EnvironmentVariableTarget]::Machine); `
@@ -150,6 +154,7 @@ RUN Set-Location -Path $env:SystemDrive\.; `
     Write-Host ('{0} - Visual Studio components installed' -f $(Get-Date -format 'u')); `
     `
     Write-Host 'Visual Studio components installation cleanup'; `
+    Write-Host 'Removing downloaded...'; `
     Remove-Item -Force -Path $env:SystemDrive\vs_buildtools.exe; `
     Get-ChildItem -Path """${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer""" -Directory -Recurse | Remove-Item -Force –Recurse; `
     Remove-Item -Force -Recurse $env:TEMP\*; `
@@ -172,6 +177,7 @@ RUN Set-Location -Path $env:SystemDrive\.; `
     }; `
     Write-Host 'Extracting archive ...'; `
     Expand-Archive -Path $env:SystemDrive\pcre.zip -DestinationPath $env:SystemDrive; `
+    Write-Host 'Removing downloaded...'; `
     Remove-Item -Force -Path $env:SystemDrive\pcre.zip; `
     Rename-Item -Path $env:SystemDrive\pcre-$env:PCRE_VERSION -NewName $env:SystemDrive\pcre_build; `
     `
@@ -206,6 +212,7 @@ RUN Set-Location -Path $env:SystemDrive\.; `
         -Wait `
         -NoNewWindow; `
     `
+    Write-Host 'Removing downloaded...'; `
     Remove-Item -Force -Path $env:SystemDrive\setup.exe; `
     Write-Host ('Downloading {0} ...' -f $env:OPENSSL_URL); `
     [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; `
@@ -220,6 +227,7 @@ RUN Set-Location -Path $env:SystemDrive\.; `
     `
     Write-Host 'Extracting archive ...'; `
     tar -zxf $env:SystemDrive\openssl.tar.gz; `
+    Write-Host 'Removing downloaded...'; `
     Remove-Item -Force -Path $env:SystemDrive\openssl.tar.gz; `
     Rename-Item -Path $env:SystemDrive\openssl-$env:OPENSSL_VERSION -NewName $env:SystemDrive\openssl_build; `
     `
@@ -239,4 +247,5 @@ RUN Set-Location -Path $env:SystemDrive\.; `
     mingw32-make -s -j"""$env:NUMBER_OF_PROCESSORS"""; `
     mingw32-make -s -j"""$env:NUMBER_OF_PROCESSORS""" install_sw; `
     Write-Host 'OpenSSL is ready...'; `
+    Write-Host 'Removing cygwin...'; `
     Remove-Item -Recurse -Force -Path $env:SystemDrive\cygwin;

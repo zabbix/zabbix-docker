@@ -54,6 +54,7 @@ RUN Set-Location -Path $env:SystemDrive\.; `
     Expand-Archive `
         -Path git.zip `
         -DestinationPath $env:SystemDrive\git\.; `
+    Write-Host 'Removing downloaded...'; `
     Remove-Item -Force -Path $env:SystemDrive\git.zip; `
     $env:PATH = [string]::Format('{0}\git\cmd;{0}\git\mingw64\bin;{0}\git\usr\bin;', $env:SystemDrive) + $env:PATH; `
     [Environment]::SetEnvironmentVariable('PATH', $env:PATH, [EnvironmentVariableTarget]::Machine); `
@@ -74,6 +75,7 @@ RUN Set-Location -Path $env:SystemDrive\.; `
     Start-Process `
         -FilePath $env:SystemDrive\nasm_installer.exe `
         -ArgumentList '/S' -Wait; `
+    Write-Host 'Removing downloaded...'; `
     Remove-Item -Force -Path $env:SystemDrive\nasm_installer.exe; `
     `
     $env:PATH = [string]::Format('{0}\NASM;', ${env:ProgramFiles}) + $env:PATH; `
@@ -97,6 +99,7 @@ RUN Set-Location -Path $env:SystemDrive\.; `
         -FilePath 'msiexec.exe' `
         -ArgumentList """/i $env:SystemDrive\perl_installer.msi /qn /norestart INSTALLDIR=$env:SystemDrive\Strawberry""" `
         -Wait; `
+    Write-Host 'Removing downloaded...'; `
     Remove-Item -Force -Path  $env:SystemDrive\perl_installer.msi; `
     $env:PATH = [string]::Format('{0}\Strawberry\perl\bin;', $env:SystemDrive) + $env:PATH; `
     [Environment]::SetEnvironmentVariable('PATH', $env:PATH, [EnvironmentVariableTarget]::Machine); `
@@ -128,6 +131,7 @@ RUN Set-Location -Path $env:SystemDrive\.; `
     Write-Host ('{0} - Visual Studio components installed' -f $(Get-Date -format 'u')); `
     `
     Write-Host 'Visual Studio components installation cleanup'; `
+    Write-Host 'Removing downloaded...'; `
     Remove-Item -Force -Path $env:SystemDrive\vs_buildtools.exe; `
     Get-ChildItem -Path """${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer""" -Directory -Recurse | Remove-Item -Force –Recurse; `
     Remove-Item -Force -Recurse $env:TEMP\*; `
@@ -150,6 +154,7 @@ RUN Set-Location -Path $env:SystemDrive\.; `
     }; `
     Write-Host 'Extracting archive ...'; `
     Expand-Archive -Path $env:SystemDrive\pcre.zip -DestinationPath $env:SystemDrive; `
+    Write-Host 'Removing downloaded...'; `
     Remove-Item -Force -Path $env:SystemDrive\pcre.zip; `
     Rename-Item -Path $env:SystemDrive\pcre-$env:PCRE_VERSION -NewName $env:SystemDrive\pcre_build; `
     New-Item -ItemType directory -Path "$env:SystemDrive\pcre_build\build" | Out-Null; `
@@ -189,6 +194,7 @@ RUN Set-Location -Path $env:SystemDrive\.; `
     `
     Write-Host 'Extracting archive ...'; `
     tar -zxf $env:SystemDrive\openssl.tar.gz; `
+    Write-Host 'Removing downloaded...'; `
     Remove-Item -Force -Path $env:SystemDrive\openssl.tar.gz; `
     Rename-Item -Path $env:SystemDrive\openssl-$env:OPENSSL_VERSION -NewName $env:SystemDrive\openssl_build; `
     `
