@@ -199,6 +199,7 @@ spec:
         name: zabbix-web
         app: zabbix
     spec:
+      serviceAccountName: zabbix-monitoring
       volumes:
        - name: mysql-tls-certs
          secret:
@@ -417,8 +418,7 @@ spec:
     spec:
       volumes:
        - name: zabbix-snmptraps
-         persistentVolumeClaim:
-          claimName: zabbix-snmptraps-claim
+         emptyDir: {}
        - name: mysql-tls-certs
          secret:
            secretName: zabbix-mysql-client-tls-certs
@@ -650,6 +650,9 @@ spec:
         name: zabbix-proxy-sqlite3
         app: zabbix
     spec:
+      volumes:
+        - name: proxy-sqlite-data
+          emptyDir: {}
       containers:
         - name: zabbix-proxy-sqlite3
           image: zabbix/zabbix-proxy-sqlite3:alpine-trunk
@@ -781,6 +784,9 @@ spec:
             value: ""
           - name: DEBUG_MODE
             value: "false"
+          volumeMounts:
+          - mountPath: "/var/lib/zabbix/db_data"
+            name: proxy-sqlite-data
           securityContext:
             capabilities: {}
             privileged: false
@@ -1295,18 +1301,6 @@ spec:
   resources:
     requests:
       storage: 20Gi
----
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: zabbix-snmptraps-claim
-  namespace: zabbix
-spec:
-  accessModes:
-    - ReadWriteOnce
-  resources:
-    requests:
-      storage: 1Gi
 ---
 apiVersion: v1
 kind: List
