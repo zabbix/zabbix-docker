@@ -199,7 +199,6 @@ spec:
         name: zabbix-web
         app: zabbix
     spec:
-      serviceAccountName: zabbix-monitoring
       volumes:
        - name: mysql-tls-certs
          secret:
