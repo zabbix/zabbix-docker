@@ -56,22 +56,46 @@ RUN set -eux && REPOLIST="ol8_baseos_latest,ol8_appstream" && \
             automake \
             pcre-devel \
             libcurl-devel \
-            go \
             make \
             openssl-devel \
             openldap-devel \
             git \
+            wget \
+            tar \
             gcc" && \
     microdnf -y install --setopt=install_weak_deps=0 --best \
         --nodocs dnf && \
     dnf -y install --disablerepo "*" --enablerepo "${REPOLIST}" --setopt=install_weak_deps=False --best \
         --setopt=tsflags=nodocs ${INSTALL_PKGS} && \
+        ARCH_SUFFIX="$(arch)"; \
+    case "$ARCH_SUFFIX" in \
+        x86_64) \
+            url='https://dl.google.com/go/go1.17.1.linux-amd64.tar.gz'; \
+            sha256='dab7d9c34361dc21ec237d584590d72500652e7c909bf082758fb63064fca0ef'; \
+            ;; \
+        aarch64) \
+            url='https://dl.google.com/go/go1.17.1.linux-arm64.tar.gz'; \
+            sha256='53b29236fa03ed862670a5e5e2ab2439a2dc288fe61544aa392062104ac0128c'; \
+            ;; \
+        *) echo "Unknown ARCH_SUFFIX=${ARCH_SUFFIX-}"; exit 1 ;; \
+    esac; \
+    wget -O go.tgz.asc "$url.asc" && \
+    wget -O go.tgz "$url" --progress=dot:giga && \
+    echo "$sha256 *go.tgz" | sha256sum -c - && \
+    GNUPGHOME="$(mktemp -d)"; export GNUPGHOME; \
+    gpg --batch --keyserver keyserver.ubuntu.com --recv-keys 'EB4C 1BFD 4F04 2F6D DDCC EC91 7721 F63B D38B 4796' && \
+    gpg --batch --verify go.tgz.asc go.tgz && \
+    gpgconf --kill all && \
+    rm -rf "$GNUPGHOME" go.tgz.asc && \
+    tar -C /usr/local -xzf go.tgz && \
+    rm go.tgz && \
     cd /tmp/ && \
     git -c advice.detachedHead=false clone ${ZBX_SOURCES} --branch ${ZBX_VERSION} --depth 1 --single-branch zabbix-${ZBX_VERSION} && \
     cd /tmp/zabbix-${ZBX_VERSION} && \
     zabbix_revision=`git rev-parse --short HEAD` && \
     sed -i "s/{ZABBIX_REVISION}/$zabbix_revision/g" src/go/pkg/version/version.go && \
     ./bootstrap.sh && \
+    export PATH=/usr/local/go/bin:$PATH && \
     export CFLAGS="-fPIC -pie -Wl,-z,relro -Wl,-z,now" && \
     export GOPATH=/tmp/zabbix-${ZBX_VERSION}/go && \
     ./configure \
@@ -101,6 +125,7 @@ RUN set -eux && REPOLIST="ol8_baseos_latest,ol8_appstream" && \
     chown --quiet -R zabbix:root /etc/zabbix/ /var/lib/zabbix/ && \
     chgrp -R 0 /etc/zabbix/ /var/lib/zabbix/ && \
     chmod -R g=u /etc/zabbix/ /var/lib/zabbix/ && \
+    rm -rf /usr/local/go && \
     rm -rf /var/cache/yum /var/lib/yum/yumdb/* /usr/lib/udev/hwdb.d/* && \
     rm -rf /var/cache/dnf /etc/udev/hwdb.bin /root/.pki
 
