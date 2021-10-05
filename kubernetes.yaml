@@ -210,7 +210,7 @@ spec:
             readOnly: true
       volumes:
        - hostPath:
-          path: /home/dotneft/zbx/zbx_env/etc/ssl/nginx/
+          path: ./zbx_env/etc/ssl/nginx/
          name: zabbix-web-ssl
 ---
 apiVersion: v1
