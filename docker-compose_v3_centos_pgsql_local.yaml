@@ -343,7 +343,7 @@ services:
 
  zabbix-snmptraps:
   build:
-   context: ./snmptraps/centos
+   context: ./Dockerfiles/snmptraps/centos
    cache_from:
     - centos:centos7
   image: zabbix-snmptraps:centos-local
