@@ -5,7 +5,7 @@ on:
     branches:
       - 'trunk'
     paths:
-      - "*/*/README.md"
+      - "Dockerfiles/*/*/README.md"
   workflow_dispatch:
 
 jobs:
@@ -36,9 +36,9 @@ jobs:
         uses: actions/checkout@v2
       -
         name: Update DockerHub repo description
-        uses: peter-evans/dockerhub-description@v2
+        uses: peter-evans/dockerhub-description@v2.4.3
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
           repository: ${{ env.DOCKER_REPOSITORY }}/zabbix-${{ matrix.build }}
-          readme-filepath: ./${{ matrix.build }}/${{ env.SUBDIR }}/README.md
+          readme-filepath: ./Dockerfiles/${{ matrix.build }}/${{ env.SUBDIR }}/README.md
