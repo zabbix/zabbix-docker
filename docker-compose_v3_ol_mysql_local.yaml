@@ -64,8 +64,8 @@ services:
       cpus: '0.5'
       memory: 512M
   env_file:
-   - ./env_vars/env_db_mysql
-   - ./env_vars/env_srv
+   - ./env_vars/.env_db_mysql
+   - ./env_vars/.env_srv
   secrets:
    - MYSQL_USER
    - MYSQL_PASSWORD
@@ -134,8 +134,8 @@ services:
       cpus: '0.3'
       memory: 256M
   env_file:
-   - ./env_vars/env_prx
-   - ./env_vars/env_prx_sqlite3
+   - ./env_vars/.env_prx
+   - ./env_vars/.env_prx_sqlite3
   depends_on:
    - zabbix-java-gateway
    - zabbix-snmptraps
@@ -190,9 +190,9 @@ services:
       cpus: '0.3'
       memory: 256M
   env_file:
-   - ./env_vars/env_db_mysql_proxy
-   - ./env_vars/env_prx
-   - ./env_vars/env_prx_mysql
+   - ./env_vars/.env_db_mysql_proxy
+   - ./env_vars/.env_prx
+   - ./env_vars/.env_prx_mysql
   depends_on:
    - mysql-server
    - zabbix-java-gateway
@@ -247,8 +247,8 @@ services:
       cpus: '0.5'
       memory: 256M
   env_file:
-   - ./env_vars/env_db_mysql
-   - ./env_vars/env_web
+   - ./env_vars/.env_db_mysql
+   - ./env_vars/.env_web
   secrets:
    - MYSQL_USER
    - MYSQL_PASSWORD
@@ -308,8 +308,8 @@ services:
       cpus: '0.5'
       memory: 256M
   env_file:
-   - ./env_vars/env_db_mysql
-   - ./env_vars/env_web
+   - ./env_vars/.env_db_mysql
+   - ./env_vars/.env_web
   secrets:
    - MYSQL_USER
    - MYSQL_PASSWORD
@@ -374,7 +374,7 @@ services:
       memory: 64M
    mode: global
   env_file:
-   - ./env_vars/env_agent
+   - ./env_vars/.env_agent
   privileged: true
   pid: "host"
   depends_on:
@@ -414,7 +414,7 @@ services:
       cpus: '0.25'
       memory: 256M
   env_file:
-   - ./env_vars/env_java
+   - ./env_vars/.env_java
   depends_on:
    - zabbix-build-mysql
   networks:
@@ -488,7 +488,7 @@ services:
       cpus: '0.25'
       memory: 256M
   env_file:
-   - ./env_vars/env_web_service
+   - ./env_vars/.env_web_service
   depends_on:
    - zabbix-build-mysql
   networks:
@@ -517,7 +517,7 @@ services:
   volumes:
    - ./zbx_env/var/lib/mysql:/var/lib/mysql:rw
   env_file:
-   - ./env_vars/env_db_mysql
+   - ./env_vars/.env_db_mysql
   secrets:
    - MYSQL_USER
    - MYSQL_PASSWORD
