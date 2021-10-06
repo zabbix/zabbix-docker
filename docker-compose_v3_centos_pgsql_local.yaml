@@ -1,10 +1,52 @@
 version: '3.5'
 services:
+ zabbix-build-base:
+  build:
+   context: ./Dockerfiles/build-base/centos
+   cache_from:
+    - centos:centos8
+  image: zabbix-build-base:centos-local
+
+ zabbix-build-pgsql:
+  build:
+   context: ./Dockerfiles/build-pgsql/centos
+   cache_from:
+    - centos:centos8
+   args:
+    BUILD_BASE_IMAGE: zabbix-build-base:centos-local
+  image: zabbix-build-pgsql:centos-local
+  depends_on:
+   - zabbix-build-base
+
+ zabbix-build-mysql:
+  build:
+   context: ./Dockerfiles/build-mysql/centos
+   cache_from:
+    - centos:centos8
+   args:
+    BUILD_BASE_IMAGE: zabbix-build-base:centos-local
+  image: zabbix-build-mysql:centos-local
+  depends_on:
+   - zabbix-build-base
+
+ zabbix-build-sqlite3:
+  build:
+   context: ./Dockerfiles/build-sqlite3/centos
+   cache_from:
+    - centos:centos8
+   args:
+    BUILD_BASE_IMAGE: zabbix-build-base:centos-local
+  image: zabbix-build-sqlite3:centos-local
+  depends_on:
+   - zabbix-build-base
+
  zabbix-server:
   build:
    context: ./Dockerfiles/server-pgsql/centos
    cache_from:
     - centos:centos8
+   args:
+    BUILD_BASE_IMAGE: zabbix-build-pgsql:centos-local
   image: zabbix-server-pgsql:centos-local
   ports:
    - "10051:10051"
@@ -43,6 +85,7 @@ services:
    - POSTGRES_PASSWORD
   depends_on:
    - postgres-server
+   - zabbix-build-pgsql
   networks:
    zbx_net_backend:
      aliases:
@@ -71,6 +114,8 @@ services:
    context: ./Dockerfiles/proxy-sqlite3/centos
    cache_from:
     - centos:centos8
+   args:
+    BUILD_BASE_IMAGE: zabbix-build-pgsql:centos-local
   image: zabbix-proxy-sqlite3:centos-local
   profiles:
    - all
@@ -104,6 +149,7 @@ services:
   depends_on:
    - zabbix-java-gateway
    - zabbix-snmptraps
+   - zabbix-build-pgsql
   networks:
    zbx_net_backend:
     aliases:
@@ -124,6 +170,8 @@ services:
    context: ./Dockerfiles/proxy-mysql/centos
    cache_from:
     - centos:centos8
+   args:
+    BUILD_BASE_IMAGE: zabbix-build-mysql:centos-local
   image: zabbix-proxy-mysql:centos-local
   profiles:
    - all
@@ -163,6 +211,7 @@ services:
    - mysql-server
    - zabbix-java-gateway
    - zabbix-snmptraps
+   - zabbix-build-mysql
   networks:
    zbx_net_backend:
     aliases:
@@ -183,6 +232,8 @@ services:
    context: ./Dockerfiles/web-apache-pgsql/centos
    cache_from:
     - centos:centos8
+   args:
+    BUILD_BASE_IMAGE: zabbix-build-pgsql:centos-local
   image: zabbix-web-apache-pgsql:centos-local
   profiles:
    - all
@@ -214,6 +265,7 @@ services:
   depends_on:
    - postgres-server
    - zabbix-server
+   - zabbix-build-pgsql
   healthcheck:
    test: ["CMD", "curl", "-f", "http://localhost:8080/"]
    interval: 10s
@@ -243,6 +295,8 @@ services:
    context: ./Dockerfiles/web-nginx-pgsql/centos
    cache_from:
     - centos:centos8
+   args:
+    BUILD_BASE_IMAGE: zabbix-build-pgsql:centos-local
   image: zabbix-web-nginx-pgsql:centos-local
   ports:
    - "80:8080"
@@ -272,6 +326,7 @@ services:
   depends_on:
    - postgres-server
    - zabbix-server
+   - zabbix-build-pgsql
   healthcheck:
    test: ["CMD", "curl", "-f", "http://localhost:8080/"]
    interval: 10s
@@ -301,6 +356,8 @@ services:
    context: ./Dockerfiles/agent/centos
    cache_from:
     - centos:centos8
+   args:
+    BUILD_BASE_IMAGE: zabbix-build-pgsql:centos-local
   image: zabbix-agent:centos-local
   profiles:
    - full
@@ -327,6 +384,8 @@ services:
    - ./env_vars/.env_agent
   privileged: true
   pid: "host"
+  depends_on:
+   - zabbix-build-pgsql
   networks:
    zbx_net_backend:
     aliases:
@@ -345,6 +404,8 @@ services:
    context: ./Dockerfiles/java-gateway/centos
    cache_from:
     - centos:centos8
+   args:
+    BUILD_BASE_IMAGE: zabbix-build-pgsql:centos-local
   image: zabbix-java-gateway:centos-local
   profiles:
    - full
@@ -361,6 +422,8 @@ services:
       memory: 256M
   env_file:
    - ./env_vars/.env_java
+  depends_on:
+   - zabbix-build-pgsql
   networks:
    zbx_net_backend:
     aliases:
@@ -375,7 +438,7 @@ services:
 
  zabbix-snmptraps:
   build:
-   context: ./snmptraps/centos
+   context: ./Dockerfiles/snmptraps/centos
    cache_from:
     - centos:centos8
   image: zabbix-snmptraps:centos-local
@@ -411,6 +474,8 @@ services:
    context: ./Dockerfiles/web-service/centos
    cache_from:
     - centos:centos8
+   args:
+    BUILD_BASE_IMAGE: zabbix-build-pgsql:centos-local
   image: zabbix-web-service:centos-local
   profiles:
    - full
@@ -431,6 +496,8 @@ services:
       memory: 256M
   env_file:
    - ./env_vars/.env_web_service
+  depends_on:
+   - zabbix-build-pgsql
   networks:
    zbx_net_backend:
     aliases:

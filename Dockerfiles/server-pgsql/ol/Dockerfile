@@ -85,6 +85,9 @@ RUN set -eux && \
         --setopt=install_weak_deps=0 \
         --best \
         --nodocs ${INSTALL_PKGS} && \
+    chown --quiet -R zabbix:root /etc/zabbix/ /var/lib/zabbix/ && \
+    chgrp -R 0 /etc/zabbix/ /var/lib/zabbix/ && \
+    chmod -R g=u /etc/zabbix/ /var/lib/zabbix/ && \
     microdnf -y clean all && \
     rm -rf /var/cache/yum /var/lib/yum/yumdb/* /usr/lib/udev/hwdb.d/* && \
     rm -rf /var/cache/dnf /etc/udev/hwdb.bin /root/.pki
