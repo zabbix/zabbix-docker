@@ -37,7 +37,7 @@ else
     VCS_REF=$MAJOR_VERSION.$MINOR_VERSION
 fi
 
-docker build -t zabbix-$app_component:$os-$version --build-arg VCS_REF="$VCS_REF" --build-arg BUILD_DATE=`date -u +"%Y-%m-%dT%H:%M:%SZ"` -f Dockerfile .
+DOCKER_BUILDKIT=1 docker build -t zabbix-$app_component:$os-$version --build-arg VCS_REF="$VCS_REF" --build-arg BUILD_DATE=`date -u +"%Y-%m-%dT%H:%M:%SZ"` -f Dockerfile .
 
 if [ "$type" != "build" ]; then
     links=""
