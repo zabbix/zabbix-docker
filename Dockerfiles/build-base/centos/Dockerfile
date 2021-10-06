@@ -59,6 +59,10 @@ RUN set -eux && \
             url='https://dl.google.com/go/go1.17.1.linux-arm64.tar.gz'; \
             sha256='53b29236fa03ed862670a5e5e2ab2439a2dc288fe61544aa392062104ac0128c'; \
             ;; \
+        ppc64le) \
+            url='https://golang.org/dl/go1.17.1.linux-ppc64le.tar.gz'; \
+            sha256='df4fa945512c3b472cf3d2dcb2e4ae5b34819607bc63f3223f5bc0c17b637dd0'; \
+            ;; \
         *) echo "Unknown ARCH_SUFFIX=${ARCH_SUFFIX-}"; exit 1 ;; \
     esac; \
     wget -O go.tgz.asc "$url.asc" && \
