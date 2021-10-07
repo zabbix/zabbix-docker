@@ -102,15 +102,13 @@ jobs:
         with:
           images: ${{ env.DOCKER_REPOSITORY }}/zabbix-${{ env.BASE_BUILD_NAME }}
           tags: |
-            type=semver,pattern={{version}}1
-            type=semver,pattern={{major}}.{{minor}}2
-            type=raw,value=${{matrix.os}}-{{ branch }}-latest3
-            type=raw,value={{branch}}-${{ matrix.os }}-latest4
-            type=pep440,pattern={{version}},5
-            type=semver,pattern={{version}}6
-            type=semver,pattern={{major}}.{{minor}}7
-            type=ref,event=branch,prefix=${{ matrix.os }}-8
-            type=ref,event=pr,suffix=-${{ matrix.os }}9
+            type=semver,pattern={{version}},prefix=${{ matrix.os }}-
+            type=semver,pattern={{version}},suffix=-${{ matrix.os }}
+            type=semver,pattern={{major}}.{{minor}},prefix=${{ matrix.os }}-,suffix=-latest
+            type=semver,pattern={{major}}.{{minor}},suffix=-${{ matrix.os }}-latest
+            type=ref,event=branch,prefix=${{ matrix.os }}-,suffix=-latest
+            type=ref,event=branch,suffix=-${{ matrix.os }}-latest
+            type=raw,enable=${{ steps.branch_name.outputs.is_default == 'true' }},value=${{matrix.os}}-latest
           flavor: |
             latest=${{ (matrix.os == 'alpine') && (steps.branch_name.outputs.is_default == 'true') }}
 
@@ -131,6 +129,7 @@ jobs:
         id: platform
         run: |
             platform_list=$(jq -r '.os.${{ matrix.os }} | join(",")' "./build.json")
+            test=${{ (matrix.os == 'alpine') && (format('refs/heads/{0}', github.event.repository.default_branch)) == github.ref }}
 
             echo ::set-output name=list::$platform_list
 
