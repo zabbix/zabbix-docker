@@ -33,7 +33,7 @@ LABEL name="zabbix/zabbix-java-gateway-54" \
       org.label-schema.version="${ZBX_VERSION}" \
       org.label-schema.vcs-url="${ZBX_SOURCES}" \
       org.label-schema.docker.cmd="docker run --name zabbix-java-gateway -p 10052:10052 -d registry.connect.redhat.com/zabbix/zabbix-java-gateway-54:${ZBX_VERSION}"
-            
+
 STOPSIGNAL SIGTERM
 
 COPY ["licenses", "/licenses"]

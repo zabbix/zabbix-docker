@@ -40,8 +40,8 @@ STOPSIGNAL SIGTERM
 COPY ["licenses", "/licenses"]
 
 RUN set -eux && INSTALL_PKGS="bash \
-            fping \
             tini \
+            fping \
             iputils \
             libcurl \
             libevent \

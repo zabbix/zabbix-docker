@@ -18,10 +18,14 @@ prepare_java_gateway_config() {
 
     ZBX_GATEWAY_CONFIG=$ZABBIX_ETC_DIR/zabbix_java_gateway_logback.xml
 
-    : ${ZBX_DEBUGLEVEL:="info"}
-
-    echo "Updating $ZBX_GATEWAY_CONFIG 'DebugLevel' parameter: '${ZBX_DEBUGLEVEL}'... updated"
-    sed -i -e "/^.*<root level=/s/=.*/=\"${ZBX_DEBUGLEVEL}\">/" "$ZBX_GATEWAY_CONFIG"
+    if [ -n "${ZBX_DEBUGLEVEL}" ]; then
+        echo "Updating $ZBX_GATEWAY_CONFIG 'DebugLevel' parameter: '${ZBX_DEBUGLEVEL}'... updated"
+        if [ -f "$ZBX_GATEWAY_CONFIG" ]; then
+            sed -i -e "/^.*<root level=/s/=.*/=\"${ZBX_DEBUGLEVEL}\">/" "$ZBX_GATEWAY_CONFIG"
+        else
+            echo "**** Zabbix Java Gateway log configuration file '$ZBX_GATEWAY_CONFIG' not found"
+        fi
+    fi
 }
 
 prepare_java_gateway() {
