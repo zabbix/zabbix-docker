@@ -108,7 +108,7 @@ jobs:
             type=ref,event=branch,prefix=${{ matrix.os }}-8
             type=ref,event=pr,suffix=-${{ matrix.os }}9
           flavor: |
-            latest=${{ (matrix.os == 'alpine') && (github.event.repository.default_branch == branch) }}
+            latest=${{ (matrix.os == 'alpine') && (github.event.repository.default_branch == startsWith('refs/heads/', github.ref)) }}
 
       -
         name: Set up QEMU
