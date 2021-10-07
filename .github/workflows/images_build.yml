@@ -107,6 +107,8 @@ jobs:
             type=semver,pattern={{major}}.{{minor}}7
             type=ref,event=branch,prefix=${{ matrix.os }}-8
             type=ref,event=pr,suffix=-${{ matrix.os }}9
+          flavor: |
+            latest=${{ matrix.os == 'alpine' }}
 
       -
         name: Set up QEMU
