@@ -98,15 +98,15 @@ jobs:
         with:
           images: ${{ env.DOCKER_REPOSITORY }}/zabbix-${{ env.BASE_BUILD_NAME }}
           tags: |
-            type=semver,pattern={{version}}
-            type=semver,pattern={{major}}.{{minor}}
-            type=raw,value=${{matrix.os}}-{{ branch }}
-            type=raw,value={{branch}}-${{ matrix.os }}
-            type=pep440,pattern={{version}},
-            type=semver,pattern={{version}}
-            type=semver,pattern={{major}}.{{minor}}
-            type=ref,event=branch,prefix=${{ matrix.os }}-
-            type=ref,event=pr,suffix=-${{ matrix.os }}
+            type=semver,pattern={{version}}1
+            type=semver,pattern={{major}}.{{minor}}2
+            type=raw,value=${{matrix.os}}-{{ branch }}-latest3
+            type=raw,value={{branch}}-${{ matrix.os }}-latest4
+            type=pep440,pattern={{version}},5
+            type=semver,pattern={{version}}6
+            type=semver,pattern={{major}}.{{minor}}7
+            type=ref,event=branch,prefix=${{ matrix.os }}-8
+            type=ref,event=pr,suffix=-${{ matrix.os }}9
 
       -
         name: Set up QEMU
