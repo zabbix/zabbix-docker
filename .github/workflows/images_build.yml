@@ -112,7 +112,7 @@ jobs:
             type=ref,event=branch,prefix=${{ matrix.os }}-8
             type=ref,event=pr,suffix=-${{ matrix.os }}9
           flavor: |
-            latest=${{ steps.branch_name.outputs.is_default == 'true' }}
+            latest=${{ (matrix.os == 'alpine') && (steps.branch_name.outputs.is_default == 'true') }}
 
       -
         name: Set up QEMU
