@@ -7,12 +7,11 @@ on:
   push:
     branches:
       - 'trunk'
-    paths-ignore:
-      - 'env_vars/*'
-      - 'docker-compose*.yaml'
-      - 'Dockerfiles/*/rhel/*'
-      - 'Dockerfiles/*/windows/*'
-      - "**.md"
+    paths:
+      - 'Dockerfiles/**'
+      - '!Dockerfiles/*/rhel/*'
+      - '!Dockerfiles/*/windows/*'
+      - '.github/workflows/images_build.yml'
 
 defaults:
   run:
@@ -31,6 +30,7 @@ jobs:
       os: ${{ steps.os.outputs.list }}
       database: ${{ steps.database.outputs.list }}
       components: ${{ steps.components.outputs.list }}
+      is_default_branch: ${{ steps.branch_info.outputs.is_default }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2.3.4
@@ -72,6 +72,10 @@ jobs:
             component_list=$(jq -r '.components | keys | [ .[] | tostring ] | @json' "./build.json")
 
             echo "::set-output name=list::$component_list"
+
+      - name: Get branch info
+        id: branch_info
+        uses: tj-actions/branch-names@v5
 
   build_base:
     timeout-minutes: 70
@@ -117,7 +121,7 @@ jobs:
             type=ref,event=branch,prefix=${{ matrix.os }}-
             type=ref,event=branch,suffix=-${{ matrix.os }}
           flavor: |
-            latest=auto
+            latest=false
 
       - name: Build ${{ env.BASE_BUILD_NAME }}/${{ matrix.os }} and push
         id: docker_build
@@ -187,7 +191,7 @@ jobs:
             type=ref,event=branch,prefix=${{ matrix.os }}-
             type=ref,event=branch,suffix=-${{ matrix.os }}
           flavor: |
-            latest=auto
+            latest=false
 
       - name: Download SHA256 tag  build-base:${{ matrix.os }}
         uses: actions/download-artifact@v2.0.10
@@ -283,7 +287,7 @@ jobs:
             type=ref,event=branch,prefix=${{ matrix.os }}-
             type=ref,event=branch,suffix=-${{ matrix.os }}
           flavor: |
-            latest=auto
+            latest=false
 
       - name: Download SHA256 tag for ${{ steps.build_base_image.outputs.build_base }}:${{ matrix.os }}
         uses: actions/download-artifact@v2.0.10

@@ -2,14 +2,14 @@ version: '3.5'
 services:
  zabbix-build-base:
   build:
-   context: ./build-base/ubuntu
+   context: ./Dockerfiles/build-base/ubuntu
    cache_from:
     - ubuntu:focal
   image: zabbix-build-base:ubuntu-local
 
  zabbix-build-pgsql:
   build:
-   context: ./build-pgsql/ubuntu
+   context: ./Dockerfiles/build-pgsql/ubuntu
    cache_from:
     - ubuntu:focal
    args:
@@ -20,7 +20,7 @@ services:
 
  zabbix-build-mysql:
   build:
-   context: ./build-mysql/ubuntu
+   context: ./Dockerfiles/build-mysql/ubuntu
    cache_from:
     - ubuntu:focal
    args:
@@ -31,7 +31,7 @@ services:
 
  zabbix-build-sqlite3:
   build:
-   context: ./build-sqlite3/ubuntu
+   context: ./Dockerfiles/build-sqlite3/ubuntu
    cache_from:
     - ubuntu:focal
    args:
