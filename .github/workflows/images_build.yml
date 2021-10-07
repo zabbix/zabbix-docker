@@ -128,17 +128,6 @@ jobs:
 
             echo ::set-output name=list::$platform_list
 
-      - name: Generate tags
-        id: meta
-        uses: docker/metadata-action@v3
-        with:
-          images: ${{ env.DOCKER_REPOSITORY }}/zabbix-${{ env.BASE_BUILD_NAME }}
-          tags: |
-            type=ref,event=branch,prefix=${{ matrix.os }}-
-            type=ref,event=branch,suffix=-${{ matrix.os }}
-          flavor: |
-            latest=auto
-
       - name: Build ${{ env.BASE_BUILD_NAME }}/${{ matrix.os }} and push
         id: docker_build
         uses: docker/build-push-action@v2
