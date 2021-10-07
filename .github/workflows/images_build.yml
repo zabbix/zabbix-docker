@@ -194,7 +194,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v3
         with:
-          images: ${{ env.DOCKER_REPOSITORY }}/zabbix-${{ env.BASE_BUILD_NAME }}
+          images: ${{ env.DOCKER_REPOSITORY }}/zabbix-${{ matrix.build }}
           tags: |
             type=semver,pattern={{version}},prefix=${{ matrix.os }}-
             type=semver,pattern={{version}},suffix=-${{ matrix.os }}
@@ -293,7 +293,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v3
         with:
-          images: ${{ env.DOCKER_REPOSITORY }}/zabbix-${{ env.BASE_BUILD_NAME }}
+          images: ${{ env.DOCKER_REPOSITORY }}/zabbix-${{ matrix.build }}
           tags: |
             type=semver,pattern={{version}},prefix=${{ matrix.os }}-
             type=semver,pattern={{version}},suffix=-${{ matrix.os }}
