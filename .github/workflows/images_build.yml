@@ -10,12 +10,11 @@ on:
       - '5.0'
       - '5.4'
       - 'trunk'
-    paths-ignore:
-      - 'env_vars/*'
-      - 'docker-compose*.yaml'
-      - 'Dockerfiles/*/rhel/*'
-      - 'Dockerfiles/*/windows/*'
-      - "**.md"
+    paths:
+      - 'Dockerfiles/**'
+      - '!Dockerfiles/*/rhel/*'
+      - '!Dockerfiles/*/windows/*'
+      - '.github/workflows/images_build.yml'
 
 defaults:
   run:
@@ -97,20 +96,6 @@ jobs:
         with:
           fetch-depth: 1
 
-      - name: Generate tags
-        id: meta
-        uses: docker/metadata-action@v3
-        with:
-          images: ${{ env.DOCKER_REPOSITORY }}/zabbix-${{ env.BASE_BUILD_NAME }}
-          tags: |
-            type=semver,pattern={{version}},prefix=${{ matrix.os }}-
-            type=semver,pattern={{version}},suffix=-${{ matrix.os }}
-            type=ref,event=branch,prefix=${{ matrix.os }}-,suffix=-latest
-            type=ref,event=branch,suffix=-${{ matrix.os }}-latest
-            type=raw,enable=${{ needs.init_build.outputs.is_default_branch == 'true' }},value=${{matrix.os}}-latest
-          flavor: |
-            latest=${{ (matrix.os == 'alpine') && (needs.init_build.outputs.is_default_branch == 'true') }}
-
       -
         name: Set up QEMU
         uses: docker/setup-qemu-action@v1
@@ -130,6 +115,20 @@ jobs:
             platform_list=$(jq -r '.os.${{ matrix.os }} | join(",")' "./build.json")
 
             echo ::set-output name=list::$platform_list
+
+      - name: Generate tags
+        id: meta
+        uses: docker/metadata-action@v3
+        with:
+          images: ${{ env.DOCKER_REPOSITORY }}/zabbix-${{ env.BASE_BUILD_NAME }}
+          tags: |
+            type=semver,pattern={{version}},prefix=${{ matrix.os }}-
+            type=semver,pattern={{version}},suffix=-${{ matrix.os }}
+            type=ref,event=branch,prefix=${{ matrix.os }}-,suffix=-latest
+            type=ref,event=branch,suffix=-${{ matrix.os }}-latest
+            type=raw,enable=${{ needs.init_build.outputs.is_default_branch == 'true' }},value=${{matrix.os}}-latest
+          flavor: |
+            latest=${{ (matrix.os == 'alpine') && (needs.init_build.outputs.is_default_branch == 'true') }}
 
       - name: Build ${{ env.BASE_BUILD_NAME }}/${{ matrix.os }} and push
         id: docker_build
