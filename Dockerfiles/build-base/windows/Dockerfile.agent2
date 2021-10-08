@@ -114,6 +114,7 @@ RUN Set-Location -Path $env:SystemDrive\.; `
     `
     Write-Host ('Downloading {0} ...' -f $env:MINGW_URL); `
     [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; `
+    [System.Net.ServicePointManager]::ServerCertificateValidationCallback = { $true }; `
     Invoke-WebRequest -OutFile $env:SystemDrive\mingw.7z -Uri $env:MINGW_URL; `
     `
     $sha256 = 'e8c65ddc655534b0330f66f7b480565621e8617cda9937d76ba141a22bf3b2fa'; `
