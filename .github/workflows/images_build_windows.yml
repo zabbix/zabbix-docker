@@ -105,7 +105,7 @@ jobs:
             docker push image push --all-tags $tags_array[0]
             docker logout
 
-            $digest=$(docker inspect ${{ $tags_array[0] }} --format "{{.Id}}")
+            $digest=$(docker inspect $tags_array[0] --format "{{.Id}}")
             echo $digest
             echo "$digest" > ${{ env.BASE_BUILD_NAME }}_${{ matrix.os }}_${{ matrix.build }}
 
