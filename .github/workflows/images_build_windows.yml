@@ -120,7 +120,7 @@ jobs:
          path: ${{ env.BASE_BUILD_NAME }}_${{ matrix.os }}_${{ matrix.build }}
          if-no-files-found: error
 
-  build_base_database:
+  build_components:
     timeout-minutes: 70
     needs: [ "build_base", "init_build"]
     name: Build ${{ matrix.build }} sources on ${{ matrix.os }}
@@ -146,7 +146,7 @@ jobs:
           flavor: |
             latest=false
 
-      - name: Download SHA256 tag  build-base:${{ matrix.os }}
+      - name: Download SHA256 tag build-base:${{ matrix.os }}
         uses: actions/download-artifact@v2.0.10
         with:
           name: ${{ env.BASE_BUILD_NAME }}_${{ matrix.os }}_${{ matrix.build }}
@@ -188,13 +188,13 @@ jobs:
       - name: Upload SHA256 tag
         uses: actions/upload-artifact@v2.2.4
         with:
-         name: base-mysql_${{ matrix.os }}_${{ matrix.build }})
-         path: base-mysql_${{ matrix.os }}_${{ matrix.build }})
+         name: base-mysql_${{ matrix.os }}_${{ matrix.build }}
+         path: base-mysql_${{ matrix.os }}_${{ matrix.build }}
          if-no-files-found: error
 
   build_images:
     timeout-minutes: 70
-    needs: [ "build_base_database", "init_build"]
+    needs: [ "build_components", "init_build"]
     name: Build ${{ matrix.build }} on ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -217,12 +217,12 @@ jobs:
           flavor: |
             latest=false
 
-      - name: Download SHA256 tag for ${{ steps.build_base_image.outputs.build_base }}:${{ matrix.os }}
+      - name: Download SHA256 tag for build-components:${{ matrix.os }}
         uses: actions/download-artifact@v2.0.10
         with:
           name: base-mysql_${{ matrix.os }}_${{ matrix.build }}
 
-      - name: Retrieve ${{ steps.build_base_image.outputs.build_base }}:${{ matrix.os }} SHA256 tag
+      - name: Retrieve build-components:${{ matrix.os }} SHA256 tag
         id: base_build
         run: |
           $base_tag=$(cat base-mysql_${{ matrix.os }}_${{ matrix.build }} )
