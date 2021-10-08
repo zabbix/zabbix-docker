@@ -44,7 +44,7 @@ jobs:
       - name: Prepare Operating System list
         id: os
         run: |
-            $os_list='["windows"]'
+            $os_list='["ltsc2022"]'
 
             echo "::set-output name=list::$os_list"
 
@@ -96,7 +96,11 @@ jobs:
       - name: Build ${{ env.BASE_BUILD_NAME }}/${{ matrix.build }}-${{ matrix.os }} and push
         id: docker_build
         run: |
-            docker build -f .\Dockerfiles\${{ env.BASE_BUILD_NAME }}\${{ matrix.os }}\Dockerfile.${{ matrix.build }} .\Dockerfiles\${{ env.BASE_BUILD_NAME }}\${{ matrix.os }}\
+            $tags=$(echo '${{ steps.meta.outputs.tags }}' | jq -r '. | map("""--tag=""" + .) | join(""" """)')
+            docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
+            docker build --file=.\Dockerfiles\${{ env.BASE_BUILD_NAME }}\windows\Dockerfile.${{ matrix.build }} $tags .\Dockerfiles\${{ env.BASE_BUILD_NAME }}\windows\
+            docker push image push --all-tags ${{ steps.meta.outputs.tags[0] }}
+            docker logout
 
       - name: Image digest
         run: |
