@@ -155,7 +155,7 @@ jobs:
         id: base_build
         run: |
           $base_tag=$(cat build-base_${{ matrix.os }}_${{ matrix.build }})
-          $build_base_image=${{ env.DOCKER_REPOSITORY }}/zabbix-build-base@$base_tag
+          $build_base_image="${{ env.DOCKER_REPOSITORY }}/zabbix-build-base@" + $base_tag
 
           echo ::set-output name=base_tag::$base_tag
           echo ::set-output name=base_build_image::$build_base_image
@@ -226,7 +226,7 @@ jobs:
         id: base_build
         run: |
           $base_tag=$(cat base-mysql_${{ matrix.os }}_${{ matrix.build }} )
-          $build_base_image=${{ env.DOCKER_REPOSITORY }}/zabbix-build-mysql@$base_tag
+          $build_base_image="${{ env.DOCKER_REPOSITORY }}/zabbix-build-mysql@" + $base_tag
 
           echo ::set-output name=base_tag::$base_tag
           echo ::set-output name=base_build_image::$build_base_image
