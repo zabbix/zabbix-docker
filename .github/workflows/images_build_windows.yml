@@ -170,17 +170,25 @@ jobs:
         run: |
             $tags_array=$( "${{ steps.meta.outputs.tags}}".Split("`r`n") )
             $tags=$($tags_array | Foreach-Object { "--tag=$_" })
+            $tags_list=$($tags_array -Join ' ')
 
             docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
+            if (-not $?) {throw "Failed"}
 
             echo "docker build --file=.\Dockerfiles\build-mysql\windows\Dockerfile.${{ matrix.build }} $tags .\Dockerfiles\build-mysql\windows\"
             docker build --build-arg=BUILD_BASE_IMAGE=${{ steps.base_build.outputs.base_build_image }} --file=.\Dockerfiles\build-mysql\windows\Dockerfile.${{ matrix.build }} $tags .\Dockerfiles\build-mysql\windows\
+            if (-not $?) {throw "Failed"}
 
-            echo "docker push image push --all-tags $tags_array[0]"
-            docker image push --all-tags $tags_array[0]
+            echo "docker push image push --all-tags $tags_list"
+            Foreach ($tag in $test2) {
+                docker image push $tag
+                if (-not $?) {throw "Failed"}
+            }
             docker logout
+            if (-not $?) {throw "Failed"}
 
             $digest=$(docker inspect $tags_array[0] --format "{{.Id}}")
+            if (-not $?) {throw "Failed"}
             echo $digest
             echo "$digest" > base-mysql_${{ matrix.os }}_${{ matrix.build }})
 
