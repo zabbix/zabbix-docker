@@ -96,7 +96,8 @@ jobs:
       - name: Build ${{ env.BASE_BUILD_NAME }}/${{ matrix.build }}-${{ matrix.os }} and push
         id: docker_build
         run: |
-            $tags=$(echo '${{ fromJson(steps.meta.outputs.tags) }}' | jq -r '. | map("""--tag=""" + .) | join(""" """)')
+            $tags='${{ steps.meta.outputs.tags }}'
+            echo $tags
             docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
             docker build --file=.\Dockerfiles\${{ env.BASE_BUILD_NAME }}\windows\Dockerfile.${{ matrix.build }} $tags .\Dockerfiles\${{ env.BASE_BUILD_NAME }}\windows\
             docker push image push --all-tags ${{ steps.meta.outputs.tags[0] }}
