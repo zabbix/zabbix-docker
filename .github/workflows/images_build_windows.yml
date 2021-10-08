@@ -37,6 +37,7 @@ jobs:
       - name: Check build.json file
         id: build_exists
         run: |
+            docker build --help
             if (-not(Test-Path -Path "./build.json" -PathType Leaf)) {
                 throw "::error::File build.json is missing"
             }
@@ -96,13 +97,12 @@ jobs:
       - name: Build ${{ env.BASE_BUILD_NAME }}/${{ matrix.build }}-${{ matrix.os }} and push
         id: docker_build
         run: |
-            $tags=$(echo "${{ steps.meta.outputs.tags}}"  | jq --raw-input . | jq --slurp . | jq -r '. | map("""-t """ + .) | join(""" """)')
-            echo $tags
+            $tags_array=$( "${{ steps.meta.outputs.tags}}".Split("`r`n") | Foreach-Object { "--tag=$_" } )
+            $tags=$( $tags_array - Join ' ' )
             docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
             echo "docker build --file=.\Dockerfiles\${{ env.BASE_BUILD_NAME }}\windows\Dockerfile.${{ matrix.build }} $tags .\Dockerfiles\${{ env.BASE_BUILD_NAME }}\windows\"
             docker build --file=.\Dockerfiles\${{ env.BASE_BUILD_NAME }}\windows\Dockerfile.${{ matrix.build }} $tags .\Dockerfiles\${{ env.BASE_BUILD_NAME }}\windows\
-            $main_tag=$(echo "${{ steps.meta.outputs.tags}}"  | jq --raw-input . | jq --slurp . | jq -r '.[0]')
-            docker push image push --all-tags $main_tag
+            docker push image push --all-tags $tags_array[0]
             docker logout
 
       - name: Image digest
@@ -112,7 +112,8 @@ jobs:
             echo "$digest" > ${{ env.BASE_BUILD_NAME }}_${{ matrix.os }}_${{ matrix.build }}
 
       - name: Upload SHA256 tag
-        uses: actions/upload-artifact@v2.2.4
+        uses: actions/upload-ar
+tifact@v2.2.4
         with:
          name: ${{ env.BASE_BUILD_NAME }}_${{ matrix.os }}_${{ matrix.build }}
          path: ${{ env.BASE_BUILD_NAME }}_${{ matrix.os }}_${{ matrix.build }}
