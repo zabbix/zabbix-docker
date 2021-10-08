@@ -141,7 +141,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v3
         with:
-          images: ${{ env.DOCKER_REPOSITORY }}/zabbix-${{ matrix.build }}
+          images: ${{ env.DOCKER_REPOSITORY }}/zabbix-build-mysql
           tags: |
             type=ref,event=branch,prefix=${{ matrix.build }}-${{ matrix.os }}-
             type=ref,event=branch,suffix=-${{ matrix.os }},prefix=${{ matrix.build }}-
@@ -216,8 +216,8 @@ jobs:
         with:
           images: ${{ env.DOCKER_REPOSITORY }}/zabbix-${{ matrix.build }}
           tags: |
-            type=ref,event=branch,prefix=${{ matrix.os }}-
-            type=ref,event=branch,suffix=-${{ matrix.os }}
+            type=ref,event=branch,prefix=${{ matrix.build }}-${{ matrix.os }}-
+            type=ref,event=branch,suffix=-${{ matrix.os }},prefix=${{ matrix.build }}-
           flavor: |
             latest=false
 
