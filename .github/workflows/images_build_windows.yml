@@ -96,23 +96,27 @@ jobs:
       - name: Build ${{ env.BASE_BUILD_NAME }}/${{ matrix.build }}-${{ matrix.os }} and push
         id: docker_build
         run: |
-            $tags='${{ steps.meta.outputs.tags }}' -split "`r`n"
-            echo $tags
+            $tags='${{ steps.meta.outputs.tags }}'
+            $result_tags = ''
+            foreach ($line in $tags) {
+                $result_tags = $result_tags + '--tag ' + $line
+            }
             docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
-            docker build --file=.\Dockerfiles\${{ env.BASE_BUILD_NAME }}\windows\Dockerfile.${{ matrix.build }} $tags .\Dockerfiles\${{ env.BASE_BUILD_NAME }}\windows\
+            docker build --file=.\Dockerfiles\${{ env.BASE_BUILD_NAME }}\windows\Dockerfile.${{ matrix.build }} $result_tags .\Dockerfiles\${{ env.BASE_BUILD_NAME }}\windows\
             docker push image push --all-tags ${{ steps.meta.outputs.tags[0] }}
             docker logout
 
       - name: Image digest
         run: |
-            echo ${{ steps.docker_build.outputs.digest }}
-            echo "${{ steps.docker_build.outputs.digest }}" > ${{ env.BASE_BUILD_NAME }}_${{ matrix.os }}
+            $digest=$(docker inspect ${{ steps.meta.outputs.tags[0] }} --format "{{.Id}}")
+            echo $digest
+            echo "$digest" > ${{ env.BASE_BUILD_NAME }}_${{ matrix.os }}_${{ matrix.build }}
 
       - name: Upload SHA256 tag
         uses: actions/upload-artifact@v2.2.4
         with:
-         name: ${{ env.BASE_BUILD_NAME }}_${{ matrix.os }}
-         path: ${{ env.BASE_BUILD_NAME }}_${{ matrix.os }}
+         name: ${{ env.BASE_BUILD_NAME }}_${{ matrix.os }}_${{ matrix.build }}
+         path: ${{ env.BASE_BUILD_NAME }}_${{ matrix.os }}_${{ matrix.build }}
          if-no-files-found: error
 
   build_base_database:
