@@ -97,7 +97,9 @@ jobs:
             if (-not $?) {throw "Failed"}
 
             echo "docker build --file=.\Dockerfiles\${{ env.BASE_BUILD_NAME }}\windows\Dockerfile.${{ matrix.build }} $tags .\Dockerfiles\${{ env.BASE_BUILD_NAME }}\windows\"
-            docker build --file=.\Dockerfiles\${{ env.BASE_BUILD_NAME }}\windows\Dockerfile.${{ matrix.build }} $tags .\Dockerfiles\${{ env.BASE_BUILD_NAME }}\windows\
+            docker build --label org.opencontainers.image.revision=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.revision'] }} `
+                         --label org.opencontainers.image.created=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.created'] }} `
+                --file=.\Dockerfiles\${{ env.BASE_BUILD_NAME }}\windows\Dockerfile.${{ matrix.build }} $tags .\Dockerfiles\${{ env.BASE_BUILD_NAME }}\windows\
             if (-not $?) {throw "Failed"}
 
             Foreach ($tag in $tags_array) {
@@ -170,7 +172,9 @@ jobs:
             if (-not $?) {throw "Failed"}
 
             echo "docker build --file=.\Dockerfiles\build-mysql\windows\Dockerfile.${{ matrix.build }} $tags .\Dockerfiles\build-mysql\windows\"
-            docker build --build-arg=BUILD_BASE_IMAGE=${{ steps.base_build.outputs.base_build_image }} --file=.\Dockerfiles\build-mysql\windows\Dockerfile.${{ matrix.build }} $tags .\Dockerfiles\build-mysql\windows\
+            docker build --label org.opencontainers.image.revision=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.revision'] }} `
+                         --label org.opencontainers.image.created=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.created'] }} `
+                         --build-arg=BUILD_BASE_IMAGE=${{ steps.base_build.outputs.base_build_image }} --file=.\Dockerfiles\build-mysql\windows\Dockerfile.${{ matrix.build }} $tags .\Dockerfiles\build-mysql\windows\
             if (-not $?) {throw "Failed"}
 
             Foreach ($tag in $tags_array) {
@@ -241,7 +245,9 @@ jobs:
             if (-not $?) {throw "Failed"}
 
             echo "docker build --file=.\Dockerfiles\${{ matrix.build }}\windows\Dockerfile.${{ matrix.build }} $tags .\Dockerfiles\${{ matrix.build }}\windows\"
-            docker build --build-arg=BUILD_BASE_IMAGE=${{ steps.base_build.outputs.base_build_image }} --file=.\Dockerfiles\${{ matrix.build }}\windows\Dockerfile $tags .\Dockerfiles\${{ matrix.build }}\windows\
+            docker build --label org.opencontainers.image.revision=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.revision'] }} `
+                         --label org.opencontainers.image.created=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.created'] }} `
+                         --build-arg=BUILD_BASE_IMAGE=${{ steps.base_build.outputs.base_build_image }} --file=.\Dockerfiles\${{ matrix.build }}\windows\Dockerfile $tags .\Dockerfiles\${{ matrix.build }}\windows\
             if (-not $?) {throw "Failed"}
 
             Foreach ($tag in $tags_array) {
