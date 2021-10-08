@@ -112,8 +112,7 @@ jobs:
             echo "$digest" > ${{ env.BASE_BUILD_NAME }}_${{ matrix.os }}_${{ matrix.build }}
 
       - name: Upload SHA256 tag
-        uses: actions/upload-ar
-tifact@v2.2.4
+        uses: actions/upload-artifact@v2.2.4
         with:
          name: ${{ env.BASE_BUILD_NAME }}_${{ matrix.os }}_${{ matrix.build }}
          path: ${{ env.BASE_BUILD_NAME }}_${{ matrix.os }}_${{ matrix.build }}
