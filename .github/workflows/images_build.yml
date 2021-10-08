@@ -325,7 +325,7 @@ jobs:
           context: ./Dockerfiles/${{ matrix.build }}/${{ matrix.os }}
           file: ./Dockerfiles/${{ matrix.build }}/${{ matrix.os }}/Dockerfile
           platforms: ${{ steps.platform.outputs.list }}
-          push: false
+          push: ${{ secrets.AUTO_PUSH_IMAGES }}
           tags: ${{ steps.meta.outputs.tags }}
           build-args: BUILD_BASE_IMAGE=${{ steps.base_build.outputs.base_build_image }}
           labels: |
