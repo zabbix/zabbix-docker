@@ -38,10 +38,9 @@ jobs:
       - name: Check build.json file
         id: build_exists
         run: |
-            if [[ ! -f "./build.json" ]]; then
-                echo "::error::File build.json is missing"
-                exit 1
-            fi
+            if (-not(Test-Path -Path $ConfigPath -PathType Leaf)) {
+                throw "::error::File build.json is missing"
+            }
 
       - name: Prepare Operating System list
         id: os
