@@ -98,7 +98,7 @@ jobs:
         id: docker_build
         run: |
             $tags_array=$( "${{ steps.meta.outputs.tags}}".Split("`r`n") )
-            $tags=$($tags_array | Foreach-Object { "-t '$_'" }) -Join ' '
+            $tags=$($tags_array | Foreach-Object { "--tag=$_" })
             docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
             echo "docker build --file=.\Dockerfiles\${{ env.BASE_BUILD_NAME }}\windows\Dockerfile.${{ matrix.build }} $tags .\Dockerfiles\${{ env.BASE_BUILD_NAME }}\windows\"
             docker build --file=.\Dockerfiles\${{ env.BASE_BUILD_NAME }}\windows\Dockerfile.${{ matrix.build }} $tags .\Dockerfiles\${{ env.BASE_BUILD_NAME }}\windows\
