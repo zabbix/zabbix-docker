@@ -224,7 +224,7 @@ jobs:
       - name: Retrieve ${{ steps.build_base_image.outputs.build_base }}:${{ matrix.os }} SHA256 tag
         id: base_build
         run: |
-          BASE_TAG=$(cat ${{ base-mysql_${{ matrix.os }}_${{ matrix.build }} )
+          BASE_TAG=$(cat base-mysql_${{ matrix.os }}_${{ matrix.build }} )
           BUILD_BASE_IMAGE=${{ env.DOCKER_REPOSITORY }}/zabbix-build-mysql@${BASE_TAG}
 
           echo ::set-output name=base_tag::${BASE_TAG}
