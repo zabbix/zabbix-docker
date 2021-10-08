@@ -96,14 +96,10 @@ jobs:
       - name: Build ${{ env.BASE_BUILD_NAME }}/${{ matrix.build }}-${{ matrix.os }} and push
         id: docker_build
         run: |
-            $tags='${{ steps.meta.outputs.tags }}'
-            $result_tags = ''
-            foreach ($line in $tags) {
-                $result_tags = $result_tags + ' --tag=' + $line
-            }
-            echo $result_tags
+            $tags=$(echo "steps.meta.outputs.tags"  | jq --raw-input . | jq --slurp . | jq -r '. | map("""--tag=""" + .) | join(""" """)')
+            echo $tags
             docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
-            docker build --file=.\Dockerfiles\${{ env.BASE_BUILD_NAME }}\windows\Dockerfile.${{ matrix.build }} $result_tags .\Dockerfiles\${{ env.BASE_BUILD_NAME }}\windows\
+            docker build --file=.\Dockerfiles\${{ env.BASE_BUILD_NAME }}\windows\Dockerfile.${{ matrix.build }} $tags .\Dockerfiles\${{ env.BASE_BUILD_NAME }}\windows\
             docker push image push --all-tags ${{ steps.meta.outputs.tags[0] }}
             docker logout
 
