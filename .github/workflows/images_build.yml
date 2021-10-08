@@ -236,7 +236,7 @@ jobs:
   build_images:
     timeout-minutes: 70
     needs: [ "build_base_database", "init_build"]
-    name: Build ${{ matrix.build }} base on ${{ matrix.os }}
+    name: Build ${{ matrix.build }} on ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
