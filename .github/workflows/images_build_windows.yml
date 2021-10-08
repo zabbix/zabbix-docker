@@ -96,7 +96,7 @@ jobs:
       - name: Build ${{ env.BASE_BUILD_NAME }}/${{ matrix.build }}-${{ matrix.os }} and push
         id: docker_build
         run: |
-            $tags='${{ steps.meta.outputs.tags }}'
+            $tags='${{ steps.meta.outputs.tags }}' -split "`r`n"
             echo $tags
             docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
             docker build --file=.\Dockerfiles\${{ env.BASE_BUILD_NAME }}\windows\Dockerfile.${{ matrix.build }} $tags .\Dockerfiles\${{ env.BASE_BUILD_NAME }}\windows\
