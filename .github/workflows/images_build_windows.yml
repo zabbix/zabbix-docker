@@ -45,32 +45,32 @@ jobs:
       - name: Prepare Operating System list
         id: os
         run: |
-            os_list=$(jq -r '.os |  keys | [ .[] | tostring ] | @json' "./build.json")
-            os_list='windows'
+            $os_list=$(jq -r '.os |  keys | [ .[] | tostring ] | @json' "./build.json")
+            $os_list='windows'
 
             echo "::set-output name=list::$os_list"
 
       - name: Prepare Platform list
         id: platform_list
         run: |
-            platform_list=$(jq -r '.os | tostring  | @json' "./build.json")
-            platform_list='amd64'
+            $platform_list=$(jq -r '.os | tostring  | @json' "./build.json")
+            $platform_list='amd64'
 
             echo "::set-output name=list::$platform_list"
 
       - name: Prepare Database engine list
         id: database
         run: |
-            database_list=$(jq -r '[.components | values[] ] | sort | unique | del(.. | select ( . == "" ) ) | [ .[] | tostring ] | @json' "./build.json")
-            database_list=''
+            $database_list=$(jq -r '[.components | values[] ] | sort | unique | del(.. | select ( . == "" ) ) | [ .[] | tostring ] | @json' "./build.json")
+            $database_list=''
 
             echo "::set-output name=list::$database_list"
 
       - name: Prepare Zabbix component list
         id: components
         run: |
-            component_list=$(jq -r '.components | keys | [ .[] | tostring ] | @json' "./build.json")
-            component_list='agent,agent2'
+            $component_list=$(jq -r '.components | keys | [ .[] | tostring ] | @json' "./build.json")
+            $component_list='agent,agent2'
 
             echo "::set-output name=list::$component_list"
 
@@ -103,8 +103,8 @@ jobs:
       - name: Prepare Platform list
         id: platform
         run: |
-            platform_list=$(jq -r '.os.${{ matrix.os }} | join(",")' "./build.json")
-            platform_list='amd64'
+            $platform_list=$(jq -r '.os.${{ matrix.os }} | join(",")' "./build.json")
+            $platform_list='amd64'
 
             echo ::set-output name=list::$platform_list
 
