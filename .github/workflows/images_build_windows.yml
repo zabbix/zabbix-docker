@@ -26,7 +26,6 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       os: ${{ steps.os.outputs.list }}
-      database: ${{ steps.database.outputs.list }}
       components: ${{ steps.components.outputs.list }}
       is_default_branch: ${{ steps.branch_info.outputs.is_default }}
     steps:
@@ -45,32 +44,14 @@ jobs:
       - name: Prepare Operating System list
         id: os
         run: |
-            $os_list=$(jq -r '.os |  keys | [ .[] | tostring ] | @json' "./build.json")
-            $os_list='windows'
+            $os_list='["windows"]'
 
             echo "::set-output name=list::$os_list"
-
-      - name: Prepare Platform list
-        id: platform_list
-        run: |
-            $platform_list=$(jq -r '.os | tostring  | @json' "./build.json")
-            $platform_list='amd64'
-
-            echo "::set-output name=list::$platform_list"
-
-      - name: Prepare Database engine list
-        id: database
-        run: |
-            $database_list=$(jq -r '[.components | values[] ] | sort | unique | del(.. | select ( . == "" ) ) | [ .[] | tostring ] | @json' "./build.json")
-            $database_list=''
-
-            echo "::set-output name=list::$database_list"
 
       - name: Prepare Zabbix component list
         id: components
         run: |
-            $component_list=$(jq -r '.components | keys | [ .[] | tostring ] | @json' "./build.json")
-            $component_list='agent,agent2'
+            $component_list='["agent","agent2"]'
 
             echo "::set-output name=list::$component_list"
 
@@ -86,6 +67,7 @@ jobs:
       fail-fast: false
       matrix:
         os: ${{ fromJson(needs.init_build.outputs.os) }}
+        build: ${{ fromJson(needs.init_build.outputs.components) }}
 
     runs-on: windows-2022
     steps:
@@ -100,14 +82,6 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: Prepare Platform list
-        id: platform
-        run: |
-            $platform_list=$(jq -r '.os.${{ matrix.os }} | join(",")' "./build.json")
-            $platform_list='amd64'
-
-            echo ::set-output name=list::$platform_list
-
       - name: Generate tags
         id: meta
         uses: docker/metadata-action@v3
@@ -119,13 +93,12 @@ jobs:
           flavor: |
             latest=false
 
-      - name: Build ${{ env.BASE_BUILD_NAME }}/${{ matrix.os }} and push
+      - name: Build ${{ env.BASE_BUILD_NAME }}/${{ matrix.build }}-${{ matrix.os }} and push
         id: docker_build
         uses: docker/build-push-action@v2
         with:
           context: ./Dockerfiles/${{ env.BASE_BUILD_NAME }}/${{ matrix.os }}
-          file: ./Dockerfiles/${{ env.BASE_BUILD_NAME }}/${{ matrix.os }}/Dockerfile
-          platforms: ${{ steps.platform.outputs.list }}
+          file: ./Dockerfiles/${{ env.BASE_BUILD_NAME }}/${{ matrix.os }}/Dockerfile.${{ matrix.build }}
           push: false
           tags: ${{ steps.meta.outputs.tags }}
           labels: |
