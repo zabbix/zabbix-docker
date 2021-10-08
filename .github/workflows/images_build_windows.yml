@@ -241,7 +241,7 @@ jobs:
             if (-not $?) {throw "Failed"}
 
             echo "docker build --file=.\Dockerfiles\${{ matrix.build }}\windows\Dockerfile.${{ matrix.build }} $tags .\Dockerfiles\${{ matrix.build }}\windows\"
-            docker build --build-arg=BUILD_BASE_IMAGE=${{ steps.base_build.outputs.base_build_image }} --file=.\Dockerfiles\${{ matrix.build }}\windows\Dockerfile.${{ matrix.build }} $tags .\Dockerfiles\${{ matrix.build }}\windows\
+            docker build --build-arg=BUILD_BASE_IMAGE=${{ steps.base_build.outputs.base_build_image }} --file=.\Dockerfiles\${{ matrix.build }}\windows\Dockerfile $tags .\Dockerfiles\${{ matrix.build }}\windows\
             if (-not $?) {throw "Failed"}
 
             Foreach ($tag in $tags_array) {
