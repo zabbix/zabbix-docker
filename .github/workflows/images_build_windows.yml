@@ -38,7 +38,7 @@ jobs:
       - name: Check build.json file
         id: build_exists
         run: |
-            if (-not(Test-Path -Path $ConfigPath -PathType Leaf)) {
+            if (-not(Test-Path -Path "./build.json" -PathType Leaf)) {
                 throw "::error::File build.json is missing"
             }
 
