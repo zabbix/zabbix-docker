@@ -154,11 +154,11 @@ jobs:
       - name: Retrieve build-base:${{ matrix.os }} SHA256 tag
         id: base_build
         run: |
-          BASE_TAG=$(cat build-base_${{ matrix.os }}_${{ matrix.build }})
-          BUILD_BASE_IMAGE=${{ env.DOCKER_REPOSITORY }}/zabbix-build-base@${BASE_TAG}
+          $base_tag=$(cat build-base_${{ matrix.os }}_${{ matrix.build }})
+          $build_base_image=${{ env.DOCKER_REPOSITORY }}/zabbix-build-base@$base_tag
 
-          echo ::set-output name=base_tag::${BASE_TAG}
-          echo ::set-output name=base_build_image::${BUILD_BASE_IMAGE}
+          echo ::set-output name=base_tag::$base_tag
+          echo ::set-output name=base_build_image::$build_base_image
 
       - name: Build ${{ matrix.build }}/${{ matrix.os }}:${{ matrix.os }} and push
         id: docker_build
@@ -225,25 +225,32 @@ jobs:
       - name: Retrieve ${{ steps.build_base_image.outputs.build_base }}:${{ matrix.os }} SHA256 tag
         id: base_build
         run: |
-          BASE_TAG=$(cat base-mysql_${{ matrix.os }}_${{ matrix.build }} )
-          BUILD_BASE_IMAGE=${{ env.DOCKER_REPOSITORY }}/zabbix-build-mysql@${BASE_TAG}
+          $base_tag=$(cat base-mysql_${{ matrix.os }}_${{ matrix.build }} )
+          $build_base_image=${{ env.DOCKER_REPOSITORY }}/zabbix-build-mysql@$base_tag
 
-          echo ::set-output name=base_tag::${BASE_TAG}
-          echo ::set-output name=base_build_image::${BUILD_BASE_IMAGE}
+          echo ::set-output name=base_tag::$base_tag
+          echo ::set-output name=base_build_image::$build_base_image
 
-      - name: Build ${{ matrix.build }}/${{ matrix.os }} and push
+      - name: Build ${{ matrix.build }}/${{ matrix.os }}:${{ matrix.os }} and push
         id: docker_build
-        uses: docker/build-push-action@v2
-        with:
-          context: ./Dockerfiles/${{ matrix.build }}/${{ matrix.os }}
-          file: ./Dockerfiles/${{ matrix.build }}/${{ matrix.os }}/Dockerfile
-          platforms: ${{ steps.platform.outputs.list }}
-          push: false
-          tags: ${{ steps.meta.outputs.tags }}
-          build-args: BUILD_BASE_IMAGE=${{ steps.base_build.outputs.base_build_image }}
-          labels: |
-            org.opencontainers.image.revision=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.revision'] }}
-            org.opencontainers.image.created=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.created'] }}
+        run: |
+            $tags_array=$( "${{ steps.meta.outputs.tags}}".Split("`r`n") )
+            $tags=$($tags_array | Foreach-Object { "--tag=$_" })
 
-      - name: Image digest
-        run: echo ${{ steps.docker_build.outputs.digest }}
+            docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
+            if (-not $?) {throw "Failed"}
+
+            echo "docker build --file=.\Dockerfiles\${{ matrix.build }}\windows\Dockerfile.${{ matrix.build }} $tags .\Dockerfiles\${{ matrix.build }}\windows\"
+            docker build --build-arg=BUILD_BASE_IMAGE=${{ steps.base_build.outputs.base_build_image }} --file=.\Dockerfiles\${{ matrix.build }}\windows\Dockerfile.${{ matrix.build }} $tags .\Dockerfiles\${{ matrix.build }}\windows\
+            if (-not $?) {throw "Failed"}
+
+            Foreach ($tag in $tags_array) {
+                docker image push $tag
+                if (-not $?) {throw "Failed"}
+            }
+            docker logout
+            if (-not $?) {throw "Failed"}
+
+            $digest=$(docker inspect $tags_array[0] --format "{{.Id}}")
+            if (-not $?) {throw "Failed"}
+            echo $digest
