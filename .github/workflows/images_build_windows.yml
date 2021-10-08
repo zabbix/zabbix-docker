@@ -108,7 +108,7 @@ jobs:
             docker logout
             if (-not $?) {throw "Failed"}
 
-            $digest=$(docker inspect $tags_array[0] --format "{{.RepoDigests}}").Split(':')[-1]
+            $digest=$(docker inspect $tags_array[0] --format "{{ index .RepoDigests 0}}").Split(':')[-1]
             if (-not $?) {throw "Failed"}
             echo $digest
             echo "$digest" > ${{ env.BASE_BUILD_NAME }}_${{ matrix.os }}_${{ matrix.build }}
@@ -180,7 +180,7 @@ jobs:
             docker logout
             if (-not $?) {throw "Failed"}
 
-            $digest=$(docker inspect $tags_array[0] --format "{{.RepoDigests}}").Split(':')[-1]
+            $digest=$(docker inspect $tags_array[0] --format "{{ index .RepoDigests 0}}").Split(':')[-1]
             if (-not $?) {throw "Failed"}
             echo $digest
             echo "$digest" > base-mysql_${{ matrix.os }}_${{ matrix.build }}
@@ -251,6 +251,6 @@ jobs:
             docker logout
             if (-not $?) {throw "Failed"}
 
-            $digest=$(docker inspect $tags_array[0] --format "{{.Id}}")
+            $digest=$(docker inspect $tags_array[0] --format "{{ index .RepoDigests 0}}").Split(':')[-1]
             if (-not $?) {throw "Failed"}
             echo $digest
