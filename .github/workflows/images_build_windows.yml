@@ -108,7 +108,7 @@ jobs:
             docker logout
             if (-not $?) {throw "Failed"}
 
-            $digest=$(docker inspect $tags_array[0] --format "{{.Id}}")
+            $digest=$(docker inspect $tags_array[0] --format "{{.RepoDigests}}").Split(':')[-1]
             if (-not $?) {throw "Failed"}
             echo $digest
             echo "$digest" > ${{ env.BASE_BUILD_NAME }}_${{ matrix.os }}_${{ matrix.build }}
@@ -157,8 +157,8 @@ jobs:
           $base_tag=$(cat build-base_${{ matrix.os }}_${{ matrix.build }})
           $build_base_image="${{ env.DOCKER_REPOSITORY }}/zabbix-build-base@" + $base_tag
 
-          echo ::set-output name=base_tag::$base_tag
-          echo ::set-output name=base_build_image::$build_base_image
+          echo "::set-output name=base_tag::$base_tag"
+          echo "::set-output name=base_build_image::$build_base_image"
 
       - name: Build ${{ matrix.build }}/${{ matrix.os }}:${{ matrix.os }} and push
         id: docker_build
@@ -180,7 +180,7 @@ jobs:
             docker logout
             if (-not $?) {throw "Failed"}
 
-            $digest=$(docker inspect $tags_array[0] --format "{{.Id}}")
+            $digest=$(docker inspect $tags_array[0] --format "{{.RepoDigests}}").Split(':')[-1]
             if (-not $?) {throw "Failed"}
             echo $digest
             echo "$digest" > base-mysql_${{ matrix.os }}_${{ matrix.build }}
@@ -228,8 +228,8 @@ jobs:
           $base_tag=$(cat base-mysql_${{ matrix.os }}_${{ matrix.build }} )
           $build_base_image="${{ env.DOCKER_REPOSITORY }}/zabbix-build-mysql@" + $base_tag
 
-          echo ::set-output name=base_tag::$base_tag
-          echo ::set-output name=base_build_image::$build_base_image
+          echo "::set-output name=base_tag::$base_tag"
+          echo "::set-output name=base_build_image::$build_base_image"
 
       - name: Build ${{ matrix.build }}/${{ matrix.os }}:${{ matrix.os }} and push
         id: docker_build
