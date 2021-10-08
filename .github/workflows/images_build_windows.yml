@@ -99,8 +99,9 @@ jobs:
             $tags='${{ steps.meta.outputs.tags }}'
             $result_tags = ''
             foreach ($line in $tags) {
-                $result_tags = $result_tags + '--tag ' + $line
+                $result_tags = $result_tags + ' --tag=' + $line
             }
+            echo $result_tags
             docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
             docker build --file=.\Dockerfiles\${{ env.BASE_BUILD_NAME }}\windows\Dockerfile.${{ matrix.build }} $result_tags .\Dockerfiles\${{ env.BASE_BUILD_NAME }}\windows\
             docker push image push --all-tags ${{ steps.meta.outputs.tags[0] }}
