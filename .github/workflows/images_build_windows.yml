@@ -99,8 +99,10 @@ jobs:
             $tags=$(echo "${{ steps.meta.outputs.tags}}"  | jq --raw-input . | jq --slurp . | jq -r '. | map("""--tag=""" + .) | join(""" """)')
             echo $tags
             docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
+            echo "docker build --file=.\Dockerfiles\${{ env.BASE_BUILD_NAME }}\windows\Dockerfile.${{ matrix.build }} $tags .\Dockerfiles\${{ env.BASE_BUILD_NAME }}\windows\"
             docker build --file=.\Dockerfiles\${{ env.BASE_BUILD_NAME }}\windows\Dockerfile.${{ matrix.build }} $tags .\Dockerfiles\${{ env.BASE_BUILD_NAME }}\windows\
-            docker push image push --all-tags ${{ steps.meta.outputs.tags[0] }}
+            $main_tag=$(echo "${{ steps.meta.outputs.tags}}"  | jq --raw-input . | jq --slurp . | jq -r '.[0]')
+            docker push image push --all-tags $main_tag
             docker logout
 
       - name: Image digest
