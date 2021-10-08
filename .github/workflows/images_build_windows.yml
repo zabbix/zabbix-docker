@@ -61,7 +61,7 @@ jobs:
 
   build_base:
     timeout-minutes: 70
-    name: Build base on ${{ matrix.os }}
+    name: Build ${{ matrix.build }} base on ${{ matrix.os }}
     needs: init_build
     strategy:
       fail-fast: false
@@ -96,7 +96,7 @@ jobs:
       - name: Build ${{ env.BASE_BUILD_NAME }}/${{ matrix.build }}-${{ matrix.os }} and push
         id: docker_build
         run: |
-            $tags=$(echo '${{ steps.meta.outputs.tags }}' | jq -r '. | map("""--tag=""" + .) | join(""" """)')
+            $tags=$(echo '${{ fromJson(steps.meta.outputs.tags) }}' | jq -r '. | map("""--tag=""" + .) | join(""" """)')
             docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
             docker build --file=.\Dockerfiles\${{ env.BASE_BUILD_NAME }}\windows\Dockerfile.${{ matrix.build }} $tags .\Dockerfiles\${{ env.BASE_BUILD_NAME }}\windows\
             docker push image push --all-tags ${{ steps.meta.outputs.tags[0] }}
