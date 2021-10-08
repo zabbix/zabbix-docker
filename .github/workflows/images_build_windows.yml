@@ -100,7 +100,7 @@ jobs:
             $tags_array=$( "${{ steps.meta.outputs.tags}}".Split("`r`n") | Foreach-Object { "$_" } )
             $tags=$( $tags_array -Join ',' )
             docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
-            echo "docker build --file=.\Dockerfiles\${{ env.BASE_BUILD_NAME }}\windows\Dockerfile.${{ matrix.build }} -t $tags .\Dockerfiles\${{ env.BASE_BUILD_NAME }}\windows\"
+            echo "docker build --file=.\Dockerfiles\${{ env.BASE_BUILD_NAME }}\windows\Dockerfile.${{ matrix.build }} -t 'zabbix/zabbix-build-base:ltsc2022-trunk' -t 'zabbix/zabbix-build-base:trunk-ltsc2022' .\Dockerfiles\${{ env.BASE_BUILD_NAME }}\windows\"
             docker build --file=.\Dockerfiles\${{ env.BASE_BUILD_NAME }}\windows\Dockerfile.${{ matrix.build }} $tags .\Dockerfiles\${{ env.BASE_BUILD_NAME }}\windows\
             docker push image push --all-tags $tags_array[0]
             docker logout
