@@ -183,7 +183,7 @@ jobs:
             $digest=$(docker inspect $tags_array[0] --format "{{.Id}}")
             if (-not $?) {throw "Failed"}
             echo $digest
-            echo "$digest" > base-mysql_${{ matrix.os }}_${{ matrix.build }})
+            echo "$digest" > base-mysql_${{ matrix.os }}_${{ matrix.build }}
 
       - name: Upload SHA256 tag
         uses: actions/upload-artifact@v2.2.4
