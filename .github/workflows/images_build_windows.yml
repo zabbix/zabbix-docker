@@ -330,7 +330,7 @@ jobs:
 
             # PowerShell images based on LTSC 2019 and LTSC 2016 do not have "ltsc" prefix
             $os_tag_suffix='${{ steps.base_os_tag.outputs.os_tag }}'
-            $os_tag_suffix=$os_tag_suffix -replace "ltsc(201[69])",'$1'
+            $os_tag_suffix=$os_tag_suffix -replace "ltsc2019",'1809'
 
             echo "docker build --file=$dockerfile $tags $context"
             docker build --label org.opencontainers.image.revision=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.revision'] }} `
