@@ -114,6 +114,7 @@ jobs:
             if (-not $?) {throw "Failed"}
 
       - name: Push image
+        if: ${{ secrets.AUTO_PUSH_IMAGES }}
         run: |
             $tags_array=$( "${{ steps.meta.outputs.tags }}".Split("`r`n") )
 
@@ -124,6 +125,7 @@ jobs:
             }
 
       - name: Image digest
+        if: ${{ secrets.AUTO_PUSH_IMAGES }}
         run: |
             $tags_array=$( "${{ steps.meta.outputs.tags }}".Split("`r`n") )
 
@@ -134,6 +136,7 @@ jobs:
             $digest | Set-Content -Path ${{ env.BASE_BUILD_NAME }}${{ env.BASE_BUILD_ARTIFACT_FILE_SUFFIX }}
 
       - name: Upload SHA256 tag
+        if: ${{ secrets.AUTO_PUSH_IMAGES }}
         uses: actions/upload-artifact@v2.2.4
         with:
          name: ${{ env.BASE_BUILD_NAME }}${{ env.BASE_BUILD_ARTIFACT_FILE_SUFFIX }}
@@ -193,7 +196,7 @@ jobs:
           echo "::set-output name=base_tag::$base_tag"
           echo "::set-output name=base_build_image::$build_base_image"
 
-      - name: Build image and push
+      - name: Build image
         id: docker_build
         run: |
             $context='.\Dockerfiles\${{ env.COMPONENT_BASE_BUILD_NAME }}\windows\'
@@ -212,6 +215,7 @@ jobs:
             if (-not $?) {throw "Failed"}
 
       - name: Push image
+        if: ${{ secrets.AUTO_PUSH_IMAGES }}
         run: |
             $tags_array=$( "${{ steps.meta.outputs.tags }}".Split("`r`n") )
 
@@ -222,6 +226,7 @@ jobs:
             }
 
       - name: Image digest
+        if: ${{ secrets.AUTO_PUSH_IMAGES }}
         run: |
             $tags_array=$( "${{ steps.meta.outputs.tags }}".Split("`r`n") )
 
@@ -232,6 +237,7 @@ jobs:
             $digest | Set-Content -Path ${{ env.COMPONENT_BASE_BUILD_NAME }}${{ env.COMPONENT_BASE_BUILD_ARTIFACT_FILE_SUFFIX }}
 
       - name: Upload SHA256 tag
+        if: ${{ secrets.AUTO_PUSH_IMAGES }}
         uses: actions/upload-artifact@v2.2.4
         with:
          name: ${{ env.COMPONENT_BASE_BUILD_NAME }}${{ env.COMPONENT_BASE_BUILD_ARTIFACT_FILE_SUFFIX }}
@@ -289,7 +295,7 @@ jobs:
           echo "::set-output name=base_tag::$base_tag"
           echo "::set-output name=base_build_image::$build_base_image"
 
-      - name: Build ${{ matrix.component }}/${{ matrix.os }}:${{ matrix.os }} and push
+      - name: Build image
         id: docker_build
         run: |
             $context='.\Dockerfiles\${{ matrix.component }}\windows\'
@@ -308,6 +314,7 @@ jobs:
             if (-not $?) {throw "Failed"}
 
       - name: Push image
+        if: ${{ secrets.AUTO_PUSH_IMAGES }}
         run: |
             $tags_array=$( "${{ steps.meta.outputs.tags }}".Split("`r`n") )
 
@@ -318,6 +325,7 @@ jobs:
             }
 
       - name: Image digest
+        if: ${{ secrets.AUTO_PUSH_IMAGES }}
         run: |
             $tags_array=$( "${{ steps.meta.outputs.tags }}".Split("`r`n") )
 
