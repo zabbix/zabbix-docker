@@ -131,7 +131,7 @@ jobs:
             if (-not $?) {throw "Failed"}
 
             echo $digest
-            $digest | Set-Content ${{ env.BASE_BUILD_NAME }}${{ env.BASE_BUILD_ARTIFACT_FILE_SUFFIX }}
+            $digest | Set-Content -Path ${{ env.BASE_BUILD_NAME }}${{ env.BASE_BUILD_ARTIFACT_FILE_SUFFIX }}
 
       - name: Upload SHA256 tag
         uses: actions/upload-artifact@v2.2.4
@@ -218,7 +218,7 @@ jobs:
             $digest=$(docker inspect $tags_array[0] --format "{{ index .RepoDigests 0}}").Split('@')[-1]
             if (-not $?) {throw "Failed"}
             echo $digest
-            $digest | Set-Content ${{ env.COMPONENT_BASE_BUILD_NAME }}${{ env.COMPONENT_BASE_BUILD_ARTIFACT_FILE_SUFFIX }}
+            $digest | Set-Content -Path ${{ env.COMPONENT_BASE_BUILD_NAME }}${{ env.COMPONENT_BASE_BUILD_ARTIFACT_FILE_SUFFIX }}
 
       - name: Logout from DockerHub
         run: |
