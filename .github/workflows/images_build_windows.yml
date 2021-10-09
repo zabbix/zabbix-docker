@@ -333,6 +333,7 @@ jobs:
                          --label org.opencontainers.image.created=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.created'] }} `
                          --file=$dockerfile `
                          --build-arg=BUILD_BASE_IMAGE=${{ steps.base_build.outputs.base_build_image }} `
+                         --build-arg=BASE_IMAGE=mcr.microsoft.com/powershell:lts-nanoserver-${{ steps.base_os_tag.outputs.os_tag }} `
                          $tags `
                     $context
             if (-not $?) {throw "Failed"}
