@@ -21,6 +21,7 @@ env:
   IMAGE_PREFIX: "zabbix-"
   BASE_BUILD_NAME: "build-base"
   COMPONENT_BASE_BUILD_NAME: "build-mysql"
+  AUTO_PUSH_IMAGES: ${{ secrets.AUTO_PUSH_IMAGES }}
 
 jobs:
   init_build:
@@ -114,7 +115,7 @@ jobs:
             if (-not $?) {throw "Failed"}
 
       - name: Push image
-        if: ${{ secrets.AUTO_PUSH_IMAGES }}
+        if: ${{ env.AUTO_PUSH_IMAGES }}
         run: |
             $tags_array=$( "${{ steps.meta.outputs.tags }}".Split("`r`n") )
 
@@ -125,7 +126,7 @@ jobs:
             }
 
       - name: Image digest
-        if: ${{ secrets.AUTO_PUSH_IMAGES }}
+        if: ${{ env.AUTO_PUSH_IMAGES }}
         run: |
             $tags_array=$( "${{ steps.meta.outputs.tags }}".Split("`r`n") )
 
@@ -136,7 +137,7 @@ jobs:
             $digest | Set-Content -Path ${{ env.BASE_BUILD_NAME }}${{ env.BASE_BUILD_ARTIFACT_FILE_SUFFIX }}
 
       - name: Upload SHA256 tag
-        if: ${{ secrets.AUTO_PUSH_IMAGES }}
+        if: ${{ env.AUTO_PUSH_IMAGES }}
         uses: actions/upload-artifact@v2.2.4
         with:
          name: ${{ env.BASE_BUILD_NAME }}${{ env.BASE_BUILD_ARTIFACT_FILE_SUFFIX }}
@@ -215,7 +216,7 @@ jobs:
             if (-not $?) {throw "Failed"}
 
       - name: Push image
-        if: ${{ secrets.AUTO_PUSH_IMAGES }}
+        if: ${{ env.AUTO_PUSH_IMAGES }}
         run: |
             $tags_array=$( "${{ steps.meta.outputs.tags }}".Split("`r`n") )
 
@@ -226,7 +227,7 @@ jobs:
             }
 
       - name: Image digest
-        if: ${{ secrets.AUTO_PUSH_IMAGES }}
+        if: ${{ env.AUTO_PUSH_IMAGES }}
         run: |
             $tags_array=$( "${{ steps.meta.outputs.tags }}".Split("`r`n") )
 
@@ -237,7 +238,7 @@ jobs:
             $digest | Set-Content -Path ${{ env.COMPONENT_BASE_BUILD_NAME }}${{ env.COMPONENT_BASE_BUILD_ARTIFACT_FILE_SUFFIX }}
 
       - name: Upload SHA256 tag
-        if: ${{ secrets.AUTO_PUSH_IMAGES }}
+        if: ${{ env.AUTO_PUSH_IMAGES }}
         uses: actions/upload-artifact@v2.2.4
         with:
          name: ${{ env.COMPONENT_BASE_BUILD_NAME }}${{ env.COMPONENT_BASE_BUILD_ARTIFACT_FILE_SUFFIX }}
@@ -314,7 +315,7 @@ jobs:
             if (-not $?) {throw "Failed"}
 
       - name: Push image
-        if: ${{ secrets.AUTO_PUSH_IMAGES }}
+        if: ${{ env.AUTO_PUSH_IMAGES }}
         run: |
             $tags_array=$( "${{ steps.meta.outputs.tags }}".Split("`r`n") )
 
@@ -325,7 +326,7 @@ jobs:
             }
 
       - name: Image digest
-        if: ${{ secrets.AUTO_PUSH_IMAGES }}
+        if: ${{ env.AUTO_PUSH_IMAGES }}
         run: |
             $tags_array=$( "${{ steps.meta.outputs.tags }}".Split("`r`n") )
 
