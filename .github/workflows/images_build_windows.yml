@@ -216,8 +216,8 @@ jobs:
         with:
           images: ${{ env.DOCKER_REPOSITORY }}/zabbix-${{ matrix.build }}
           tags: |
-            type=ref,event=branch,prefix=${{ matrix.build }}-${{ matrix.os }}-
-            type=ref,event=branch,suffix=-${{ matrix.os }},prefix=${{ matrix.build }}-
+            type=ref,event=branch,prefix=${{ matrix.os }}-
+            type=ref,event=branch,suffix=-${{ matrix.os }}
           flavor: |
             latest=false
 
