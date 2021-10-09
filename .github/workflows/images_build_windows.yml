@@ -47,7 +47,7 @@ jobs:
       - name: Prepare Operating System list
         id: os
         run: |
-            os_list=$(jq -r '.["os-windows"] |  keys | [ .[] | tostring ] | @json' ".\build.json")
+            os_list=$(jq -r '.["os-windows"] |  keys | [ .[] | tostring ] | @json' "./build.json")
 
             echo "::set-output name=list::$os_list"
 
