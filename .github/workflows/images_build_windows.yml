@@ -39,13 +39,16 @@ jobs:
 
       - name: Check build.json file
         id: build_exists
+        shell: bash
         run: |
-            if (-not(Test-Path -Path "./build.json" -PathType Leaf)) {
-                throw "::error::File build.json is missing"
-            }
+            if [[ ! -f "./build.json" ]]; then
+                echo "::error::File build.json is missing"
+                exit 1
+            fi
 
       - name: Prepare Operating System list
         id: os
+        shell: bash
         run: |
             os_list=$(jq -r '.["os-windows"] |  keys | [ .[] | tostring ] | @json' "./build.json")
 
@@ -53,8 +56,9 @@ jobs:
 
       - name: Prepare Zabbix component list
         id: components
+        shell: bash
         run: |
-            $component_list='["agent","agent2"]'
+            component_list='["agent","agent2"]'
 
             echo "::set-output name=list::$component_list"
 
