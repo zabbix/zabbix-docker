@@ -54,6 +54,7 @@ RUN set -eux && \
             bash \
             pcre \
             coreutils \
+            libcurl \
             iputils && \
     chown --quiet -R zabbix:root /etc/zabbix/ /var/lib/zabbix/ && \
     chgrp -R 0 /etc/zabbix/ /var/lib/zabbix/ && \
