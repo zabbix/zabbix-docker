@@ -18,7 +18,9 @@ defaults:
 env:
   DOCKER_REPOSITORY: "zabbix"
   LATEST_BRANCH: ${{ github.event.repository.default_branch }}
+  IMAGE_PREFIX: "zabbix-"
   BASE_BUILD_NAME: "build-base"
+  COMPONENT_BASE_BUILD_NAME: "build-mysql"
 
 jobs:
   init_build:
@@ -61,13 +63,15 @@ jobs:
 
   build_base:
     timeout-minutes: 70
-    name: Build ${{ matrix.build }} base on ${{ matrix.os }}
+    name: Build ${{ matrix.component }} base on ${{ matrix.os }}
     needs: init_build
+    env:
+      BASE_BUILD_ARTIFACT_FILE=${{ env.BASE_BUILD_NAME }}_${{ matrix.os }}_${{ matrix.component }}
     strategy:
       fail-fast: false
       matrix:
         os: ${{ fromJson(needs.init_build.outputs.os) }}
-        build: ${{ fromJson(needs.init_build.outputs.components) }}
+        component: ${{ fromJson(needs.init_build.outputs.components) }}
 
     runs-on: windows-2022
     steps:
@@ -76,187 +80,231 @@ jobs:
         with:
           fetch-depth: 1
 
+      - name: Login to DockerHub
+        run: |
+            docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
+            if (-not $?) {throw "Failed"}
+
       - name: Generate tags
         id: meta
         uses: docker/metadata-action@v3
         with:
-          images: ${{ env.DOCKER_REPOSITORY }}/zabbix-${{ env.BASE_BUILD_NAME }}
+          images: ${{ env.DOCKER_REPOSITORY }}/${{ env.IMAGE_PREFIX }}${{ env.BASE_BUILD_NAME }}
           tags: |
-            type=ref,event=branch,prefix=${{ matrix.build }}-${{ matrix.os }}-
-            type=ref,event=branch,suffix=-${{ matrix.os }},prefix=${{ matrix.build }}-
+            type=ref,event=branch,prefix=${{ matrix.component }}-${{ matrix.os }}-
+            type=ref,event=branch,suffix=-${{ matrix.os }},prefix=${{ matrix.component }}-
           flavor: |
             latest=false
 
-      - name: Build ${{ env.BASE_BUILD_NAME }}/${{ matrix.build }}-${{ matrix.os }} and push
+      - name: Build image
         id: docker_build
         run: |
-            $tags_array=$( "${{ steps.meta.outputs.tags}}".Split("`r`n") )
-            $tags=$($tags_array | Foreach-Object { "--tag=$_" })
+            $context='.\Dockerfiles\${{ env.BASE_BUILD_NAME }}\windows\'
+            $dockerfile= $context + 'Dockerfile.${{ matrix.component }}'
 
-            docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
-            if (-not $?) {throw "Failed"}
+            $tags_array=$( "${{ steps.meta.outputs.tags }}".Split("`r`n") )
+            $tags=$( $tags_array | Foreach-Object { "--tag=$_" } )
 
-            echo "docker build --file=.\Dockerfiles\${{ env.BASE_BUILD_NAME }}\windows\Dockerfile.${{ matrix.build }} $tags .\Dockerfiles\${{ env.BASE_BUILD_NAME }}\windows\"
+            echo "docker build --file=$dockerfile $tags $context"
             docker build --label org.opencontainers.image.revision=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.revision'] }} `
                          --label org.opencontainers.image.created=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.created'] }} `
-                --file=.\Dockerfiles\${{ env.BASE_BUILD_NAME }}\windows\Dockerfile.${{ matrix.build }} $tags .\Dockerfiles\${{ env.BASE_BUILD_NAME }}\windows\
+                         --file=$dockerfile `
+                         $tags `
+                    $context
             if (-not $?) {throw "Failed"}
+
+      - name: Push image
+        run: |
+            $tags_array=$( "${{ steps.meta.outputs.tags }}".Split("`r`n") )
 
             Foreach ($tag in $tags_array) {
                 echo "docker image push $tag"
                 docker image push $tag
                 if (-not $?) {throw "Failed"}
             }
-            docker logout
-            if (-not $?) {throw "Failed"}
+
+      - name: Image digest
+        run: |
+            $tags_array=$( "${{ steps.meta.outputs.tags }}".Split("`r`n") )
 
             $digest=$(docker inspect $tags_array[0] --format "{{ index .RepoDigests 0}}").Split('@')[-1]
             if (-not $?) {throw "Failed"}
+
             echo $digest
-            echo "$digest" > ${{ env.BASE_BUILD_NAME }}_${{ matrix.os }}_${{ matrix.build }}
+            $digest | Set-Content ${{ env.BASE_BUILD_ARTIFACT_FILE }}
 
       - name: Upload SHA256 tag
         uses: actions/upload-artifact@v2.2.4
         with:
-         name: ${{ env.BASE_BUILD_NAME }}_${{ matrix.os }}_${{ matrix.build }}
-         path: ${{ env.BASE_BUILD_NAME }}_${{ matrix.os }}_${{ matrix.build }}
+         name: ${{ env.BASE_BUILD_ARTIFACT_FILE }}
+         path: ${{ env.BASE_BUILD_ARTIFACT_FILE }}
          if-no-files-found: error
+
+      - name: Logout from DockerHub
+        run: |
+            docker logout
+            if (-not $?) {throw "Failed"}
 
   build_components:
     timeout-minutes: 70
     needs: [ "build_base", "init_build"]
-    name: Build ${{ matrix.build }} sources on ${{ matrix.os }}
+    name: Build ${{ matrix.component }} sources on ${{ matrix.os }}
+    env:
+      BASE_BUILD_ARTIFACT_FILE=${{ env.BASE_BUILD_NAME }}_${{ matrix.os }}_${{ matrix.component }}
+      COMPONENT_BASE_BUILD_ARTIFACT_FILE=${{ env.COMPONENT_BASE_BUILD_NAME }}_${{ matrix.os }}_${{ matrix.component }}
     strategy:
-      fail-fast: false  
+      fail-fast: false
       matrix:
-        build: ${{ fromJson(needs.init_build.outputs.components) }}
         os: ${{ fromJson(needs.init_build.outputs.os) }}
+        component: ${{ fromJson(needs.init_build.outputs.components) }}
 
     runs-on: windows-2022
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2.3.4
 
+      - name: Login to DockerHub
+        run: |
+            docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
+            if (-not $?) {throw "Failed"}
+
       - name: Generate tags
         id: meta
         uses: docker/metadata-action@v3
         with:
-          images: ${{ env.DOCKER_REPOSITORY }}/zabbix-build-mysql
+          images: ${{ env.DOCKER_REPOSITORY }}/${{ env.IMAGE_PREFIX }}${{ env.COMPONENT_BASE_BUILD_NAME }}
           tags: |
-            type=ref,event=branch,prefix=${{ matrix.build }}-${{ matrix.os }}-
-            type=ref,event=branch,suffix=-${{ matrix.os }},prefix=${{ matrix.build }}-
+            type=ref,event=branch,prefix=${{ matrix.component }}-${{ matrix.os }}-
+            type=ref,event=branch,suffix=-${{ matrix.os }},prefix=${{ matrix.component }}-
           flavor: |
             latest=false
 
       - name: Download SHA256 tag build-base:${{ matrix.os }}
         uses: actions/download-artifact@v2.0.10
         with:
-          name: ${{ env.BASE_BUILD_NAME }}_${{ matrix.os }}_${{ matrix.build }}
+          name: ${{ env.BASE_BUILD_ARTIFACT_FILE }}
 
-      - name: Retrieve build-base:${{ matrix.os }} SHA256 tag
+      - name: Retrieve ${{ env.BASE_BUILD_NAME }}:${{ matrix.os }} SHA256 tag
         id: base_build
         run: |
-          $base_tag=$(cat build-base_${{ matrix.os }}_${{ matrix.build }})
-          $build_base_image="${{ env.DOCKER_REPOSITORY }}/zabbix-build-base@" + $base_tag
+          $base_tag = Get-Content ${{ env.BASE_BUILD_ARTIFACT_FILE }} -Raw
+          $build_base_image="${{ env.DOCKER_REPOSITORY }}/${{ env.IMAGE_PREFIX }}${{ env.BASE_BUILD_NAME }}@" + $base_tag
 
           echo "::set-output name=base_tag::$base_tag"
           echo "::set-output name=base_build_image::$build_base_image"
 
-      - name: Build ${{ matrix.build }}/${{ matrix.os }}:${{ matrix.os }} and push
+      - name: Build image and push
         id: docker_build
         run: |
-            $tags_array=$( "${{ steps.meta.outputs.tags}}".Split("`r`n") )
+            $context='.\Dockerfiles\${{ env.COMPONENT_BASE_BUILD_NAME }}\windows\'
+            $dockerfile= $context + 'Dockerfile.${{ matrix.component }}'
+
+            $tags_array=$( "${{ steps.meta.outputs.tags }}".Split("`r`n") )
             $tags=$($tags_array | Foreach-Object { "--tag=$_" })
 
-            docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
-            if (-not $?) {throw "Failed"}
-
-            echo "docker build --file=.\Dockerfiles\build-mysql\windows\Dockerfile.${{ matrix.build }} $tags .\Dockerfiles\build-mysql\windows\"
+            echo "docker build --file=$dockerfile $tags $context"
             docker build --label org.opencontainers.image.revision=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.revision'] }} `
                          --label org.opencontainers.image.created=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.created'] }} `
-                         --build-arg=BUILD_BASE_IMAGE=${{ steps.base_build.outputs.base_build_image }} --file=.\Dockerfiles\build-mysql\windows\Dockerfile.${{ matrix.build }} $tags .\Dockerfiles\build-mysql\windows\
+                         --file=$dockerfile `
+                         $tags `
+                    $context
             if (-not $?) {throw "Failed"}
 
             Foreach ($tag in $tags_array) {
                 docker image push $tag
                 if (-not $?) {throw "Failed"}
             }
-            docker logout
-            if (-not $?) {throw "Failed"}
 
             $digest=$(docker inspect $tags_array[0] --format "{{ index .RepoDigests 0}}").Split('@')[-1]
             if (-not $?) {throw "Failed"}
             echo $digest
-            echo "$digest" > base-mysql_${{ matrix.os }}_${{ matrix.build }}
+            $digest | Set-Content ${{ env.COMPONENT_BASE_BUILD_ARTIFACT_FILE }}
+
+      - name: Logout from DockerHub
+        run: |
+            docker logout
+            if (-not $?) {throw "Failed"}
 
       - name: Upload SHA256 tag
         uses: actions/upload-artifact@v2.2.4
         with:
-         name: base-mysql_${{ matrix.os }}_${{ matrix.build }}
-         path: base-mysql_${{ matrix.os }}_${{ matrix.build }}
+         name: ${{ env.COMPONENT_BASE_BUILD_ARTIFACT_FILE }}
+         path: ${{ env.COMPONENT_BASE_BUILD_ARTIFACT_FILE }}
          if-no-files-found: error
 
   build_images:
     timeout-minutes: 70
     needs: [ "build_components", "init_build"]
-    name: Build ${{ matrix.build }} on ${{ matrix.os }}
+    name: Build ${{ matrix.component }} on ${{ matrix.os }}
+    env:
+      COMPONENT_BASE_BUILD_ARTIFACT_FILE=${{ env.COMPONENT_BASE_BUILD_NAME }}_${{ matrix.os }}_${{ matrix.component }}
     strategy:
       fail-fast: false
       matrix:
-        build: ${{ fromJson(needs.init_build.outputs.components) }}
         os: ${{ fromJson(needs.init_build.outputs.os) }}
+        component: ${{ fromJson(needs.init_build.outputs.components) }}
 
     runs-on: windows-2022
     steps:
       - uses: actions/checkout@v2.3.4
 
+      - name: Login to DockerHub
+        run: |
+            docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
+            if (-not $?) {throw "Failed"}
+
       - name: Generate tags
         id: meta
         uses: docker/metadata-action@v3
         with:
-          images: ${{ env.DOCKER_REPOSITORY }}/zabbix-${{ matrix.build }}
+          images: ${{ env.DOCKER_REPOSITORY }}/${{ env.IMAGE_PREFIX }}${{ matrix.component }}
           tags: |
             type=ref,event=branch,prefix=${{ matrix.os }}-
             type=ref,event=branch,suffix=-${{ matrix.os }}
           flavor: |
             latest=false
 
-      - name: Download SHA256 tag for build-components:${{ matrix.os }}
+      - name: Download SHA256 tag for ${{ env.COMPONENT_BASE_BUILD_NAME }}:${{ matrix.os }}
         uses: actions/download-artifact@v2.0.10
         with:
-          name: base-mysql_${{ matrix.os }}_${{ matrix.build }}
+          name: ${{ env.COMPONENT_BASE_BUILD_ARTIFACT_FILE }}
 
-      - name: Retrieve build-components:${{ matrix.os }} SHA256 tag
+      - name: ${{ env.COMPONENT_BASE_BUILD_NAME }}:${{ matrix.os }} SHA256 tag
         id: base_build
         run: |
-          $base_tag=$(cat base-mysql_${{ matrix.os }}_${{ matrix.build }} )
-          $build_base_image="${{ env.DOCKER_REPOSITORY }}/zabbix-build-mysql@" + $base_tag
+          $base_tag = Get-Content ${{ env.COMPONENT_BASE_BUILD_ARTIFACT_FILE }} -Raw
+          $build_base_image="${{ env.DOCKER_REPOSITORY }}/${{ env.IMAGE_PREFIX }}${{ env.COMPONENT_BASE_BUILD_NAME }}@" + $base_tag
 
           echo "::set-output name=base_tag::$base_tag"
           echo "::set-output name=base_build_image::$build_base_image"
 
-      - name: Build ${{ matrix.build }}/${{ matrix.os }}:${{ matrix.os }} and push
+      - name: Build ${{ matrix.component }}/${{ matrix.os }}:${{ matrix.os }} and push
         id: docker_build
         run: |
-            $tags_array=$( "${{ steps.meta.outputs.tags}}".Split("`r`n") )
+            $context='.\Dockerfiles\${{ matrix.component }}\windows\'
+            $dockerfile= $context + 'Dockerfile'
+
+            $tags_array=$( "${{ steps.meta.outputs.tags }}".Split("`r`n") )
             $tags=$($tags_array | Foreach-Object { "--tag=$_" })
 
-            docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
-            if (-not $?) {throw "Failed"}
-
-            echo "docker build --file=.\Dockerfiles\${{ matrix.build }}\windows\Dockerfile.${{ matrix.build }} $tags .\Dockerfiles\${{ matrix.build }}\windows\"
+            echo "docker build --file=$dockerfile $tags $context"
             docker build --label org.opencontainers.image.revision=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.revision'] }} `
                          --label org.opencontainers.image.created=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.created'] }} `
-                         --build-arg=BUILD_BASE_IMAGE=${{ steps.base_build.outputs.base_build_image }} --file=.\Dockerfiles\${{ matrix.build }}\windows\Dockerfile $tags .\Dockerfiles\${{ matrix.build }}\windows\
+                         --file=$dockerfile `
+                         $tags `
+                    $context
             if (-not $?) {throw "Failed"}
 
             Foreach ($tag in $tags_array) {
                 docker image push $tag
                 if (-not $?) {throw "Failed"}
             }
-            docker logout
-            if (-not $?) {throw "Failed"}
 
             $digest=$(docker inspect $tags_array[0] --format "{{ index .RepoDigests 0}}").Split('@')[-1]
             if (-not $?) {throw "Failed"}
             echo $digest
+
+      - name: Logout from DockerHub
+        run: |
+            docker logout
+            if (-not $?) {throw "Failed"}
