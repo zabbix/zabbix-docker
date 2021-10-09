@@ -1,7 +1,6 @@
 ![logo](https://assets.zabbix.com/img/logo/zabbix_logo_500x131.png)
 
-![CI](https://github.com/zabbix/zabbix-docker/workflows/CI/badge.svg?branch=trunk&event=release)
-![CI](https://github.com/zabbix/zabbix-docker/workflows/CI/badge.svg?branch=trunk&event=push)
+[![Build images (DockerHub)](https://github.com/zabbix/zabbix-docker/actions/workflows/images_build.yml/badge.svg?branch=trunk&event=push)](https://github.com/zabbix/zabbix-docker/actions/workflows/images_build.yml)
 
 # What is Zabbix?
 
