@@ -47,7 +47,7 @@ jobs:
       - name: Prepare Operating System list
         id: os
         run: |
-            $os_list='["ltsc2022"]'
+            os_list=$(jq -r '.["os-windows"] |  keys | [ .[] | tostring ] | @json' ".\build.json")
 
             echo "::set-output name=list::$os_list"
 
@@ -74,7 +74,7 @@ jobs:
         os: ${{ fromJson(needs.init_build.outputs.os) }}
         component: ${{ fromJson(needs.init_build.outputs.components) }}
 
-    runs-on: windows-2022
+    runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2.3.4
@@ -86,14 +86,20 @@ jobs:
             docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
             if (-not $?) {throw "Failed"}
 
+      - name: Base OS tag
+        id: base_os_tag
+        run: |
+            $os_tag=$(Get-Content -Path .\build.json | ConvertFrom-Json).'os-windows'.'${{ matrix.os }}'
+            echo "::set-output name=os_tag::$os_tag"
+
       - name: Generate tags
         id: meta
         uses: docker/metadata-action@v3
         with:
           images: ${{ env.DOCKER_REPOSITORY }}/${{ env.IMAGE_PREFIX }}${{ env.BASE_BUILD_NAME }}
           tags: |
-            type=ref,event=branch,prefix=${{ matrix.component }}-${{ matrix.os }}-
-            type=ref,event=branch,suffix=-${{ matrix.os }},prefix=${{ matrix.component }}-
+            type=ref,event=branch,prefix=${{ matrix.component }}-${{ steps.base_os_tag.outputs.os_tag }}-
+            type=ref,event=branch,suffix=-${{ steps.base_os_tag.outputs.os_tag }},prefix=${{ matrix.component }}-
           flavor: |
             latest=false
 
@@ -162,7 +168,7 @@ jobs:
         os: ${{ fromJson(needs.init_build.outputs.os) }}
         component: ${{ fromJson(needs.init_build.outputs.components) }}
 
-    runs-on: windows-2022
+    runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2.3.4
@@ -172,14 +178,20 @@ jobs:
             docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
             if (-not $?) {throw "Failed"}
 
+      - name: Base OS tag
+        id: base_os_tag
+        run: |
+            $os_tag=$(Get-Content -Path .\build.json | ConvertFrom-Json).'os-windows'.'${{ matrix.os }}'
+            echo "::set-output name=os_tag::$os_tag"
+
       - name: Generate tags
         id: meta
         uses: docker/metadata-action@v3
         with:
           images: ${{ env.DOCKER_REPOSITORY }}/${{ env.IMAGE_PREFIX }}${{ env.COMPONENT_BASE_BUILD_NAME }}
           tags: |
-            type=ref,event=branch,prefix=${{ matrix.component }}-${{ matrix.os }}-
-            type=ref,event=branch,suffix=-${{ matrix.os }},prefix=${{ matrix.component }}-
+            type=ref,event=branch,prefix=${{ matrix.component }}-${{ steps.base_os_tag.outputs.os_tag }}-
+            type=ref,event=branch,suffix=-${{ steps.base_os_tag.outputs.os_tag }},prefix=${{ matrix.component }}-
           flavor: |
             latest=false
 
@@ -262,7 +274,7 @@ jobs:
         os: ${{ fromJson(needs.init_build.outputs.os) }}
         component: ${{ fromJson(needs.init_build.outputs.components) }}
 
-    runs-on: windows-2022
+    runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v2.3.4
 
@@ -271,14 +283,20 @@ jobs:
             docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
             if (-not $?) {throw "Failed"}
 
+      - name: Base OS tag
+        id: base_os_tag
+        run: |
+            $os_tag=$(Get-Content -Path .\build.json | ConvertFrom-Json).'os-windows'.'${{ matrix.os }}'
+            echo "::set-output name=os_tag::$os_tag"
+
       - name: Generate tags
         id: meta
         uses: docker/metadata-action@v3
         with:
           images: ${{ env.DOCKER_REPOSITORY }}/${{ env.IMAGE_PREFIX }}${{ matrix.component }}
           tags: |
-            type=ref,event=branch,prefix=${{ matrix.os }}-
-            type=ref,event=branch,suffix=-${{ matrix.os }}
+            type=ref,event=branch,prefix=${{ steps.base_os_tag.outputs.os_tag }}-
+            type=ref,event=branch,suffix=-${{ steps.base_os_tag.outputs.os_tag }}
           flavor: |
             latest=false
 

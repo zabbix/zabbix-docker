@@ -1,5 +1,5 @@
 {
-  "os": {
+  "os-linux": {
     "alpine": [
       "linux/amd64",
       "linux/arm/v6",
@@ -19,6 +19,11 @@
       "linux/amd64",
       "linux/arm64"
     ]
+  },
+  "os-windows": {
+   "windows-2022": "ltsc2022",
+   "windows-2019": "ltsc2019",
+   "windows-2016": "ltsc2016"
   },
   "components": {
     "agent": "build-mysql",
