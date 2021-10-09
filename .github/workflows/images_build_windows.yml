@@ -328,12 +328,16 @@ jobs:
             $tags_array=$( "${{ steps.meta.outputs.tags }}".Split("`r`n") )
             $tags=$($tags_array | Foreach-Object { "--tag=$_" })
 
+            # PowerShell images based on LTSC 2019 and LTSC 2016 do not have "ltsc" prefix
+            $os_tag_suffix='${{ steps.base_os_tag.outputs.os_tag }}'
+            $os_tag_suffix=$os_tag_suffix -replace "ltsc(201[69])",'$1'
+
             echo "docker build --file=$dockerfile $tags $context"
             docker build --label org.opencontainers.image.revision=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.revision'] }} `
                          --label org.opencontainers.image.created=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.created'] }} `
                          --file=$dockerfile `
                          --build-arg=BUILD_BASE_IMAGE=${{ steps.base_build.outputs.base_build_image }} `
-                         --build-arg=BASE_IMAGE=mcr.microsoft.com/powershell:lts-nanoserver-${{ steps.base_os_tag.outputs.os_tag }} `
+                         --build-arg=BASE_IMAGE=mcr.microsoft.com/powershell:lts-nanoserver-$os_tag_suffix `
                          $tags `
                     $context
             if (-not $?) {throw "Failed"}
