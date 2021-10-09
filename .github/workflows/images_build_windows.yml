@@ -66,7 +66,7 @@ jobs:
     name: Build ${{ matrix.component }} base on ${{ matrix.os }}
     needs: init_build
     env:
-      BASE_BUILD_ARTIFACT_FILE: ${{ env.BASE_BUILD_NAME }}_${{ matrix.os }}_${{ matrix.component }}
+      BASE_BUILD_ARTIFACT_FILE: $BASE_BUILD_NAME_${{ matrix.os }}_${{ matrix.component }}
     strategy:
       fail-fast: false
       matrix:
@@ -150,8 +150,8 @@ jobs:
     needs: [ "build_base", "init_build"]
     name: Build ${{ matrix.component }} sources on ${{ matrix.os }}
     env:
-      BASE_BUILD_ARTIFACT_FILE: ${{ env.BASE_BUILD_NAME }}_${{ matrix.os }}_${{ matrix.component }}
-      COMPONENT_BASE_BUILD_ARTIFACT_FILE: ${{ env.COMPONENT_BASE_BUILD_NAME }}_${{ matrix.os }}_${{ matrix.component }}
+      BASE_BUILD_ARTIFACT_FILE: $BASE_BUILD_NAME_${{ matrix.os }}_${{ matrix.component }}
+      COMPONENT_BASE_BUILD_ARTIFACT_FILE: $COMPONENT_BASE_BUILD_NAME_${{ matrix.os }}_${{ matrix.component }}
     strategy:
       fail-fast: false
       matrix:
@@ -237,7 +237,7 @@ jobs:
     needs: [ "build_components", "init_build"]
     name: Build ${{ matrix.component }} on ${{ matrix.os }}
     env:
-      COMPONENT_BASE_BUILD_ARTIFACT_FILE: ${{ env.COMPONENT_BASE_BUILD_NAME }}_${{ matrix.os }}_${{ matrix.component }}
+      COMPONENT_BASE_BUILD_ARTIFACT_FILE: $COMPONENT_BASE_BUILD_NAME_${{ matrix.os }}_${{ matrix.component }}
     strategy:
       fail-fast: false
       matrix:
