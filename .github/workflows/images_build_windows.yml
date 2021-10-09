@@ -206,24 +206,30 @@ jobs:
             docker build --label org.opencontainers.image.revision=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.revision'] }} `
                          --label org.opencontainers.image.created=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.created'] }} `
                          --file=$dockerfile `
+                         --build-arg=BUILD_BASE_IMAGE=${{ steps.base_build.outputs.base_build_image }}
                          $tags `
                     $context
             if (-not $?) {throw "Failed"}
 
+      - name: Push image
+        run: |
+            $tags_array=$( "${{ steps.meta.outputs.tags }}".Split("`r`n") )
+
             Foreach ($tag in $tags_array) {
+                echo "docker image push $tag"
                 docker image push $tag
                 if (-not $?) {throw "Failed"}
             }
 
+      - name: Image digest
+        run: |
+            $tags_array=$( "${{ steps.meta.outputs.tags }}".Split("`r`n") )
+
             $digest=$(docker inspect $tags_array[0] --format "{{ index .RepoDigests 0}}").Split('@')[-1]
             if (-not $?) {throw "Failed"}
+
             echo $digest
             $digest | Set-Content -Path ${{ env.COMPONENT_BASE_BUILD_NAME }}${{ env.COMPONENT_BASE_BUILD_ARTIFACT_FILE_SUFFIX }}
-
-      - name: Logout from DockerHub
-        run: |
-            docker logout
-            if (-not $?) {throw "Failed"}
 
       - name: Upload SHA256 tag
         uses: actions/upload-artifact@v2.2.4
@@ -231,6 +237,11 @@ jobs:
          name: ${{ env.COMPONENT_BASE_BUILD_NAME }}${{ env.COMPONENT_BASE_BUILD_ARTIFACT_FILE_SUFFIX }}
          path: ${{ env.COMPONENT_BASE_BUILD_NAME }}${{ env.COMPONENT_BASE_BUILD_ARTIFACT_FILE_SUFFIX }}
          if-no-files-found: error
+
+      - name: Logout from DockerHub
+        run: |
+            docker logout
+            if (-not $?) {throw "Failed"}
 
   build_images:
     timeout-minutes: 70
@@ -291,17 +302,28 @@ jobs:
             docker build --label org.opencontainers.image.revision=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.revision'] }} `
                          --label org.opencontainers.image.created=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.created'] }} `
                          --file=$dockerfile `
+                         --build-arg=BUILD_BASE_IMAGE=${{ steps.base_build.outputs.base_build_image }}
                          $tags `
                     $context
             if (-not $?) {throw "Failed"}
 
+      - name: Push image
+        run: |
+            $tags_array=$( "${{ steps.meta.outputs.tags }}".Split("`r`n") )
+
             Foreach ($tag in $tags_array) {
+                echo "docker image push $tag"
                 docker image push $tag
                 if (-not $?) {throw "Failed"}
             }
 
+      - name: Image digest
+        run: |
+            $tags_array=$( "${{ steps.meta.outputs.tags }}".Split("`r`n") )
+
             $digest=$(docker inspect $tags_array[0] --format "{{ index .RepoDigests 0}}").Split('@')[-1]
             if (-not $?) {throw "Failed"}
+
             echo $digest
 
       - name: Logout from DockerHub
