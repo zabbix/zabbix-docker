@@ -222,7 +222,7 @@ jobs:
             docker build --label org.opencontainers.image.revision=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.revision'] }} `
                          --label org.opencontainers.image.created=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.created'] }} `
                          --file=$dockerfile `
-                         --build-arg=BUILD_BASE_IMAGE=${{ steps.base_build.outputs.base_build_image }}
+                         --build-arg=BUILD_BASE_IMAGE=${{ steps.base_build.outputs.base_build_image }} `
                          $tags `
                     $context
             if (-not $?) {throw "Failed"}
@@ -327,7 +327,7 @@ jobs:
             docker build --label org.opencontainers.image.revision=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.revision'] }} `
                          --label org.opencontainers.image.created=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.created'] }} `
                          --file=$dockerfile `
-                         --build-arg=BUILD_BASE_IMAGE=${{ steps.base_build.outputs.base_build_image }}
+                         --build-arg=BUILD_BASE_IMAGE=${{ steps.base_build.outputs.base_build_image }} `
                          $tags `
                     $context
             if (-not $?) {throw "Failed"}
