@@ -66,7 +66,7 @@ jobs:
     name: Build ${{ matrix.component }} base on ${{ matrix.os }}
     needs: init_build
     env:
-      BASE_BUILD_ARTIFACT_FILE: $BASE_BUILD_NAME_${{ matrix.os }}_${{ matrix.component }}
+      BASE_BUILD_ARTIFACT_FILE_SUFFIX: "_${{ matrix.os }}_${{ matrix.component }}"
     strategy:
       fail-fast: false
       matrix:
@@ -131,13 +131,13 @@ jobs:
             if (-not $?) {throw "Failed"}
 
             echo $digest
-            $digest | Set-Content ${{ env.BASE_BUILD_ARTIFACT_FILE }}
+            $digest | Set-Content ${{ env.BASE_BUILD_NAME }}${{ env.BASE_BUILD_ARTIFACT_FILE_SUFFIX }}
 
       - name: Upload SHA256 tag
         uses: actions/upload-artifact@v2.2.4
         with:
-         name: ${{ env.BASE_BUILD_ARTIFACT_FILE }}
-         path: ${{ env.BASE_BUILD_ARTIFACT_FILE }}
+         name: ${{ env.BASE_BUILD_NAME }}${{ env.BASE_BUILD_ARTIFACT_FILE_SUFFIX }}
+         path: ${{ env.BASE_BUILD_NAME }}${{ env.BASE_BUILD_ARTIFACT_FILE_SUFFIX }}
          if-no-files-found: error
 
       - name: Logout from DockerHub
@@ -150,8 +150,8 @@ jobs:
     needs: [ "build_base", "init_build"]
     name: Build ${{ matrix.component }} sources on ${{ matrix.os }}
     env:
-      BASE_BUILD_ARTIFACT_FILE: $BASE_BUILD_NAME_${{ matrix.os }}_${{ matrix.component }}
-      COMPONENT_BASE_BUILD_ARTIFACT_FILE: $COMPONENT_BASE_BUILD_NAME_${{ matrix.os }}_${{ matrix.component }}
+      BASE_BUILD_ARTIFACT_FILE_SUFFIX: "_${{ matrix.os }}_${{ matrix.component }}"
+      COMPONENT_BASE_BUILD_ARTIFACT_FILE_SUFFIX: "_${{ matrix.os }}_${{ matrix.component }}"
     strategy:
       fail-fast: false
       matrix:
@@ -182,12 +182,12 @@ jobs:
       - name: Download SHA256 tag build-base:${{ matrix.os }}
         uses: actions/download-artifact@v2.0.10
         with:
-          name: ${{ env.BASE_BUILD_ARTIFACT_FILE }}
+          name: ${{ env.BASE_BUILD_NAME }}${{ env.BASE_BUILD_ARTIFACT_FILE_SUFFIX }}
 
       - name: Retrieve ${{ env.BASE_BUILD_NAME }}:${{ matrix.os }} SHA256 tag
         id: base_build
         run: |
-          $base_tag = Get-Content ${{ env.BASE_BUILD_ARTIFACT_FILE }} -Raw
+          $base_tag = Get-Content ${{ env.BASE_BUILD_NAME }}${{ env.BASE_BUILD_ARTIFACT_FILE_SUFFIX }} -Raw
           $build_base_image="${{ env.DOCKER_REPOSITORY }}/${{ env.IMAGE_PREFIX }}${{ env.BASE_BUILD_NAME }}@" + $base_tag
 
           echo "::set-output name=base_tag::$base_tag"
@@ -218,7 +218,7 @@ jobs:
             $digest=$(docker inspect $tags_array[0] --format "{{ index .RepoDigests 0}}").Split('@')[-1]
             if (-not $?) {throw "Failed"}
             echo $digest
-            $digest | Set-Content ${{ env.COMPONENT_BASE_BUILD_ARTIFACT_FILE }}
+            $digest | Set-Content ${{ env.COMPONENT_BASE_BUILD_NAME }}${{ env.COMPONENT_BASE_BUILD_ARTIFACT_FILE_SUFFIX }}
 
       - name: Logout from DockerHub
         run: |
@@ -228,8 +228,8 @@ jobs:
       - name: Upload SHA256 tag
         uses: actions/upload-artifact@v2.2.4
         with:
-         name: ${{ env.COMPONENT_BASE_BUILD_ARTIFACT_FILE }}
-         path: ${{ env.COMPONENT_BASE_BUILD_ARTIFACT_FILE }}
+         name: ${{ env.COMPONENT_BASE_BUILD_NAME }}${{ env.COMPONENT_BASE_BUILD_ARTIFACT_FILE_SUFFIX }}
+         path: ${{ env.COMPONENT_BASE_BUILD_NAME }}${{ env.COMPONENT_BASE_BUILD_ARTIFACT_FILE_SUFFIX }}
          if-no-files-found: error
 
   build_images:
@@ -237,7 +237,7 @@ jobs:
     needs: [ "build_components", "init_build"]
     name: Build ${{ matrix.component }} on ${{ matrix.os }}
     env:
-      COMPONENT_BASE_BUILD_ARTIFACT_FILE: $COMPONENT_BASE_BUILD_NAME_${{ matrix.os }}_${{ matrix.component }}
+      COMPONENT_BASE_BUILD_ARTIFACT_FILE_SUFFIX: "_${{ matrix.os }}_${{ matrix.component }}"
     strategy:
       fail-fast: false
       matrix:
@@ -267,12 +267,12 @@ jobs:
       - name: Download SHA256 tag for ${{ env.COMPONENT_BASE_BUILD_NAME }}:${{ matrix.os }}
         uses: actions/download-artifact@v2.0.10
         with:
-          name: ${{ env.COMPONENT_BASE_BUILD_ARTIFACT_FILE }}
+          name: ${{ env.COMPONENT_BASE_BUILD_NAME }}${{ env.COMPONENT_BASE_BUILD_ARTIFACT_FILE_SUFFIX }}
 
       - name: ${{ env.COMPONENT_BASE_BUILD_NAME }}:${{ matrix.os }} SHA256 tag
         id: base_build
         run: |
-          $base_tag = Get-Content ${{ env.COMPONENT_BASE_BUILD_ARTIFACT_FILE }} -Raw
+          $base_tag = Get-Content ${{ env.COMPONENT_BASE_BUILD_NAME }}${{ env.COMPONENT_BASE_BUILD_ARTIFACT_FILE_SUFFIX }} -Raw
           $build_base_image="${{ env.DOCKER_REPOSITORY }}/${{ env.IMAGE_PREFIX }}${{ env.COMPONENT_BASE_BUILD_NAME }}@" + $base_tag
 
           echo "::set-output name=base_tag::$base_tag"
