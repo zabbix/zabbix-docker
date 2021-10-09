@@ -119,6 +119,7 @@ jobs:
             echo "docker build --file=$dockerfile $tags $context"
             docker build --label org.opencontainers.image.revision=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.revision'] }} `
                          --label org.opencontainers.image.created=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.created'] }} `
+                         --build-arg=BUILD_BASE_IMAGE=mcr.microsoft.com/dotnet/framework/sdk:4.8-windowsservercore-${{ steps.base_os_tag.outputs.os_tag }} `
                          --file=$dockerfile `
                          $tags `
                     $context
