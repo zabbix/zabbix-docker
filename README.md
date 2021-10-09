@@ -2,8 +2,11 @@
 
 [![Build images (DockerHub)](https://github.com/zabbix/zabbix-docker/actions/workflows/images_build.yml/badge.svg?branch=5.4&event=release)](https://github.com/zabbix/zabbix-docker/actions/workflows/images_build.yml)
 [![Build images (DockerHub)](https://github.com/zabbix/zabbix-docker/actions/workflows/images_build.yml/badge.svg?branch=5.4&event=push)](https://github.com/zabbix/zabbix-docker/actions/workflows/images_build.yml)
+
 [![Build images (DockerHub, Windows)](https://github.com/zabbix/zabbix-docker/actions/workflows/images_build_windows.yml/badge.svg?branch=5.4&event=release)](https://github.com/zabbix/zabbix-docker/actions/workflows/images_build_windows.yml)
 [![Build images (DockerHub, Windows)](https://github.com/zabbix/zabbix-docker/actions/workflows/images_build_windows.yml/badge.svg?branch=5.4&event=push)](https://github.com/zabbix/zabbix-docker/actions/workflows/images_build_windows.yml)
+
+[![Nightly build images (DockerHub)](https://github.com/zabbix/zabbix-docker/actions/workflows/nightly_build.yml/badge.svg)](https://github.com/zabbix/zabbix-docker/actions/workflows/nightly_build.yml)
 
 # What is Zabbix?
 
