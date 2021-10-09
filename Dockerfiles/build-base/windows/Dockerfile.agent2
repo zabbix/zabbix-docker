@@ -17,7 +17,7 @@ ARG ZBX_SOURCES=https://git.zabbix.com/scm/zbx/zabbix.git
 
 ARG VS_BUILDTOOLS_URL=https://aka.ms/vs/16/release/vs_buildtools.exe
 ARG GIT_URL=https://github.com/git-for-windows/git/releases/download/v2.33.0.windows.2/MinGit-2.33.0.2-busybox-64-bit.zip
-ARG MINGW_URL=https://deac-riga.dl.sourceforge.net/project/mingw-w64/Toolchains%20targetting%20Win64/Personal%20Builds/mingw-builds/8.1.0/threads-win32/sjlj/x86_64-8.1.0-release-win32-sjlj-rt_v6-rev0.7z
+ARG MINGW_URL=https://sourceforge.net/projects/mingw-w64/files/Toolchains%20targetting%20Win64/Personal%20Builds/mingw-builds/8.1.0/threads-win32/sjlj/x86_64-8.1.0-release-win32-sjlj-rt_v6-rev0.7z
 ARG GOLANG_URL=https://golang.org/dl/go$GOLANG_VERSION.windows-amd64.msi
 ARG CYGWIN_URL=https://cygwin.com/setup-x86_64.exe
 ARG PCRE_URL=https://ftp.pcre.org/pub/pcre/pcre-$PCRE_VERSION.zip
@@ -114,7 +114,7 @@ RUN Set-Location -Path $env:SystemDrive\.; `
     `
     Write-Host ('Downloading {0} ...' -f $env:MINGW_URL); `
     [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; `
-    Invoke-WebRequest -OutFile $env:SystemDrive\mingw.7z -Uri $env:MINGW_URL; `
+    (new-object System.Net.WebClient).DownloadFile("""$env:MINGW_URL""","""$env:SystemDrive\mingw.7z"""); `
     `
     $sha256 = 'e8c65ddc655534b0330f66f7b480565621e8617cda9937d76ba141a22bf3b2fa'; `
     Write-Host ('Verifying SHA256 ({0}) ...' -f $sha256); `

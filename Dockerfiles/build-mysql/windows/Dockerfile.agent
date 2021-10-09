@@ -52,7 +52,7 @@ RUN Set-Location -Path $env:SystemDrive\.; `
         MODBLIBDIR=$env:SystemDrive\libmodbus\src\win32\$env:BUILD_ARCH\Release `
         $env:ZBX_COMPONENT; `
     `
-    Write-Host 'Verifying build ("zabbix_agent2.exe -V") ...'; `
+    Write-Host 'Verifying build ("zabbix_agentd.exe -V") ...'; `
     & $env:SystemDrive\zabbix-$env:ZBX_VERSION\bin\win64\zabbix_agentd.exe -V; `
     dumpbin /dependents $env:SystemDrive\zabbix-$env:ZBX_VERSION\bin\win64\zabbix_agentd.exe; `
     `
