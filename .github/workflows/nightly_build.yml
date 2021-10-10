@@ -47,7 +47,7 @@ jobs:
       - name: Prepare Platform list
         id: platform_list
         run: |
-            platform_list=$(jq -r '.os | tostring  | @json' "./build.json")
+            platform_list=$(jq -r '.["os-linux"] | tostring  | @json' "./build.json")
 
             echo "::set-output name=list::$platform_list"
 
@@ -97,7 +97,7 @@ jobs:
       - name: Prepare Platform list
         id: platform
         run: |
-            platform_list=$(jq -r '.os.${{ matrix.os }} | join(",")' "./build.json")
+            platform_list=$(jq -r '.["os-linux"].${{ matrix.os }} | join(",")' "./build.json")
 
             echo ::set-output name=list::$platform_list
 
@@ -170,7 +170,7 @@ jobs:
       - name: Prepare Platform list
         id: platform
         run: |
-            platform_list=$(jq -r '.os.${{ matrix.os }} | join(",")' "./build.json")
+            platform_list=$(jq -r '.["os-linux"].${{ matrix.os }} | join(",")' "./build.json")
 
             echo ::set-output name=list::$platform_list
 
@@ -262,7 +262,7 @@ jobs:
             if [ "${{ matrix.os }}" == "alpine" ] && [ "${{ matrix.build }}" == "web-service" ]; then
                 platform_list="linux/amd64,linux/arm64"
             else
-                platform_list=$(jq -r '.os.${{ matrix.os }} | join(",")' "./build.json")
+                platform_list=$(jq -r '.["os-linux"].${{ matrix.os }} | join(",")' "./build.json")
             fi
 
             echo ::set-output name=list::$platform_list
