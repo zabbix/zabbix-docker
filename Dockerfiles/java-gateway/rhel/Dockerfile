@@ -60,8 +60,6 @@ RUN set -eux && INSTALL_PKGS="bash \
     rm -rf /var/cache/yum /var/lib/yum/yumdb/* /usr/lib/udev/hwdb.d/* && \
     rm -rf /var/cache/dnf /etc/udev/hwdb.bin /root/.pki
 
-COPY ["conf/etc/", "/etc/"]
-
 RUN set -eux && INSTALL_PKGS="autoconf \
             automake \
             pkgconf \

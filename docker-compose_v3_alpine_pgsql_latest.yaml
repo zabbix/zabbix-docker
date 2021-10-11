@@ -404,9 +404,9 @@ services:
 #  command: -c ssl=on -c ssl_cert_file=/run/secrets/server-cert.pem -c ssl_key_file=/run/secrets/server-key.pem -c ssl_ca_file=/run/secrets/root-ca.pem
   volumes:
    - ./zbx_env/var/lib/postgresql/data:/var/lib/postgresql/data:rw
-   - ./.ZBX_DB_CA_FILE:/run/secrets/root-ca.pem:ro
-   - ./.ZBX_DB_CERT_FILE:/run/secrets/server-cert.pem:ro
-   - ./.ZBX_DB_KEY_FILE:/run/secrets/server-key.pem:ro
+   - ./env_vars/.ZBX_DB_CA_FILE:/run/secrets/root-ca.pem:ro
+   - ./env_vars/.ZBX_DB_CERT_FILE:/run/secrets/server-cert.pem:ro
+   - ./env_vars/.ZBX_DB_KEY_FILE:/run/secrets/server-key.pem:ro
   env_file:
    - ./env_vars/.env_db_pgsql
   secrets:

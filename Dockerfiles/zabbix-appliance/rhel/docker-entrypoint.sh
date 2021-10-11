@@ -13,12 +13,12 @@ fi
 # Used only by Zabbix web-interface
 : ${ZBX_SERVER_NAME:="Zabbix docker"}
 
-# Default timezone for web interface
-: ${PHP_TZ:="Europe/Riga"}
-
 # Default MySQL instance location
 : ${DB_SERVER_HOST:="localhost"}
 : ${DB_SERVER_PORT:="3306"}
+
+# Default timezone for web interface
+: ${PHP_TZ:="Europe/Riga"}
 
 # Default directories
 # User 'zabbix' home directory
@@ -539,7 +539,7 @@ prepare_zbx_web_config() {
         echo "listen.group = nginx" >> "$PHP_CONFIG_FILE"
     fi
 
-    ZBX_DENY_GUI_ACCESS=${ZBX_DENY_GUI_ACCESS:-"false"}
+    : ${ZBX_DENY_GUI_ACCESS:="false"}
     export ZBX_DENY_GUI_ACCESS=${ZBX_DENY_GUI_ACCESS,,}
     export ZBX_GUI_ACCESS_IP_RANGE=${ZBX_GUI_ACCESS_IP_RANGE:-"['127.0.0.1']"}
     export ZBX_GUI_WARNING_MSG=${ZBX_GUI_WARNING_MSG:-"Zabbix is under maintenance."}
@@ -549,7 +549,7 @@ prepare_zbx_web_config() {
     export ZBX_POSTMAXSIZE=${ZBX_POSTMAXSIZE:-"16M"}
     export ZBX_UPLOADMAXFILESIZE=${ZBX_UPLOADMAXFILESIZE:-"2M"}
     export ZBX_MAXINPUTTIME=${ZBX_MAXINPUTTIME:-"300"}
-    export PHP_TZ=${PHP_TZ:-"Europe/Riga"}
+    export PHP_TZ=${PHP_TZ}
 
     export DB_SERVER_TYPE="MYSQL"
     export DB_SERVER_HOST=${DB_SERVER_HOST}
@@ -562,15 +562,15 @@ prepare_zbx_web_config() {
     export ZBX_SERVER_PORT="10051"
     export ZBX_SERVER_NAME=${ZBX_SERVER_NAME}
 
-    ZBX_DB_ENCRYPTION=${ZBX_DB_ENCRYPTION:-"false"}
+    : ${ZBX_DB_ENCRYPTION:-"false"}
     export ZBX_DB_ENCRYPTION=${ZBX_DB_ENCRYPTION,,}
     export ZBX_DB_KEY_FILE=${ZBX_DB_KEY_FILE}
     export ZBX_DB_CERT_FILE=${ZBX_DB_CERT_FILE}
     export ZBX_DB_CA_FILE=${ZBX_DB_CA_FILE}
-    ZBX_DB_VERIFY_HOST=${ZBX_DB_VERIFY_HOST:-"false"}
+    : ${ZBX_DB_VERIFY_HOST:="false"}
     export ZBX_DB_VERIFY_HOST=${ZBX_DB_VERIFY_HOST,,}
 
-    DB_DOUBLE_IEEE754=${DB_DOUBLE_IEEE754:-"true"}
+    : ${DB_DOUBLE_IEEE754:="true"}
     export DB_DOUBLE_IEEE754=${DB_DOUBLE_IEEE754,,}
 
     export ZBX_HISTORYSTORAGEURL=${ZBX_HISTORYSTORAGEURL}
@@ -595,7 +595,7 @@ prepare_zbx_web_config() {
         "$ZABBIX_ETC_DIR/nginx_ssl.conf"
     fi
 
-    ENABLE_WEB_ACCESS_LOG=${ENABLE_WEB_ACCESS_LOG:-"true"}
+    : ${ENABLE_WEB_ACCESS_LOG:="true"}
 
     if [ "${ENABLE_WEB_ACCESS_LOG,,}" == "false" ]; then
         sed -ri \

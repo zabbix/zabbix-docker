@@ -53,7 +53,7 @@ RUN set -eux && INSTALL_PKGS="bash \
             pcre \
             sqlite-libs \
             unixODBC" && \
-    REPOLIST="ubi-8-baseos,ubi-8-appstream,rhel-8-for-x86_64-baseos-rpms,rhel-8-for-x86_64-appstream-rpms,epel" && \
+    REPOLIST="ubi-8-baseos,ubi-8-appstream,rhel-8-for-x86_64-baseos-rpms,epel" && \
     dnf -y update-minimal --disablerepo "*" --enablerepo "ubi-8-baseos" --setopt=tsflags=nodocs \
         --security --sec-severity=Important --setopt=install_weak_deps=False --sec-severity=Critical && \
     dnf -y install https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm && \

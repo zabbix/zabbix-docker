@@ -1,7 +1,10 @@
 ![logo](https://assets.zabbix.com/img/logo/zabbix_logo_500x131.png)
 
-![CI](https://github.com/zabbix/zabbix-docker/workflows/CI/badge.svg?branch=5.0&event=release)
-![CI](https://github.com/zabbix/zabbix-docker/workflows/CI/badge.svg?branch=5.0&event=push)
+[![Build images (DockerHub)](https://github.com/zabbix/zabbix-docker/actions/workflows/images_build.yml/badge.svg?branch=5.0&event=release)](https://github.com/zabbix/zabbix-docker/actions/workflows/images_build.yml)
+[![Build images (DockerHub)](https://github.com/zabbix/zabbix-docker/actions/workflows/images_build.yml/badge.svg?branch=5.0&event=push)](https://github.com/zabbix/zabbix-docker/actions/workflows/images_build.yml)
+
+[![Build images (DockerHub, Windows)](https://github.com/zabbix/zabbix-docker/actions/workflows/images_build_windows.yml/badge.svg?branch=5.0&event=release)](https://github.com/zabbix/zabbix-docker/actions/workflows/images_build_windows.yml)
+[![Build images (DockerHub, Windows)](https://github.com/zabbix/zabbix-docker/actions/workflows/images_build_windows.yml/badge.svg?branch=5.0&event=push)](https://github.com/zabbix/zabbix-docker/actions/workflows/images_build_windows.yml)
 
 # What is Zabbix?
 

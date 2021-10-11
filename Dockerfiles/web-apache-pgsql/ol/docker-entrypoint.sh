@@ -195,7 +195,7 @@ prepare_zbx_web_config() {
     export ZBX_DB_CA_FILE=${ZBX_DB_CA_FILE}
     : ${ZBX_DB_VERIFY_HOST:="false"}
     export ZBX_DB_VERIFY_HOST=${ZBX_DB_VERIFY_HOST,,}
-    
+
     : ${DB_DOUBLE_IEEE754:="true"}
     export DB_DOUBLE_IEEE754=${DB_DOUBLE_IEEE754,,}
 

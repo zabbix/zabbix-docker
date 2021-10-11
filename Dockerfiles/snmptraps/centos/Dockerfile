@@ -29,8 +29,7 @@ RUN set -eux && \
             --home-dir /var/lib/zabbix/ \
         zabbix && \
     dnf --quiet makecache && \
-    dnf -y install epel-release && \
-    dnf -y install --setopt=tsflags=nodocs --setopt=install_weak_deps=False --best \
+    dnf -y install --setopt=tsflags=nodocs \
             tzdata \
             net-snmp && \
     mkdir -p /var/lib/zabbix && \
