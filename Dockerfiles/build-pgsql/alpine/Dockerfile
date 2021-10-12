@@ -68,4 +68,5 @@ RUN set -eux && \
     strip /tmp/zabbix-${ZBX_VERSION}/src/zabbix_proxy/zabbix_proxy && \
     strip /tmp/zabbix-${ZBX_VERSION}/src/go/bin/zabbix_agent2 && \
     strip /tmp/zabbix-${ZBX_VERSION}/src/zabbix_get/zabbix_get && \
-    strip /tmp/zabbix-${ZBX_VERSION}/src/zabbix_sender/zabbix_sender
+    strip /tmp/zabbix-${ZBX_VERSION}/src/zabbix_sender/zabbix_sender && \
+    strip /tmp/zabbix-${ZBX_VERSION}/src/go/bin/zabbix_web_service
