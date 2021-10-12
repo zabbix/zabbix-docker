@@ -34,6 +34,7 @@ RUN set -eux && \
             net-snmp-dev \
             openipmi-dev \
             openldap-dev \
+            openssl-dev \
             pcre-dev \
             postgresql-dev \
             openjdk8 \

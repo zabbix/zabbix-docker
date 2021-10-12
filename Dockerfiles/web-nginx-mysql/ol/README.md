@@ -38,7 +38,7 @@ These are the only official Zabbix web interface Docker images. They are based o
 
 Images are updated when new releases are published. The image with ``latest`` tag is based on Alpine Linux.
 
-Zabbix web interface available in three editions:
+Zabbix web interface available in four editions:
 - Zabbix web-interface based on Apache2 web server with MySQL database support
 - Zabbix web-interface based on Apache2 web server with PostgreSQL database support
 - Zabbix web-interface based on Nginx web server with MySQL database support
