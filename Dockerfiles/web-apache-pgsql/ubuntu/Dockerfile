@@ -71,9 +71,6 @@ RUN set -eux && \
     sed -i 's/Listen 443/Listen 8443/g' /etc/apache2/ports.conf && \
     sed -i 's|/var/run/apache2$SUFFIX|/tmp|g' /etc/apache2/envvars && \
     rm -f /var/run/apache2/apache2.pid && \
-    apt-get -y update && \
-    DEBIAN_FRONTEND=noninteractive apt-get -y --no-install-recommends install \
-            gettext && \
     cd /usr/share/zabbix/ && \
     rm -f conf/zabbix.conf.php conf/maintenance.inc.php conf/zabbix.conf.php.example && \
     rm -rf tests && \
@@ -96,8 +93,6 @@ RUN set -eux && \
     chown --quiet -R zabbix:root /usr/share/zabbix/include/defines.inc.php && \
     chgrp -R 0 /usr/share/zabbix/include/defines.inc.php && \
     chmod -R g=u /usr/share/zabbix/include/defines.inc.php && \
-    DEBIAN_FRONTEND=noninteractive apt-get -y purge \
-            gettext && \
     apt-get -y autoremove && \
     apt-get -y clean && \
     rm -rf /var/lib/apt/lists/*

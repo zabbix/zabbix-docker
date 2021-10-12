@@ -30,10 +30,12 @@ RUN set -eux && \
             --home-dir /var/lib/zabbix/ \
         zabbix && \
     apt-get -y update && \
-    DEBIAN_FRONTEND=noninteractive apt-get -y --no-install-recommends install \
-            tzdata \
+    INSTALL_PKGS="tzdata \
             snmp-mibs-downloader \
-            snmptrapd && \
+            snmptrapd" && \
+    DEBIAN_FRONTEND=noninteractive apt-get -y \
+            --no-install-recommends install \
+            ${INSTALL_PKGS} && \
     download-mibs && \
     mkdir -p /var/lib/zabbix && \
     mkdir -p /var/lib/zabbix/snmptraps && \

@@ -20,9 +20,6 @@ LABEL org.opencontainers.image.title="zabbix-snmptraps-ol" \
 STOPSIGNAL SIGTERM
 
 RUN set -eux && \
-    INSTALL_PKGS="bash \
-            tzdata \
-            net-snmp" && \
     groupadd --system --gid 1995 zabbix && \
     useradd \
             --system --comment "Zabbix monitoring system" \
@@ -31,6 +28,9 @@ RUN set -eux && \
             --shell /sbin/nologin \
             --home-dir /var/lib/zabbix/ \
         zabbix && \
+    INSTALL_PKGS="bash \
+            tzdata \
+            net-snmp" && \
     microdnf -y install \
         --disablerepo="*" \
         --enablerepo="ol8_baseos_latest" \
