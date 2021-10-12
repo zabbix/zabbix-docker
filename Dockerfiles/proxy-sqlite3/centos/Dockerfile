@@ -61,7 +61,7 @@ RUN set -eux && \
             libssh \
             fping \
             file-libs \
-            systemd \
+            gzip \
             libxml2 \
             net-snmp-libs \
             OpenIPMI-libs \

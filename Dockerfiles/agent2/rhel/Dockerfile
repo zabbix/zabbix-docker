@@ -87,12 +87,12 @@ RUN set -eux && REPOLIST="ubi-8-baseos,ubi-8-appstream" && \
     ARCH_SUFFIX="$(arch)"; \
     case "$ARCH_SUFFIX" in \
         x86_64) \
-            url='https://dl.google.com/go/go1.17.1.linux-amd64.tar.gz'; \
-            sha256='dab7d9c34361dc21ec237d584590d72500652e7c909bf082758fb63064fca0ef'; \
+            url='https://dl.google.com/go/go1.17.2.linux-amd64.tar.gz'; \
+            sha256='f242a9db6a0ad1846de7b6d94d507915d14062660616a61ef7c808a76e4f1676'; \
             ;; \
         aarch64) \
-            url='https://dl.google.com/go/go1.17.1.linux-arm64.tar.gz'; \
-            sha256='53b29236fa03ed862670a5e5e2ab2439a2dc288fe61544aa392062104ac0128c'; \
+            url='https://dl.google.com/go/go1.17.2.linux-arm64.tar.gz'; \
+            sha256='a5a43c9cdabdb9f371d56951b14290eba8ce2f9b0db48fb5fc657943984fd4fc'; \
             ;; \
         *) echo "Unknown ARCH_SUFFIX=${ARCH_SUFFIX-}"; exit 1 ;; \
     esac; \

@@ -60,7 +60,7 @@ RUN set -eux && \
     microdnf -y module enable mysql && \
     INSTALL_PKGS="libevent \
             tini \
-            systemd \
+            gzip \
             libssh \
             file-libs \
             fping \

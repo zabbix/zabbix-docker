@@ -6,7 +6,7 @@ ARG ZBX_SOURCES=https://git.zabbix.com/scm/zbx/zabbix.git
 
 ENV TERM=xterm ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES} \
     MIBDIRS=/usr/share/snmp/mibs:/var/lib/zabbix/mibs MIBS=+ALL \
-    ZBX_SNMP_TRAP_DATE_FORMAT=+%Y%m%d.%H%M%S ZBX_SNMP_TRAP_FORMAT=" "
+    ZBX_SNMP_TRAP_DATE_FORMAT=+%Y%m%d.%H%M%S ZBX_SNMP_TRAP_FORMAT="\n"
 
 LABEL org.opencontainers.image.title="zabbix-snmptraps-ol" \
       org.opencontainers.image.authors="Alexey Pustovalov <alexey.pustovalov@zabbix.com>" \
@@ -20,7 +20,8 @@ LABEL org.opencontainers.image.title="zabbix-snmptraps-ol" \
 STOPSIGNAL SIGTERM
 
 RUN set -eux && \
-    INSTALL_PKGS="tzdata \
+    INSTALL_PKGS="bash \
+            tzdata \
             net-snmp" && \
     groupadd --system --gid 1995 zabbix && \
     useradd \
@@ -30,9 +31,13 @@ RUN set -eux && \
             --shell /sbin/nologin \
             --home-dir /var/lib/zabbix/ \
         zabbix && \
-    microdnf -y --disablerepo="*" --enablerepo="ol8_baseos_latest" \
+    microdnf -y install \
+        --disablerepo="*" \
+        --enablerepo="ol8_baseos_latest" \
         --enablerepo="ol8_appstream" \
-        install --setopt=install_weak_deps=0 --best --nodocs ${INSTALL_PKGS} && \
+        --setopt=install_weak_deps=0 \
+        --best \
+        --nodocs ${INSTALL_PKGS} && \
     mkdir -p /var/lib/zabbix && \
     mkdir -p /var/lib/zabbix/snmptraps && \
     mkdir -p /var/lib/zabbix/mibs && \

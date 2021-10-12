@@ -45,4 +45,7 @@ RUN set -eux && \
             gettext \
             git \
             golang-1.16 \
-            unixodbc-dev
+            unixodbc-dev && \
+    apt-get -y autoremove && \
+    apt-get -y clean && \
+    rm -rf /var/lib/apt/lists/*

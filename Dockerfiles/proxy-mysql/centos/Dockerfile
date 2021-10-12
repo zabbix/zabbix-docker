@@ -60,7 +60,7 @@ RUN set -eux && \
     REPOLIST="baseos,appstream,epel" && \
     INSTALL_PKGS="libevent \
             tini \
-            systemd \
+            gzip \
             libssh \
             file-libs \
             fping \
