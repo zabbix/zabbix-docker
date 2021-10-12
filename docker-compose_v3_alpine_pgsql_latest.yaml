@@ -15,9 +15,9 @@ services:
    - ./zbx_env/var/lib/zabbix/ssh_keys:/var/lib/zabbix/ssh_keys:ro
    - ./zbx_env/var/lib/zabbix/mibs:/var/lib/zabbix/mibs:ro
    - ./zbx_env/var/lib/zabbix/snmptraps:/var/lib/zabbix/snmptraps:ro
-#   - ./.ZBX_DB_CA_FILE:/run/secrets/root-ca.pem:ro
-#   - ./.ZBX_DB_CERT_FILE:/run/secrets/client-cert.pem:ro
-#   - ./.ZBX_DB_KEY_FILE:/run/secrets/client-key.pem:ro
+#   - ./env_vars/.ZBX_DB_CA_FILE:/run/secrets/root-ca.pem:ro
+#   - ./env_vars/.ZBX_DB_CERT_FILE:/run/secrets/client-cert.pem:ro
+#   - ./env_vars/.ZBX_DB_KEY_FILE:/run/secrets/client-key.pem:ro
   ulimits:
    nproc: 65535
    nofile:
@@ -178,9 +178,9 @@ services:
    - /etc/timezone:/etc/timezone:ro
    - ./zbx_env/etc/ssl/apache2:/etc/ssl/apache2:ro
    - ./zbx_env/usr/share/zabbix/modules/:/usr/share/zabbix/modules/:ro
-#   - ./.ZBX_DB_CA_FILE:/run/secrets/root-ca.pem:ro
-#   - ./.ZBX_DB_CERT_FILE:/run/secrets/client-cert.pem:ro
-#   - ./.ZBX_DB_KEY_FILE:/run/secrets/client-key.pem:ro
+#   - ./env_vars/.ZBX_DB_CA_FILE:/run/secrets/root-ca.pem:ro
+#   - ./env_vars/.ZBX_DB_CERT_FILE:/run/secrets/client-cert.pem:ro
+#   - ./env_vars/.ZBX_DB_KEY_FILE:/run/secrets/client-key.pem:ro
   deploy:
    resources:
     limits:
@@ -232,9 +232,9 @@ services:
    - /etc/timezone:/etc/timezone:ro
    - ./zbx_env/etc/ssl/nginx:/etc/ssl/nginx:ro
    - ./zbx_env/usr/share/zabbix/modules/:/usr/share/zabbix/modules/:ro
-#   - ./.ZBX_DB_CA_FILE:/run/secrets/root-ca.pem:ro
-#   - ./.ZBX_DB_CERT_FILE:/run/secrets/client-cert.pem:ro
-#   - ./.ZBX_DB_KEY_FILE:/run/secrets/client-key.pem:ro
+#   - ./env_vars/.ZBX_DB_CA_FILE:/run/secrets/root-ca.pem:ro
+#   - ./env_vars/.ZBX_DB_CERT_FILE:/run/secrets/client-cert.pem:ro
+#   - ./env_vars/.ZBX_DB_KEY_FILE:/run/secrets/client-key.pem:ro
   deploy:
    resources:
     limits:
