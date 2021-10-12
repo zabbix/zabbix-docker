@@ -20,7 +20,6 @@ LABEL org.opencontainers.image.title="Zabbix build base" \
       org.opencontainers.image.source="${ZBX_SOURCES}"
 
 RUN set -eux && \
-    env && \
     apk add --no-cache --clean-protected \
             bash \
             autoconf \
@@ -36,6 +35,7 @@ RUN set -eux && \
             net-snmp-dev \
             openipmi-dev \
             openldap-dev \
+            openssl-dev \
             pcre-dev \
             postgresql-dev \
             openjdk8 \

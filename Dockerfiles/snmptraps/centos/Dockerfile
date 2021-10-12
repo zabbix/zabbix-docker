@@ -28,10 +28,17 @@ RUN set -eux && \
             --shell /sbin/nologin \
             --home-dir /var/lib/zabbix/ \
         zabbix && \
-    dnf --quiet makecache && \
-    dnf -y install --setopt=tsflags=nodocs \
+    REPOLIST="baseos,appstream" && \
+    INSTALL_PKGS="bash \
             tzdata \
-            net-snmp && \
+            net-snmp" && \
+    dnf -y install \
+        --disablerepo "*" \
+        --enablerepo "${REPOLIST}" \
+        --setopt=tsflags=nodocs \
+        --setopt=install_weak_deps=False \
+        --best \
+        ${INSTALL_PKGS} && \
     mkdir -p /var/lib/zabbix && \
     mkdir -p /var/lib/zabbix/snmptraps && \
     mkdir -p /var/lib/zabbix/mibs && \

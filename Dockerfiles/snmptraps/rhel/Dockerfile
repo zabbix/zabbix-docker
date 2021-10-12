@@ -10,7 +10,7 @@ ENV ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES}
 
 ENV TERM=xterm ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES} \
     MIBDIRS=/usr/share/snmp/mibs:/var/lib/zabbix/mibs MIBS=+ALL \
-    ZBX_SNMP_TRAP_DATE_FORMAT=+%Y%m%d.%H%M%S ZBX_SNMP_TRAP_FORMAT=" "
+    ZBX_SNMP_TRAP_DATE_FORMAT=+%Y%m%d.%H%M%S ZBX_SNMP_TRAP_FORMAT="\n"
 
 LABEL name="zabbix/zabbix-snmptraps-trunk" \
       maintainer="alexey.pustovalov@zabbix.com" \
@@ -43,7 +43,8 @@ STOPSIGNAL SIGTERM
 COPY ["licenses", "/licenses"]
 
 RUN set -eux && \
-    INSTALL_PKGS="shadow-utils \
+    INSTALL_PKGS="bash \
+            shadow-utils \
             tzdata \
             net-snmp" && \
     microdnf -y --disablerepo="*" --enablerepo="rhel-8-for-x86_64-baseos-rpms" \
