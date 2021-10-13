@@ -12,7 +12,7 @@ ENV TERM=xterm ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES} \
     MIBDIRS=/usr/share/snmp/mibs:/var/lib/zabbix/mibs MIBS=+ALL \
     ZBX_SNMP_TRAP_DATE_FORMAT=+%Y%m%d.%H%M%S ZBX_SNMP_TRAP_FORMAT=" "
 
-LABEL name="zabbix/zabbix-snmptraps-54" \
+LABEL name="zabbix/zabbix-snmptraps-50" \
       maintainer="alexey.pustovalov@zabbix.com" \
       vendor="Zabbix LLC" \
       version="${MAJOR_VERSION}" \
@@ -20,7 +20,7 @@ LABEL name="zabbix/zabbix-snmptraps-54" \
       summary="Zabbix SNMP traps receiver" \
       description="Zabbix SNMP traps receiver" \
       url="https://www.zabbix.com/" \
-      run="docker run --name zabbix-snmptraps --link zabbix-server:zabbix-server -p 162:1162/udp -d registry.connect.redhat.com/zabbix/zabbix-snmptraps-54:${ZBX_VERSION}" \
+      run="docker run --name zabbix-snmptraps --link zabbix-server:zabbix-server -p 162:1162/udp -d registry.connect.redhat.com/zabbix/zabbix-snmptraps-50:${ZBX_VERSION}" \
       io.k8s.description="Zabbix SNMP traps receiver" \
       io.k8s.display-name="Zabbix SNMP traps receiver" \
       io.openshift.expose-services="162:1162" \
@@ -36,7 +36,7 @@ LABEL name="zabbix/zabbix-snmptraps-54" \
       org.label-schema.usage="https://www.zabbix.com/documentation/${MAJOR_VERSION}/manual/installation/containers" \
       org.label-schema.version="${ZBX_VERSION}" \
       org.label-schema.vcs-url="${ZBX_SOURCES}" \
-      org.label-schema.docker.cmd="docker run --name zabbix-snmptraps --link zabbix-server:zabbix-server -p 162:1162/udp -d registry.connect.redhat.com/zabbix/zabbix-snmptraps-54:${ZBX_VERSION}"
+      org.label-schema.docker.cmd="docker run --name zabbix-snmptraps --link zabbix-server:zabbix-server -p 162:1162/udp -d registry.connect.redhat.com/zabbix/zabbix-snmptraps-50:${ZBX_VERSION}"
 
 STOPSIGNAL SIGTERM
 
