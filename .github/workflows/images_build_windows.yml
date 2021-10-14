@@ -61,7 +61,7 @@ jobs:
         id: components
         shell: bash
         run: |
-            component_list='["agent","agent2"]'
+            component_list='["agent"]'
 
             echo "::set-output name=list::$component_list"
 
