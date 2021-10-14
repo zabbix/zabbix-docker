@@ -7,6 +7,7 @@ on:
   push:
     branches:
       - '4.0'
+      - '5.0'
       - '5.4'
       - 'trunk'
     paths:
@@ -80,7 +81,7 @@ jobs:
         uses: tj-actions/branch-names@v5
 
   build_base:
-    timeout-minutes: 90
+    timeout-minutes: 70
     name: Build base on ${{ matrix.os }}
     needs: init_build
     strategy:
@@ -95,7 +96,8 @@ jobs:
         with:
           fetch-depth: 1
 
-      - name: Set up QEMU
+      -
+        name: Set up QEMU
         uses: docker/setup-qemu-action@v1
 
       - name: Set up Docker Buildx
@@ -120,10 +122,13 @@ jobs:
         with:
           images: ${{ env.DOCKER_REPOSITORY }}/zabbix-${{ env.BASE_BUILD_NAME }}
           tags: |
-            type=ref,event=branch,prefix=${{ matrix.os }}-
-            type=ref,event=branch,suffix=-${{ matrix.os }}
+            type=semver,pattern={{version}},prefix=${{ matrix.os }}-
+            type=semver,pattern={{version}},suffix=-${{ matrix.os }}
+            type=ref,event=branch,prefix=${{ matrix.os }}-,suffix=-latest
+            type=ref,event=branch,suffix=-${{ matrix.os }}-latest
+            type=raw,enable=${{ needs.init_build.outputs.is_default_branch == 'true' }},value=${{matrix.os}}-latest
           flavor: |
-            latest=false
+            latest=${{ (matrix.os == 'alpine') && (needs.init_build.outputs.is_default_branch == 'true') }}
 
       - name: Build ${{ env.BASE_BUILD_NAME }}/${{ matrix.os }} and push
         id: docker_build
@@ -190,10 +195,13 @@ jobs:
         with:
           images: ${{ env.DOCKER_REPOSITORY }}/zabbix-${{ matrix.build }}
           tags: |
-            type=ref,event=branch,prefix=${{ matrix.os }}-
-            type=ref,event=branch,suffix=-${{ matrix.os }}
+            type=semver,pattern={{version}},prefix=${{ matrix.os }}-
+            type=semver,pattern={{version}},suffix=-${{ matrix.os }}
+            type=ref,event=branch,prefix=${{ matrix.os }}-,suffix=-latest
+            type=ref,event=branch,suffix=-${{ matrix.os }}-latest
+            type=raw,enable=${{ needs.init_build.outputs.is_default_branch == 'true' }},value=${{matrix.os}}-latest
           flavor: |
-            latest=false
+            latest=${{ (matrix.os == 'alpine') && (needs.init_build.outputs.is_default_branch == 'true') }}
 
       - name: Download SHA256 tag  build-base:${{ matrix.os }}
         uses: actions/download-artifact@v2.0.10
@@ -286,10 +294,13 @@ jobs:
         with:
           images: ${{ env.DOCKER_REPOSITORY }}/zabbix-${{ matrix.build }}
           tags: |
-            type=ref,event=branch,prefix=${{ matrix.os }}-
-            type=ref,event=branch,suffix=-${{ matrix.os }}
+            type=semver,pattern={{version}},prefix=${{ matrix.os }}-
+            type=semver,pattern={{version}},suffix=-${{ matrix.os }}
+            type=ref,event=branch,prefix=${{ matrix.os }}-,suffix=-latest
+            type=ref,event=branch,suffix=-${{ matrix.os }}-latest
+            type=raw,enable=${{ needs.init_build.outputs.is_default_branch == 'true' }},value=${{matrix.os}}-latest
           flavor: |
-            latest=false
+            latest=${{ (matrix.os == 'alpine') && (needs.init_build.outputs.is_default_branch == 'true') }}
 
       - name: Download SHA256 tag for ${{ steps.build_base_image.outputs.build_base }}:${{ matrix.os }}
         uses: actions/download-artifact@v2.0.10
