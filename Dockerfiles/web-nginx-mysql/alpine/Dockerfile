@@ -73,6 +73,8 @@ RUN set -eux && \
     rm -f conf/zabbix.conf.php conf/maintenance.inc.php conf/zabbix.conf.php.example && \
     rm -rf tests && \
     rm -f locale/add_new_language.sh locale/update_po.sh locale/make_mo.sh && \
+    find /usr/share/zabbix/locale -name '*.po' | xargs rm -f && \
+    find /usr/share/zabbix/locale -name '*.sh' | xargs rm -f && \
     ln -s "/etc/zabbix/web/zabbix.conf.php" "/usr/share/zabbix/conf/zabbix.conf.php" && \
     ln -s "/etc/zabbix/web/maintenance.inc.php" "/usr/share/zabbix/conf/maintenance.inc.php" && \
     chown --quiet -R zabbix:root /etc/zabbix/ /usr/share/zabbix/include/defines.inc.php /usr/share/zabbix/modules/ && \
@@ -84,9 +86,6 @@ RUN set -eux && \
     chown --quiet -R zabbix:root /var/lib/php/session/ /var/lib/nginx/ && \
     chgrp -R 0 /var/lib/php/session/ /var/lib/nginx/ && \
     chmod -R g=u /var/lib/php/session/ /var/lib/nginx/ && \
-    chown --quiet -R zabbix:root /usr/share/zabbix/include/defines.inc.php && \
-    chgrp -R 0 /usr/share/zabbix/include/defines.inc.php && \
-    chmod -R g=u /usr/share/zabbix/include/defines.inc.php && \
     rm -rf /var/cache/apk/*
 
 EXPOSE 8080/TCP 8443/TCP
