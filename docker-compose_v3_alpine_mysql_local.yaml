@@ -1,10 +1,41 @@
 version: '3.5'
 services:
+ zabbix-build-base:
+  build:
+   context: ./Dockerfiles/build-base/alpine
+   cache_from:
+    - alpine:3.11
+  image: zabbix-build-base:alpine-local
+
+ zabbix-build-mysql:
+  build:
+   context: ./Dockerfiles/build-mysql/alpine
+   cache_from:
+    - alpine:3.11
+   args:
+    BUILD_BASE_IMAGE: zabbix-build-base:alpine-local
+  image: zabbix-build-mysql:alpine-local
+  depends_on:
+   - zabbix-build-base
+
+ zabbix-build-sqlite3:
+  build:
+   context: ./Dockerfiles/build-sqlite3/alpine
+   cache_from:
+    - alpine:3.11
+   args:
+    BUILD_BASE_IMAGE: zabbix-build-base:alpine-local
+  image: zabbix-build-sqlite3:alpine-local
+  depends_on:
+   - zabbix-build-base
+
  zabbix-server:
   build:
    context: ./Dockerfiles/server-mysql/alpine
    cache_from:
     - alpine:3.11
+   args:
+    BUILD_BASE_IMAGE: zabbix-build-mysql:alpine-local
   image: zabbix-server-mysql:alpine-local
   ports:
    - "10051:10051"
@@ -41,6 +72,7 @@ services:
    - MYSQL_ROOT_PASSWORD
   depends_on:
    - mysql-server
+   - zabbix-build-mysql
   networks:
    zbx_net_backend:
      aliases:
@@ -69,6 +101,8 @@ services:
    context: ./Dockerfiles/proxy-sqlite3/alpine
    cache_from:
     - alpine:3.11
+   args:
+    BUILD_BASE_IMAGE: zabbix-build-sqlite3:alpine-local
   image: zabbix-proxy-sqlite3:alpine-local
   profiles:
    - all
@@ -102,6 +136,7 @@ services:
   depends_on:
    - zabbix-java-gateway
    - zabbix-snmptraps
+   - zabbix-build-sqlite3
   networks:
    zbx_net_backend:
     aliases:
@@ -122,6 +157,8 @@ services:
    context: ./Dockerfiles/proxy-mysql/alpine
    cache_from:
     - alpine:3.11
+   args:
+    BUILD_BASE_IMAGE: zabbix-build-mysql:alpine-local
   image: zabbix-proxy-mysql:alpine-local
   profiles:
    - all
@@ -157,6 +194,7 @@ services:
    - mysql-server
    - zabbix-java-gateway
    - zabbix-snmptraps
+   - zabbix-build-mysql
   secrets:
    - MYSQL_USER
    - MYSQL_PASSWORD
@@ -181,6 +219,8 @@ services:
    context: ./Dockerfiles/web-apache-mysql/alpine
    cache_from:
     - alpine:3.11
+   args:
+    BUILD_BASE_IMAGE: zabbix-build-mysql:alpine-local
   image: zabbix-web-apache-mysql:alpine-local
   profiles:
    - all
@@ -208,6 +248,7 @@ services:
   depends_on:
    - mysql-server
    - zabbix-server
+   - zabbix-build-mysql
   healthcheck:
    test: ["CMD", "curl", "-f", "http://localhost:8080/"]
    interval: 10s
@@ -237,6 +278,8 @@ services:
    context: ./Dockerfiles/web-nginx-mysql/alpine
    cache_from:
     - alpine:3.11
+   args:
+    BUILD_BASE_IMAGE: zabbix-build-mysql:alpine-local
   image: zabbix-web-nginx-mysql:alpine-local
   ports:
    - "80:8080"
@@ -262,6 +305,7 @@ services:
   depends_on:
    - mysql-server
    - zabbix-server
+   - zabbix-build-mysql
   healthcheck:
    test: ["CMD", "curl", "-f", "http://localhost:8080/"]
    interval: 10s
@@ -291,7 +335,11 @@ services:
    context: ./Dockerfiles/agent/alpine
    cache_from:
     - alpine:3.11
+   args:
+    BUILD_BASE_IMAGE: zabbix-build-mysql:alpine-local
   image: zabbix-agent:alpine-local
+  deploy:
+   mode: global
   profiles:
    - full
    - all
@@ -317,6 +365,8 @@ services:
    - ./env_vars/.env_agent
   privileged: true
   pid: "host"
+  depends_on:
+   - zabbix-build-mysql
   networks:
    zbx_net_backend:
     aliases:
@@ -335,6 +385,8 @@ services:
    context: ./Dockerfiles/java-gateway/alpine
    cache_from:
     - alpine:3.11
+   args:
+    BUILD_BASE_IMAGE: zabbix-build-mysql:alpine-local
   image: zabbix-java-gateway:alpine-local
   profiles:
    - full
@@ -351,6 +403,8 @@ services:
       memory: 256M
   env_file:
    - ./env_vars/.env_java
+  depends_on:
+   - zabbix-build-mysql
   networks:
    zbx_net_backend:
     aliases:
@@ -426,6 +480,9 @@ services:
 
 # elasticsearch:
 #  image: elasticsearch
+#  profiles:
+#   - full
+#   - all
 #  environment:
 #   - transport.host=0.0.0.0
 #   - discovery.zen.minimum_master_nodes=1

@@ -1,10 +1,41 @@
 version: '3.5'
 services:
+ zabbix-build-base:
+  build:
+   context: ./Dockerfiles/build-base/ubuntu
+   cache_from:
+    - ubuntu:bionic
+  image: zabbix-build-base:ubuntu-local
+
+ zabbix-build-mysql:
+  build:
+   context: ./Dockerfiles/build-mysql/ubuntu
+   cache_from:
+    - ubuntu:bionic
+   args:
+    BUILD_BASE_IMAGE: zabbix-build-base:ubuntu-local
+  image: zabbix-build-mysql:ubuntu-local
+  depends_on:
+   - zabbix-build-base
+
+ zabbix-build-sqlite3:
+  build:
+   context: ./Dockerfiles/build-sqlite3/ubuntu
+   cache_from:
+    - ubuntu:bionic
+   args:
+    BUILD_BASE_IMAGE: zabbix-build-base:ubuntu-local
+  image: zabbix-build-sqlite3:ubuntu-local
+  depends_on:
+   - zabbix-build-base
+
  zabbix-server:
   build: 
    context: ./Dockerfiles/server-mysql/ubuntu
    cache_from:
     - ubuntu:bionic
+   args:
+    BUILD_BASE_IMAGE: zabbix-build-mysql:ubuntu-local
   image: zabbix-server-mysql:ubuntu-local
   ports:
    - "10051:10051"
@@ -38,8 +69,12 @@ services:
    - MYSQL_USER
    - MYSQL_PASSWORD
    - MYSQL_ROOT_PASSWORD
+#   - client-key.pem
+#   - client-cert.pem
+#   - root-ca.pem
   depends_on:
    - mysql-server
+   - zabbix-build-mysql
   networks:
    zbx_net_backend:
      aliases:
@@ -68,6 +103,8 @@ services:
    context: ./Dockerfiles/proxy-sqlite3/ubuntu
    cache_from:
     - ubuntu:bionic
+   args:
+    BUILD_BASE_IMAGE: zabbix-build-sqlite3:ubuntu-local
   image: zabbix-proxy-sqlite3:ubuntu-local
   profiles:
    - all
@@ -100,6 +137,7 @@ services:
   depends_on:
    - zabbix-java-gateway
    - zabbix-snmptraps
+   - zabbix-build-sqlite3
   networks:
    zbx_net_backend:
     aliases:
@@ -120,6 +158,8 @@ services:
    context: ./Dockerfiles/proxy-mysql/ubuntu
    cache_from:
     - ubuntu:bionic
+   args:
+    BUILD_BASE_IMAGE: zabbix-build-mysql:ubuntu-local
   image: zabbix-proxy-mysql:ubuntu-local
   profiles:
    - all
@@ -154,6 +194,7 @@ services:
    - mysql-server
    - zabbix-java-gateway
    - zabbix-snmptraps
+   - zabbix-build-mysql
   secrets:
    - MYSQL_USER
    - MYSQL_PASSWORD
@@ -178,6 +219,8 @@ services:
    context: ./Dockerfiles/web-apache-mysql/ubuntu
    cache_from:
     - ubuntu:bionic
+   args:
+    BUILD_BASE_IMAGE: zabbix-build-mysql:ubuntu-local
   image: zabbix-web-apache-mysql:ubuntu-local
   profiles:
    - all
@@ -204,6 +247,7 @@ services:
   depends_on:
    - mysql-server
    - zabbix-server
+   - zabbix-build-mysql
   healthcheck:
    test: ["CMD", "curl", "-f", "http://localhost:8080/"]
    interval: 10s
@@ -233,6 +277,8 @@ services:
    context: ./Dockerfiles/web-nginx-mysql/ubuntu
    cache_from:
     - ubuntu:bionic
+   args:
+    BUILD_BASE_IMAGE: zabbix-build-mysql:ubuntu-local
   image: zabbix-web-nginx-mysql:ubuntu-local
   ports:
    - "80:8080"
@@ -257,6 +303,7 @@ services:
   depends_on:
    - mysql-server
    - zabbix-server
+   - zabbix-build-mysql
   healthcheck:
    test: ["CMD", "curl", "-f", "http://localhost:8080/"]
    interval: 10s
@@ -286,6 +333,8 @@ services:
    context: ./Dockerfiles/agent/ubuntu
    cache_from:
     - ubuntu:bionic
+   args:
+    BUILD_BASE_IMAGE: zabbix-build-mysql:ubuntu-local
   image: zabbix-agent:ubuntu-local
   profiles:
    - full
@@ -311,6 +360,8 @@ services:
    - ./env_vars/.env_agent
   privileged: true
   pid: "host"
+  depends_on:
+   - zabbix-build-mysql
   networks:
    zbx_net_backend:
     aliases:
@@ -329,6 +380,8 @@ services:
    context: ./Dockerfiles/java-gateway/ubuntu
    cache_from:
     - ubuntu:bionic
+   args:
+    BUILD_BASE_IMAGE: zabbix-build-mysql:ubuntu-local
   image: zabbix-java-gateway:ubuntu-local
   profiles:
    - full
@@ -345,6 +398,8 @@ services:
       memory: 256M
   env_file:
    - ./env_vars/.env_java
+  depends_on:
+   - zabbix-build-mysql
   networks:
    zbx_net_backend:
     aliases:
@@ -405,6 +460,9 @@ services:
    - MYSQL_USER
    - MYSQL_PASSWORD
    - MYSQL_ROOT_PASSWORD
+#   - server-key.pem
+#   - server-cert.pem
+#   - root-ca.pem
   stop_grace_period: 1m
   networks:
    zbx_net_backend:
@@ -420,6 +478,9 @@ services:
 
 # elasticsearch:
 #  image: elasticsearch
+#  profiles:
+#   - full
+#   - all
 #  environment:
 #   - transport.host=0.0.0.0
 #   - discovery.zen.minimum_master_nodes=1

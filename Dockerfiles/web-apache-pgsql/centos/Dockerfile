@@ -1,13 +1,33 @@
+# syntax=docker/dockerfile:1
+ARG MAJOR_VERSION=4.0
+ARG ZBX_VERSION=${MAJOR_VERSION}.34
+ARG BUILD_BASE_IMAGE=zabbix-build-mysql:centos-${ZBX_VERSION}
+ARG ZBX_SOURCES=https://git.zabbix.com/scm/zbx/zabbix.git
+
+FROM ${BUILD_BASE_IMAGE} as builder
+
 FROM centos:centos7
+
+ARG MAJOR_VERSION
+ARG ZBX_VERSION
+ARG ZBX_SOURCES
+
+ENV TERM=xterm ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES}
 
 LABEL org.opencontainers.image.title="Zabbix web-interface (Apache, PostgreSQL)" \
       org.opencontainers.image.authors="Alexey Pustovalov <alexey.pustovalov@zabbix.com>" \
       org.opencontainers.image.vendor="Zabbix LLC" \
       org.opencontainers.image.url="https://zabbix.com/" \
       org.opencontainers.image.description="Zabbix web-interface based on Apache2 web server with PostgreSQL database support" \
-      org.opencontainers.image.licenses="GPL v2.0"
+      org.opencontainers.image.licenses="GPL v2.0" \
+      org.opencontainers.image.documentation="https://www.zabbix.com/documentation/${MAJOR_VERSION}/manual/installation/containers" \
+      org.opencontainers.image.version="${ZBX_VERSION}" \
+      org.opencontainers.image.source="${ZBX_SOURCES}"
 
 STOPSIGNAL SIGTERM
+
+COPY --from=builder ["/tmp/zabbix-${ZBX_VERSION}/frontends/php", "/usr/share/zabbix"]
+COPY ["conf/etc/", "/etc/"]
 
 RUN set -eux && \
     groupadd --system --gid 1995 zabbix && \
@@ -20,10 +40,7 @@ RUN set -eux && \
         zabbix && \
     mkdir -p /etc/zabbix && \
     mkdir -p /etc/zabbix/web && \
-    yum --quiet makecache && \
-    yum -y install --setopt=tsflags=nodocs \
-            dejavu-sans-fonts \
-            curl \
+    INSTALL_PKGS="curl \
             httpd \
             mod_ssl \
             php \
@@ -32,8 +49,14 @@ RUN set -eux && \
             php-ldap \
             php-mbstring \
             php-pgsql \
+            php-json \
             php-xml \
-            postgresql && \
+            postgresql \
+            findutils \
+            glibc-locale-source" && \
+    yum -y install \
+        --setopt=tsflags=nodocs \
+        ${INSTALL_PKGS} && \
     rm -f "/etc/httpd/conf.d/default.conf" && \
     rm -f "/etc/httpd/conf.d/ssl.conf" && \
     sed -ri \
@@ -41,34 +64,7 @@ RUN set -eux && \
         -e 's!^(\s*ErrorLog)\s+\S+!\1 /proc/self/fd/2!g' \
         "/etc/httpd/conf/httpd.conf" && \
     sed -i 's/Listen 80/Listen 8080/g' /etc/httpd/conf/httpd.conf && \
-    yum -y clean all && \
-    rm -rf /var/cache/yum /var/lib/yum/yumdb/* /usr/lib/udev/hwdb.d/* && \
-    rm -rf /etc/udev/hwdb.bin /root/.pki 
-
-ARG MAJOR_VERSION=4.0
-ARG ZBX_VERSION=${MAJOR_VERSION}.34
-ARG ZBX_SOURCES=https://git.zabbix.com/scm/zbx/zabbix.git
-
-ENV TERM=xterm ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES}
-
-LABEL org.opencontainers.image.documentation="https://www.zabbix.com/documentation/${MAJOR_VERSION}/manual/installation/containers" \
-      org.opencontainers.image.version="${ZBX_VERSION}" \
-      org.opencontainers.image.source="${ZBX_SOURCES}"
-
-COPY ["conf/etc/", "/etc/"]
-
-RUN set -eux && \
-    yum --quiet makecache && \
-    yum -y install --setopt=tsflags=nodocs \
-            gettext \
-            git && \
-    cd /usr/share/ && \
-    git -c advice.detachedHead=false clone ${ZBX_SOURCES} --branch ${ZBX_VERSION} --depth 1 --single-branch zabbix-${ZBX_VERSION} && \
-    mkdir /usr/share/zabbix/ && \
-    cp -R /usr/share/zabbix-${ZBX_VERSION}/frontends/php/* /usr/share/zabbix/ && \
-    rm -rf /usr/share/zabbix-${ZBX_VERSION}/ && \
     cd /usr/share/zabbix/ && \
-    ./locale/make_mo.sh && \
     rm -f conf/zabbix.conf.php conf/maintenance.inc.php conf/zabbix.conf.php.example && \
     rm -rf tests && \
     rm -f locale/add_new_language.sh locale/update_po.sh locale/make_mo.sh && \
@@ -89,7 +85,8 @@ RUN set -eux && \
     chown --quiet -R zabbix:root /usr/share/zabbix/include/defines.inc.php && \
     chgrp -R 0 /usr/share/zabbix/include/defines.inc.php && \
     chmod -R g=u /usr/share/zabbix/include/defines.inc.php && \
-    yum -y history undo `yum -q history | sed -n 3p |column -t | cut -d' ' -f1` && \
+    yum -y remove \
+        glibc-locale-source && \
     yum -y clean all && \
     rm -rf /var/cache/yum /var/lib/yum/yumdb/* /usr/lib/udev/hwdb.d/* && \
     rm -rf /etc/udev/hwdb.bin /root/.pki

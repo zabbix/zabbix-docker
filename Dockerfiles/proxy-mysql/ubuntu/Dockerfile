@@ -1,13 +1,38 @@
+# syntax=docker/dockerfile:1
+ARG MAJOR_VERSION=4.0
+ARG ZBX_VERSION=${MAJOR_VERSION}.34
+ARG BUILD_BASE_IMAGE=zabbix-build-mysql:ubuntu-${ZBX_VERSION}
+ARG ZBX_SOURCES=https://git.zabbix.com/scm/zbx/zabbix.git
+
+FROM ${BUILD_BASE_IMAGE} as builder
+
 FROM ubuntu:bionic
+
+ARG MAJOR_VERSION
+ARG ZBX_VERSION
+ARG ZBX_SOURCES
+
+ENV TERM=xterm \
+    ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES} \
+    MIBDIRS=/var/lib/snmp/mibs/ietf:/var/lib/snmp/mibs/iana:/usr/share/snmp/mibs:/var/lib/zabbix/mibs MIBS=+ALL
 
 LABEL org.opencontainers.image.title="Zabbix proxy (MySQL)" \
       org.opencontainers.image.authors="Alexey Pustovalov <alexey.pustovalov@zabbix.com>" \
       org.opencontainers.image.vendor="Zabbix LLC" \
       org.opencontainers.image.url="https://zabbix.com/" \
       org.opencontainers.image.description="Zabbix proxy with MySQL database support" \
-      org.opencontainers.image.licenses="GPL v2.0"
+      org.opencontainers.image.licenses="GPL v2.0" \
+      org.opencontainers.image.documentation="https://www.zabbix.com/documentation/${MAJOR_VERSION}/manual/installation/containers" \
+      org.opencontainers.image.version="${ZBX_VERSION}" \
+      org.opencontainers.image.source="${ZBX_SOURCES}"
 
 STOPSIGNAL SIGTERM
+
+COPY --from=builder ["/tmp/zabbix-${ZBX_VERSION}/src/zabbix_proxy/zabbix_proxy", "/usr/sbin/zabbix_proxy"]
+COPY --from=builder ["/tmp/zabbix-${ZBX_VERSION}/src/zabbix_get/zabbix_get", "/usr/bin/zabbix_get"]
+COPY --from=builder ["/tmp/zabbix-${ZBX_VERSION}/src/zabbix_sender/zabbix_sender", "/usr/bin/zabbix_sender"]
+COPY --from=builder ["/tmp/zabbix-${ZBX_VERSION}/conf/zabbix_proxy.conf", "/etc/zabbix/zabbix_proxy.conf"]
+COPY --from=builder ["/tmp/zabbix-${ZBX_VERSION}/database/mysql/create_proxy.sql.gz", "/usr/share/doc/zabbix-proxy-mysql/create.sql.gz"]
 
 ENV TINI_VERSION=v0.19.0
 
@@ -47,10 +72,10 @@ RUN set -eux && \
     apt-get -y update && \
     DEBIAN_FRONTEND=noninteractive apt-get -y --no-install-recommends install \
             curl \
-            ca-certificates \
             gpg \
             dirmngr \
             gpg-agent \
+            ca-certificates \
             fping \
             libcurl4 \
             libevent-2.1 \
@@ -64,7 +89,7 @@ RUN set -eux && \
             mysql-client \
             snmp-mibs-downloader \
             unixodbc && \
-    curl -L "https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini-${ARCH_SUFFIX}" -o /sbin/tini && \
+    curl -L "https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini-${ARCH_SUFFIX}" -o /usr/bin/tini && \
     curl -L "https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini-${ARCH_SUFFIX}.asc" -o /tmp/tini.asc && \
     export GNUPGHOME="$(mktemp -d)" && \
     for server in $(shuf -e ha.pool.sks-keyservers.net \
@@ -75,105 +100,16 @@ RUN set -eux && \
                             pgp.mit.edu) ; do \
         gpg --keyserver "$server" --recv-keys 595E85A6B1B4779EA4DAAEC70B588DFF0527A9B7 && break || : ; \
     done && \
-    gpg --batch --verify /tmp/tini.asc /sbin/tini && \
+    gpg --batch --verify /tmp/tini.asc /usr/bin/tini && \
     rm -rf "$GNUPGHOME" /tmp/tini.asc && \
-    chmod +x /sbin/tini && \
+    chmod +x /usr/bin/tini && \
     apt-get -y purge curl gpg dirmngr gpg-agent && \
-    apt-get -y autoremove && \
-    apt-get -y clean && \
-    rm -rf /var/lib/apt/lists/*
-
-ARG MAJOR_VERSION=4.0
-ARG ZBX_VERSION=${MAJOR_VERSION}.34
-ARG ZBX_SOURCES=https://git.zabbix.com/scm/zbx/zabbix.git
-
-ENV TERM=xterm MIBDIRS=/var/lib/snmp/mibs/ietf:/var/lib/snmp/mibs/iana:/usr/share/snmp/mibs:/var/lib/zabbix/mibs MIBS=+ALL \
-    ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES}
-
-LABEL org.opencontainers.image.documentation="https://www.zabbix.com/documentation/${MAJOR_VERSION}/manual/installation/containers" \
-      org.opencontainers.image.version="${ZBX_VERSION}" \
-      org.opencontainers.image.source="${ZBX_SOURCES}"
-
-RUN set -eux && \
-    apt-get -y update && \
-    DEBIAN_FRONTEND=noninteractive apt-get -y --no-install-recommends install \
-            autoconf \
-            automake \
-            gcc \
-            libc6-dev \
-            libcurl4-openssl-dev \
-            libevent-dev \
-            libldap2-dev \
-            libmysqlclient-dev \
-            libopenipmi-dev \
-            libpcre3-dev \
-            libsnmp-dev \
-            libssh-dev \
-            libxml2-dev \
-            make \
-            pkg-config \
-            git \
-            unixodbc-dev && \
-    cd /tmp/ && \
-    git -c advice.detachedHead=false clone ${ZBX_SOURCES} --branch ${ZBX_VERSION} --depth 1 --single-branch zabbix-${ZBX_VERSION} && \
-    cd /tmp/zabbix-${ZBX_VERSION} && \
-    zabbix_revision=`git rev-parse --short HEAD` && \
-    sed -i "s/{ZABBIX_REVISION}/$zabbix_revision/g" include/version.h && \
-    ./bootstrap.sh && \
-    export CFLAGS="-fPIC -pie -Wl,-z,relro -Wl,-z,now" && \
-    ./configure \
-            --datadir=/usr/lib \
-            --libdir=/usr/lib/zabbix \
-            --sysconfdir=/etc/zabbix \
-            --prefix=/usr \
-            --enable-agent \
-            --enable-proxy \
-            --with-mysql \
-            --with-ldap \
-            --with-libcurl \
-            --with-libxml2 \
-            --with-net-snmp \
-            --with-openipmi \
-            --with-openssl \
-            --with-ssh \
-            --with-unixodbc \
-            --enable-ipv6 \
-            --silent && \
-    make -j"$(nproc)" -s dbschema && \
-    make -j"$(nproc)" -s && \
-    cp src/zabbix_proxy/zabbix_proxy /usr/sbin/zabbix_proxy && \
-    cp src/zabbix_get/zabbix_get /usr/bin/zabbix_get && \
-    cp src/zabbix_sender/zabbix_sender /usr/bin/zabbix_sender && \
-    cp conf/zabbix_proxy.conf /etc/zabbix/zabbix_proxy.conf && \
-    cat database/mysql/schema.sql > database/mysql/create.sql && \
-    gzip database/mysql/create.sql && \
-    cp database/mysql/create.sql.gz /usr/share/doc/zabbix-proxy-mysql/ && \
-    cd /tmp/ && \
-    rm -rf /tmp/zabbix-${ZBX_VERSION}/ && \
     chown --quiet -R zabbix:root /etc/zabbix/ /var/lib/zabbix/ && \
     chgrp -R 0 /etc/zabbix/ /var/lib/zabbix/ && \
     chmod -R g=u /etc/zabbix/ /var/lib/zabbix/ && \
-    DEBIAN_FRONTEND=noninteractive apt-get -y purge \
-            autoconf \
-            automake \
-            gcc \
-            libc6-dev \
-            libcurl4-openssl-dev \
-            libevent-dev \
-            libldap2-dev \
-            libmysqlclient-dev \
-            libopenipmi-dev \
-            libpcre3-dev \
-            libsnmp-dev \
-            libssh-dev \
-            libxml2-dev \
-            make \
-            pkg-config \
-            git \
-            unixodbc-dev && \
     apt-get -y autoremove && \
-    rm -rf /var/lib/apt/lists/* && \
-    chmod +x /sbin/tini
+    apt-get -y clean && \
+    rm -rf /var/lib/apt/lists/*
 
 EXPOSE 10051/TCP
 
@@ -183,7 +119,7 @@ VOLUME ["/var/lib/zabbix/snmptraps"]
 
 COPY ["docker-entrypoint.sh", "/usr/bin/"]
 
-ENTRYPOINT ["/sbin/tini", "--", "/usr/bin/docker-entrypoint.sh"]
+ENTRYPOINT ["/usr/bin/tini", "--", "/usr/bin/docker-entrypoint.sh"]
 
 USER 1997
 

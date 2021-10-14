@@ -86,9 +86,12 @@ update_config_var() {
     elif [ "$(grep -Ec "^# $var_name=" $config_path)" -gt 1 ]; then
         sed -i -e  "/^[#;] $var_name=$/i\\$var_name=$var_value" "$config_path"
         echo "added first occurrence"
-    else
+    elif [ "$(grep -Ec "^[#;] $var_name=" $config_path)" -gt 0 ]; then
         sed -i -e "/^[#;] $var_name=/s/.*/&\n$var_name=$var_value/" "$config_path"
         echo "added"
+    else
+        sed -i -e '$a\' -e "$var_name=$var_value" "$config_path"
+        echo "added at the end"
     fi
 
 }

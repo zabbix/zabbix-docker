@@ -28,11 +28,12 @@ RUN set -eux && \
             --shell /sbin/nologin \
             --home-dir /var/lib/zabbix/ \
         zabbix && \
-    yum --quiet makecache && \
-    yum -y install epel-release && \
-    yum -y install --setopt=tsflags=nodocs \
+    INSTALL_PKGS="bash \
             tzdata \
-            net-snmp && \
+            net-snmp" && \
+    yum -y install \
+        --setopt=tsflags=nodocs \
+        ${INSTALL_PKGS} && \
     mkdir -p /var/lib/zabbix && \
     mkdir -p /var/lib/zabbix/snmptraps && \
     mkdir -p /var/lib/zabbix/mibs && \
@@ -42,7 +43,7 @@ RUN set -eux && \
     chmod -R g=u /etc/snmp/ /var/lib/zabbix/ /var/tmp/ /var/run/ && \
     yum -y clean all && \
     rm -rf /var/cache/yum /var/lib/yum/yumdb/* /usr/lib/udev/hwdb.d/* && \
-    rm -rf /var/cache/dnf /etc/udev/hwdb.bin /root/.pki
+    rm -rf /etc/udev/hwdb.bin /root/.pki
 
 EXPOSE 1162/UDP
 
