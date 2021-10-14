@@ -291,7 +291,7 @@ create_db_schema_postgresql() {
         echo "** Creating '${DB_SERVER_DBNAME}' schema in PostgreSQL"
 
         if [ "${ENABLE_TIMESCALEDB,,}" == "true" ]; then
-            psql_query "CREATE EXTENSION IF NOT EXISTS timescaledb CASCADE;"
+            psql_query "CREATE EXTENSION IF NOT EXISTS timescaledb CASCADE;" "${DB_SERVER_DBNAME}"
         fi
 
         if [ -n "${DB_SERVER_ZBX_PASS}" ]; then
