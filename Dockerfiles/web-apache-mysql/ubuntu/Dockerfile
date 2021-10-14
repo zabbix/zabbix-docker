@@ -74,6 +74,9 @@ RUN set -eux && \
     cd /usr/share/zabbix/ && \
     rm -f conf/zabbix.conf.php conf/maintenance.inc.php conf/zabbix.conf.php.example && \
     rm -rf tests && \
+    rm -f locale/add_new_language.sh locale/update_po.sh locale/make_mo.sh && \
+    find /usr/share/zabbix/locale -name '*.po' | xargs rm -f && \
+    find /usr/share/zabbix/locale -name '*.sh' | xargs rm -f && \
     ln -s "/etc/zabbix/web/zabbix.conf.php" "/usr/share/zabbix/conf/zabbix.conf.php" && \
     ln -s "/etc/zabbix/web/maintenance.inc.php" "/usr/share/zabbix/conf/maintenance.inc.php" && \
     mkdir -p /var/lib/locales/supported.d/ && \
@@ -82,17 +85,12 @@ RUN set -eux && \
                 cut -d"'" -f 2 | sort | \
                 xargs -I '{}' bash -c 'echo "{}.UTF-8 UTF-8" >> /var/lib/locales/supported.d/local' && \
     dpkg-reconfigure locales && \
-    find /usr/share/zabbix/locale -name '*.po' | xargs rm -f && \
-    find /usr/share/zabbix/locale -name '*.sh' | xargs rm -f && \
     chown --quiet -R zabbix:root /etc/zabbix/ /usr/share/zabbix/include/defines.inc.php && \
     chgrp -R 0 /etc/zabbix/ /usr/share/zabbix/include/defines.inc.php && \
     chmod -R g=u /etc/zabbix/ /usr/share/zabbix/include/defines.inc.php && \
     chown --quiet -R zabbix:root /etc/apache2/ /etc/php/7.2/ && \
     chgrp -R 0 /etc/apache2/ /etc/php/7.2/ && \
     chmod -R g=u /etc/apache2/ /etc/php/7.2/ && \
-    chown --quiet -R zabbix:root /usr/share/zabbix/include/defines.inc.php && \
-    chgrp -R 0 /usr/share/zabbix/include/defines.inc.php && \
-    chmod -R g=u /usr/share/zabbix/include/defines.inc.php && \
     apt-get -y autoremove && \
     apt-get -y clean && \
     rm -rf /var/lib/apt/lists/*
