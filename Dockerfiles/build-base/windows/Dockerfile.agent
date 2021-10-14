@@ -212,4 +212,3 @@ RUN Set-Location -Path $env:SystemDrive\.; `
     nmake /S; `
     nmake /S install_sw; `
     Write-Host 'OpenSSL is ready...';
-
