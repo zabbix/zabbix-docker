@@ -74,6 +74,9 @@ RUN set -eux && \
     cd /usr/share/zabbix/ && \
     rm -f conf/zabbix.conf.php conf/maintenance.inc.php conf/zabbix.conf.php.example && \
     rm -rf tests && \
+    rm -f locale/add_new_language.sh locale/update_po.sh locale/make_mo.sh && \
+    find /usr/share/zabbix/locale -name '*.po' | xargs rm -f && \
+    find /usr/share/zabbix/locale -name '*.sh' | xargs rm -f && \
     ln -s "/etc/zabbix/web/zabbix.conf.php" "/usr/share/zabbix/conf/zabbix.conf.php" && \
     ln -s "/etc/zabbix/web/maintenance.inc.php" "/usr/share/zabbix/conf/maintenance.inc.php" && \
     mkdir -p /var/lib/locales/supported.d/ && \
