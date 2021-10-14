@@ -6,6 +6,8 @@ on:
       - published
   push:
     branches:
+      - '4.0'
+      - '5.0'
       - 'trunk'
     paths:
       - 'Dockerfiles/*/windows/*'
