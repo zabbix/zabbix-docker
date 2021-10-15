@@ -12,6 +12,7 @@ on:
       - 'trunk'
     paths:
       - 'Dockerfiles/**'
+      - '!**/README.md'
       - '!Dockerfiles/*/rhel/*'
       - '!Dockerfiles/*/windows/*'
       - '.github/workflows/images_build.yml'

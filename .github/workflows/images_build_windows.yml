@@ -12,6 +12,7 @@ on:
       - 'trunk'
     paths:
       - 'Dockerfiles/*/windows/*'
+      - '!**/README.md'
       - '.github/workflows/images_build_windows.yml'
 
 defaults:

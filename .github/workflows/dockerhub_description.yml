@@ -5,7 +5,8 @@ on:
     branches:
       - 'trunk'
     paths:
-      - "Dockerfiles/*/*/README.md"
+      - 'Dockerfiles/*/*/README.md'
+      - '.github/workflows/dockerhub_description.yml'
   workflow_dispatch:
 
 jobs:
@@ -18,6 +19,10 @@ jobs:
       fail-fast: false
       matrix:
         build:
+          - build-base
+          - build-base-mysql
+          - build-base-pgsql
+          - build-base-sqlite3
           - agent
           - agent2
           - java-gateway
