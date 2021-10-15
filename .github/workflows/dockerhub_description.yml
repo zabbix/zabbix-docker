@@ -20,9 +20,9 @@ jobs:
       matrix:
         build:
           - build-base
-          - build-base-mysql
-          - build-base-pgsql
-          - build-base-sqlite3
+          - build-mysql
+          - build-pgsql
+          - build-sqlite3
           - agent
           - agent2
           - java-gateway
