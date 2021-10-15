@@ -1,12 +1,19 @@
-FROM registry.access.redhat.com/ubi8/ubi
-MAINTAINER Alexey Pustovalov <alexey.pustovalov@zabbix.com>
-
+# syntax=docker/dockerfile:1
 ARG MAJOR_VERSION=6.0
-ARG RELEASE=
 ARG ZBX_VERSION=${MAJOR_VERSION}
-
+ARG BUILD_BASE_IMAGE=zabbix-build-mysql:rhel-${ZBX_VERSION}
 ARG ZBX_SOURCES=https://git.zabbix.com/scm/zbx/zabbix.git
-ENV ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES}
+
+FROM ${BUILD_BASE_IMAGE} as builder
+
+FROM registry.access.redhat.com/ubi8/ubi-minimal
+
+ARG MAJOR_VERSION
+ARG RELEASE
+ARG ZBX_VERSION
+ARG ZBX_SOURCES
+
+ENV TERM=xterm ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES}
 
 LABEL name="zabbix/zabbix-agent2-trunk" \
       maintainer="alexey.pustovalov@zabbix.com" \
@@ -37,19 +44,29 @@ LABEL name="zabbix/zabbix-agent2-trunk" \
 STOPSIGNAL SIGTERM
 
 COPY ["licenses", "/licenses"]
+COPY --from=builder ["/tmp/zabbix-${ZBX_VERSION}/src/go/bin/zabbix_agent2", "/usr/sbin/zabbix_agent2"]
+COPY --from=builder ["/tmp/zabbix-${ZBX_VERSION}/src/zabbix_get/zabbix_get", "/usr/bin/zabbix_get"]
+COPY --from=builder ["/tmp/zabbix-${ZBX_VERSION}/src/zabbix_sender/zabbix_sender", "/usr/bin/zabbix_sender"]
+COPY --from=builder ["/tmp/zabbix-${ZBX_VERSION}/src/go/conf/zabbix_agent2.conf", "/etc/zabbix/zabbix_agent2.conf"]
 
 RUN set -eux && INSTALL_PKGS="bash \
             tini \
             tzdata \
             iputils \
+            shadow-utils \
             pcre \
             libcurl" && \
-    REPOLIST="ubi-8-baseos,ubi-8-appstream,epel" && \
-    dnf -y update-minimal --disablerepo "*" --enablerepo "ubi-8-baseos" --setopt=tsflags=nodocs \
-        --security --sec-severity=Important --setopt=install_weak_deps=False --sec-severity=Critical && \
-    dnf -y install https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm && \
-    dnf -y install --disablerepo "*" --enablerepo "${REPOLIST}" --setopt=install_weak_deps=False --best \
-        --setopt=tsflags=nodocs ${INSTALL_PKGS} && \
+    curl -sSL -o /tmp/epel-release-latest-8.noarch.rpm https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm && \
+    rpm -ivh /tmp/epel-release-latest-8.noarch.rpm && \
+    rm -rf /tmp/epel-release-latest-8.noarch.rpm && \
+    microdnf -y install \
+        --disablerepo "*" \
+        --enablerepo "ubi-8-baseos" \
+        --enablerepo "epel" \
+        --setopt=install_weak_deps=0 \
+        --best \
+        --setopt=tsflags=nodocs \
+        ${INSTALL_PKGS} && \
     groupadd --system --gid 1995 zabbix && \
     useradd \
             --system --comment "Zabbix monitoring system" \
@@ -64,80 +81,7 @@ RUN set -eux && INSTALL_PKGS="bash \
     mkdir -p /var/lib/zabbix/enc && \
     mkdir -p /var/lib/zabbix/modules && \
     mkdir -p /var/lib/zabbix/buffer && \
-    dnf -y clean all && \
-    rm -rf /var/cache/yum /var/lib/yum/yumdb/* /usr/lib/udev/hwdb.d/* && \
-    rm -rf /var/cache/dnf /etc/udev/hwdb.bin /root/.pki
-
-RUN set -eux && REPOLIST="ubi-8-baseos,ubi-8-appstream" && \
-    PATH=/usr/local/go/bin:$PATH && \
-    INSTALL_PKGS="autoconf \
-            automake \
-            libcurl-devel \
-            openssl-devel \
-            openldap-devel \
-            gcc \
-            pcre-devel \
-            make \
-            git \
-            wget \
-            tar \
-            binutils" && \
-    dnf -y install --disablerepo "*" --enablerepo "${REPOLIST}" --setopt=install_weak_deps=False --best \
-        --setopt=tsflags=nodocs ${INSTALL_PKGS} && \
-    ARCH_SUFFIX="$(arch)"; \
-    case "$ARCH_SUFFIX" in \
-        x86_64) \
-            url='https://dl.google.com/go/go1.17.2.linux-amd64.tar.gz'; \
-            sha256='f242a9db6a0ad1846de7b6d94d507915d14062660616a61ef7c808a76e4f1676'; \
-            ;; \
-        aarch64) \
-            url='https://dl.google.com/go/go1.17.2.linux-arm64.tar.gz'; \
-            sha256='a5a43c9cdabdb9f371d56951b14290eba8ce2f9b0db48fb5fc657943984fd4fc'; \
-            ;; \
-        *) echo "Unknown ARCH_SUFFIX=${ARCH_SUFFIX-}"; exit 1 ;; \
-    esac; \
-    wget -O go.tgz.asc "$url.asc" && \
-    wget -O go.tgz "$url" --progress=dot:giga && \
-    echo "$sha256 *go.tgz" | sha256sum -c - && \
-    GNUPGHOME="$(mktemp -d)"; export GNUPGHOME; \
-    gpg --batch --keyserver keyserver.ubuntu.com --recv-keys 'EB4C 1BFD 4F04 2F6D DDCC EC91 7721 F63B D38B 4796' && \
-    gpg --batch --verify go.tgz.asc go.tgz && \
-    gpgconf --kill all && \
-    rm -rf "$GNUPGHOME" go.tgz.asc && \
-    tar -C /usr/local -xzf go.tgz && \
-    rm go.tgz && \
-    cd /tmp/ && \
-    git -c advice.detachedHead=false clone ${ZBX_SOURCES} --branch master --depth 1 --single-branch zabbix-${ZBX_VERSION} && \
-    cd /tmp/zabbix-${ZBX_VERSION} && \
-    zabbix_revision=`git rev-parse --short HEAD` && \
-    sed -i "s/{ZABBIX_REVISION}/$zabbix_revision/g" src/go/pkg/version/version.go && \
-    ./bootstrap.sh && \
-    export CFLAGS="-fPIC -pie -Wl,-z,relro -Wl,-z,now" && \
-    export GOPATH=/tmp/zabbix-${ZBX_VERSION}/go && \
-    ./configure \
-            --datadir=/usr/lib \
-            --libdir=/usr/lib/zabbix \
-            --prefix=/usr \
-            --sysconfdir=/etc/zabbix \
-            --prefix=/usr \
-            --with-openssl \
-            --enable-ipv6 \
-            --enable-agent2 \
-            --enable-agent \
-            --silent && \
-    make -j"$(nproc)" -s && \
-    cp /tmp/zabbix-${ZBX_VERSION}/src/go/bin/zabbix_agent2 /usr/sbin/zabbix_agent2 && \
-    cp /tmp/zabbix-${ZBX_VERSION}/src/zabbix_get/zabbix_get /usr/bin/zabbix_get && \
-    cp /tmp/zabbix-${ZBX_VERSION}/src/zabbix_sender/zabbix_sender /usr/bin/zabbix_sender && \
-    cp /tmp/zabbix-${ZBX_VERSION}/src/go/conf/zabbix_agent2.conf /etc/zabbix/zabbix_agent2.conf && \
-    strip /usr/sbin/zabbix_agent2 && \
-    strip /usr/bin/zabbix_get && \
-    strip /usr/bin/zabbix_sender && \
-    cd /tmp/ && \
-    rm -rf /tmp/zabbix-${ZBX_VERSION}/ && \
-    rm -rf /usr/local/go/ && \
-    dnf -y history undo last && \
-    dnf -y clean all && \
+    microdnf -y clean all && \
     chown --quiet -R zabbix:root /etc/zabbix/ /var/lib/zabbix/ && \
     chgrp -R 0 /etc/zabbix/ /var/lib/zabbix/ && \
     chmod -R g=u /etc/zabbix/ /var/lib/zabbix/ && \

@@ -6,7 +6,6 @@ ARG RELEASE=
 ARG ZBX_VERSION=${MAJOR_VERSION}
 
 ARG ZBX_SOURCES=https://git.zabbix.com/scm/zbx/zabbix.git
-ENV ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES}
 
 ENV TERM=xterm ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES} \
     MIBDIRS=/usr/share/snmp/mibs:/var/lib/zabbix/mibs MIBS=+ALL \
@@ -47,9 +46,14 @@ RUN set -eux && \
             shadow-utils \
             tzdata \
             net-snmp" && \
-    microdnf -y --disablerepo="*" --enablerepo="rhel-8-for-x86_64-baseos-rpms" \
+    microdnf -y install \
+        --disablerepo="*" \
+        --enablerepo="rhel-8-for-x86_64-baseos-rpms" \
         --enablerepo="rhel-8-for-x86_64-appstream-rpms" \
-        install --setopt=install_weak_deps=0 --best --nodocs ${INSTALL_PKGS} && \
+        --setopt=install_weak_deps=0 \
+        --best \
+        --setopt=tsflags=nodocs \
+        ${INSTALL_PKGS} && \
     groupadd --system --gid 1995 zabbix && \
     useradd \
             --system --comment "Zabbix monitoring system" \

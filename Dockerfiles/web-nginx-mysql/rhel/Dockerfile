@@ -1,12 +1,19 @@
-FROM registry.access.redhat.com/ubi8/ubi
-MAINTAINER Alexey Pustovalov <alexey.pustovalov@zabbix.com>
-
+# syntax=docker/dockerfile:1
 ARG MAJOR_VERSION=6.0
-ARG RELEASE=
 ARG ZBX_VERSION=${MAJOR_VERSION}
-
+ARG BUILD_BASE_IMAGE=zabbix-build-mysql:rhel-${ZBX_VERSION}
 ARG ZBX_SOURCES=https://git.zabbix.com/scm/zbx/zabbix.git
-ENV ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES}
+
+FROM ${BUILD_BASE_IMAGE} as builder
+
+FROM registry.access.redhat.com/ubi8/ubi-minimal
+
+ARG MAJOR_VERSION
+ARG RELEASE
+ARG ZBX_VERSION
+ARG ZBX_SOURCES
+
+ENV TERM=xterm ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES}
 
 LABEL name="zabbix/zabbix-web-mysql" \
       maintainer="alexey.pustovalov@zabbix.com" \
@@ -36,13 +43,17 @@ LABEL name="zabbix/zabbix-web-mysql" \
 
 STOPSIGNAL SIGTERM
 
-COPY ["conf/etc/yum.repo.d/nginx.repo", "/etc/yum.repos.d/nginx.repo"]
-
 COPY ["licenses", "/licenses"]
+COPY ["conf/etc/", "/etc/"]
+COPY --from=builder ["/tmp/zabbix-${ZBX_VERSION}/ui", "/usr/share/zabbix"]
 
 RUN set -eux && INSTALL_PKGS="bash \
+            tzdata \
             curl \
             supervisor \
+            shadow-utils \
+            findutils \
+            glibc-locale-source \
             mysql \
             nginx \
             php-bcmath \
@@ -53,14 +64,22 @@ RUN set -eux && INSTALL_PKGS="bash \
             php-mbstring \
             php-mysqlnd \
             php-xml" && \
-    REPOLIST="ubi-8-baseos,ubi-8-appstream,rhel-8-for-x86_64-baseos-rpms,rhel-8-for-x86_64-appstream-rpms,epel" && \
-    dnf -y update-minimal --disablerepo "*" --enablerepo "ubi-8-baseos" --setopt=tsflags=nodocs \
-        --security --sec-severity=Important --setopt=install_weak_deps=False --sec-severity=Critical && \
-    dnf -y module enable mysql && \
-    dnf -y module enable php:7.4 nginx:1.18 && \
-    dnf -y install https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm && \
-    dnf -y install --disablerepo "*" --enablerepo "${REPOLIST}" --setopt=install_weak_deps=False --best \
-        --setopt=tsflags=nodocs ${INSTALL_PKGS} && \
+    curl -sSL -o /tmp/epel-release-latest-8.noarch.rpm https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm && \
+    rpm -ivh /tmp/epel-release-latest-8.noarch.rpm && \
+    rm -rf /tmp/epel-release-latest-8.noarch.rpm && \
+    microdnf -y module enable mysql && \
+    microdnf -y module enable php:7.4 nginx:1.18 && \
+    microdnf -y install \
+        --disablerepo "*" \
+        --enablerepo "ubi-8-baseos" \
+        --enablerepo "ubi-8-appstream" \
+        --enablerepo "rhel-8-for-x86_64-baseos-rpms" \
+        --enablerepo "rhel-8-for-x86_64-appstream-rpms" \
+        --enablerepo "epel" \
+        --setopt=install_weak_deps=0 \
+        --best \
+        --setopt=tsflags=nodocs \
+        ${INSTALL_PKGS} && \
     groupadd --system --gid 1995 zabbix && \
     useradd \
             --system --comment "Zabbix monitoring system" \
@@ -75,24 +94,7 @@ RUN set -eux && INSTALL_PKGS="bash \
     mkdir -p /var/lib/php/session && \
     rm -f /etc/nginx/conf.d/*.conf  && \
     rm -f /etc/php-fpm.d/www.conf && \
-    dnf -y clean all && \
-    rm -rf /var/cache/yum /var/lib/yum/yumdb/* /usr/lib/udev/hwdb.d/* && \
-    rm -rf /var/cache/dnf /etc/udev/hwdb.bin /root/.pki
-
-COPY ["conf/etc/", "/etc/"]
-
-RUN set -eux && REPOLIST="ubi-8-baseos,ubi-8-appstream,rhel-8-for-x86_64-baseos-rpms,rhel-8-for-x86_64-appstream-rpms" && \
-    INSTALL_PKGS="glibc-locale-source gettext \
-            git" && \
-    dnf -y install --disablerepo "*" --enablerepo "${REPOLIST}" --setopt=install_weak_deps=False --best \
-        --setopt=tsflags=nodocs ${INSTALL_PKGS} && \
-    cd /usr/share/ && \
-    git -c advice.detachedHead=false clone ${ZBX_SOURCES} --branch master --depth 1 --single-branch zabbix-${ZBX_VERSION} && \
-    mkdir /usr/share/zabbix/ && \
-    cp -R /usr/share/zabbix-${ZBX_VERSION}/ui/* /usr/share/zabbix/ && \
-    rm -rf /usr/share/zabbix-${ZBX_VERSION}/ && \
     cd /usr/share/zabbix/ && \
-    ./locale/make_mo.sh && \
     rm -f conf/zabbix.conf.php conf/maintenance.inc.php conf/zabbix.conf.php.example && \
     rm -rf tests && \
     rm -f locale/add_new_language.sh locale/update_po.sh locale/make_mo.sh && \
@@ -103,9 +105,9 @@ RUN set -eux && REPOLIST="ubi-8-baseos,ubi-8-appstream,rhel-8-for-x86_64-baseos-
     cat /usr/share/zabbix/include/locales.inc.php | grep display | grep true | awk '{$1=$1};1' | \
                 cut -d"'" -f 2 | sort | \
                 xargs -I '{}' bash -c 'echo "{}" && localedef -c -i {} -f UTF-8 {}.UTF-8 2>/dev/null' && \
-    chown --quiet -R zabbix:root /etc/zabbix/ /usr/share/zabbix/conf/ /usr/share/zabbix/modules/ && \
-    chgrp -R 0 /etc/zabbix/ /usr/share/zabbix/conf/ /usr/share/zabbix/modules/ && \
-    chmod -R g=u /etc/zabbix/ /usr/share/zabbix/conf/ /usr/share/zabbix/modules/ && \
+    chown --quiet -R zabbix:root /etc/zabbix/ /usr/share/zabbix/modules/ && \
+    chgrp -R 0 /etc/zabbix/ /usr/share/zabbix/modules/ && \
+    chmod -R g=u /etc/zabbix/ /usr/share/zabbix/modules/ && \
     chown --quiet -R zabbix:root /etc/nginx/ /etc/php-fpm.d/ /etc/php-fpm.conf && \
     chgrp -R 0 /etc/nginx/ /etc/php-fpm.d/ /etc/php-fpm.conf && \
     chmod -R g=u /etc/nginx/ /etc/php-fpm.d/ /etc/php-fpm.conf && \
@@ -115,9 +117,10 @@ RUN set -eux && REPOLIST="ubi-8-baseos,ubi-8-appstream,rhel-8-for-x86_64-baseos-
     chown --quiet -R zabbix:root /usr/share/zabbix/include/defines.inc.php && \
     chgrp -R 0 /usr/share/zabbix/include/defines.inc.php && \
     chmod -R g=u /usr/share/zabbix/include/defines.inc.php && \
-    dnf -y history undo last && \
-    dnf -y autoremove glibc-langpack-en && \
-    dnf -y clean all && \
+    microdnf -y remove \
+        findutils \
+        glibc-locale-source && \
+    microdnf -y clean all && \
     rm -rf /var/cache/yum /var/lib/yum/yumdb/* /usr/lib/udev/hwdb.d/* && \
     rm -rf /var/cache/dnf /etc/udev/hwdb.bin /root/.pki
 

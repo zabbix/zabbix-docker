@@ -1,12 +1,19 @@
-FROM registry.access.redhat.com/ubi8/ubi
-MAINTAINER Alexey Pustovalov <alexey.pustovalov@zabbix.com>
-
+# syntax=docker/dockerfile:1
 ARG MAJOR_VERSION=6.0
-ARG RELEASE=
 ARG ZBX_VERSION=${MAJOR_VERSION}
-
+ARG BUILD_BASE_IMAGE=zabbix-build-mysql:rhel-${ZBX_VERSION}
 ARG ZBX_SOURCES=https://git.zabbix.com/scm/zbx/zabbix.git
-ENV ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES}
+
+FROM ${BUILD_BASE_IMAGE} as builder
+
+FROM registry.access.redhat.com/ubi8/ubi-minimal
+
+ARG MAJOR_VERSION
+ARG RELEASE
+ARG ZBX_VERSION
+ARG ZBX_SOURCES
+
+ENV TERM=xterm ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES}
 
 LABEL name="zabbix/zabbix-agent-trunk" \
       maintainer="alexey.pustovalov@zabbix.com" \
@@ -37,19 +44,29 @@ LABEL name="zabbix/zabbix-agent-trunk" \
 STOPSIGNAL SIGTERM
 
 COPY ["licenses", "/licenses"]
+COPY --from=builder ["/tmp/zabbix-${ZBX_VERSION}/src/zabbix_agent/zabbix_agentd", "/usr/sbin/zabbix_agentd"]
+COPY --from=builder ["/tmp/zabbix-${ZBX_VERSION}/src/zabbix_get/zabbix_get", "/usr/bin/zabbix_get"]
+COPY --from=builder ["/tmp/zabbix-${ZBX_VERSION}/src/zabbix_sender/zabbix_sender", "/usr/bin/zabbix_sender"]
+COPY --from=builder ["/tmp/zabbix-${ZBX_VERSION}/conf/zabbix_agentd.conf", "/etc/zabbix/zabbix_agentd.conf"]
 
 RUN set -eux && INSTALL_PKGS="bash \
             tini \
             tzdata \
             iputils \
+            shadow-utils \
             pcre \
             libcurl" && \
-    REPOLIST="ubi-8-baseos,ubi-8-appstream,epel" && \
-    dnf -y update-minimal --disablerepo "*" --enablerepo "ubi-8-baseos" --setopt=tsflags=nodocs \
-        --security --sec-severity=Important --setopt=install_weak_deps=False --sec-severity=Critical && \
-    dnf -y install https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm && \
-    dnf -y install --disablerepo "*" --enablerepo "${REPOLIST}" --setopt=install_weak_deps=False --best \
-        --setopt=tsflags=nodocs ${INSTALL_PKGS} && \
+    curl -sSL -o /tmp/epel-release-latest-8.noarch.rpm https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm && \
+    rpm -ivh /tmp/epel-release-latest-8.noarch.rpm && \
+    rm -rf /tmp/epel-release-latest-8.noarch.rpm && \
+    microdnf -y install \
+        --disablerepo "*" \
+        --enablerepo "ubi-8-baseos" \
+        --enablerepo "epel" \
+        --setopt=install_weak_deps=0 \
+        --best \
+        --setopt=tsflags=nodocs \
+        ${INSTALL_PKGS} && \
     groupadd --system --gid 1995 zabbix && \
     useradd \
             --system --comment "Zabbix monitoring system" \
@@ -63,50 +80,7 @@ RUN set -eux && INSTALL_PKGS="bash \
     mkdir -p /var/lib/zabbix && \
     mkdir -p /var/lib/zabbix/enc && \
     mkdir -p /var/lib/zabbix/modules && \
-    dnf -y clean all && \
-    rm -rf /var/cache/yum /var/lib/yum/yumdb/* /usr/lib/udev/hwdb.d/* && \
-    rm -rf /var/cache/dnf /etc/udev/hwdb.bin /root/.pki
-
-RUN set -eux && REPOLIST="ubi-8-baseos,ubi-8-appstream" && \
-    INSTALL_PKGS="autoconf \
-            automake \
-            libcurl-devel \
-            openssl-devel \
-            openldap-devel \
-            gcc \
-            pcre-devel \
-            make \
-            git" && \
-    dnf -y install --disablerepo "*" --enablerepo "${REPOLIST}" --setopt=install_weak_deps=False --best \
-        --setopt=tsflags=nodocs ${INSTALL_PKGS} && \
-    cd /tmp/ && \
-    git -c advice.detachedHead=false clone ${ZBX_SOURCES} --branch master --depth 1 --single-branch zabbix-${ZBX_VERSION} && \
-    cd /tmp/zabbix-${ZBX_VERSION} && \
-    zabbix_revision=`git rev-parse --short HEAD` && \
-    sed -i "s/{ZABBIX_REVISION}/$zabbix_revision/g" include/version.h && \
-    ./bootstrap.sh && \
-    export CFLAGS="-fPIC -pie -Wl,-z,relro -Wl,-z,now" && \
-    ./configure \
-            --datadir=/usr/lib \
-            --libdir=/usr/lib/zabbix \
-            --prefix=/usr \
-            --sysconfdir=/etc/zabbix \
-            --prefix=/usr \
-            --enable-agent \
-            --with-libcurl \
-            --with-ldap \
-            --with-openssl \
-            --enable-ipv6 \
-            --silent && \
-    make -j"$(nproc)" -s && \
-    cp /tmp/zabbix-${ZBX_VERSION}/src/zabbix_agent/zabbix_agentd /usr/sbin/zabbix_agentd && \
-    cp /tmp/zabbix-${ZBX_VERSION}/src/zabbix_get/zabbix_get /usr/bin/zabbix_get && \
-    cp /tmp/zabbix-${ZBX_VERSION}/src/zabbix_sender/zabbix_sender /usr/bin/zabbix_sender && \
-    cp /tmp/zabbix-${ZBX_VERSION}/conf/zabbix_agentd.conf /etc/zabbix/zabbix_agentd.conf && \
-    cd /tmp/ && \
-    rm -rf /tmp/zabbix-${ZBX_VERSION}/ && \
-    dnf -y history undo last && \
-    dnf -y clean all && \
+    microdnf -y clean all && \
     chown --quiet -R zabbix:root /etc/zabbix/ /var/lib/zabbix/ && \
     chgrp -R 0 /etc/zabbix/ /var/lib/zabbix/ && \
     chmod -R g=u /etc/zabbix/ /var/lib/zabbix/ && \
