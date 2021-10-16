@@ -46,7 +46,7 @@ RUN set -eux && \
             openipmi-libs \
             pcre \
             sqlite-libs \
-            unixodbc
+            unixodbc" && \
     apk add \
             --no-cache \
             --clean-protected \

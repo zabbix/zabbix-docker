@@ -26,6 +26,8 @@ services:
    args:
     BUILD_BASE_IMAGE: zabbix-build-base:ol-local
   image: zabbix-build-sqlite3:ol-local
+  profiles:
+   - all
   depends_on:
    - zabbix-build-base
 

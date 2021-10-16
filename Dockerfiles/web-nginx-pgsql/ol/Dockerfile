@@ -43,7 +43,7 @@ RUN set -eux && \
             php-ldap \
             php-mbstring \
             php-pgsql \
-            php-xml
+            php-xml \
             postgresql \
             supervisor" && \
     microdnf -y module enable php:7.4 && \

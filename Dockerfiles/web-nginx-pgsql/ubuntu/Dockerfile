@@ -47,6 +47,7 @@ RUN set -eux && \
             postgresql-client \
             supervisor" && \
     INSTALL_TEMP_PKGS="gpg \
+            ca-certificates \
             dirmngr \
             gpg-agent" && \
     apt-get -y update && \
@@ -119,8 +120,10 @@ RUN set -eux && \
     chgrp -R 0 /var/lib/php/session/ && \
     chmod -R g=u /var/lib/php/session/ && \
     DEBIAN_FRONTEND=noninteractive apt-get -y \
-            purge \
-        ${INSTALL_TEMP_PKGS} && \
+        purge \
+            gpg \
+            dirmngr \
+            gpg-agent && \
     apt-get -y autoremove && \
     apt-get -y clean && \
     rm -rf /var/lib/apt/lists/*
