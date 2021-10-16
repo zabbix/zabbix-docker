@@ -9,15 +9,15 @@ ARG MAJOR_VERSION
 ARG ZBX_VERSION
 ARG ZBX_SOURCES=https://git.zabbix.com/scm/zbx/zabbix.git
 
-LABEL org.opencontainers.image.title="Zabbix build base (MySQL)" \
-      org.opencontainers.image.authors="Alexey Pustovalov <alexey.pustovalov@zabbix.com>" \
-      org.opencontainers.image.vendor="Zabbix LLC" \
-      org.opencontainers.image.url="https://zabbix.com/" \
+LABEL org.opencontainers.image.authors="Alexey Pustovalov <alexey.pustovalov@zabbix.com>" \
       org.opencontainers.image.description="Zabbix build base for MySQL based images" \
-      org.opencontainers.image.licenses="GPL v2.0" \
       org.opencontainers.image.documentation="https://www.zabbix.com/documentation/${MAJOR_VERSION}/manual/installation/containers" \
-      org.opencontainers.image.version="${ZBX_VERSION}" \
-      org.opencontainers.image.source="${ZBX_SOURCES}"
+      org.opencontainers.image.licenses="GPL v2.0" \
+      org.opencontainers.image.source="${ZBX_SOURCES}" \
+      org.opencontainers.image.title="Zabbix build base (MySQL)" \
+      org.opencontainers.image.url="https://zabbix.com/" \
+      org.opencontainers.image.vendor="Zabbix LLC" \
+      org.opencontainers.image.version="${ZBX_VERSION}"
 
 RUN set -eux && \
     cd /tmp/ && \
@@ -34,23 +34,23 @@ RUN set -eux && \
             --libdir=/usr/lib/zabbix \
             --prefix=/usr \
             --sysconfdir=/etc/zabbix \
+            --enable-ipv6 \
             --enable-agent \
             --enable-agent2 \
-            --enable-server \
+            --enable-java \
             --enable-proxy \
+            --enable-server \
             --enable-webservice \
-            --with-mysql \
             --with-ldap \
             --with-libcurl \
+            --with-libmodbus \
             --with-libxml2 \
-            --enable-java \
+            --with-mysql \
             --with-net-snmp \
             --with-openipmi \
             --with-openssl \
             --with-ssh \
-            --with-libmodbus \
             --with-unixodbc \
-            --enable-ipv6 \
             --silent && \
     make -j"$(nproc)" -s dbschema && \
     make -j"$(nproc)" -s && \
