@@ -2,29 +2,28 @@
 ARG MAJOR_VERSION=6.0
 ARG ZBX_VERSION=${MAJOR_VERSION}
 ARG BUILD_BASE_IMAGE=zabbix-build-mysql:centos-${ZBX_VERSION}
-ARG ZBX_SOURCES=https://git.zabbix.com/scm/zbx/zabbix.git
 
 FROM ${BUILD_BASE_IMAGE} as builder
 
-FROM centos:8
+FROM centos:centos8
 
 ARG MAJOR_VERSION
 ARG ZBX_VERSION
-ARG ZBX_SOURCES
+ARG ZBX_SOURCES=https://git.zabbix.com/scm/zbx/zabbix.git
 
 ENV TERM=xterm \
     ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES} \
     MIBDIRS=/usr/share/snmp/mibs:/var/lib/zabbix/mibs MIBS=+ALL
 
-LABEL org.opencontainers.image.title="Zabbix server (MySQL)" \
-      org.opencontainers.image.authors="Alexey Pustovalov <alexey.pustovalov@zabbix.com>" \
-      org.opencontainers.image.vendor="Zabbix LLC" \
-      org.opencontainers.image.url="https://zabbix.com/" \
+LABEL org.opencontainers.image.authors="Alexey Pustovalov <alexey.pustovalov@zabbix.com>" \
       org.opencontainers.image.description="Zabbix server with MySQL database support" \
-      org.opencontainers.image.licenses="GPL v2.0" \
       org.opencontainers.image.documentation="https://www.zabbix.com/documentation/${MAJOR_VERSION}/manual/installation/containers" \
-      org.opencontainers.image.version="${ZBX_VERSION}" \
-      org.opencontainers.image.source="${ZBX_SOURCES}"
+      org.opencontainers.image.licenses="GPL v2.0" \
+      org.opencontainers.image.source="${ZBX_SOURCES}" \
+      org.opencontainers.image.title="Zabbix server (MySQL)" \
+      org.opencontainers.image.url="https://zabbix.com/" \
+      org.opencontainers.image.vendor="Zabbix LLC" \
+      org.opencontainers.image.version="${ZBX_VERSION}"
 
 STOPSIGNAL SIGTERM
 
@@ -35,30 +34,6 @@ COPY --from=builder ["/tmp/zabbix-${ZBX_VERSION}/conf/zabbix_server.conf", "/etc
 COPY --from=builder ["/tmp/zabbix-${ZBX_VERSION}/database/mysql/create_server.sql.gz", "/usr/share/doc/zabbix-server-mysql/create.sql.gz"]
 
 RUN set -eux && \
-    groupadd --system --gid 1995 zabbix && \
-    useradd \
-            --system --comment "Zabbix monitoring system" \
-            -g zabbix -G root,dialout \
-            --uid 1997 \
-            --shell /sbin/nologin \
-            --home-dir /var/lib/zabbix/ \
-        zabbix && \
-    mkdir -p /etc/zabbix && \
-    mkdir -p /var/lib/zabbix && \
-    mkdir -p /var/lib/zabbix/enc && \
-    mkdir -p /var/lib/zabbix/export && \
-    mkdir -p /var/lib/zabbix/mibs && \
-    mkdir -p /var/lib/zabbix/modules && \
-    mkdir -p /var/lib/zabbix/snmptraps && \
-    mkdir -p /var/lib/zabbix/ssh_keys && \
-    mkdir -p /var/lib/zabbix/ssl && \
-    mkdir -p /var/lib/zabbix/ssl/certs && \
-    mkdir -p /var/lib/zabbix/ssl/keys && \
-    mkdir -p /var/lib/zabbix/ssl/ssl_ca && \
-    mkdir -p /usr/lib/zabbix/alertscripts && \
-    mkdir -p /usr/lib/zabbix/externalscripts && \
-    mkdir -p /usr/share/doc/zabbix-server-mysql && \
-    dnf -y module enable mysql && \
     REPOLIST="baseos,appstream,epel" && \
     INSTALL_PKGS="fping \
             tini \
@@ -78,14 +53,43 @@ RUN set -eux && \
             pcre \
             zlib \
             unixODBC" && \
+    dnf -y module enable mysql && \
     dnf -y install epel-release && \
     dnf -y install \
-        --disablerepo "*" \
-        --enablerepo "${REPOLIST}" \
-        --setopt=tsflags=nodocs \
-        --setopt=install_weak_deps=False \
-        --best \
+            --disablerepo "*" \
+            --enablerepo "${REPOLIST}" \
+            --setopt=tsflags=nodocs \
+            --setopt=install_weak_deps=False \
+            --best \
         ${INSTALL_PKGS} && \
+    groupadd \
+            --system \
+            --gid 1995 \
+        zabbix && \
+    useradd \
+            --system \
+            --comment "Zabbix monitoring system" \
+            -g zabbix \
+            -G root,dialout \
+            --uid 1997 \
+            --shell /sbin/nologin \
+            --home-dir /var/lib/zabbix/ \
+        zabbix && \
+    mkdir -p /etc/zabbix && \
+    mkdir -p /var/lib/zabbix && \
+    mkdir -p /usr/lib/zabbix/alertscripts && \
+    mkdir -p /var/lib/zabbix/enc && \
+    mkdir -p /var/lib/zabbix/export && \
+    mkdir -p /usr/lib/zabbix/externalscripts && \
+    mkdir -p /var/lib/zabbix/mibs && \
+    mkdir -p /var/lib/zabbix/modules && \
+    mkdir -p /var/lib/zabbix/snmptraps && \
+    mkdir -p /var/lib/zabbix/ssh_keys && \
+    mkdir -p /var/lib/zabbix/ssl && \
+    mkdir -p /var/lib/zabbix/ssl/certs && \
+    mkdir -p /var/lib/zabbix/ssl/keys && \
+    mkdir -p /var/lib/zabbix/ssl/ssl_ca && \
+    mkdir -p /usr/share/doc/zabbix-server-mysql && \
     chown --quiet -R zabbix:root /etc/zabbix/ /var/lib/zabbix/ && \
     chgrp -R 0 /etc/zabbix/ /var/lib/zabbix/ && \
     chmod -R g=u /etc/zabbix/ /var/lib/zabbix/ && \

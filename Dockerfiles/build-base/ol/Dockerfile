@@ -3,23 +3,21 @@ FROM oraclelinux:8-slim
 
 ARG MAJOR_VERSION=6.0
 ARG ZBX_VERSION=${MAJOR_VERSION}
-ARG ZBX_SOURCES=https://git.zabbix.com/scm/zbx/zabbix.git
 
-ENV TERM=xterm ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES} \
+ENV TERM=xterm \
+    ZBX_VERSION=${ZBX_VERSION} \
     PATH=/usr/local/go/bin:$PATH
 
-LABEL org.opencontainers.image.title="Zabbix build base" \
-      org.opencontainers.image.authors="Alexey Pustovalov <alexey.pustovalov@zabbix.com>" \
-      org.opencontainers.image.vendor="Zabbix LLC" \
-      org.opencontainers.image.url="https://zabbix.com/" \
+LABEL org.opencontainers.image.authors="Alexey Pustovalov <alexey.pustovalov@zabbix.com>" \
       org.opencontainers.image.description="Zabbix build base image contains all required packages to build Zabbix images" \
-      org.opencontainers.image.licenses="GPL v2.0" \
       org.opencontainers.image.documentation="https://www.zabbix.com/documentation/${MAJOR_VERSION}/manual/installation/containers" \
-      org.opencontainers.image.version="${ZBX_VERSION}" \
-      org.opencontainers.image.source="${ZBX_SOURCES}"
+      org.opencontainers.image.licenses="GPL v2.0" \
+      org.opencontainers.image.title="Zabbix build base" \
+      org.opencontainers.image.url="https://zabbix.com/" \
+      org.opencontainers.image.vendor="Zabbix LLC" \
+      org.opencontainers.image.version="${ZBX_VERSION}"
 
 RUN set -eux && \
-    microdnf -y module enable mysql && \
     INSTALL_PKGS="autoconf \
             automake \
             bash \
@@ -44,6 +42,7 @@ RUN set -eux && \
             tar \
             gettext \
             unixODBC-devel" && \
+    microdnf -y module enable mysql && \
     microdnf -y install \
         --disablerepo "*" \
         --enablerepo "ol8_baseos_latest" \
@@ -52,6 +51,7 @@ RUN set -eux && \
         --setopt=install_weak_deps=0 \
         --best \
         --nodocs ${INSTALL_PKGS} && \
+    microdnf -y clean all && \
     ARCH_SUFFIX="$(arch)"; \
     case "$ARCH_SUFFIX" in \
         x86_64) \
@@ -74,6 +74,5 @@ RUN set -eux && \
     rm -rf "$GNUPGHOME" go.tgz.asc && \
     tar -C /usr/local -xzf go.tgz && \
     rm go.tgz && \
-    microdnf -y clean all && \
     rm -rf /var/cache/yum /var/lib/yum/yumdb/* /usr/lib/udev/hwdb.d/* && \
     rm -rf /var/cache/dnf /etc/udev/hwdb.bin /root/.pki

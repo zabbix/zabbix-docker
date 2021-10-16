@@ -13,7 +13,6 @@ ARG CPU_MODEL=AMD64
 
 ARG MAJOR_VERSION=6.0
 ARG ZBX_VERSION=${MAJOR_VERSION}
-ARG ZBX_SOURCES=https://git.zabbix.com/scm/zbx/zabbix.git
 
 ARG VS_BUILDTOOLS_URL=https://aka.ms/vs/16/release/vs_buildtools.exe
 ARG GIT_URL=https://github.com/git-for-windows/git/releases/download/v2.33.0.windows.2/MinGit-2.33.0.2-busybox-64-bit.zip
@@ -24,7 +23,8 @@ ARG PCRE_URL=https://ftp.pcre.org/pub/pcre/pcre-$PCRE_VERSION.zip
 ARG OPENSSL_URL=https://www.openssl.org/source/openssl-$OPENSSL_VERSION.tar.gz
 ARG SEVEN_ZIP_URL=https://www.7-zip.org/a/7z$SEVEN_ZIP_VERSION-$BUILD_ARCH.msi
 
-ENV BUILD_ARCH=$BUILD_ARCH CPU_MODEL=$CPU_MODEL `
+ENV ZBX_VERSION=$ZBX_VERSION `
+    BUILD_ARCH=$BUILD_ARCH CPU_MODEL=$CPU_MODEL `
     PCRE_VERSION=$PCRE_VERSION OPENSSL_VERSION=$OPENSSL_VERSION ZLIB_VERSION=$ZLIB_VERSION `
     GOLANG_VERSION=$GOLANG_VERSION SEVEN_ZIP_VERSION=$SEVEN_ZIP_VERSION `
     GIT_URL=$GIT_URL MINGW_URL=$MINGW_URL CYGWIN_URL=$CYGWIN_URL GOLANG_URL=$GOLANG_URL SEVEN_ZIP_URL=$SEVEN_ZIP_URL `
@@ -37,8 +37,7 @@ LABEL org.opencontainers.image.title="Zabbix agent 2 build base for Windows" `
       org.opencontainers.image.description="Zabbix build base image contains all required packages to build Zabbix agent 2 images" `
       org.opencontainers.image.licenses="GPL v2.0" `
       org.opencontainers.image.documentation="https://www.zabbix.com/documentation/${MAJOR_VERSION}/manual/installation/containers" `
-      org.opencontainers.image.version="${ZBX_VERSION}" `
-      org.opencontainers.image.source="${ZBX_SOURCES}"
+      org.opencontainers.image.version="${ZBX_VERSION}"
 
 SHELL ["powershell", "-Command", "$ErrorActionPreference = 'Stop'; $ProgressPreference = 'SilentlyContinue';"]
 

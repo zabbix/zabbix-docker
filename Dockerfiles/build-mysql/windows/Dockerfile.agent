@@ -10,7 +10,6 @@ ARG MAJOR_VERSION
 ARG ZBX_VERSION
 ARG ZBX_SOURCES=https://git.zabbix.com/scm/zbx/zabbix.git
 ARG ZABBIX_VERSION_RC_NUM=2400
-ARG ZBX_COMPONENT=all
 ENV ZBX_SOURCES=$ZBX_SOURCES MAJOR_VERSION=$MAJOR_VERSION ZBX_VERSION=$ZBX_VERSION ZABBIX_VERSION_RC_NUM=$ZABBIX_VERSION_RC_NUM
 
 LABEL org.opencontainers.image.title="Zabbix agent build (Windows)" `
@@ -50,7 +49,7 @@ RUN Set-Location -Path $env:SystemDrive\.; `
         TLSLIBDIR=$env:SystemDrive\openssl_output\lib `
         MODBINCDIR=$env:SystemDrive\libmodbus\src `
         MODBLIBDIR=$env:SystemDrive\libmodbus\src\win32\$env:BUILD_ARCH\Release `
-        $env:ZBX_COMPONENT; `
+        all; `
     `
     Write-Host 'Verifying build ("zabbix_agentd.exe -V") ...'; `
     & $env:SystemDrive\zabbix-$env:ZBX_VERSION\bin\win64\zabbix_agentd.exe -V; `

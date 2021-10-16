@@ -1,8 +1,8 @@
 # syntax=docker/dockerfile:1
 ARG MAJOR_VERSION=6.0
+ARG RELEASE=
 ARG ZBX_VERSION=${MAJOR_VERSION}
 ARG BUILD_BASE_IMAGE=zabbix-build-mysql:rhel-${ZBX_VERSION}
-ARG ZBX_SOURCES=https://git.zabbix.com/scm/zbx/zabbix.git
 
 FROM ${BUILD_BASE_IMAGE} as builder
 
@@ -11,35 +11,36 @@ FROM registry.access.redhat.com/ubi8/ubi-minimal
 ARG MAJOR_VERSION
 ARG RELEASE
 ARG ZBX_VERSION
-ARG ZBX_SOURCES
+ARG ZBX_SOURCES=https://git.zabbix.com/scm/zbx/zabbix.git
 
-ENV TERM=xterm ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES}
+ENV TERM=xterm \
+    ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES}
 
-LABEL name="zabbix/zabbix-web-mysql" \
+LABEL description="Zabbix web-interface based on Nginx web server with MySQL database support" \
       maintainer="alexey.pustovalov@zabbix.com" \
+      name="zabbix/zabbix-web-mysql" \
+      release="${RELEASE}" \
+      run="docker run --name zabbix-web-nginx --link mysql-server:mysql --link zabbix-server:zabbix-server -p 80:80 -d registry.connect.redhat.com/zabbix/zabbix-web-nginx-trunk:${ZBX_VERSION}" \
+      summary="Zabbix web-interface based on Nginx web server with MySQL database support" \
+      url="https://www.zabbix.com/" \
       vendor="Zabbix LLC" \
       version="${MAJOR_VERSION}" \
-      release="${RELEASE}" \
-      summary="Zabbix web-interface based on Nginx web server with MySQL database support" \
-      description="Zabbix web-interface based on Nginx web server with MySQL database support" \
-      url="https://www.zabbix.com/" \
-      run="docker run --name zabbix-web-nginx --link mysql-server:mysql --link zabbix-server:zabbix-server -p 80:80 -d registry.connect.redhat.com/zabbix/zabbix-web-nginx-trunk:${ZBX_VERSION}" \
       io.k8s.description="Zabbix web-interface based on Nginx web server with MySQL database support" \
       io.k8s.display-name="Zabbix Frontend (Nginx)" \
       io.openshift.expose-services="8080:http,8443:https" \
       io.openshift.tags="zabbix,zabbix-web,mysql,nginx" \
-      org.label-schema.name="zabbix-web-mysql-rhel" \
-      org.label-schema.vendor="Zabbix LLC" \
-      org.label-schema.url="https://zabbix.com/" \
-      org.label-schema.description="Zabbix web-interface based on Nginx web server with MySQL database support" \
-      org.label-schema.vcs-ref="${VCS_REF}" \
       org.label-schema.build-date="${BUILD_DATE}" \
-      org.label-schema.schema-version="1.0" \
+      org.label-schema.description="Zabbix web-interface based on Nginx web server with MySQL database support" \
+      org.label-schema.docker.cmd="docker run --name zabbix-web-nginx --link mysql-server:mysql --link zabbix-server:zabbix-server -p 80:80 -d registry.connect.redhat.com/zabbix/zabbix-web-nginx-trunk:${ZBX_VERSION}" \
       org.label-schema.license="GPL v2.0" \
+      org.label-schema.name="zabbix-web-mysql-rhel" \
+      org.label-schema.schema-version="1.0" \
+      org.label-schema.url="https://zabbix.com/" \
       org.label-schema.usage="https://www.zabbix.com/documentation/${MAJOR_VERSION}/manual/installation/containers" \
-      org.label-schema.version="${ZBX_VERSION}" \
+      org.label-schema.vcs-ref="${VCS_REF}" \
       org.label-schema.vcs-url="${ZBX_SOURCES}" \
-      org.label-schema.docker.cmd="docker run --name zabbix-web-nginx --link mysql-server:mysql --link zabbix-server:zabbix-server -p 80:80 -d registry.connect.redhat.com/zabbix/zabbix-web-nginx-trunk:${ZBX_VERSION}"
+      org.label-schema.vendor="Zabbix LLC" \
+      org.label-schema.version="${ZBX_VERSION}"
 
 STOPSIGNAL SIGTERM
 
@@ -47,7 +48,8 @@ COPY ["licenses", "/licenses"]
 COPY ["conf/etc/", "/etc/"]
 COPY --from=builder ["/tmp/zabbix-${ZBX_VERSION}/ui", "/usr/share/zabbix"]
 
-RUN set -eux && INSTALL_PKGS="bash \
+RUN set -eux && \
+    INSTALL_PKGS="bash \
             tzdata \
             curl \
             supervisor \
@@ -70,20 +72,25 @@ RUN set -eux && INSTALL_PKGS="bash \
     microdnf -y module enable mysql && \
     microdnf -y module enable php:7.4 nginx:1.18 && \
     microdnf -y install \
-        --disablerepo "*" \
-        --enablerepo "ubi-8-baseos" \
-        --enablerepo "ubi-8-appstream" \
-        --enablerepo "rhel-8-for-x86_64-baseos-rpms" \
-        --enablerepo "rhel-8-for-x86_64-appstream-rpms" \
-        --enablerepo "epel" \
-        --setopt=install_weak_deps=0 \
-        --best \
-        --setopt=tsflags=nodocs \
+            --disablerepo "*" \
+            --enablerepo "ubi-8-baseos" \
+            --enablerepo "ubi-8-appstream" \
+            --enablerepo "rhel-8-for-x86_64-baseos-rpms" \
+            --enablerepo "rhel-8-for-x86_64-appstream-rpms" \
+            --enablerepo "epel" \
+            --setopt=install_weak_deps=0 \
+            --best \
+            --setopt=tsflags=nodocs \
         ${INSTALL_PKGS} && \
-    groupadd --system --gid 1995 zabbix && \
+    groupadd \
+            --system \
+            --gid 1995 \
+        zabbix && \
     useradd \
-            --system --comment "Zabbix monitoring system" \
-            -g zabbix -G root \
+            --system \
+            --comment "Zabbix monitoring system" \
+            -g zabbix \
+            -G root \
             --uid 1997 \
             --shell /sbin/nologin \
             --home-dir /var/lib/zabbix/ \
@@ -103,23 +110,20 @@ RUN set -eux && INSTALL_PKGS="bash \
     ln -s "/etc/zabbix/web/zabbix.conf.php" "/usr/share/zabbix/conf/zabbix.conf.php" && \
     ln -s "/etc/zabbix/web/maintenance.inc.php" "/usr/share/zabbix/conf/maintenance.inc.php" && \
     cat /usr/share/zabbix/include/locales.inc.php | grep display | grep true | awk '{$1=$1};1' | \
-                cut -d"'" -f 2 | sort | \
-                xargs -I '{}' bash -c 'echo "{}" && localedef -c -i {} -f UTF-8 {}.UTF-8 2>/dev/null' && \
-    chown --quiet -R zabbix:root /etc/zabbix/ /usr/share/zabbix/modules/ && \
-    chgrp -R 0 /etc/zabbix/ /usr/share/zabbix/modules/ && \
-    chmod -R g=u /etc/zabbix/ /usr/share/zabbix/modules/ && \
+        cut -d"'" -f 2 | sort | \
+        xargs -I '{}' bash -c 'echo "{}" && localedef -c -i {} -f UTF-8 {}.UTF-8 2>/dev/null' && \
+    chown --quiet -R zabbix:root /etc/zabbix/ /usr/share/zabbix/include/defines.inc.php /usr/share/zabbix/modules/ && \
+    chgrp -R 0 /etc/zabbix/ /usr/share/zabbix/include/defines.inc.php /usr/share/zabbix/modules/ && \
+    chmod -R g=u /etc/zabbix/ /usr/share/zabbix/include/defines.inc.php /usr/share/zabbix/modules/ && \
     chown --quiet -R zabbix:root /etc/nginx/ /etc/php-fpm.d/ /etc/php-fpm.conf && \
     chgrp -R 0 /etc/nginx/ /etc/php-fpm.d/ /etc/php-fpm.conf && \
     chmod -R g=u /etc/nginx/ /etc/php-fpm.d/ /etc/php-fpm.conf && \
     chown --quiet -R zabbix:root /var/lib/php/session/ && \
     chgrp -R 0 /var/lib/php/session/ && \
     chmod -R g=u /var/lib/php/session/ && \
-    chown --quiet -R zabbix:root /usr/share/zabbix/include/defines.inc.php && \
-    chgrp -R 0 /usr/share/zabbix/include/defines.inc.php && \
-    chmod -R g=u /usr/share/zabbix/include/defines.inc.php && \
     microdnf -y remove \
-        findutils \
-        glibc-locale-source && \
+            findutils \
+            glibc-locale-source && \
     microdnf -y clean all && \
     rm -rf /var/cache/yum /var/lib/yum/yumdb/* /usr/lib/udev/hwdb.d/* && \
     rm -rf /var/cache/dnf /etc/udev/hwdb.bin /root/.pki

@@ -4,33 +4,32 @@ FROM registry.access.redhat.com/ubi8/ubi-minimal
 ARG MAJOR_VERSION=6.0
 ARG RELEASE=
 ARG ZBX_VERSION=${MAJOR_VERSION}
-ARG ZBX_SOURCES=https://git.zabbix.com/scm/zbx/zabbix.git
 
-ENV TERM=xterm ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES} \
+ENV TERM=xterm \
+    ZBX_VERSION=${ZBX_VERSION} \
     PATH=/usr/local/go/bin:$PATH
 
-LABEL name="zabbix/zabbix-build-base-trunk" \
+LABEL description="Prepared environment to build Zabbix components" \
       maintainer="alexey.pustovalov@zabbix.com" \
-      vendor="Zabbix LLC" \
-      version="${MAJOR_VERSION}" \
+      name="zabbix/zabbix-build-base-trunk" \
       release="${RELEASE}" \
       summary="Zabbix build base" \
-      description="Prepared environment to build Zabbix components" \
       url="https://www.zabbix.com/" \
+      vendor="Zabbix LLC" \
+      version="${MAJOR_VERSION}" \
       io.k8s.description="Prepared environment to build Zabbix components" \
       io.k8s.display-name="Zabbix build base" \
       io.openshift.expose-services="" \
       io.openshift.tags="zabbix,build" \
-      org.label-schema.name="zabbix-build-base-rhel" \
-      org.label-schema.vendor="Zabbix LLC" \
-      org.label-schema.url="https://zabbix.com/" \
       org.label-schema.description="Prepared environment to build Zabbix components" \
-      org.label-schema.vcs-ref="${VCS_REF}"
+      org.label-schema.name="zabbix-build-base-rhel" \
+      org.label-schema.url="https://zabbix.com/" \
+      org.label-schema.vcs-ref="${VCS_REF}" \
+      org.label-schema.vendor="Zabbix LLC"
 
 COPY ["licenses", "/licenses"]
 
 RUN set -eux && \
-    microdnf -y module enable mysql && \
     INSTALL_PKGS="autoconf \
             automake \
             bash \
@@ -55,22 +54,19 @@ RUN set -eux && \
             tar \
             gettext \
             unixODBC-devel" && \
-    curl -sSL -o /tmp/epel-release-latest-8.noarch.rpm https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm && \
-    rpm -ivh /tmp/epel-release-latest-8.noarch.rpm && \
-    rm -rf /tmp/epel-release-latest-8.noarch.rpm && \
     microdnf -y module enable mysql && \
     microdnf -y install \
-        --disablerepo "*" \
-        --enablerepo "ubi-8-baseos" \
-        --enablerepo "ubi-8-appstream" \
-        --enablerepo "rhel-8-for-x86_64-baseos-rpms" \
-        --enablerepo "rhel-8-for-x86_64-appstream-rpms" \
-        --enablerepo "codeready-builder-for-rhel-8-x86_64-rpms" \
-        --enablerepo "epel" \
-        --setopt=install_weak_deps=0 \
-        --best \
-        --setopt=tsflags=nodocs \
+            --disablerepo "*" \
+            --enablerepo "ubi-8-baseos" \
+            --enablerepo "ubi-8-appstream" \
+            --enablerepo "rhel-8-for-x86_64-baseos-rpms" \
+            --enablerepo "rhel-8-for-x86_64-appstream-rpms" \
+            --enablerepo "codeready-builder-for-rhel-8-x86_64-rpms" \
+            --setopt=install_weak_deps=0 \
+            --best \
+            --setopt=tsflags=nodocs \
         ${INSTALL_PKGS} && \
+    microdnf -y clean all && \
     ARCH_SUFFIX="$(arch)"; \
     case "$ARCH_SUFFIX" in \
         x86_64) \
@@ -80,6 +76,10 @@ RUN set -eux && \
         aarch64) \
             url='https://dl.google.com/go/go1.17.2.linux-arm64.tar.gz'; \
             sha256='a5a43c9cdabdb9f371d56951b14290eba8ce2f9b0db48fb5fc657943984fd4fc'; \
+            ;; \
+        ppc64le) \
+            url='https://golang.org/dl/go1.17.2.linux-ppc64le.tar.gz'; \
+            sha256='12e2dc7e0ffeebe77083f267ef6705fec1621cdf2ed6489b3af04a13597ed68d'; \
             ;; \
         *) echo "Unknown ARCH_SUFFIX=${ARCH_SUFFIX-}"; exit 1 ;; \
     esac; \
@@ -93,6 +93,5 @@ RUN set -eux && \
     rm -rf "$GNUPGHOME" go.tgz.asc && \
     tar -C /usr/local -xzf go.tgz && \
     rm go.tgz && \
-    microdnf -y clean all && \
     rm -rf /var/cache/yum /var/lib/yum/yumdb/* /usr/lib/udev/hwdb.d/* && \
     rm -rf /var/cache/dnf /etc/udev/hwdb.bin /root/.pki

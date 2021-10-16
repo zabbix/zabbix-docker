@@ -2,7 +2,6 @@
 ARG MAJOR_VERSION=6.0
 ARG ZBX_VERSION=${MAJOR_VERSION}
 ARG BUILD_BASE_IMAGE=zabbix-build-mysql:ol-${ZBX_VERSION}
-ARG ZBX_SOURCES=https://git.zabbix.com/scm/zbx/zabbix.git
 
 FROM ${BUILD_BASE_IMAGE} as builder
 
@@ -10,21 +9,21 @@ FROM oraclelinux:8-slim
 
 ARG MAJOR_VERSION
 ARG ZBX_VERSION
-ARG ZBX_SOURCES
+ARG ZBX_SOURCES=https://git.zabbix.com/scm/zbx/zabbix.git
 
 ENV TERM=xterm \
     ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES} \
     MIBDIRS=/usr/share/snmp/mibs:/var/lib/zabbix/mibs MIBS=+ALL
 
-LABEL org.opencontainers.image.title="Zabbix proxy (MySQL)" \
-      org.opencontainers.image.authors="Alexey Pustovalov <alexey.pustovalov@zabbix.com>" \
-      org.opencontainers.image.vendor="Zabbix LLC" \
-      org.opencontainers.image.url="https://zabbix.com/" \
+LABEL org.opencontainers.image.authors="Alexey Pustovalov <alexey.pustovalov@zabbix.com>" \
       org.opencontainers.image.description="Zabbix proxy with MySQL database support" \
-      org.opencontainers.image.licenses="GPL v2.0" \
       org.opencontainers.image.documentation="https://www.zabbix.com/documentation/${MAJOR_VERSION}/manual/installation/containers" \
-      org.opencontainers.image.version="${ZBX_VERSION}" \
-      org.opencontainers.image.source="${ZBX_SOURCES}"
+      org.opencontainers.image.licenses="GPL v2.0" \
+      org.opencontainers.image.source="${ZBX_SOURCES}" \
+      org.opencontainers.image.title="Zabbix proxy (MySQL)" \
+      org.opencontainers.image.url="https://zabbix.com/" \
+      org.opencontainers.image.vendor="Zabbix LLC" \
+      org.opencontainers.image.version="${ZBX_VERSION}"
 
 STOPSIGNAL SIGTERM
 
@@ -36,10 +35,41 @@ COPY --from=builder ["/tmp/zabbix-${ZBX_VERSION}/database/mysql/create_proxy.sql
 COPY ["conf/etc/yum.repos.d/oracle-epel-ol8.repo", "/etc/yum.repos.d/oracle-epel-ol8.repo"]
 
 RUN set -eux && \
-    groupadd --system --gid 1995 zabbix && \
+    INSTALL_PKGS="libevent \
+            tini \
+            gzip \
+            libssh \
+            file-libs \
+            fping \
+            libxml2 \
+            mysql \
+            mysql-libs \
+            net-snmp-libs \
+            OpenIPMI-libs \
+            openldap \
+            openssl-libs \
+            pcre \
+            zlib \
+            unixODBC" && \
+    microdnf -y module enable mysql && \
+    microdnf -y install \
+            --disablerepo="*" \
+            --enablerepo="ol8_baseos_latest" \
+            --enablerepo="ol8_appstream" \
+            --enablerepo="ol8_developer_EPEL" \
+            --setopt=install_weak_deps=0 \
+            --best \
+            --nodocs \
+        ${INSTALL_PKGS} && \
+    groupadd \
+            --system \
+            --gid 1995 \
+        zabbix && \
     useradd \
-            --system --comment "Zabbix monitoring system" \
-            -g zabbix -G root \
+            --system \
+            --comment "Zabbix monitoring system" \
+            -g zabbix \
+            -G root \
             --uid 1997 \
             --shell /sbin/nologin \
             --home-dir /var/lib/zabbix/ \
@@ -57,31 +87,6 @@ RUN set -eux && \
     mkdir -p /var/lib/zabbix/ssl/ssl_ca && \
     mkdir -p /usr/lib/zabbix/externalscripts && \
     mkdir -p /usr/share/doc/zabbix-proxy-mysql && \
-    microdnf -y module enable mysql && \
-    INSTALL_PKGS="libevent \
-            tini \
-            gzip \
-            libssh \
-            file-libs \
-            fping \
-            libxml2 \
-            mysql \
-            mysql-libs \
-            net-snmp-libs \
-            OpenIPMI-libs \
-            openldap \
-            openssl-libs \
-            pcre \
-            zlib \
-            unixODBC" && \
-    microdnf -y install \
-        --disablerepo="*" \
-        --enablerepo="ol8_baseos_latest" \
-        --enablerepo="ol8_appstream" \
-        --enablerepo="ol8_developer_EPEL" \
-        --setopt=install_weak_deps=0 \
-        --best \
-        --nodocs ${INSTALL_PKGS} && \
     chown --quiet -R zabbix:root /etc/zabbix/ /var/lib/zabbix/ && \
     chgrp -R 0 /etc/zabbix/ /var/lib/zabbix/ && \
     chmod -R g=u /etc/zabbix/ /var/lib/zabbix/ && \

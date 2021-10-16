@@ -7,17 +7,17 @@ FROM ${BUILD_BASE_IMAGE} as builder
 
 ARG MAJOR_VERSION
 ARG ZBX_VERSION
-ARG ZBX_SOURCES
+ARG ZBX_SOURCES=https://git.zabbix.com/scm/zbx/zabbix.git
 
-LABEL org.opencontainers.image.title="Zabbix build base (SQLite3)" \
-      org.opencontainers.image.authors="Alexey Pustovalov <alexey.pustovalov@zabbix.com>" \
-      org.opencontainers.image.vendor="Zabbix LLC" \
-      org.opencontainers.image.url="https://zabbix.com/" \
+LABEL org.opencontainers.image.authors="Alexey Pustovalov <alexey.pustovalov@zabbix.com>" \
       org.opencontainers.image.description="Zabbix build base for SQLite3 based images" \
-      org.opencontainers.image.licenses="GPL v2.0" \
       org.opencontainers.image.documentation="https://www.zabbix.com/documentation/${MAJOR_VERSION}/manual/installation/containers" \
-      org.opencontainers.image.version="${ZBX_VERSION}" \
-      org.opencontainers.image.source="${ZBX_SOURCES}"
+      org.opencontainers.image.licenses="GPL v2.0" \
+      org.opencontainers.image.source="${ZBX_SOURCES}" \
+      org.opencontainers.image.title="Zabbix build base (SQLite3)" \
+      org.opencontainers.image.url="https://zabbix.com/" \
+      org.opencontainers.image.vendor="Zabbix LLC" \
+      org.opencontainers.image.version="${ZBX_VERSION}"
 
 RUN set -eux && \
     cd /tmp/ && \
@@ -36,18 +36,19 @@ RUN set -eux && \
             --sysconfdir=/etc/zabbix \
             --enable-agent \
             --enable-agent2 \
+            --enable-ipv6 \
+            --enable-java \
             --enable-proxy \
-            --with-sqlite3 \
             --with-ldap \
             --with-libcurl \
+#            --with-libmodbus \
             --with-libxml2 \
-            --enable-java \
             --with-net-snmp \
             --with-openipmi \
             --with-openssl \
+            --with-sqlite3 \
             --with-ssh \
             --with-unixodbc \
-            --enable-ipv6 \
             --silent && \
     make -j"$(nproc)" -s dbschema && \
     make -j"$(nproc)" -s && \

@@ -1,8 +1,8 @@
 # syntax=docker/dockerfile:1
 ARG MAJOR_VERSION=6.0
+ARG RELEASE=
 ARG ZBX_VERSION=${MAJOR_VERSION}
 ARG BUILD_BASE_IMAGE=zabbix-build-mysql:rhel-${ZBX_VERSION}
-ARG ZBX_SOURCES=https://git.zabbix.com/scm/zbx/zabbix.git
 
 FROM ${BUILD_BASE_IMAGE} as builder
 
@@ -11,35 +11,36 @@ FROM registry.access.redhat.com/ubi8/ubi-minimal
 ARG MAJOR_VERSION
 ARG RELEASE
 ARG ZBX_VERSION
-ARG ZBX_SOURCES
+ARG ZBX_SOURCES=https://git.zabbix.com/scm/zbx/zabbix.git
 
-ENV TERM=xterm ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES}
+ENV TERM=xterm \
+    ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES}
 
-LABEL name="zabbix/zabbix-agent-trunk" \
+LABEL description="Zabbix agent is deployed on a monitoring target to actively monitor local resources and applications" \
       maintainer="alexey.pustovalov@zabbix.com" \
+      name="zabbix/zabbix-agent-trunk" \
+      release="${RELEASE}" \
+      run="docker run --name zabbix-agent --link zabbix-server:zabbix-server -p 10050:10050 -d registry.connect.redhat.com/zabbix/zabbix-agent-trunk:${ZBX_VERSION}" \
+      summary="Zabbix agent" \
+      url="https://www.zabbix.com/" \
       vendor="Zabbix LLC" \
       version="${MAJOR_VERSION}" \
-      release="${RELEASE}" \
-      summary="Zabbix agent" \
-      description="Zabbix agent is deployed on a monitoring target to actively monitor local resources and applications" \
-      url="https://www.zabbix.com/" \
-      run="docker run --name zabbix-agent --link zabbix-server:zabbix-server -p 10050:10050 -d registry.connect.redhat.com/zabbix/zabbix-agent-trunk:${ZBX_VERSION}" \
       io.k8s.description="Zabbix agent is deployed on a monitoring target to actively monitor local resources and applications" \
       io.k8s.display-name="Zabbix Agent" \
       io.openshift.expose-services="10050:10050" \
       io.openshift.tags="zabbix,zabbix-agent" \
-      org.label-schema.name="zabbix-agent-rhel" \
-      org.label-schema.vendor="Zabbix LLC" \
-      org.label-schema.url="https://zabbix.com/" \
-      org.label-schema.description="Zabbix agent is deployed on a monitoring target to actively monitor local resources and applications" \
-      org.label-schema.vcs-ref="${VCS_REF}" \
       org.label-schema.build-date="${BUILD_DATE}" \
-      org.label-schema.schema-version="1.0" \
+      org.label-schema.description="Zabbix agent is deployed on a monitoring target to actively monitor local resources and applications" \
+      org.label-schema.docker.cmd="docker run --name zabbix-agent --link zabbix-server:zabbix-server -p 10050:10050 -d registry.connect.redhat.com/zabbix/zabbix-agent-trunk:${ZBX_VERSION}" \
       org.label-schema.license="GPL v2.0" \
+      org.label-schema.name="zabbix-agent-rhel" \
+      org.label-schema.schema-version="1.0" \
+      org.label-schema.url="https://zabbix.com/" \
       org.label-schema.usage="https://www.zabbix.com/documentation/${MAJOR_VERSION}/manual/installation/containers" \
-      org.label-schema.version="${ZBX_VERSION}" \
+      org.label-schema.vcs-ref="${VCS_REF}" \
       org.label-schema.vcs-url="${ZBX_SOURCES}" \
-      org.label-schema.docker.cmd="docker run --name zabbix-agent --link zabbix-server:zabbix-server -p 10050:10050 -d registry.connect.redhat.com/zabbix/zabbix-agent-trunk:${ZBX_VERSION}"
+      org.label-schema.vendor="Zabbix LLC" \
+      org.label-schema.version="${ZBX_VERSION}"
 
 STOPSIGNAL SIGTERM
 
@@ -49,7 +50,8 @@ COPY --from=builder ["/tmp/zabbix-${ZBX_VERSION}/src/zabbix_get/zabbix_get", "/u
 COPY --from=builder ["/tmp/zabbix-${ZBX_VERSION}/src/zabbix_sender/zabbix_sender", "/usr/bin/zabbix_sender"]
 COPY --from=builder ["/tmp/zabbix-${ZBX_VERSION}/conf/zabbix_agentd.conf", "/etc/zabbix/zabbix_agentd.conf"]
 
-RUN set -eux && INSTALL_PKGS="bash \
+RUN set -eux && \
+    INSTALL_PKGS="bash \
             tini \
             tzdata \
             iputils \
@@ -60,16 +62,20 @@ RUN set -eux && INSTALL_PKGS="bash \
     rpm -ivh /tmp/epel-release-latest-8.noarch.rpm && \
     rm -rf /tmp/epel-release-latest-8.noarch.rpm && \
     microdnf -y install \
-        --disablerepo "*" \
-        --enablerepo "ubi-8-baseos" \
-        --enablerepo "epel" \
-        --setopt=install_weak_deps=0 \
-        --best \
-        --setopt=tsflags=nodocs \
+            --disablerepo "*" \
+            --enablerepo "ubi-8-baseos" \
+            --enablerepo "epel" \
+            --setopt=install_weak_deps=0 \
+            --best \
+            --setopt=tsflags=nodocs \
         ${INSTALL_PKGS} && \
-    groupadd --system --gid 1995 zabbix && \
+    groupadd \
+            --system \
+            --gid 1995 \
+        zabbix && \
     useradd \
-            --system --comment "Zabbix monitoring system" \
+            --system \
+            --comment "Zabbix monitoring system" \
             -g zabbix -G root \
             --uid 1997 \
             --shell /sbin/nologin \
@@ -80,10 +86,10 @@ RUN set -eux && INSTALL_PKGS="bash \
     mkdir -p /var/lib/zabbix && \
     mkdir -p /var/lib/zabbix/enc && \
     mkdir -p /var/lib/zabbix/modules && \
-    microdnf -y clean all && \
     chown --quiet -R zabbix:root /etc/zabbix/ /var/lib/zabbix/ && \
     chgrp -R 0 /etc/zabbix/ /var/lib/zabbix/ && \
     chmod -R g=u /etc/zabbix/ /var/lib/zabbix/ && \
+    microdnf -y clean all && \
     rm -rf /var/cache/yum /var/lib/yum/yumdb/* /usr/lib/udev/hwdb.d/* && \
     rm -rf /var/cache/dnf /etc/udev/hwdb.bin /root/.pki
 

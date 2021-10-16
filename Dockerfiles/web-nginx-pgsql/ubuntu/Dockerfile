@@ -2,7 +2,6 @@
 ARG MAJOR_VERSION=6.0
 ARG ZBX_VERSION=${MAJOR_VERSION}
 ARG BUILD_BASE_IMAGE=zabbix-build-mysql:ubuntu-${ZBX_VERSION}
-ARG ZBX_SOURCES=https://git.zabbix.com/scm/zbx/zabbix.git
 
 FROM ${BUILD_BASE_IMAGE} as builder
 
@@ -10,19 +9,20 @@ FROM ubuntu:focal
 
 ARG MAJOR_VERSION
 ARG ZBX_VERSION
-ARG ZBX_SOURCES
+ARG ZBX_SOURCES=https://git.zabbix.com/scm/zbx/zabbix.git
 
-ENV TERM=xterm ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES}
+ENV TERM=xterm \
+    ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES}
 
-LABEL org.opencontainers.image.title="Zabbix web-interface (Nginx, PostgreSQL)" \
-      org.opencontainers.image.authors="Alexey Pustovalov <alexey.pustovalov@zabbix.com>" \
-      org.opencontainers.image.vendor="Zabbix LLC" \
-      org.opencontainers.image.url="https://zabbix.com/" \
+LABEL org.opencontainers.image.authors="Alexey Pustovalov <alexey.pustovalov@zabbix.com>" \
       org.opencontainers.image.description="Zabbix web-interface based on Nginx web server with PostgreSQL database support" \
-      org.opencontainers.image.licenses="GPL v2.0" \
       org.opencontainers.image.documentation="https://www.zabbix.com/documentation/${MAJOR_VERSION}/manual/installation/containers" \
-      org.opencontainers.image.version="${ZBX_VERSION}" \
-      org.opencontainers.image.source="${ZBX_SOURCES}"
+      org.opencontainers.image.licenses="GPL v2.0" \
+      org.opencontainers.image.source="${ZBX_SOURCES}" \
+      org.opencontainers.image.title="Zabbix web-interface (Nginx, PostgreSQL)" \
+      org.opencontainers.image.url="https://zabbix.com/" \
+      org.opencontainers.image.vendor="Zabbix LLC" \
+      org.opencontainers.image.version="${ZBX_VERSION}"
 
 STOPSIGNAL SIGTERM
 
@@ -31,23 +31,28 @@ COPY ["conf/etc/", "/etc/"]
 
 RUN set -eux && \
     echo "#!/bin/sh\nexit 101" > /usr/sbin/policy-rc.d && \
-    groupadd --system --gid 1995 zabbix && \
-    useradd \
-            --system --comment "Zabbix monitoring system" \
-            -g zabbix -G root \
-            --uid 1997 \
-            --shell /sbin/nologin \
-            --home-dir /var/lib/zabbix/ \
-        zabbix && \
-    mkdir -p /etc/zabbix && \
-    mkdir -p /etc/zabbix/web && \
-    mkdir -p /var/lib/php/session && \
+    INSTALL_PKGS="bash \
+            ca-certificates \
+            curl \
+            nginx \
+            locales \
+            php7.4-bcmath \
+            php7.4-fpm \
+            php7.4-gd \
+            php7.4-json \
+            php7.4-ldap \
+            php7.4-mbstring \
+            php7.4-xml \
+            php7.4-pgsql \
+            postgresql-client \
+            supervisor" && \
+    INSTALL_TEMP_PKGS="gpg \
+            dirmngr \
+            gpg-agent" && \
     apt-get -y update && \
-    DEBIAN_FRONTEND=noninteractive apt-get -y --no-install-recommends install \
-        gpg \
-        dirmngr \
-        gpg-agent \
-        ca-certificates && \
+    DEBIAN_FRONTEND=noninteractive apt-get -y \
+            --no-install-recommends install \
+        ${INSTALL_TEMP_PKGS} && \
     NGINX_GPGKEY=573BFD6B3D8FBC641079A6ABABF5BD827BD9BF62; \
     found=''; \
     for server in \
@@ -63,27 +68,33 @@ RUN set -eux && \
     DISTRIB_CODENAME=$(/bin/bash -c 'source /etc/lsb-release && echo $DISTRIB_CODENAME') && \
     echo "deb https://nginx.org/packages/ubuntu/ $DISTRIB_CODENAME nginx" >> /etc/apt/sources.list.d/nginx.list && \
     apt-get -y update && \
-    DEBIAN_FRONTEND=noninteractive apt-get -y --no-install-recommends \
-        -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" install \
-            curl \
-            nginx \
-            locales \
-            php7.4-bcmath \
-            php7.4-fpm \
-            php7.4-gd \
-            php7.4-json \
-            php7.4-ldap \
-            php7.4-mbstring \
-            php7.4-xml \
-            php7.4-pgsql \
-            postgresql-client \
-            supervisor && \
+    DEBIAN_FRONTEND=noninteractive apt-get -y \
+            -o Dpkg::Options::="--force-confdef" \
+            -o Dpkg::Options::="--force-confold" \
+            --no-install-recommends install \
+        ${INSTALL_PKGS} && \
+    groupadd \
+            --system \
+            --gid 1995 \
+        zabbix && \
+    useradd \
+            --system \
+            --comment "Zabbix monitoring system" \
+            -g zabbix \
+            -G root \
+            --uid 1997 \
+            --shell /sbin/nologin \
+            --home-dir /var/lib/zabbix/ \
+        zabbix && \
+    mkdir -p /etc/zabbix && \
+    mkdir -p /etc/zabbix/web && \
+    mkdir -p /etc/zabbix/web/certs && \
+    mkdir -p /var/lib/php/session && \
     rm -f /etc/nginx/conf.d/*.conf && \
     rm -rf /var/cache/nginx/ && \
     rm -f /etc/php/7.4/fpm/pool.d/www.conf && \
     ln -sf /dev/fd/2 /var/log/nginx/error.log && \
     rm -f /etc/php/7.4/fpm/php-fpm.conf.dpkg-dist && \
-    DEBIAN_FRONTEND=noninteractive apt-get -y purge gpg dirmngr gpg-agent && \
     cd /usr/share/zabbix/ && \
     rm -f conf/zabbix.conf.php conf/maintenance.inc.php conf/zabbix.conf.php.example && \
     rm -rf tests && \
@@ -95,8 +106,8 @@ RUN set -eux && \
     mkdir -p /var/lib/locales/supported.d/ && \
     rm -f /var/lib/locales/supported.d/local && \
     cat /usr/share/zabbix/include/locales.inc.php | grep display | grep true | awk '{$1=$1};1' | \
-                cut -d"'" -f 2 | sort | \
-                xargs -I '{}' bash -c 'echo "{}.UTF-8 UTF-8" >> /var/lib/locales/supported.d/local' && \
+        cut -d"'" -f 2 | sort | \
+        xargs -I '{}' bash -c 'echo "{}.UTF-8 UTF-8" >> /var/lib/locales/supported.d/local' && \
     dpkg-reconfigure locales && \
     chown --quiet -R zabbix:root /etc/zabbix/ /usr/share/zabbix/include/defines.inc.php /usr/share/zabbix/modules/ && \
     chgrp -R 0 /etc/zabbix/ /usr/share/zabbix/include/defines.inc.php /usr/share/zabbix/modules/ && \
@@ -107,6 +118,9 @@ RUN set -eux && \
     chown --quiet -R zabbix:root /var/lib/php/session/ && \
     chgrp -R 0 /var/lib/php/session/ && \
     chmod -R g=u /var/lib/php/session/ && \
+    DEBIAN_FRONTEND=noninteractive apt-get -y \
+            purge \
+        ${INSTALL_TEMP_PKGS} && \
     apt-get -y autoremove && \
     apt-get -y clean && \
     rm -rf /var/lib/apt/lists/*

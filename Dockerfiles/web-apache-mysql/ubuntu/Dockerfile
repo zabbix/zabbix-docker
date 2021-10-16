@@ -2,7 +2,6 @@
 ARG MAJOR_VERSION=6.0
 ARG ZBX_VERSION=${MAJOR_VERSION}
 ARG BUILD_BASE_IMAGE=zabbix-build-mysql:ubuntu-${ZBX_VERSION}
-ARG ZBX_SOURCES=https://git.zabbix.com/scm/zbx/zabbix.git
 
 FROM ${BUILD_BASE_IMAGE} as builder
 
@@ -10,19 +9,20 @@ FROM ubuntu:focal
 
 ARG MAJOR_VERSION
 ARG ZBX_VERSION
-ARG ZBX_SOURCES
+ARG ZBX_SOURCES=https://git.zabbix.com/scm/zbx/zabbix.git
 
-ENV TERM=xterm ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES}
+ENV TERM=xterm \
+    ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES}
 
-LABEL org.opencontainers.image.title="Zabbix web-interface (Apache, MySQL)" \
-      org.opencontainers.image.authors="Alexey Pustovalov <alexey.pustovalov@zabbix.com>" \
-      org.opencontainers.image.vendor="Zabbix LLC" \
-      org.opencontainers.image.url="https://zabbix.com/" \
+LABEL org.opencontainers.image.authors="Alexey Pustovalov <alexey.pustovalov@zabbix.com>" \
       org.opencontainers.image.description="Zabbix web-interface based on Apache2 web server with MySQL database support" \
-      org.opencontainers.image.licenses="GPL v2.0" \
       org.opencontainers.image.documentation="https://www.zabbix.com/documentation/${MAJOR_VERSION}/manual/installation/containers" \
-      org.opencontainers.image.version="${ZBX_VERSION}" \
-      org.opencontainers.image.source="${ZBX_SOURCES}"
+      org.opencontainers.image.licenses="GPL v2.0" \
+      org.opencontainers.image.source="${ZBX_SOURCES}" \
+      org.opencontainers.image.title="Zabbix web-interface (Apache, MySQL)" \
+      org.opencontainers.image.url="https://zabbix.com/" \
+      org.opencontainers.image.vendor="Zabbix LLC" \
+      org.opencontainers.image.version="${ZBX_VERSION}"
 
 STOPSIGNAL SIGTERM
 
@@ -31,18 +31,7 @@ COPY ["conf/etc/", "/etc/"]
 
 RUN set -eux && \
     echo "#!/bin/sh\nexit 101" > /usr/sbin/policy-rc.d && \
-    groupadd --system --gid 1995 zabbix && \
-    useradd \
-            --system --comment "Zabbix monitoring system" \
-            -g zabbix -G root \
-            --uid 1997 \
-            --shell /sbin/nologin \
-            --home-dir /var/lib/zabbix/ \
-        zabbix && \
-    mkdir -p /etc/zabbix && \
-    mkdir -p /etc/zabbix/web && \
-    apt-get -y update && \
-    DEBIAN_FRONTEND=noninteractive apt-get -y --no-install-recommends install \
+    INSTALL_PKGS="bash \
             apache2 \
             curl \
             libapache2-mod-php \
@@ -55,18 +44,38 @@ RUN set -eux && \
             php7.4-ldap \
             php7.4-mbstring \
             php7.4-mysql \
-            php7.4-xml && \
+            php7.4-xml" && \
+    apt-get -y update && \
+    DEBIAN_FRONTEND=noninteractive apt-get -y \
+            --no-install-recommends install \
+        ${INSTALL_PKGS} && \
+    groupadd \
+            --system \
+            --gid 1995 \
+        zabbix && \
+    useradd \
+            --system \
+            --comment "Zabbix monitoring system" \
+            -g zabbix \
+            -G root \
+            --uid 1997 \
+            --shell /sbin/nologin \
+            --home-dir /var/lib/zabbix/ \
+        zabbix && \
+    mkdir -p /etc/zabbix && \
+    mkdir -p /etc/zabbix/web && \
+    mkdir -p /etc/zabbix/web/certs && \
     rm -f /etc/apache2/sites-available/* && \
     rm -f /etc/apache2/sites-enabled/* && \
     /usr/sbin/a2enmod ssl && \
     sed -ri \
             -e 's!^(\s*CustomLog)\s+\S+!\1 /proc/self/fd/1!g' \
             -e 's!^(\s*ErrorLog)\s+\S+!\1 /proc/self/fd/2!g' \
-            "/etc/apache2/apache2.conf" && \
+        "/etc/apache2/apache2.conf" && \
     sed -ri \
             -e 's!^(\s*CustomLog)\s+\S+!\1 /proc/self/fd/1!g' \
             -e 's!^(\s*ErrorLog)\s+\S+!\1 /proc/self/fd/2!g' \
-            "/etc/apache2/conf-available/other-vhosts-access-log.conf" && \
+        "/etc/apache2/conf-available/other-vhosts-access-log.conf" && \
     sed -i 's/Listen 80/Listen 8080/g' /etc/apache2/ports.conf && \
     sed -i 's/Listen 443/Listen 8443/g' /etc/apache2/ports.conf && \
     sed -i 's|/var/run/apache2$SUFFIX|/tmp|g' /etc/apache2/envvars && \
@@ -82,18 +91,15 @@ RUN set -eux && \
     mkdir -p /var/lib/locales/supported.d/ && \
     rm -f /var/lib/locales/supported.d/local && \
     cat /usr/share/zabbix/include/locales.inc.php | grep display | grep true | awk '{$1=$1};1' | \
-                cut -d"'" -f 2 | sort | \
-                xargs -I '{}' bash -c 'echo "{}.UTF-8 UTF-8" >> /var/lib/locales/supported.d/local' && \
+        cut -d"'" -f 2 | sort | \
+        xargs -I '{}' bash -c 'echo "{}.UTF-8 UTF-8" >> /var/lib/locales/supported.d/local' && \
     dpkg-reconfigure locales && \
-    chown --quiet -R zabbix:root /etc/zabbix/ /usr/share/zabbix/modules/ && \
-    chgrp -R 0 /etc/zabbix/ /usr/share/zabbix/modules/ && \
-    chmod -R g=u /etc/zabbix/ /usr/share/zabbix/modules/ && \
+    chown --quiet -R zabbix:root /etc/zabbix/ /usr/share/zabbix/include/defines.inc.php /usr/share/zabbix/modules/ && \
+    chgrp -R 0 /etc/zabbix/ /usr/share/zabbix/include/defines.inc.php /usr/share/zabbix/modules/ && \
+    chmod -R g=u /etc/zabbix/ /usr/share/zabbix/include/defines.inc.php /usr/share/zabbix/modules/ && \
     chown --quiet -R zabbix:root /etc/apache2/ /etc/php/7.4/ && \
     chgrp -R 0 /etc/apache2/ /etc/php/7.4/ && \
     chmod -R g=u /etc/apache2/ /etc/php/7.4/ && \
-    chown --quiet -R zabbix:root /usr/share/zabbix/include/defines.inc.php && \
-    chgrp -R 0 /usr/share/zabbix/include/defines.inc.php && \
-    chmod -R g=u /usr/share/zabbix/include/defines.inc.php && \
     apt-get -y autoremove && \
     apt-get -y clean && \
     rm -rf /var/lib/apt/lists/*

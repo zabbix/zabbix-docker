@@ -1,5 +1,6 @@
 # syntax=docker/dockerfile:1
 ARG MAJOR_VERSION=6.0
+ARG RELEASE=
 ARG ZBX_VERSION=${MAJOR_VERSION}
 ARG BUILD_BASE_IMAGE=zabbix-build-base:rhel-${ZBX_VERSION}
 
@@ -10,23 +11,23 @@ ARG RELEASE
 ARG ZBX_VERSION
 ARG ZBX_SOURCES=https://git.zabbix.com/scm/zbx/zabbix.git
 
-LABEL name="zabbix/zabbix-build-sqlite3-trunk" \
+LABEL description="Zabbix build base for SQLite3 based images" \
       maintainer="alexey.pustovalov@zabbix.com" \
-      vendor="Zabbix LLC" \
-      version="${MAJOR_VERSION}" \
+      name="zabbix/zabbix-build-sqlite3-trunk" \
       release="${RELEASE}" \
       summary="Zabbix build base (SQLite3)" \
-      description="Zabbix build base for SQLite3 based images" \
       url="https://www.zabbix.com/" \
+      vendor="Zabbix LLC" \
+      version="${MAJOR_VERSION}" \
       io.k8s.description="Zabbix build base for SQLite3 based images" \
       io.k8s.display-name="Zabbix build base (SQLite3)" \
       io.openshift.expose-services="" \
       io.openshift.tags="zabbix,build,sqlite3" \
-      org.label-schema.name="zabbix-build-sqlite3-rhel" \
-      org.label-schema.vendor="Zabbix LLC" \
-      org.label-schema.url="https://zabbix.com/" \
       org.label-schema.description="Zabbix build base for SQLite3 based images" \
-      org.label-schema.vcs-ref="${VCS_REF}"
+      org.label-schema.name="zabbix-build-sqlite3-rhel" \
+      org.label-schema.url="https://zabbix.com/" \
+      org.label-schema.vcs-ref="${VCS_REF}" \
+      org.label-schema.vendor="Zabbix LLC"
 
 RUN set -eux && \
     cd /tmp/ && \
@@ -45,18 +46,19 @@ RUN set -eux && \
             --sysconfdir=/etc/zabbix \
             --enable-agent \
             --enable-agent2 \
+            --enable-ipv6 \
+            --enable-java \
             --enable-proxy \
-            --with-sqlite3 \
             --with-ldap \
             --with-libcurl \
+#            --with-libmodbus \
             --with-libxml2 \
-            --enable-java \
             --with-net-snmp \
             --with-openipmi \
             --with-openssl \
+            --with-sqlite3 \
             --with-ssh \
             --with-unixodbc \
-            --enable-ipv6 \
             --silent && \
     make -j"$(nproc)" -s dbschema && \
     make -j"$(nproc)" -s && \

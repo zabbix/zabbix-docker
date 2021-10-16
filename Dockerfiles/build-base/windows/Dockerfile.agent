@@ -11,7 +11,6 @@ ARG CPU_MODEL=AMD64
 
 ARG MAJOR_VERSION=6.0
 ARG ZBX_VERSION=${MAJOR_VERSION}
-ARG ZBX_SOURCES=https://git.zabbix.com/scm/zbx/zabbix.git
 
 ARG VS_BUILDTOOLS_URL=https://aka.ms/vs/16/release/vs_buildtools.exe
 ARG NASM_URL=https://www.nasm.us/pub/nasm/releasebuilds/2.15.05/win64/nasm-2.15.05-installer-x64.exe
@@ -21,7 +20,8 @@ ARG PCRE_URL=https://ftp.pcre.org/pub/pcre/pcre-$PCRE_VERSION.zip
 ARG OPENSSL_URL=https://www.openssl.org/source/openssl-$OPENSSL_VERSION.tar.gz
 ARG LIBMODBUS_URL=https://github.com/stephane/libmodbus.git
 
-ENV BUILD_ARCH=$BUILD_ARCH CPU_MODEL=$CPU_MODEL `
+ENV ZBX_VERSION=$ZBX_VERSION `
+    BUILD_ARCH=$BUILD_ARCH CPU_MODEL=$CPU_MODEL `
     PCRE_VERSION=$PCRE_VERSION OPENSSL_VERSION=$OPENSSL_VERSION LIBMODBUS_VERSION=$LIBMODBUS_VERSION `
     GIT_URL=$GIT_URL NASM_URL=$NASM_URL PERL_URL=$PERL_URL LIBMODBUS_URL=$LIBMODBUS_URL PCRE_URL=$PCRE_URL OPENSSL_URL=$OPENSSL_URL
 
@@ -32,8 +32,7 @@ LABEL org.opencontainers.image.title="Zabbix agent build base for Windows" `
       org.opencontainers.image.description="Zabbix build base image contains all required packages to build Zabbix agent images" `
       org.opencontainers.image.licenses="GPL v2.0" `
       org.opencontainers.image.documentation="https://www.zabbix.com/documentation/${MAJOR_VERSION}/manual/installation/containers" `
-      org.opencontainers.image.version="${ZBX_VERSION}" `
-      org.opencontainers.image.source="${ZBX_SOURCES}"
+      org.opencontainers.image.version="${ZBX_VERSION}"
 
 SHELL ["powershell", "-Command", "$ErrorActionPreference = 'Stop'; $ProgressPreference = 'SilentlyContinue';"]
 

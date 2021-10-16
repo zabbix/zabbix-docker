@@ -1,8 +1,8 @@
 # syntax=docker/dockerfile:1
 ARG MAJOR_VERSION=6.0
+ARG RELEASE=
 ARG ZBX_VERSION=${MAJOR_VERSION}
 ARG BUILD_BASE_IMAGE=zabbix-build-mysql:rhel-${ZBX_VERSION}
-ARG ZBX_SOURCES=https://git.zabbix.com/scm/zbx/zabbix.git
 
 FROM ${BUILD_BASE_IMAGE} as builder
 
@@ -11,9 +11,10 @@ FROM registry.access.redhat.com/ubi8/ubi-minimal
 ARG MAJOR_VERSION
 ARG RELEASE
 ARG ZBX_VERSION
-ARG ZBX_SOURCES
+ARG ZBX_SOURCES=https://git.zabbix.com/scm/zbx/zabbix.git
 
-ENV TERM=xterm ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES}
+ENV TERM=xterm \
+    ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES}
 
 LABEL name="zabbix/zabbix-web-service-trunk" \
       maintainer="alexey.pustovalov@zabbix.com" \
@@ -78,6 +79,9 @@ RUN set -eux && \
     mkdir -p /etc/zabbix && \
     mkdir -p /var/lib/zabbix && \
     mkdir -p /var/lib/zabbix/enc && \
+    chown --quiet -R zabbix:root /etc/zabbix/ /var/lib/zabbix/ && \
+    chgrp -R 0 /etc/zabbix/ /var/lib/zabbix/ && \
+    chmod -R g=u /etc/zabbix/ /var/lib/zabbix/ && \
     microdnf -y clean all && \
     rm -rf /var/cache/yum /var/lib/yum/yumdb/* /usr/lib/udev/hwdb.d/* && \
     rm -rf /var/cache/dnf /etc/udev/hwdb.bin /root/.pki

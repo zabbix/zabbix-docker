@@ -1,5 +1,6 @@
 # syntax=docker/dockerfile:1
 ARG MAJOR_VERSION=6.0
+ARG RELEASE=
 ARG ZBX_VERSION=${MAJOR_VERSION}
 ARG BUILD_BASE_IMAGE=zabbix-build-base:rhel-${ZBX_VERSION}
 
@@ -10,23 +11,23 @@ ARG RELEASE
 ARG ZBX_VERSION
 ARG ZBX_SOURCES=https://git.zabbix.com/scm/zbx/zabbix.git
 
-LABEL name="zabbix/zabbix-build-mysql-trunk" \
+LABEL description="Zabbix build base for MySQL based images" \
       maintainer="alexey.pustovalov@zabbix.com" \
-      vendor="Zabbix LLC" \
-      version="${MAJOR_VERSION}" \
+      name="zabbix/zabbix-build-mysql-trunk" \
       release="${RELEASE}" \
       summary="Zabbix build base (MySQL)" \
-      description="Zabbix build base for MySQL based images" \
       url="https://www.zabbix.com/" \
+      vendor="Zabbix LLC" \
+      version="${MAJOR_VERSION}" \
       io.k8s.description="Zabbix build base for MySQL based images" \
       io.k8s.display-name="Zabbix build base (MySQL)" \
       io.openshift.expose-services="" \
       io.openshift.tags="zabbix,build,mysql" \
-      org.label-schema.name="zabbix-build-mysql-rhel" \
-      org.label-schema.vendor="Zabbix LLC" \
-      org.label-schema.url="https://zabbix.com/" \
       org.label-schema.description="Zabbix build base for MySQL based images" \
-      org.label-schema.vcs-ref="${VCS_REF}"
+      org.label-schema.name="zabbix-build-mysql-rhel" \
+      org.label-schema.url="https://zabbix.com/" \
+      org.label-schema.vcs-ref="${VCS_REF}" \
+      org.label-schema.vendor="Zabbix LLC"
 
 RUN set -eux && \
     cd /tmp/ && \
@@ -43,22 +44,23 @@ RUN set -eux && \
             --libdir=/usr/lib/zabbix \
             --prefix=/usr \
             --sysconfdir=/etc/zabbix \
+            --enable-ipv6 \
             --enable-agent \
             --enable-agent2 \
-            --enable-server \
+            --enable-java \
             --enable-proxy \
+            --enable-server \
             --enable-webservice \
-            --with-mysql \
             --with-ldap \
             --with-libcurl \
+#            --with-libmodbus \
             --with-libxml2 \
-            --enable-java \
+            --with-mysql \
             --with-net-snmp \
             --with-openipmi \
             --with-openssl \
             --with-ssh \
             --with-unixodbc \
-            --enable-ipv6 \
             --silent && \
     make -j"$(nproc)" -s dbschema && \
     make -j"$(nproc)" -s && \
@@ -78,3 +80,5 @@ RUN set -eux && \
     strip /tmp/zabbix-${ZBX_VERSION}/src/zabbix_get/zabbix_get && \
     strip /tmp/zabbix-${ZBX_VERSION}/src/zabbix_sender/zabbix_sender && \
     strip /tmp/zabbix-${ZBX_VERSION}/src/go/bin/zabbix_web_service
+
+

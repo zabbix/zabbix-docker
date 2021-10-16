@@ -1,12 +1,12 @@
 FROM registry.access.redhat.com/ubi8/ubi
-MAINTAINER Alexey Pustovalov <alexey.pustovalov@zabbix.com>
 
 ARG MAJOR_VERSION=6.0
 ARG RELEASE=
 ARG ZBX_VERSION=${MAJOR_VERSION}
-
 ARG ZBX_SOURCES=https://git.zabbix.com/scm/zbx/zabbix.git
-ENV TERM=xterm ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES} \
+
+ENV TERM=xterm \
+    ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES} \
     MIBDIRS=/usr/share/snmp/mibs:/var/lib/zabbix/mibs MIBS=+ALL
 
 LABEL name="zabbix/zabbix-appliance" \

@@ -7,21 +7,21 @@ FROM ${BUILD_BASE_IMAGE} as builder
 
 ARG MAJOR_VERSION
 ARG ZBX_VERSION
-ARG ZBX_SOURCES
+ARG ZBX_SOURCES=https://git.zabbix.com/scm/zbx/zabbix.git
 
-LABEL org.opencontainers.image.documentation="https://www.zabbix.com/documentation/${MAJOR_VERSION}/manual/installation/containers" \
-      org.opencontainers.image.version="${ZBX_VERSION}" \
+LABEL org.opencontainers.image.authors="Alexey Pustovalov <alexey.pustovalov@zabbix.com>" \
+      org.opencontainers.image.description="Zabbix build base for SQLite3 based images" \
+      org.opencontainers.image.documentation="https://www.zabbix.com/documentation/${MAJOR_VERSION}/manual/installation/containers" \
+      org.opencontainers.image.licenses="GPL v2.0" \
       org.opencontainers.image.source="${ZBX_SOURCES}" \
       org.opencontainers.image.title="Zabbix build base (SQLite3)" \
-      org.opencontainers.image.authors="Alexey Pustovalov <alexey.pustovalov@zabbix.com>" \
-      org.opencontainers.image.vendor="Zabbix LLC" \
       org.opencontainers.image.url="https://zabbix.com/" \
-      org.opencontainers.image.description="Zabbix build base for SQLite3 based images" \
-      org.opencontainers.image.licenses="GPL v2.0"
+      org.opencontainers.image.vendor="Zabbix LLC" \
+      org.opencontainers.image.version="${ZBX_VERSION}"
 
 RUN set -eux && \
+    cd /tmp/ && \
     git -c advice.detachedHead=false clone ${ZBX_SOURCES} --branch master --depth 1 --single-branch /tmp/zabbix-${ZBX_VERSION} && \
-    ls -lah /tmp/ && \
     cd /tmp/zabbix-${ZBX_VERSION} && \
     zabbix_revision=`git rev-parse --short HEAD` && \
     sed -i "s/{ZABBIX_REVISION}/$zabbix_revision/g" include/version.h && \
@@ -36,19 +36,19 @@ RUN set -eux && \
             --sysconfdir=/etc/zabbix \
             --enable-agent \
             --enable-agent2 \
+            --enable-ipv6 \
+            --enable-java \
             --enable-proxy \
-            --with-sqlite3 \
             --with-ldap \
             --with-libcurl \
+            --with-libmodbus \
             --with-libxml2 \
-            --enable-java \
             --with-net-snmp \
             --with-openipmi \
             --with-openssl \
+            --with-sqlite3 \
             --with-ssh \
-            --with-libmodbus \
             --with-unixodbc \
-            --enable-ipv6 \
             --silent && \
     make -j"$(nproc)" -s dbschema && \
     make -j"$(nproc)" -s && \

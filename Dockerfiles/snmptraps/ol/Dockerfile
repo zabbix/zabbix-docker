@@ -4,40 +4,47 @@ ARG MAJOR_VERSION=6.0
 ARG ZBX_VERSION=${MAJOR_VERSION}
 ARG ZBX_SOURCES=https://git.zabbix.com/scm/zbx/zabbix.git
 
-ENV TERM=xterm ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES} \
+ENV TERM=xterm \
+    ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES} \
     MIBDIRS=/usr/share/snmp/mibs:/var/lib/zabbix/mibs MIBS=+ALL \
     ZBX_SNMP_TRAP_DATE_FORMAT=+%Y%m%d.%H%M%S ZBX_SNMP_TRAP_FORMAT="\n"
 
-LABEL org.opencontainers.image.title="zabbix-snmptraps-ol" \
-      org.opencontainers.image.authors="Alexey Pustovalov <alexey.pustovalov@zabbix.com>" \
-      org.opencontainers.image.vendor="Zabbix LLC" \
-      org.opencontainers.image.url="https://zabbix.com/" \
+LABEL org.opencontainers.image.authors="Alexey Pustovalov <alexey.pustovalov@zabbix.com>" \
       org.opencontainers.image.description="Zabbix SNMP traps receiver" \
-      org.opencontainers.image.licenses="GPL v2.0" \
       org.opencontainers.image.documentation="https://www.zabbix.com/documentation/${MAJOR_VERSION}/manual/installation/containers" \
+      org.opencontainers.image.licenses="GPL v2.0" \
+      org.opencontainers.image.title="zabbix-snmptraps" \
+      org.opencontainers.image.url="https://zabbix.com/" \
+      org.opencontainers.image.vendor="Zabbix LLC" \
       org.opencontainers.image.version="${ZBX_VERSION}"
 
 STOPSIGNAL SIGTERM
 
 RUN set -eux && \
-    groupadd --system --gid 1995 zabbix && \
-    useradd \
-            --system --comment "Zabbix monitoring system" \
-            -g zabbix -G root \
-            --uid 1997 \
-            --shell /sbin/nologin \
-            --home-dir /var/lib/zabbix/ \
-        zabbix && \
     INSTALL_PKGS="bash \
             tzdata \
             net-snmp" && \
     microdnf -y install \
-        --disablerepo="*" \
-        --enablerepo="ol8_baseos_latest" \
-        --enablerepo="ol8_appstream" \
-        --setopt=install_weak_deps=0 \
-        --best \
-        --nodocs ${INSTALL_PKGS} && \
+            --disablerepo="*" \
+            --enablerepo="ol8_baseos_latest" \
+            --enablerepo="ol8_appstream" \
+            --setopt=install_weak_deps=0 \
+            --best \
+            --nodocs \
+        ${INSTALL_PKGS} && \
+    groupadd \
+            --system \
+            --gid 1995 \
+        zabbix && \
+    useradd \
+            --system \
+            --comment "Zabbix monitoring system" \
+            -g zabbix \
+            -G root \
+            --uid 1997 \
+            --shell /sbin/nologin \
+            --home-dir /var/lib/zabbix/ \
+        zabbix && \
     mkdir -p /var/lib/zabbix && \
     mkdir -p /var/lib/zabbix/snmptraps && \
     mkdir -p /var/lib/zabbix/mibs && \
