@@ -16,31 +16,31 @@ ARG ZBX_SOURCES=https://git.zabbix.com/scm/zbx/zabbix.git
 ENV TERM=xterm \
     ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES}
 
-LABEL name="zabbix/zabbix-web-service-trunk" \
+LABEL description="Zabbix web service for performing various tasks using headless web browser" \
       maintainer="alexey.pustovalov@zabbix.com" \
+      name="zabbix/zabbix-web-service-trunk" \
+      release="${RELEASE}" \
+      run="docker run --name zabbix-web-service --link zabbix-server:zabbix-server -p 10053:10053 -d registry.connect.redhat.com/zabbix/zabbix-web-service-trunk:${ZBX_VERSION}" \
+      summary="Zabbix web service" \
+      url="https://www.zabbix.com/" \
       vendor="Zabbix LLC" \
       version="${MAJOR_VERSION}" \
-      release="${RELEASE}" \
-      summary="Zabbix web service" \
-      description="Zabbix web service for performing various tasks using headless web browser" \
-      url="https://www.zabbix.com/" \
-      run="docker run --name zabbix-web-service --link zabbix-server:zabbix-server -p 10053:10053 -d registry.connect.redhat.com/zabbix/zabbix-web-service-trunk:${ZBX_VERSION}" \
       io.k8s.description="Zabbix web service for performing various tasks using headless web browser" \
       io.k8s.display-name="Zabbix web service" \
       io.openshift.expose-services="10053:10053" \
       io.openshift.tags="zabbix,zabbix-web-service" \
-      org.label-schema.name="zabbix-web-service-rhel" \
-      org.label-schema.vendor="Zabbix LLC" \
-      org.label-schema.url="https://zabbix.com/" \
-      org.label-schema.description="Zabbix web service for performing various tasks using headless web browser" \
-      org.label-schema.vcs-ref="${VCS_REF}" \
       org.label-schema.build-date="${BUILD_DATE}" \
-      org.label-schema.schema-version="1.0" \
+      org.label-schema.description="Zabbix web service for performing various tasks using headless web browser" \
+      org.label-schema.docker.cmd="docker run --name zabbix-web-service --link zabbix-server:zabbix-server -p 10053:10053 -d registry.connect.redhat.com/zabbix/zabbix-web-service-trunk:${ZBX_VERSION}" \
       org.label-schema.license="GPL v2.0" \
+      org.label-schema.name="zabbix-web-service-rhel" \
+      org.label-schema.schema-version="1.0" \
+      org.label-schema.url="https://zabbix.com/" \
       org.label-schema.usage="https://www.zabbix.com/documentation/${MAJOR_VERSION}/manual/installation/containers" \
-      org.label-schema.version="${ZBX_VERSION}" \
+      org.label-schema.vcs-ref="${VCS_REF}" \
       org.label-schema.vcs-url="${ZBX_SOURCES}" \
-      org.label-schema.docker.cmd="docker run --name zabbix-web-service --link zabbix-server:zabbix-server -p 10053:10053 -d registry.connect.redhat.com/zabbix/zabbix-web-service-trunk:${ZBX_VERSION}"
+      org.label-schema.vendor="Zabbix LLC" \
+      org.label-schema.version="${ZBX_VERSION}"
 
 STOPSIGNAL SIGTERM
 
