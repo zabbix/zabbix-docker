@@ -37,6 +37,7 @@ RUN set -eux && \
             bash \
             pcre \
             coreutils \
+            libcurl \
             iputils" && \
     apk add \
             --no-cache \
