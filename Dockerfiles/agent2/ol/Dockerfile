@@ -40,6 +40,15 @@ RUN set -eux && \
             pcre \
             libcurl \
             openssl-libs" && \
+    microdnf -y install \
+            --disablerepo="*" \
+            --enablerepo="ol8_baseos_latest" \
+            --enablerepo="ol8_appstream" \
+            --enablerepo="ol8_developer_EPEL" \
+            --setopt=install_weak_deps=0 \
+            --best \
+            --nodocs \
+        ${INSTALL_PKGS} && \
     groupadd \
             --system \
             --gid 1995 \
@@ -59,16 +68,6 @@ RUN set -eux && \
     mkdir -p /var/lib/zabbix/enc && \
     mkdir -p /var/lib/zabbix/modules && \
     mkdir -p /var/lib/zabbix/buffer && \
-    microdnf -y install \
-            --disablerepo="*" \
-            --enablerepo="ol8_baseos_latest" \
-            --enablerepo="ol8_appstream" \
-            --enablerepo="ol8_developer_EPEL" \
-            --setopt=install_weak_deps=0 \
-            --best \
-            --nodocs \
-        ${INSTALL_PKGS} && \
-    microdnf -y clean all && \
     chown --quiet -R zabbix:root /etc/zabbix/ /var/lib/zabbix/ && \
     chgrp -R 0 /etc/zabbix/ /var/lib/zabbix/ && \
     chmod -R g=u /etc/zabbix/ /var/lib/zabbix/ && \

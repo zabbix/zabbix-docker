@@ -51,7 +51,6 @@ RUN set -eux && \
         --setopt=install_weak_deps=False \
         --best \
         ${INSTALL_PKGS} && \
-    dnf -y clean all && \
     ARCH_SUFFIX="$(arch)"; \
     case "$ARCH_SUFFIX" in \
         x86_64) \
@@ -78,5 +77,6 @@ RUN set -eux && \
     rm -rf "$GNUPGHOME" go.tgz.asc && \
     tar -C /usr/local -xzf go.tgz && \
     rm go.tgz && \
+    dnf -y clean all && \
     rm -rf /var/cache/yum /var/lib/yum/yumdb/* /usr/lib/udev/hwdb.d/* && \
     rm -rf /var/cache/dnf /etc/udev/hwdb.bin /root/.pki

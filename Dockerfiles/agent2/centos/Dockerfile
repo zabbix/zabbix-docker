@@ -40,6 +40,14 @@ RUN set -eux && \
             pcre \
             libcurl-minimal \
             openssl-libs" && \
+    dnf -y install epel-release && \
+    dnf -y install \
+        --disablerepo "*" \
+        --enablerepo "${REPOLIST}" \
+        --setopt=tsflags=nodocs \
+        --setopt=install_weak_deps=False \
+        --best \
+        ${INSTALL_PKGS} && \
     groupadd \
             --system \
             --gid 1995 \
@@ -59,18 +67,10 @@ RUN set -eux && \
     mkdir -p /var/lib/zabbix/enc && \
     mkdir -p /var/lib/zabbix/modules && \
     mkdir -p /var/lib/zabbix/buffer && \
-    dnf -y install epel-release && \
-    dnf -y install \
-        --disablerepo "*" \
-        --enablerepo "${REPOLIST}" \
-        --setopt=tsflags=nodocs \
-        --setopt=install_weak_deps=False \
-        --best \
-        ${INSTALL_PKGS} && \
-    dnf -y clean all && \
     chown --quiet -R zabbix:root /etc/zabbix/ /var/lib/zabbix/ && \
     chgrp -R 0 /etc/zabbix/ /var/lib/zabbix/ && \
     chmod -R g=u /etc/zabbix/ /var/lib/zabbix/ && \
+    dnf -y clean all && \
     rm -rf /var/cache/yum /var/lib/yum/yumdb/* /usr/lib/udev/hwdb.d/* && \
     rm -rf /var/cache/dnf /etc/udev/hwdb.bin /root/.pki
 

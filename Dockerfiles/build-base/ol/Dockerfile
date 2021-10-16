@@ -51,7 +51,6 @@ RUN set -eux && \
         --setopt=install_weak_deps=0 \
         --best \
         --nodocs ${INSTALL_PKGS} && \
-    microdnf -y clean all && \
     ARCH_SUFFIX="$(arch)"; \
     case "$ARCH_SUFFIX" in \
         x86_64) \
@@ -74,5 +73,6 @@ RUN set -eux && \
     rm -rf "$GNUPGHOME" go.tgz.asc && \
     tar -C /usr/local -xzf go.tgz && \
     rm go.tgz && \
+    microdnf -y clean all && \
     rm -rf /var/cache/yum /var/lib/yum/yumdb/* /usr/lib/udev/hwdb.d/* && \
     rm -rf /var/cache/dnf /etc/udev/hwdb.bin /root/.pki
