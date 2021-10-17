@@ -51,9 +51,7 @@ COPY --from=builder ["/tmp/zabbix-${ZBX_VERSION}/src/go/conf/zabbix_web_service.
 RUN set -eux && \
     INSTALL_PKGS="bash \
             shadow-utils \
-            chromium \
-            openssl-libs \
-            zlib" && \
+            chromium" && \
     curl -sSL -o /tmp/epel-release-latest-8.noarch.rpm https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm && \
     rpm -ivh /tmp/epel-release-latest-8.noarch.rpm && \
     rm -rf /tmp/epel-release-latest-8.noarch.rpm && \

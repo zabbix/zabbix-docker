@@ -32,9 +32,7 @@ COPY ["conf/etc/yum.repos.d/oracle-epel-ol8.repo", "/etc/yum.repos.d/oracle-epel
 
 RUN set -eux && \
     INSTALL_PKGS="bash \
-            chromium \
-            openssl-libs \
-            zlib" && \
+            chromium" && \
     microdnf -y install \
             --disablerepo="*" \
             --enablerepo="ol8_baseos_latest" \
