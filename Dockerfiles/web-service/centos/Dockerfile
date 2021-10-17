@@ -32,9 +32,7 @@ COPY --from=builder ["/tmp/zabbix-${ZBX_VERSION}/src/go/conf/zabbix_web_service.
 RUN set -eux && \
     REPOLIST="baseos,appstream,epel" && \
     INSTALL_PKGS="bash \
-            chromium \
-            openssl-libs \
-            zlib" && \
+            chromium" && \
     dnf -y install epel-release && \
     dnf -y install \
             --disablerepo "*" \
