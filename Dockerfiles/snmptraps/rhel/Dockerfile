@@ -2,8 +2,8 @@ FROM registry.access.redhat.com/ubi8/ubi-minimal
 MAINTAINER Alexey Pustovalov <alexey.pustovalov@zabbix.com>
 
 ARG MAJOR_VERSION=5.0
-ARG RELEASE=16
-ARG ZBX_VERSION=${MAJOR_VERSION}.16
+ARG RELEASE=17
+ARG ZBX_VERSION=${MAJOR_VERSION}.17
 
 ARG ZBX_SOURCES=https://git.zabbix.com/scm/zbx/zabbix.git
 

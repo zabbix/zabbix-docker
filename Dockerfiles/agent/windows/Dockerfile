@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1
 # escape=`
 ARG MAJOR_VERSION=5.0
-ARG ZBX_VERSION=${MAJOR_VERSION}.16
+ARG ZBX_VERSION=${MAJOR_VERSION}.17
 ARG BUILD_BASE_IMAGE=zabbix-build-agent:ltsc2022-agent-${ZBX_VERSION}
 ARG ZBX_SOURCES=https://git.zabbix.com/scm/zbx/zabbix.git
 ARG BASE_IMAGE=mcr.microsoft.com/powershell:lts-nanoserver-ltsc2022
@@ -15,7 +15,7 @@ ARG ZBX_VERSION
 ARG ZBX_SOURCES
 
 ARG MAJOR_VERSION=5.0
-ARG ZBX_VERSION=${MAJOR_VERSION}.16
+ARG ZBX_VERSION=${MAJOR_VERSION}.17
 ARG ZBX_SOURCES=https://git.zabbix.com/scm/zbx/zabbix.git
 
 LABEL org.opencontainers.image.title="Zabbix agent" `
