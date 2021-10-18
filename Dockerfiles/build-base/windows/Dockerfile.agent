@@ -9,7 +9,7 @@ ARG BUILD_ARCH=x64
 ARG CPU_MODEL=AMD64
 
 ARG MAJOR_VERSION=4.0
-ARG ZBX_VERSION=${MAJOR_VERSION}.34
+ARG ZBX_VERSION=${MAJOR_VERSION}.35
 ARG ZBX_SOURCES=https://git.zabbix.com/scm/zbx/zabbix.git
 
 ARG VS_BUILDTOOLS_URL=https://aka.ms/vs/16/release/vs_buildtools.exe
