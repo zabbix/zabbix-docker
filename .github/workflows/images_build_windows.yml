@@ -68,6 +68,7 @@ jobs:
 
       - name: Get branch info
         id: branch_info
+        shell: bash
         run: |
             github_ref="{{ github.ref }}"
             result=false
