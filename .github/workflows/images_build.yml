@@ -34,7 +34,7 @@ jobs:
       os: ${{ steps.os.outputs.list }}
       database: ${{ steps.database.outputs.list }}
       components: ${{ steps.components.outputs.list }}
-      is_default_branch: ${{ steps.branch_info.outputs.is_default }}
+      current_branch: ${{ steps.branch_info.outputs.current_branch }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2.3.4
