@@ -82,7 +82,7 @@ jobs:
         uses: tj-actions/branch-names@v5
 
   build_base:
-    timeout-minutes: 70
+    timeout-minutes: 90
     name: Build base on ${{ matrix.os }}
     needs: init_build
     strategy:
