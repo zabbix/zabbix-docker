@@ -142,7 +142,7 @@ jobs:
             type=ref,event=branch,suffix=-${{ matrix.os }}-latest
             type=raw,enable=${{ needs.init_build.outputs.is_default_branch == 'true' }},value=${{matrix.os}}-latest
           flavor: |
-            latest=${{ (matrix.os == 'alpine') && startsWith(needs.init_build.outputs.current_branch, env.LATEST_BRANCH) }}
+            latest=${{ (matrix.os == 'alpine') && ( needs.init_build.outputs.is_default_branch == 'true' ) }}
 
       - name: Build ${{ env.BASE_BUILD_NAME }}/${{ matrix.os }} and push
         id: docker_build
@@ -215,7 +215,7 @@ jobs:
             type=ref,event=branch,suffix=-${{ matrix.os }}-latest
             type=raw,enable=${{ needs.init_build.outputs.is_default_branch == 'true' }},value=${{matrix.os}}-latest
           flavor: |
-            latest=${{ (matrix.os == 'alpine') && startsWith(needs.init_build.outputs.current_branch, env.LATEST_BRANCH) }}
+            latest=${{ (matrix.os == 'alpine') && ( needs.init_build.outputs.is_default_branch == 'true' ) }}
 
       - name: Download SHA256 tag  build-base:${{ matrix.os }}
         uses: actions/download-artifact@v2.0.10
@@ -314,7 +314,7 @@ jobs:
             type=ref,event=branch,suffix=-${{ matrix.os }}-latest
             type=raw,enable=${{ needs.init_build.outputs.is_default_branch == 'true' }},value=${{matrix.os}}-latest
           flavor: |
-            latest=${{ (matrix.os == 'alpine') && startsWith(needs.init_build.outputs.current_branch, env.LATEST_BRANCH) }}
+            latest=${{ (matrix.os == 'alpine') && ( needs.init_build.outputs.is_default_branch == 'true' ) }}
 
       - name: Download SHA256 tag for ${{ steps.build_base_image.outputs.build_base }}:${{ matrix.os }}
         uses: actions/download-artifact@v2.0.10
