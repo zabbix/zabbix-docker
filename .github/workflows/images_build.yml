@@ -34,7 +34,7 @@ jobs:
       os: ${{ steps.os.outputs.list }}
       database: ${{ steps.database.outputs.list }}
       components: ${{ steps.components.outputs.list }}
-      current_branch: ${{ steps.branch_info.outputs.current_branch }}
+      is_default_branch: ${{ steps.branch_info.outputs.is_default_branch }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2.3.4
@@ -79,10 +79,23 @@ jobs:
 
       - name: Get branch info
         id: branch_info
-        uses: tj-actions/branch-names@v5
+        run: |
+            github_ref="${{ github.ref }}"
+            result=false
+
+            if [[ "$github_ref" == "refs/tags/"* ]]; then
+                github_ref=${github_ref%.*}
+            fi
+
+            github_ref=${github_ref##*/}
+
+            if [[ "$github_ref" == "${{ env.LATEST_BRANCH }}" ]]; then
+                result=true
+            fi
+            echo  "::set-output name=is_default_branch::$result"
 
   build_base:
-    timeout-minutes: 70
+    timeout-minutes: 90
     name: Build base on ${{ matrix.os }}
     needs: init_build
     strategy:
@@ -127,9 +140,9 @@ jobs:
             type=semver,pattern={{version}},suffix=-${{ matrix.os }}
             type=ref,event=branch,prefix=${{ matrix.os }}-,suffix=-latest
             type=ref,event=branch,suffix=-${{ matrix.os }}-latest
-            type=raw,enable=${{ needs.init_build.outputs.is_default_branch == 'true' }},value=${{matrix.os}}-latest
+            type=raw,enable=${{ (needs.init_build.outputs.is_default_branch == 'true') && ( github.event_name == 'push' ) }},value=${{matrix.os}}-latest
           flavor: |
-            latest=${{ (matrix.os == 'alpine') && (needs.init_build.outputs.current_branch == env.LATEST_BRANCH) }}
+            latest=${{ (matrix.os == 'alpine') && ( github.event_name == 'push' ) && ( needs.init_build.outputs.is_default_branch == 'true' ) }}
 
       - name: Build ${{ env.BASE_BUILD_NAME }}/${{ matrix.os }} and push
         id: docker_build
@@ -200,9 +213,9 @@ jobs:
             type=semver,pattern={{version}},suffix=-${{ matrix.os }}
             type=ref,event=branch,prefix=${{ matrix.os }}-,suffix=-latest
             type=ref,event=branch,suffix=-${{ matrix.os }}-latest
-            type=raw,enable=${{ needs.init_build.outputs.is_default_branch == 'true' }},value=${{matrix.os}}-latest
+            type=raw,enable=${{ (needs.init_build.outputs.is_default_branch == 'true') && ( github.event_name == 'push' ) }},value=${{matrix.os}}-latest
           flavor: |
-            latest=${{ (matrix.os == 'alpine') && (needs.init_build.outputs.current_branch == env.LATEST_BRANCH) }}
+            latest=${{ (matrix.os == 'alpine') && ( github.event_name == 'push' ) && ( needs.init_build.outputs.is_default_branch == 'true' ) }}
 
       - name: Download SHA256 tag  build-base:${{ matrix.os }}
         uses: actions/download-artifact@v2.0.10
@@ -299,9 +312,9 @@ jobs:
             type=semver,pattern={{version}},suffix=-${{ matrix.os }}
             type=ref,event=branch,prefix=${{ matrix.os }}-,suffix=-latest
             type=ref,event=branch,suffix=-${{ matrix.os }}-latest
-            type=raw,enable=${{ needs.init_build.outputs.is_default_branch == 'true' }},value=${{matrix.os}}-latest
+            type=raw,enable=${{ (needs.init_build.outputs.is_default_branch == 'true') && ( github.event_name == 'push' ) }},value=${{matrix.os}}-latest
           flavor: |
-            latest=${{ (matrix.os == 'alpine') && (needs.init_build.outputs.current_branch == env.LATEST_BRANCH) }}
+            latest=${{ (matrix.os == 'alpine') && ( github.event_name == 'push' ) && ( needs.init_build.outputs.is_default_branch == 'true' ) }}
 
       - name: Download SHA256 tag for ${{ steps.build_base_image.outputs.build_base }}:${{ matrix.os }}
         uses: actions/download-artifact@v2.0.10

@@ -34,7 +34,7 @@ jobs:
     outputs:
       os: ${{ steps.os.outputs.list }}
       components: ${{ steps.components.outputs.list }}
-      current_branch_branch: ${{ steps.branch_info.outputs.current_branch }}
+      is_default_branch: ${{ steps.branch_info.outputs.is_default_branch }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2.3.4
@@ -68,7 +68,21 @@ jobs:
 
       - name: Get branch info
         id: branch_info
-        uses: tj-actions/branch-names@v5
+        shell: bash
+        run: |
+            github_ref="${{ github.ref }}"
+            result=false
+
+            if [[ "$github_ref" == "refs/tags/"* ]]; then
+                github_ref=${github_ref%.*}
+            fi
+
+            github_ref=${github_ref##*/}
+
+            if [[ "$github_ref" == "${{ env.LATEST_BRANCH }}" ]]; then
+                result=true
+            fi
+            echo  "::set-output name=is_default_branch::$result"
 
   build_base:
     timeout-minutes: 70
@@ -110,7 +124,7 @@ jobs:
             type=semver,pattern={{version}},suffix=-${{ steps.base_os_tag.outputs.os_tag }},prefix=${{ matrix.component }}-
             type=ref,event=branch,prefix=${{ matrix.component }}-${{ steps.base_os_tag.outputs.os_tag }}-,suffix=-latest
             type=ref,event=branch,suffix=-${{ steps.base_os_tag.outputs.os_tag }}-latest,prefix=${{ matrix.component }}-
-            type=raw,enable=${{ needs.init_build.outputs.is_default_branch == 'true' }},value=${{ matrix.component }}-${{ steps.base_os_tag.outputs.os_tag }}-latest
+            type=raw,enable=${{ ( needs.init_build.outputs.is_default_branch == 'true' ) && ( github.event_name == 'push' ) }},value=${{ matrix.component }}-${{ steps.base_os_tag.outputs.os_tag }}-latest
           flavor: |
             latest=false
 
@@ -206,7 +220,7 @@ jobs:
             type=semver,pattern={{version}},suffix=-${{ steps.base_os_tag.outputs.os_tag }},prefix=${{ matrix.component }}-
             type=ref,event=branch,prefix=${{ matrix.component }}-${{ steps.base_os_tag.outputs.os_tag }}-,suffix=-latest
             type=ref,event=branch,suffix=-${{ steps.base_os_tag.outputs.os_tag }}-latest,prefix=${{ matrix.component }}-
-            type=raw,enable=${{ needs.init_build.outputs.is_default_branch == 'true' }},value=${{ matrix.component }}-${{ steps.base_os_tag.outputs.os_tag }}-latest
+            type=raw,enable=${{ ( needs.init_build.outputs.is_default_branch == 'true' ) && ( github.event_name == 'push' ) }},value=${{ matrix.component }}-${{ steps.base_os_tag.outputs.os_tag }}-latest
           flavor: |
             latest=false
 
@@ -314,7 +328,7 @@ jobs:
             type=semver,pattern={{version}},suffix=-${{ steps.base_os_tag.outputs.os_tag }}
             type=ref,event=branch,prefix=${{ steps.base_os_tag.outputs.os_tag }}-,suffix=-latest
             type=ref,event=branch,suffix=-${{ steps.base_os_tag.outputs.os_tag }}-latest
-            type=raw,enable=${{ needs.init_build.outputs.is_default_branch == 'true' }},value=${{ steps.base_os_tag.outputs.os_tag }}-latest
+            type=raw,enable=${{ ( needs.init_build.outputs.is_default_branch == 'true' ) && ( github.event_name == 'push' ) }},value=${{ matrix.component }}-${{ steps.base_os_tag.outputs.os_tag }}-latest
           flavor: |
             latest=false
 
