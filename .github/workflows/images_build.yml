@@ -80,7 +80,7 @@ jobs:
       - name: Get branch info
         id: branch_info
         run: |
-            github_ref="{{ github.ref }}"
+            github_ref="${{ github.ref }}"
             result=false
 
             if [[ "$github_ref" == "refs/tags/"* ]]; then
