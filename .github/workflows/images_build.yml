@@ -89,7 +89,7 @@ jobs:
 
             github_ref=${github_ref##*/}
 
-            if [[ "$github_ref" == "{{ env.LATEST_BRANCH }}" ]]; then
+            if [[ "$github_ref" == "${{ env.LATEST_BRANCH }}" ]]; then
                 result=true
             fi
             echo  "::set-output name=is_default_branch::$result"
