@@ -95,7 +95,7 @@ jobs:
             echo  "::set-output name=is_default_branch::$result"
 
   build_base:
-    timeout-minutes: 70
+    timeout-minutes: 90
     name: Build base on ${{ matrix.os }}
     needs: init_build
     strategy:
