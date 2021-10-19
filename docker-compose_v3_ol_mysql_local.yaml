@@ -2,43 +2,43 @@ version: '3.5'
 services:
  zabbix-build-base:
   build:
-   context: ./Dockerfiles/build-base/alpine
+   context: ./Dockerfiles/build-base/ol
    cache_from:
-    - alpine:3.11
-  image: zabbix-build-base:alpine-local
+    - oraclelinux:8-slim
+  image: zabbix-build-base:ol-local
 
  zabbix-build-mysql:
   build:
-   context: ./Dockerfiles/build-mysql/alpine
+   context: ./Dockerfiles/build-mysql/ol
    cache_from:
-    - alpine:3.11
+    - oraclelinux:8-slim
    args:
-    BUILD_BASE_IMAGE: zabbix-build-base:alpine-local
-  image: zabbix-build-mysql:alpine-local
+    BUILD_BASE_IMAGE: zabbix-build-base:ol-local
+  image: zabbix-build-mysql:ol-local
   depends_on:
    - zabbix-build-base
 
  zabbix-build-sqlite3:
   build:
-   context: ./Dockerfiles/build-sqlite3/alpine
+   context: ./Dockerfiles/build-sqlite3/ol
    cache_from:
-    - alpine:3.11
+    - oraclelinux:8-slim
    args:
-    BUILD_BASE_IMAGE: zabbix-build-base:alpine-local
-  image: zabbix-build-sqlite3:alpine-local
+    BUILD_BASE_IMAGE: zabbix-build-base:ol-local
+  image: zabbix-build-sqlite3:ol-local
   profiles:
    - all
   depends_on:
    - zabbix-build-base
 
  zabbix-server:
-  build:
-   context: ./Dockerfiles/server-mysql/alpine
+  build: 
+   context: ./Dockerfiles/server-mysql/ol
    cache_from:
-    - alpine:3.11
+    - oraclelinux:8-slim
    args:
-    BUILD_BASE_IMAGE: zabbix-build-mysql:alpine-local
-  image: zabbix-server-mysql:alpine-local
+    BUILD_BASE_IMAGE: zabbix-build-mysql:ol-local
+  image: zabbix-server-mysql:ol-local
   ports:
    - "10051:10051"
   volumes:
@@ -72,6 +72,9 @@ services:
    - MYSQL_USER
    - MYSQL_PASSWORD
    - MYSQL_ROOT_PASSWORD
+#   - client-key.pem
+#   - client-cert.pem
+#   - root-ca.pem
   depends_on:
    - mysql-server
    - zabbix-build-mysql
@@ -80,8 +83,8 @@ services:
      aliases:
       - zabbix-server
       - zabbix-server-mysql
-      - zabbix-server-alpine-mysql
-      - zabbix-server-mysql-alpine
+      - zabbix-server-ol-mysql
+      - zabbix-server-mysql-ol
    zbx_net_frontend:
 #  devices:
 #   - "/dev/ttyUSB0:/dev/ttyUSB0"
@@ -96,16 +99,16 @@ services:
    com.zabbix.company: "Zabbix LLC"
    com.zabbix.component: "zabbix-server"
    com.zabbix.dbtype: "mysql"
-   com.zabbix.os: "alpine"
+   com.zabbix.os: "oracle linux"
 
  zabbix-proxy-sqlite3:
   build:
-   context: ./Dockerfiles/proxy-sqlite3/alpine
+   context: ./Dockerfiles/proxy-sqlite3/ol
    cache_from:
-    - alpine:3.11
+    - oraclelinux:8-slim
    args:
-    BUILD_BASE_IMAGE: zabbix-build-sqlite3:alpine-local
-  image: zabbix-proxy-sqlite3:alpine-local
+    BUILD_BASE_IMAGE: zabbix-build-sqlite3:ol-local
+  image: zabbix-proxy-sqlite3:ol-local
   profiles:
    - all
   ports:
@@ -143,8 +146,8 @@ services:
    zbx_net_backend:
     aliases:
      - zabbix-proxy-sqlite3
-     - zabbix-proxy-alpine-sqlite3
-     - zabbix-proxy-sqlite3-alpine
+     - zabbix-proxy-ol-sqlite3
+     - zabbix-proxy-sqlite3-ol
    zbx_net_frontend:
   stop_grace_period: 30s
   labels:
@@ -152,16 +155,16 @@ services:
    com.zabbix.company: "Zabbix LLC"
    com.zabbix.component: "zabbix-proxy"
    com.zabbix.dbtype: "sqlite3"
-   com.zabbix.os: "alpine"
+   com.zabbix.os: "oracle linux"
 
  zabbix-proxy-mysql:
   build:
-   context: ./Dockerfiles/proxy-mysql/alpine
+   context: ./Dockerfiles/proxy-mysql/ol
    cache_from:
-    - alpine:3.11
+    - oraclelinux:8-slim
    args:
-    BUILD_BASE_IMAGE: zabbix-build-mysql:alpine-local
-  image: zabbix-proxy-mysql:alpine-local
+    BUILD_BASE_IMAGE: zabbix-build-mysql:ol-local
+  image: zabbix-proxy-mysql:ol-local
   profiles:
    - all
   ports:
@@ -201,12 +204,15 @@ services:
    - MYSQL_USER
    - MYSQL_PASSWORD
    - MYSQL_ROOT_PASSWORD
+#   - client-key.pem
+#   - client-cert.pem
+#   - root-ca.pem
   networks:
    zbx_net_backend:
     aliases:
      - zabbix-proxy-mysql
-     - zabbix-proxy-alpine-mysql
-     - zabbix-proxy-mysql-alpine
+     - zabbix-proxy-ol-mysql
+     - zabbix-proxy-mysql-ol
    zbx_net_frontend:
   stop_grace_period: 30s
   labels:
@@ -214,16 +220,16 @@ services:
    com.zabbix.company: "Zabbix LLC"
    com.zabbix.component: "zabbix-proxy"
    com.zabbix.dbtype: "mysql"
-   com.zabbix.os: "alpine"
+   com.zabbix.os: "oracle linux"
 
  zabbix-web-apache-mysql:
   build:
-   context: ./Dockerfiles/web-apache-mysql/alpine
+   context: ./Dockerfiles/web-apache-mysql/ol
    cache_from:
-    - alpine:3.11
+    - oraclelinux:8-slim
    args:
-    BUILD_BASE_IMAGE: zabbix-build-mysql:alpine-local
-  image: zabbix-web-apache-mysql:alpine-local
+    BUILD_BASE_IMAGE: zabbix-build-mysql:ol-local
+  image: zabbix-web-apache-mysql:ol-local
   profiles:
    - all
   ports:
@@ -233,6 +239,7 @@ services:
    - /etc/localtime:/etc/localtime:ro
    - /etc/timezone:/etc/timezone:ro
    - ./zbx_env/etc/ssl/apache2:/etc/ssl/apache2:ro
+   - ./zbx_env/usr/share/zabbix/modules/:/usr/share/zabbix/modules/:ro
   deploy:
    resources:
     limits:
@@ -247,6 +254,9 @@ services:
   secrets:
    - MYSQL_USER
    - MYSQL_PASSWORD
+#   - client-key.pem
+#   - client-cert.pem
+#   - root-ca.pem
   depends_on:
    - mysql-server
    - zabbix-server
@@ -261,8 +271,8 @@ services:
    zbx_net_backend:
     aliases:
      - zabbix-web-apache-mysql
-     - zabbix-web-apache-alpine-mysql
-     - zabbix-web-apache-mysql-alpine
+     - zabbix-web-apache-ol-mysql
+     - zabbix-web-apache-mysql-ol
    zbx_net_frontend:
   stop_grace_period: 10s
   sysctls:
@@ -273,16 +283,16 @@ services:
    com.zabbix.component: "zabbix-frontend"
    com.zabbix.webserver: "apache2"
    com.zabbix.dbtype: "mysql"
-   com.zabbix.os: "alpine"
+   com.zabbix.os: "oracle linux"
 
  zabbix-web-nginx-mysql:
   build:
-   context: ./Dockerfiles/web-nginx-mysql/alpine
+   context: ./Dockerfiles/web-nginx-mysql/ol
    cache_from:
-    - alpine:3.11
+    - oraclelinux:8-slim
    args:
-    BUILD_BASE_IMAGE: zabbix-build-mysql:alpine-local
-  image: zabbix-web-nginx-mysql:alpine-local
+    BUILD_BASE_IMAGE: zabbix-build-mysql:ol-local
+  image: zabbix-web-nginx-mysql:ol-local
   ports:
    - "80:8080"
    - "443:8443"
@@ -290,6 +300,7 @@ services:
    - /etc/localtime:/etc/localtime:ro
    - /etc/timezone:/etc/timezone:ro
    - ./zbx_env/etc/ssl/nginx:/etc/ssl/nginx:ro
+   - ./zbx_env/usr/share/zabbix/modules/:/usr/share/zabbix/modules/:ro
   deploy:
    resources:
     limits:
@@ -304,6 +315,9 @@ services:
   secrets:
    - MYSQL_USER
    - MYSQL_PASSWORD
+#   - client-key.pem
+#   - client-cert.pem
+#   - root-ca.pem
   depends_on:
    - mysql-server
    - zabbix-server
@@ -318,8 +332,8 @@ services:
    zbx_net_backend:
     aliases:
      - zabbix-web-nginx-mysql
-     - zabbix-web-nginx-alpine-mysql
-     - zabbix-web-nginx-mysql-alpine
+     - zabbix-web-nginx-ol-mysql
+     - zabbix-web-nginx-mysql-ol
    zbx_net_frontend:
   stop_grace_period: 10s
   sysctls:
@@ -330,18 +344,16 @@ services:
    com.zabbix.component: "zabbix-frontend"
    com.zabbix.webserver: "nginx"
    com.zabbix.dbtype: "mysql"
-   com.zabbix.os: "alpine"
+   com.zabbix.os: "oracle linux"
 
  zabbix-agent:
   build:
-   context: ./Dockerfiles/agent/alpine
+   context: ./Dockerfiles/agent/ol
    cache_from:
-    - alpine:3.11
+    - oraclelinux:8-slim
    args:
-    BUILD_BASE_IMAGE: zabbix-build-mysql:alpine-local
-  image: zabbix-agent:alpine-local
-  deploy:
-   mode: global
+    BUILD_BASE_IMAGE: zabbix-build-mysql:ol-local
+  image: zabbix-agent:ol-local
   profiles:
    - full
    - all
@@ -374,22 +386,22 @@ services:
     aliases:
      - zabbix-agent
      - zabbix-agent-passive
-     - zabbix-agent-alpine
+     - zabbix-agent-ol
   stop_grace_period: 5s
   labels:
    com.zabbix.description: "Zabbix agent"
    com.zabbix.company: "Zabbix LLC"
    com.zabbix.component: "zabbix-agentd"
-   com.zabbix.os: "alpine"
+   com.zabbix.os: "oracle linux"
 
  zabbix-java-gateway:
   build:
-   context: ./Dockerfiles/java-gateway/alpine
+   context: ./Dockerfiles/java-gateway/ol
    cache_from:
-    - alpine:3.11
+    - oraclelinux:8-slim
    args:
-    BUILD_BASE_IMAGE: zabbix-build-mysql:alpine-local
-  image: zabbix-java-gateway:alpine-local
+    BUILD_BASE_IMAGE: zabbix-build-mysql:ol-local
+  image: zabbix-java-gateway:ol-local
   profiles:
    - full
    - all
@@ -411,20 +423,20 @@ services:
    zbx_net_backend:
     aliases:
      - zabbix-java-gateway
-     - zabbix-java-gateway-alpine
+     - zabbix-java-gateway-ol
   stop_grace_period: 5s
   labels:
    com.zabbix.description: "Zabbix Java Gateway"
    com.zabbix.company: "Zabbix LLC"
    com.zabbix.component: "java-gateway"
-   com.zabbix.os: "alpine"
+   com.zabbix.os: "oracle linux"
 
  zabbix-snmptraps:
   build:
-   context: ./Dockerfiles/snmptraps/alpine
+   context: ./Dockerfiles/snmptraps/ol
    cache_from:
-    - alpine:3.11
-  image: zabbix-snmptraps:alpine-local
+    - oraclelinux:8-slim
+  image: zabbix-snmptraps:ol-local
   profiles:
    - full
    - all
@@ -450,7 +462,48 @@ services:
    com.zabbix.description: "Zabbix snmptraps"
    com.zabbix.company: "Zabbix LLC"
    com.zabbix.component: "snmptraps"
-   com.zabbix.os: "alpine"
+   com.zabbix.os: "oracle linux"
+
+ zabbix-web-service:
+  build:
+   context: ./Dockerfiles/web-service/ol
+   cache_from:
+    - oraclelinux:8-slim
+   args:
+    BUILD_BASE_IMAGE: zabbix-build-mysql:ol-local
+  image: zabbix-web-service:ol-local
+  profiles:
+   - full
+   - all
+  ports:
+   - "10053:10053"
+  volumes:
+   - ./zbx_env/var/lib/zabbix/enc:/var/lib/zabbix/enc:ro
+  cap_add:
+   - SYS_ADMIN
+  deploy:
+   resources:
+    limits:
+      cpus: '0.5'
+      memory: 512M
+    reservations:
+      cpus: '0.25'
+      memory: 256M
+  env_file:
+   - ./env_vars/.env_web_service
+  depends_on:
+   - zabbix-build-mysql
+  networks:
+   zbx_net_backend:
+    aliases:
+     - zabbix-web-service
+     - zabbix-web-service-ol
+  stop_grace_period: 5s
+  labels:
+   com.zabbix.description: "Zabbix web service"
+   com.zabbix.company: "Zabbix LLC"
+   com.zabbix.component: "web-service"
+   com.zabbix.os: "oracle linux"
 
  mysql-server:
   image: mysql:8.0
@@ -459,6 +512,10 @@ services:
    - --character-set-server=utf8
    - --collation-server=utf8_bin
    - --default-authentication-plugin=mysql_native_password
+#   - --require-secure-transport
+#   - --ssl-ca=/run/secrets/root-ca.pem
+#   - --ssl-cert=/run/secrets/server-cert.pem
+#   - --ssl-key=/run/secrets/server-key.pem
   volumes:
    - ./zbx_env/var/lib/mysql:/var/lib/mysql:rw
   env_file:
@@ -467,6 +524,9 @@ services:
    - MYSQL_USER
    - MYSQL_PASSWORD
    - MYSQL_ROOT_PASSWORD
+#   - server-key.pem
+#   - server-cert.pem
+#   - root-ca.pem
   stop_grace_period: 1m
   networks:
    zbx_net_backend:
@@ -522,3 +582,13 @@ secrets:
     file: ./env_vars/.MYSQL_PASSWORD
   MYSQL_ROOT_PASSWORD:
     file: ./env_vars/.MYSQL_ROOT_PASSWORD
+#  client-key.pem:
+#    file: ./env_vars/.ZBX_DB_KEY_FILE
+#  client-cert.pem:
+#    file: ./env_vars/.ZBX_DB_CERT_FILE
+#  root-ca.pem:
+#    file: ./env_vars/.ZBX_DB_CA_FILE
+#  server-cert.pem:
+#    file: ./env_vars/.DB_CERT_FILE
+#  server-key.pem:
+#    file: ./env_vars/.DB_KEY_FILE

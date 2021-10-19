@@ -37,7 +37,16 @@ else
     VCS_REF=$MAJOR_VERSION.$MINOR_VERSION
 fi
 
-DOCKER_BUILDKIT=1 docker build -t zabbix-$app_component:$os-$version --build-arg VCS_REF="$VCS_REF" --build-arg BUILD_DATE=`date -u +"%Y-%m-%dT%H:%M:%SZ"` -f Dockerfile .
+if hash docker 2>/dev/null; then
+    exec_command='docker'
+elif hash podman 2>/dev/null; then
+    exec_command='podman'
+else
+    echo >&2 "Build command requires docker or podman.  Aborting.";
+    exit 1;
+fi
+
+DOCKER_BUILDKIT=1 $exec_command build -t zabbix-$app_component:$os-$version --build-arg VCS_REF="$VCS_REF" --build-arg BUILD_DATE=`date -u +"%Y-%m-%dT%H:%M:%SZ"` -f Dockerfile .
 
 if [ "$type" != "build" ]; then
     links=""
@@ -47,15 +56,15 @@ if [ "$type" != "build" ]; then
         links="$links --link mysql-server:mysql"
         env_vars="$env_vars -e MYSQL_DATABASE=\"zabbix\" -e MYSQL_USER=\"zabbix\" -e MYSQL_PASSWORD=\"zabbix\" -e MYSQL_RANDOM_ROOT_PASSWORD=true"
 
-        docker rm -f mysql-server
-        docker run --name mysql-server -t $env_vars -d mysql:5.7
+        $exec_command rm -f mysql-server
+        $exec_command run --name mysql-server -t $env_vars -d mysql:5.7
     fi
 
     if [ "$links" != "" ]; then
         sleep 5
     fi
 
-    docker rm -f zabbix-$app_component
+    $exec_command rm -f zabbix-$app_component
 
-    docker run --name zabbix-$app_component -t -d $links $env_vars zabbix-$app_component:$os-$version
+    $exec_command run --name zabbix-$app_component -t -d $links $env_vars zabbix-$app_component:$os-$version
 fi

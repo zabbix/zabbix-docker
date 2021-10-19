@@ -3,25 +3,21 @@ FROM ubuntu:bionic
 
 ARG MAJOR_VERSION=4.0
 ARG ZBX_VERSION=${MAJOR_VERSION}.35
-ARG ZBX_SOURCES=https://git.zabbix.com/scm/zbx/zabbix.git
 
-ENV TERM=xterm ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES} \
-    PATH=/usr/lib/go-1.16/bin:$PATH
+ENV TERM=xterm \
+    ZBX_VERSION=${ZBX_VERSION}
 
-LABEL org.opencontainers.image.title="Zabbix build base" \
-      org.opencontainers.image.authors="Alexey Pustovalov <alexey.pustovalov@zabbix.com>" \
-      org.opencontainers.image.vendor="Zabbix LLC" \
-      org.opencontainers.image.url="https://zabbix.com/" \
+LABEL org.opencontainers.image.authors="Alexey Pustovalov <alexey.pustovalov@zabbix.com>" \
       org.opencontainers.image.description="Zabbix build base image contains all required packages to build Zabbix images" \
-      org.opencontainers.image.licenses="GPL v2.0" \
       org.opencontainers.image.documentation="https://www.zabbix.com/documentation/${MAJOR_VERSION}/manual/installation/containers" \
-      org.opencontainers.image.version="${ZBX_VERSION}" \
-      org.opencontainers.image.source="${ZBX_SOURCES}"
+      org.opencontainers.image.licenses="GPL v2.0" \
+      org.opencontainers.image.title="Zabbix build base" \
+      org.opencontainers.image.url="https://zabbix.com/" \
+      org.opencontainers.image.vendor="Zabbix LLC" \
+      org.opencontainers.image.version="${ZBX_VERSION}"
 
 RUN set -eux && \
-    apt-get -y update && \
-    DEBIAN_FRONTEND=noninteractive apt-get -y --no-install-recommends install \
-            bash \
+    INSTALL_PKGS="bash \
             autoconf \
             automake \
             binutils \
@@ -44,7 +40,11 @@ RUN set -eux && \
             pkg-config \
             gettext \
             git \
-            unixodbc-dev && \
+            unixodbc-dev" && \
+    apt-get -y update && \
+    DEBIAN_FRONTEND=noninteractive apt-get -y \
+            --no-install-recommends install \
+        ${INSTALL_PKGS} && \
     apt-get -y autoremove && \
     apt-get -y clean && \
     rm -rf /var/lib/apt/lists/*
