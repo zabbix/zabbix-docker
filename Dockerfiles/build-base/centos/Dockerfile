@@ -1,28 +1,24 @@
 # syntax=docker/dockerfile:1
-FROM centos:8
+FROM centos:centos8
 
 ARG MAJOR_VERSION=5.0
 ARG ZBX_VERSION=${MAJOR_VERSION}.17
-ARG ZBX_SOURCES=https://git.zabbix.com/scm/zbx/zabbix.git
 
-ENV TERM=xterm ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES} \
+ENV TERM=xterm \
+    ZBX_VERSION=${ZBX_VERSION} \
     PATH=/usr/local/go/bin:$PATH
 
-LABEL org.opencontainers.image.title="Zabbix build base" \
-      org.opencontainers.image.authors="Alexey Pustovalov <alexey.pustovalov@zabbix.com>" \
-      org.opencontainers.image.vendor="Zabbix LLC" \
-      org.opencontainers.image.url="https://zabbix.com/" \
+LABEL org.opencontainers.image.authors="Alexey Pustovalov <alexey.pustovalov@zabbix.com>" \
       org.opencontainers.image.description="Zabbix build base image contains all required packages to build Zabbix images" \
-      org.opencontainers.image.licenses="GPL v2.0" \
       org.opencontainers.image.documentation="https://www.zabbix.com/documentation/${MAJOR_VERSION}/manual/installation/containers" \
-      org.opencontainers.image.version="${ZBX_VERSION}" \
-      org.opencontainers.image.source="${ZBX_SOURCES}"
+      org.opencontainers.image.licenses="GPL v2.0" \
+      org.opencontainers.image.title="Zabbix build base" \
+      org.opencontainers.image.url="https://zabbix.com/" \
+      org.opencontainers.image.vendor="Zabbix LLC" \
+      org.opencontainers.image.version="${ZBX_VERSION}"
 
 RUN set -eux && \
-    sed -i 's/enabled=0/enabled=1/g' /etc/yum.repos.d/CentOS-Linux-PowerTools.repo && \
-    dnf --quiet makecache && \
-    dnf -y install epel-release && \
-    dnf -y module enable mysql && \
+    REPOLIST="baseos,appstream,powertools" && \
     INSTALL_PKGS="autoconf \
             automake \
             bash \
@@ -47,7 +43,13 @@ RUN set -eux && \
             tar \
             gettext \
             unixODBC-devel" && \
-    dnf -y install --setopt=tsflags=nodocs --setopt=install_weak_deps=False --best \
+    dnf -y module enable mysql && \
+    dnf -y install \
+        --disablerepo "*" \
+        --enablerepo "${REPOLIST}" \
+        --setopt=tsflags=nodocs \
+        --setopt=install_weak_deps=False \
+        --best \
         ${INSTALL_PKGS} && \
     ARCH_SUFFIX="$(arch)"; \
     case "$ARCH_SUFFIX" in \
