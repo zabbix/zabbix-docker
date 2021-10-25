@@ -209,7 +209,7 @@ jobs:
           images: ${{ env.DOCKER_REPOSITORY }}/${{ env.IMAGE_PREFIX }}${{ env.COMPONENT_BASE_BUILD_NAME }}
           tags: |
             type=raw,value=${{ matrix.component }}-${{ steps.base_os_tag.outputs.os_tag }}-trunk
-            type=raw,value==${{ matrix.component }}-trunk-${{ steps.base_os_tag.outputs.os_tag }}
+            type=raw,value=${{ matrix.component }}-trunk-${{ steps.base_os_tag.outputs.os_tag }}
           flavor: |
             latest=false
 
