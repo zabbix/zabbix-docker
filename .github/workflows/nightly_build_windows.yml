@@ -112,8 +112,8 @@ jobs:
         with:
           images: ${{ env.DOCKER_REPOSITORY }}/${{ env.IMAGE_PREFIX }}${{ env.BASE_BUILD_NAME }}
           tags: |
-            type=ref,event=branch,prefix=${{ matrix.component }}-${{ steps.base_os_tag.outputs.os_tag }}-
-            type=ref,event=branch,suffix=-${{ steps.base_os_tag.outputs.os_tag }},prefix=${{ matrix.component }}-
+            type=raw,value=${{ matrix.component }}-${{ steps.base_os_tag.outputs.os_tag }}-trunk
+            type=raw,value=${{ matrix.component }}-trunk-${{ steps.base_os_tag.outputs.os_tag }}
           flavor: |
             latest=false
 
@@ -208,8 +208,8 @@ jobs:
         with:
           images: ${{ env.DOCKER_REPOSITORY }}/${{ env.IMAGE_PREFIX }}${{ env.COMPONENT_BASE_BUILD_NAME }}
           tags: |
-            type=ref,event=branch,prefix=${{ matrix.component }}-${{ steps.base_os_tag.outputs.os_tag }}-
-            type=ref,event=branch,suffix=-${{ steps.base_os_tag.outputs.os_tag }},prefix=${{ matrix.component }}-
+            type=raw,value=${{ matrix.component }}-${{ steps.base_os_tag.outputs.os_tag }}-trunk
+            type=raw,value==${{ matrix.component }}-trunk-${{ steps.base_os_tag.outputs.os_tag }}
           flavor: |
             latest=false
 
@@ -316,9 +316,9 @@ jobs:
         with:
           images: ${{ env.DOCKER_REPOSITORY }}/${{ env.IMAGE_PREFIX }}${{ matrix.component }}
           tags: |
-            type=ref,event=branch,prefix=${{ steps.base_os_tag.outputs.os_tag }}-
-            type=ref,event=branch,suffix=-${{ steps.base_os_tag.outputs.os_tag }}
-          flavor: |
+            type=raw,value=${{ steps.base_os_tag.outputs.os_tag }}-trunk
+            type=raw,value=trunk-${{ steps.base_os_tag.outputs.os_tag }}
+          flavor: |                                                                                                    
             latest=false
 
       - name: Download SHA256 tag for ${{ env.COMPONENT_BASE_BUILD_NAME }}:${{ matrix.os }}
