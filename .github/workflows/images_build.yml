@@ -126,6 +126,7 @@ jobs:
         id: platform
         run: |
             platform_list=$(jq -r '.["os-linux"].${{ matrix.os }} | join(",")' "./build.json")
+            platform_list="${platform_list%,}"
 
             echo ::set-output name=list::$platform_list
 
@@ -166,7 +167,7 @@ jobs:
          if-no-files-found: error
 
   build_base_database:
-    timeout-minutes: 70
+    timeout-minutes: 90
     needs: [ "build_base", "init_build"]
     name: Build ${{ matrix.build }} base on ${{ matrix.os }}
     strategy:
@@ -196,6 +197,7 @@ jobs:
         id: platform
         run: |
             platform_list=$(jq -r '.["os-linux"].${{ matrix.os }} | join(",")' "./build.json")
+            platform_list="${platform_list%,}"
 
             echo ::set-output name=list::$platform_list
 
@@ -251,7 +253,7 @@ jobs:
          if-no-files-found: error
 
   build_images:
-    timeout-minutes: 70
+    timeout-minutes: 90
     needs: [ "build_base_database", "init_build"]
     name: Build ${{ matrix.build }} on ${{ matrix.os }}
     strategy:
@@ -285,6 +287,13 @@ jobs:
             else
                 platform_list=$(jq -r '.["os-linux"].${{ matrix.os }} | join(",")' "./build.json")
             fi
+
+            # Can not compile Java applications on ppc64le
+            if [ "${{ matrix.build }}" == "java-gateway" ]; then
+                platform_list="${platform_list%linux/ppc64le}"
+            fi
+
+            platform_list="${platform_list%,}"
 
             echo ::set-output name=list::$platform_list
 
