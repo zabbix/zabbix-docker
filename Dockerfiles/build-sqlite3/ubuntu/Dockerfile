@@ -31,6 +31,9 @@ RUN set -eux && \
         armv7l) \
             additional_components='--enable-java'; \
             ;; \
+        s390x) \
+            additional_components='--enable-java'; \
+            ;; \
         ppc64le) \
             additional_components=''; \
             ;; \
