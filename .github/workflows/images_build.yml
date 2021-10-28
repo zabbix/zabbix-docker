@@ -12,6 +12,7 @@ on:
       - 'trunk'
     paths:
       - 'Dockerfiles/**'
+      - 'build.json'
       - '!**/README.md'
       - '!Dockerfiles/*/rhel/*'
       - '!Dockerfiles/*/windows/*'
