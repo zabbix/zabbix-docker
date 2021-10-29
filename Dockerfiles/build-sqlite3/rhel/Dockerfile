@@ -30,6 +30,19 @@ LABEL description="Zabbix build base for SQLite3 based images" \
       org.label-schema.vendor="Zabbix LLC"
 
 RUN set -eux && \
+    ARCH_SUFFIX="$(arch)"; \
+    case "$ARCH_SUFFIX" in \
+        x86_64) \
+            additional_components='--enable-java'; \
+            ;; \
+        aarch64) \
+            additional_components='--enable-java'; \
+            ;; \
+        ppc64le) \
+            additional_components=''; \
+            ;; \
+        *) echo "Unknown ARCH_SUFFIX=${ARCH_SUFFIX-}"; exit 1 ;; \
+    esac; \
     cd /tmp/ && \
     git -c advice.detachedHead=false clone ${ZBX_SOURCES} --branch master --depth 1 --single-branch /tmp/zabbix-${ZBX_VERSION} && \
     cd /tmp/zabbix-${ZBX_VERSION} && \
@@ -47,7 +60,6 @@ RUN set -eux && \
             --enable-agent \
             --enable-agent2 \
             --enable-ipv6 \
-            --enable-java \
             --enable-proxy \
             --with-ldap \
             --with-libcurl \
@@ -59,6 +71,7 @@ RUN set -eux && \
             --with-sqlite3 \
             --with-ssh \
             --with-unixodbc \
+            $additional_components \
             --silent && \
     make -j"$(nproc)" -s dbschema && \
     make -j"$(nproc)" -s && \
