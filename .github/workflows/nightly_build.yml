@@ -66,7 +66,7 @@ jobs:
             echo "::set-output name=list::$component_list"
 
   build_base:
-    timeout-minutes: 70
+    timeout-minutes: 30
     name: Build base on ${{ matrix.os }}
     needs: init_build
     strategy:
@@ -138,7 +138,7 @@ jobs:
          if-no-files-found: error
 
   build_base_database:
-    timeout-minutes: 90
+    timeout-minutes: 120
     needs: [ "build_base", "init_build"]
     name: Build ${{ matrix.build }} base on ${{ matrix.os }}
     strategy:
@@ -226,7 +226,7 @@ jobs:
          if-no-files-found: error
 
   build_images:
-    timeout-minutes: 70
+    timeout-minutes: 90
     needs: [ "build_base_database", "init_build"]
     name: Build ${{ matrix.build }} base on ${{ matrix.os }}
     strategy:
@@ -259,20 +259,28 @@ jobs:
         id: platform
         run: |
             # Chromium on Alpine is available only on linux/amd64, linux/arm64 platforms
-            if [ "${{ matrix.os }}" == "alpine" ] && [ "${{ matrix.build }}" == "web-service" ]; then
+            if ([ "${{ matrix.os }}" == "alpine" ] || [ "${{ matrix.os }}" == "centos" ]) && [ "${{ matrix.build }}" == "web-service" ]; then
                 platform_list="linux/amd64,linux/arm64"
+            # Chromium on Ubuntu is not available on s390x platform
+            elif [ "${{ matrix.os }}" == "ubuntu" ] && [ "${{ matrix.build }}" == "web-service" ]; then
+                platform_list="linux/amd64,linux/arm/v7,linux/arm64"
             else
                 platform_list=$(jq -r '.["os-linux"].${{ matrix.os }} | join(",")' "./build.json")
             fi
 
+            # Build only Agent and Agent2 on 386
+            if [ "${{ matrix.build }}" != "agent"* ]; then
+                platform_list="${platform_list#linux/386,}"
+            fi
+
+            # Can not compile Java applications on ppc64le
+            if [ "${{ matrix.build }}" == "java-gateway" ]; then
+                platform_list="${platform_list%linux/ppc64le}"
+            fi
+
+            platform_list="${platform_list%,}"
+
             echo ::set-output name=list::$platform_list
-
-      - name: Detect Build Base Image
-        id: build_base_image
-        run: |
-          BUILD_BASE=$(jq -r '.components."${{ matrix.build }}"' "./build.json")
-
-          echo ::set-output name=build_base::${BUILD_BASE}
 
       - name: Generate tags
         id: meta
