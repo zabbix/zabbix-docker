@@ -282,6 +282,13 @@ jobs:
 
             echo ::set-output name=list::$platform_list
 
+      - name: Detect Build Base Image
+        id: build_base_image
+        run: |
+          BUILD_BASE=$(jq -r '.components."${{ matrix.build }}"' "./build.json")
+
+          echo ::set-output name=build_base::${BUILD_BASE}
+
       - name: Generate tags
         id: meta
         uses: docker/metadata-action@v3
