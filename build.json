@@ -15,9 +15,7 @@
       "linux/s390x"
     ],
     "centos": [
-      "linux/amd64",
-      "linux/arm64",
-      "linux/ppc64le"
+      "linux/amd64"
     ]
   },
   "os-windows": {
