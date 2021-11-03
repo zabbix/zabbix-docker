@@ -20,6 +20,25 @@ LABEL org.opencontainers.image.authors="Alexey Pustovalov <alexey.pustovalov@zab
       org.opencontainers.image.version="${ZBX_VERSION}"
 
 RUN set -eux && \
+    ARCH_SUFFIX="$(arch)"; \
+    case "$ARCH_SUFFIX" in \
+        x86_64) \
+            additional_components='--enable-java'; \
+            ;; \
+        aarch64) \
+            additional_components='--enable-java'; \
+            ;; \
+        armv7l) \
+            additional_components='--enable-java'; \
+            ;; \
+        s390x) \
+            additional_components='--enable-java'; \
+            ;; \
+        ppc64le) \
+            additional_components=''; \
+            ;; \
+        *) echo "Unknown ARCH_SUFFIX=${ARCH_SUFFIX-}"; exit 1 ;; \
+    esac; \
     cd /tmp/ && \
     git -c advice.detachedHead=false clone ${ZBX_SOURCES} --branch ${ZBX_VERSION} --depth 1 --single-branch /tmp/zabbix-${ZBX_VERSION} && \
     cd /tmp/zabbix-${ZBX_VERSION} && \
@@ -35,7 +54,6 @@ RUN set -eux && \
             --sysconfdir=/etc/zabbix \
             --enable-agent \
             --enable-ipv6 \
-            --enable-java \
             --enable-proxy \
             --enable-server \
             --with-ldap \
@@ -47,6 +65,7 @@ RUN set -eux && \
             --with-openssl \
             --with-ssh \
             --with-unixodbc \
+            $additional_components \
             --silent && \
     make -j"$(nproc)" -s dbschema && \
     make -j"$(nproc)" -s && \
