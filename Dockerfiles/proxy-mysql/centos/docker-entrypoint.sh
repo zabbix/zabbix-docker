@@ -344,7 +344,7 @@ update_zbx_config() {
     update_config_var $ZBX_CONFIG "DBSchema" "${DB_SERVER_SCHEMA}"
     update_config_var $ZBX_CONFIG "DBPort" "${DB_SERVER_PORT}"
 
-    if [ -n "${VAULT_TOKEN}" ]; then
+    if [ -n "${VAULT_TOKEN}" ] && [ -n "${ZBX_VAULTURL}" ]; then
         update_config_var $ZBX_CONFIG "VaultDBPath" "${ZBX_VAULTDBPATH}"
         update_config_var $ZBX_CONFIG "VaultURL" "${ZBX_VAULTURL}"
         update_config_var $ZBX_CONFIG "DBUser"

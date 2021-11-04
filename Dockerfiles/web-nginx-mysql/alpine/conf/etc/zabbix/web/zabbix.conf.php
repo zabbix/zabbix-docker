@@ -6,8 +6,8 @@ $DB['TYPE']     = getenv('DB_SERVER_TYPE');
 $DB['SERVER']   = getenv('DB_SERVER_HOST');
 $DB['PORT']     = getenv('DB_SERVER_PORT');
 $DB['DATABASE'] = getenv('DB_SERVER_DBNAME');
-$DB['USER']     = ! getenv('VAULT_TOKEN') ? getenv('DB_SERVER_USER') : '';
-$DB['PASSWORD'] = ! getenv('VAULT_TOKEN') ? getenv('DB_SERVER_PASS') : '';
+$DB['USER']     = (! getenv('VAULT_TOKEN') || ! getenv('ZBX_VAULTURL')) ? getenv('DB_SERVER_USER') : '';
+$DB['PASSWORD'] = (! getenv('VAULT_TOKEN') || ! getenv('ZBX_VAULTURL')) ? getenv('DB_SERVER_PASS') : '';
 
 // Schema name. Used for PostgreSQL.
 $DB['SCHEMA'] = getenv('DB_SERVER_SCHEMA');
