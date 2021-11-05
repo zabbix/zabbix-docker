@@ -166,7 +166,7 @@ RUN Set-Location -Path $env:SystemDrive\.; `
     `
     Write-Host ('Downloading {0} ...' -f $env:PCRE_URL); `
     [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; `
-    Invoke-WebRequest -OutFile $env:SystemDrive\pcre.zip -Uri $env:PCRE_URL; `
+    (new-object System.Net.WebClient).DownloadFile("""$env:PCRE_URL""","""$env:SystemDrive\pcre.zip"""); `
     `
     Write-Host ('Verifying SHA256 ({0}) ...' -f $sha256); `
     $sha256 = '5b709aa45ea3b8bb73052947200ad187f651a2049158fb5bbfed329e4322a977'; `
