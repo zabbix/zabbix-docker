@@ -19,7 +19,7 @@ ARG GIT_URL=https://github.com/git-for-windows/git/releases/download/v2.33.0.win
 ARG MINGW_URL=https://sourceforge.net/projects/mingw-w64/files/Toolchains%20targetting%20Win64/Personal%20Builds/mingw-builds/8.1.0/threads-win32/sjlj/x86_64-8.1.0-release-win32-sjlj-rt_v6-rev0.7z
 ARG GOLANG_URL=https://golang.org/dl/go$GOLANG_VERSION.windows-amd64.msi
 ARG CYGWIN_URL=https://cygwin.com/setup-x86_64.exe
-ARG PCRE_URL=https://ftp.pcre.org/pub/pcre/pcre-$PCRE_VERSION.zip
+ARG PCRE_URL=https://sourceforge.net/projects/pcre/files/pcre/$PCRE_VERSION/pcre-$PCRE_VERSION.zip
 ARG OPENSSL_URL=https://www.openssl.org/source/openssl-$OPENSSL_VERSION.tar.gz
 ARG SEVEN_ZIP_URL=https://www.7-zip.org/a/7z$SEVEN_ZIP_VERSION-$BUILD_ARCH.msi
 
