@@ -57,7 +57,8 @@ RUN set -eux && \
             iputils \
             shadow-utils \
             pcre \
-            libcurl" && \
+            libcurl \
+            smartmontools" && \
     curl -sSL -o /tmp/epel-release-latest-8.noarch.rpm https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm && \
     rpm -ivh /tmp/epel-release-latest-8.noarch.rpm && \
     rm -rf /tmp/epel-release-latest-8.noarch.rpm && \

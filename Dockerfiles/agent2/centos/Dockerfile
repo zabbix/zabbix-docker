@@ -39,7 +39,8 @@ RUN set -eux && \
             iputils \
             pcre \
             libcurl-minimal \
-            openssl-libs" && \
+            openssl-libs \
+            smartmontools" && \
     dnf -y install epel-release && \
     dnf -y install \
         --disablerepo "*" \

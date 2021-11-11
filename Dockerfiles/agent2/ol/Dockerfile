@@ -39,7 +39,8 @@ RUN set -eux && \
             iputils \
             pcre \
             libcurl \
-            openssl-libs" && \
+            openssl-libs \
+            smartmontools" && \
     microdnf -y install \
             --disablerepo="*" \
             --enablerepo="ol8_baseos_latest" \

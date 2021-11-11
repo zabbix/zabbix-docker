@@ -38,7 +38,8 @@ RUN set -eux && \
             ca-certificates \
             libssl1.1 \
             libcurl4 \
-            libldap-2.4" && \
+            libldap-2.4 \
+            smartmontools" && \
     apt-get -y update && \
     DEBIAN_FRONTEND=noninteractive apt-get -y \
             --no-install-recommends install \
