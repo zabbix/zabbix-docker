@@ -14,8 +14,6 @@ ARG MAJOR_VERSION
 ARG ZBX_VERSION
 ARG ZBX_SOURCES=https://git.zabbix.com/scm/zbx/zabbix.git
 
-ARG SMARTMONTOOLS_URL=https://sourceforge.net/projects/smartmontools/files/smartmontools/7.2/smartmontools-7.2-1.win32-setup.exe
-
 LABEL org.opencontainers.image.title="Zabbix agent 2" `
       org.opencontainers.image.authors="Alexey Pustovalov <alexey.pustovalov@zabbix.com>" `
       org.opencontainers.image.vendor="Zabbix LLC" `
@@ -42,23 +40,6 @@ RUN $env:PATH = [string]::Format('{0}\zabbix\sbin;{0}\zabbix\bin;', $env:SystemD
     [Environment]::SetEnvironmentVariable('ZBX_HOME', $env:ZBX_HOME, [EnvironmentVariableTarget]::Machine);
 
 RUN Set-Location -Path $env:SystemDrive\.; `
-    `
-    Write-Host ('Downloading {0} ...' -f $env:SMARTMONTOOLS_URL); `
-    [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; `
-    Invoke-WebRequest -OutFile $env:SystemDrive\smartmontools-setup.exe -Uri $env:SMARTMONTOOLS_URL; `
-    `
-    $sha256 = '83a577757bac76d48c3999b097bac4cd94e7ed3cb3456560aa511c5ac28fb859'; `
-    Write-Host ('Verifying SHA256 ({0}) ...' -f $sha256); `
-    if ((Get-FileHash $env:SystemDrive\mingw.7z -Algorithm sha256).Hash -ne $sha256) { `
-        Write-Host 'Checksum S.M.A.R.T. Monitoring Tools failed!'; `
-        exit 1; `
-    }; `
-    Write-Host 'Installing ...'; `
-    Start-Process `
-        -FilePath $env:SystemDrive\smartmontools-setup.exe `
-        -ArgumentList '/S' -Wait; `
-    Write-Host 'Removing downloaded...'; `
-    Remove-Item -Force -Path $env:SystemDrive\smartmontools-setup.exe; `
     `
     New-Item -ItemType directory -Path $env:ZBX_HOME\conf\zabbix_agentd.d | Out-Null; `
     New-Item -ItemType directory -Path $env:ZBX_HOME\enc | Out-Null; `
