@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1
 # escape=`
-ARG BUILD_BASE_IMAGE=mcr.microsoft.com/dotnet/framework/sdk:4.8-windowsservercore-ltsc2022
+ARG BUILD_BASE_IMAGE=mcr.microsoft.com/windows/servercore:ltsc2022
 FROM $BUILD_BASE_IMAGE
 
 ARG PCRE_VERSION=8.45
@@ -118,8 +118,11 @@ RUN Set-Location -Path $env:SystemDrive\.; `
         --quiet `
         --wait `
         --norestart `
-        --nocache modify `
+        --nocache `
         --installPath """${env:ProgramFiles(x86)}\Microsoft Visual Studio\2019\BuildTools""" `
+        --channelUri https://aka.ms/vs/16/release/channel `
+        --installChannelUri https://aka.ms/vs/16/release/channel `
+        --channelId VisualStudio.16.Release `
         # https://docs.microsoft.com/en-us/visualstudio/install/workload-component-id-vs-build-tools?view=vs-2019
         --add Microsoft.VisualStudio.Component.Windows10SDK.19041 `
         --add Microsoft.VisualStudio.Component.VC.CMake.Project; `

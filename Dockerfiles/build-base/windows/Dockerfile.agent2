@@ -1,12 +1,12 @@
 # syntax=docker/dockerfile:1
 # escape=`
-ARG BUILD_BASE_IMAGE=mcr.microsoft.com/dotnet/framework/sdk:4.8-windowsservercore-ltsc2022
+ARG BUILD_BASE_IMAGE=mcr.microsoft.com/windows/servercore:ltsc2022
 FROM $BUILD_BASE_IMAGE as builder_base
 
 ARG PCRE_VERSION=8.45
 ARG OPENSSL_VERSION=1.1.1l
 ARG ZLIB_VERSION=1.2.11
-ARG GOLANG_VERSION=1.17.2
+ARG GOLANG_VERSION=1.17.3
 ARG SEVEN_ZIP_VERSION=1900
 ARG BUILD_ARCH=x64
 ARG CPU_MODEL=AMD64
@@ -67,7 +67,7 @@ RUN Set-Location -Path $env:SystemDrive\.; `
     Write-Host ('Downloading {0} ...' -f $env:GOLANG_URL); `
     [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; `
     Invoke-WebRequest -OutFile $env:SystemDrive\go-amd64.msi -Uri $env:GOLANG_URL; `
-    $sha256 = 'f7d54883e9bb653b1a50061a7fa42a6503c680a25cee32f16ccba51a77b0c83b'; `
+    $sha256 = 'bf3c475726c9165eb5d809e1bb4ce33550a25850495aac0a5df6d0df05930936'; `
     `
     Write-Host ('Verifying SHA256 ({0}) ...' -f $sha256); `
     if ((Get-FileHash $env:SystemDrive\go-amd64.msi -Algorithm sha256).Hash -ne $sha256) { `
@@ -141,8 +141,11 @@ RUN Set-Location -Path $env:SystemDrive\.; `
         --quiet `
         --wait `
         --norestart `
-        --nocache modify `
+        --nocache `
         --installPath """${env:ProgramFiles(x86)}\Microsoft Visual Studio\2019\BuildTools""" `
+        --channelUri https://aka.ms/vs/16/release/channel `
+        --installChannelUri https://aka.ms/vs/16/release/channel `
+        --channelId VisualStudio.16.Release `
         # https://docs.microsoft.com/en-us/visualstudio/install/workload-component-id-vs-build-tools?view=vs-2019
         --add Microsoft.VisualStudio.Component.Windows10SDK.19041 `
         --add Microsoft.VisualStudio.Component.VC.CMake.Project; `
