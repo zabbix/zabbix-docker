@@ -38,6 +38,8 @@ RUN set -eux && \
             pcre \
             coreutils \
             libcurl \
+            smartmontools \
+            sudo \
             iputils" && \
     apk add \
             --no-cache \

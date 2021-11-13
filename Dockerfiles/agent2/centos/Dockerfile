@@ -39,6 +39,8 @@ RUN set -eux && \
             iputils \
             pcre \
             libcurl-minimal \
+            smartmontools \
+            sudo \
             openssl-libs" && \
     dnf -y install epel-release && \
     dnf -y install \
