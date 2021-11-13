@@ -135,7 +135,7 @@ RUN Set-Location -Path $env:SystemDrive\.; `
     Write-Host 'Visual Studio components installation cleanup'; `
     Write-Host 'Removing downloaded...'; `
     Remove-Item -Force -Path $env:SystemDrive\vs_buildtools.exe; `
-    Get-ChildItem -Path """${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer""" -Directory -Recurse | Remove-Item -Force Recurse; `
+    Get-ChildItem -Path """${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer""" -Directory -Recurse | Remove-Item -Force -Recurse; `
     Remove-Item -Force -Recurse $env:TEMP\*; `
     Write-Host 'Build environment is ready...';
 
