@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1
 # escape=`
-ARG BUILD_BASE_IMAGE=mcr.microsoft.com/dotnet/framework/sdk:4.8-windowsservercore-ltsc2022
+ARG BUILD_BASE_IMAGE=mcr.microsoft.com/windows/servercore:ltsc2022
 FROM $BUILD_BASE_IMAGE
 
 ARG PCRE_VERSION=8.45
@@ -15,7 +15,7 @@ ARG VS_BUILDTOOLS_URL=https://aka.ms/vs/16/release/vs_buildtools.exe
 ARG NASM_URL=https://www.nasm.us/pub/nasm/releasebuilds/2.15.05/win64/nasm-2.15.05-installer-x64.exe
 ARG PERL_URL=https://strawberryperl.com/download/5.32.1.1/strawberry-perl-5.32.1.1-64bit.msi
 ARG GIT_URL=https://github.com/git-for-windows/git/releases/download/v2.33.0.windows.2/MinGit-2.33.0.2-busybox-64-bit.zip
-ARG PCRE_URL=https://ftp.pcre.org/pub/pcre/pcre-$PCRE_VERSION.zip
+ARG PCRE_URL=https://sourceforge.net/projects/pcre/files/pcre/$PCRE_VERSION/pcre-$PCRE_VERSION.zip
 ARG OPENSSL_URL=https://www.openssl.org/source/openssl-$OPENSSL_VERSION.tar.gz
 
 ENV ZBX_VERSION=$ZBX_VERSION `
@@ -106,7 +106,7 @@ RUN Set-Location -Path $env:SystemDrive\.; `
     `
     Write-Host 'Installing Text::Template...'; `
     cpan Text::Template; `
-	`
+    `
     Write-Host ('Downloading {0} ...' -f $env:VS_BUILDTOOLS_URL); `
     [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; `
     Invoke-WebRequest -OutFile $env:SystemDrive\vs_buildtools.exe $env:VS_BUILDTOOLS_URL; `
@@ -116,8 +116,11 @@ RUN Set-Location -Path $env:SystemDrive\.; `
         --quiet `
         --wait `
         --norestart `
-        --nocache modify `
+        --nocache `
         --installPath """${env:ProgramFiles(x86)}\Microsoft Visual Studio\2019\BuildTools""" `
+        --channelUri https://aka.ms/vs/16/release/channel `
+        --installChannelUri https://aka.ms/vs/16/release/channel `
+        --channelId VisualStudio.16.Release `
         # https://docs.microsoft.com/en-us/visualstudio/install/workload-component-id-vs-build-tools?view=vs-2019
         --add Microsoft.VisualStudio.Component.Windows10SDK.19041 `
         --add Microsoft.VisualStudio.Component.VC.CMake.Project; `
@@ -130,7 +133,7 @@ RUN Set-Location -Path $env:SystemDrive\.; `
     Write-Host 'Visual Studio components installation cleanup'; `
     Write-Host 'Removing downloaded...'; `
     Remove-Item -Force -Path $env:SystemDrive\vs_buildtools.exe; `
-    Get-ChildItem -Path """${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer""" -Directory -Recurse | Remove-Item -Force –Recurse; `
+    Get-ChildItem -Path """${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer""" -Directory -Recurse | Remove-Item -Force -Recurse; `
     Remove-Item -Force -Recurse $env:TEMP\*; `
     Write-Host 'Build environment is ready...';
 
@@ -141,7 +144,7 @@ RUN Set-Location -Path $env:SystemDrive\.; `
     `
     Write-Host ('Downloading {0} ...' -f $env:PCRE_URL); `
     [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; `
-    Invoke-WebRequest -OutFile $env:SystemDrive\pcre.zip -Uri $env:PCRE_URL; `
+    (new-object System.Net.WebClient).DownloadFile("""$env:PCRE_URL""","""$env:SystemDrive\pcre.zip"""); `
     `
     $sha256 = '5b709aa45ea3b8bb73052947200ad187f651a2049158fb5bbfed329e4322a977'; `
     Write-Host ('Verifying SHA256 ({0}) ...' -f $sha256); `

@@ -36,6 +36,8 @@ RUN set -eux && \
     INSTALL_PKGS="tini \
             tzdata \
             ca-certificates \
+            smartmontools \
+            sudo \
             libssl1.1 \
             libcurl4 \
             libldap-2.4" && \

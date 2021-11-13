@@ -39,6 +39,8 @@ RUN set -eux && \
             iputils \
             pcre \
             libcurl \
+            smartmontools \
+            sudo \
             openssl-libs" && \
     microdnf -y install \
             --disablerepo="*" \
