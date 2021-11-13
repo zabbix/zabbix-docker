@@ -37,6 +37,8 @@ RUN set -eux && \
             bash \
             pcre \
             coreutils \
+            smartmontools \
+            sudo \
             iputils" && \
     apk add \
             --no-cache \
