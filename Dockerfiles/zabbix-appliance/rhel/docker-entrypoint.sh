@@ -390,6 +390,10 @@ update_zbx_config() {
 
     ZBX_CONFIG=$ZABBIX_ETC_DIR/zabbix_server.conf
 
+    update_config_var $ZBX_CONFIG "ListenIP" "${ZBX_LISTENIP}"
+    update_config_var $ZBX_CONFIG "ListenPort" "${ZBX_LISTENPORT}"
+    update_config_var $ZBX_CONFIG "ListenBacklog" "${ZBX_LISTENBACKLOG}"
+
     update_config_var $ZBX_CONFIG "SourceIP" "${ZBX_SOURCEIP}"
     update_config_var $ZBX_CONFIG "LogType" "console"
     update_config_var $ZBX_CONFIG "LogFile"
@@ -481,6 +485,7 @@ update_zbx_config() {
     update_config_var $ZBX_CONFIG "HistoryIndexCacheSize" "${ZBX_HISTORYINDEXCACHESIZE}"
 
     update_config_var $ZBX_CONFIG "TrendCacheSize" "${ZBX_TRENDCACHESIZE}"
+    update_config_var $ZBX_CONFIG "TrendFunctionCacheSize" "${ZBX_TRENDFUNCTIONCACHESIZE}"
     update_config_var $ZBX_CONFIG "ValueCacheSize" "${ZBX_VALUECACHESIZE}"
 
     update_config_var $ZBX_CONFIG "Timeout" "${ZBX_TIMEOUT}"
