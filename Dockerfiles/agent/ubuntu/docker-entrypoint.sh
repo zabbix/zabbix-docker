@@ -145,6 +145,7 @@ prepare_zbx_agent_config() {
 
     update_config_var $ZBX_AGENT_CONFIG "ListenPort" "${ZBX_LISTENPORT}"
     update_config_var $ZBX_AGENT_CONFIG "ListenIP" "${ZBX_LISTENIP}"
+    update_config_var $ZBX_AGENT_CONFIG "ListenBacklog" "${ZBX_LISTENBACKLOG}"
     update_config_var $ZBX_AGENT_CONFIG "StartAgents" "${ZBX_STARTAGENTS}"
 
     : ${ZBX_ACTIVE_ALLOW:="true"}
