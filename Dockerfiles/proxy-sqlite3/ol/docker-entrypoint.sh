@@ -126,6 +126,7 @@ update_zbx_config() {
 
     update_config_var $ZBX_CONFIG "ListenIP" "${ZBX_LISTENIP}"
     update_config_var $ZBX_CONFIG "ListenPort" "${ZBX_LISTENPORT}"
+    update_config_var $ZBX_CONFIG "ListenBacklog" "${ZBX_LISTENBACKLOG}"
 
     update_config_var $ZBX_CONFIG "SourceIP" "${ZBX_SOURCEIP}"
     update_config_var $ZBX_CONFIG "LogType" "console"
