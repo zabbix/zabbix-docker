@@ -184,7 +184,7 @@ configure_db_mysql() {
 
     nohup $MYSQLD --basedir=/usr --datadir=/var/lib/mysql --plugin-dir=/usr/lib/mysql/plugin \
             --log-output=none --pid-file=/var/lib/mysql/mysqld.pid \
-            --port=3306 --character-set-server=utf8 --collation-server=utf8_bin $mysql_user &
+            --port=3306 --character-set-server=utf8mb4 --collation-server=utf8mb4_bin $mysql_user &
 }
 
 prepare_system() {
@@ -314,7 +314,7 @@ create_db_database_mysql() {
 
     if [ -z ${DB_EXISTS} ]; then
         echo "** Database '${DB_SERVER_DBNAME}' does not exist. Creating..."
-        mysql_query "CREATE DATABASE ${DB_SERVER_DBNAME} CHARACTER SET utf8 COLLATE utf8_bin" 1>/dev/null
+        mysql_query "CREATE DATABASE ${DB_SERVER_DBNAME} CHARACTER SET utf8mb4 COLLATE utf8mb4_bin" 1>/dev/null
         # better solution?
         mysql_query "GRANT ALL PRIVILEGES ON $DB_SERVER_DBNAME. * TO '${DB_SERVER_ZBX_USER}'@'%'" 1>/dev/null
     else

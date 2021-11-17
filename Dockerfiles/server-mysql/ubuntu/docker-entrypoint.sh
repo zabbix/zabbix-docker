@@ -262,7 +262,7 @@ create_db_database_mysql() {
 
     if [ -z ${DB_EXISTS} ]; then
         echo "** Database '${DB_SERVER_DBNAME}' does not exist. Creating..."
-        mysql_query "CREATE DATABASE ${DB_SERVER_DBNAME} CHARACTER SET utf8 COLLATE utf8_bin" 1>/dev/null
+        mysql_query "CREATE DATABASE ${DB_SERVER_DBNAME} CHARACTER SET utf8mb4 COLLATE utf8mb4_bin" 1>/dev/null
         # better solution?
         mysql_query "GRANT ALL PRIVILEGES ON $DB_SERVER_DBNAME. * TO '${DB_SERVER_ZBX_USER}'@'%'" 1>/dev/null
     else
@@ -336,6 +336,8 @@ update_zbx_config() {
         update_config_var $ZBX_CONFIG "DBUser" "${DB_SERVER_ZBX_USER}"
         update_config_var $ZBX_CONFIG "DBPassword" "${DB_SERVER_ZBX_PASS}"
     fi
+
+    update_config_var $ZBX_CONFIG "AllowUnsupportedDBVersions" "${ZBX_ALLOWUNSUPPORTEDDBVERSIONS}"
 
     update_config_var $ZBX_CONFIG "StartReportWriters" "${ZBX_STARTREPORTWRITERS}"
     : ${ZBX_WEBSERVICEURL:="http://zabbix-web-service:10053/report"}

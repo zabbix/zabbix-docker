@@ -503,8 +503,8 @@ services:
   image: mysql:8.0
   command:
    - mysqld
-   - --character-set-server=utf8
-   - --collation-server=utf8_bin
+   - --character-set-server=utf8mb4
+   - --collation-server=utf8mb4_bin
    - --default-authentication-plugin=mysql_native_password
 #   - --require-secure-transport
 #   - --ssl-ca=/run/secrets/root-ca.pem
