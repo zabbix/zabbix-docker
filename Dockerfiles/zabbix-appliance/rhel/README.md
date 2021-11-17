@@ -106,6 +106,7 @@ Additionally the image allows to specify many other environment variables listed
 
 ```
 ZBX_LISTENIP=
+ZBX_LISTENPORT=10051
 ZBX_LISTENBACKLOG=
 ZBX_STARTPOLLERS=5
 ZBX_IPMIPOLLERS=0

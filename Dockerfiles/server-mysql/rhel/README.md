@@ -144,6 +144,7 @@ ZBX_VAULTDBPATH= # Available since 5.2.0
 ZBX_VAULTURL=https://127.0.0.1:8200 # Available since 5.2.0
 VAULT_TOKEN= # Available since 5.2.0
 ZBX_LISTENIP=
+ZBX_LISTENPORT=10051
 ZBX_LISTENBACKLOG=
 ZBX_STARTREPORTWRITERS=0 # Available since 5.4.0
 ZBX_WEBSERVICEURL=http://zabbix-web-service:10053/report # Available since 5.4.0

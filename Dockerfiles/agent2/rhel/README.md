@@ -14,17 +14,17 @@ Zabbix agent 2 is deployed on a monitoring target to actively monitor local reso
 
 # Zabbix agent 2 images
 
-These are the only official Zabbix agent 2 Docker images. They are based on Alpine Linux v3.12 images. The available versions of Zabbix agent 2 are:
+These are the only official Zabbix agent 2 Docker images. They are based on Alpine Linux v3.14, Ubuntu 20.04 (focal), CentOS 8, Oracle Linux 8, Windows 10 LTSC 2019 and Windows 11 LTSC 2022 images. The available versions of Zabbix agent 2 are:
 
     Zabbix agent 2 4.4 (tags: alpine-4.4-latest) (unsupported)
     Zabbix agent 2 4.4.* (tags: alpine-4.4.*) (unsupported)
-    Zabbix agent 2 5.0 (tags: alpine-5.0-latest, ubuntu-5.0-latest, ol-5.0-latest)
-    Zabbix agent 2 5.0.* (tags: alpine-5.0.*, ubuntu-5.0.*, ol-5.0.*)
+    Zabbix agent 2 5.0 (tags: alpine-5.0-latest, ubuntu-5.0-latest, ol-5.0-latest , ltsc2019-5.0-latest, ltsc2022-5.0-latest)
+    Zabbix agent 2 5.0.* (tags: alpine-5.0.*, ubuntu-5.0.*, ol-5.0.*, ltsc2019-5.0.*, ltsc2022-5.0.*)
     Zabbix agent 2 5.2 (tags: alpine-5.2-latest, ubuntu-5.2-latest, ol-5.2-latest)
     Zabbix agent 2 5.2.* (tags: alpine-5.2.*, ubuntu-5.2.*, ol-5.2.*)
-    Zabbix agent 2 5.4 (tags: alpine-5.4-latest, ubuntu-5.4-latest, ol-5.4-latest, alpine-latest, ubuntu-latest, ol-latest, latest)
-    Zabbix agent 2 5.4.* (tags: alpine-5.4.*, ubuntu-5.4.*, ol-5.4.*)
-    Zabbix agent 2 6.0 (tags: alpine-trunk, ubuntu-trunk, ol-trunk)
+    Zabbix agent 2 5.4 (tags: alpine-5.4-latest, ubuntu-5.4-latest, ol-5.4-latest, alpine-latest, ubuntu-latest, ol-latest, ltsc2019-latest, ltsc2022-latest, latest)
+    Zabbix agent 2 5.4.* (tags: alpine-5.4.*, ubuntu-5.4.*, ol-5.4.*, ltsc2019-5.4.*, ltsc2022-5.4.*)
+    Zabbix agent 2 6.0 (tags: alpine-trunk, ubuntu-trunk, ol-trunk, ltsc2019-trunk, ltsc2022-trunk)
 
 Images are updated when new releases are published. The image with ``latest`` tag is based on Alpine Linux.
 
@@ -141,6 +141,7 @@ ZBX_BUFFERSEND=5
 ZBX_BUFFERSIZE=100
 ZBX_MAXLINESPERSECOND=20
 ZBX_LISTENIP=
+ZBX_LISTENPORT=10051
 ZBX_UNSAFEUSERPARAMETERS=0
 ZBX_TLSCONNECT=unencrypted
 ZBX_TLSACCEPT=unencrypted
@@ -188,11 +189,11 @@ This variant is highly recommended when final image size being as small as possi
 
 To minimize image size, it's uncommon for additional related tools (such as `git` or `bash`) to be included in Alpine-based images. Using this image as a base, add the things you need in your own Dockerfile (see the [`alpine` image description](https://hub.docker.com/_/alpine/) for examples of how to install packages if you are unfamiliar).
 
-## `zabbix-agent:ubuntu-<version>`
+## `zabbix-agent2:ubuntu-<version>`
 
 This is the defacto image. If you are unsure about what your needs are, you probably want to use this one. It is designed to be used both as a throw away container (mount your source code and start the container to start your app), as well as the base to build other images off of.
 
-## `zabbix-agent:ol-<version>`
+## `zabbix-agent2:ol-<version>`
 
 Oracle Linux is an open-source operating system available under the GNU General Public License (GPLv2). Suitable for general purpose or Oracle workloads, it benefits from rigorous testing of more than 128,000 hours per day with real-world workloads and includes unique innovations such as Ksplice for zero-downtime kernel patching, DTrace for real-time diagnostics, the powerful Btrfs file system, and more.
 
