@@ -12,8 +12,6 @@ fi
 # Default Zabbix installation name
 # Used only by Zabbix web-interface
 : ${ZBX_SERVER_NAME:="Zabbix docker"}
-# Default Zabbix server host
-: ${ZBX_SERVER_HOST:="zabbix-server"}
 # Default Zabbix server port number
 : ${ZBX_SERVER_PORT:="10051"}
 

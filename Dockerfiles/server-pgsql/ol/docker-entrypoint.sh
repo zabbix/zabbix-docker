@@ -437,6 +437,7 @@ update_zbx_config() {
     update_config_var $ZBX_CONFIG "HousekeepingFrequency" "${ZBX_HOUSEKEEPINGFREQUENCY}"
 
     update_config_var $ZBX_CONFIG "MaxHousekeeperDelete" "${ZBX_MAXHOUSEKEEPERDELETE}"
+    update_config_var $ZBX_CONFIG "ServiceManagerSyncFrequency" "${ZBX_PROBLEMHOUSEKEEPINGFREQUENCY}"
     update_config_var $ZBX_CONFIG "SenderFrequency" "${ZBX_SENDERFREQUENCY}"
 
     update_config_var $ZBX_CONFIG "CacheSize" "${ZBX_CACHESIZE}"
@@ -496,6 +497,25 @@ update_zbx_config() {
 
     update_config_var $ZBX_CONFIG "TLSPSKIdentity" "${ZBX_TLSPSKIDENTITY}"
     update_config_var $ZBX_CONFIG "TLSPSKFile" "${ZBX_TLSPSKFILE}"
+
+    update_config_var $ZBX_CONFIG "ServiceManagerSyncFrequency" "${ZBX_SERVICEMANAGERSYNCFREQUENCY}"
+
+    if [ "${ZBX_AUTOHANODENAME}" == 'fqdn' ] && [ ! -n "${ZBX_HANODENAME}" ]; then
+        update_config_var $ZBX_CONFIG "HANodeName" "$(hostname -f)"
+    elif [ "${ZBX_AUTOHANODENAME}" == 'hostname' ] && [ ! -n "${ZBX_HANODENAME}" ]; then
+        update_config_var $ZBX_CONFIG "HANodeName" "$(hostname)"
+    else
+        update_config_var $ZBX_CONFIG "HANodeName" "${ZBX_HANODENAME}"
+    fi
+
+    : ${ZBX_NODEADDRESSPORT:="10051"}
+    if [ "${ZBX_AUTONODEADDRESS}" == 'fqdn' ] && [ ! -n "${ZBX_NODEADDRESS}" ]; then
+        update_config_var $ZBX_CONFIG "NodeAddress" "$(hostname -f):${ZBX_NODEADDRESSPORT}"
+    elif [ "${ZBX_AUTONODEADDRESS}" == 'hostname' ] && [ ! -n "${ZBX_NODEADDRESS}" ]; then
+        update_config_var $ZBX_CONFIG "NodeAddress" "$(hostname):${ZBX_NODEADDRESSPORT}"
+    else
+        update_config_var $ZBX_CONFIG "NodeAddress" "${ZBX_NODEADDRESS}"
+    fi
 
     if [ "$(id -u)" != '0' ]; then
         update_config_var $ZBX_CONFIG "User" "$(whoami)"

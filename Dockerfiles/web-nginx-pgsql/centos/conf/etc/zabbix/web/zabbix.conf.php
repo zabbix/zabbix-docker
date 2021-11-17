@@ -12,8 +12,10 @@ $DB['PASSWORD'] = (! getenv('VAULT_TOKEN') || ! getenv('ZBX_VAULTURL')) ? getenv
 // Schema name. Used for PostgreSQL.
 $DB['SCHEMA'] = getenv('DB_SERVER_SCHEMA');
 
-$ZBX_SERVER      = getenv('ZBX_SERVER_HOST');
-$ZBX_SERVER_PORT = getenv('ZBX_SERVER_PORT');
+if (getenv('ZBX_SERVER_HOST')) {
+    $ZBX_SERVER      = getenv('ZBX_SERVER_HOST');
+    $ZBX_SERVER_PORT = getenv('ZBX_SERVER_PORT');
+}
 $ZBX_SERVER_NAME = getenv('ZBX_SERVER_NAME');
 
 // Used for TLS connection.
