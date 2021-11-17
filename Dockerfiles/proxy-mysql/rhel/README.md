@@ -163,6 +163,7 @@ The variable enable communication with Zabbix Java Gateway to collect Java relat
 Additionally the image allows to specify many other environment variables listed below:
 
 ```
+ZBX_ALLOWUNSUPPORTEDDBVERSIONS=0 # Available since 6.0.0
 ZBX_DBTLSCONNECT= # Available since 5.0.0
 ZBX_DBTLSCAFILE= # Available since 5.0.0
 ZBX_DBTLSCERTFILE= # Available since 5.0.0
@@ -201,6 +202,7 @@ ZBX_VMWARECACHESIZE=8M
 ZBX_VMWARETIMEOUT=10
 ZBX_ENABLE_SNMP_TRAPS=false
 ZBX_LISTENIP=
+ZBX_LISTENBACKLOG=
 ZBX_HOUSEKEEPINGFREQUENCY=1
 ZBX_CACHESIZE=8M
 ZBX_STARTDBSYNCERS=4
@@ -290,7 +292,7 @@ To minimize image size, it's uncommon for additional related tools (such as `git
 
 This is the defacto image. If you are unsure about what your needs are, you probably want to use this one. It is designed to be used both as a throw away container (mount your source code and start the container to start your app), as well as the base to build other images off of.
 
-## `zabbix-agent:ol-<version>`
+## `zabbix-proxy-mysql:ol-<version>`
 
 Oracle Linux is an open-source operating system available under the GNU General Public License (GPLv2). Suitable for general purpose or Oracle workloads, it benefits from rigorous testing of more than 128,000 hours per day with real-world workloads and includes unique innovations such as Ksplice for zero-downtime kernel patching, DTrace for real-time diagnostics, the powerful Btrfs file system, and more.
 

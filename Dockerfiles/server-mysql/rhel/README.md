@@ -133,6 +133,7 @@ The variable enable communication with Zabbix Java Gateway to collect Java relat
 Additionally the image allows to specify many other environment variables listed below:
 
 ```
+ZBX_ALLOWUNSUPPORTEDDBVERSIONS=0 # Available since 6.0.0
 ZBX_DBTLSCONNECT= # Available since 5.0.0
 ZBX_DBTLSCAFILE= # Available since 5.0.0
 ZBX_DBTLSCERTFILE= # Available since 5.0.0
@@ -143,6 +144,7 @@ ZBX_VAULTDBPATH= # Available since 5.2.0
 ZBX_VAULTURL=https://127.0.0.1:8200 # Available since 5.2.0
 VAULT_TOKEN= # Available since 5.2.0
 ZBX_LISTENIP=
+ZBX_LISTENBACKLOG=
 ZBX_STARTREPORTWRITERS=0 # Available since 5.4.0
 ZBX_WEBSERVICEURL=http://zabbix-web-service:10053/report # Available since 5.4.0
 ZBX_HISTORYSTORAGEURL= # Available since 3.4.0
@@ -179,10 +181,13 @@ ZBX_CACHEUPDATEFREQUENCY=60
 ZBX_STARTDBSYNCERS=4
 ZBX_EXPORTFILESIZE=1G # Available since 4.0.0
 ZBX_EXPORTTYPE= # Available since 5.0.10 and 5.2.6
+ZBX_HANODENAME= # Available since 6.0.0
+ZBX_NODEADDRESS=localhost # Available since 6.0.0
 ZBX_HISTORYCACHESIZE=16M
 ZBX_HISTORYINDEXCACHESIZE=4M
 ZBX_HISTORYSTORAGEDATEINDEX=0 # Available since 4.0.0
 ZBX_TRENDCACHESIZE=4M
+ZBX_TRENDFUNCTIONCACHESIZE=4M
 ZBX_VALUECACHESIZE=8M
 ZBX_TRAPPERTIMEOUT=300
 ZBX_UNREACHABLEPERIOD=45
@@ -273,7 +278,7 @@ To minimize image size, it's uncommon for additional related tools (such as `git
 
 This is the defacto image. If you are unsure about what your needs are, you probably want to use this one. It is designed to be used both as a throw away container (mount your source code and start the container to start your app), as well as the base to build other images off of.
 
-## `zabbix-agent:ol-<version>`
+## `zabbix-server-mysql:ol-<version>`
 
 Oracle Linux is an open-source operating system available under the GNU General Public License (GPLv2). Suitable for general purpose or Oracle workloads, it benefits from rigorous testing of more than 128,000 hours per day with real-world workloads and includes unique innovations such as Ksplice for zero-downtime kernel patching, DTrace for real-time diagnostics, the powerful Btrfs file system, and more.
 
