@@ -163,6 +163,7 @@ The variable enable communication with Zabbix Java Gateway to collect Java relat
 Additionally the image allows to specify many other environment variables listed below:
 
 ```
+ZBX_ALLOWUNSUPPORTEDDBVERSIONS=0 # Available since 6.0.0
 ZBX_DBTLSCONNECT= # Available since 5.0.0
 ZBX_DBTLSCAFILE= # Available since 5.0.0
 ZBX_DBTLSCERTFILE= # Available since 5.0.0
@@ -201,6 +202,7 @@ ZBX_VMWARECACHESIZE=8M
 ZBX_VMWARETIMEOUT=10
 ZBX_ENABLE_SNMP_TRAPS=false
 ZBX_LISTENIP=
+ZBX_LISTENBACKLOG=
 ZBX_HOUSEKEEPINGFREQUENCY=1
 ZBX_CACHESIZE=8M
 ZBX_STARTDBSYNCERS=4
