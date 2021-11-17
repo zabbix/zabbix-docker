@@ -158,7 +158,7 @@ function Prepare-Zbx-Agent-Config {
         $env:ZBX_ACTIVE_ALLOW="true"
     }
 
-    if ($env:ZBX_PASSIVE_ALLOW -eq "true") {
+    if ($env:ZBX_ACTIVE_ALLOW -eq "true") {
         Write-Host "** Using '$env:ZBX_ACTIVESERVERS' servers for active checks"
         Update-Config-Var $ZbxAgentConfig "ServerActive" "$env:ZBX_ACTIVESERVERS"
     }
