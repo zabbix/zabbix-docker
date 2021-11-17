@@ -199,7 +199,7 @@ prepare_zbx_web_config() {
     export DB_SERVER_USER=${DB_SERVER_ZBX_USER}
     export DB_SERVER_PASS=${DB_SERVER_ZBX_PASS}
     export ZBX_SERVER_HOST=${ZBX_SERVER_HOST}
-    export ZBX_SERVER_PORT=${ZBX_SERVER_PORT:-"10051"}
+    export ZBX_SERVER_PORT=${ZBX_SERVER_PORT}
     export ZBX_SERVER_NAME=${ZBX_SERVER_NAME}
 
     : ${ZBX_DB_ENCRYPTION:="false"}
