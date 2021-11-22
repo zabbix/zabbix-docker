@@ -97,7 +97,7 @@ update_config_var() {
     fi
 
     # Use full path to a file for TLS related configuration parameters
-    if [[ $var_name =~ ^TLS.*File$ ]]; then
+    if [[ $var_name =~ ^TLS.*File$ ]] && [[ ! $var_value =~ ^/.+$ ]]; then
         var_value=$ZABBIX_USER_HOME_DIR/enc/$var_value
     fi
 
