@@ -5,7 +5,7 @@ ARG BUILD_BASE_IMAGE=zabbix-build-mysql:alpine-${ZBX_VERSION}
 
 FROM ${BUILD_BASE_IMAGE} as builder
 
-FROM alpine:3.12
+FROM alpine:3.14
 
 ARG MAJOR_VERSION
 ARG ZBX_VERSION
@@ -80,7 +80,7 @@ RUN set -eux && \
     mkdir -p /etc/zabbix/web/certs && \
     mkdir -p /var/lib/php/session && \
     rm -rf /etc/php7/php-fpm.d/www.conf && \
-    rm -f /etc/nginx/conf.d/*.conf && \
+    rm -f /etc/nginx/http.d/*.conf && \
     ln -sf /dev/fd/2 /var/lib/nginx/logs/error.log && \
     cd /usr/share/zabbix/ && \
     rm -f conf/zabbix.conf.php conf/maintenance.inc.php conf/zabbix.conf.php.example && \
