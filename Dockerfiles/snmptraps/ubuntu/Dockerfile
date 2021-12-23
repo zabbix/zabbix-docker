@@ -1,7 +1,7 @@
 FROM ubuntu:focal
 
 ARG MAJOR_VERSION=5.0
-ARG ZBX_VERSION=${MAJOR_VERSION}.18
+ARG ZBX_VERSION=${MAJOR_VERSION}.19
 ARG ZBX_SOURCES=https://git.zabbix.com/scm/zbx/zabbix.git
 
 ENV TERM=xterm \
