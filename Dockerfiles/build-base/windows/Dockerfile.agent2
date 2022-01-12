@@ -6,7 +6,7 @@ FROM $BUILD_BASE_IMAGE as builder_base
 ARG PCRE_VERSION=8.45
 ARG OPENSSL_VERSION=1.1.1l
 ARG ZLIB_VERSION=1.2.11
-ARG GOLANG_VERSION=1.17.3
+ARG GOLANG_VERSION=1.17.6
 ARG SEVEN_ZIP_VERSION=1900
 ARG BUILD_ARCH=x64
 ARG CPU_MODEL=AMD64
@@ -67,7 +67,7 @@ RUN Set-Location -Path $env:SystemDrive\.; `
     Write-Host ('Downloading {0} ...' -f $env:GOLANG_URL); `
     [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; `
     Invoke-WebRequest -OutFile $env:SystemDrive\go-amd64.msi -Uri $env:GOLANG_URL; `
-    $sha256 = 'bf3c475726c9165eb5d809e1bb4ce33550a25850495aac0a5df6d0df05930936'; `
+    $sha256 = '43a67c37be6699f3fc58c3d7f52cd0d6117d8777f65c79f73c44a58c6ed98f22'; `
     `
     Write-Host ('Verifying SHA256 ({0}) ...' -f $sha256); `
     if ((Get-FileHash $env:SystemDrive\go-amd64.msi -Algorithm sha256).Hash -ne $sha256) { `
@@ -202,7 +202,7 @@ RUN Set-Location -Path $env:SystemDrive\.; `
     [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; `
     (New-Object Net.WebClient).DownloadFile("""$env:CYGWIN_URL""", """$env:SystemDrive\setup.exe"""); `
     `
-    $sha256 = 'cd44b16eef2c026c152d1c76deb96298f4511e662a1e7aafce0b04eff68a4ad9'; `
+    $sha256 = '2d65b46e884d9556bd4d17b5ce174b93ef307326395796895892e897adaf72ad'; `
     Write-Host ('Verifying SHA256 ({0}) ...' -f $sha256); `
     if ((Get-FileHash $env:SystemDrive\setup.exe -Algorithm sha256).Hash -ne $sha256) { `
         Write-Host 'Checksum Cygwin failed!'; `
