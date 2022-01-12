@@ -4,7 +4,7 @@ ARG BUILD_BASE_IMAGE=mcr.microsoft.com/windows/servercore:ltsc2022
 FROM $BUILD_BASE_IMAGE
 
 ARG PCRE_VERSION=8.45
-ARG OPENSSL_VERSION=1.1.1l
+ARG OPENSSL_VERSION=1.1.1m
 ARG LIBMODBUS_VERSION=master
 ARG BUILD_ARCH=x64
 ARG CPU_MODEL=AMD64
@@ -187,7 +187,7 @@ RUN Set-Location -Path $env:SystemDrive\.; `
     [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; `
     Invoke-WebRequest -OutFile $env:SystemDrive\openssl.tar.gz -Uri $env:OPENSSL_URL; `
     `
-    $sha256 = '0b7a3e5e59c34827fe0c3a74b7ec8baef302b98fa80088d7f9153aa16fa76bd1'; `
+    $sha256 = 'f89199be8b23ca45fc7cb9f1d8d3ee67312318286ad030f5316aca6462db6c96'; `
     Write-Host ('Verifying SHA256 ({0}) ...' -f $sha256); `
     if ((Get-FileHash $env:SystemDrive\openssl.tar.gz -Algorithm sha256).Hash -ne $sha256) { `
         Write-Host 'Checksum OpenSSL library failed!'; `

@@ -4,8 +4,7 @@ ARG BUILD_BASE_IMAGE=mcr.microsoft.com/windows/servercore:ltsc2022
 FROM $BUILD_BASE_IMAGE as builder_base
 
 ARG PCRE_VERSION=8.45
-ARG OPENSSL_VERSION=1.1.1l
-ARG ZLIB_VERSION=1.2.11
+ARG OPENSSL_VERSION=1.1.1m
 ARG GOLANG_VERSION=1.17.6
 ARG SEVEN_ZIP_VERSION=1900
 ARG BUILD_ARCH=x64
@@ -25,7 +24,7 @@ ARG SEVEN_ZIP_URL=https://www.7-zip.org/a/7z$SEVEN_ZIP_VERSION-$BUILD_ARCH.msi
 
 ENV ZBX_VERSION=$ZBX_VERSION `
     BUILD_ARCH=$BUILD_ARCH CPU_MODEL=$CPU_MODEL `
-    PCRE_VERSION=$PCRE_VERSION OPENSSL_VERSION=$OPENSSL_VERSION ZLIB_VERSION=$ZLIB_VERSION `
+    PCRE_VERSION=$PCRE_VERSION OPENSSL_VERSION=$OPENSSL_VERSION `
     GOLANG_VERSION=$GOLANG_VERSION SEVEN_ZIP_VERSION=$SEVEN_ZIP_VERSION `
     GIT_URL=$GIT_URL MINGW_URL=$MINGW_URL CYGWIN_URL=$CYGWIN_URL GOLANG_URL=$GOLANG_URL SEVEN_ZIP_URL=$SEVEN_ZIP_URL `
     PCRE_URL=$PCRE_URL OPENSSL_URL=$OPENSSL_URL
@@ -220,7 +219,7 @@ RUN Set-Location -Path $env:SystemDrive\.; `
     [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; `
     Invoke-WebRequest -OutFile $env:SystemDrive\openssl.tar.gz -Uri $env:OPENSSL_URL; `
     `
-    $sha256 = '0b7a3e5e59c34827fe0c3a74b7ec8baef302b98fa80088d7f9153aa16fa76bd1'; `
+    $sha256 = 'f89199be8b23ca45fc7cb9f1d8d3ee67312318286ad030f5316aca6462db6c96'; `
     Write-Host ('Verifying SHA256 ({0}) ...' -f $sha256); `
     if ((Get-FileHash $env:SystemDrive\openssl.tar.gz -Algorithm sha256).Hash -ne $sha256) { `
         Write-Host 'Checksum OpenSSL library failed!'; `
