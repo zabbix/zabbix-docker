@@ -3,7 +3,7 @@
 ARG BUILD_BASE_IMAGE=mcr.microsoft.com/windows/servercore:ltsc2022
 FROM $BUILD_BASE_IMAGE
 
-ARG PCRE_VERSION=8.45
+ARG PCRE2_VERSION=10.39
 ARG OPENSSL_VERSION=1.1.1m
 ARG LIBMODBUS_VERSION=master
 ARG BUILD_ARCH=x64
@@ -16,14 +16,14 @@ ARG VS_BUILDTOOLS_URL=https://aka.ms/vs/16/release/vs_buildtools.exe
 ARG NASM_URL=https://www.nasm.us/pub/nasm/releasebuilds/2.15.05/win64/nasm-2.15.05-installer-x64.exe
 ARG PERL_URL=https://strawberryperl.com/download/5.32.1.1/strawberry-perl-5.32.1.1-64bit.msi
 ARG GIT_URL=https://github.com/git-for-windows/git/releases/download/v2.33.0.windows.2/MinGit-2.33.0.2-busybox-64-bit.zip
-ARG PCRE_URL=https://sourceforge.net/projects/pcre/files/pcre/$PCRE_VERSION/pcre-$PCRE_VERSION.zip
+ARG PCRE2_URL=https://github.com/PhilipHazel/pcre2/releases/download/pcre2-$PCRE2_VERSION/pcre2-$PCRE2_VERSION.zip
 ARG OPENSSL_URL=https://www.openssl.org/source/openssl-$OPENSSL_VERSION.tar.gz
 ARG LIBMODBUS_URL=https://github.com/stephane/libmodbus.git
 
 ENV ZBX_VERSION=$ZBX_VERSION `
     BUILD_ARCH=$BUILD_ARCH CPU_MODEL=$CPU_MODEL `
-    PCRE_VERSION=$PCRE_VERSION OPENSSL_VERSION=$OPENSSL_VERSION LIBMODBUS_VERSION=$LIBMODBUS_VERSION `
-    GIT_URL=$GIT_URL NASM_URL=$NASM_URL PERL_URL=$PERL_URL LIBMODBUS_URL=$LIBMODBUS_URL PCRE_URL=$PCRE_URL OPENSSL_URL=$OPENSSL_URL
+    PCRE2_VERSION=$PCRE2_VERSION OPENSSL_VERSION=$OPENSSL_VERSION LIBMODBUS_VERSION=$LIBMODBUS_VERSION `
+    GIT_URL=$GIT_URL NASM_URL=$NASM_URL PERL_URL=$PERL_URL LIBMODBUS_URL=$LIBMODBUS_URL PCRE2_URL=$PCRE2_URL OPENSSL_URL=$OPENSSL_URL
 
 LABEL org.opencontainers.image.title="Zabbix agent build base for Windows" `
       org.opencontainers.image.authors="Alexey Pustovalov <alexey.pustovalov@zabbix.com>" `
@@ -144,39 +144,39 @@ RUN Set-Location -Path $env:SystemDrive\.; `
     Import-Module ('{0}\Microsoft Visual Studio\2019\BuildTools\Common7\Tools\Microsoft.VisualStudio.DevShell.dll' -f ${env:ProgramFiles(x86)} ); `
     Enter-VsDevShell -VsInstallPath ('{0}\Microsoft Visual Studio\2019\BuildTools' -f ${env:ProgramFiles(x86)}) -DevCmdArguments """-arch=$env:BUILD_ARCH"""; `
     `
-    Write-Host ('Downloading {0} ...' -f $env:PCRE_URL); `
+    Write-Host ('Downloading {0} ...' -f $env:PCRE2_URL); `
     [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; `
-    (new-object System.Net.WebClient).DownloadFile("""$env:PCRE_URL""","""$env:SystemDrive\pcre.zip"""); `
+	Invoke-WebRequest -OutFile $env:SystemDrive\pcre2.zip -Uri $env:PCRE2_URL; `
     `
-    $sha256 = '5b709aa45ea3b8bb73052947200ad187f651a2049158fb5bbfed329e4322a977'; `
+    $sha256 = '08a8861f60fec3af30ca1e0f51d89ab5dc5c07bb71b74db5297f78b7e26c7226'; `
     Write-Host ('Verifying SHA256 ({0}) ...' -f $sha256); `
-    if ((Get-FileHash $env:SystemDrive\pcre.zip -Algorithm sha256).Hash -ne $sha256) { `
-        Write-Host 'Checksum PCRE library failed!'; `
+    if ((Get-FileHash $env:SystemDrive\pcre2.zip -Algorithm sha256).Hash -ne $sha256) { `
+        Write-Host 'Checksum PCRE2 library failed!'; `
         exit 1; `
     }; `
     Write-Host 'Extracting archive ...'; `
-    Expand-Archive -Path $env:SystemDrive\pcre.zip -DestinationPath $env:SystemDrive; `
+    Expand-Archive -Path $env:SystemDrive\pcre2.zip -DestinationPath $env:SystemDrive; `
     Write-Host 'Removing downloaded...'; `
-    Remove-Item -Force -Path $env:SystemDrive\pcre.zip; `
-    Rename-Item -Path $env:SystemDrive\pcre-$env:PCRE_VERSION -NewName $env:SystemDrive\pcre_build; `
-    New-Item -ItemType directory -Path "$env:SystemDrive\pcre_build\build" | Out-Null; `
+    Remove-Item -Force -Path $env:SystemDrive\pcre2.zip; `
+    Rename-Item -Path $env:SystemDrive\pcre2-$env:PCRE2_VERSION -NewName $env:SystemDrive\pcre2_build; `
+    New-Item -ItemType directory -Path "$env:SystemDrive\pcre2_build\build" | Out-Null; `
     `
-    Set-Location -Path $env:SystemDrive\pcre_build\build; `
-    Write-Host 'Building PCRE library ...'; `
+    Set-Location -Path $env:SystemDrive\pcre2_build\build; `
+    Write-Host 'Building PCRE2 library ...'; `
     cmake --log-level=ERROR `
         -G 'Visual Studio 16 2019' `
 	-A $env:BUILD_ARCH `
         -DPCRE_SUPPORT_UNICODE_PROPERTIES=ON `
         -DPCRE_SUPPORT_UTF=ON `
         -DCMAKE_C_FLAGS_RELEASE:string="""/MT""" ..; `
-    msbuild PCRE.sln `
+    msbuild PCRE2.sln `
         -maxcpucount:"""$env:NUMBER_OF_PROCESSORS""" `
         /verbosity:quiet `
         /property:Configuration=Release `
         /property:Platform=$env:BUILD_ARCH `
-        /target:pcre; `
+        /target:pcre2-8-static; `
     `
-    Write-Host 'PCRE is ready...';
+    Write-Host 'PCRE2 is ready...';
 
 RUN Set-Location -Path $env:SystemDrive\.; `
     `

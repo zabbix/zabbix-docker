@@ -3,7 +3,7 @@
 ARG BUILD_BASE_IMAGE=mcr.microsoft.com/windows/servercore:ltsc2022
 FROM $BUILD_BASE_IMAGE as builder_base
 
-ARG PCRE_VERSION=8.45
+ARG PCRE2_VERSION=10.39
 ARG OPENSSL_VERSION=1.1.1m
 ARG GOLANG_VERSION=1.17.6
 ARG SEVEN_ZIP_VERSION=1900
@@ -18,16 +18,16 @@ ARG GIT_URL=https://github.com/git-for-windows/git/releases/download/v2.33.0.win
 ARG MINGW_URL=https://sourceforge.net/projects/mingw-w64/files/Toolchains%20targetting%20Win64/Personal%20Builds/mingw-builds/8.1.0/threads-win32/sjlj/x86_64-8.1.0-release-win32-sjlj-rt_v6-rev0.7z
 ARG GOLANG_URL=https://golang.org/dl/go$GOLANG_VERSION.windows-amd64.msi
 ARG CYGWIN_URL=https://cygwin.com/setup-x86_64.exe
-ARG PCRE_URL=https://sourceforge.net/projects/pcre/files/pcre/$PCRE_VERSION/pcre-$PCRE_VERSION.zip
+ARG PCRE2_URL=https://github.com/PhilipHazel/pcre2/releases/download/pcre2-$PCRE2_VERSION/pcre2-$PCRE2_VERSION.zip
 ARG OPENSSL_URL=https://www.openssl.org/source/openssl-$OPENSSL_VERSION.tar.gz
 ARG SEVEN_ZIP_URL=https://www.7-zip.org/a/7z$SEVEN_ZIP_VERSION-$BUILD_ARCH.msi
 
 ENV ZBX_VERSION=$ZBX_VERSION `
     BUILD_ARCH=$BUILD_ARCH CPU_MODEL=$CPU_MODEL `
-    PCRE_VERSION=$PCRE_VERSION OPENSSL_VERSION=$OPENSSL_VERSION `
+    PCRE2_VERSION=$PCRE2_VERSION OPENSSL_VERSION=$OPENSSL_VERSION `
     GOLANG_VERSION=$GOLANG_VERSION SEVEN_ZIP_VERSION=$SEVEN_ZIP_VERSION `
     GIT_URL=$GIT_URL MINGW_URL=$MINGW_URL CYGWIN_URL=$CYGWIN_URL GOLANG_URL=$GOLANG_URL SEVEN_ZIP_URL=$SEVEN_ZIP_URL `
-    PCRE_URL=$PCRE_URL OPENSSL_URL=$OPENSSL_URL
+    PCRE2_URL=$PCRE2_URL OPENSSL_URL=$OPENSSL_URL
 
 LABEL org.opencontainers.image.title="Zabbix agent 2 build base for Windows" `
       org.opencontainers.image.authors="Alexey Pustovalov <alexey.pustovalov@zabbix.com>" `
@@ -166,34 +166,34 @@ RUN Set-Location -Path $env:SystemDrive\.; `
     Import-Module ('{0}\Microsoft Visual Studio\2019\BuildTools\Common7\Tools\Microsoft.VisualStudio.DevShell.dll' -f ${env:ProgramFiles(x86)} ); `
     Enter-VsDevShell -VsInstallPath ('{0}\Microsoft Visual Studio\2019\BuildTools' -f ${env:ProgramFiles(x86)}) -DevCmdArguments """-arch=$env:BUILD_ARCH"""; `
     `
-    Write-Host ('Downloading {0} ...' -f $env:PCRE_URL); `
+    Write-Host ('Downloading {0} ...' -f $env:PCRE2_URL); `
     [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; `
-    (new-object System.Net.WebClient).DownloadFile("""$env:PCRE_URL""","""$env:SystemDrive\pcre.zip"""); `
+	Invoke-WebRequest -OutFile $env:SystemDrive\pcre2.zip -Uri $env:PCRE2_URL; `
     `
+    $sha256 = '08a8861f60fec3af30ca1e0f51d89ab5dc5c07bb71b74db5297f78b7e26c7226'; `
     Write-Host ('Verifying SHA256 ({0}) ...' -f $sha256); `
-    $sha256 = '5b709aa45ea3b8bb73052947200ad187f651a2049158fb5bbfed329e4322a977'; `
-    if ((Get-FileHash $env:SystemDrive\pcre.zip -Algorithm sha256).Hash -ne $sha256) { `
-        Write-Host 'Checksum PCRE library failed!'; `
+    if ((Get-FileHash $env:SystemDrive\pcre2.zip -Algorithm sha256).Hash -ne $sha256) { `
+        Write-Host 'Checksum PCRE2 library failed!'; `
         exit 1; `
     }; `
     Write-Host 'Extracting archive ...'; `
-    Expand-Archive -Path $env:SystemDrive\pcre.zip -DestinationPath $env:SystemDrive; `
+    Expand-Archive -Path $env:SystemDrive\pcre2.zip -DestinationPath $env:SystemDrive; `
     Write-Host 'Removing downloaded...'; `
-    Remove-Item -Force -Path $env:SystemDrive\pcre.zip; `
-    Rename-Item -Path $env:SystemDrive\pcre-$env:PCRE_VERSION -NewName $env:SystemDrive\pcre_build; `
+    Remove-Item -Force -Path $env:SystemDrive\pcre2.zip; `
+    Rename-Item -Path $env:SystemDrive\pcre2-$env:PCRE2_VERSION -NewName $env:SystemDrive\pcre2_build; `
     `
-    Set-Location -Path $env:SystemDrive\pcre_build; `
-    Write-Host 'Building PCRE library ...'; `
+    Set-Location -Path $env:SystemDrive\pcre2_build; `
+    Write-Host 'Building PCRE2 library ...'; `
     cmake --log-level=ERROR `
         -G 'MinGW Makefiles' `
         -DBUILD_SHARED_LIBS=OFF `
         -DCMAKE_C_COMPILER=gcc `
         -DCMAKE_C_FLAGS='-O2 -g' `
         -DCMAKE_CXX_FLAGS='-O2 -g' `
-        -DCMAKE_INSTALL_PREFIX="""$env:SystemDrive\pcre_output""" . ; `
+        -DCMAKE_INSTALL_PREFIX="""$env:SystemDrive\pcre2_output""" . ; `
     mingw32-make -s -j"""$env:NUMBER_OF_PROCESSORS"""; `
     mingw32-make -s -j"""$env:NUMBER_OF_PROCESSORS""" install; `
-    Write-Host 'PCRE is ready...';
+    Write-Host 'PCRE2 is ready...';
 
 RUN Set-Location -Path $env:SystemDrive\.; `
     `

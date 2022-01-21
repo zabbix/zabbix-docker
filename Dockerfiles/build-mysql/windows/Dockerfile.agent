@@ -41,8 +41,8 @@ RUN Set-Location -Path $env:SystemDrive\.; `
     nmake /S -f Makefile `
         CPU=$env:CPU_MODEL `
         CFLAGS="""/D ZABBIX_VERSION_REVISION=$ZbxRevision /D HAVE_LIBMODBUS_STATIC""" `
-        PCREINCDIR=$env:SystemDrive\pcre_build\build `
-        PCRELIBDIR=$env:SystemDrive\pcre_build\build\Release TLS=openssl `
+        PCRE2INCDIR=$env:SystemDrive\pcre2_build\build `
+        PCRE2LIBDIR=$env:SystemDrive\pcre2_build\build\Release TLS=openssl `
         RFLAGS="""/D ZABBIX_VERSION_REVISION=$ZbxRevision /D ZABBIX_VERSION_RC_NUM=$env:ZABBIX_VERSION_RC_NUM""" `
 #        LIBS="Crypt32.lib" `
         TLSINCDIR=$env:SystemDrive\openssl_output\include `
