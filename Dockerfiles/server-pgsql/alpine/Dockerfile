@@ -47,7 +47,7 @@ RUN set -eux && \
             libxml2 \
             net-snmp-agent-libs \
             openipmi-libs \
-            pcre \
+            pcre2 \
             postgresql-client \
             postgresql-libs \
             unixodbc" && \

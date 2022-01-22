@@ -43,7 +43,7 @@ RUN set -eux && \
             libevent-2.1 \
             libmysqlclient21 \
             libopenipmi0 \
-            libpcre3 \
+            libpcre2-8-0 \
             libsnmp35 \
             libssh-4 \
             libssl1.1 \

@@ -35,7 +35,7 @@ RUN set -eux && \
     INSTALL_PKGS="tini \
             tzdata \
             bash \
-            pcre \
+            pcre2 \
             coreutils \
             smartmontools \
             sudo \

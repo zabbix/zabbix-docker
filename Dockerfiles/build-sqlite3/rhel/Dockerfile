@@ -64,6 +64,7 @@ RUN set -eux && \
             --with-ldap \
             --with-libcurl \
 #            --with-libmodbus \
+            --with-libpcre2 \
             --with-libxml2 \
             --with-net-snmp \
             --with-openipmi \

@@ -48,7 +48,7 @@ RUN set -eux && \
             OpenIPMI-libs \
             openldap \
             openssl-libs \
-            pcre \
+            pcre2 \
             zlib \
             unixODBC" && \
     dnf -y module enable mysql && \

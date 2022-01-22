@@ -37,7 +37,7 @@ RUN set -eux && \
             tzdata \
             coreutils \
             iputils \
-            pcre \
+            pcre2 \
             libcurl \
             libmodbus \
             libldap" && \

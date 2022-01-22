@@ -46,7 +46,7 @@ RUN set -eux && \
             mariadb-connector-c \
             net-snmp-agent-libs \
             openipmi-libs \
-            pcre \
+            pcre2 \
             unixodbc \
             fping" && \
     apk add \

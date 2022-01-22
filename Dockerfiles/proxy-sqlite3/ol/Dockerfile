@@ -45,7 +45,7 @@ RUN set -eux && \
             OpenIPMI-libs \
             openldap \
             openssl-libs \
-            pcre \
+            pcre2 \
             zlib \
             unixODBC" && \
     microdnf -y install \

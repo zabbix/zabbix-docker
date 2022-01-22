@@ -34,7 +34,7 @@ RUN set -eux && \
             openipmi-dev \
             openldap-dev \
             openssl-dev \
-            pcre-dev \
+            pcre2-dev \
             postgresql-dev \
             openjdk8 \
             gettext \

@@ -56,7 +56,7 @@ RUN set -eux && \
             tzdata \
             iputils \
             shadow-utils \
-            pcre \
+            pcre2 \
             smartmontools \
             sudo \
             libcurl" && \

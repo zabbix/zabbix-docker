@@ -64,7 +64,7 @@ RUN set -eux && \
             libxml2 \
             net-snmp-agent-libs \
             OpenIPMI-libs \
-            pcre \
+            pcre2 \
             sqlite-libs \
             unixODBC" && \
     curl -sSL -o /tmp/epel-release-latest-8.noarch.rpm https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm && \

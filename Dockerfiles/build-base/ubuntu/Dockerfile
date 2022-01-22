@@ -30,7 +30,7 @@ RUN set -eux && \
             libldap2-dev \
             libmysqlclient-dev \
             libopenipmi-dev \
-            libpcre3-dev \
+            libpcre2-dev \
             libsnmp-dev \
             libsqlite3-dev \
             libpq-dev \

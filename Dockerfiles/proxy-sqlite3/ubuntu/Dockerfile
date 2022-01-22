@@ -41,7 +41,7 @@ RUN set -eux && \
             libcurl4 \
             libevent-2.1 \
             libopenipmi0 \
-            libpcre3 \
+            libpcre2-8-0 \
             libsnmp35 \
             libsqlite3-0 \
             libssh-4 \

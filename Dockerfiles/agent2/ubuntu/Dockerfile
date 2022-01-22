@@ -40,6 +40,7 @@ RUN set -eux && \
             sudo \
             libssl1.1 \
             libcurl4 \
+            libpcre2-8-0 \
             libldap-2.4" && \
     apt-get -y update && \
     DEBIAN_FRONTEND=noninteractive apt-get -y \

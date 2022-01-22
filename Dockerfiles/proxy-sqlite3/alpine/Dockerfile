@@ -44,7 +44,7 @@ RUN set -eux && \
             libxml2 \
             net-snmp-agent-libs \
             openipmi-libs \
-            pcre \
+            pcre2 \
             sqlite-libs \
             unixodbc" && \
     apk add \

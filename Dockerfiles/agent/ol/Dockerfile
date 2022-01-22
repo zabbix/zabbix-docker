@@ -37,7 +37,7 @@ RUN set -eux && \
             tini \
             tzdata \
             iputils \
-            pcre \
+            pcre2 \
             libcurl \
             openssl-libs \
             zlib" && \

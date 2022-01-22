@@ -49,7 +49,7 @@ RUN set -eux && \
             OpenIPMI-libs \
             openldap \
             openssl-libs \
-            pcre \
+            pcre2 \
             postgresql \
             postgresql-libs \
             zlib \

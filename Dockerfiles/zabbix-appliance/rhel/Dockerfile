@@ -44,7 +44,6 @@ RUN set -o xtrace && INSTALL_PKGS="OpenIPMI-libs \
             curl \
             fping \
             java-1.8.0-openjdk-headless \
-            pcre \
             libcurl \
             libssh \
             libevent \
@@ -55,7 +54,7 @@ RUN set -o xtrace && INSTALL_PKGS="OpenIPMI-libs \
             nginx \
             openldap \
             openssl-libs \
-            pcre \
+            pcre2 \
             php-bcmath \
             php-fpm \
             php-gd \
@@ -121,7 +120,7 @@ RUN set -eux && REPOLIST="rhel-8-for-x86_64-baseos-rpms,rhel-8-for-x86_64-appstr
             libxml2-devel \
             make \
             mariadb-connector-c-devel \
-            pcre-devel \
+            pcre2-devel \
             net-snmp-devel \
             OpenIPMI-devel \
             openldap-devel \
@@ -147,6 +146,7 @@ RUN set -eux && REPOLIST="rhel-8-for-x86_64-baseos-rpms,rhel-8-for-x86_64-appstr
             --with-mysql \
             --with-ldap \
             --with-libcurl \
+            --with-libpcre2 \
             --with-libxml2 \
             --enable-java \
             --with-net-snmp \

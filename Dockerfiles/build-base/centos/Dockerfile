@@ -23,7 +23,7 @@ RUN set -eux && \
             automake \
             bash \
             gcc \
-            pcre-devel \
+            pcre2-devel \
             libcurl-devel \
             libevent-devel \
             libssh-devel \
