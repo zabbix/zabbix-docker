@@ -166,8 +166,7 @@ RUN Set-Location -Path $env:SystemDrive\.; `
     cmake --log-level=ERROR `
         -G 'Visual Studio 16 2019' `
 	-A $env:BUILD_ARCH `
-        -DPCRE_SUPPORT_UNICODE_PROPERTIES=ON `
-        -DPCRE_SUPPORT_UTF=ON `
+	-DBUILD_SHARED_LIBS=OFF `
         -DCMAKE_C_FLAGS_RELEASE:string="""/MT""" ..; `
     msbuild PCRE2.sln `
         -maxcpucount:"""$env:NUMBER_OF_PROCESSORS""" `

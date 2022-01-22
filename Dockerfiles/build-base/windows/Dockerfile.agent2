@@ -189,7 +189,6 @@ RUN Set-Location -Path $env:SystemDrive\.; `
         -DBUILD_SHARED_LIBS=OFF `
         -DCMAKE_C_COMPILER=gcc `
         -DCMAKE_C_FLAGS='-O2 -g' `
-        -DCMAKE_CXX_FLAGS='-O2 -g' `
         -DCMAKE_INSTALL_PREFIX="""$env:SystemDrive\pcre2_output""" . ; `
     mingw32-make -s -j"""$env:NUMBER_OF_PROCESSORS"""; `
     mingw32-make -s -j"""$env:NUMBER_OF_PROCESSORS""" install; `
