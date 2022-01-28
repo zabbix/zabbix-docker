@@ -168,7 +168,7 @@ RUN Set-Location -Path $env:SystemDrive\.; `
     `
     Write-Host ('Downloading {0} ...' -f $env:PCRE2_URL); `
     [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; `
-	Invoke-WebRequest -OutFile $env:SystemDrive\pcre2.zip -Uri $env:PCRE2_URL; `
+        Invoke-WebRequest -OutFile $env:SystemDrive\pcre2.zip -Uri $env:PCRE2_URL; `
     `
     $sha256 = '08a8861f60fec3af30ca1e0f51d89ab5dc5c07bb71b74db5297f78b7e26c7226'; `
     Write-Host ('Verifying SHA256 ({0}) ...' -f $sha256); `
@@ -200,7 +200,7 @@ RUN Set-Location -Path $env:SystemDrive\.; `
     [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; `
     (New-Object Net.WebClient).DownloadFile("""$env:CYGWIN_URL""", """$env:SystemDrive\setup.exe"""); `
     `
-    $sha256 = '2d65b46e884d9556bd4d17b5ce174b93ef307326395796895892e897adaf72ad'; `
+    $sha256 = '98fac3ee56a183f8c45abc1e80395c48f075e338708d27a64eee8c942fd2baa9'; `
     Write-Host ('Verifying SHA256 ({0}) ...' -f $sha256); `
     if ((Get-FileHash $env:SystemDrive\setup.exe -Algorithm sha256).Hash -ne $sha256) { `
         Write-Host 'Checksum Cygwin failed!'; `
