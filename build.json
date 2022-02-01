@@ -17,11 +17,6 @@
       "linux/arm/v7",
       "linux/arm64",
       "linux/s390x"
-    ],
-    "centos": [
-      "linux/amd64",
-      "linux/arm64",
-      "linux/ppc64le"
     ]
   },
   "os-windows": {
