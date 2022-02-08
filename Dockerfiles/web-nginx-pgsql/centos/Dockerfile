@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1
 ARG MAJOR_VERSION=5.4
 ARG ZBX_VERSION=${MAJOR_VERSION}.10
-ARG BUILD_BASE_IMAGE=zabbix-build-pgsql:centos-${ZBX_VERSION}
+ARG BUILD_BASE_IMAGE=zabbix/zabbix-build-pgsql:centos-${ZBX_VERSION}
 
 FROM ${BUILD_BASE_IMAGE} as builder
 
