@@ -522,6 +522,7 @@ services:
    - mysqld
    - --character-set-server=utf8mb4
    - --collation-server=utf8mb4_bin
+   - --skip-character-set-client-handshake
    - --default-authentication-plugin=mysql_native_password
   volumes:
    - ./zbx_env/var/lib/mysql:/var/lib/mysql:rw
