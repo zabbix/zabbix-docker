@@ -292,6 +292,7 @@ create_db_schema_mysql() {
         export MYSQL_PWD="${DB_SERVER_ROOT_PASS}"
 
         zcat /usr/share/doc/zabbix-proxy-mysql/create.sql.gz | mysql --silent --skip-column-names \
+                    --default-character-set=utf8mb4 \
                     -h ${DB_SERVER_HOST} -P ${DB_SERVER_PORT} \
                     -u ${DB_SERVER_ROOT_USER} $ssl_opts \
                     ${DB_SERVER_DBNAME} 1>/dev/null

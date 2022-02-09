@@ -336,6 +336,7 @@ create_db_schema_mysql() {
         ssl_opts="$(db_tls_params)"
 
         zcat /usr/share/doc/zabbix-server-mysql/create.sql.gz | mysql --silent --skip-column-names \
+                    --default-character-set=utf8mb4 \
                     -h ${DB_SERVER_HOST} -P ${DB_SERVER_PORT} \
                     -u ${DB_SERVER_ROOT_USER} --password="${DB_SERVER_ROOT_PASS}" $ssl_opts  \
                     ${DB_SERVER_DBNAME} 1>/dev/null
