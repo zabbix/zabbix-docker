@@ -1,20 +1,9 @@
-name: Build images (DockerHub, Windows)
+name: Nightly build images (DockerHub, Windows)
 
 on:
-  release:
-    types:
-      - published
-  push:
-    branches:
-      - '4.0'
-      - '5.0'
-      - '5.4'
-      - '6.0'
-      - 'trunk'
-    paths:
-      - 'Dockerfiles/*/windows/*'
-      - '!**/README.md'
-      - '.github/workflows/images_build_windows.yml'
+  schedule:
+    - cron:  '5 2 * * *'
+  workflow_dispatch:
 
 defaults:
   run:
@@ -40,6 +29,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v2.3.4
         with:
+          ref: "refs/heads/trunk"
           fetch-depth: 1
 
       - name: Check build.json file
@@ -102,6 +92,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v2.3.4
         with:
+          ref: "refs/heads/trunk"
           fetch-depth: 1
 
       - name: Login to DockerHub
@@ -121,11 +112,8 @@ jobs:
         with:
           images: ${{ env.DOCKER_REPOSITORY }}/${{ env.IMAGE_PREFIX }}${{ env.BASE_BUILD_NAME }}
           tags: |
-            type=semver,pattern={{version}},prefix=${{ matrix.component }}-${{ steps.base_os_tag.outputs.os_tag }}-
-            type=semver,pattern={{version}},suffix=-${{ steps.base_os_tag.outputs.os_tag }},prefix=${{ matrix.component }}-
-            type=ref,event=branch,prefix=${{ matrix.component }}-${{ steps.base_os_tag.outputs.os_tag }}-,suffix=-latest
-            type=ref,event=branch,suffix=-${{ steps.base_os_tag.outputs.os_tag }}-latest,prefix=${{ matrix.component }}-
-            type=raw,enable=${{ needs.init_build.outputs.is_default_branch == 'true' }},value=${{ matrix.component }}-${{ steps.base_os_tag.outputs.os_tag }}-latest
+            type=raw,value=${{ matrix.component }}-${{ steps.base_os_tag.outputs.os_tag }}-trunk
+            type=raw,value=${{ matrix.component }}-trunk-${{ steps.base_os_tag.outputs.os_tag }}
           flavor: |
             latest=false
 
@@ -199,6 +187,9 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2.3.4
+        with:
+          ref: "refs/heads/trunk"
+          fetch-depth: 1
 
       - name: Login to DockerHub
         run: |
@@ -217,11 +208,8 @@ jobs:
         with:
           images: ${{ env.DOCKER_REPOSITORY }}/${{ env.IMAGE_PREFIX }}${{ env.COMPONENT_BASE_BUILD_NAME }}
           tags: |
-            type=semver,pattern={{version}},prefix=${{ matrix.component }}-${{ steps.base_os_tag.outputs.os_tag }}-
-            type=semver,pattern={{version}},suffix=-${{ steps.base_os_tag.outputs.os_tag }},prefix=${{ matrix.component }}-
-            type=ref,event=branch,prefix=${{ matrix.component }}-${{ steps.base_os_tag.outputs.os_tag }}-,suffix=-latest
-            type=ref,event=branch,suffix=-${{ steps.base_os_tag.outputs.os_tag }}-latest,prefix=${{ matrix.component }}-
-            type=raw,enable=${{ needs.init_build.outputs.is_default_branch == 'true' }},value=${{ matrix.component }}-${{ steps.base_os_tag.outputs.os_tag }}-latest
+            type=raw,value=${{ matrix.component }}-${{ steps.base_os_tag.outputs.os_tag }}-trunk
+            type=raw,value=${{ matrix.component }}-trunk-${{ steps.base_os_tag.outputs.os_tag }}
           flavor: |
             latest=false
 
@@ -307,6 +295,9 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v2.3.4
+        with:
+          ref: "refs/heads/trunk"
+          fetch-depth: 1
 
       - name: Login to DockerHub
         run: |
@@ -325,12 +316,9 @@ jobs:
         with:
           images: ${{ env.DOCKER_REPOSITORY }}/${{ env.IMAGE_PREFIX }}${{ matrix.component }}
           tags: |
-            type=semver,pattern={{version}},prefix=${{ steps.base_os_tag.outputs.os_tag }}-
-            type=semver,pattern={{version}},suffix=-${{ steps.base_os_tag.outputs.os_tag }}
-            type=ref,event=branch,prefix=${{ steps.base_os_tag.outputs.os_tag }}-,suffix=-latest
-            type=ref,event=branch,suffix=-${{ steps.base_os_tag.outputs.os_tag }}-latest
-            type=raw,enable=${{ needs.init_build.outputs.is_default_branch == 'true' }},value=${{ steps.base_os_tag.outputs.os_tag }}-latest
-          flavor: |
+            type=raw,value=${{ steps.base_os_tag.outputs.os_tag }}-trunk
+            type=raw,value=trunk-${{ steps.base_os_tag.outputs.os_tag }}
+          flavor: |                                                                                                    
             latest=false
 
       - name: Download SHA256 tag for ${{ env.COMPONENT_BASE_BUILD_NAME }}:${{ matrix.os }}
