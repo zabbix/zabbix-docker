@@ -32,9 +32,11 @@ These are the only official Zabbix snmptraps Docker images. They are based on Al
     Zabbix snmptraps 5.0.* (tags: alpine-5.0.*, ubuntu-5.0.*, ol-5.0.*)
     Zabbix snmptraps 5.2 (tags: alpine-5.2-latest, ubuntu-5.2-latest, ol-5.2-latest)
     Zabbix snmptraps 5.2.* (tags: alpine-5.2.*, ubuntu-5.2.*, ol-5.2.*)
-    Zabbix snmptraps 5.4 (tags: alpine-5.4-latest, ubuntu-5.4-latest, ol-5.4-latest, alpine-latest, ubuntu-latest, ol-latest, latest)
+    Zabbix snmptraps 5.4 (tags: alpine-5.4-latest, ubuntu-5.4-latest, ol-5.4-latest)
     Zabbix snmptraps 5.4.* (tags: alpine-5.4.*, ubuntu-5.4.*, ol-5.4.*)
-    Zabbix snmptraps 6.0 (tags: alpine-trunk, ubuntu-trunk, ol-trunk)
+    Zabbix snmptraps 6.0 (tags: alpine-6.0-latest, ubuntu-6.0-latest, ol-6.0-latest, alpine-latest, ubuntu-latest, ol-latest, latest)
+    Zabbix snmptraps 6.0.* (tags: alpine-6.0.*, ubuntu-6.0.*, ol-6.0.*)
+    Zabbix snmptraps 6.2 (tags: alpine-trunk, ubuntu-trunk, ol-trunk)
 
 Images are updated when new releases are published.
 
@@ -80,7 +82,7 @@ The volume allows to add new MIB files. It does not support subdirectories, all 
 
 The `zabbix-snmptraps` images come in many flavors, each designed for a specific use case.
 
-## `zabbix-agent2:alpine-<version>`
+## `zabbix-snmptraps:alpine-<version>`
 
 This image is based on the popular [Alpine Linux project](http://alpinelinux.org), available in [the `alpine` official image](https://hub.docker.com/_/alpine). Alpine Linux is much smaller than most distribution base images (~5MB), and thus leads to much slimmer images in general.
 
@@ -88,11 +90,11 @@ This variant is highly recommended when final image size being as small as possi
 
 To minimize image size, it's uncommon for additional related tools (such as `git` or `bash`) to be included in Alpine-based images. Using this image as a base, add the things you need in your own Dockerfile (see the [`alpine` image description](https://hub.docker.com/_/alpine/) for examples of how to install packages if you are unfamiliar).
 
-## `zabbix-agent:ubuntu-<version>`
+## `zabbix-snmptraps:ubuntu-<version>`
 
 This is the defacto image. If you are unsure about what your needs are, you probably want to use this one. It is designed to be used both as a throw away container (mount your source code and start the container to start your app), as well as the base to build other images off of.
 
-## `zabbix-agent:ol-<version>`
+## `zabbix-snmptraps:ol-<version>`
 
 Oracle Linux is an open-source operating system available under the GNU General Public License (GPLv2). Suitable for general purpose or Oracle workloads, it benefits from rigorous testing of more than 128,000 hours per day with real-world workloads and includes unique innovations such as Ksplice for zero-downtime kernel patching, DTrace for real-time diagnostics, the powerful Btrfs file system, and more.
 

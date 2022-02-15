@@ -32,9 +32,11 @@ These are the only official Zabbix Java Gateway Docker images. They are based on
     Zabbix Java Gateway 5.0.* (tags: alpine-5.0.*, ubuntu-5.0.*, ol-5.0.*)
     Zabbix Java Gateway 5.2 (tags: alpine-5.2-latest, ubuntu-5.2-latest, ol-5.2-latest)
     Zabbix Java Gateway 5.2.* (tags: alpine-5.2.*, ubuntu-5.2.*, ol-5.2.*)
-    Zabbix Java Gateway 5.4 (tags: alpine-5.4-latest, ubuntu-5.4-latest, ol-5.4-latest, alpine-latest, ubuntu-latest, ol-latest, latest)
+    Zabbix Java Gateway 5.4 (tags: alpine-5.4-latest, ubuntu-5.4-latest, ol-5.4-latest)
     Zabbix Java Gateway 5.4.* (tags: alpine-5.4.*, ubuntu-5.4.*, ol-5.4.*)
-    Zabbix Java Gateway 6.0 (tags: alpine-trunk, ubuntu-trunk, ol-trunk)
+    Zabbix Java Gateway 6.0 (tags: alpine-6.0-latest, ubuntu-6.0-latest, ol-6.0-latest, alpine-latest, ubuntu-latest, ol-latest, latest)
+    Zabbix Java Gateway 6.0.* (tags: alpine-6.0.*, ubuntu-6.0.*, ol-6.0.*)
+    Zabbix Java Gateway 6.2 (tags: alpine-trunk, ubuntu-trunk, ol-trunk)
 
 Images are updated when new releases are published. The image with ``latest`` tag is based on Alpine Linux.
 
@@ -112,7 +114,7 @@ To minimize image size, it's uncommon for additional related tools (such as `git
 
 This is the defacto image. If you are unsure about what your needs are, you probably want to use this one. It is designed to be used both as a throw away container (mount your source code and start the container to start your app), as well as the base to build other images off of.
 
-## `zabbix-agent:ol-<version>`
+## `zabbix-java-gateway:ol-<version>`
 
 Oracle Linux is an open-source operating system available under the GNU General Public License (GPLv2). Suitable for general purpose or Oracle workloads, it benefits from rigorous testing of more than 128,000 hours per day with real-world workloads and includes unique innovations such as Ksplice
 
