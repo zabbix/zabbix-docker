@@ -11,7 +11,7 @@ ENV TERM=xterm \
 
 LABEL description="Prepared environment to build Zabbix components" \
       maintainer="alexey.pustovalov@zabbix.com" \
-      name="zabbix/zabbix-build-base-trunk" \
+      name="zabbix/zabbix-build-base-60" \
       release="${RELEASE}" \
       summary="Zabbix build base" \
       url="https://www.zabbix.com/" \
