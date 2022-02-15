@@ -9,6 +9,7 @@ on:
       - '4.0'
       - '5.0'
       - '5.4'
+      - '6.0'
       - 'trunk'
     paths:
       - 'Dockerfiles/*/windows/*'
