@@ -59,32 +59,10 @@ file_env() {
 check_variables() {
     : ${DB_SERVER_HOST:="mysql-server"}
     : ${DB_SERVER_PORT:="3306"}
-    USE_DB_ROOT_USER=false
-    CREATE_ZBX_DB_USER=false
+
     file_env MYSQL_USER
     file_env MYSQL_PASSWORD
 
-    if [ ! -n "${MYSQL_USER}" ] && [ "${MYSQL_RANDOM_ROOT_PASSWORD,,}" == "true" ]; then
-        echo "**** Impossible to use MySQL server because of unknown Zabbix user and random 'root' password"
-        exit 1
-    fi
-
-    if [ ! -n "${MYSQL_USER}" ] && [ ! -n "${MYSQL_ROOT_PASSWORD}" ] && [ "${MYSQL_ALLOW_EMPTY_PASSWORD,,}" != "true" ]; then
-        echo "*** Impossible to use MySQL server because 'root' password is not defined and it is not empty"
-        exit 1
-    fi
-
-    if [ "${MYSQL_ALLOW_EMPTY_PASSWORD,,}" == "true" ] || [ -n "${MYSQL_ROOT_PASSWORD}" ]; then
-        USE_DB_ROOT_USER=true
-        DB_SERVER_ROOT_USER="root"
-        DB_SERVER_ROOT_PASS=${MYSQL_ROOT_PASSWORD:-""}
-    fi
-
-    [ -n "${MYSQL_USER}" ] && CREATE_ZBX_DB_USER=true
-
-    # If root password is not specified use provided credentials
-    : ${DB_SERVER_ROOT_USER:=${MYSQL_USER}}
-    [ "${MYSQL_ALLOW_EMPTY_PASSWORD,,}" == "true" ] || DB_SERVER_ROOT_PASS=${DB_SERVER_ROOT_PASS:-${MYSQL_PASSWORD}}
     DB_SERVER_ZBX_USER=${MYSQL_USER:-"zabbix"}
     DB_SERVER_ZBX_PASS=${MYSQL_PASSWORD:-"zabbix"}
 
@@ -119,10 +97,6 @@ check_db_connect() {
     echo "* DB_SERVER_PORT: ${DB_SERVER_PORT}"
     echo "* DB_SERVER_DBNAME: ${DB_SERVER_DBNAME}"
     if [ "${DEBUG_MODE,,}" == "true" ]; then
-        if [ "${USE_DB_ROOT_USER}" == "true" ]; then
-            echo "* DB_SERVER_ROOT_USER: ${DB_SERVER_ROOT_USER}"
-            echo "* DB_SERVER_ROOT_PASS: ${DB_SERVER_ROOT_PASS}"
-        fi
         echo "* DB_SERVER_ZBX_USER: ${DB_SERVER_ZBX_USER}"
         echo "* DB_SERVER_ZBX_PASS: ${DB_SERVER_ZBX_PASS}"
     fi
@@ -132,9 +106,9 @@ check_db_connect() {
 
     ssl_opts="$(db_tls_params)"
 
-    export MYSQL_PWD="${DB_SERVER_ROOT_PASS}"
+    export MYSQL_PWD="${DB_SERVER_ZBX_PASS}"
 
-    while [ ! "$(mysqladmin ping -h ${DB_SERVER_HOST} -P ${DB_SERVER_PORT} -u ${DB_SERVER_ROOT_USER} \
+    while [ ! "$(mysqladmin ping -h ${DB_SERVER_HOST} -P ${DB_SERVER_PORT} -u ${DB_SERVER_ZBX_USER} \
                 --silent --connect_timeout=10 $ssl_opts)" ]; do
         echo "**** MySQL server is not available. Waiting $WAIT_TIMEOUT seconds..."
         sleep $WAIT_TIMEOUT

@@ -146,6 +146,7 @@ services:
   secrets:
    - MYSQL_USER
    - MYSQL_PASSWORD
+   - MYSQL_ROOT_USER
    - MYSQL_ROOT_PASSWORD
   depends_on:
    - mysql-server
@@ -505,6 +506,8 @@ secrets:
     file: ./env_vars/.MYSQL_USER
   MYSQL_PASSWORD:
     file: ./env_vars/.MYSQL_PASSWORD
+  MYSQL_ROOT_USER:
+    file: ./env_vars/.MYSQL_ROOT_USER
   MYSQL_ROOT_PASSWORD:
     file: ./env_vars/.MYSQL_ROOT_PASSWORD
   POSTGRES_USER:
