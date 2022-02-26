@@ -64,10 +64,6 @@ check_variables() {
 
     : ${DB_SERVER_HOST:="postgres-server"}
     : ${DB_SERVER_PORT:="5432"}
-    : ${CREATE_ZBX_DB_USER:="false"}
-
-    DB_SERVER_ROOT_USER=${POSTGRES_USER:-"postgres"}
-    DB_SERVER_ROOT_PASS=${POSTGRES_PASSWORD:-""}
 
     DB_SERVER_ZBX_USER=${POSTGRES_USER:-"zabbix"}
     DB_SERVER_ZBX_PASS=${POSTGRES_PASSWORD:-"zabbix"}
@@ -86,19 +82,10 @@ check_db_connect() {
     echo "* DB_SERVER_DBNAME: ${DB_SERVER_DBNAME}"
     echo "* DB_SERVER_SCHEMA: ${DB_SERVER_SCHEMA}"
     if [ "${DEBUG_MODE,,}" == "true" ]; then
-        if [ "${USE_DB_ROOT_USER}" == "true" ]; then
-            echo "* DB_SERVER_ROOT_USER: ${DB_SERVER_ROOT_USER}"
-            echo "* DB_SERVER_ROOT_PASS: ${DB_SERVER_ROOT_PASS}"
-        fi
         echo "* DB_SERVER_ZBX_USER: ${DB_SERVER_ZBX_USER}"
         echo "* DB_SERVER_ZBX_PASS: ${DB_SERVER_ZBX_PASS}"
     fi
     echo "********************"
-
-    if [ "${USE_DB_ROOT_USER}" != "true" ]; then
-        DB_SERVER_ROOT_USER=${DB_SERVER_ZBX_USER}
-        DB_SERVER_ROOT_PASS=${DB_SERVER_ZBX_PASS}
-    fi
 
     if [ -n "${DB_SERVER_ZBX_PASS}" ]; then
         export PGPASSWORD="${DB_SERVER_ZBX_PASS}"
