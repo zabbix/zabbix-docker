@@ -143,6 +143,7 @@ check_variables_mysql() {
     file_env MYSQL_USER
     file_env MYSQL_PASSWORD
 
+    file_env MYSQL_ROOT_USER
     file_env MYSQL_ROOT_PASSWORD
 
     if [ ! -n "${MYSQL_USER}" ] && [ "${MYSQL_RANDOM_ROOT_PASSWORD,,}" == "true" ]; then
@@ -157,7 +158,7 @@ check_variables_mysql() {
 
     if [ "${MYSQL_ALLOW_EMPTY_PASSWORD,,}" == "true" ] || [ -n "${MYSQL_ROOT_PASSWORD}" ]; then
         USE_DB_ROOT_USER=true
-        DB_SERVER_ROOT_USER="root"
+        DB_SERVER_ROOT_USER=${MYSQL_ROOT_USER:-"root"}
         DB_SERVER_ROOT_PASS=${MYSQL_ROOT_PASSWORD:-""}
     fi
 

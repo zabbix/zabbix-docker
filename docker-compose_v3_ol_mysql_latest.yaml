@@ -34,6 +34,7 @@ services:
   secrets:
    - MYSQL_USER
    - MYSQL_PASSWORD
+   - MYSQL_ROOT_USER
    - MYSQL_ROOT_PASSWORD
 #   - client-key.pem
 #   - client-cert.pem
@@ -151,6 +152,7 @@ services:
   secrets:
    - MYSQL_USER
    - MYSQL_PASSWORD
+   - MYSQL_ROOT_USER
    - MYSQL_ROOT_PASSWORD
 #   - client-key.pem
 #   - client-cert.pem
@@ -486,6 +488,8 @@ secrets:
     file: ./env_vars/.MYSQL_USER
   MYSQL_PASSWORD:
     file: ./env_vars/.MYSQL_PASSWORD
+  MYSQL_ROOT_USER:
+    file: ./env_vars/.MYSQL_ROOT_USER
   MYSQL_ROOT_PASSWORD:
     file: ./env_vars/.MYSQL_ROOT_PASSWORD
 #  client-key.pem:
