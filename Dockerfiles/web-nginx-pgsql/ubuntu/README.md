@@ -218,6 +218,14 @@ Additionally the image allows to specify many other environment variables listed
 ZBX_VAULTDBPATH= # Available since 5.2.0
 ZBX_VAULTURL=https://127.0.0.1:8200 # Available since 5.2.0
 VAULT_TOKEN= # Available since 5.2.0
+
+Allowed PHP-FPM configuration options:
+PHP_FPM_PM=dynamic
+PHP_FPM_PM_MAX_CHILDREN=50
+PHP_FPM_PM_START_SERVERS=5
+PHP_FPM_PM_MIN_SPARE_SERVERS=5
+PHP_FPM_PM_MAX_SPARE_SERVERS=35
+PHP_FPM_PM_MAX_REQUESTS=0
 ```
 
 ## Allowed volumes for the Zabbix web interface container

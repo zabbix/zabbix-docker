@@ -145,6 +145,13 @@ prepare_zbx_web_config() {
 
     PHP_CONFIG_FILE="/etc/php-fpm.d/zabbix.conf"
 
+    export PHP_FPM_PM=${PHP_FPM_PM:-"dynamic"}
+    export PHP_FPM_PM_MAX_CHILDREN=${PHP_FPM_PM_MAX_CHILDREN:-"50"}
+    export PHP_FPM_PM_START_SERVERS=${PHP_FPM_PM_START_SERVERS:-"5"}
+    export PHP_FPM_PM_MIN_SPARE_SERVERS=${PHP_FPM_PM_MIN_SPARE_SERVERS:-"5"}
+    export PHP_FPM_PM_MAX_SPARE_SERVERS=${PHP_FPM_PM_MAX_SPARE_SERVERS:-"35"}
+    export PHP_FPM_PM_MAX_REQUESTS=${PHP_FPM_PM_MAX_REQUESTS:-"0"}
+
     if [ "$(id -u)" == '0' ]; then
         echo "user = zabbix" >> "$PHP_CONFIG_FILE"
         echo "group = zabbix" >> "$PHP_CONFIG_FILE"
