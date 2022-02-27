@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1
 FROM registry.access.redhat.com/ubi8/ubi-minimal
 
-ARG MAJOR_VERSION=6.0
+ARG MAJOR_VERSION=6.2
 ARG RELEASE=
 ARG ZBX_VERSION=${MAJOR_VERSION}
 

@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1
 # escape=`
-ARG MAJOR_VERSION=6.0
+ARG MAJOR_VERSION=6.2
 ARG ZBX_VERSION=${MAJOR_VERSION}
 ARG BUILD_BASE_IMAGE=zabbix-build-agent:ltsc2022-agent-${ZBX_VERSION}
 

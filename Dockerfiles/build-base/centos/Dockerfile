@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1
 FROM centos:centos8
 
-ARG MAJOR_VERSION=6.0
+ARG MAJOR_VERSION=6.2
 ARG ZBX_VERSION=${MAJOR_VERSION}
 
 ENV TERM=xterm \
