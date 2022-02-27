@@ -86,7 +86,7 @@ check_db_connect() {
 
     export MYSQL_PWD="${DB_SERVER_ZBX_PASS}"
 
-    while [ ! "$(mysqladmin ping -h ${DB_SERVER_HOST} -P ${DB_SERVER_PORT} -u ${DB_SERVER_ZBX_PASS} \
+    while [ ! "$(mysqladmin ping -h ${DB_SERVER_HOST} -P ${DB_SERVER_PORT} -u ${DB_SERVER_ZBX_USER} \
                 --silent --connect_timeout=10)" ]; do
         echo "**** MySQL server is not available. Waiting $WAIT_TIMEOUT seconds..."
         sleep $WAIT_TIMEOUT
