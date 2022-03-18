@@ -59,6 +59,7 @@ RUN set -eux && \
             shadow-utils \
             tzdata \
             iputils \
+            hostname \
             libcurl \
             libevent \
             openldap \
