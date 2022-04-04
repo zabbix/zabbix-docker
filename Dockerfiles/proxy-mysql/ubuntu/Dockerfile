@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1
 ARG MAJOR_VERSION=6.0
-ARG ZBX_VERSION=${MAJOR_VERSION}.2
+ARG ZBX_VERSION=${MAJOR_VERSION}.3
 ARG BUILD_BASE_IMAGE=zabbix-build-mysql:ubuntu-${ZBX_VERSION}
 ARG ZBX_SOURCES=https://git.zabbix.com/scm/zbx/zabbix.git
 

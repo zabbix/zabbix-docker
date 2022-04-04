@@ -10,7 +10,7 @@ ARG BUILD_ARCH=x64
 ARG CPU_MODEL=AMD64
 
 ARG MAJOR_VERSION=6.0
-ARG ZBX_VERSION=${MAJOR_VERSION}.2
+ARG ZBX_VERSION=${MAJOR_VERSION}.3
 
 ARG VS_BUILDTOOLS_URL=https://aka.ms/vs/16/release/vs_buildtools.exe
 ARG NASM_URL=https://www.nasm.us/pub/nasm/releasebuilds/2.15.05/win64/nasm-2.15.05-installer-x64.exe
