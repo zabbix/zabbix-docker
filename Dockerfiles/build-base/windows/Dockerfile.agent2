@@ -90,7 +90,7 @@ RUN Set-Location -Path $env:SystemDrive\.; `
     [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; `
     Invoke-WebRequest -OutFile $env:SystemDrive\7z.msi -Uri $env:SEVEN_ZIP_URL; `
     `
-    $sha256 = '0b461f0a0eccfc4f39733a80d70fd1210fdd69f600fb6b657e03940a734e5fc1'; `
+    $sha256 = '5447C9AC39C48F1BC7C88359B0520396A8C9707B307C107236A93A68E6FD3EB6'; `
     Write-Host ('Verifying SHA256 ({0}) ...' -f $sha256); `
     if ((Get-FileHash $env:SystemDrive\7z.msi -Algorithm sha256).Hash -ne $sha256) { `
         Write-Host 'Checksum 7-zip failed!'; `
