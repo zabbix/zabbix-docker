@@ -66,19 +66,18 @@ RUN set -eux && \
             --best \
             --setopt=tsflags=nodocs \
         ${INSTALL_PKGS} && \
-    ARCH_SUFFIX="$(arch)"; \
     case "$ARCH_SUFFIX" in \
         x86_64) \
-            url='https://dl.google.com/go/go1.17.2.linux-amd64.tar.gz'; \
-            sha256='f242a9db6a0ad1846de7b6d94d507915d14062660616a61ef7c808a76e4f1676'; \
+            url='https://dl.google.com/go/go1.17.8.linux-amd64.tar.gz'; \
+            sha256='980e65a863377e69fd9b67df9d8395fd8e93858e7a24c9f55803421e453f4f99'; \
             ;; \
         aarch64) \
-            url='https://dl.google.com/go/go1.17.2.linux-arm64.tar.gz'; \
-            sha256='a5a43c9cdabdb9f371d56951b14290eba8ce2f9b0db48fb5fc657943984fd4fc'; \
+            url='https://dl.google.com/go/go1.17.8.linux-arm64.tar.gz'; \
+            sha256='57a9171682e297df1a5bd287be056ed0280195ad079af90af16dcad4f64710cb'; \
             ;; \
         ppc64le) \
-            url='https://golang.org/dl/go1.17.2.linux-ppc64le.tar.gz'; \
-            sha256='12e2dc7e0ffeebe77083f267ef6705fec1621cdf2ed6489b3af04a13597ed68d'; \
+            url='https://dl.google.com/go/go1.17.8.linux-ppc64le.tar.gz'; \
+            sha256='2077dd2fc57a74b0630b0c239ae4e3114607311778effd43fcfe5174133ee188'; \
             ;; \
         *) echo "Unknown ARCH_SUFFIX=${ARCH_SUFFIX-}"; exit 1 ;; \
     esac; \
