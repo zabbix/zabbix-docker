@@ -359,7 +359,7 @@ services:
   ports:
    - "162:1162/udp"
   volumes:
-   - snmptraps:/var/lib/zabbix/snmptraps
+   - snmptraps:/var/lib/zabbix/snmptraps:rw
   deploy:
    resources:
     limits:
