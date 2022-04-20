@@ -14,7 +14,7 @@ services:
    - ./zbx_env/var/lib/zabbix/enc:/var/lib/zabbix/enc:ro
    - ./zbx_env/var/lib/zabbix/ssh_keys:/var/lib/zabbix/ssh_keys:ro
    - ./zbx_env/var/lib/zabbix/mibs:/var/lib/zabbix/mibs:ro
-   - ./zbx_env/var/lib/zabbix/snmptraps:/var/lib/zabbix/snmptraps:ro
+   - snmptraps:/var/lib/zabbix/snmptraps:rw
 #   - ./env_vars/.ZBX_DB_CA_FILE:/run/secrets/root-ca.pem:ro
 #   - ./env_vars/.ZBX_DB_CERT_FILE:/run/secrets/client-cert.pem:ro
 #   - ./env_vars/.ZBX_DB_KEY_FILE:/run/secrets/client-key.pem:ro
