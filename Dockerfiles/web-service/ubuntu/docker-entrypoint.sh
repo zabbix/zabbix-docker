@@ -105,6 +105,8 @@ prepare_zbx_web_service_config() {
 
     update_config_var $ZBX_CONFIG "TLSCertFile" "${ZBX_TLSCERTFILE}"
     update_config_var $ZBX_CONFIG "TLSKeyFile" "${ZBX_TLSKEYFILE}"
+
+    update_config_var $ZBX_CONFIG "IgnoreURLCertErrors" "${ZBX_IGNOREURLCERTERRORS}"
 }
 
 prepare_web_service() {

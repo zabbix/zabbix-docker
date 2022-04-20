@@ -91,6 +91,7 @@ ZBX_TLSACCEPT=unencrypted
 ZBX_TLSCAFILE=
 ZBX_TLSCERTFILE=
 ZBX_TLSKEYFILE=
+ZBX_IGNOREURLCERTERRORS=0
 ```
 
 Default values of these variables are specified after equal sign.
