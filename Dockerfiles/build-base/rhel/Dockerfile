@@ -66,6 +66,7 @@ RUN set -eux && \
             --best \
             --setopt=tsflags=nodocs \
         ${INSTALL_PKGS} && \
+    ARCH_SUFFIX="$(arch)"; \
     case "$ARCH_SUFFIX" in \
         x86_64) \
             url='https://dl.google.com/go/go1.17.8.linux-amd64.tar.gz'; \
