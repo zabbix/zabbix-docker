@@ -69,6 +69,12 @@ RUN set -eux && \
             --best \
             --setopt=tsflags=nodocs \
         ${INSTALL_PKGS} && \
+    microdnf -y reinstall \
+            --enablerepo "ubi-8-baseos" \
+            --setopt=install_weak_deps=0 \
+            --best \
+            --setopt=tsflags=nodocs \
+        tzdata && \
     groupadd \
             --system \
             --gid 1995 \
