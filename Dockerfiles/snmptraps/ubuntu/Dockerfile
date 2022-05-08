@@ -1,4 +1,4 @@
-FROM ubuntu:focal
+FROM ubuntu:jammy
 
 ARG MAJOR_VERSION=6.2
 ARG ZBX_VERSION=${MAJOR_VERSION}

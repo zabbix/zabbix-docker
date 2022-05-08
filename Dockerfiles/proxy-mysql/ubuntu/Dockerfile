@@ -6,7 +6,7 @@ ARG ZBX_SOURCES=https://git.zabbix.com/scm/zbx/zabbix.git
 
 FROM ${BUILD_BASE_IMAGE} as builder
 
-FROM ubuntu:focal
+FROM ubuntu:jammy
 
 ARG MAJOR_VERSION
 ARG ZBX_VERSION
@@ -44,9 +44,9 @@ RUN set -eux && \
             libmysqlclient21 \
             libopenipmi0 \
             libpcre2-8-0 \
-            libsnmp35 \
+            libsnmp40 \
             libssh-4 \
-            libssl1.1 \
+            libssl3 \
             libxml2 \
             mysql-client \
             snmp-mibs-downloader \
