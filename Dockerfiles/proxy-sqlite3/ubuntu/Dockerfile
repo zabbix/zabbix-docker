@@ -5,7 +5,7 @@ ARG BUILD_BASE_IMAGE=zabbix-build-sqlite3:ubuntu-${ZBX_VERSION}
 
 FROM ${BUILD_BASE_IMAGE} as builder
 
-FROM ubuntu:focal
+FROM ubuntu:jammy
 
 ARG MAJOR_VERSION
 ARG ZBX_VERSION
@@ -42,10 +42,10 @@ RUN set -eux && \
             libevent-2.1 \
             libopenipmi0 \
             libpcre2-8-0 \
-            libsnmp35 \
+            libsnmp40 \
             libsqlite3-0 \
             libssh-4 \
-            libssl1.1 \
+            libssl3 \
             libxml2 \
             snmp-mibs-downloader \
             unixodbc" && \

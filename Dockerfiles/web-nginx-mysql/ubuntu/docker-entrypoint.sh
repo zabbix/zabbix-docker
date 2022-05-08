@@ -143,7 +143,7 @@ prepare_web_server() {
 prepare_zbx_web_config() {
     echo "** Preparing Zabbix frontend configuration file"
 
-    PHP_CONFIG_FILE="/etc/php/7.4/fpm/pool.d/zabbix.conf"
+    PHP_CONFIG_FILE="/etc/php/8.1/fpm/pool.d/zabbix.conf"
 
     export PHP_FPM_PM=${PHP_FPM_PM:-"dynamic"}
     export PHP_FPM_PM_MAX_CHILDREN=${PHP_FPM_PM_MAX_CHILDREN:-"50"}

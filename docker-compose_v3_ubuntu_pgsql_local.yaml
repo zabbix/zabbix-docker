@@ -4,14 +4,14 @@ services:
   build:
    context: ./Dockerfiles/build-base/ubuntu
    cache_from:
-    - ubuntu:focal
+    - ubuntu:jammy
   image: zabbix-build-base:ubuntu-local
 
  zabbix-build-pgsql:
   build:
    context: ./Dockerfiles/build-pgsql/ubuntu
    cache_from:
-    - ubuntu:focal
+    - ubuntu:jammy
    args:
     BUILD_BASE_IMAGE: zabbix-build-base:ubuntu-local
   image: zabbix-build-pgsql:ubuntu-local
@@ -22,7 +22,7 @@ services:
   build:
    context: ./Dockerfiles/build-mysql/ubuntu
    cache_from:
-    - ubuntu:focal
+    - ubuntu:jammy
    args:
     BUILD_BASE_IMAGE: zabbix-build-base:ubuntu-local
   image: zabbix-build-mysql:ubuntu-local
@@ -35,7 +35,7 @@ services:
   build:
    context: ./Dockerfiles/build-sqlite3/ubuntu
    cache_from:
-    - ubuntu:focal
+    - ubuntu:jammy
    args:
     BUILD_BASE_IMAGE: zabbix-build-base:ubuntu-local
   image: zabbix-build-sqlite3:ubuntu-local
@@ -48,7 +48,7 @@ services:
   build:
    context: ./Dockerfiles/server-pgsql/ubuntu
    cache_from:
-    - ubuntu:focal
+    - ubuntu:jammy
    args:
     BUILD_BASE_IMAGE: zabbix-build-pgsql:ubuntu-local
   image: zabbix-server-pgsql:ubuntu-local
@@ -116,7 +116,7 @@ services:
   build:
    context: ./Dockerfiles/proxy-sqlite3/ubuntu
    cache_from:
-    - ubuntu:focal
+    - ubuntu:jammy
    args:
     BUILD_BASE_IMAGE: zabbix-build-sqlite3:ubuntu-local
   image: zabbix-proxy-sqlite3:ubuntu-local
@@ -171,7 +171,7 @@ services:
   build:
    context: ./Dockerfiles/proxy-mysql/ubuntu
    cache_from:
-    - ubuntu:focal
+    - ubuntu:jammy
    args:
     BUILD_BASE_IMAGE: zabbix-build-mysql:ubuntu-local
   image: zabbix-proxy-mysql:ubuntu-local
@@ -233,7 +233,7 @@ services:
   build:
    context: ./Dockerfiles/web-apache-pgsql/ubuntu
    cache_from:
-    - ubuntu:focal
+    - ubuntu:jammy
    args:
     BUILD_BASE_IMAGE: zabbix-build-pgsql:ubuntu-local
   image: zabbix-web-apache-pgsql:ubuntu-local
@@ -295,7 +295,7 @@ services:
   build:
    context: ./Dockerfiles/web-nginx-pgsql/ubuntu
    cache_from:
-    - ubuntu:focal
+    - ubuntu:jammy
    args:
     BUILD_BASE_IMAGE: zabbix-build-pgsql:ubuntu-local
   image: zabbix-web-nginx-pgsql:ubuntu-local
@@ -355,7 +355,7 @@ services:
   build:
    context: ./Dockerfiles/agent/ubuntu
    cache_from:
-    - ubuntu:focal
+    - ubuntu:jammy
    args:
     BUILD_BASE_IMAGE: zabbix-build-pgsql:ubuntu-local
   image: zabbix-agent:ubuntu-local
@@ -402,7 +402,7 @@ services:
   build:
    context: ./Dockerfiles/java-gateway/ubuntu
    cache_from:
-    - ubuntu:focal
+    - ubuntu:jammy
    args:
     BUILD_BASE_IMAGE: zabbix-build-pgsql:ubuntu-local
   image: zabbix-java-gateway:ubuntu-local
@@ -439,7 +439,7 @@ services:
   build:
    context: ./Dockerfiles/snmptraps/ubuntu
    cache_from:
-    - ubuntu:focal
+    - ubuntu:jammy
   image: zabbix-snmptraps:ubuntu-local
   profiles:
    - full
@@ -472,7 +472,7 @@ services:
   build:
    context: ./Dockerfiles/web-service/ubuntu
    cache_from:
-    - ubuntu:focal
+    - ubuntu:jammy
    args:
     BUILD_BASE_IMAGE: zabbix-build-pgsql:ubuntu-local
   image: zabbix-web-service:ubuntu-local

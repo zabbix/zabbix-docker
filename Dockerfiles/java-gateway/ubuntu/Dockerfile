@@ -5,7 +5,7 @@ ARG BUILD_BASE_IMAGE=zabbix-build-mysql:ubuntu-${ZBX_VERSION}
 
 FROM ${BUILD_BASE_IMAGE} as builder
 
-FROM ubuntu:focal
+FROM ubuntu:jammy
 
 ARG MAJOR_VERSION
 ARG ZBX_VERSION
