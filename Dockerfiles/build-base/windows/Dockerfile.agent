@@ -212,8 +212,8 @@ RUN Set-Location -Path $env:SystemDrive\.; `
         --prefix=$env:SystemDrive\openssl_output `
         --openssldir=$env:SystemDrive\openssl_output_ssl; `
     set CL=/MP; `
-    nmake /S; `
-    nmake /S install_sw; `
+    nmake /S build_sw; `
+    nmake /S install_dev; `
     Write-Host 'OpenSSL is ready...';
 
 COPY modbus.vs16.vcxproj c:\
