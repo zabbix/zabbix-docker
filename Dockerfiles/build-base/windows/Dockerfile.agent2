@@ -146,7 +146,6 @@ RUN Set-Location -Path $env:SystemDrive\.; `
         --installChannelUri https://aka.ms/vs/16/release/channel `
         --channelId VisualStudio.16.Release `
         # https://docs.microsoft.com/en-us/visualstudio/install/workload-component-id-vs-build-tools?view=vs-2019
-        --add Microsoft.VisualStudio.Component.Windows10SDK.19041 `
         --add Microsoft.VisualStudio.Component.VC.CMake.Project; `
     if ($err = dir $Env:TEMP -Filter dd_setup_*_errors.log | where Length -gt 0 | Get-Content) { `
         throw $err; `
