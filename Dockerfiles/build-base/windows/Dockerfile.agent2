@@ -242,10 +242,11 @@ RUN Set-Location -Path $env:SystemDrive\.; `
 #        enable-capieng `
         no-capieng `
         --api=1.1.0 `
-        --prefix=$env:SystemDrive\openssl_output `
-        --openssldir=$env:SystemDrive\openssl_output_ssl; `
-    mingw32-make -s -j"""$env:NUMBER_OF_PROCESSORS"""; `
-    mingw32-make -s -j"""$env:NUMBER_OF_PROCESSORS""" install_sw; `
+        --libdir=lib `
+        --prefix=$env:SystemDrive/openssl_output `
+        --openssldir=$env:SystemDrive/openssl_output_ssl; `
+    mingw32-make -s -j"""$env:NUMBER_OF_PROCESSORS""" build_sw; `
+    mingw32-make -s -j"""$env:NUMBER_OF_PROCESSORS""" install_dev; `
     Write-Host 'OpenSSL is ready...'; `
     Write-Host 'Removing cygwin...'; `
     Remove-Item -Recurse -Force -Path $env:SystemDrive\cygwin;
