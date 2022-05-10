@@ -201,7 +201,7 @@ function Prepare-Zbx-Agent-Config {
     # Please use include to enable Perfcounter feature
 #    update_config_multiple_var $ZBX_AGENT_CONFIG "PerfCounter" $env:ZBX_PERFCOUNTER
     Update-Config-Var $ZbxAgentConfig "Timeout" "$env:ZBX_TIMEOUT"
-    Update-Config-Var $ZbxAgentConfig "Include" "$ZabbixConfigDir\zabbix_agentd.d\"
+    Update-Config-Var $ZbxAgentConfig "Include" "$ZabbixConfigDir\zabbix_agentd.d\*.conf"
     Update-Config-Var $ZbxAgentConfig "UnsafeUserParameters" "$env:ZBX_UNSAFEUSERPARAMETERS"
     Update-Config-Var $ZbxAgentConfig "UserParameterDir" "$ZabbixUserHomeDir\user_scripts\"
     Update-Config-Var $ZbxAgentConfig "TLSConnect" "$env:ZBX_TLSCONNECT"
