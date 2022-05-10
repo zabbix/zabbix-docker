@@ -14,7 +14,7 @@ Zabbix web service for performing various tasks using headless web browser (for 
 
 # Zabbix web service images
 
-These are the only official Zabbix web service Docker images. They are based on Alpine Linux v3.13, Ubuntu 20.04 (focal) and Oracle Linux 8 images. The available versions of Zabbix web service are:
+These are the only official Zabbix web service Docker images. They are based on Alpine Linux v3.13, Ubuntu 20.04 (focal), 22.04 (jammy) and Oracle Linux 8 images. The available versions of Zabbix web service are:
 
     Zabbix web service 5.4 (tags: alpine-5.4-latest, ubuntu-5.4-latest, ol-5.4-latest)
     Zabbix web service 5.4.* (tags: alpine-5.4.*, ubuntu-5.4.*, ol-5.4.*)

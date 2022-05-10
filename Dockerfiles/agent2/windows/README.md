@@ -14,7 +14,7 @@ Zabbix agent 2 is deployed on a monitoring target to actively monitor local reso
 
 # Zabbix agent 2 images
 
-These are the only official Zabbix agent 2 Docker images. They are based on Alpine Linux v3.14, Ubuntu 20.04 (focal), CentOS 8, Oracle Linux 8, Windows 10 LTSC 2019 and Windows 11 LTSC 2022 images. The available versions of Zabbix agent 2 are:
+These are the only official Zabbix agent 2 Docker images. They are based on Alpine Linux v3.15, Ubuntu 20.04 (focal), 22.04 (jammy), CentOS Stream 8, Oracle Linux 8, Windows 10 LTSC 2019 and Windows 11 LTSC 2022 images. The available versions of Zabbix agent 2 are:
 
     Zabbix agent 2 4.4 (tags: alpine-4.4-latest) (unsupported)
     Zabbix agent 2 4.4.* (tags: alpine-4.4.*) (unsupported)
