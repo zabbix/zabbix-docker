@@ -5,7 +5,7 @@ ARG BUILD_BASE_IMAGE=zabbix-build-sqlite3:centos-${ZBX_VERSION}
 
 FROM ${BUILD_BASE_IMAGE} as builder
 
-FROM centos:centos8
+FROM quay.io/centos/centos:stream8
 
 ARG MAJOR_VERSION
 ARG ZBX_VERSION

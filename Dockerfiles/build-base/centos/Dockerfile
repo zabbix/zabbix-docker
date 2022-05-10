@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1
-FROM centos:centos8
+FROM quay.io/centos/centos:stream8
 
 ARG MAJOR_VERSION=5.0
 ARG ZBX_VERSION=${MAJOR_VERSION}.23
