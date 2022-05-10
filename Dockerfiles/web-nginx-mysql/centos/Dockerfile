@@ -48,7 +48,7 @@ RUN set -eux && \
             supervisor" && \
     dnf -y install epel-release && \
     dnf -y module enable mysql && \
-    dnf -y module enable php:7.4 nginx:1.18 && \
+    dnf -y module enable php:8.0 nginx:1.20 && \
     dnf -y install \
             --disablerepo "*" \
             --enablerepo "${REPOLIST}" \
