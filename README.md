@@ -19,11 +19,11 @@ This repository contains **Dockerfile** of [Zabbix](https://zabbix.com/) for [Do
 ### Base Docker Image
 
 * [alpine](https://hub.docker.com/_/alpine/)
-* [centos](https://hub.docker.com/_/centos/) till Zabbix 5.0
+* [centos](https://quay.io/repository/centos/centos?tab=info)
 * [oracle linux](https://hub.docker.com/_/oraclelinux/) from Zabbix 5.0
 * [ubuntu](https://hub.docker.com/_/ubuntu/)
 
-> **Important information: All Zabbix images based on CentOS 8 image can not be updated anymore because CentOS 8 base image is outdated (base image is not updated for half year). Because of that all images based on CentOS 8 replaced with Oracle Linux 8 as base image.**
+> **Important information: All Zabbix images based on CentOS 8 image can not be updated anymore because CentOS 8 base image is outdated on Docker Hub (base image is not updated for half year). CentOS Stream 8 from quay.io is used currently.**
 
 ### Usage
 
