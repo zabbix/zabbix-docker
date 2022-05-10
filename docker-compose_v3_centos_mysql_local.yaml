@@ -4,14 +4,14 @@ services:
   build:
    context: ./Dockerfiles/build-base/centos
    cache_from:
-    - centos:centos8
+    - quay.io/centos/centos:stream8
   image: zabbix-build-base:centos-local
 
  zabbix-build-mysql:
   build:
    context: ./Dockerfiles/build-mysql/centos
    cache_from:
-    - centos:centos8
+    - quay.io/centos/centos:stream8
    args:
     BUILD_BASE_IMAGE: zabbix-build-base:centos-local
   image: zabbix-build-mysql:centos-local
@@ -22,7 +22,7 @@ services:
   build:
    context: ./Dockerfiles/build-sqlite3/centos
    cache_from:
-    - centos:centos8
+    - quay.io/centos/centos:stream8
    args:
     BUILD_BASE_IMAGE: zabbix-build-base:centos-local
   image: zabbix-build-sqlite3:centos-local
@@ -35,7 +35,7 @@ services:
   build: 
    context: ./Dockerfiles/server-mysql/centos
    cache_from:
-    - centos:centos8
+    - quay.io/centos/centos:stream8
    args:
     BUILD_BASE_IMAGE: zabbix-build-mysql:centos-local
   image: zabbix-server-mysql:centos-local
@@ -106,7 +106,7 @@ services:
   build:
    context: ./Dockerfiles/proxy-sqlite3/centos
    cache_from:
-    - centos:centos8
+    - quay.io/centos/centos:stream8
    args:
     BUILD_BASE_IMAGE: zabbix-build-sqlite3:centos-local
   image: zabbix-proxy-sqlite3:centos-local
@@ -162,7 +162,7 @@ services:
   build:
    context: ./Dockerfiles/proxy-mysql/centos
    cache_from:
-    - centos:centos8
+    - quay.io/centos/centos:stream8
    args:
     BUILD_BASE_IMAGE: zabbix-build-mysql:centos-local
   image: zabbix-proxy-mysql:centos-local
@@ -228,7 +228,7 @@ services:
   build:
    context: ./Dockerfiles/web-apache-mysql/centos
    cache_from:
-    - centos:centos8
+    - quay.io/centos/centos:stream8
    args:
     BUILD_BASE_IMAGE: zabbix-build-mysql:centos-local
   image: zabbix-web-apache-mysql:centos-local
@@ -291,7 +291,7 @@ services:
   build:
    context: ./Dockerfiles/web-nginx-mysql/centos
    cache_from:
-    - centos:centos8
+    - quay.io/centos/centos:stream8
    args:
     BUILD_BASE_IMAGE: zabbix-build-mysql:centos-local
   image: zabbix-web-nginx-mysql:centos-local
@@ -352,7 +352,7 @@ services:
   build:
    context: ./Dockerfiles/agent/centos
    cache_from:
-    - centos:centos8
+    - quay.io/centos/centos:stream8
    args:
     BUILD_BASE_IMAGE: zabbix-build-mysql:centos-local
   image: zabbix-agent:centos-local
@@ -400,7 +400,7 @@ services:
   build:
    context: ./Dockerfiles/java-gateway/centos
    cache_from:
-    - centos:centos8
+    - quay.io/centos/centos:stream8
    args:
     BUILD_BASE_IMAGE: zabbix-build-mysql:centos-local
   image: zabbix-java-gateway:centos-local
@@ -437,7 +437,7 @@ services:
   build:
    context: ./Dockerfiles/snmptraps/centos
    cache_from:
-    - centos:centos8
+    - quay.io/centos/centos:stream8
   image: zabbix-snmptraps:centos-local
   profiles:
    - full
@@ -470,7 +470,7 @@ services:
   build:
    context: ./Dockerfiles/web-service/centos
    cache_from:
-    - centos:centos8
+    - quay.io/centos/centos:stream8
    args:
     BUILD_BASE_IMAGE: zabbix-build-mysql:centos-local
   image: zabbix-web-service:centos-local
