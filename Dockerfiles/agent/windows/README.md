@@ -14,7 +14,7 @@ Zabbix agent is deployed on a monitoring target to actively monitor local resour
 
 # Zabbix agent images
 
-These are the only official Zabbix agent Docker images. They are based on Alpine Linux v3.14, Ubuntu 20.04 (focal), CentOS 8, Oracle Linux 8, Windows 10 LTSC 2019 and Windows 11 LTSC 2022 images. The available versions of Zabbix agent are:
+These are the only official Zabbix agent Docker images. They are based on Alpine Linux v3.15, Ubuntu 20.04 (focal), 22.04 (jammy), CentOS Stream 8, Oracle Linux 8, Windows 10 LTSC 2019 and Windows 11 LTSC 2022 images. The available versions of Zabbix agent are:
 
     Zabbix agent 3.0 (tags: alpine-3.0-latest, ubuntu-3.0-latest, centos-3.0-latest) (unsupported)
     Zabbix agent 3.0.* (tags: alpine-3.0.*, ubuntu-3.0.*, centos-3.0.*) (unsupported)

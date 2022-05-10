@@ -14,7 +14,7 @@ Zabbix build base image is prepared build environment for building Zabbix compon
 
 # Zabbix build base images
 
-These are the only official Zabbix build base Docker images. They are based on Alpine Linux v3.11, v3.14, Ubuntu 20.04 (focal), CentOS 8 and Oracle Linux 8 images. The available versions of the image are:
+These are the only official Zabbix build base Docker images. They are based on Alpine Linux v3.15, Ubuntu 20.04 (focal), 22.04 (jammy), CentOS Stream 8 and Oracle Linux 8 images. The available versions of the image are:
 
     Zabbix build base 4.0 (tags: alpine-4.0-latest, ubuntu-4.0-latest, centos-4.0-latest)
     Zabbix build base 4.0.* (tags: alpine-4.0.*, ubuntu-4.0.*, centos-4.0.*)
