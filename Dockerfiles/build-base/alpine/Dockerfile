@@ -39,7 +39,6 @@ RUN set -eux && \
             gettext \
             git \
             g++ \
-            go \
             make \
             openjdk8-jre-base \
             unixodbc-dev" && \
@@ -47,4 +46,9 @@ RUN set -eux && \
             --no-cache \
             --clean-protected \
         ${INSTALL_PKGS} && \
+    apk add \
+            --no-cache \
+            --clean-protected \
+            --repository=http://dl-cdn.alpinelinux.org/alpine/edge/community \
+        go && \
     rm -rf /var/cache/apk/*
