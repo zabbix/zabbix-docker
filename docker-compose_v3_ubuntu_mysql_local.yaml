@@ -43,13 +43,13 @@ services:
    - "10051:10051"
   volumes:
    - /etc/localtime:/etc/localtime:ro
-   - "${PWD}/zbx_env/usr/lib/zabbix/alertscripts:/usr/lib/zabbix/alertscripts:ro"
-   - "${PWD}/zbx_env/usr/lib/zabbix/externalscripts:/usr/lib/zabbix/externalscripts:ro"
-   - "${PWD}/zbx_env/var/lib/zabbix/export:/var/lib/zabbix/export:rw"
-   - "${PWD}/zbx_env/var/lib/zabbix/modules:/var/lib/zabbix/modules:ro"
-   - "${PWD}/zbx_env/var/lib/zabbix/enc:/var/lib/zabbix/enc:ro"
-   - "${PWD}/zbx_env/var/lib/zabbix/ssh_keys:/var/lib/zabbix/ssh_keys:ro"
-   - "${PWD}/zbx_env/var/lib/zabbix/mibs:/var/lib/zabbix/mibs:ro"
+   - "./zbx_env/usr/lib/zabbix/alertscripts:/usr/lib/zabbix/alertscripts:ro"
+   - "./zbx_env/usr/lib/zabbix/externalscripts:/usr/lib/zabbix/externalscripts:ro"
+   - "./zbx_env/var/lib/zabbix/export:/var/lib/zabbix/export:rw"
+   - "./zbx_env/var/lib/zabbix/modules:/var/lib/zabbix/modules:ro"
+   - "./zbx_env/var/lib/zabbix/enc:/var/lib/zabbix/enc:ro"
+   - "./zbx_env/var/lib/zabbix/ssh_keys:/var/lib/zabbix/ssh_keys:ro"
+   - "./zbx_env/var/lib/zabbix/mibs:/var/lib/zabbix/mibs:ro"
    - snmptraps:/var/lib/zabbix/snmptraps:rw
   ulimits:
    nproc: 65535
@@ -115,11 +115,11 @@ services:
    - "10061:10051"
   volumes:
    - /etc/localtime:/etc/localtime:ro
-   - "${PWD}/zbx_env/usr/lib/zabbix/externalscripts:/usr/lib/zabbix/externalscripts:ro"
-   - "${PWD}/zbx_env/var/lib/zabbix/modules:/var/lib/zabbix/modules:ro"
-   - "${PWD}/zbx_env/var/lib/zabbix/enc:/var/lib/zabbix/enc:ro"
-   - "${PWD}/zbx_env/var/lib/zabbix/ssh_keys:/var/lib/zabbix/ssh_keys:ro"
-   - "${PWD}/zbx_env/var/lib/zabbix/mibs:/var/lib/zabbix/mibs:ro"
+   - "./zbx_env/usr/lib/zabbix/externalscripts:/usr/lib/zabbix/externalscripts:ro"
+   - "./zbx_env/var/lib/zabbix/modules:/var/lib/zabbix/modules:ro"
+   - "./zbx_env/var/lib/zabbix/enc:/var/lib/zabbix/enc:ro"
+   - "./zbx_env/var/lib/zabbix/ssh_keys:/var/lib/zabbix/ssh_keys:ro"
+   - "./zbx_env/var/lib/zabbix/mibs:/var/lib/zabbix/mibs:ro"
    - snmptraps:/var/lib/zabbix/snmptraps:rw
   ulimits:
    nproc: 65535
@@ -170,11 +170,11 @@ services:
    - "10071:10051"
   volumes:
    - /etc/localtime:/etc/localtime:ro
-   - "${PWD}/zbx_env/usr/lib/zabbix/externalscripts:/usr/lib/zabbix/externalscripts:ro"
-   - "${PWD}/zbx_env/var/lib/zabbix/modules:/var/lib/zabbix/modules:ro"
-   - "${PWD}/zbx_env/var/lib/zabbix/enc:/var/lib/zabbix/enc:ro"
-   - "${PWD}/zbx_env/var/lib/zabbix/ssh_keys:/var/lib/zabbix/ssh_keys:ro"
-   - "${PWD}/zbx_env/var/lib/zabbix/mibs:/var/lib/zabbix/mibs:ro"
+   - "./zbx_env/usr/lib/zabbix/externalscripts:/usr/lib/zabbix/externalscripts:ro"
+   - "./zbx_env/var/lib/zabbix/modules:/var/lib/zabbix/modules:ro"
+   - "./zbx_env/var/lib/zabbix/enc:/var/lib/zabbix/enc:ro"
+   - "./zbx_env/var/lib/zabbix/ssh_keys:/var/lib/zabbix/ssh_keys:ro"
+   - "./zbx_env/var/lib/zabbix/mibs:/var/lib/zabbix/mibs:ro"
    - snmptraps:/var/lib/zabbix/snmptraps:rw
   ulimits:
    nproc: 65535
@@ -236,8 +236,8 @@ services:
    - "8443:8443"
   volumes:
    - /etc/localtime:/etc/localtime:ro
-   - "${PWD}/zbx_env/etc/ssl/apache2:/etc/ssl/apache2:ro"
-   - "${PWD}/zbx_env/usr/share/zabbix/modules/:/usr/share/zabbix/modules/:ro"
+   - "./zbx_env/etc/ssl/apache2:/etc/ssl/apache2:ro"
+   - "./zbx_env/usr/share/zabbix/modules/:/usr/share/zabbix/modules/:ro"
   deploy:
    resources:
     limits:
@@ -296,8 +296,8 @@ services:
    - "443:8443"
   volumes:
    - /etc/localtime:/etc/localtime:ro
-   - "${PWD}/zbx_env/etc/ssl/nginx:/etc/ssl/nginx:ro"
-   - "${PWD}/zbx_env/usr/share/zabbix/modules/:/usr/share/zabbix/modules/:ro"
+   - "./zbx_env/etc/ssl/nginx:/etc/ssl/nginx:ro"
+   - "./zbx_env/usr/share/zabbix/modules/:/usr/share/zabbix/modules/:ro"
   deploy:
    resources:
     limits:
@@ -358,10 +358,10 @@ services:
    - "10050:10050"
   volumes:
    - /etc/localtime:/etc/localtime:ro
-   - "${PWD}/zbx_env/etc/zabbix/zabbix_agentd.d:/etc/zabbix/zabbix_agentd.d:ro"
-   - "${PWD}/zbx_env/var/lib/zabbix/modules:/var/lib/zabbix/modules:ro"
-   - "${PWD}/zbx_env/var/lib/zabbix/enc:/var/lib/zabbix/enc:ro"
-   - "${PWD}/zbx_env/var/lib/zabbix/ssh_keys:/var/lib/zabbix/ssh_keys:ro"
+   - "./zbx_env/etc/zabbix/zabbix_agentd.d:/etc/zabbix/zabbix_agentd.d:ro"
+   - "./zbx_env/var/lib/zabbix/modules:/var/lib/zabbix/modules:ro"
+   - "./zbx_env/var/lib/zabbix/enc:/var/lib/zabbix/enc:ro"
+   - "./zbx_env/var/lib/zabbix/ssh_keys:/var/lib/zabbix/ssh_keys:ro"
   deploy:
    resources:
     limits:
@@ -474,7 +474,7 @@ services:
   ports:
    - "10053:10053"
   volumes:
-   - "${PWD}/zbx_env/var/lib/zabbix/enc:/var/lib/zabbix/enc:ro"
+   - "./zbx_env/var/lib/zabbix/enc:/var/lib/zabbix/enc:ro"
   cap_add:
    - SYS_ADMIN
   deploy:
@@ -513,7 +513,7 @@ services:
 #   - --ssl-cert=/run/secrets/server-cert.pem
 #   - --ssl-key=/run/secrets/server-key.pem
   volumes:
-   - "${PWD}/zbx_env/var/lib/mysql:/var/lib/mysql:rw"
+   - "./zbx_env/var/lib/mysql:/var/lib/mysql:rw"
   env_file:
    - ./env_vars/.env_db_mysql
   secrets:
@@ -534,7 +534,7 @@ services:
  db_data_mysql:
   image: busybox
   volumes:
-   - "${PWD}/zbx_env/var/lib/mysql:/var/lib/mysql:rw"
+   - "./zbx_env/var/lib/mysql:/var/lib/mysql:rw"
 
 # elasticsearch:
 #  image: elasticsearch

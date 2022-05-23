@@ -56,13 +56,13 @@ services:
    - "10051:10051"
   volumes:
    - /etc/localtime:/etc/localtime:ro
-   - "${PWD}./zbx_env/usr/lib/zabbix/alertscripts:/usr/lib/zabbix/alertscripts:ro"
-   - "${PWD}./zbx_env/usr/lib/zabbix/externalscripts:/usr/lib/zabbix/externalscripts:ro"
-   - "${PWD}./zbx_env/var/lib/zabbix/export:/var/lib/zabbix/export:rw"
-   - "${PWD}./zbx_env/var/lib/zabbix/modules:/var/lib/zabbix/modules:ro"
-   - "${PWD}./zbx_env/var/lib/zabbix/enc:/var/lib/zabbix/enc:ro"
-   - "${PWD}./zbx_env/var/lib/zabbix/ssh_keys:/var/lib/zabbix/ssh_keys:ro"
-   - "${PWD}./zbx_env/var/lib/zabbix/mibs:/var/lib/zabbix/mibs:ro"
+   - "./zbx_env/usr/lib/zabbix/alertscripts:/usr/lib/zabbix/alertscripts:ro"
+   - "./zbx_env/usr/lib/zabbix/externalscripts:/usr/lib/zabbix/externalscripts:ro"
+   - "./zbx_env/var/lib/zabbix/export:/var/lib/zabbix/export:rw"
+   - "./zbx_env/var/lib/zabbix/modules:/var/lib/zabbix/modules:ro"
+   - "./zbx_env/var/lib/zabbix/enc:/var/lib/zabbix/enc:ro"
+   - "./zbx_env/var/lib/zabbix/ssh_keys:/var/lib/zabbix/ssh_keys:ro"
+   - "./zbx_env/var/lib/zabbix/mibs:/var/lib/zabbix/mibs:ro"
    - snmptraps:/var/lib/zabbix/snmptraps:rw
 #   - ./env_vars/.ZBX_DB_CA_FILE:/run/secrets/root-ca.pem:ro
 #   - ./env_vars/.ZBX_DB_CERT_FILE:/run/secrets/client-cert.pem:ro
@@ -126,11 +126,11 @@ services:
    - "10061:10051"
   volumes:
    - /etc/localtime:/etc/localtime:ro
-   - "${PWD}/zbx_env/usr/lib/zabbix/externalscripts:/usr/lib/zabbix/externalscripts:ro"
-   - "${PWD}/zbx_env/var/lib/zabbix/modules:/var/lib/zabbix/modules:ro"
-   - "${PWD}/zbx_env/var/lib/zabbix/enc:/var/lib/zabbix/enc:ro"
-   - "${PWD}/zbx_env/var/lib/zabbix/ssh_keys:/var/lib/zabbix/ssh_keys:ro"
-   - "${PWD}/zbx_env/var/lib/zabbix/mibs:/var/lib/zabbix/mibs:ro"
+   - "./zbx_env/usr/lib/zabbix/externalscripts:/usr/lib/zabbix/externalscripts:ro"
+   - "./zbx_env/var/lib/zabbix/modules:/var/lib/zabbix/modules:ro"
+   - "./zbx_env/var/lib/zabbix/enc:/var/lib/zabbix/enc:ro"
+   - "./zbx_env/var/lib/zabbix/ssh_keys:/var/lib/zabbix/ssh_keys:ro"
+   - "./zbx_env/var/lib/zabbix/mibs:/var/lib/zabbix/mibs:ro"
    - snmptraps:/var/lib/zabbix/snmptraps:rw
   ulimits:
    nproc: 65535
@@ -181,11 +181,11 @@ services:
    - "10071:10051"
   volumes:
    - /etc/localtime:/etc/localtime:ro
-   - "${PWD}/zbx_env/usr/lib/zabbix/externalscripts:/usr/lib/zabbix/externalscripts:ro"
-   - "${PWD}/zbx_env/var/lib/zabbix/modules:/var/lib/zabbix/modules:ro"
-   - "${PWD}/zbx_env/var/lib/zabbix/enc:/var/lib/zabbix/enc:ro"
-   - "${PWD}/zbx_env/var/lib/zabbix/ssh_keys:/var/lib/zabbix/ssh_keys:ro"
-   - "${PWD}/zbx_env/var/lib/zabbix/mibs:/var/lib/zabbix/mibs:ro"
+   - "./zbx_env/usr/lib/zabbix/externalscripts:/usr/lib/zabbix/externalscripts:ro"
+   - "./zbx_env/var/lib/zabbix/modules:/var/lib/zabbix/modules:ro"
+   - "./zbx_env/var/lib/zabbix/enc:/var/lib/zabbix/enc:ro"
+   - "./zbx_env/var/lib/zabbix/ssh_keys:/var/lib/zabbix/ssh_keys:ro"
+   - "./zbx_env/var/lib/zabbix/mibs:/var/lib/zabbix/mibs:ro"
    - snmptraps:/var/lib/zabbix/snmptraps:rw
   ulimits:
    nproc: 65535
@@ -244,8 +244,8 @@ services:
    - "8443:8443"
   volumes:
    - /etc/localtime:/etc/localtime:ro
-   - "${PWD}/zbx_env/etc/ssl/apache2:/etc/ssl/apache2:ro"
-   - "${PWD}/zbx_env/usr/share/zabbix/modules/:/usr/share/zabbix/modules/:ro"
+   - "./zbx_env/etc/ssl/apache2:/etc/ssl/apache2:ro"
+   - "./zbx_env/usr/share/zabbix/modules/:/usr/share/zabbix/modules/:ro"
 #   - ./env_vars/.ZBX_DB_CA_FILE:/run/secrets/root-ca.pem:ro
 #   - ./env_vars/.ZBX_DB_CERT_FILE:/run/secrets/client-cert.pem:ro
 #   - ./env_vars/.ZBX_DB_KEY_FILE:/run/secrets/client-key.pem:ro
@@ -304,8 +304,8 @@ services:
    - "443:8443"
   volumes:
    - /etc/localtime:/etc/localtime:ro
-   - "${PWD}/zbx_env/etc/ssl/nginx:/etc/ssl/nginx:ro"
-   - "${PWD}/zbx_env/usr/share/zabbix/modules/:/usr/share/zabbix/modules/:ro"
+   - "./zbx_env/etc/ssl/nginx:/etc/ssl/nginx:ro"
+   - "./zbx_env/usr/share/zabbix/modules/:/usr/share/zabbix/modules/:ro"
 #   - ./env_vars/.ZBX_DB_CA_FILE:/run/secrets/root-ca.pem:ro
 #   - ./env_vars/.ZBX_DB_CERT_FILE:/run/secrets/client-cert.pem:ro
 #   - ./env_vars/.ZBX_DB_KEY_FILE:/run/secrets/client-key.pem:ro
@@ -366,10 +366,10 @@ services:
    - "10050:10050"
   volumes:
    - /etc/localtime:/etc/localtime:ro
-   - "${PWD}/zbx_env/etc/zabbix/zabbix_agentd.d:/etc/zabbix/zabbix_agentd.d:ro"
-   - "${PWD}/zbx_env/var/lib/zabbix/modules:/var/lib/zabbix/modules:ro"
-   - "${PWD}/zbx_env/var/lib/zabbix/enc:/var/lib/zabbix/enc:ro"
-   - "${PWD}/zbx_env/var/lib/zabbix/ssh_keys:/var/lib/zabbix/ssh_keys:ro"
+   - "./zbx_env/etc/zabbix/zabbix_agentd.d:/etc/zabbix/zabbix_agentd.d:ro"
+   - "./zbx_env/var/lib/zabbix/modules:/var/lib/zabbix/modules:ro"
+   - "./zbx_env/var/lib/zabbix/enc:/var/lib/zabbix/enc:ro"
+   - "./zbx_env/var/lib/zabbix/ssh_keys:/var/lib/zabbix/ssh_keys:ro"
   deploy:
    resources:
     limits:
@@ -482,7 +482,7 @@ services:
   ports:
    - "10053:10053"
   volumes:
-   - "${PWD}/zbx_env/var/lib/zabbix/enc:/var/lib/zabbix/enc:ro"
+   - "./zbx_env/var/lib/zabbix/enc:/var/lib/zabbix/enc:ro"
   cap_add:
    - SYS_ADMIN
   deploy:
@@ -519,7 +519,7 @@ services:
    - --collation-server=utf8mb4_bin
    - --default-authentication-plugin=mysql_native_password
   volumes:
-   - "${PWD}/zbx_env/var/lib/mysql:/var/lib/mysql:rw"
+   - "./zbx_env/var/lib/mysql:/var/lib/mysql:rw"
   env_file:
    - ./env_vars/.env_db_mysql
   secrets:
@@ -538,10 +538,10 @@ services:
   image: postgres:13-alpine
 #  command: -c ssl=on -c ssl_cert_file=/run/secrets/server-cert.pem -c ssl_key_file=/run/secrets/server-key.pem -c ssl_ca_file=/run/secrets/root-ca.pem
   volumes:
-   - "${PWD}/zbx_env/var/lib/postgresql/data:/var/lib/postgresql/data:rw"
-   - "${PWD}/env_vars/.ZBX_DB_CA_FILE:/run/secrets/root-ca.pem:ro"
-   - "${PWD}/env_vars/.ZBX_DB_CERT_FILE:/run/secrets/server-cert.pem:ro"
-   - "${PWD}/env_vars/.ZBX_DB_KEY_FILE:/run/secrets/server-key.pem:ro"
+   - "./zbx_env/var/lib/postgresql/data:/var/lib/postgresql/data:rw"
+   - "./env_vars/.ZBX_DB_CA_FILE:/run/secrets/root-ca.pem:ro"
+   - "./env_vars/.ZBX_DB_CERT_FILE:/run/secrets/server-cert.pem:ro"
+   - "./env_vars/.ZBX_DB_KEY_FILE:/run/secrets/server-key.pem:ro"
   env_file:
    - ./env_vars/.env_db_pgsql
   secrets:
@@ -560,12 +560,12 @@ services:
   profiles:
    - all
   volumes:
-   - "${PWD}/zbx_env/var/lib/mysql:/var/lib/mysql:rw"
+   - "./zbx_env/var/lib/mysql:/var/lib/mysql:rw"
 
  db_data_pgsql:
   image: busybox
   volumes:
-   - "${PWD}/zbx_env/var/lib/postgresql/data:/var/lib/postgresql/data:rw"
+   - "./zbx_env/var/lib/postgresql/data:/var/lib/postgresql/data:rw"
 
 # elasticsearch:
 #  image: elasticsearch
