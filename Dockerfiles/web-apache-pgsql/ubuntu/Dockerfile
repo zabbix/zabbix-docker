@@ -37,12 +37,12 @@ RUN set -eux && \
             libapache2-mod-php \
             ca-certificates \
             locales \
-            php8.1-bcmath \
-            php8.1-gd \
-            php8.1-ldap \
-            php8.1-mbstring \
-            php8.1-xml \
-            php8.1-pgsql \
+            php7.4-bcmath \
+            php7.4-gd \
+            php7.4-ldap \
+            php7.4-mbstring \
+            php7.4-xml \
+            php7.4-pgsql \
             postgresql-client" && \
     apt-get -y update && \
     DEBIAN_FRONTEND=noninteractive apt-get -y \
@@ -96,9 +96,9 @@ RUN set -eux && \
     chown --quiet -R zabbix:root /etc/zabbix/ /usr/share/zabbix/include/defines.inc.php /usr/share/zabbix/modules/ && \
     chgrp -R 0 /etc/zabbix/ /usr/share/zabbix/include/defines.inc.php /usr/share/zabbix/modules/ && \
     chmod -R g=u /etc/zabbix/ /usr/share/zabbix/include/defines.inc.php /usr/share/zabbix/modules/ && \
-    chown --quiet -R zabbix:root /etc/apache2/ /etc/php/8.1/ && \
-    chgrp -R 0 /etc/apache2/ /etc/php/8.1/ && \
-    chmod -R g=u /etc/apache2/ /etc/php/8.1/ && \
+    chown --quiet -R zabbix:root /etc/apache2/ /etc/php/7.4/ && \
+    chgrp -R 0 /etc/apache2/ /etc/php/7.4/ && \
+    chmod -R g=u /etc/apache2/ /etc/php/7.4/ && \
     apt-get -y autoremove && \
     apt-get -y clean && \
     rm -rf /var/lib/apt/lists/*
