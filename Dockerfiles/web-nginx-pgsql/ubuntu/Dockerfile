@@ -36,7 +36,6 @@ RUN apt-get update && \
 
 ENV TZ="Europe/Paris"
 
-
 RUN apt update &&\
     apt -y install software-properties-common &&\
     apt update &&\

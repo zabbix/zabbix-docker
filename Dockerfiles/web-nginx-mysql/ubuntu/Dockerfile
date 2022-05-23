@@ -29,6 +29,21 @@ STOPSIGNAL SIGTERM
 COPY --from=builder ["/tmp/zabbix-${ZBX_VERSION}/ui", "/usr/share/zabbix"]
 COPY ["conf/etc/", "/etc/"]
 
+RUN apt-get update && \
+    apt-get install -yq tzdata && \
+    ln -fs /usr/share/zoneinfo/Europe/Paris /etc/localtime && \
+    dpkg-reconfigure -f noninteractive tzdata
+
+ENV TZ="Europe/Paris"
+
+
+RUN apt update &&\
+    apt -y install software-properties-common &&\
+    apt update &&\
+    apt-add-repository ppa:ondrej/php &&\
+    apt-get update &&\
+    apt-get install -y php7.4
+
 RUN set -eux && \
     echo "#!/bin/sh\nexit 101" > /usr/sbin/policy-rc.d && \
     INSTALL_PKGS="bash \
@@ -37,13 +52,13 @@ RUN set -eux && \
             mysql-client \
             nginx \
             locales \
-            php8.1-bcmath \
-            php8.1-fpm \
-            php8.1-gd \
-            php8.1-ldap \
-            php8.1-mbstring \
-            php8.1-mysql \
-            php8.1-xml \
+            php7.4-bcmath \
+            php7.4-fpm \
+            php7.4-gd \
+            php7.4-ldap \
+            php7.4-mbstring \
+            php7.4-mysql \
+            php7.4-xml \
             supervisor" && \
     INSTALL_TEMP_PKGS="gpg \
             ca-certificates \
@@ -92,9 +107,9 @@ RUN set -eux && \
     mkdir -p /var/lib/php/session && \
     rm -f /etc/nginx/conf.d/*.conf && \
     rm -rf /var/cache/nginx/ && \
-    rm -f /etc/php/8.1/fpm/pool.d/www.conf && \
+    rm -f /etc/php/7.4/fpm/pool.d/www.conf && \
     ln -sf /dev/fd/2 /var/log/nginx/error.log && \
-    rm -f /etc/php/8.1/fpm/php-fpm.conf.dpkg-dist && \
+    rm -f /etc/php/7.4/fpm/php-fpm.conf.dpkg-dist && \
     cd /usr/share/zabbix/ && \
     rm -f conf/zabbix.conf.php conf/maintenance.inc.php conf/zabbix.conf.php.example && \
     rm -rf tests && \
@@ -112,9 +127,9 @@ RUN set -eux && \
     chown --quiet -R zabbix:root /etc/zabbix/ /usr/share/zabbix/include/defines.inc.php /usr/share/zabbix/modules/ && \
     chgrp -R 0 /etc/zabbix/ /usr/share/zabbix/include/defines.inc.php /usr/share/zabbix/modules/ && \
     chmod -R g=u /etc/zabbix/ /usr/share/zabbix/include/defines.inc.php /usr/share/zabbix/modules/ && \
-    chown --quiet -R zabbix:root /etc/nginx/ /etc/php/8.1/fpm/php-fpm.conf /etc/php/8.1/fpm/pool.d/ && \
-    chgrp -R 0 /etc/nginx/ /etc/php/8.1/fpm/php-fpm.conf /etc/php/8.1/fpm/pool.d/ && \
-    chmod -R g=u /etc/nginx/ /etc/php/8.1/fpm/php-fpm.conf /etc/php/8.1/fpm/pool.d/ && \
+    chown --quiet -R zabbix:root /etc/nginx/ /etc/php/7.4/fpm/php-fpm.conf /etc/php/7.4/fpm/pool.d/ && \
+    chgrp -R 0 /etc/nginx/ /etc/php/7.4/fpm/php-fpm.conf /etc/php/7.4/fpm/pool.d/ && \
+    chmod -R g=u /etc/nginx/ /etc/php/7.4/fpm/php-fpm.conf /etc/php/7.4/fpm/pool.d/ && \
     chown --quiet -R zabbix:root /var/lib/php/session/ && \
     chgrp -R 0 /var/lib/php/session/ && \
     chmod -R g=u /var/lib/php/session/ && \

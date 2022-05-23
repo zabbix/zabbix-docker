@@ -29,6 +29,20 @@ STOPSIGNAL SIGTERM
 COPY --from=builder ["/tmp/zabbix-${ZBX_VERSION}/ui", "/usr/share/zabbix"]
 COPY ["conf/etc/", "/etc/"]
 
+RUN apt-get update && \
+    apt-get install -yq tzdata && \
+    ln -fs /usr/share/zoneinfo/Europe/Paris /etc/localtime && \
+    dpkg-reconfigure -f noninteractive tzdata
+
+ENV TZ="Europe/Paris"
+
+RUN apt update &&\
+    apt -y install software-properties-common &&\
+    apt update &&\
+    apt-add-repository ppa:ondrej/php &&\
+    apt-get update &&\
+    apt-get install -y php7.4 \
+
 RUN set -eux && \
     echo "#!/bin/sh\nexit 101" > /usr/sbin/policy-rc.d && \
     INSTALL_PKGS="bash \

@@ -29,6 +29,20 @@ STOPSIGNAL SIGTERM
 COPY --from=builder ["/tmp/zabbix-${ZBX_VERSION}/ui", "/usr/share/zabbix"]
 COPY ["conf/etc/", "/etc/"]
 
+RUN apt-get update && \
+    apt-get install -yq tzdata && \
+    ln -fs /usr/share/zoneinfo/Europe/Paris /etc/localtime && \
+    dpkg-reconfigure -f noninteractive tzdata
+
+ENV TZ="Europe/Paris"
+
+RUN apt update &&\
+    apt -y install software-properties-common &&\
+    apt update &&\
+    apt-add-repository ppa:ondrej/php &&\
+    apt-get update &&\
+    apt-get install -y php7.4
+
 RUN set -eux && \
     echo "#!/bin/sh\nexit 101" > /usr/sbin/policy-rc.d && \
     INSTALL_PKGS="bash \
@@ -38,12 +52,12 @@ RUN set -eux && \
             ca-certificates \
             mysql-client \
             locales \
-            php8.1-bcmath \
-            php8.1-gd \
-            php8.1-ldap \
-            php8.1-mbstring \
-            php8.1-mysql \
-            php8.1-xml" && \
+            php7.4-bcmath \
+            php7.4-gd \
+            php7.4-ldap \
+            php7.4-mbstring \
+            php7.4-mysql \
+            php7.4-xml" && \
     apt-get -y update && \
     DEBIAN_FRONTEND=noninteractive apt-get -y \
             --no-install-recommends install \
@@ -96,15 +110,15 @@ RUN set -eux && \
     chown --quiet -R zabbix:root /etc/zabbix/ /usr/share/zabbix/include/defines.inc.php /usr/share/zabbix/modules/ && \
     chgrp -R 0 /etc/zabbix/ /usr/share/zabbix/include/defines.inc.php /usr/share/zabbix/modules/ && \
     chmod -R g=u /etc/zabbix/ /usr/share/zabbix/include/defines.inc.php /usr/share/zabbix/modules/ && \
-    chown --quiet -R zabbix:root /etc/apache2/ /etc/php/8.1/ && \
-    chgrp -R 0 /etc/apache2/ /etc/php/8.1/ && \
-    chmod -R g=u /etc/apache2/ /etc/php/8.1/ && \
+    chown --quiet -R zabbix:root /etc/apache2/ /etc/php/7.4/ && \
+    chgrp -R 0 /etc/apache2/ /etc/php/7.4/ && \
+    chmod -R g=u /etc/apache2/ /etc/php/7.4/ && \
     apt-get -y autoremove && \
     apt-get -y clean && \
     rm -rf /var/lib/apt/lists/*
 
 EXPOSE 8080/TCP 8443/TCP
-    
+
 WORKDIR /usr/share/zabbix
 
 COPY ["docker-entrypoint.sh", "/usr/bin/"]
