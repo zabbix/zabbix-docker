@@ -4,3 +4,4 @@ zbx_env*/
 .*KEY_FILE
 .*CA_FILE
 build.sh
+.idea/
