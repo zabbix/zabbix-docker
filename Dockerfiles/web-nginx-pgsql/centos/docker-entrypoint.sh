@@ -97,7 +97,8 @@ check_db_connect() {
     fi
 
     if [ -n "${ZBX_DBTLSCONNECT}" ]; then
-        export PGSSLMODE=${ZBX_DBTLSCONNECT//_/-}
+        PGSSLMODE=${ZBX_DBTLSCONNECT//_/-}
+        export PGSSLMODE=${PGSSLMODE//required/require}
         export PGSSLROOTCERT=${ZBX_DBTLSCAFILE}
         export PGSSLCERT=${ZBX_DBTLSCERTFILE}
         export PGSSLKEY=${ZBX_DBTLSKEYFILE}
