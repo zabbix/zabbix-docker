@@ -115,7 +115,6 @@ update_zbx_config() {
 
     update_config_var $ZBX_CONFIG "ProxyMode" "${ZBX_PROXYMODE}"
     update_config_var $ZBX_CONFIG "Server" "${ZBX_SERVER_HOST}"
-    update_config_var $ZBX_CONFIG "ServerPort" "${ZBX_SERVER_PORT}"
     if [ -z "${ZBX_HOSTNAME}" ] && [ -n "${ZBX_HOSTNAMEITEM}" ]; then
         update_config_var $ZBX_CONFIG "Hostname" ""
         update_config_var $ZBX_CONFIG "HostnameItem" "${ZBX_HOSTNAMEITEM}"
