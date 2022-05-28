@@ -406,7 +406,7 @@ services:
    com.zabbix.os: "ubuntu"
 
  mysql-server:
-  image: mysql:8.0
+  image: mysql:8.0-oracle
   command:
    - mysqld
    - --character-set-server=utf8mb4
