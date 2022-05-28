@@ -409,7 +409,7 @@ services:
    com.zabbix.os: "alpine"
 
  mysql-server:
-  image: mysql:8.0
+  image: mysql:8.0-oracle
   profiles:
    - all
   command:
