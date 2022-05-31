@@ -49,7 +49,7 @@ RUN set -eux && \
             glibc-locale-source \
             supervisor" && \
     dnf -y install epel-release && \
-    dnf -y module enable php:7.4 && \
+    dnf -y module enable php:8.0 && \
     dnf -y install \
             --disablerepo "*" \
             --enablerepo "${REPOLIST}" \

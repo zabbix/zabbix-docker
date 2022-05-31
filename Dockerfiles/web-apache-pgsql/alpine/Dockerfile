@@ -33,22 +33,22 @@ RUN set -eux && \
     INSTALL_PKGS="bash \
             apache2 \
             curl \
-            php8-apache2 \
-            php8-bcmath \
-            php8-ctype \
-            php8-gd \
-            php8-gettext \
-            php8-json \
-            php8-ldap \
-            php8-pgsql \
-            php8-mbstring \
-            php8-session \
-            php8-simplexml \
-            php8-sockets \
-            php8-fileinfo \
-            php8-xmlreader \
-            php8-xmlwriter \
-            php8-openssl \
+            php81-apache2 \
+            php81-bcmath \
+            php81-ctype \
+            php81-gd \
+            php81-gettext \
+            php81-json \
+            php81-ldap \
+            php81-pgsql \
+            php81-mbstring \
+            php81-session \
+            php81-simplexml \
+            php81-sockets \
+            php81-fileinfo \
+            php81-xmlreader \
+            php81-xmlwriter \
+            php81-openssl \
             postgresql-client" && \
     apk add \
             --no-cache \
@@ -98,9 +98,9 @@ RUN set -eux && \
     chown --quiet -R zabbix:root /etc/zabbix/ /usr/share/zabbix/include/defines.inc.php /usr/share/zabbix/modules/ && \
     chgrp -R 0 /etc/zabbix/ /usr/share/zabbix/include/defines.inc.php /usr/share/zabbix/modules/ && \
     chmod -R g=u /etc/zabbix/ /usr/share/zabbix/include/defines.inc.php /usr/share/zabbix/modules/ && \
-    chown --quiet -R zabbix:root /etc/apache2/ /etc/php8/ && \
-    chgrp -R 0 /etc/apache2/ /etc/php8/ && \
-    chmod -R g=u /etc/apache2/ /etc/php8/ && \
+    chown --quiet -R zabbix:root /etc/apache2/ /etc/php81/ && \
+    chgrp -R 0 /etc/apache2/ /etc/php81/ && \
+    chmod -R g=u /etc/apache2/ /etc/php81/ && \
     rm -rf /var/cache/apk/*
 
 EXPOSE 8080/TCP 8443/TCP

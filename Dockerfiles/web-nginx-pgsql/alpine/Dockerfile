@@ -33,22 +33,22 @@ RUN set -eux && \
     INSTALL_PKGS="bash \
             curl \
             nginx \
-            php8-bcmath \
-            php8-ctype \
-            php8-fpm \
-            php8-gd \
-            php8-gettext \
-            php8-json \
-            php8-ldap \
-            php8-mbstring \
-            php8-pgsql \
-            php8-session \
-            php8-simplexml \
-            php8-sockets \
-            php8-fileinfo \
-            php8-xmlreader \
-            php8-xmlwriter \
-            php8-openssl \
+            php81-bcmath \
+            php81-ctype \
+            php81-fpm \
+            php81-gd \
+            php81-gettext \
+            php81-json \
+            php81-ldap \
+            php81-mbstring \
+            php81-pgsql \
+            php81-session \
+            php81-simplexml \
+            php81-sockets \
+            php81-fileinfo \
+            php81-xmlreader \
+            php81-xmlwriter \
+            php81-openssl \
             postgresql-client \
             supervisor" && \
     apk add \
@@ -78,7 +78,7 @@ RUN set -eux && \
     mkdir -p /etc/zabbix/web && \
     mkdir -p /etc/zabbix/web/certs && \
     mkdir -p /var/lib/php/session && \
-    rm -rf /etc/php8/php-fpm.d/www.conf && \
+    rm -rf /etc/php81/php-fpm.d/www.conf && \
     rm -f /etc/nginx/http.d/*.conf && \
     ln -sf /dev/fd/2 /var/lib/nginx/logs/error.log && \
     cd /usr/share/zabbix/ && \
@@ -92,9 +92,9 @@ RUN set -eux && \
     chown --quiet -R zabbix:root /etc/zabbix/ /usr/share/zabbix/include/defines.inc.php /usr/share/zabbix/modules/ && \
     chgrp -R 0 /etc/zabbix/ /usr/share/zabbix/include/defines.inc.php /usr/share/zabbix/modules/ && \
     chmod -R g=u /etc/zabbix/ /usr/share/zabbix/include/defines.inc.php /usr/share/zabbix/modules/ && \
-    chown --quiet -R zabbix:root /etc/nginx/ /etc/php8/php-fpm.d/ /etc/php8/php-fpm.conf && \
-    chgrp -R 0 /etc/nginx/ /etc/php8/php-fpm.d/ /etc/php8/php-fpm.conf && \
-    chmod -R g=u /etc/nginx/ /etc/php8/php-fpm.d/ /etc/php8/php-fpm.conf && \
+    chown --quiet -R zabbix:root /etc/nginx/ /etc/php81/php-fpm.d/ /etc/php81/php-fpm.conf && \
+    chgrp -R 0 /etc/nginx/ /etc/php81/php-fpm.d/ /etc/php81/php-fpm.conf && \
+    chmod -R g=u /etc/nginx/ /etc/php81/php-fpm.d/ /etc/php81/php-fpm.conf && \
     chown --quiet -R zabbix:root /var/lib/php/session/ /var/lib/nginx/ && \
     chgrp -R 0 /var/lib/php/session/ /var/lib/nginx/ && \
     chmod -R g=u /var/lib/php/session/ /var/lib/nginx/ && \
