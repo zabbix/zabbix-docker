@@ -70,7 +70,7 @@ RUN set -eux && \
     rpm -ivh /tmp/epel-release-latest-8.noarch.rpm && \
     rm -rf /tmp/epel-release-latest-8.noarch.rpm && \
     microdnf -y module enable mysql && \
-    microdnf -y module enable php:7.4 nginx:1.18 && \
+    microdnf -y module enable php:8.0 nginx:1.20 && \
     microdnf -y install \
             --disablerepo "*" \
             --enablerepo "ubi-8-baseos" \
@@ -106,6 +106,7 @@ RUN set -eux && \
     mkdir -p /etc/zabbix/web/certs && \
     mkdir -p /var/lib/php/session && \
     rm -f /etc/nginx/conf.d/*.conf  && \
+    rm -f /etc/php-fpm.conf.rpmnew && \
     rm -f /etc/php-fpm.d/www.conf && \
     cd /usr/share/zabbix/ && \
     rm -f conf/zabbix.conf.php conf/maintenance.inc.php conf/zabbix.conf.php.example && \
