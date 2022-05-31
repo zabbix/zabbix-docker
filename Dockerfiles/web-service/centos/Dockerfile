@@ -12,7 +12,8 @@ ARG ZBX_VERSION
 ARG ZBX_SOURCES=https://git.zabbix.com/scm/zbx/zabbix.git
 
 ENV TERM=xterm \
-    ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES}
+    ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES} \
+    PATH=/usr/lib64/chromium-browser:$PATH
 
 LABEL org.opencontainers.image.authors="Alexey Pustovalov <alexey.pustovalov@zabbix.com>" \
       org.opencontainers.image.description="Zabbix web service for performing various tasks using headless web browser" \
@@ -32,7 +33,7 @@ COPY --from=builder ["/tmp/zabbix-${ZBX_VERSION}/src/go/conf/zabbix_web_service.
 RUN set -eux && \
     REPOLIST="baseos,appstream,epel" && \
     INSTALL_PKGS="bash \
-            chromium" && \
+            chromium-headless" && \
     dnf -y install epel-release && \
     dnf -y install \
             --disablerepo "*" \

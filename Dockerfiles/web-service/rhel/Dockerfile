@@ -14,7 +14,8 @@ ARG ZBX_VERSION
 ARG ZBX_SOURCES=https://git.zabbix.com/scm/zbx/zabbix.git
 
 ENV TERM=xterm \
-    ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES}
+    ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES} \
+    PATH=/usr/lib64/chromium-browser:$PATH \
 
 LABEL description="Zabbix web service for performing various tasks using headless web browser" \
       maintainer="alexey.pustovalov@zabbix.com" \
@@ -51,7 +52,7 @@ COPY --from=builder ["/tmp/zabbix-${ZBX_VERSION}/src/go/conf/zabbix_web_service.
 RUN set -eux && \
     INSTALL_PKGS="bash \
             shadow-utils \
-            chromium" && \
+            chromium-headless" && \
     curl -sSL -o /tmp/epel-release-latest-8.noarch.rpm https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm && \
     rpm -ivh /tmp/epel-release-latest-8.noarch.rpm && \
     rm -rf /tmp/epel-release-latest-8.noarch.rpm && \
