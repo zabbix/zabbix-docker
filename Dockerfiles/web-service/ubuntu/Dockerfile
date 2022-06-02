@@ -41,13 +41,10 @@ RUN set -eux && \
     DEBIAN_FRONTEND=noninteractive apt-get -y \
             --no-install-recommends install \
         ${INSTALL_TEMP_PKGS} && \
-    apt-key adv --keyserver keyserver.ubuntu.com --recv-keys DCC9EFBF77E11517 && \
-    apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 648ACFD622F3D138 && \
-    apt-key adv --keyserver keyserver.ubuntu.com --recv-keys AA8E81B4331F7F50 && \
-    apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 112695A0E562B32A && \
+    apt-key --keyring /etc/apt/trusted.gpg.d/debian-archive-bullseye-automatic.gpg adv --keyserver keyserver.ubuntu.com --recv-keys 0E98404D386FA1D9 && \
+    apt-key --keyring /etc/apt/trusted.gpg.d/debian-archive-bullseye-security-automatic.gpg adv --keyserver keyserver.ubuntu.com --recv-keys A48449044AAD5C5D && \
     echo "deb http://deb.debian.org/debian bullseye main" > /etc/apt/sources.list.d/debian.list && \
     echo "deb http://deb.debian.org/debian bullseye-updates main" >> /etc/apt/sources.list.d/debian.list && \
-#    echo "deb http://deb.debian.org/debian-security bullseye/updates main" >> /etc/apt/sources.list.d/debian.list && \
     apt-get -y update && \
     DEBIAN_FRONTEND=noninteractive apt-get -y \
             --no-install-recommends install \
