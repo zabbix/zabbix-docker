@@ -40,7 +40,6 @@ RUN set -eux && \
             smartmontools \
             sudo \
             libssl3 \
-            libxml2 \
             libcurl4 \
             libpcre2-8-0 \
             libldap-2.4" && \
