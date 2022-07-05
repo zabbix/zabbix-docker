@@ -121,8 +121,11 @@ jobs:
         with:
           images: ${{ env.DOCKER_REPOSITORY }}/${{ env.IMAGE_PREFIX }}${{ env.BASE_BUILD_NAME }}
           tags: |
-            type=ref,event=branch,prefix=${{ matrix.component }}-${{ steps.base_os_tag.outputs.os_tag }}-
-            type=ref,event=branch,suffix=-${{ steps.base_os_tag.outputs.os_tag }},prefix=${{ matrix.component }}-
+            type=semver,pattern={{version}},prefix=${{ matrix.component }}-${{ steps.base_os_tag.outputs.os_tag }}-
+            type=semver,pattern={{version}},suffix=-${{ steps.base_os_tag.outputs.os_tag }},prefix=${{ matrix.component }}-
+            type=ref,event=branch,prefix=${{ matrix.component }}-${{ steps.base_os_tag.outputs.os_tag }}-,suffix=-latest
+            type=ref,event=branch,suffix=-${{ steps.base_os_tag.outputs.os_tag }}-latest,prefix=${{ matrix.component }}-
+            type=raw,enable=${{ needs.init_build.outputs.is_default_branch == 'true' }},value=${{ matrix.component }}-${{ steps.base_os_tag.outputs.os_tag }}-latest
           flavor: |
             latest=false
 
@@ -214,8 +217,11 @@ jobs:
         with:
           images: ${{ env.DOCKER_REPOSITORY }}/${{ env.IMAGE_PREFIX }}${{ env.COMPONENT_BASE_BUILD_NAME }}
           tags: |
-            type=ref,event=branch,prefix=${{ matrix.component }}-${{ steps.base_os_tag.outputs.os_tag }}-
-            type=ref,event=branch,suffix=-${{ steps.base_os_tag.outputs.os_tag }},prefix=${{ matrix.component }}-
+            type=semver,pattern={{version}},prefix=${{ matrix.component }}-${{ steps.base_os_tag.outputs.os_tag }}-
+            type=semver,pattern={{version}},suffix=-${{ steps.base_os_tag.outputs.os_tag }},prefix=${{ matrix.component }}-
+            type=ref,event=branch,prefix=${{ matrix.component }}-${{ steps.base_os_tag.outputs.os_tag }}-,suffix=-latest
+            type=ref,event=branch,suffix=-${{ steps.base_os_tag.outputs.os_tag }}-latest,prefix=${{ matrix.component }}-
+            type=raw,enable=${{ needs.init_build.outputs.is_default_branch == 'true' }},value=${{ matrix.component }}-${{ steps.base_os_tag.outputs.os_tag }}-latest
           flavor: |
             latest=false
 
@@ -319,8 +325,11 @@ jobs:
         with:
           images: ${{ env.DOCKER_REPOSITORY }}/${{ env.IMAGE_PREFIX }}${{ matrix.component }}
           tags: |
-            type=ref,event=branch,prefix=${{ steps.base_os_tag.outputs.os_tag }}-
-            type=ref,event=branch,suffix=-${{ steps.base_os_tag.outputs.os_tag }}
+            type=semver,pattern={{version}},prefix=${{ steps.base_os_tag.outputs.os_tag }}-
+            type=semver,pattern={{version}},suffix=-${{ steps.base_os_tag.outputs.os_tag }}
+            type=ref,event=branch,prefix=${{ steps.base_os_tag.outputs.os_tag }}-,suffix=-latest
+            type=ref,event=branch,suffix=-${{ steps.base_os_tag.outputs.os_tag }}-latest
+            type=raw,enable=${{ needs.init_build.outputs.is_default_branch == 'true' }},value=${{ steps.base_os_tag.outputs.os_tag }}-latest
           flavor: |
             latest=false
 

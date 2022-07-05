@@ -1,23 +1,9 @@
-name: Build images (DockerHub)
+name: Nightly build images (DockerHub)
 
 on:
-  release:
-    types:
-      - published
-  push:
-    branches:
-      - '4.0'
-      - '5.0'
-      - '6.0'
-      - '6.2'
-      - 'trunk'
-    paths:
-      - 'Dockerfiles/**'
-      - 'build.json'
-      - '!**/README.md'
-      - '!Dockerfiles/*/rhel/*'
-      - '!Dockerfiles/*/windows/*'
-      - '.github/workflows/images_build.yml'
+  schedule:
+    - cron:  '5 2 * * *'
+  workflow_dispatch:
 
 defaults:
   run:
@@ -36,11 +22,11 @@ jobs:
       os: ${{ steps.os.outputs.list }}
       database: ${{ steps.database.outputs.list }}
       components: ${{ steps.components.outputs.list }}
-      is_default_branch: ${{ steps.branch_info.outputs.is_default_branch }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2.3.4
         with:
+          ref: "refs/heads/trunk"
           fetch-depth: 1
 
       - name: Check build.json file
@@ -79,23 +65,6 @@ jobs:
 
             echo "::set-output name=list::$component_list"
 
-      - name: Get branch info
-        id: branch_info
-        run: |
-            github_ref="${{ github.ref }}"
-            result=false
-
-            if [[ "$github_ref" == "refs/tags/"* ]]; then
-                github_ref=${github_ref%.*}
-            fi
-
-            github_ref=${github_ref##*/}
-
-            if [[ "$github_ref" == "${{ env.LATEST_BRANCH }}" ]]; then
-                result=true
-            fi
-            echo  "::set-output name=is_default_branch::$result"
-
   build_base:
     timeout-minutes: 30
     name: Build base on ${{ matrix.os }}
@@ -110,21 +79,17 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v2.3.4
         with:
+          ref: "refs/heads/trunk"
           fetch-depth: 1
 
       - name: Set up QEMU
-        uses: docker/setup-qemu-action@v1.2.0
-        with:
-          image: tonistiigi/binfmt:latest
-          platforms: all
+        uses: docker/setup-qemu-action@v1
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v1.6.0
-        with:
-          driver-opts: image=moby/buildkit:master
+        uses: docker/setup-buildx-action@v1
 
       - name: Login to DockerHub
-        uses: docker/login-action@v1
+        uses: docker/login-action@v1 
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
@@ -133,7 +98,6 @@ jobs:
         id: platform
         run: |
             platform_list=$(jq -r '.["os-linux"].${{ matrix.os }} | join(",")' "./build.json")
-            platform_list="${platform_list%,}"
 
             echo ::set-output name=list::$platform_list
 
@@ -143,13 +107,10 @@ jobs:
         with:
           images: ${{ env.DOCKER_REPOSITORY }}/zabbix-${{ env.BASE_BUILD_NAME }}
           tags: |
-            type=semver,pattern={{version}},prefix=${{ matrix.os }}-
-            type=semver,pattern={{version}},suffix=-${{ matrix.os }}
-            type=ref,event=branch,prefix=${{ matrix.os }}-,suffix=-latest
-            type=ref,event=branch,suffix=-${{ matrix.os }}-latest
-            type=raw,enable=${{ needs.init_build.outputs.is_default_branch == 'true' }},value=${{matrix.os}}-latest
+            type=raw,value=${{ matrix.os }}-trunk
+            type=raw,value=trunk-${{ matrix.os }}
           flavor: |
-            latest=${{ (matrix.os == 'alpine') && ( needs.init_build.outputs.is_default_branch == 'true' ) }}
+            latest=false
 
       - name: Build ${{ env.BASE_BUILD_NAME }}/${{ matrix.os }} and push
         id: docker_build
@@ -190,20 +151,18 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2.3.4
+        with:
+          ref: "refs/heads/trunk"
+          fetch-depth: 1
 
       - name: Set up QEMU
-        uses: docker/setup-qemu-action@v1.2.0
-        with:
-          image: tonistiigi/binfmt:latest
-          platforms: all
+        uses: docker/setup-qemu-action@v1
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v1.6.0
-        with:
-          driver-opts: image=moby/buildkit:master
+        uses: docker/setup-buildx-action@v1
 
       - name: Login to DockerHub
-        uses: docker/login-action@v1
+        uses: docker/login-action@v1 
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
@@ -212,7 +171,6 @@ jobs:
         id: platform
         run: |
             platform_list=$(jq -r '.["os-linux"].${{ matrix.os }} | join(",")' "./build.json")
-            platform_list="${platform_list%,}"
 
             echo ::set-output name=list::$platform_list
 
@@ -222,13 +180,10 @@ jobs:
         with:
           images: ${{ env.DOCKER_REPOSITORY }}/zabbix-${{ matrix.build }}
           tags: |
-            type=semver,pattern={{version}},prefix=${{ matrix.os }}-
-            type=semver,pattern={{version}},suffix=-${{ matrix.os }}
-            type=ref,event=branch,prefix=${{ matrix.os }}-,suffix=-latest
-            type=ref,event=branch,suffix=-${{ matrix.os }}-latest
-            type=raw,enable=${{ needs.init_build.outputs.is_default_branch == 'true' }},value=${{matrix.os}}-latest
+            type=raw,value=${{ matrix.os }}-trunk
+            type=raw,value=trunk-${{ matrix.os }}
           flavor: |
-            latest=${{ (matrix.os == 'alpine') && ( needs.init_build.outputs.is_default_branch == 'true' ) }}
+            latest=false
 
       - name: Download SHA256 tag  build-base:${{ matrix.os }}
         uses: actions/download-artifact@v2.0.10
@@ -273,7 +228,7 @@ jobs:
   build_images:
     timeout-minutes: 90
     needs: [ "build_base_database", "init_build"]
-    name: Build ${{ matrix.build }} on ${{ matrix.os }}
+    name: Build ${{ matrix.build }} base on ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
@@ -282,21 +237,20 @@ jobs:
 
     runs-on: ubuntu-20.04
     steps:
-      - uses: actions/checkout@v2.3.4
+      - name: Checkout repository
+        uses: actions/checkout@v2.3.4
+        with:
+          ref: "refs/heads/trunk"
+          fetch-depth: 1
 
       - name: Set up QEMU
-        uses: docker/setup-qemu-action@v1.2.0
-        with:
-          image: tonistiigi/binfmt:latest
-          platforms: all
+        uses: docker/setup-qemu-action@v1
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v1.6.0
-        with:
-          driver-opts: image=moby/buildkit:master
+        uses: docker/setup-buildx-action@v1
 
       - name: Login to DockerHub
-        uses: docker/login-action@v1
+        uses: docker/login-action@v1 
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
@@ -341,13 +295,10 @@ jobs:
         with:
           images: ${{ env.DOCKER_REPOSITORY }}/zabbix-${{ matrix.build }}
           tags: |
-            type=semver,pattern={{version}},prefix=${{ matrix.os }}-
-            type=semver,pattern={{version}},suffix=-${{ matrix.os }}
-            type=ref,event=branch,prefix=${{ matrix.os }}-,suffix=-latest
-            type=ref,event=branch,suffix=-${{ matrix.os }}-latest
-            type=raw,enable=${{ needs.init_build.outputs.is_default_branch == 'true' }},value=${{matrix.os}}-latest
+            type=raw,value=${{ matrix.os }}-trunk
+            type=raw,value=trunk-${{ matrix.os }}
           flavor: |
-            latest=${{ (matrix.os == 'alpine') && ( needs.init_build.outputs.is_default_branch == 'true' ) }}
+            latest=false
 
       - name: Download SHA256 tag for ${{ steps.build_base_image.outputs.build_base }}:${{ matrix.os }}
         uses: actions/download-artifact@v2.0.10
