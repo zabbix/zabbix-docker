@@ -1,6 +1,6 @@
 FROM quay.io/centos/centos:stream8
 
-ARG MAJOR_VERSION=6.2
+ARG MAJOR_VERSION=6.4
 ARG ZBX_VERSION=${MAJOR_VERSION}
 ARG ZBX_SOURCES=https://git.zabbix.com/scm/zbx/zabbix.git
 
