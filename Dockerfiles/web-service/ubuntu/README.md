@@ -16,11 +16,11 @@ Zabbix web service for performing various tasks using headless web browser (for 
 
 These are the only official Zabbix web service Docker images. They are based on Alpine Linux v3.13, Ubuntu 20.04 (focal), 22.04 (jammy) and Oracle Linux 8 images. The available versions of Zabbix web service are:
 
-    Zabbix web service 5.4 (tags: alpine-5.4-latest, ubuntu-5.4-latest, ol-5.4-latest)
-    Zabbix web service 5.4.* (tags: alpine-5.4.*, ubuntu-5.4.*, ol-5.4.*)
-    Zabbix web service 6.0 (tags: alpine-6.0-latest, ubuntu-6.0-latest, ol-6.0-latest, alpine-latest, ubuntu-latest, ol-latest, latest)
+    Zabbix web service 6.0 (tags: alpine-6.0-latest, ubuntu-6.0-latest, ol-6.0-latest)
     Zabbix web service 6.0.* (tags: alpine-6.0.*, ubuntu-6.0.*, ol-6.0.*)
-    Zabbix web service 6.2 (tags: alpine-trunk, ubuntu-trunk, ol-trunk)
+    Zabbix web service 6.2 (tags: alpine-6.2-latest, ubuntu-6.2-latest, ol-6.2-latest, alpine-latest, ubuntu-latest, ol-latest, latest)
+    Zabbix web service 6.2.* (tags: alpine-6.2.*, ubuntu-6.2.*, ol-6.2.*)
+    Zabbix web service 6.4 (tags: alpine-trunk, ubuntu-trunk, ol-trunk)
 
 Images are updated when new releases are published. The image with ``latest`` tag is based on Alpine Linux.
 

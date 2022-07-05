@@ -16,27 +16,15 @@ Zabbix web interface is a part of Zabbix software. It is used to manage resource
 
 These are the only official Zabbix web interface Docker images. They are based on Alpine Linux v3.12, Ubuntu 20.04 (focal), 22.04 (jammy), CentOS Stream 8 and Oracle Linux 8 images. The available versions of Zabbix web interface are:
 
-    Zabbix web interface 3.0 (tags: alpine-3.0-latest, ubuntu-3.0-latest, centos-3.0-latest) (unsupported)
-    Zabbix web interface 3.0.* (tags: alpine-3.0.*, ubuntu-3.0.*, centos-3.0.*) (unsupported)
-    Zabbix web interface 3.2 (tags: alpine-3.2-latest, ubuntu-3.2-latest, centos-3.2-latest) (unsupported)
-    Zabbix web interface 3.2.* (tags: alpine-3.2.*, ubuntu-3.2.*, centos-3.2.*) (unsupported)
-    Zabbix web interface 3.4 (tags: alpine-3.4-latest, ubuntu-3.4-latest, centos-3.4-latest) (unsupported)
-    Zabbix web interface 3.4.* (tags: alpine-3.4.*, ubuntu-3.4.*, centos-3.4.*) (unsupported)
     Zabbix web interface 4.0 (tags: alpine-4.0-latest, ubuntu-4.0-latest, centos-4.0-latest)
     Zabbix web interface 4.0.* (tags: alpine-4.0.*, ubuntu-4.0.*, centos-4.0.*)
-    Zabbix web interface 4.2 (tags: alpine-4.2-latest, ubuntu-4.2-latest, centos-4.2-latest) (unsupported)
-    Zabbix web interface 4.2.* (tags: alpine-4.2.*, ubuntu-4.2.*, centos-4.2.*) (unsupported)
-    Zabbix web interface 4.4 (tags: alpine-4.4-latest, ubuntu-4.4-latest, centos-4.4-latest) (unsupported)
-    Zabbix web interface 4.4.* (tags: alpine-4.4.*, ubuntu-4.4.*, centos-4.4.*) (unsupported)
     Zabbix web interface 5.0 (tags: alpine-5.0-latest, ubuntu-5.0-latest, ol-5.0-latest)
     Zabbix web interface 5.0.* (tags: alpine-5.0.*, ubuntu-5.0.*, ol-5.0.*)
-    Zabbix web interface 5.2 (tags: alpine-5.2-latest, ubuntu-5.2-latest, ol-5.2-latest)
-    Zabbix web interface 5.2.* (tags: alpine-5.2.*, ubuntu-5.2.*, ol-5.2.*)
-    Zabbix web interface 5.4 (tags: alpine-5.4-latest, ubuntu-5.4-latest, ol-5.4-latest)
-    Zabbix web interface 5.4.* (tags: alpine-5.4.*, ubuntu-5.4.*, ol-5.4.*)
-    Zabbix web interface 6.0 (tags: alpine-6.0-latest, ubuntu-6.0-latest, ol-6.0-latest, alpine-latest, ubuntu-latest, ol-latest, latest)
+    Zabbix web interface 6.0 (tags: alpine-6.0-latest, ubuntu-6.0-latest, ol-6.0-latest)
     Zabbix web interface 6.0.* (tags: alpine-6.0.*, ubuntu-6.0.*, ol-6.0.*)
-    Zabbix web interface 6.2 (tags: alpine-trunk, ubuntu-trunk, ol-trunk)
+    Zabbix web interface 6.2 (tags: alpine-6.2-latest, ubuntu-6.2-latest, ol-6.2-latest, alpine-latest, ubuntu-latest, ol-latest, latest)
+    Zabbix web interface 6.2.* (tags: alpine-6.2.*, ubuntu-6.2.*, ol-6.2.*)
+    Zabbix web interface 6.4 (tags: alpine-trunk, ubuntu-trunk, ol-trunk)
 
 Images are updated when new releases are published. The image with ``latest`` tag is based on Alpine Linux.
 
