@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1
 ARG MAJOR_VERSION=6.2
-ARG RELEASE=
-ARG ZBX_VERSION=${MAJOR_VERSION}
+ARG RELEASE=0
+ARG ZBX_VERSION=${MAJOR_VERSION}.0
 ARG BUILD_BASE_IMAGE=zabbix-build-mysql:rhel-${ZBX_VERSION}
 
 FROM ${BUILD_BASE_IMAGE} as builder
@@ -20,7 +20,7 @@ LABEL description="Zabbix web-interface based on Nginx web server with MySQL dat
       maintainer="alexey.pustovalov@zabbix.com" \
       name="zabbix/zabbix-web-mysql" \
       release="${RELEASE}" \
-      run="docker run --name zabbix-web-nginx --link mysql-server:mysql --link zabbix-server:zabbix-server -p 80:80 -d registry.connect.redhat.com/zabbix/zabbix-web-nginx-trunk:${ZBX_VERSION}" \
+      run="docker run --name zabbix-web-nginx --link mysql-server:mysql --link zabbix-server:zabbix-server -p 80:80 -d registry.connect.redhat.com/zabbix/zabbix-web-nginx-62:${ZBX_VERSION}" \
       summary="Zabbix web-interface based on Nginx web server with MySQL database support" \
       url="https://www.zabbix.com/" \
       vendor="Zabbix LLC" \
@@ -31,7 +31,7 @@ LABEL description="Zabbix web-interface based on Nginx web server with MySQL dat
       io.openshift.tags="zabbix,zabbix-web,mysql,nginx" \
       org.label-schema.build-date="${BUILD_DATE}" \
       org.label-schema.description="Zabbix web-interface based on Nginx web server with MySQL database support" \
-      org.label-schema.docker.cmd="docker run --name zabbix-web-nginx --link mysql-server:mysql --link zabbix-server:zabbix-server -p 80:80 -d registry.connect.redhat.com/zabbix/zabbix-web-nginx-trunk:${ZBX_VERSION}" \
+      org.label-schema.docker.cmd="docker run --name zabbix-web-nginx --link mysql-server:mysql --link zabbix-server:zabbix-server -p 80:80 -d registry.connect.redhat.com/zabbix/zabbix-web-nginx-62:${ZBX_VERSION}" \
       org.label-schema.license="GPL v2.0" \
       org.label-schema.name="zabbix-web-mysql-rhel" \
       org.label-schema.schema-version="1.0" \

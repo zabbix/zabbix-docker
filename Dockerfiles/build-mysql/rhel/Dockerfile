@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1
 ARG MAJOR_VERSION=6.2
-ARG RELEASE=
-ARG ZBX_VERSION=${MAJOR_VERSION}
+ARG RELEASE=0
+ARG ZBX_VERSION=${MAJOR_VERSION}.0
 ARG BUILD_BASE_IMAGE=zabbix-build-base:rhel-${ZBX_VERSION}
 
 FROM ${BUILD_BASE_IMAGE} as builder
@@ -13,7 +13,7 @@ ARG ZBX_SOURCES=https://git.zabbix.com/scm/zbx/zabbix.git
 
 LABEL description="Zabbix build base for MySQL based images" \
       maintainer="alexey.pustovalov@zabbix.com" \
-      name="zabbix/zabbix-build-mysql-trunk" \
+      name="zabbix/zabbix-build-mysql-62" \
       release="${RELEASE}" \
       summary="Zabbix build base (MySQL)" \
       url="https://www.zabbix.com/" \
@@ -44,7 +44,7 @@ RUN set -eux && \
         *) echo "Unknown ARCH_SUFFIX=${ARCH_SUFFIX-}"; exit 1 ;; \
     esac; \
     cd /tmp/ && \
-    git -c advice.detachedHead=false clone ${ZBX_SOURCES} --branch master --depth 1 --single-branch /tmp/zabbix-${ZBX_VERSION} && \
+    git -c advice.detachedHead=false clone ${ZBX_SOURCES} --branch ${ZBX_VERSION} --depth 1 --single-branch /tmp/zabbix-${ZBX_VERSION} && \
     cd /tmp/zabbix-${ZBX_VERSION} && \
     zabbix_revision=`git rev-parse --short HEAD` && \
     sed -i "s/{ZABBIX_REVISION}/$zabbix_revision/g" include/version.h && \

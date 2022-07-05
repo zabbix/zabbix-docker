@@ -1,8 +1,8 @@
 FROM registry.access.redhat.com/ubi8/ubi-minimal
 
 ARG MAJOR_VERSION=6.2
-ARG RELEASE=
-ARG ZBX_VERSION=${MAJOR_VERSION}
+ARG RELEASE=0
+ARG ZBX_VERSION=${MAJOR_VERSION}.0
 
 ARG ZBX_SOURCES=https://git.zabbix.com/scm/zbx/zabbix.git
 
@@ -13,9 +13,9 @@ ENV TERM=xterm \
 
 LABEL description="Zabbix SNMP traps receiver" \
       maintainer="alexey.pustovalov@zabbix.com" \
-      name="zabbix/zabbix-snmptraps-trunk" \
+      name="zabbix/zabbix-snmptraps-62" \
       release="${RELEASE}" \
-      run="docker run --name zabbix-snmptraps --link zabbix-server:zabbix-server -p 162:1162/udp -d registry.connect.redhat.com/zabbix/zabbix-snmptraps-trunk:${ZBX_VERSION}" \
+      run="docker run --name zabbix-snmptraps --link zabbix-server:zabbix-server -p 162:1162/udp -d registry.connect.redhat.com/zabbix/zabbix-snmptraps-62:${ZBX_VERSION}" \
       summary="Zabbix SNMP traps receiver" \
       url="https://www.zabbix.com/" \
       vendor="Zabbix LLC" \
@@ -26,7 +26,7 @@ LABEL description="Zabbix SNMP traps receiver" \
       io.openshift.tags="zabbix,zabbix-snmp,snmp-traps" \
       org.label-schema.build-date="${BUILD_DATE}" \
       org.label-schema.description="Zabbix SNMP traps receiver" \
-      org.label-schema.docker.cmd="docker run --name zabbix-snmptraps --link zabbix-server:zabbix-server -p 162:1162/udp -d registry.connect.redhat.com/zabbix/zabbix-snmptraps-trunk:${ZBX_VERSION}" \
+      org.label-schema.docker.cmd="docker run --name zabbix-snmptraps --link zabbix-server:zabbix-server -p 162:1162/udp -d registry.connect.redhat.com/zabbix/zabbix-snmptraps-62:${ZBX_VERSION}" \
       org.label-schema.license="GPL v2.0" \
       org.label-schema.name="zabbix-snmptraps-rhel" \
       org.label-schema.schema-version="1.0" \

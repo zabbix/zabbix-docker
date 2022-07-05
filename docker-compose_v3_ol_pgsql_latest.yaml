@@ -1,7 +1,7 @@
 version: '3.5'
 services:
  zabbix-server:
-  image: zabbix/zabbix-server-pgsql:ol-trunk
+  image: zabbix/zabbix-server-pgsql:ol-6.2-latest
   ports:
    - "10051:10051"
   volumes:
@@ -63,7 +63,7 @@ services:
    com.zabbix.os: "oracle linux"
 
  zabbix-proxy-sqlite3:
-  image: zabbix/zabbix-proxy-sqlite3:ol-trunk
+  image: zabbix/zabbix-proxy-sqlite3:ol-6.2-latest
   profiles:
    - all
   ports:
@@ -112,7 +112,7 @@ services:
    com.zabbix.os: "oracle linux"
 
  zabbix-proxy-mysql:
-  image: zabbix/zabbix-proxy-mysql:ol-trunk
+  image: zabbix/zabbix-proxy-mysql:ol-6.2-latest
   profiles:
    - all
   ports:
@@ -168,7 +168,7 @@ services:
    com.zabbix.os: "oracle linux"
 
  zabbix-web-apache-pgsql:
-  image: zabbix/zabbix-web-apache-pgsql:ol-trunk
+  image: zabbix/zabbix-web-apache-pgsql:ol-6.2-latest
   profiles:
    - all
   ports:
@@ -224,7 +224,7 @@ services:
    com.zabbix.os: "oracle linux"
 
  zabbix-web-nginx-pgsql:
-  image: zabbix/zabbix-web-nginx-pgsql:ol-trunk
+  image: zabbix/zabbix-web-nginx-pgsql:ol-6.2-latest
   ports:
    - "80:8080"
    - "443:8443"
@@ -278,7 +278,7 @@ services:
    com.zabbix.os: "oracle linux"
 
  zabbix-agent:
-  image: zabbix/zabbix-agent:ol-trunk
+  image: zabbix/zabbix-agent:ol-6.2-latest
   profiles:
    - full
    - all
@@ -318,7 +318,7 @@ services:
    com.zabbix.os: "oracle linux"
 
  zabbix-java-gateway:
-  image: zabbix/zabbix-java-gateway:ol-trunk
+  image: zabbix/zabbix-java-gateway:ol-6.2-latest
   profiles:
    - full
    - all
@@ -347,7 +347,7 @@ services:
    com.zabbix.os: "oracle linux"
 
  zabbix-snmptraps:
-  image: zabbix/zabbix-snmptraps:ol-trunk
+  image: zabbix/zabbix-snmptraps:ol-6.2-latest
   profiles:
    - full
    - all
@@ -376,7 +376,7 @@ services:
    com.zabbix.os: "oracle linux"
 
  zabbix-web-service:
-  image: zabbix/zabbix-web-service:ol-trunk
+  image: zabbix/zabbix-web-service:ol-6.2-latest
   profiles:
    - full
    - all

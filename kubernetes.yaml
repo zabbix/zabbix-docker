@@ -205,7 +205,7 @@ spec:
           secretName: zabbix-mysql-client-tls-certs
       containers:
         - name: zabbix-web
-          image: zabbix/zabbix-web-nginx-mysql:alpine-trunk
+          image: zabbix/zabbix-web-nginx-mysql:alpine-6.2-latest
           imagePullPolicy: IfNotPresent
           ports:
           - containerPort: 8080
@@ -423,7 +423,7 @@ spec:
            secretName: zabbix-mysql-client-tls-certs
       containers:
         - name: zabbix-server
-          image: zabbix/zabbix-server-mysql:alpine-trunk
+          image: zabbix/zabbix-server-mysql:alpine-6.2-latest
           imagePullPolicy: IfNotPresent
           ports:
           - containerPort: 10051
@@ -613,7 +613,7 @@ spec:
             capabilities: {}
             privileged: false
         - name: zabbix-snmptraps
-          image: zabbix/zabbix-snmptraps:alpine-trunk
+          image: zabbix/zabbix-snmptraps:alpine-6.2-latest
           imagePullPolicy: IfNotPresent
           ports:
           - containerPort: 1162
@@ -654,7 +654,7 @@ spec:
           emptyDir: {}
       containers:
         - name: zabbix-proxy-sqlite3
-          image: zabbix/zabbix-proxy-sqlite3:alpine-trunk
+          image: zabbix/zabbix-proxy-sqlite3:alpine-6.2-latest
           imagePullPolicy: IfNotPresent
           ports:
           - containerPort: 10051
@@ -818,7 +818,7 @@ spec:
            secretName: zabbix-mysql-client-tls-certs
       containers:
         - name: zabbix-proxy-mysql
-          image: zabbix/zabbix-proxy-mysql:alpine-trunk
+          image: zabbix/zabbix-proxy-mysql:alpine-6.2-latest
           imagePullPolicy: IfNotPresent
           ports:
           - containerPort: 10051
@@ -1009,7 +1009,7 @@ spec:
     spec:
       containers:
         - name: zabbix-java-gateway
-          image: zabbix/zabbix-java-gateway:alpine-trunk
+          image: zabbix/zabbix-java-gateway:alpine-6.2-latest
           imagePullPolicy: IfNotPresent
           ports:
           - containerPort: 10052
@@ -1057,7 +1057,7 @@ spec:
     spec:
       containers:
         - name: zabbix-web-service
-          image: zabbix/zabbix-web-service:alpine-trunk
+          image: zabbix/zabbix-web-service:alpine-6.2-latest
           imagePullPolicy: IfNotPresent
           resources:
            limits:
@@ -1130,7 +1130,7 @@ spec:
        beta.kubernetes.io/os: linux
       containers:
         - name: zabbix-agent
-          image: zabbix/zabbix-agent:alpine-trunk
+          image: zabbix/zabbix-agent:alpine-6.2-latest
           imagePullPolicy: IfNotPresent
           resources:
            limits:

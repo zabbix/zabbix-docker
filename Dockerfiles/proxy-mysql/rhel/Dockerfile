@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1
 ARG MAJOR_VERSION=6.2
 ARG RELEASE=
-ARG ZBX_VERSION=${MAJOR_VERSION}
+ARG ZBX_VERSION=${MAJOR_VERSION}.0
 ARG BUILD_BASE_IMAGE=zabbix-build-mysql:rhel-${ZBX_VERSION}
 
 FROM ${BUILD_BASE_IMAGE} as builder
@@ -19,9 +19,9 @@ ENV TERM=xterm \
 
 LABEL description="Zabbix proxy with MySQL database support" \
       maintainer="alexey.pustovalov@zabbix.com" \
-      name="zabbix/zabbix-proxy-mysql-trunk" \
+      name="zabbix/zabbix-proxy-mysql-62" \
       release="${RELEASE}" \
-      run="docker run --name zabbix-proxy --link mysql-server:mysql-server -p 10051:10051 -d registry.connect.redhat.com/zabbix/zabbix-proxy-mysql-trunk:${ZBX_VERSION}" \
+      run="docker run --name zabbix-proxy --link mysql-server:mysql-server -p 10051:10051 -d registry.connect.redhat.com/zabbix/zabbix-proxy-mysql-62:${ZBX_VERSION}" \
       summary="Zabbix proxy (MySQL)" \
       url="https://www.zabbix.com/" \
       vendor="Zabbix LLC" \
@@ -32,7 +32,7 @@ LABEL description="Zabbix proxy with MySQL database support" \
       io.openshift.tags="zabbix,zabbix-proxy,mysql" \
       org.label-schema.build-date="${BUILD_DATE}" \
       org.label-schema.description="Zabbix proxy with MySQL database support" \
-      org.label-schema.docker.cmd="docker run --name zabbix-proxy --link mysql-server:mysql-server -p 10051:10051 -d registry.connect.redhat.com/zabbix/zabbix-proxy-mysql-trunk:${ZBX_VERSION}" \
+      org.label-schema.docker.cmd="docker run --name zabbix-proxy --link mysql-server:mysql-server -p 10051:10051 -d registry.connect.redhat.com/zabbix/zabbix-proxy-mysql-62:${ZBX_VERSION}" \
       org.label-schema.license="GPL v2.0" \
       org.label-schema.name="zabbix-proxy-mysql-rhel" \
       org.label-schema.schema-version="1.0" \

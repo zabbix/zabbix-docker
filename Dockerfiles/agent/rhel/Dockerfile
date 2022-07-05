@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1
 ARG MAJOR_VERSION=6.2
-ARG RELEASE=
-ARG ZBX_VERSION=${MAJOR_VERSION}
+ARG RELEASE=0
+ARG ZBX_VERSION=${MAJOR_VERSION}.0
 ARG BUILD_BASE_IMAGE=zabbix-build-mysql:rhel-${ZBX_VERSION}
 
 FROM ${BUILD_BASE_IMAGE} as builder
@@ -18,9 +18,9 @@ ENV TERM=xterm \
 
 LABEL description="Zabbix agent is deployed on a monitoring target to actively monitor local resources and applications" \
       maintainer="alexey.pustovalov@zabbix.com" \
-      name="zabbix/zabbix-agent-trunk" \
+      name="zabbix/zabbix-agent-62" \
       release="${RELEASE}" \
-      run="docker run --name zabbix-agent --link zabbix-server:zabbix-server -p 10050:10050 -d registry.connect.redhat.com/zabbix/zabbix-agent-trunk:${ZBX_VERSION}" \
+      run="docker run --name zabbix-agent --link zabbix-server:zabbix-server -p 10050:10050 -d registry.connect.redhat.com/zabbix/zabbix-agent-62:${ZBX_VERSION}" \
       summary="Zabbix agent" \
       url="https://www.zabbix.com/" \
       vendor="Zabbix LLC" \
@@ -31,7 +31,7 @@ LABEL description="Zabbix agent is deployed on a monitoring target to actively m
       io.openshift.tags="zabbix,zabbix-agent" \
       org.label-schema.build-date="${BUILD_DATE}" \
       org.label-schema.description="Zabbix agent is deployed on a monitoring target to actively monitor local resources and applications" \
-      org.label-schema.docker.cmd="docker run --name zabbix-agent --link zabbix-server:zabbix-server -p 10050:10050 -d registry.connect.redhat.com/zabbix/zabbix-agent-trunk:${ZBX_VERSION}" \
+      org.label-schema.docker.cmd="docker run --name zabbix-agent --link zabbix-server:zabbix-server -p 10050:10050 -d registry.connect.redhat.com/zabbix/zabbix-agent-62:${ZBX_VERSION}" \
       org.label-schema.license="GPL v2.0" \
       org.label-schema.name="zabbix-agent-rhel" \
       org.label-schema.schema-version="1.0" \
