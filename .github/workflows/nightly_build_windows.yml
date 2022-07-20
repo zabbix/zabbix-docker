@@ -1,0 +1,385 @@
+name: Nightly build images (DockerHub, Windows)
+
+on:
+  schedule:
+    - cron:  '5 2 * * *'
+  workflow_dispatch:
+
+defaults:
+  run:
+    shell: pwsh
+
+env:
+  DOCKER_REPOSITORY: "zabbix"
+  LATEST_BRANCH: ${{ github.event.repository.default_branch }}
+  IMAGE_PREFIX: "zabbix-"
+  BASE_BUILD_NAME: "build-base"
+  COMPONENT_BASE_BUILD_NAME: "build-mysql"
+  AUTO_PUSH_IMAGES: ${{ secrets.AUTO_PUSH_IMAGES }}
+
+jobs:
+  init_build:
+    name: Initialize build
+    runs-on: ubuntu-latest
+    outputs:
+      os: ${{ steps.os.outputs.list }}
+      components: ${{ steps.components.outputs.list }}
+      is_default_branch: ${{ steps.branch_info.outputs.is_default_branch }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2.3.4
+        with:
+          ref: "refs/heads/trunk"
+          fetch-depth: 1
+
+      - name: Check build.json file
+        id: build_exists
+        shell: bash
+        run: |
+            if [[ ! -f "./build.json" ]]; then
+                echo "::error::File build.json is missing"
+                exit 1
+            fi
+
+      - name: Prepare Operating System list
+        id: os
+        shell: bash
+        run: |
+            os_list=$(jq -r '.["os-windows"] |  keys | [ .[] | tostring ] | @json' "./build.json")
+
+            echo "::set-output name=list::$os_list"
+
+      - name: Prepare Zabbix component list
+        id: components
+        shell: bash
+        run: |
+            component_list='["agent","agent2"]'
+
+            echo "::set-output name=list::$component_list"
+
+      - name: Get branch info
+        id: branch_info
+        shell: bash
+        run: |
+            github_ref="${{ github.ref }}"
+            result=false
+
+            if [[ "$github_ref" == "refs/tags/"* ]]; then
+                github_ref=${github_ref%.*}
+            fi
+
+            github_ref=${github_ref##*/}
+
+            if [[ "$github_ref" == "${{ env.LATEST_BRANCH }}" ]]; then
+                result=true
+            fi
+            echo  "::set-output name=is_default_branch::$result"
+
+  build_base:
+    timeout-minutes: 70
+    name: Build ${{ matrix.component }} base on ${{ matrix.os }}
+    needs: init_build
+    env:
+      BASE_BUILD_ARTIFACT_FILE_SUFFIX: "_${{ matrix.os }}_${{ matrix.component }}"
+    strategy:
+      fail-fast: false
+      matrix:
+        os: ${{ fromJson(needs.init_build.outputs.os) }}
+        component: ${{ fromJson(needs.init_build.outputs.components) }}
+
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2.3.4
+        with:
+          ref: "refs/heads/trunk"
+          fetch-depth: 1
+
+      - name: Login to DockerHub
+        run: |
+            docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
+            if (-not $?) {throw "Failed"}
+
+      - name: Base OS tag
+        id: base_os_tag
+        run: |
+            $os_tag=$(Get-Content -Path .\build.json | ConvertFrom-Json).'os-windows'.'${{ matrix.os }}'
+            echo "::set-output name=os_tag::$os_tag"
+
+      - name: Generate tags
+        id: meta
+        uses: docker/metadata-action@v3
+        with:
+          images: ${{ env.DOCKER_REPOSITORY }}/${{ env.IMAGE_PREFIX }}${{ env.BASE_BUILD_NAME }}
+          tags: |
+            type=raw,value=${{ matrix.component }}-${{ steps.base_os_tag.outputs.os_tag }}-trunk
+            type=raw,value=${{ matrix.component }}-trunk-${{ steps.base_os_tag.outputs.os_tag }}
+          flavor: |
+            latest=false
+
+      - name: Build image
+        id: docker_build
+        run: |
+            $context='.\Dockerfiles\${{ env.BASE_BUILD_NAME }}\windows\'
+            $dockerfile= $context + 'Dockerfile.${{ matrix.component }}'
+
+            $tags_array=$( "${{ steps.meta.outputs.tags }}".Split("`r`n") )
+            $tags=$( $tags_array | Foreach-Object { "--tag=$_" } )
+
+            echo "docker build --file=$dockerfile $tags $context"
+            docker build --label org.opencontainers.image.revision=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.revision'] }} `
+                         --label org.opencontainers.image.created=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.created'] }} `
+                         --build-arg=BUILD_BASE_IMAGE=mcr.microsoft.com/windows/servercore:${{ steps.base_os_tag.outputs.os_tag }} `
+                         --file=$dockerfile `
+                         $tags `
+                    $context
+            if (-not $?) {throw "Failed"}
+
+      - name: Push image
+        if: ${{ env.AUTO_PUSH_IMAGES }}
+        run: |
+            $tags_array=$( "${{ steps.meta.outputs.tags }}".Split("`r`n") )
+
+            Foreach ($tag in $tags_array) {
+                echo "docker image push $tag"
+                docker image push $tag
+                if (-not $?) {throw "Failed"}
+            }
+
+      - name: Image digest
+        if: ${{ env.AUTO_PUSH_IMAGES }}
+        run: |
+            $tags_array=$( "${{ steps.meta.outputs.tags }}".Split("`r`n") )
+
+            $digest=$(docker inspect $tags_array[0] --format "{{ index .RepoDigests 0}}").Split('@')[-1]
+            if (-not $?) {throw "Failed"}
+
+            echo $digest
+            $digest | Set-Content -Path ${{ env.BASE_BUILD_NAME }}${{ env.BASE_BUILD_ARTIFACT_FILE_SUFFIX }}
+
+      - name: Upload SHA256 tag
+        if: ${{ env.AUTO_PUSH_IMAGES }}
+        uses: actions/upload-artifact@v2.2.4
+        with:
+         name: ${{ env.BASE_BUILD_NAME }}${{ env.BASE_BUILD_ARTIFACT_FILE_SUFFIX }}
+         path: ${{ env.BASE_BUILD_NAME }}${{ env.BASE_BUILD_ARTIFACT_FILE_SUFFIX }}
+         if-no-files-found: error
+
+      - name: Logout from DockerHub
+        run: |
+            docker logout
+            if (-not $?) {throw "Failed"}
+
+  build_components:
+    timeout-minutes: 70
+    needs: [ "build_base", "init_build"]
+    name: Build ${{ matrix.component }} sources on ${{ matrix.os }}
+    env:
+      BASE_BUILD_ARTIFACT_FILE_SUFFIX: "_${{ matrix.os }}_${{ matrix.component }}"
+      COMPONENT_BASE_BUILD_ARTIFACT_FILE_SUFFIX: "_${{ matrix.os }}_${{ matrix.component }}"
+    strategy:
+      fail-fast: false
+      matrix:
+        os: ${{ fromJson(needs.init_build.outputs.os) }}
+        component: ${{ fromJson(needs.init_build.outputs.components) }}
+
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2.3.4
+        with:
+          ref: "refs/heads/trunk"
+          fetch-depth: 1
+
+      - name: Login to DockerHub
+        run: |
+            docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
+            if (-not $?) {throw "Failed"}
+
+      - name: Base OS tag
+        id: base_os_tag
+        run: |
+            $os_tag=$(Get-Content -Path .\build.json | ConvertFrom-Json).'os-windows'.'${{ matrix.os }}'
+            echo "::set-output name=os_tag::$os_tag"
+
+      - name: Generate tags
+        id: meta
+        uses: docker/metadata-action@v3
+        with:
+          images: ${{ env.DOCKER_REPOSITORY }}/${{ env.IMAGE_PREFIX }}${{ env.COMPONENT_BASE_BUILD_NAME }}
+          tags: |
+            type=raw,value=${{ matrix.component }}-${{ steps.base_os_tag.outputs.os_tag }}-trunk
+            type=raw,value=${{ matrix.component }}-trunk-${{ steps.base_os_tag.outputs.os_tag }}
+          flavor: |
+            latest=false
+
+      - name: Download SHA256 tag build-base:${{ matrix.os }}
+        uses: actions/download-artifact@v2.0.10
+        with:
+          name: ${{ env.BASE_BUILD_NAME }}${{ env.BASE_BUILD_ARTIFACT_FILE_SUFFIX }}
+
+      - name: Retrieve ${{ env.BASE_BUILD_NAME }}:${{ matrix.os }} SHA256 tag
+        id: base_build
+        run: |
+          $base_tag = Get-Content ${{ env.BASE_BUILD_NAME }}${{ env.BASE_BUILD_ARTIFACT_FILE_SUFFIX }} -Raw
+          $build_base_image="${{ env.DOCKER_REPOSITORY }}/${{ env.IMAGE_PREFIX }}${{ env.BASE_BUILD_NAME }}@" + $base_tag
+
+          echo "::set-output name=base_tag::$base_tag"
+          echo "::set-output name=base_build_image::$build_base_image"
+
+      - name: Build image
+        id: docker_build
+        run: |
+            $context='.\Dockerfiles\${{ env.COMPONENT_BASE_BUILD_NAME }}\windows\'
+            $dockerfile= $context + 'Dockerfile.${{ matrix.component }}'
+
+            $tags_array=$( "${{ steps.meta.outputs.tags }}".Split("`r`n") )
+            $tags=$($tags_array | Foreach-Object { "--tag=$_" })
+
+            echo "docker build --file=$dockerfile $tags $context"
+            docker build --label org.opencontainers.image.revision=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.revision'] }} `
+                         --label org.opencontainers.image.created=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.created'] }} `
+                         --file=$dockerfile `
+                         --build-arg=BUILD_BASE_IMAGE=${{ steps.base_build.outputs.base_build_image }} `
+                         $tags `
+                    $context
+            if (-not $?) {throw "Failed"}
+
+      - name: Push image
+        if: ${{ env.AUTO_PUSH_IMAGES }}
+        run: |
+            $tags_array=$( "${{ steps.meta.outputs.tags }}".Split("`r`n") )
+
+            Foreach ($tag in $tags_array) {
+                echo "docker image push $tag"
+                docker image push $tag
+                if (-not $?) {throw "Failed"}
+            }
+
+      - name: Image digest
+        if: ${{ env.AUTO_PUSH_IMAGES }}
+        run: |
+            $tags_array=$( "${{ steps.meta.outputs.tags }}".Split("`r`n") )
+
+            $digest=$(docker inspect $tags_array[0] --format "{{ index .RepoDigests 0}}").Split('@')[-1]
+            if (-not $?) {throw "Failed"}
+
+            echo $digest
+            $digest | Set-Content -Path ${{ env.COMPONENT_BASE_BUILD_NAME }}${{ env.COMPONENT_BASE_BUILD_ARTIFACT_FILE_SUFFIX }}
+
+      - name: Upload SHA256 tag
+        if: ${{ env.AUTO_PUSH_IMAGES }}
+        uses: actions/upload-artifact@v2.2.4
+        with:
+         name: ${{ env.COMPONENT_BASE_BUILD_NAME }}${{ env.COMPONENT_BASE_BUILD_ARTIFACT_FILE_SUFFIX }}
+         path: ${{ env.COMPONENT_BASE_BUILD_NAME }}${{ env.COMPONENT_BASE_BUILD_ARTIFACT_FILE_SUFFIX }}
+         if-no-files-found: error
+
+      - name: Logout from DockerHub
+        run: |
+            docker logout
+            if (-not $?) {throw "Failed"}
+
+  build_images:
+    timeout-minutes: 70
+    needs: [ "build_components", "init_build"]
+    name: Build ${{ matrix.component }} on ${{ matrix.os }}
+    env:
+      COMPONENT_BASE_BUILD_ARTIFACT_FILE_SUFFIX: "_${{ matrix.os }}_${{ matrix.component }}"
+    strategy:
+      fail-fast: false
+      matrix:
+        os: ${{ fromJson(needs.init_build.outputs.os) }}
+        component: ${{ fromJson(needs.init_build.outputs.components) }}
+
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v2.3.4
+        with:
+          ref: "refs/heads/trunk"
+          fetch-depth: 1
+
+      - name: Login to DockerHub
+        run: |
+            docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
+            if (-not $?) {throw "Failed"}
+
+      - name: Base OS tag
+        id: base_os_tag
+        run: |
+            $os_tag=$(Get-Content -Path .\build.json | ConvertFrom-Json).'os-windows'.'${{ matrix.os }}'
+            echo "::set-output name=os_tag::$os_tag"
+
+      - name: Generate tags
+        id: meta
+        uses: docker/metadata-action@v3
+        with:
+          images: ${{ env.DOCKER_REPOSITORY }}/${{ env.IMAGE_PREFIX }}${{ matrix.component }}
+          tags: |
+            type=raw,value=${{ steps.base_os_tag.outputs.os_tag }}-trunk
+            type=raw,value=trunk-${{ steps.base_os_tag.outputs.os_tag }}
+          flavor: |                                                                                                    
+            latest=false
+
+      - name: Download SHA256 tag for ${{ env.COMPONENT_BASE_BUILD_NAME }}:${{ matrix.os }}
+        uses: actions/download-artifact@v2.0.10
+        with:
+          name: ${{ env.COMPONENT_BASE_BUILD_NAME }}${{ env.COMPONENT_BASE_BUILD_ARTIFACT_FILE_SUFFIX }}
+
+      - name: ${{ env.COMPONENT_BASE_BUILD_NAME }}:${{ matrix.os }} SHA256 tag
+        id: base_build
+        run: |
+          $base_tag = Get-Content ${{ env.COMPONENT_BASE_BUILD_NAME }}${{ env.COMPONENT_BASE_BUILD_ARTIFACT_FILE_SUFFIX }} -Raw
+          $build_base_image="${{ env.DOCKER_REPOSITORY }}/${{ env.IMAGE_PREFIX }}${{ env.COMPONENT_BASE_BUILD_NAME }}@" + $base_tag
+
+          echo "::set-output name=base_tag::$base_tag"
+          echo "::set-output name=base_build_image::$build_base_image"
+
+      - name: Build image
+        id: docker_build
+        run: |
+            $context='.\Dockerfiles\${{ matrix.component }}\windows\'
+            $dockerfile= $context + 'Dockerfile'
+
+            $tags_array=$( "${{ steps.meta.outputs.tags }}".Split("`r`n") )
+            $tags=$($tags_array | Foreach-Object { "--tag=$_" })
+
+            # PowerShell images based on LTSC 2019 and LTSC 2016 do not have "ltsc" prefix
+            $os_tag_suffix='${{ steps.base_os_tag.outputs.os_tag }}'
+            $os_tag_suffix=$os_tag_suffix -replace "ltsc2019",'1809'
+
+            echo "docker build --file=$dockerfile $tags $context"
+            docker build --label org.opencontainers.image.revision=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.revision'] }} `
+                         --label org.opencontainers.image.created=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.created'] }} `
+                         --file=$dockerfile `
+                         --build-arg=BUILD_BASE_IMAGE=${{ steps.base_build.outputs.base_build_image }} `
+                         --build-arg=BASE_IMAGE=mcr.microsoft.com/powershell:lts-nanoserver-$os_tag_suffix `
+                         $tags `
+                    $context
+            if (-not $?) {throw "Failed"}
+
+      - name: Push image
+        if: ${{ env.AUTO_PUSH_IMAGES }}
+        run: |
+            $tags_array=$( "${{ steps.meta.outputs.tags }}".Split("`r`n") )
+
+            Foreach ($tag in $tags_array) {
+                echo "docker image push $tag"
+                docker image push $tag
+                if (-not $?) {throw "Failed"}
+            }
+
+      - name: Image digest
+        if: ${{ env.AUTO_PUSH_IMAGES }}
+        run: |
+            $tags_array=$( "${{ steps.meta.outputs.tags }}".Split("`r`n") )
+
+            $digest=$(docker inspect $tags_array[0] --format "{{ index .RepoDigests 0}}").Split('@')[-1]
+            if (-not $?) {throw "Failed"}
+
+            echo $digest
+
+      - name: Logout from DockerHub
+        run: |
+            docker logout
+            if (-not $?) {throw "Failed"}
