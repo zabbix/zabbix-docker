@@ -42,7 +42,7 @@ RUN set -eux && \
     sed -i "s/{ZABBIX_REVISION}/$zabbix_revision/g" src/zabbix_java/src/com/zabbix/gateway/GeneralInformation.java && \
     ./bootstrap.sh && \
     export CFLAGS="-fPIC -pie -Wl,-z,relro,-z,now,-z,defs" && \
-    export CFLAGS="$CFLAGS -D_FORTIFY_SOURCE=2 -fexceptions -O2 -pipe -flto" && \
+    export CFLAGS="$CFLAGS -D_FORTIFY_SOURCE=2 -fexceptions -O2 -pipe" && \
     ./configure \
             --datadir=/usr/lib \
             --libdir=/usr/lib/zabbix \
