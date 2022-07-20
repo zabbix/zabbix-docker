@@ -111,6 +111,11 @@ prepare_web_server() {
     NGINX_CONFD_DIR="/etc/nginx/conf.d"
     NGINX_SSL_CONFIG="/etc/ssl/nginx"
 
+    if [ ! -f "/proc/net/if_inet6" ]; then
+        sed -i '/listen \[::\]/d' "$ZABBIX_ETC_DIR/nginx.conf"
+        sed -i '/listen \[::\]/d' "$ZABBIX_ETC_DIR/nginx_ssl.conf"
+    fi
+
     echo "** Adding Zabbix virtual host (HTTP)"
     if [ -f "$ZABBIX_ETC_DIR/nginx.conf" ]; then
         ln -sfT "$ZABBIX_ETC_DIR/nginx.conf" "$NGINX_CONFD_DIR/nginx.conf"
