@@ -38,6 +38,8 @@ RUN set -eux && \
     INSTALL_PKGS="bash \
             fping \
             tini \
+            traceroute \
+            nmap \
             file-libs \
             tzdata \
             iputils \

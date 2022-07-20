@@ -37,6 +37,8 @@ RUN set -eux && \
     INSTALL_PKGS="bash \
             tini \
             fping \
+            traceroute \
+            nmap \
             tzdata \
             iputils \
             libcurl \

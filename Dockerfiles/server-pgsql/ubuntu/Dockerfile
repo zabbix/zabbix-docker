@@ -38,6 +38,8 @@ RUN set -eux && \
     echo "#!/bin/sh\nexit 101" > /usr/sbin/policy-rc.d && \
     INSTALL_PKGS="bash \
             tini \
+            traceroute \
+            nmap \
             tzdata \
             ca-certificates \
             iputils-ping \

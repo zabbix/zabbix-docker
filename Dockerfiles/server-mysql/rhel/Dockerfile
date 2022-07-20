@@ -55,6 +55,8 @@ COPY --from=builder ["/tmp/zabbix-${ZBX_VERSION}/database/mysql/create_server.sq
 RUN set -eux && \
     INSTALL_PKGS="bash \
             tini \
+            traceroute \
+            nmap \
             fping \
             shadow-utils \
             tzdata \

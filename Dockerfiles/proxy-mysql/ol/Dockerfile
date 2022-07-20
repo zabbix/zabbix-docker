@@ -37,6 +37,8 @@ COPY ["conf/etc/yum.repos.d/oracle-epel-ol8.repo", "/etc/yum.repos.d/oracle-epel
 RUN set -eux && \
     INSTALL_PKGS="libevent \
             tini \
+            traceroute \
+            nmap \
             gzip \
             libssh \
             file-libs \
