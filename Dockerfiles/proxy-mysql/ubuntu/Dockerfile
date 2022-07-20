@@ -37,6 +37,8 @@ COPY --from=builder ["/tmp/zabbix-${ZBX_VERSION}/database/mysql/create_proxy.sql
 RUN set -eux && \
     echo "#!/bin/sh\nexit 101" > /usr/sbin/policy-rc.d && \
     INSTALL_PKGS="tini \
+            traceroute \
+            nmap \
             ca-certificates \
             fping \
             libcurl4 \

@@ -37,6 +37,8 @@ RUN set -eux && \
     REPOLIST="baseos,appstream,epel" && \
     INSTALL_PKGS="fping \
             tini \
+            traceroute \
+            nmap \
             file-libs \
             tzdata \
             iputils \

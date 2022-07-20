@@ -36,6 +36,8 @@ RUN set -eux && \
     REPOLIST="baseos,appstream,epel" && \
     INSTALL_PKGS="libevent \
             tini \
+            traceroute \
+            nmap \
             libssh \
             fping \
             file-libs \

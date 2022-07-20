@@ -37,6 +37,8 @@ COPY --from=builder ["/tmp/zabbix-${ZBX_VERSION}/database/postgresql/timescaledb
 RUN set -eux && \
     INSTALL_PKGS="bash \
             tini \
+            traceroute \
+            nmap \
             fping \
             tzdata \
             iputils \
