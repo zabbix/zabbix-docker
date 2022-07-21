@@ -174,7 +174,7 @@ jobs:
          if-no-files-found: error
 
   build_base_database:
-    timeout-minutes: 150
+    timeout-minutes: 180
     needs: [ "build_base", "init_build"]
     name: Build ${{ matrix.build }} base on ${{ matrix.os }}
     strategy:
