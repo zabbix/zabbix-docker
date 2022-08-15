@@ -259,7 +259,7 @@ services:
    - mysql-server
    - zabbix-server
   healthcheck:
-   test: ["CMD", "curl", "-f", "http://localhost:8080/"]
+   test: ["CMD", "curl", "-f", "http://localhost:8080/ping"]
    interval: 10s
    timeout: 5s
    retries: 3
