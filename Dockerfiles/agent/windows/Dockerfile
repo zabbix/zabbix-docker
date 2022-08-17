@@ -46,7 +46,8 @@ RUN Set-Location -Path $env:SystemDrive\.; `
     New-Item -ItemType directory -Path $env:ZBX_HOME\modules | Out-Null; `
     New-Item -ItemType directory -Path $env:ZBX_HOME\buffer | Out-Null; `
     `
-    net user /add zabbix; `
+	net accounts /MaxPWAge:unlimited; `
+    net user /add zabbix /expire:never /passwordreq:no; `
     $acl = Get-Acl -Path $env:ZBX_HOME; `
     $ace = New-Object Security.AccessControl.FileSystemAccessRule ('zabbix', 'Modify', 'ContainerInherit, ObjectInherit', 'InheritOnly', 'Allow'); `
     $acl.AddAccessRule($ace); `
