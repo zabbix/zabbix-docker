@@ -242,6 +242,44 @@ psql_query() {
     echo $result
 }
 
+exec_sql_file() {
+    sql_script=$1
+
+    local command="cat"
+
+    if [ -n "${DB_SERVER_ZBX_PASS}" ]; then
+        export PGPASSWORD="${DB_SERVER_ZBX_PASS}"
+    fi
+
+    if [ "${POSTGRES_USE_IMPLICIT_SEARCH_PATH,,}" == "false" ] && [ -n "${DB_SERVER_SCHEMA}" ]; then
+        PGOPTIONS="--search_path=${DB_SERVER_SCHEMA}"
+        export PGOPTIONS
+    fi
+
+    if [ -n "${ZBX_DBTLSCONNECT}" ]; then
+        PGSSLMODE=${ZBX_DBTLSCONNECT//_/-}
+        export PGSSLMODE=${PGSSLMODE//required/require}
+        export PGSSLROOTCERT=${ZBX_DBTLSCAFILE}
+        export PGSSLCERT=${ZBX_DBTLSCERTFILE}
+        export PGSSLKEY=${ZBX_DBTLSKEYFILE}
+    fi
+
+    if [ "${sql_script: -3}" == ".gz" ]; then
+        command="zcat"
+    fi
+
+    $command $sql_script | psql --quiet \
+        --host "${DB_SERVER_HOST}" --port "${DB_SERVER_PORT}" \
+        --username "${DB_SERVER_ZBX_USER}" --dbname "${DB_SERVER_DBNAME}" 1>/dev/null || exit 1
+
+    unset PGPASSWORD
+    unset PGOPTIONS
+    unset PGSSLMODE
+    unset PGSSLROOTCERT
+    unset PGSSLCERT
+    unset PGSSLKEY
+}
+
 create_db_database_postgresql() {
     DB_EXISTS=$(psql_query "SELECT 1 AS result FROM pg_database WHERE datname='${DB_SERVER_DBNAME}'" "${DB_SERVER_DBNAME}")
 
@@ -281,6 +319,17 @@ create_db_database_postgresql() {
     psql_query "CREATE SCHEMA IF NOT EXISTS ${DB_SERVER_SCHEMA}" "${DB_SERVER_DBNAME}" 1>/dev/null
 }
 
+apply_db_scripts() {
+    db_scripts=$1
+
+    for sql_script in $db_scripts; do
+        [ -e "$sql_script" ] || continue
+        echo "** Processing additional '$sql_script' SQL script"
+
+        exec_sql_file "$sql_script"
+    done
+}
+
 create_db_schema_postgresql() {
     DBVERSION_TABLE_EXISTS=$(psql_query "SELECT 1 FROM pg_catalog.pg_class c JOIN pg_catalog.pg_namespace n ON n.oid = 
                                          c.relnamespace WHERE  n.nspname = '$DB_SERVER_SCHEMA' AND c.relname = 'dbversion'" "${DB_SERVER_DBNAME}")
@@ -297,39 +346,14 @@ create_db_schema_postgresql() {
             psql_query "CREATE EXTENSION IF NOT EXISTS timescaledb CASCADE;" "${DB_SERVER_DBNAME}"
         fi
 
-        if [ -n "${DB_SERVER_ZBX_PASS}" ]; then
-            export PGPASSWORD="${DB_SERVER_ZBX_PASS}"
-        fi
-
-        if [ "${POSTGRES_USE_IMPLICIT_SEARCH_PATH,,}" == "false" ] && [ -n "${DB_SERVER_SCHEMA}" ]; then
-            PGOPTIONS="--search_path=${DB_SERVER_SCHEMA}"
-            export PGOPTIONS
-        fi
-
-        if [ -n "${ZBX_DBTLSCONNECT}" ]; then
-            PGSSLMODE=${ZBX_DBTLSCONNECT//_/-}
-            export PGSSLMODE=${PGSSLMODE//required/require}
-            export PGSSLROOTCERT=${ZBX_DBTLSCAFILE}
-            export PGSSLCERT=${ZBX_DBTLSCERTFILE}
-            export PGSSLKEY=${ZBX_DBTLSKEYFILE}
-        fi
-
-        zcat /usr/share/doc/zabbix-server-postgresql/create.sql.gz | psql --quiet \
-                --host "${DB_SERVER_HOST}" --port "${DB_SERVER_PORT}" \
-                --username "${DB_SERVER_ZBX_USER}" --dbname "${DB_SERVER_DBNAME}" 1>/dev/null || exit 1
+        exec_sql_file "/usr/share/doc/zabbix-server-postgresql/create.sql.gz"
 
         if [ "${ENABLE_TIMESCALEDB,,}" == "true" ]; then
-            cat /usr/share/doc/zabbix-server-postgresql/timescaledb.sql | psql --quiet \
-                --host ${DB_SERVER_HOST} --port ${DB_SERVER_PORT} \
-                --username ${DB_SERVER_ZBX_USER} --dbname ${DB_SERVER_DBNAME} 1>/dev/null || exit 1
+            exec_sql_file "/usr/share/doc/zabbix-server-postgresql/timescaledb.sql"
         fi
 
-        unset PGPASSWORD
-        unset PGOPTIONS
-        unset PGSSLMODE
-        unset PGSSLROOTCERT
-        unset PGSSLCERT
-        unset PGSSLKEY
+        apply_db_scripts "/usr/lib/zabbix/dbscripts/*.sql"
+        apply_db_scripts "/var/lib/zabbix/dbscripts/*.sql"
     fi
 }
 

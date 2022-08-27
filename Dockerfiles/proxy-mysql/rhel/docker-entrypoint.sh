@@ -20,6 +20,9 @@ ZABBIX_USER_HOME_DIR="/var/lib/zabbix"
 # Configuration files directory
 ZABBIX_ETC_DIR="/etc/zabbix"
 
+: ${DB_CHARACTER_SET:="utf8mb4"}
+: ${DB_CHARACTER_COLLATE:="utf8mb4_bin"}
+
 # usage: file_env VAR [DEFAULT]
 # as example: file_env 'MYSQL_PASSWORD' 'zabbix'
 #    (will allow for "$MYSQL_PASSWORD_FILE" to fill in the value of "$MYSQL_PASSWORD" from a file)
@@ -201,7 +204,6 @@ db_tls_params() {
     echo $result
 }
 
-
 check_db_connect_mysql() {
     echo "********************"
     echo "* DB_SERVER_HOST: ${DB_SERVER_HOST}"
@@ -248,6 +250,28 @@ mysql_query() {
     echo $result
 }
 
+exec_sql_file() {
+    sql_script=$1
+
+    local command="cat"
+
+    ssl_opts="$(db_tls_params)"
+
+    export MYSQL_PWD="${DB_SERVER_ROOT_PASS}"
+
+    if [ "${sql_script: -3}" == ".gz" ]; then
+        command="zcat"
+    fi
+
+    $command "$sql_script" | mysql --silent --skip-column-names \
+            --default-character-set=${DB_CHARACTER_SET} \
+            -h ${DB_SERVER_HOST} -P ${DB_SERVER_PORT} \
+            -u ${DB_SERVER_ROOT_USER} $ssl_opts  \
+            ${DB_SERVER_DBNAME} 1>/dev/null
+
+    unset MYSQL_PWD
+}
+
 create_db_user_mysql() {
     [ "${CREATE_ZBX_DB_USER}" == "true" ] || return
 
@@ -262,7 +286,6 @@ create_db_user_mysql() {
     fi
 
     mysql_query "GRANT ALL PRIVILEGES ON $DB_SERVER_DBNAME. * TO '${DB_SERVER_ZBX_USER}'@'%'" 1>/dev/null
-    mysql_query "GRANT SESSION_VARIABLES_ADMIN ON *. * TO '${DB_SERVER_ZBX_USER}'@'%'" 1>/dev/null
 }
 
 create_db_database_mysql() {
@@ -289,17 +312,7 @@ create_db_schema_mysql() {
     if [ -z "${ZBX_DB_VERSION}" ]; then
         echo "** Creating '${DB_SERVER_DBNAME}' schema in MySQL"
 
-        ssl_opts="$(db_tls_params)"
-
-        export MYSQL_PWD="${DB_SERVER_ROOT_PASS}"
-
-        zcat /usr/share/doc/zabbix-proxy-mysql/create.sql.gz | mysql --silent --skip-column-names \
-                    --default-character-set=utf8mb4 \
-                    -h ${DB_SERVER_HOST} -P ${DB_SERVER_PORT} \
-                    -u ${DB_SERVER_ROOT_USER} $ssl_opts \
-                    ${DB_SERVER_DBNAME} 1>/dev/null
-
-        unset MYSQL_PWD
+        exec_sql_file "/usr/share/doc/zabbix-proxy-mysql/create.sql.gz"
     fi
 }
 
