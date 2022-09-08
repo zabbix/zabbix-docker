@@ -37,6 +37,7 @@ RUN set -eux && \
             mysql-client \
             nginx \
             locales \
+            libldap-common \
             php8.1-bcmath \
             php8.1-fpm \
             php8.1-gd \
