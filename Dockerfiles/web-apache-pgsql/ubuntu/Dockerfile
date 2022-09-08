@@ -37,6 +37,7 @@ RUN set -eux && \
             libapache2-mod-php \
             ca-certificates \
             locales \
+            libldap-common \
             php8.1-bcmath \
             php8.1-gd \
             php8.1-ldap \

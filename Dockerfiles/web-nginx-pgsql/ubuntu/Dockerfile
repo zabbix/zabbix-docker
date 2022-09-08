@@ -36,6 +36,7 @@ RUN set -eux && \
             curl \
             nginx \
             locales \
+            libldap-common \
             php8.1-bcmath \
             php8.1-fpm \
             php8.1-gd \

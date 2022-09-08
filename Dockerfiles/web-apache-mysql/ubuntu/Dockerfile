@@ -38,6 +38,7 @@ RUN set -eux && \
             ca-certificates \
             mysql-client \
             locales \
+            libldap-common \
             php8.1-bcmath \
             php8.1-gd \
             php8.1-ldap \
