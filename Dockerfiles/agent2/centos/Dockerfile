@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1
 ARG MAJOR_VERSION=5.0
-ARG ZBX_VERSION=${MAJOR_VERSION}.27
+ARG ZBX_VERSION=${MAJOR_VERSION}.28
 ARG BUILD_BASE_IMAGE=zabbix-build-mysql:centos-${ZBX_VERSION}
 
 FROM ${BUILD_BASE_IMAGE} as builder
