@@ -42,6 +42,7 @@ RUN set -eux && \
             gettext \
             unixODBC-devel" && \
     microdnf -y module enable mysql && \
+    microdnf module enable postgresql:13 && \
     microdnf -y install \
         --disablerepo "*" \
         --enablerepo "ol8_baseos_latest" \
