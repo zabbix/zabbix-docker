@@ -49,6 +49,7 @@ RUN set -eux && \
             glibc-locale-source \
             supervisor" && \
     microdnf -y module enable php:7.4 && \
+    microdnf module enable postgresql:13 && \
     microdnf -y install \
             --disablerepo="*" \
             --enablerepo="ol8_baseos_latest" \
