@@ -1,8 +1,8 @@
 FROM registry.access.redhat.com/ubi8/ubi
 
 ARG MAJOR_VERSION=5.0
-ARG RELEASE=29
-ARG ZBX_VERSION=${MAJOR_VERSION}.29
+ARG RELEASE=30
+ARG ZBX_VERSION=${MAJOR_VERSION}.30
 ARG ZBX_SOURCES=https://git.zabbix.com/scm/zbx/zabbix.git
 
 ENV TERM=xterm \
