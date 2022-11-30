@@ -199,7 +199,7 @@ RUN Set-Location -Path $env:SystemDrive\.; `
     [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; `
     (New-Object Net.WebClient).DownloadFile("""$env:CYGWIN_URL""", """$env:SystemDrive\setup.exe"""); `
     `
-    $sha256 = 'c0a26f4693ba25cc2039033126b0d95ac0f6fbc833b84857fdfa4ab11fd79411'; `
+    $sha256 = 'edd0a64dc65087ffe453ca94b267169b39458a983b29ac31320fcaa983d0f97e'; `
     Write-Host ('Verifying SHA256 ({0}) ...' -f $sha256); `
     if ((Get-FileHash $env:SystemDrive\setup.exe -Algorithm sha256).Hash -ne $sha256) { `
         Write-Host 'Checksum Cygwin failed!'; `
