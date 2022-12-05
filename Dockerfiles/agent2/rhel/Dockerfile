@@ -66,14 +66,14 @@ RUN set -eux && \
     rm -rf /tmp/epel-release-latest-8.noarch.rpm && \
     microdnf -y install \
             --disablerepo "*" \
-            --enablerepo "ubi-8-baseos" \
+            --enablerepo "ubi-8-baseos-rpms" \
             --enablerepo "epel" \
             --setopt=install_weak_deps=0 \
             --best \
             --setopt=tsflags=nodocs \
         ${INSTALL_PKGS} && \
     microdnf -y reinstall \
-            --enablerepo "ubi-8-baseos" \
+            --enablerepo "ubi-8-baseos-rpms" \
             --setopt=install_weak_deps=0 \
             --best \
             --setopt=tsflags=nodocs \
