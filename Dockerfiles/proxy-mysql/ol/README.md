@@ -104,6 +104,8 @@ This variable is IP or DNS name of Zabbix server or Zabbix proxy. By default, va
 
 This variable is port Zabbix server listening on. By default, value is `10051`.
 
+**Note:** This parameter is no longer used in version 6.0 and above. Instead, add a colon ``:`` followed by the port number to the end of ``ZBX_SERVER_HOST``.
+
 ### `DB_SERVER_HOST`
 
 This variable is IP or DNS name of MySQL server. By default, value is 'mysql-server'

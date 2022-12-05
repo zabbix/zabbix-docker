@@ -100,6 +100,8 @@ This variable is IP or DNS name of Zabbix server or Zabbix proxy. By default, va
 
 This variable is port Zabbix server listening on. By default, value is `10051`.
 
+**Note:** This parameter is no longer used in version 6.0 and above. Instead, add a colon ``:`` followed by the port number to the end of ``ZBX_SERVER_HOST``.
+
 ### `ZBX_LOADMODULE`
 
 The variable is list of comma separated loadable Zabbix modules. It works with  volume ``/var/lib/zabbix/modules``. The syntax of the variable is ``dummy1.so,dummy2.so``.
