@@ -48,8 +48,8 @@ RUN set -eux && \
             net-snmp" && \
     microdnf -y install \
             --disablerepo="*" \
-            --enablerepo "ubi-8-baseos" \
-            --enablerepo "ubi-8-appstream" \
+            --enablerepo "ubi-8-baseos-rpms" \
+            --enablerepo "ubi-8-appstream-rpms" \
             --setopt=install_weak_deps=0 \
             --best \
             --setopt=tsflags=nodocs \

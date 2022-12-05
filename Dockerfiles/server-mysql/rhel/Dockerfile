@@ -78,8 +78,8 @@ RUN set -eux && \
     microdnf -y module enable mysql && \
     microdnf -y install \
             --disablerepo "*" \
-            --enablerepo "ubi-8-baseos" \
-            --enablerepo "ubi-8-appstream" \
+            --enablerepo "ubi-8-baseos-rpms" \
+            --enablerepo "ubi-8-appstream-rpms" \
             --enablerepo "rhel-8-for-x86_64-baseos-rpms" \
             --enablerepo "rhel-8-for-x86_64-appstream-rpms" \
             --enablerepo "epel" \
@@ -88,7 +88,7 @@ RUN set -eux && \
             --setopt=tsflags=nodocs \
         ${INSTALL_PKGS} && \
     microdnf -y reinstall \
-            --enablerepo "ubi-8-baseos" \
+            --enablerepo "ubi-8-baseos-rpms" \
             --setopt=install_weak_deps=0 \
             --best \
             --setopt=tsflags=nodocs \
