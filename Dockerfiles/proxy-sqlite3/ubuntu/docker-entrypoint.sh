@@ -11,8 +11,6 @@ fi
 
 # Default Zabbix server host
 : ${ZBX_SERVER_HOST:="zabbix-server"}
-# Default Zabbix server port number
-: ${ZBX_SERVER_PORT:="10051"}
 
 # Default directories
 # User 'zabbix' home directory
