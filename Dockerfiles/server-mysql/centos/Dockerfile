@@ -36,6 +36,7 @@ COPY --from=builder ["/tmp/zabbix-${ZBX_VERSION}/database/mysql/create_server.sq
 RUN set -eux && \
     REPOLIST="baseos,appstream,epel" && \
     INSTALL_PKGS="fping \
+            sudo \
             tini \
             traceroute \
             nmap \
@@ -99,6 +100,7 @@ RUN set -eux && \
     chmod -R g=u /etc/zabbix/ /var/lib/zabbix/ && \
     dnf -y clean all && \
     rm -rf /var/cache/yum /var/lib/yum/yumdb/* /usr/lib/udev/hwdb.d/* && \
+    echo "zabbix  ALL=(root) NOPASSWD: /usr/bin/nmap" >> /etc/sudoers && \
     rm -rf /var/cache/dnf /etc/udev/hwdb.bin /root/.pki
 
 EXPOSE 10051/TCP

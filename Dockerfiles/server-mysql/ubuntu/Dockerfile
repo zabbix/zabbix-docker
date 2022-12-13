@@ -36,6 +36,7 @@ COPY --from=builder ["/tmp/zabbix-${ZBX_VERSION}/database/mysql/create_server.sq
 RUN set -eux && \
     echo "#!/bin/sh\nexit 101" > /usr/sbin/policy-rc.d && \
     INSTALL_PKGS="bash \
+            sudo \
             tini \
             traceroute \
             nmap \
@@ -95,6 +96,7 @@ RUN set -eux && \
     chmod -R g=u /etc/zabbix/ /var/lib/zabbix/ && \
     apt-get -y autoremove && \
     apt-get -y clean && \
+    echo "zabbix  ALL=(root) NOPASSWD: /usr/bin/nmap" >> /etc/sudoers && \
     rm -rf /var/lib/apt/lists/*
 
 EXPOSE 10051/TCP

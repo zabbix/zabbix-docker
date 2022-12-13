@@ -37,6 +37,7 @@ COPY ["conf/etc/yum.repos.d/oracle-epel-ol8.repo", "/etc/yum.repos.d/oracle-epel
 
 RUN set -eux && \
     INSTALL_PKGS="fping \
+            sudo \
             file-libs \
             tini \
             traceroute \
@@ -101,6 +102,7 @@ RUN set -eux && \
     chmod -R g=u /etc/zabbix/ /var/lib/zabbix/ && \
     microdnf -y clean all && \
     rm -rf /var/cache/yum /var/lib/yum/yumdb/* /usr/lib/udev/hwdb.d/* && \
+    echo "zabbix  ALL=(root) NOPASSWD: /usr/bin/nmap" >> /etc/sudoers && \
     rm -rf /var/cache/dnf /etc/udev/hwdb.bin /root/.pki
 
 EXPOSE 10051/TCP

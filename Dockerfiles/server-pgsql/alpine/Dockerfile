@@ -36,6 +36,7 @@ COPY --from=builder ["/tmp/zabbix-${ZBX_VERSION}/database/postgresql/timescaledb
 
 RUN set -eux && \
     INSTALL_PKGS="bash \
+            sudo \
             tini \
             traceroute \
             nmap \
@@ -92,6 +93,7 @@ RUN set -eux && \
     chown --quiet -R zabbix:root /etc/zabbix/ /var/lib/zabbix/ && \
     chgrp -R 0 /etc/zabbix/ /var/lib/zabbix/ && \
     chmod -R g=u /etc/zabbix/ /var/lib/zabbix/ && \
+    echo "zabbix  ALL=(root) NOPASSWD: /usr/bin/nmap" >> /etc/sudoers && \
     rm -rf /var/cache/apk/*
 
 EXPOSE 10051/TCP
