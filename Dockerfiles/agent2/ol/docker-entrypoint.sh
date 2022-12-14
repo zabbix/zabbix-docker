@@ -198,9 +198,17 @@ prepare_zbx_agent_config() {
     update_config_multiple_var $ZBX_AGENT_CONFIG "AllowKey" "${ZBX_ALLOWKEY}"
 }
 
+prepare_zbx_agent_plugin_config() {
+    echo "** Preparing Zabbix agent plugin configuration files"
+
+    update_config_var "/etc/zabbix/zabbix_agent2.d/plugins.d/mongodb.conf" "Plugins.MongoDB.System.Path" "/usr/sbin/zabbix-agent2-plugin/zabbix-agent2-plugin-mongodb"
+    update_config_var "/etc/zabbix/zabbix_agent2.d/plugins.d/postgresql.conf" "Plugins.PostgreSQL.System.Path" "/usr/sbin/zabbix-agent2-plugin/zabbix-agent2-plugin-postgresql"
+}
+
 prepare_agent() {
     echo "** Preparing Zabbix agent"
     prepare_zbx_agent_config
+    prepare_zbx_agent_plugin_config
 }
 
 #################################################

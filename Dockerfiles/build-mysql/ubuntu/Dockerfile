@@ -19,6 +19,9 @@ LABEL org.opencontainers.image.authors="Alexey Pustovalov <alexey.pustovalov@zab
       org.opencontainers.image.vendor="Zabbix LLC" \
       org.opencontainers.image.version="${ZBX_VERSION}"
 
+ENV MONGODB_PLUGIN_SOURCES=https://git.zabbix.com/scm/ap/mongodb.git MONGODB_PLUGIN_VERSION=master \
+    POSTGRESQL_PLUGIN_SOURCES=https://git.zabbix.com/scm/ap/postgresql.git POSTGRESQL_PLUGIN_VERSION=master
+
 RUN set -eux && \
     ARCH_SUFFIX="$(arch)"; \
     case "$ARCH_SUFFIX" in \
@@ -91,4 +94,14 @@ RUN set -eux && \
     strip /tmp/zabbix-${ZBX_VERSION}/src/zabbix_get/zabbix_get && \
     strip /tmp/zabbix-${ZBX_VERSION}/src/zabbix_sender/zabbix_sender && \
     strip /tmp/zabbix-${ZBX_VERSION}/src/go/bin/zabbix_web_service && \
+    cd /tmp/ && \
+    git -c advice.detachedHead=false clone ${MONGODB_PLUGIN_SOURCES} --branch ${MONGODB_PLUGIN_VERSION} --depth 1 --single-branch /tmp/mongodb_plugin && \
+    cd /tmp/mongodb_plugin && \
+    make && \
+    strip /tmp/mongodb_plugin/zabbix-agent2-plugin-mongodb && \
+    cd /tmp/ && \
+    git -c advice.detachedHead=false clone ${POSTGRESQL_PLUGIN_SOURCES} --branch ${POSTGRESQL_PLUGIN_VERSION} --depth 1 --single-branch /tmp/postgresql_plugin && \
+    cd /tmp/postgresql_plugin && \
+    make && \
+    strip /tmp/postgresql_plugin/zabbix-agent2-plugin-postgresql && \
     rm -rf $(go env GOCACHE)
