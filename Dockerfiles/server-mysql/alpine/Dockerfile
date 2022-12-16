@@ -37,6 +37,7 @@ RUN set -eux && \
     INSTALL_PKGS="bash \
             tini \
             fping \
+            sudo \
             traceroute \
             nmap \
             tzdata \
@@ -71,6 +72,7 @@ RUN set -eux && \
         zabbix && \
     adduser zabbix root && \
     adduser zabbix dialout && \
+    echo "zabbix ALL=(root) NOPASSWD: /usr/bin/nmap" >> /etc/sudoers.d/zabbix && \
     mkdir -p /etc/zabbix && \
     mkdir -p /var/lib/zabbix && \
     mkdir -p /usr/lib/zabbix/alertscripts && \

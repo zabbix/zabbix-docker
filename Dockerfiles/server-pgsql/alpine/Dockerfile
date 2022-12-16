@@ -37,6 +37,7 @@ COPY --from=builder ["/tmp/zabbix-${ZBX_VERSION}/database/postgresql/timescaledb
 RUN set -eux && \
     INSTALL_PKGS="bash \
             tini \
+            sudo \
             traceroute \
             nmap \
             fping \
@@ -72,6 +73,7 @@ RUN set -eux && \
         zabbix && \
     adduser zabbix root && \
     adduser zabbix dialout && \
+    echo "zabbix ALL=(root) NOPASSWD: /usr/bin/nmap" >> /etc/sudoers.d/zabbix && \
     mkdir -p /etc/zabbix && \
     mkdir -p /var/lib/zabbix && \
     mkdir -p /usr/lib/zabbix/alertscripts && \
