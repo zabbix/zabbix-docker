@@ -37,6 +37,7 @@ COPY --from=builder ["/tmp/zabbix-${ZBX_VERSION}/database/mysql/create_proxy.sql
 RUN set -eux && \
     echo "#!/bin/sh\nexit 101" > /usr/sbin/policy-rc.d && \
     INSTALL_PKGS="tini \
+            sudo \
             traceroute \
             nmap \
             ca-certificates \
@@ -70,6 +71,7 @@ RUN set -eux && \
             --shell /sbin/nologin \
             --home-dir /var/lib/zabbix/ \
         zabbix && \
+    echo "zabbix ALL=(root) NOPASSWD: /usr/bin/nmap" >> /etc/sudoers.d/zabbix && \
     mkdir -p /etc/zabbix && \
     mkdir -p /var/lib/zabbix && \
     mkdir -p /var/lib/zabbix/enc && \

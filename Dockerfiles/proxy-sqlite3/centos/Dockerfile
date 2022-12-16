@@ -36,6 +36,7 @@ RUN set -eux && \
     REPOLIST="baseos,appstream,epel" && \
     INSTALL_PKGS="libevent \
             tini \
+            sudo \
             traceroute \
             nmap \
             libssh \
@@ -71,6 +72,7 @@ RUN set -eux && \
             --shell /sbin/nologin \
             --home-dir /var/lib/zabbix/ \
         zabbix && \
+    echo "zabbix ALL=(root) NOPASSWD: /usr/bin/nmap" >> /etc/sudoers.d/zabbix && \
     mkdir -p /etc/zabbix && \
     mkdir -p /var/lib/zabbix && \
     mkdir -p /var/lib/zabbix/db_data && \
