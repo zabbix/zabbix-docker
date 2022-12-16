@@ -35,6 +35,8 @@ COPY --from=builder ["/tmp/zabbix-${ZBX_VERSION}/conf/zabbix_proxy.conf", "/etc/
 RUN set -eux && \
     INSTALL_PKGS="bash \
             tini \
+            sudo \
+            traceroute \
             nmap \
             fping \
             iputils \
@@ -65,6 +67,7 @@ RUN set -eux && \
             --shell /sbin/nologin \
             --home /var/lib/zabbix/ \
         zabbix && \
+    echo "zabbix ALL=(root) NOPASSWD: /usr/bin/nmap" >> /etc/sudoers.d/zabbix && \
     adduser zabbix root && \
     mkdir -p /etc/zabbix && \
     mkdir -p /var/lib/zabbix && \

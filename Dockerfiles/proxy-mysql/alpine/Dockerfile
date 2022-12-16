@@ -36,6 +36,8 @@ COPY --from=builder ["/tmp/zabbix-${ZBX_VERSION}/database/mysql/create_proxy.sql
 RUN set -eux && \
     INSTALL_PKGS="bash \
             tini \
+            sudo \
+            traceroute \
             nmap \
             iputils \
             libcurl \
@@ -68,6 +70,7 @@ RUN set -eux && \
             --home /var/lib/zabbix/ \
         zabbix && \
     adduser zabbix root && \
+    echo "zabbix ALL=(root) NOPASSWD: /usr/bin/nmap" >> /etc/sudoers.d/zabbix && \
     mkdir -p /etc/zabbix && \
     mkdir -p /var/lib/zabbix && \
     mkdir -p /var/lib/zabbix/enc && \
