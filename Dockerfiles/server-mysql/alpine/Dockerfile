@@ -38,7 +38,6 @@ RUN set -eux && \
             tini \
             fping \
             sudo \
-            traceroute \
             nmap \
             tzdata \
             iputils \

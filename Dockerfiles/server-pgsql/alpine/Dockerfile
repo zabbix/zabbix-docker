@@ -38,7 +38,6 @@ RUN set -eux && \
     INSTALL_PKGS="bash \
             tini \
             sudo \
-            traceroute \
             nmap \
             fping \
             tzdata \
