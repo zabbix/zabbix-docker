@@ -21,7 +21,7 @@ ZABBIX_USER_HOME_DIR="/var/lib/zabbix"
 ZABBIX_ETC_DIR="/etc/zabbix"
 
 : ${DB_CHARACTER_SET:="utf8"}
-: ${DB_CHARACTER_COLLATE:="utf8"}
+: ${DB_CHARACTER_COLLATE:="utf8_bin"}
 
 # usage: file_env VAR [DEFAULT]
 # as example: file_env 'MYSQL_PASSWORD' 'zabbix'
