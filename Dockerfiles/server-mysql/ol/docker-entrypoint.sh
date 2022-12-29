@@ -516,15 +516,20 @@ update_zbx_config() {
     fi
 }
 
-prepare_server() {
-    echo "** Preparing Zabbix server"
+prepare_db() {
+    echo "** Preparing database"
 
     check_variables_mysql
     check_db_connect_mysql
     create_db_user_mysql
     create_db_database_mysql
     create_db_schema_mysql
+}
 
+prepare_server() {
+    echo "** Preparing Zabbix server"
+
+    prepare_db
     update_zbx_config
 }
 
@@ -532,12 +537,16 @@ prepare_server() {
 
 if [ "${1#-}" != "$1" ]; then
     set -- /usr/sbin/zabbix_server "$@"
-    fi
+fi
 
 if [ "$1" == '/usr/sbin/zabbix_server' ]; then
     prepare_server
 fi
 
-exec "$@"
+if [ "$1" == "init_db_only" ]; then
+    prepare_db
+else
+    exec "$@"
+fi
 
 #################################################
