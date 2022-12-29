@@ -514,14 +514,19 @@ update_zbx_config() {
     fi
 }
 
-prepare_server() {
-    echo "** Preparing Zabbix server"
+prepare_db() {
+    echo "** Preparing database"
 
     check_variables_postgresql
     check_db_connect_postgresql
     create_db_database_postgresql
     create_db_schema_postgresql
+}
 
+prepare_server() {
+    echo "** Preparing Zabbix server"
+
+    prepare_db
     update_zbx_config
 }
 
@@ -535,6 +540,10 @@ if [ "$1" == '/usr/sbin/zabbix_server' ]; then
     prepare_server
 fi
 
-exec "$@"
+if [ "$1" == "init_db_only" ]; then
+    prepare_db
+else
+    exec "$@"
+fi
 
 #################################################

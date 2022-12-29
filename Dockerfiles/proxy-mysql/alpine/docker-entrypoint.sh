@@ -466,15 +466,20 @@ update_zbx_config() {
     fi
 }
 
-prepare_proxy() {
-    echo "Preparing Zabbix proxy"
+prepare_db() {
+    echo "** Preparing database"
 
     check_variables_mysql
     check_db_connect_mysql
     create_db_user_mysql
     create_db_database_mysql
     create_db_schema_mysql
+}
 
+prepare_proxy() {
+    echo "** Preparing Zabbix proxy"
+
+    prepare_db
     update_zbx_config
 }
 
@@ -482,12 +487,16 @@ prepare_proxy() {
 
 if [ "${1#-}" != "$1" ]; then
     set -- /usr/sbin/zabbix_proxy "$@"
-    fi
+fi
 
 if [ "$1" == '/usr/sbin/zabbix_proxy' ]; then
     prepare_proxy
 fi
 
-exec "$@"
+if [ "$1" == "init_db_only" ]; then
+    prepare_db
+else
+    exec "$@"
+fi
 
 #################################################
