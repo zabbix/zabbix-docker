@@ -484,8 +484,8 @@ services:
    - "10053:10053"
   volumes:
    - ./zbx_env/var/lib/zabbix/enc:/var/lib/zabbix/enc:ro
-  cap_add:
-   - SYS_ADMIN
+  security_opt:
+   - seccomp:./env_vars/chrome_dp.json
   deploy:
    resources:
     limits:
