@@ -388,10 +388,10 @@ services:
    - all
   ports:
    - "10053:10053"
-  cap_add:
-   - SYS_ADMIN
   volumes:
    - ./zbx_env/var/lib/zabbix/enc:/var/lib/zabbix/enc:ro
+  security_opt:
+   - seccomp:./env_vars/chrome_dp.json
   deploy:
    resources:
     limits:
