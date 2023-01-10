@@ -133,7 +133,6 @@ prepare_zbx_agent_config() {
     update_config_var $ZBX_AGENT_CONFIG "LogFileSize"
     update_config_var $ZBX_AGENT_CONFIG "DebugLevel" "${ZBX_DEBUGLEVEL}"
     update_config_var $ZBX_AGENT_CONFIG "SourceIP"
-    update_config_var $ZBX_AGENT_CONFIG "LogRemoteCommands" "${ZBX_LOGREMOTECOMMANDS}"
 
     : ${ZBX_PASSIVE_ALLOW:="true"}
     if [ "${ZBX_PASSIVE_ALLOW,,}" == "true" ]; then
