@@ -194,7 +194,6 @@ function Prepare-Zbx-Agent-Config {
     Update-Config-Var $ZbxAgentConfig "RefreshActiveChecks" "$env:ZBX_REFRESHACTIVECHECKS"
     Update-Config-Var $ZbxAgentConfig "BufferSend" "$env:ZBX_BUFFERSEND"
     Update-Config-Var $ZbxAgentConfig "BufferSize" "$env:ZBX_BUFFERSIZE"
-    Update-Config-Var $ZbxAgentConfig "MaxLinesPerSecond" "$env:ZBX_MAXLINESPERSECOND"
     # Please use include to enable Alias feature
 #    update_config_multiple_var $ZBX_AGENT_CONFIG "Alias" $env:ZBX_ALIAS
     # Please use include to enable Perfcounter feature
