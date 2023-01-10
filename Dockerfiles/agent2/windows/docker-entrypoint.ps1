@@ -136,7 +136,6 @@ function Prepare-Zbx-Agent-Config {
     Update-Config-Var $ZbxAgentConfig "LogFileSize"
     Update-Config-Var $ZbxAgentConfig "DebugLevel" "$env:ZBX_DEBUGLEVEL"
     Update-Config-Var $ZbxAgentConfig "SourceIP"
-    Update-Config-Var $ZbxAgentConfig "LogRemoteCommands" "$env:ZBX_LOGREMOTECOMMANDS"
 
     if ([string]::IsNullOrWhitespace($env:ZBX_PASSIVE_ALLOW)) {
         $env:ZBX_PASSIVE_ALLOW="true"
