@@ -133,6 +133,7 @@ Additionally the image allows to specify many other environment variables listed
 ZBX_SOURCEIP=
 ZBX_ENABLEREMOTECOMMANDS=0 # Deprecated since 5.0.0
 ZBX_LOGREMOTECOMMANDS=0
+ZBX_HEARTBEAT_FREQUENCY=60 # Available since 6.2.0
 ZBX_HOSTINTERFACE= # Available since 4.4.0
 ZBX_HOSTINTERFACEITEM= # Available since 4.4.0
 ZBX_STARTAGENTS=3
