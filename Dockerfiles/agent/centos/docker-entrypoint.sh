@@ -155,6 +155,7 @@ prepare_zbx_agent_config() {
     else
         update_config_var $ZBX_AGENT_CONFIG "ServerActive"
     fi
+    update_config_var $ZBX_AGENT_CONFIG "HeartbeatFrequency" "${ZBX_HEARTBEAT_FREQUENCY}"
 
     update_config_var $ZBX_AGENT_CONFIG "HostInterface" "${ZBX_HOSTINTERFACE}"
     update_config_var $ZBX_AGENT_CONFIG "HostInterfaceItem" "${ZBX_HOSTINTERFACEITEM}"
