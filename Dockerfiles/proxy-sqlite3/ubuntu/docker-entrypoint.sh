@@ -148,14 +148,6 @@ update_zbx_config() {
     update_config_var $ZBX_CONFIG "DBPort"
     update_config_var $ZBX_CONFIG "DBPassword"
 
-    if [ -n "${VAULT_TOKEN}" ] && [ -n "${ZBX_VAULTURL}" ]; then
-        update_config_var $ZBX_CONFIG "VaultDBPath" "${ZBX_VAULTDBPATH}"
-        update_config_var $ZBX_CONFIG "VaultURL" "${ZBX_VAULTURL}"
-    else
-        update_config_var $ZBX_CONFIG "VaultDBPath"
-        update_config_var $ZBX_CONFIG "VaultURL"
-    fi
-
     update_config_var $ZBX_CONFIG "ProxyLocalBuffer" "${ZBX_PROXYLOCALBUFFER}"
     update_config_var $ZBX_CONFIG "ProxyOfflineBuffer" "${ZBX_PROXYOFFLINEBUFFER}"
     update_config_var $ZBX_CONFIG "HeartbeatFrequency" "${ZBX_PROXYHEARTBEATFREQUENCY}"
