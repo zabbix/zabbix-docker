@@ -23,6 +23,7 @@ RUN set -eux && \
             bash \
             gcc \
             go-toolset \
+            patch \
             pcre2-devel \
             libcurl-devel \
             libevent-devel \

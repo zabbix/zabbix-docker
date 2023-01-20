@@ -34,6 +34,7 @@ RUN set -eux && \
             openipmi-dev \
             openldap-dev \
             openssl-dev \
+            patch \
             pcre2-dev \
             postgresql-dev \
             openjdk8 \

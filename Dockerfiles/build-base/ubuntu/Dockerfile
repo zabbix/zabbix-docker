@@ -38,6 +38,7 @@ RUN set -eux && \
             libxml2-dev \
             make \
             openjdk-8-jdk-headless \
+            patch \
             pkg-config \
             gettext \
             git \
