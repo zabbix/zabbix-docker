@@ -32,6 +32,8 @@ LABEL description="Zabbix build base for MySQL based images" \
 ENV MONGODB_PLUGIN_SOURCES=https://git.zabbix.com/scm/ap/mongodb.git MONGODB_PLUGIN_VERSION=master \
     POSTGRESQL_PLUGIN_SOURCES=https://git.zabbix.com/scm/ap/postgresql.git POSTGRESQL_PLUGIN_VERSION=master
 
+COPY ["conf/chromedp_no_sandbox.patch", "/tmp/chromedp_no_sandbox.patch"]
+
 RUN set -eux && \
     ARCH_SUFFIX="$(arch)"; \
     case "$ARCH_SUFFIX" in \
@@ -49,6 +51,7 @@ RUN set -eux && \
     cd /tmp/ && \
     git -c advice.detachedHead=false clone ${ZBX_SOURCES} --branch ${ZBX_VERSION} --depth 1 --single-branch /tmp/zabbix-${ZBX_VERSION} && \
     cd /tmp/zabbix-${ZBX_VERSION} && \
+    patch -p1 < /tmp/chromedp_no_sandbox.patch && \
     zabbix_revision=`git rev-parse --short HEAD` && \
     sed -i "s/{ZABBIX_REVISION}/$zabbix_revision/g" include/version.h && \
     sed -i "s/{ZABBIX_REVISION}/$zabbix_revision/g" src/go/pkg/version/version.go && \
