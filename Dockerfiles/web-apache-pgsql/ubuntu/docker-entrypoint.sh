@@ -191,6 +191,9 @@ prepare_zbx_web_config() {
     export ZBX_HISTORYSTORAGETYPES=${ZBX_HISTORYSTORAGETYPES:-"[]"}
 
     export ZBX_SSO_SETTINGS=${ZBX_SSO_SETTINGS:-""}
+    export ZBX_SSO_SP_KEY=${ZBX_SSO_SP_KEY}
+    export ZBX_SSO_SP_CERT=${ZBX_SSO_SP_CERT}
+    export ZBX_SSO_IDP_CERT=${ZBX_SSO_IDP_CERT}
 
     if [ -n "${ZBX_SESSION_NAME}" ]; then
         cp "$ZABBIX_WWW_ROOT/include/defines.inc.php" "/tmp/defines.inc.php_tmp"
