@@ -177,9 +177,12 @@ prepare_zbx_web_config() {
     : ${ZBX_DB_VERIFY_HOST:="false"}
     export ZBX_DB_VERIFY_HOST=${ZBX_DB_VERIFY_HOST,,}
 
+    export ZBX_VAULT=${ZBX_VAULT}
     export ZBX_VAULTURL=${ZBX_VAULTURL}
     export ZBX_VAULTDBPATH=${ZBX_VAULTDBPATH}
     export VAULT_TOKEN=${VAULT_TOKEN}
+    export ZBX_VAULTCERTFILE=${ZBX_VAULTCERTFILE}
+    export ZBX_VAULTKEYFILE=${ZBX_VAULTKEYFILE}
 
     : ${DB_DOUBLE_IEEE754:="true"}
     export DB_DOUBLE_IEEE754=${DB_DOUBLE_IEEE754,,}
