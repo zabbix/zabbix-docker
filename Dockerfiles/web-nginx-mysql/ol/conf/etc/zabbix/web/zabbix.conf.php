@@ -27,9 +27,14 @@ $DB['VERIFY_HOST']		= getenv('ZBX_DB_VERIFY_HOST') == 'true' ? true: false;
 $DB['CIPHER_LIST']		= getenv('ZBX_DB_CIPHER_LIST') ? getenv('ZBX_DB_CIPHER_LIST') : '';
 
 // Vault configuration. Used if database credentials are stored in Vault secrets manager.
+$DB['VAULT']			= getenv('ZBX_VAULT');
 $DB['VAULT_URL']		= getenv('ZBX_VAULTURL');
 $DB['VAULT_DB_PATH']		= getenv('ZBX_VAULTDBPATH');
 $DB['VAULT_TOKEN']		= getenv('VAULT_TOKEN');
+$DB['VAULT_CERT_FILE']		= file_exists('/etc/zabbix/web/certs/vault.crt') ? '/etc/zabbix/web/certs/vault.crt' : (file_exists(getenv('ZBX_VAULTCERTFILE')) ? getenv('ZBX_VAULTCERTFILE') : '');
+$DB['VAULT_KEY_FILE']		= file_exists('/etc/zabbix/web/certs/vault.key') ? '/etc/zabbix/web/certs/vault.key' : (file_exists(getenv('ZBX_VAULTKEYFILE')) ? getenv('ZBX_VAULTKEYFILE') : '');
+
+$DB['VAULT_CACHE']		= getenv('ZBX_VAULTCACHE') == 'true' ? true: false;
 
 // Use IEEE754 compatible value range for 64-bit Numeric (float) history values.
 // This option is enabled by default for new Zabbix installations.
