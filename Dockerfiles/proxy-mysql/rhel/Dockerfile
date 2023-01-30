@@ -6,7 +6,7 @@ ARG BUILD_BASE_IMAGE=zabbix-build-mysql:rhel-${ZBX_VERSION}
 
 FROM ${BUILD_BASE_IMAGE} as builder
 
-FROM registry.access.redhat.com/ubi8/ubi-minimal
+FROM registry.access.redhat.com/ubi9/ubi-minimal
 
 ARG MAJOR_VERSION
 ARG RELEASE
@@ -61,7 +61,7 @@ RUN set -eux && \
             shadow-utils \
             fping \
             iputils \
-            libcurl \
+            libcurl-minimal \
             libevent \
             openldap \
             libssh \
@@ -72,23 +72,23 @@ RUN set -eux && \
             OpenIPMI-libs \
             pcre2 \
             unixODBC" && \
-    curl -sSL -o /tmp/epel-release-latest-8.noarch.rpm https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm && \
-    rpm -ivh /tmp/epel-release-latest-8.noarch.rpm && \
-    rm -rf /tmp/epel-release-latest-8.noarch.rpm && \
-    microdnf -y module enable mysql && \
+    curl -sSL -o /tmp/epel-release-latest-9.noarch.rpm https://dl.fedoraproject.org/pub/epel/epel-release-latest-9.noarch.rpm && \
+    rpm -ivh /tmp/epel-release-latest-9.noarch.rpm && \
+    rm -rf /tmp/epel-release-latest-9.noarch.rpm && \
     microdnf -y install \
             --disablerepo "*" \
-            --enablerepo "ubi-8-baseos-rpms" \
-            --enablerepo "ubi-8-appstream-rpms" \
-            --enablerepo "rhel-8-for-x86_64-baseos-rpms" \
-            --enablerepo "rhel-8-for-x86_64-appstream-rpms" \
+            --enablerepo "ubi-9-baseos-rpms" \
+            --enablerepo "ubi-9-appstream-rpms" \
+            --enablerepo "rhel-9-for-x86_64-baseos-rpms" \
+            --enablerepo "rhel-9-for-x86_64-appstream-rpms" \
+            --enablerepo "codeready-builder-for-rhel-9-x86_64-rpms" \
             --enablerepo "epel" \
             --setopt=install_weak_deps=0 \
             --best \
             --setopt=tsflags=nodocs \
         ${INSTALL_PKGS} && \
     microdnf -y reinstall \
-            --enablerepo "ubi-8-baseos-rpms" \
+            --enablerepo "ubi-9-baseos-rpms" \
             --setopt=install_weak_deps=0 \
             --best \
             --setopt=tsflags=nodocs \

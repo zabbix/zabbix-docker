@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1
-FROM registry.access.redhat.com/ubi8/ubi-minimal
+FROM registry.access.redhat.com/ubi9/ubi-minimal
 
 ARG MAJOR_VERSION=6.4
 ARG RELEASE=
@@ -54,14 +54,13 @@ RUN set -eux && \
             git \
             gettext \
             unixODBC-devel" && \
-    microdnf -y module enable mysql && \
     microdnf -y install \
             --disablerepo "*" \
-            --enablerepo "ubi-8-baseos-rpms" \
-            --enablerepo "ubi-8-appstream-rpms" \
-            --enablerepo "rhel-8-for-x86_64-baseos-rpms" \
-            --enablerepo "rhel-8-for-x86_64-appstream-rpms" \
-            --enablerepo "codeready-builder-for-rhel-8-x86_64-rpms" \
+            --enablerepo "ubi-9-baseos-rpms" \
+            --enablerepo "ubi-9-appstream-rpms" \
+            --enablerepo "rhel-9-for-x86_64-baseos-rpms" \
+            --enablerepo "rhel-9-for-x86_64-appstream-rpms" \
+            --enablerepo "codeready-builder-for-rhel-9-x86_64-rpms" \
             --setopt=install_weak_deps=0 \
             --best \
             --setopt=tsflags=nodocs \

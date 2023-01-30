@@ -6,7 +6,7 @@ ARG BUILD_BASE_IMAGE=zabbix-build-mysql:rhel-${ZBX_VERSION}
 
 FROM ${BUILD_BASE_IMAGE} as builder
 
-FROM registry.access.redhat.com/ubi8/ubi-minimal
+FROM registry.access.redhat.com/ubi9/ubi-minimal
 
 ARG MAJOR_VERSION
 ARG RELEASE
@@ -55,8 +55,8 @@ RUN set -eux && \
             java-1.8.0-openjdk-headless" && \
     microdnf -y install \
             --disablerepo "*" \
-            --enablerepo "ubi-8-baseos-rpms" \
-            --enablerepo "ubi-8-appstream-rpms" \
+            --enablerepo "ubi-9-baseos-rpms" \
+            --enablerepo "ubi-9-appstream-rpms" \
             --setopt=install_weak_deps=0 \
             --best \
             --setopt=tsflags=nodocs \

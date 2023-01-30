@@ -1,4 +1,4 @@
-FROM registry.access.redhat.com/ubi8/ubi-minimal
+FROM registry.access.redhat.com/ubi9/ubi-minimal
 
 ARG MAJOR_VERSION=6.4
 ARG RELEASE=
@@ -48,8 +48,8 @@ RUN set -eux && \
             net-snmp" && \
     microdnf -y install \
             --disablerepo="*" \
-            --enablerepo "ubi-8-baseos-rpms" \
-            --enablerepo "ubi-8-appstream-rpms" \
+            --enablerepo "ubi-9-baseos-rpms" \
+            --enablerepo "ubi-9-appstream-rpms" \
             --setopt=install_weak_deps=0 \
             --best \
             --setopt=tsflags=nodocs \
