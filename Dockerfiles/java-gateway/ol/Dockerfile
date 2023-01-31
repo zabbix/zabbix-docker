@@ -5,7 +5,7 @@ ARG BUILD_BASE_IMAGE=zabbix-build-mysql:ol-${ZBX_VERSION}
 
 FROM ${BUILD_BASE_IMAGE} as builder
 
-FROM oraclelinux:8-slim
+FROM oraclelinux:9-slim
 
 ARG MAJOR_VERSION
 ARG ZBX_VERSION
@@ -35,8 +35,8 @@ RUN set -eux && \
             findutils" && \
     microdnf -y install \
             --disablerepo="*" \
-            --enablerepo="ol8_baseos_latest" \
-            --enablerepo="ol8_appstream" \
+            --enablerepo="ol9_baseos_latest" \
+            --enablerepo="ol9_appstream" \
             --setopt=install_weak_deps=0 \
             --best \
             --nodocs \

@@ -5,7 +5,7 @@ ARG BUILD_BASE_IMAGE=zabbix-build-mysql:ol-${ZBX_VERSION}
 
 FROM ${BUILD_BASE_IMAGE} as builder
 
-FROM oraclelinux:8-slim
+FROM oraclelinux:9-slim
 
 ARG MAJOR_VERSION
 ARG ZBX_VERSION
@@ -30,7 +30,7 @@ COPY --from=builder ["/tmp/zabbix-${ZBX_VERSION}/src/zabbix_agent/zabbix_agentd"
 COPY --from=builder ["/tmp/zabbix-${ZBX_VERSION}/src/zabbix_get/zabbix_get", "/usr/bin/zabbix_get"]
 COPY --from=builder ["/tmp/zabbix-${ZBX_VERSION}/src/zabbix_sender/zabbix_sender", "/usr/bin/zabbix_sender"]
 COPY --from=builder ["/tmp/zabbix-${ZBX_VERSION}/conf/zabbix_agentd.conf", "/etc/zabbix/zabbix_agentd.conf"]
-COPY ["conf/etc/yum.repos.d/oracle-epel-ol8.repo", "/etc/yum.repos.d/oracle-epel-ol8.repo"]
+COPY ["conf/etc/yum.repos.d/oracle-epel-ol9.repo", "/etc/yum.repos.d/oracle-epel-ol9.repo"]
 
 RUN set -eux && \
     INSTALL_PKGS="bash \
@@ -43,9 +43,9 @@ RUN set -eux && \
             zlib" && \
     microdnf -y install \
             --disablerepo="*" \
-            --enablerepo="ol8_baseos_latest" \
-            --enablerepo="ol8_appstream" \
-            --enablerepo="ol8_developer_EPEL" \
+            --enablerepo="ol9_baseos_latest" \
+            --enablerepo="ol9_appstream" \
+            --enablerepo="ol9_developer_EPEL" \
             --setopt=install_weak_deps=0 \
             --best \
             --nodocs \

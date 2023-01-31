@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1
-FROM oraclelinux:8-slim
+FROM oraclelinux:9-slim
 
 ARG MAJOR_VERSION=6.4
 ARG ZBX_VERSION=${MAJOR_VERSION}
@@ -37,18 +37,16 @@ RUN set -eux && \
             OpenIPMI-devel \
             openldap-devel \
             sqlite-devel \
-            postgresql-devel \
+            postgresql-server-devel \
             java-1.8.0-openjdk-devel \
             git \
             gettext \
             unixODBC-devel" && \
-    microdnf -y module enable mysql && \
-    microdnf module enable postgresql:13 && \
     microdnf -y install \
         --disablerepo "*" \
-        --enablerepo "ol8_baseos_latest" \
-        --enablerepo "ol8_appstream" \
-        --enablerepo "ol8_codeready_builder" \
+        --enablerepo "ol9_baseos_latest" \
+        --enablerepo "ol9_appstream" \
+        --enablerepo "ol9_codeready_builder" \
         --setopt=install_weak_deps=0 \
         --best \
         --nodocs ${INSTALL_PKGS} && \

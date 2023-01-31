@@ -4,14 +4,14 @@ services:
   build:
    context: ./Dockerfiles/build-base/ol
    cache_from:
-    - oraclelinux:8-slim
+    - oraclelinux:9-slim
   image: zabbix-build-base:ol-local
 
  zabbix-build-mysql:
   build:
    context: ./Dockerfiles/build-mysql/ol
    cache_from:
-    - oraclelinux:8-slim
+    - oraclelinux:9-slim
    args:
     BUILD_BASE_IMAGE: zabbix-build-base:ol-local
   image: zabbix-build-mysql:ol-local
@@ -22,7 +22,7 @@ services:
   build:
    context: ./Dockerfiles/build-sqlite3/ol
    cache_from:
-    - oraclelinux:8-slim
+    - oraclelinux:9-slim
    args:
     BUILD_BASE_IMAGE: zabbix-build-base:ol-local
   image: zabbix-build-sqlite3:ol-local
@@ -35,7 +35,7 @@ services:
   build: 
    context: ./Dockerfiles/server-mysql/ol
    cache_from:
-    - oraclelinux:8-slim
+    - oraclelinux:9-slim
    args:
     BUILD_BASE_IMAGE: zabbix-build-mysql:ol-local
   image: zabbix-server-mysql:ol-local
@@ -107,7 +107,7 @@ services:
   build:
    context: ./Dockerfiles/proxy-sqlite3/ol
    cache_from:
-    - oraclelinux:8-slim
+    - oraclelinux:9-slim
    args:
     BUILD_BASE_IMAGE: zabbix-build-sqlite3:ol-local
   image: zabbix-proxy-sqlite3:ol-local
@@ -163,7 +163,7 @@ services:
   build:
    context: ./Dockerfiles/proxy-mysql/ol
    cache_from:
-    - oraclelinux:8-slim
+    - oraclelinux:9-slim
    args:
     BUILD_BASE_IMAGE: zabbix-build-mysql:ol-local
   image: zabbix-proxy-mysql:ol-local
@@ -229,7 +229,7 @@ services:
   build:
    context: ./Dockerfiles/web-apache-mysql/ol
    cache_from:
-    - oraclelinux:8-slim
+    - oraclelinux:9-slim
    args:
     BUILD_BASE_IMAGE: zabbix-build-mysql:ol-local
   image: zabbix-web-apache-mysql:ol-local
@@ -292,7 +292,7 @@ services:
   build:
    context: ./Dockerfiles/web-nginx-mysql/ol
    cache_from:
-    - oraclelinux:8-slim
+    - oraclelinux:9-slim
    args:
     BUILD_BASE_IMAGE: zabbix-build-mysql:ol-local
   image: zabbix-web-nginx-mysql:ol-local
@@ -353,7 +353,7 @@ services:
   build:
    context: ./Dockerfiles/agent/ol
    cache_from:
-    - oraclelinux:8-slim
+    - oraclelinux:9-slim
    args:
     BUILD_BASE_IMAGE: zabbix-build-mysql:ol-local
   image: zabbix-agent:ol-local
@@ -401,7 +401,7 @@ services:
   build:
    context: ./Dockerfiles/java-gateway/ol
    cache_from:
-    - oraclelinux:8-slim
+    - oraclelinux:9-slim
    args:
     BUILD_BASE_IMAGE: zabbix-build-mysql:ol-local
   image: zabbix-java-gateway:ol-local
@@ -438,7 +438,7 @@ services:
   build:
    context: ./Dockerfiles/snmptraps/ol
    cache_from:
-    - oraclelinux:8-slim
+    - oraclelinux:9-slim
   image: zabbix-snmptraps:ol-local
   profiles:
    - full
@@ -471,7 +471,7 @@ services:
   build:
    context: ./Dockerfiles/web-service/ol
    cache_from:
-    - oraclelinux:8-slim
+    - oraclelinux:9-slim
    args:
     BUILD_BASE_IMAGE: zabbix-build-mysql:ol-local
   image: zabbix-web-service:ol-local

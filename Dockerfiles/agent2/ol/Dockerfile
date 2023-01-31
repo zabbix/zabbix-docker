@@ -5,7 +5,7 @@ ARG BUILD_BASE_IMAGE=zabbix-build-mysql:ol-${ZBX_VERSION}
 
 FROM ${BUILD_BASE_IMAGE} as builder
 
-FROM oraclelinux:8-slim
+FROM oraclelinux:9-slim
 
 ARG MAJOR_VERSION
 ARG ZBX_VERSION
@@ -35,7 +35,7 @@ COPY --from=builder ["/tmp/mongodb_plugin/mongodb.conf", "/etc/zabbix/zabbix_age
 COPY --from=builder ["/tmp/postgresql_plugin/postgresql.conf", "/etc/zabbix/zabbix_agent2.d/plugins.d/postgresql.conf"]
 COPY --from=builder ["/tmp/mongodb_plugin/zabbix-agent2-plugin-mongodb", "/usr/sbin/zabbix-agent2-plugin/zabbix-agent2-plugin-mongodb"]
 COPY --from=builder ["/tmp/postgresql_plugin/zabbix-agent2-plugin-postgresql", "/usr/sbin/zabbix-agent2-plugin/zabbix-agent2-plugin-postgresql"]
-COPY ["conf/etc/yum.repos.d/oracle-epel-ol8.repo", "/etc/yum.repos.d/oracle-epel-ol8.repo"]
+COPY ["conf/etc/yum.repos.d/oracle-epel-ol9.repo", "/etc/yum.repos.d/oracle-epel-ol9.repo"]
 
 RUN set -eux && \
     INSTALL_PKGS="bash \
@@ -49,9 +49,9 @@ RUN set -eux && \
             openssl-libs" && \
     microdnf -y install \
             --disablerepo="*" \
-            --enablerepo="ol8_baseos_latest" \
-            --enablerepo="ol8_appstream" \
-            --enablerepo="ol8_developer_EPEL" \
+            --enablerepo="ol9_baseos_latest" \
+            --enablerepo="ol9_appstream" \
+            --enablerepo="ol9_developer_EPEL" \
             --setopt=install_weak_deps=0 \
             --best \
             --nodocs \
