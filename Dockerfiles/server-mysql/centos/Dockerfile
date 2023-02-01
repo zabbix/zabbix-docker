@@ -5,7 +5,7 @@ ARG BUILD_BASE_IMAGE=zabbix-build-mysql:centos-${ZBX_VERSION}
 
 FROM ${BUILD_BASE_IMAGE} as builder
 
-FROM quay.io/centos/centos:stream8
+FROM quay.io/centos/centos:stream9
 
 ARG MAJOR_VERSION
 ARG ZBX_VERSION
@@ -34,7 +34,7 @@ COPY --from=builder ["/tmp/zabbix-${ZBX_VERSION}/conf/zabbix_server.conf", "/etc
 COPY --from=builder ["/tmp/zabbix-${ZBX_VERSION}/database/mysql/create_server.sql.gz", "/usr/share/doc/zabbix-server-mysql/create.sql.gz"]
 
 RUN set -eux && \
-    REPOLIST="baseos,appstream,epel" && \
+    REPOLIST="baseos,appstream,crb,epel" && \
     INSTALL_PKGS="fping \
             tini \
             sudo \
@@ -56,7 +56,6 @@ RUN set -eux && \
             pcre2 \
             zlib \
             unixODBC" && \
-    dnf -y module enable mysql && \
     dnf -y install epel-release && \
     dnf -y install \
             --disablerepo "*" \

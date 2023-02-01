@@ -5,7 +5,7 @@ ARG BUILD_BASE_IMAGE=zabbix-build-mysql:centos-${ZBX_VERSION}
 
 FROM ${BUILD_BASE_IMAGE} as builder
 
-FROM quay.io/centos/centos:stream8
+FROM quay.io/centos/centos:stream9
 
 ARG MAJOR_VERSION
 ARG ZBX_VERSION
@@ -43,7 +43,7 @@ RUN set -eux && \
             tzdata \
             iputils \
             pcre2 \
-            libcurl \
+            libcurl-minimal \
             smartmontools \
             sudo \
             openssl-libs" && \

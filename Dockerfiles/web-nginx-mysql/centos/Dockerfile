@@ -5,7 +5,7 @@ ARG BUILD_BASE_IMAGE=zabbix-build-mysql:centos-${ZBX_VERSION}
 
 FROM ${BUILD_BASE_IMAGE} as builder
 
-FROM quay.io/centos/centos:stream8
+FROM quay.io/centos/centos:stream9
 
 ARG MAJOR_VERSION
 ARG ZBX_VERSION
@@ -32,7 +32,7 @@ COPY ["conf/etc/", "/etc/"]
 RUN set -eux && \
     REPOLIST="baseos,appstream,epel" && \
     INSTALL_PKGS="bash \
-            curl \
+            curl-minimal \
             mysql \
             nginx \
             php-bcmath \
@@ -47,8 +47,6 @@ RUN set -eux && \
             glibc-locale-source \
             supervisor" && \
     dnf -y install epel-release && \
-    dnf -y module enable mysql && \
-    dnf -y module enable php:8.0 nginx:1.20 && \
     dnf -y install \
             --disablerepo "*" \
             --enablerepo "${REPOLIST}" \

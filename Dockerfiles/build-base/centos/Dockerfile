@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1
-FROM quay.io/centos/centos:stream8
+FROM quay.io/centos/centos:stream9
 
 ARG MAJOR_VERSION=6.4
 ARG ZBX_VERSION=${MAJOR_VERSION}
@@ -18,7 +18,7 @@ LABEL org.opencontainers.image.authors="Alexey Pustovalov <alexey.pustovalov@zab
       org.opencontainers.image.version="${ZBX_VERSION}"
 
 RUN set -eux && \
-    REPOLIST="baseos,appstream,powertools" && \
+    REPOLIST="baseos,appstream,crb" && \
     INSTALL_PKGS="autoconf \
             automake \
             bash \
@@ -43,7 +43,6 @@ RUN set -eux && \
             gettext \
             go-toolset \
             unixODBC-devel" && \
-    dnf -y module enable mysql && \
     dnf -y install \
         --disablerepo "*" \
         --enablerepo "${REPOLIST}" \
