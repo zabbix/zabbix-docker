@@ -32,7 +32,7 @@ COPY ["conf/etc/", "/etc/"]
 RUN set -eux && \
     REPOLIST="baseos,appstream,epel" && \
     INSTALL_PKGS="bash \
-            curl \
+            curl-minimal \
             httpd \
             mod_ssl \
             php \
