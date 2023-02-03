@@ -57,7 +57,7 @@ jobs:
         run: |
             os_list=$(jq -r '.["os-windows"] |  keys | [ .[] | tostring ] | @json' "./build.json")
 
-            echo "list=$os_list" >> $Env:GITHUB_OUTPUT
+            echo "list=$os_list" >> $GITHUB_OUTPUT
 
       - name: Prepare Zabbix component list
         id: components
@@ -65,7 +65,7 @@ jobs:
         run: |
             component_list='["agent","agent2"]'
 
-            echo "list=$component_list" >> $Env:GITHUB_OUTPUT
+            echo "list=$component_list" >> $GITHUB_OUTPUT
 
       - name: Get branch info
         id: branch_info
@@ -83,7 +83,7 @@ jobs:
             if [[ "$github_ref" == "${{ env.LATEST_BRANCH }}" ]]; then
                 result=true
             fi
-            echo "is_default_branch=$result" >> $Env:GITHUB_OUTPUT
+            echo "is_default_branch=$result" >> $GITHUB_OUTPUT
 
   build_base:
     timeout-minutes: 70
