@@ -57,7 +57,7 @@ jobs:
         run: |
             os_list=$(jq -r '.["os-windows"] |  keys | [ .[] | tostring ] | @json' "./build.json")
 
-            echo "list=$os_list" >> $GITHUB_OUTPUT
+            echo "list=$os_list" >> $Env:GITHUB_OUTPUT
 
       - name: Prepare Zabbix component list
         id: components
@@ -65,7 +65,7 @@ jobs:
         run: |
             component_list='["agent","agent2"]'
 
-            echo "list=$component_list" >> $GITHUB_OUTPUT
+            echo "list=$component_list" >> $Env:GITHUB_OUTPUT
 
       - name: Get branch info
         id: branch_info
@@ -83,7 +83,7 @@ jobs:
             if [[ "$github_ref" == "${{ env.LATEST_BRANCH }}" ]]; then
                 result=true
             fi
-            echo "is_default_branch=$result" >> $GITHUB_OUTPUT
+            echo "is_default_branch=$result" >> $Env:GITHUB_OUTPUT
 
   build_base:
     timeout-minutes: 70
@@ -113,7 +113,7 @@ jobs:
         id: base_os_tag
         run: |
             $os_tag=$(Get-Content -Path .\build.json | ConvertFrom-Json).'os-windows'.'${{ matrix.os }}'
-            echo "os_tag=$os_tag" >> $GITHUB_OUTPUT
+            echo "os_tag=$os_tag" >> $Env:GITHUB_OUTPUT
 
       - name: Generate tags
         id: meta
@@ -209,7 +209,7 @@ jobs:
         id: base_os_tag
         run: |
             $os_tag=$(Get-Content -Path .\build.json | ConvertFrom-Json).'os-windows'.'${{ matrix.os }}'
-            echo "os_tag=$os_tag" >> $GITHUB_OUTPUT
+            echo "os_tag=$os_tag" >> $Env:GITHUB_OUTPUT
 
       - name: Generate tags
         id: meta
@@ -236,8 +236,8 @@ jobs:
           $base_tag = Get-Content ${{ env.BASE_BUILD_NAME }}${{ env.BASE_BUILD_ARTIFACT_FILE_SUFFIX }} -Raw
           $build_base_image="${{ env.DOCKER_REPOSITORY }}/${{ env.IMAGE_PREFIX }}${{ env.BASE_BUILD_NAME }}@" + $base_tag
 
-          echo "base_tag=$base_tag" >> $GITHUB_OUTPUT
-          echo "base_build_image=$build_base_image" >> $GITHUB_OUTPUT
+          echo "base_tag=$base_tag" >> $Env:GITHUB_OUTPUT
+          echo "base_build_image=$build_base_image" >> $Env:GITHUB_OUTPUT
 
       - name: Build image
         id: docker_build
@@ -317,7 +317,7 @@ jobs:
         id: base_os_tag
         run: |
             $os_tag=$(Get-Content -Path .\build.json | ConvertFrom-Json).'os-windows'.'${{ matrix.os }}'
-            echo "os_tag=$os_tag" >> $GITHUB_OUTPUT
+            echo "os_tag=$os_tag" >> $Env:GITHUB_OUTPUT
 
       - name: Generate tags
         id: meta
@@ -344,8 +344,8 @@ jobs:
           $base_tag = Get-Content ${{ env.COMPONENT_BASE_BUILD_NAME }}${{ env.COMPONENT_BASE_BUILD_ARTIFACT_FILE_SUFFIX }} -Raw
           $build_base_image="${{ env.DOCKER_REPOSITORY }}/${{ env.IMAGE_PREFIX }}${{ env.COMPONENT_BASE_BUILD_NAME }}@" + $base_tag
 
-          echo "base_tag=$base_tag" >> $GITHUB_OUTPUT
-          echo "base_build_image=$build_base_image" >> $GITHUB_OUTPUT
+          echo "base_tag=$base_tag" >> $Env:GITHUB_OUTPUT
+          echo "base_build_image=$build_base_image" >> $Env:GITHUB_OUTPUT
 
       - name: Build image
         id: docker_build
