@@ -170,7 +170,7 @@ jobs:
 
       - name: Upload SHA256 tag
         if: ${{ env.AUTO_PUSH_IMAGES }}
-        uses: actions/upload-artifact@v2.2.4
+        uses: actions/upload-artifact@v3
         with:
          name: ${{ env.BASE_BUILD_NAME }}${{ env.BASE_BUILD_ARTIFACT_FILE_SUFFIX }}
          path: ${{ env.BASE_BUILD_NAME }}${{ env.BASE_BUILD_ARTIFACT_FILE_SUFFIX }}
@@ -280,7 +280,7 @@ jobs:
 
       - name: Upload SHA256 tag
         if: ${{ env.AUTO_PUSH_IMAGES }}
-        uses: actions/upload-artifact@v2.2.4
+        uses: actions/upload-artifact@v3
         with:
          name: ${{ env.COMPONENT_BASE_BUILD_NAME }}${{ env.COMPONENT_BASE_BUILD_ARTIFACT_FILE_SUFFIX }}
          path: ${{ env.COMPONENT_BASE_BUILD_NAME }}${{ env.COMPONENT_BASE_BUILD_ARTIFACT_FILE_SUFFIX }}
