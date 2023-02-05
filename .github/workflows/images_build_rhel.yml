@@ -260,6 +260,12 @@ jobs:
               -v $PFLT_DOCKERCONFIG:/temp-authfile.json:ro \
               quay.io/opdev/preflight:stable check container ${{ steps.build_image.outputs.image-with-tag }} --submit
 
+      - name: Push to RedHat certification procedure
+        id: push_to_registry_all_tags
+        uses: redhat-actions/push-to-registry@v2
+        with:
+          tags: ${{ steps.meta.outputs.tags }}
+
       - name: Cleanup
         run: |
           echo "${{ steps.meta.outputs.tags }}" | while IFS= read -r image_name ; do podman rmi -i -f $image_name; done
