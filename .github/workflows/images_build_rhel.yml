@@ -57,7 +57,7 @@ jobs:
             fi
 
             echo "is_default_branch=$result" >> $GITHUB_OUTPUT
-            echo "current_branch=${GITHUB_REF#refs/heads/}" >> $GITHUB_OUTPUT
+            echo "current_branch=$github_ref" >> $GITHUB_OUTPUT
             echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
 
 
