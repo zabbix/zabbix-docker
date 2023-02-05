@@ -57,7 +57,7 @@ jobs:
             fi
 
             echo "is_default_branch=$result" >> $GITHUB_OUTPUT
-            echo "current_branch=${GITHUB_REF#refs/heads/}" >> $GITHUB_OUTPUT
+            echo "current_branch=$github_ref" >> $GITHUB_OUTPUT
             echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
 
 
@@ -259,6 +259,12 @@ jobs:
               -v $PFLT_ARTIFACTS:/artifacts \
               -v $PFLT_DOCKERCONFIG:/temp-authfile.json:ro \
               quay.io/opdev/preflight:stable check container ${{ steps.build_image.outputs.image-with-tag }} --submit
+
+      - name: Push to RedHat certification procedure
+        id: push_to_registry_all_tags
+        uses: redhat-actions/push-to-registry@v2
+        with:
+          tags: ${{ steps.meta.outputs.tags }}
 
       - name: Cleanup
         run: |
