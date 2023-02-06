@@ -9,6 +9,7 @@ on:
       - '5.0'
       - '6.0'
       - '6.2'
+      - 'trunk'
     paths:
       - 'Dockerfiles/*/rhel/*'
       - '.github/workflows/images_build_rhel.yml'
@@ -24,6 +25,7 @@ env:
   REGISTRY_NAMESPACE: "redhat-isv-containers"
   PFLT_LOGLEVEL: "warn"
   PFLT_ARTIFACTS: "/tmp/artifacts"
+  TRUNK_BRANCH: "6.4"
 
 jobs:
   init_build:
@@ -52,12 +54,8 @@ jobs:
 
             github_ref=${github_ref##*/}
 
-            if [[ "$github_ref" == "${{ env.LATEST_BRANCH }}" ]]; then
-                result=true
-            fi
-
             echo "is_default_branch=$result" >> $GITHUB_OUTPUT
-            echo "current_branch=$github_ref" >> $GITHUB_OUTPUT
+            echo "current_branch=${{ env.TRUNK_BRANCH }}" >> $GITHUB_OUTPUT
             echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
 
 
