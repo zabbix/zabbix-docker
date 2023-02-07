@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1
 # escape=`
 ARG MAJOR_VERSION=6.2
-ARG ZBX_VERSION=${MAJOR_VERSION}.6
+ARG ZBX_VERSION=${MAJOR_VERSION}.7
 ARG BUILD_BASE_IMAGE=zabbix-build-agent:ltsc2022-agent2-${ZBX_VERSION}
 
 ARG BASE_IMAGE=mcr.microsoft.com/powershell:lts-nanoserver-ltsc2022
@@ -29,6 +29,10 @@ SHELL ["pwsh", "-Command", "$ErrorActionPreference = 'Stop';"]
 WORKDIR C:\zabbix\
 
 COPY --from=builder ["C:\\zabbix2", "C:\\zabbix"]
+COPY --from=builder ["C:\\mongodb_plugin\\zabbix-agent2-plugin-mongodb.exe", "C:\\zabbix\\zabbix-agent2-plugin\\zabbix-agent2-plugin-mongodb.exe"]
+COPY --from=builder ["C:\\mongodb_plugin\\mongodb.conf", "C:\\zabbix\\conf\\zabbix_agentd.d\\mongodb.conf"]
+COPY --from=builder ["C:\\postgresql_plugin\\zabbix-agent2-plugin-postgresql.exe", "C:\\zabbix\\zabbix-agent2-plugin\\zabbix-agent2-plugin-postgresql.exe"]
+COPY --from=builder ["C:\\postgresql_plugin\\postgresql.conf", "C:\\zabbix\\conf\\zabbix_agentd.d\\postgresql.conf"]
 COPY [".\\docker-entrypoint.ps1", "C:\\zabbix"]
 
 USER ContainerAdministrator
@@ -41,10 +45,10 @@ RUN $env:PATH = [string]::Format('{0}\zabbix\sbin;{0}\zabbix\bin;', $env:SystemD
 
 RUN Set-Location -Path $env:SystemDrive\.; `
     `
-    New-Item -ItemType directory -Path $env:ZBX_HOME\conf\zabbix_agentd.d | Out-Null; `
-    New-Item -ItemType directory -Path $env:ZBX_HOME\enc | Out-Null; `
-    New-Item -ItemType directory -Path $env:ZBX_HOME\modules | Out-Null; `
-    New-Item -ItemType directory -Path $env:ZBX_HOME\buffer | Out-Null; `
+    New-Item -Force -ItemType directory -Path $env:ZBX_HOME\conf\zabbix_agentd.d | Out-Null; `
+    New-Item -Force -ItemType directory -Path $env:ZBX_HOME\enc | Out-Null; `
+    New-Item -Force -ItemType directory -Path $env:ZBX_HOME\modules | Out-Null; `
+    New-Item -Force -ItemType directory -Path $env:ZBX_HOME\buffer | Out-Null; `
     `
 	net accounts /MaxPWAge:unlimited; `
     net user /add zabbix /expire:never /passwordreq:no; `

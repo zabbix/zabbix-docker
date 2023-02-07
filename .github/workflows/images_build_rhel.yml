@@ -1,0 +1,272 @@
+name: Build images (RedHat)
+
+on:
+  release:
+    types:
+      - published
+  push:
+    branches:
+      - '5.0'
+      - '6.0'
+      - '6.2'
+    paths:
+      - 'Dockerfiles/*/rhel/*'
+      - '.github/workflows/images_build_rhel.yml'
+
+defaults:
+  run:
+    shell: bash
+
+env:
+  LATEST_BRANCH: ${{ github.event.repository.default_branch }}
+  BASE_BUILD_NAME: "build-base"
+  REGISTRY: "quay.io"
+  REGISTRY_NAMESPACE: "redhat-isv-containers"
+  PFLT_LOGLEVEL: "warn"
+  PFLT_ARTIFACTS: "/tmp/artifacts"
+
+jobs:
+  init_build:
+    name: Initialize build
+    runs-on: self-hosted
+    outputs:
+      components: ${{ steps.components.outputs.list }}
+      is_default_branch: ${{ steps.branch_info.outputs.is_default_branch }}
+      current_branch: ${{ steps.branch_info.outputs.current_branch }}
+      sha_short: ${{ steps.branch_info.outputs.sha_short }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 1
+
+      - name: Get branch info
+        id: branch_info
+        run: |
+            github_ref="${{ github.ref }}"
+            result=false
+
+            if [[ "$github_ref" == "refs/tags/"* ]]; then
+                github_ref=${github_ref%.*}
+            fi
+
+            github_ref=${github_ref##*/}
+
+            if [[ "$github_ref" == "${{ env.LATEST_BRANCH }}" ]]; then
+                result=true
+            fi
+
+            echo "is_default_branch=$result" >> $GITHUB_OUTPUT
+            echo "current_branch=$github_ref" >> $GITHUB_OUTPUT
+            echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+
+
+      - name: Prepare Zabbix component list
+        id: components
+        env:
+          REDHAT_CERTIFY_CREDENTIALS: ${{ secrets.REDHAT_CERTIFY_CREDENTIALS }}
+        run: |
+            component_list=$(jq --raw-output --argjson data "$REDHAT_CERTIFY_CREDENTIALS" -n '$data."${{ steps.branch_info.outputs.current_branch }}".components | keys | [ .[] | tostring ] | @json')
+
+            echo "list=$component_list" >> $GITHUB_OUTPUT
+
+  build_base:
+    timeout-minutes: 30
+    name: Build ${{ matrix.build }} base on RHEL
+    needs: ["init_build"]
+    strategy:
+      fail-fast: false
+      matrix:
+        build: ["build-base"]
+
+    runs-on: self-hosted
+    outputs:
+      image: ${{ steps.build_image.outputs.image-with-tag }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 1
+
+      - name: Generate tags
+        id: meta
+        uses: docker/metadata-action@v4
+        with:
+          images: zabbix-${{ matrix.build }}
+          tags: |
+            type=sha
+
+      - name: Build Zabbix Build Base
+        id: build_image
+        uses: redhat-actions/buildah-build@v2
+        with:
+          context: ./Dockerfiles/${{ matrix.build }}/rhel
+          layers: false
+          tags: ${{ steps.meta.outputs.tags }}
+          containerfiles: |
+            ./Dockerfiles/${{ matrix.build }}/rhel/Dockerfile
+          extra-args: |
+            --pull
+
+  build_base_database:
+    timeout-minutes: 180
+    needs: [ "build_base", "init_build"]
+    name: Build ${{ matrix.build }} base on RHEL
+    strategy:
+      fail-fast: false
+      matrix:
+        build: ["mysql", "sqlite3"]
+
+    runs-on: self-hosted
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 1
+
+      - name: Generate tags
+        id: meta
+        uses: docker/metadata-action@v4
+        with:
+          images: zabbix-build-${{ matrix.build }}
+          tags: |
+            type=sha
+
+      - name: Build ${{ matrix.build }} image
+        id: build_image
+        uses: redhat-actions/buildah-build@v2
+        with:
+          context: ./Dockerfiles/build-${{ matrix.build }}/rhel
+          layers: false
+          tags: ${{ steps.meta.outputs.tags }}
+          containerfiles: |
+            ./Dockerfiles/build-${{ matrix.build }}/rhel/Dockerfile
+          build-args: BUILD_BASE_IMAGE=${{ needs.build_base.outputs.image }}
+
+  build_images:
+    timeout-minutes: 90
+    needs: [ "build_base_database", "init_build"]
+    name: Build ${{ matrix.build }} image
+    strategy:
+      fail-fast: false
+      matrix:
+        build: ${{ fromJson(needs.init_build.outputs.components) }}
+
+    runs-on: self-hosted
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Detect Build Base Image
+        id: build_base_image
+        env:
+          REDHAT_CERTIFY_CREDENTIALS: ${{ secrets.REDHAT_CERTIFY_CREDENTIALS }}
+        run: |
+          BUILD_BASE=$(jq --raw-output --argjson data "$REDHAT_CERTIFY_CREDENTIALS" -n '$data."${{ needs.init_build.outputs.current_branch }}".components."${{ matrix.build }}".build_base')
+
+          echo "build_base=$BUILD_BASE" >> $GITHUB_OUTPUT
+
+      - name: Genarate image name
+        id: image_name
+        env:
+          REDHAT_CERTIFY_CREDENTIALS: ${{ secrets.REDHAT_CERTIFY_CREDENTIALS }}
+        run: |
+          IMAGE_NAME=$(jq --raw-output --argjson data "$REDHAT_CERTIFY_CREDENTIALS" -n '$data."${{ needs.init_build.outputs.current_branch }}".components."${{ matrix.build }}".login')
+
+          echo "::add-mask::$IMAGE_NAME"
+          echo "image_name=$IMAGE_NAME" >> $GITHUB_OUTPUT
+
+      - name: Generate credentials
+        id: login_credentials
+        env:
+          REDHAT_CERTIFY_CREDENTIALS: ${{ secrets.REDHAT_CERTIFY_CREDENTIALS }}
+        run: |
+          IMAGE_NAME=$(jq --raw-output --argjson data "$REDHAT_CERTIFY_CREDENTIALS" -n '$data."${{ needs.init_build.outputs.current_branch }}".components."${{ matrix.build }}".login')
+          REGISTRY_PASSWORD=$(jq --raw-output --argjson data "$REDHAT_CERTIFY_CREDENTIALS" -n '$data."${{ needs.init_build.outputs.current_branch }}".components."${{ matrix.build }}".secret')
+
+          echo "::add-mask::$IMAGE_NAME"
+          echo "::add-mask::redhat-isv-containers+$IMAGE_NAME-robot"
+          echo "::add-mask::$REGISTRY_PASSWORD"
+
+          echo "username=$IMAGE_NAME" >> $GITHUB_OUTPUT
+          echo "password=$REGISTRY_PASSWORD" >> $GITHUB_OUTPUT
+
+      - name: Log in to Quay.io
+        uses: redhat-actions/podman-login@v1.5
+        env:
+          LOGIN: ${{ steps.login_credentials.outputs.username }}
+          PASSWORD: ${{ steps.login_credentials.outputs.password }}
+        with:
+          username: redhat-isv-containers+${{ env.LOGIN }}-robot
+          password: ${{ env.PASSWORD }}
+          registry: ${{ env.REGISTRY }}
+          auth_file_path: /tmp/.docker_${{ matrix.build }}_${{ needs.init_build.outputs.sha_short }}
+
+      - name: Remove smartmontools
+        if: ${{ matrix.build == 'agent2' }}
+        run: |
+          sed -i '/smartmontools/d' Dockerfiles/agent2/rhel/Dockerfile
+
+      - name: Generate tags
+        id: meta
+        uses: docker/metadata-action@v4
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.REGISTRY_NAMESPACE }}/${{ steps.image_name.outputs.image_name }}
+          tags: |
+            type=semver,pattern={{version}}
+            type=sha
+          flavor: |
+            latest=${{ ( github.event_name == 'release' ) }}
+
+      - name: Build ${{ matrix.build }} and push
+        id: build_image
+        uses: redhat-actions/buildah-build@v2
+        with:
+          context: ./Dockerfiles/${{ matrix.build }}/rhel
+          layers: false
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: |
+            org.opencontainers.image.revision=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.revision'] }}
+            org.opencontainers.image.created=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.created'] }}
+          containerfiles: |
+            ./Dockerfiles/${{ matrix.build }}/rhel/Dockerfile
+          build-args: BUILD_BASE_IMAGE=zabbix-${{ steps.build_base_image.outputs.build_base }}:sha-${{ needs.init_build.outputs.sha_short }}
+
+      - name: Push to RedHat certification procedure
+        id: push_to_registry
+        uses: redhat-actions/push-to-registry@v2
+        with:
+          tags: ${{ steps.meta.outputs.tags }}
+
+      - name: Preflight
+        env:
+          PFLT_DOCKERCONFIG: /tmp/.docker_${{ matrix.build }}_${{ needs.init_build.outputs.sha_short }}
+          PFLT_CERTIFICATION_PROJECT_ID: ${{ steps.login_credentials.outputs.username }}
+          PFLT_PYXIS_API_TOKEN: ${{ secrets.REDHAT_API_TOKEN }}
+          PFLT_ARTIFACTS: ${{ env.PFLT_ARTIFACTS }}
+          PFLT_LOGLEVEL: ${{ env.PFLT_LOGLEVEL }}
+        run: |
+          mkdir -p $PFLT_ARTIFACTS
+          podman run \
+              -it \
+              --rm \
+              --security-opt=label=disable \
+              --env PFLT_LOGLEVEL=$PFLT_LOGLEVEL \
+              --env PFLT_ARTIFACTS=/artifacts \
+              --env PFLT_LOGFILE=/artifacts/preflight.log \
+              --env PFLT_CERTIFICATION_PROJECT_ID=$PFLT_CERTIFICATION_PROJECT_ID \
+              --env PFLT_PYXIS_API_TOKEN=$PFLT_PYXIS_API_TOKEN \
+              --env PFLT_DOCKERCONFIG=/temp-authfile.json \
+              -v $PFLT_ARTIFACTS:/artifacts \
+              -v $PFLT_DOCKERCONFIG:/temp-authfile.json:ro \
+              quay.io/opdev/preflight:stable check container ${{ steps.build_image.outputs.image-with-tag }} --submit
+
+      - name: Push to RedHat certification procedure
+        id: push_to_registry_all_tags
+        uses: redhat-actions/push-to-registry@v2
+        with:
+          tags: ${{ steps.meta.outputs.tags }}
+
+      - name: Cleanup
+        run: |
+          echo "${{ steps.meta.outputs.tags }}" | while IFS= read -r image_name ; do podman rmi -i -f $image_name; done
+          rm -rf ${{ env.PFLT_ARTIFACTS }}

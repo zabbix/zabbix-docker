@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1
 ARG MAJOR_VERSION=6.2
-ARG RELEASE=6
-ARG ZBX_VERSION=${MAJOR_VERSION}.6
+ARG RELEASE=7
+ARG ZBX_VERSION=${MAJOR_VERSION}.7
 ARG BUILD_BASE_IMAGE=zabbix-build-base:rhel-${ZBX_VERSION}
 
 FROM ${BUILD_BASE_IMAGE} as builder
@@ -29,8 +29,8 @@ LABEL description="Zabbix build base for MySQL based images" \
       org.label-schema.vcs-ref="${VCS_REF}" \
       org.label-schema.vendor="Zabbix LLC"
 
-ENV MONGODB_PLUGIN_SOURCES=https://git.zabbix.com/scm/ap/mongodb.git MONGODB_PLUGIN_VERSION=master \
-    POSTGRESQL_PLUGIN_SOURCES=https://git.zabbix.com/scm/ap/postgresql.git POSTGRESQL_PLUGIN_VERSION=master
+ENV MONGODB_PLUGIN_SOURCES=https://git.zabbix.com/scm/ap/mongodb.git MONGODB_PLUGIN_VERSION=${ZBX_VERSION} \
+    POSTGRESQL_PLUGIN_SOURCES=https://git.zabbix.com/scm/ap/postgresql.git POSTGRESQL_PLUGIN_VERSION=${ZBX_VERSION}
 
 COPY ["conf/chromedp_no_sandbox.patch", "/tmp/chromedp_no_sandbox.patch"]
 

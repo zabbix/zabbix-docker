@@ -38,7 +38,7 @@ jobs:
       is_default_branch: ${{ steps.branch_info.outputs.is_default_branch }}
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v2.3.4
+        uses: actions/checkout@v3
         with:
           fetch-depth: 1
 
@@ -57,7 +57,7 @@ jobs:
         run: |
             os_list=$(jq -r '.["os-windows"] |  keys | [ .[] | tostring ] | @json' "./build.json")
 
-            echo "::set-output name=list::$os_list"
+            echo "list=$os_list" >> $GITHUB_OUTPUT
 
       - name: Prepare Zabbix component list
         id: components
@@ -65,7 +65,7 @@ jobs:
         run: |
             component_list='["agent","agent2"]'
 
-            echo "::set-output name=list::$component_list"
+            echo "list=$component_list" >> $GITHUB_OUTPUT
 
       - name: Get branch info
         id: branch_info
@@ -83,7 +83,7 @@ jobs:
             if [[ "$github_ref" == "${{ env.LATEST_BRANCH }}" ]]; then
                 result=true
             fi
-            echo  "::set-output name=is_default_branch::$result"
+            echo "is_default_branch=$result" >> $GITHUB_OUTPUT
 
   build_base:
     timeout-minutes: 70
@@ -100,7 +100,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v2.3.4
+        uses: actions/checkout@v3
         with:
           fetch-depth: 1
 
@@ -113,11 +113,11 @@ jobs:
         id: base_os_tag
         run: |
             $os_tag=$(Get-Content -Path .\build.json | ConvertFrom-Json).'os-windows'.'${{ matrix.os }}'
-            echo "::set-output name=os_tag::$os_tag"
+            echo "os_tag=$os_tag" >> $Env:GITHUB_OUTPUT
 
       - name: Generate tags
         id: meta
-        uses: docker/metadata-action@v3
+        uses: docker/metadata-action@v4
         with:
           images: ${{ env.DOCKER_REPOSITORY }}/${{ env.IMAGE_PREFIX }}${{ env.BASE_BUILD_NAME }}
           tags: |
@@ -171,7 +171,7 @@ jobs:
 
       - name: Upload SHA256 tag
         if: ${{ env.AUTO_PUSH_IMAGES }}
-        uses: actions/upload-artifact@v2.2.4
+        uses: actions/upload-artifact@v3
         with:
          name: ${{ env.BASE_BUILD_NAME }}${{ env.BASE_BUILD_ARTIFACT_FILE_SUFFIX }}
          path: ${{ env.BASE_BUILD_NAME }}${{ env.BASE_BUILD_ARTIFACT_FILE_SUFFIX }}
@@ -198,7 +198,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v2.3.4
+        uses: actions/checkout@v3
 
       - name: Login to DockerHub
         run: |
@@ -209,11 +209,11 @@ jobs:
         id: base_os_tag
         run: |
             $os_tag=$(Get-Content -Path .\build.json | ConvertFrom-Json).'os-windows'.'${{ matrix.os }}'
-            echo "::set-output name=os_tag::$os_tag"
+            echo "os_tag=$os_tag" >> $Env:GITHUB_OUTPUT
 
       - name: Generate tags
         id: meta
-        uses: docker/metadata-action@v3
+        uses: docker/metadata-action@v4
         with:
           images: ${{ env.DOCKER_REPOSITORY }}/${{ env.IMAGE_PREFIX }}${{ env.COMPONENT_BASE_BUILD_NAME }}
           tags: |
@@ -236,8 +236,8 @@ jobs:
           $base_tag = Get-Content ${{ env.BASE_BUILD_NAME }}${{ env.BASE_BUILD_ARTIFACT_FILE_SUFFIX }} -Raw
           $build_base_image="${{ env.DOCKER_REPOSITORY }}/${{ env.IMAGE_PREFIX }}${{ env.BASE_BUILD_NAME }}@" + $base_tag
 
-          echo "::set-output name=base_tag::$base_tag"
-          echo "::set-output name=base_build_image::$build_base_image"
+          echo "base_tag=$base_tag" >> $Env:GITHUB_OUTPUT
+          echo "base_build_image=$build_base_image" >> $Env:GITHUB_OUTPUT
 
       - name: Build image
         id: docker_build
@@ -281,7 +281,7 @@ jobs:
 
       - name: Upload SHA256 tag
         if: ${{ env.AUTO_PUSH_IMAGES }}
-        uses: actions/upload-artifact@v2.2.4
+        uses: actions/upload-artifact@v3
         with:
          name: ${{ env.COMPONENT_BASE_BUILD_NAME }}${{ env.COMPONENT_BASE_BUILD_ARTIFACT_FILE_SUFFIX }}
          path: ${{ env.COMPONENT_BASE_BUILD_NAME }}${{ env.COMPONENT_BASE_BUILD_ARTIFACT_FILE_SUFFIX }}
@@ -306,7 +306,7 @@ jobs:
 
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v2.3.4
+      - uses: actions/checkout@v3
 
       - name: Login to DockerHub
         run: |
@@ -317,11 +317,11 @@ jobs:
         id: base_os_tag
         run: |
             $os_tag=$(Get-Content -Path .\build.json | ConvertFrom-Json).'os-windows'.'${{ matrix.os }}'
-            echo "::set-output name=os_tag::$os_tag"
+            echo "os_tag=$os_tag" >> $Env:GITHUB_OUTPUT
 
       - name: Generate tags
         id: meta
-        uses: docker/metadata-action@v3
+        uses: docker/metadata-action@v4
         with:
           images: ${{ env.DOCKER_REPOSITORY }}/${{ env.IMAGE_PREFIX }}${{ matrix.component }}
           tags: |
@@ -344,8 +344,8 @@ jobs:
           $base_tag = Get-Content ${{ env.COMPONENT_BASE_BUILD_NAME }}${{ env.COMPONENT_BASE_BUILD_ARTIFACT_FILE_SUFFIX }} -Raw
           $build_base_image="${{ env.DOCKER_REPOSITORY }}/${{ env.IMAGE_PREFIX }}${{ env.COMPONENT_BASE_BUILD_NAME }}@" + $base_tag
 
-          echo "::set-output name=base_tag::$base_tag"
-          echo "::set-output name=base_build_image::$build_base_image"
+          echo "base_tag=$base_tag" >> $Env:GITHUB_OUTPUT
+          echo "base_build_image=$build_base_image" >> $Env:GITHUB_OUTPUT
 
       - name: Build image
         id: docker_build
