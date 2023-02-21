@@ -76,6 +76,7 @@ RUN set -eux && \
             --home-dir /var/lib/zabbix/ \
         zabbix && \
     echo "zabbix ALL=(root) NOPASSWD: /usr/bin/nmap" >> /etc/sudoers.d/zabbix && \
+    download-mibs && \
     mkdir -p /etc/zabbix && \
     mkdir -p /var/lib/zabbix && \
     mkdir -p /usr/lib/zabbix/alertscripts && \
