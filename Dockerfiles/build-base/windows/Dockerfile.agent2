@@ -4,8 +4,8 @@ ARG BUILD_BASE_IMAGE=mcr.microsoft.com/windows/servercore:ltsc2022
 FROM $BUILD_BASE_IMAGE as builder_base
 
 ARG PCRE2_VERSION=10.39
-ARG OPENSSL_VERSION=3.0.7
-ARG GOLANG_VERSION=1.19.3
+ARG OPENSSL_VERSION=3.0.8
+ARG GOLANG_VERSION=1.19.6
 ARG SEVEN_ZIP_VERSION=2107
 ARG BUILD_ARCH=x64
 ARG CPU_MODEL=AMD64
@@ -66,7 +66,7 @@ RUN Set-Location -Path $env:SystemDrive\.; `
     Write-Host ('Downloading {0} ...' -f $env:GOLANG_URL); `
     [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; `
     Invoke-WebRequest -OutFile $env:SystemDrive\go-amd64.msi -Uri $env:GOLANG_URL; `
-    $sha256 = '056177b590426bda3bdd7896b9dd36bd4b37211d16d46600dab1fb430b1132f1'; `
+    $sha256 = '205c178f7ebe29fa24fac72ddc097d3a37f541f93eae0ccf84d61cc459dc76d0'; `
     `
     Write-Host ('Verifying SHA256 ({0}) ...' -f $sha256); `
     if ((Get-FileHash $env:SystemDrive\go-amd64.msi -Algorithm sha256).Hash -ne $sha256) { `
@@ -217,7 +217,7 @@ RUN Set-Location -Path $env:SystemDrive\.; `
     [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; `
     Invoke-WebRequest -OutFile $env:SystemDrive\openssl.tar.gz -Uri $env:OPENSSL_URL; `
     `
-    $sha256 = '83049d042a260e696f62406ac5c08bf706fd84383f945cf21bd61e9ed95c396e'; `
+    $sha256 = '8dee9b24bdb1dcbf0c3d1e9b02fb8f6bf22165e807f45adeb7c9677536859d3b'; `
     Write-Host ('Verifying SHA256 ({0}) ...' -f $sha256); `
     if ((Get-FileHash $env:SystemDrive\openssl.tar.gz -Algorithm sha256).Hash -ne $sha256) { `
         Write-Host 'Checksum OpenSSL library failed!'; `
