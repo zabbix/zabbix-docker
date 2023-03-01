@@ -65,7 +65,7 @@ services:
    com.zabbix.os: "ubuntu"
 
  zabbix-proxy-sqlite3:
-  image: zabbix/zabbix-proxy-sqlite3:ubuntu-latest
+  image: zabbix/zabbix-proxy-sqlite3:ubuntu-trunk
   profiles:
    - all
   ports:
