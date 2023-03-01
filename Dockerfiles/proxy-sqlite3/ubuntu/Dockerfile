@@ -43,6 +43,7 @@ RUN set -eux && \
             fping \
             libcurl4 \
             libevent-2.1 \
+            libevent-pthreads-2.1 \
             libopenipmi0 \
             libpcre2-8-0 \
             libsnmp40 \
