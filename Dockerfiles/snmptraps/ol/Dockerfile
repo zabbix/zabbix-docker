@@ -1,7 +1,7 @@
 FROM oraclelinux:8-slim
 
 ARG MAJOR_VERSION=5.0
-ARG ZBX_VERSION=${MAJOR_VERSION}.31
+ARG ZBX_VERSION=${MAJOR_VERSION}.32
 ARG ZBX_SOURCES=https://git.zabbix.com/scm/zbx/zabbix.git
 
 ENV TERM=xterm \
