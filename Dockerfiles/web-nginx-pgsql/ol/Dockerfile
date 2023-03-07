@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1
 ARG MAJOR_VERSION=6.4
-ARG ZBX_VERSION=${MAJOR_VERSION}
+ARG ZBX_VERSION=${MAJOR_VERSION}.0
 ARG BUILD_BASE_IMAGE=zabbix-build-pgsql:ol-${ZBX_VERSION}
 
 FROM ${BUILD_BASE_IMAGE} as builder

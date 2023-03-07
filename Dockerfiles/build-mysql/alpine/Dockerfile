@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1
 ARG MAJOR_VERSION=6.4
-ARG ZBX_VERSION=${MAJOR_VERSION}
+ARG ZBX_VERSION=${MAJOR_VERSION}.0
 ARG BUILD_BASE_IMAGE=zabbix-build-base:alpine-${ZBX_VERSION}
 
 FROM ${BUILD_BASE_IMAGE} as builder
@@ -19,8 +19,8 @@ LABEL org.opencontainers.image.authors="Alexey Pustovalov <alexey.pustovalov@zab
       org.opencontainers.image.vendor="Zabbix LLC" \
       org.opencontainers.image.version="${ZBX_VERSION}"
 
-ENV MONGODB_PLUGIN_SOURCES=https://git.zabbix.com/scm/ap/mongodb.git MONGODB_PLUGIN_VERSION=master \
-    POSTGRESQL_PLUGIN_SOURCES=https://git.zabbix.com/scm/ap/postgresql.git POSTGRESQL_PLUGIN_VERSION=master
+ENV MONGODB_PLUGIN_SOURCES=https://git.zabbix.com/scm/ap/mongodb.git MONGODB_PLUGIN_VERSION=${ZBX_VERSION} \
+    POSTGRESQL_PLUGIN_SOURCES=https://git.zabbix.com/scm/ap/postgresql.git POSTGRESQL_PLUGIN_VERSION=${ZBX_VERSION}
 
 COPY ["conf/chromedp_no_sandbox.patch", "/tmp/chromedp_no_sandbox.patch"]
 
@@ -45,7 +45,7 @@ RUN set -eux && \
         *) echo "Unknown ARCH_SUFFIX=${ARCH_SUFFIX-}"; exit 1 ;; \
     esac; \
     cd /tmp/ && \
-    git -c advice.detachedHead=false clone ${ZBX_SOURCES} --branch master --depth 1 --single-branch /tmp/zabbix-${ZBX_VERSION} && \
+    git -c advice.detachedHead=false clone ${ZBX_SOURCES} --branch ${ZBX_VERSION} --depth 1 --single-branch /tmp/zabbix-${ZBX_VERSION} && \
     cd /tmp/zabbix-${ZBX_VERSION} && \
     patch -p1 < /tmp/chromedp_no_sandbox.patch && \
     zabbix_revision=`git rev-parse --short HEAD` && \

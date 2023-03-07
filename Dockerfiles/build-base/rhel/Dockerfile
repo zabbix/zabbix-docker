@@ -2,8 +2,8 @@
 FROM registry.access.redhat.com/ubi9/ubi-minimal
 
 ARG MAJOR_VERSION=6.4
-ARG RELEASE=
-ARG ZBX_VERSION=${MAJOR_VERSION}
+ARG RELEASE=0
+ARG ZBX_VERSION=${MAJOR_VERSION}.0
 
 ENV TERM=xterm \
     ZBX_VERSION=${ZBX_VERSION} \
@@ -11,7 +11,7 @@ ENV TERM=xterm \
 
 LABEL description="Prepared environment to build Zabbix components" \
       maintainer="alexey.pustovalov@zabbix.com" \
-      name="zabbix/zabbix-build-base-trunk" \
+      name="zabbix/zabbix-build-base-64" \
       release="${RELEASE}" \
       summary="Zabbix build base" \
       url="https://www.zabbix.com/" \
