@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1
 FROM alpine:3.17
 
-ARG MAJOR_VERSION=6.4
+ARG MAJOR_VERSION=7.0
 ARG ZBX_VERSION=${MAJOR_VERSION}
 
 ENV TERM=xterm \
