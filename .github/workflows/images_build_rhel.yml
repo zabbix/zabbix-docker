@@ -9,6 +9,7 @@ on:
       - '5.0'
       - '6.0'
       - '6.2'
+      - '6.4'
       - 'trunk'
     paths:
       - 'Dockerfiles/*/rhel/*'
@@ -25,7 +26,7 @@ env:
   REGISTRY_NAMESPACE: "redhat-isv-containers"
   PFLT_LOGLEVEL: "warn"
   PFLT_ARTIFACTS: "/tmp/artifacts"
-  TRUNK_BRANCH: "6.4"
+  TRUNK_BRANCH: "7.0"
 
 jobs:
   init_build:
