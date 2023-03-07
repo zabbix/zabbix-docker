@@ -259,7 +259,7 @@ jobs:
               --env PFLT_DOCKERCONFIG=/temp-authfile.json \
               -v $PFLT_ARTIFACTS:/artifacts \
               -v $PFLT_DOCKERCONFIG:/temp-authfile.json:ro \
-              quay.io/opdev/preflight:stable check container ${{ steps.build_image.outputs.image-with-tag }} --submit
+              quay.io/opdev/preflight:1.5.1 check container ${{ steps.build_image.outputs.image-with-tag }} --submit
 
       - name: Push to RedHat certification procedure
         id: push_to_registry_all_tags
