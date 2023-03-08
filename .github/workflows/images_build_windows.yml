@@ -132,6 +132,8 @@ jobs:
         run: |
             $context='.\Dockerfiles\${{ env.BASE_BUILD_NAME }}\windows\'
             $dockerfile= $context + 'Dockerfile.${{ matrix.component }}'
+            # Can not build on GitHub due existing symlink. Must be removed before build process
+            Remove-Item -ErrorAction Ignore -Force -Path $context\README.md
 
             $tags_array=$( "${{ steps.meta.outputs.tags }}".Split("`r`n") )
             $tags=$( $tags_array | Foreach-Object { "--tag=$_" } )
@@ -239,6 +241,8 @@ jobs:
         run: |
             $context='.\Dockerfiles\${{ env.COMPONENT_BASE_BUILD_NAME }}\windows\'
             $dockerfile= $context + 'Dockerfile.${{ matrix.component }}'
+            # Can not build on GitHub due existing symlink. Must be removed before build process
+            Remove-Item -ErrorAction Ignore -Force -Path $context\README.md
 
             $tags_array=$( "${{ steps.meta.outputs.tags }}".Split("`r`n") )
             $tags=$($tags_array | Foreach-Object { "--tag=$_" })
@@ -344,6 +348,8 @@ jobs:
         run: |
             $context='.\Dockerfiles\${{ matrix.component }}\windows\'
             $dockerfile= $context + 'Dockerfile'
+            # Can not build on GitHub due existing symlink. Must be removed before build process
+            Remove-Item -ErrorAction Ignore -Force -Path $context\README.md
 
             $tags_array=$( "${{ steps.meta.outputs.tags }}".Split("`r`n") )
             $tags=$($tags_array | Foreach-Object { "--tag=$_" })
