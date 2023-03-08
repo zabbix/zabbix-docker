@@ -12,6 +12,7 @@ on:
       - '6.4'
       - 'trunk'
     paths:
+      - '!**/README.md'
       - 'Dockerfiles/*/rhel/*'
       - '.github/workflows/images_build_rhel.yml'
 
