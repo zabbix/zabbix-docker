@@ -24,7 +24,7 @@ jobs:
       components: ${{ steps.components.outputs.list }}
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v2.3.4
+        uses: actions/checkout@v3
         with:
           ref: "refs/heads/trunk"
           fetch-depth: 1
@@ -42,28 +42,28 @@ jobs:
         run: |
             os_list=$(jq -r '.["os-linux"] |  keys | [ .[] | tostring ] | @json' "./build.json")
 
-            echo "::set-output name=list::$os_list"
+            echo "list=$os_list" >> $GITHUB_OUTPUT
 
       - name: Prepare Platform list
         id: platform_list
         run: |
             platform_list=$(jq -r '.["os-linux"] | tostring  | @json' "./build.json")
 
-            echo "::set-output name=list::$platform_list"
+            echo "list=$platform_list" >> $GITHUB_OUTPUT
 
       - name: Prepare Database engine list
         id: database
         run: |
             database_list=$(jq -r '[.components | values[] ] | sort | unique | del(.. | select ( . == "" ) ) | [ .[] | tostring ] | @json' "./build.json")
 
-            echo "::set-output name=list::$database_list"
+            echo "list=$database_list" >> $GITHUB_OUTPUT
 
       - name: Prepare Zabbix component list
         id: components
         run: |
             component_list=$(jq -r '.components | keys | [ .[] | tostring ] | @json' "./build.json")
 
-            echo "::set-output name=list::$component_list"
+            echo "list=$component_list" >> $GITHUB_OUTPUT
 
   build_base:
     timeout-minutes: 30
@@ -77,19 +77,24 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v2.3.4
+        uses: actions/checkout@v3
         with:
           ref: "refs/heads/trunk"
           fetch-depth: 1
 
       - name: Set up QEMU
-        uses: docker/setup-qemu-action@v1
+        uses: docker/setup-qemu-action@v2
+        with:
+          image: tonistiigi/binfmt:latest
+          platforms: all
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v1
+        uses: docker/setup-buildx-action@v2
+        with:
+          driver-opts: image=moby/buildkit:master
 
       - name: Login to DockerHub
-        uses: docker/login-action@v1 
+        uses: docker/login-action@v2
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
@@ -98,12 +103,13 @@ jobs:
         id: platform
         run: |
             platform_list=$(jq -r '.["os-linux"].${{ matrix.os }} | join(",")' "./build.json")
+            platform_list="${platform_list%,}"
 
-            echo ::set-output name=list::$platform_list
+            echo "list=$platform_list" >> $GITHUB_OUTPUT
 
       - name: Generate tags
         id: meta
-        uses: docker/metadata-action@v3
+        uses: docker/metadata-action@v4
         with:
           images: ${{ env.DOCKER_REPOSITORY }}/zabbix-${{ env.BASE_BUILD_NAME }}
           tags: |
@@ -114,7 +120,7 @@ jobs:
 
       - name: Build ${{ env.BASE_BUILD_NAME }}/${{ matrix.os }} and push
         id: docker_build
-        uses: docker/build-push-action@v2
+        uses: docker/build-push-action@v4
         with:
           context: ./Dockerfiles/${{ env.BASE_BUILD_NAME }}/${{ matrix.os }}
           file: ./Dockerfiles/${{ env.BASE_BUILD_NAME }}/${{ matrix.os }}/Dockerfile
@@ -131,7 +137,7 @@ jobs:
             echo "${{ steps.docker_build.outputs.digest }}" > ${{ env.BASE_BUILD_NAME }}_${{ matrix.os }}
 
       - name: Upload SHA256 tag
-        uses: actions/upload-artifact@v2.2.4
+        uses: actions/upload-artifact@v3
         with:
          name: ${{ env.BASE_BUILD_NAME }}_${{ matrix.os }}
          path: ${{ env.BASE_BUILD_NAME }}_${{ matrix.os }}
@@ -150,19 +156,24 @@ jobs:
     runs-on: ubuntu-20.04
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v2.3.4
+        uses: actions/checkout@v3
         with:
           ref: "refs/heads/trunk"
           fetch-depth: 1
 
       - name: Set up QEMU
-        uses: docker/setup-qemu-action@v1
+        uses: docker/setup-qemu-action@v2
+        with:
+          image: tonistiigi/binfmt:latest
+          platforms: all
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v1
+        uses: docker/setup-buildx-action@v2
+        with:
+          driver-opts: image=moby/buildkit:master
 
       - name: Login to DockerHub
-        uses: docker/login-action@v1 
+        uses: docker/login-action@v2
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
@@ -171,12 +182,13 @@ jobs:
         id: platform
         run: |
             platform_list=$(jq -r '.["os-linux"].${{ matrix.os }} | join(",")' "./build.json")
+            platform_list="${platform_list%,}"
 
-            echo ::set-output name=list::$platform_list
+            echo "list=$platform_list" >> $GITHUB_OUTPUT
 
       - name: Generate tags
         id: meta
-        uses: docker/metadata-action@v3
+        uses: docker/metadata-action@v4
         with:
           images: ${{ env.DOCKER_REPOSITORY }}/zabbix-${{ matrix.build }}
           tags: |
@@ -186,7 +198,7 @@ jobs:
             latest=false
 
       - name: Download SHA256 tag  build-base:${{ matrix.os }}
-        uses: actions/download-artifact@v2.0.10
+        uses: actions/download-artifact@v3
         with:
           name: build-base_${{ matrix.os }}
 
@@ -196,12 +208,12 @@ jobs:
           BASE_TAG=$(cat build-base_${{ matrix.os }})
           BUILD_BASE_IMAGE=${{ env.DOCKER_REPOSITORY }}/zabbix-build-base@${BASE_TAG}
 
-          echo ::set-output name=base_tag::${BASE_TAG}
-          echo ::set-output name=base_build_image::${BUILD_BASE_IMAGE}
+          echo "base_tag=${BASE_TAG}" >> $GITHUB_OUTPUT
+          echo "base_build_image=${BUILD_BASE_IMAGE}" >> $GITHUB_OUTPUT
 
       - name: Build ${{ matrix.build }}/${{ matrix.os }} and push
         id: docker_build
-        uses: docker/build-push-action@v2
+        uses: docker/build-push-action@v4
         with:
           context: ./Dockerfiles/${{ matrix.build }}/${{ matrix.os }}
           file: ./Dockerfiles/${{ matrix.build }}/${{ matrix.os }}/Dockerfile
@@ -219,7 +231,7 @@ jobs:
             echo "${{ steps.docker_build.outputs.digest }}" > ${{ matrix.build }}_${{ matrix.os }}
 
       - name: Upload SHA256 tag
-        uses: actions/upload-artifact@v2.2.4
+        uses: actions/upload-artifact@v3
         with:
          name: ${{ matrix.build }}_${{ matrix.os }}
          path: ${{ matrix.build }}_${{ matrix.os }}
@@ -228,7 +240,7 @@ jobs:
   build_images:
     timeout-minutes: 90
     needs: [ "build_base_database", "init_build"]
-    name: Build ${{ matrix.build }} base on ${{ matrix.os }}
+    name: Build ${{ matrix.build }} on ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
@@ -237,20 +249,24 @@ jobs:
 
     runs-on: ubuntu-20.04
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v2.3.4
+      - uses: actions/checkout@v3
         with:
           ref: "refs/heads/trunk"
           fetch-depth: 1
 
       - name: Set up QEMU
-        uses: docker/setup-qemu-action@v1
+        uses: docker/setup-qemu-action@v2
+        with:
+          image: tonistiigi/binfmt:latest
+          platforms: all
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v1
+        uses: docker/setup-buildx-action@v2
+        with:
+          driver-opts: image=moby/buildkit:master
 
       - name: Login to DockerHub
-        uses: docker/login-action@v1 
+        uses: docker/login-action@v2
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
@@ -280,18 +296,18 @@ jobs:
 
             platform_list="${platform_list%,}"
 
-            echo ::set-output name=list::$platform_list
+            echo "list=$platform_list" >> $GITHUB_OUTPUT
 
       - name: Detect Build Base Image
         id: build_base_image
         run: |
           BUILD_BASE=$(jq -r '.components."${{ matrix.build }}"' "./build.json")
 
-          echo ::set-output name=build_base::${BUILD_BASE}
+          echo "build_base=${BUILD_BASE}" >> $GITHUB_OUTPUT
 
       - name: Generate tags
         id: meta
-        uses: docker/metadata-action@v3
+        uses: docker/metadata-action@v4
         with:
           images: ${{ env.DOCKER_REPOSITORY }}/zabbix-${{ matrix.build }}
           tags: |
@@ -301,7 +317,7 @@ jobs:
             latest=false
 
       - name: Download SHA256 tag for ${{ steps.build_base_image.outputs.build_base }}:${{ matrix.os }}
-        uses: actions/download-artifact@v2.0.10
+        uses: actions/download-artifact@v3
         if: ${{ matrix.build != 'snmptraps' }}
         with:
           name: ${{ steps.build_base_image.outputs.build_base }}_${{ matrix.os }}
@@ -313,12 +329,12 @@ jobs:
           BASE_TAG=$(cat ${{ steps.build_base_image.outputs.build_base }}_${{ matrix.os }})
           BUILD_BASE_IMAGE=${{ env.DOCKER_REPOSITORY }}/zabbix-${{ steps.build_base_image.outputs.build_base }}@${BASE_TAG}
 
-          echo ::set-output name=base_tag::${BASE_TAG}
-          echo ::set-output name=base_build_image::${BUILD_BASE_IMAGE}
+          echo "base_tag=${BASE_TAG}" >> $GITHUB_OUTPUT
+          echo "base_build_image=${BUILD_BASE_IMAGE}" >> $GITHUB_OUTPUT
 
       - name: Build ${{ matrix.build }}/${{ matrix.os }} and push
         id: docker_build
-        uses: docker/build-push-action@v2
+        uses: docker/build-push-action@v4
         with:
           context: ./Dockerfiles/${{ matrix.build }}/${{ matrix.os }}
           file: ./Dockerfiles/${{ matrix.build }}/${{ matrix.os }}/Dockerfile

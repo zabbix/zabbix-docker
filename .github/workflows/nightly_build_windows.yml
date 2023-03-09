@@ -27,7 +27,7 @@ jobs:
       is_default_branch: ${{ steps.branch_info.outputs.is_default_branch }}
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v2.3.4
+        uses: actions/checkout@v3
         with:
           ref: "refs/heads/trunk"
           fetch-depth: 1
@@ -47,7 +47,7 @@ jobs:
         run: |
             os_list=$(jq -r '.["os-windows"] |  keys | [ .[] | tostring ] | @json' "./build.json")
 
-            echo "::set-output name=list::$os_list"
+            echo "list=$os_list" >> $GITHUB_OUTPUT
 
       - name: Prepare Zabbix component list
         id: components
@@ -55,7 +55,7 @@ jobs:
         run: |
             component_list='["agent","agent2"]'
 
-            echo "::set-output name=list::$component_list"
+            echo "list=$component_list" >> $GITHUB_OUTPUT
 
       - name: Get branch info
         id: branch_info
@@ -73,7 +73,7 @@ jobs:
             if [[ "$github_ref" == "${{ env.LATEST_BRANCH }}" ]]; then
                 result=true
             fi
-            echo  "::set-output name=is_default_branch::$result"
+            echo "is_default_branch=$result" >> $GITHUB_OUTPUT
 
   build_base:
     timeout-minutes: 70
@@ -90,7 +90,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v2.3.4
+        uses: actions/checkout@v3
         with:
           ref: "refs/heads/trunk"
           fetch-depth: 1
@@ -108,7 +108,7 @@ jobs:
 
       - name: Generate tags
         id: meta
-        uses: docker/metadata-action@v3
+        uses: docker/metadata-action@v4
         with:
           images: ${{ env.DOCKER_REPOSITORY }}/${{ env.IMAGE_PREFIX }}${{ env.BASE_BUILD_NAME }}
           tags: |
@@ -122,6 +122,8 @@ jobs:
         run: |
             $context='.\Dockerfiles\${{ env.BASE_BUILD_NAME }}\windows\'
             $dockerfile= $context + 'Dockerfile.${{ matrix.component }}'
+            # Can not build on GitHub due existing symlink. Must be removed before build process
+            Remove-Item -ErrorAction Ignore -Force -Path $context\README.md
 
             $tags_array=$( "${{ steps.meta.outputs.tags }}".Split("`r`n") )
             $tags=$( $tags_array | Foreach-Object { "--tag=$_" } )
@@ -159,7 +161,7 @@ jobs:
 
       - name: Upload SHA256 tag
         if: ${{ env.AUTO_PUSH_IMAGES }}
-        uses: actions/upload-artifact@v2.2.4
+        uses: actions/upload-artifact@v3
         with:
          name: ${{ env.BASE_BUILD_NAME }}${{ env.BASE_BUILD_ARTIFACT_FILE_SUFFIX }}
          path: ${{ env.BASE_BUILD_NAME }}${{ env.BASE_BUILD_ARTIFACT_FILE_SUFFIX }}
@@ -186,7 +188,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v2.3.4
+        uses: actions/checkout@v3
         with:
           ref: "refs/heads/trunk"
           fetch-depth: 1
@@ -200,11 +202,11 @@ jobs:
         id: base_os_tag
         run: |
             $os_tag=$(Get-Content -Path .\build.json | ConvertFrom-Json).'os-windows'.'${{ matrix.os }}'
-            echo "::set-output name=os_tag::$os_tag"
+            echo "os_tag=$os_tag" >> $Env:GITHUB_OUTPUT
 
       - name: Generate tags
         id: meta
-        uses: docker/metadata-action@v3
+        uses: docker/metadata-action@v4
         with:
           images: ${{ env.DOCKER_REPOSITORY }}/${{ env.IMAGE_PREFIX }}${{ env.COMPONENT_BASE_BUILD_NAME }}
           tags: |
@@ -214,7 +216,7 @@ jobs:
             latest=false
 
       - name: Download SHA256 tag build-base:${{ matrix.os }}
-        uses: actions/download-artifact@v2.0.10
+        uses: actions/download-artifact@v3
         with:
           name: ${{ env.BASE_BUILD_NAME }}${{ env.BASE_BUILD_ARTIFACT_FILE_SUFFIX }}
 
@@ -224,14 +226,16 @@ jobs:
           $base_tag = Get-Content ${{ env.BASE_BUILD_NAME }}${{ env.BASE_BUILD_ARTIFACT_FILE_SUFFIX }} -Raw
           $build_base_image="${{ env.DOCKER_REPOSITORY }}/${{ env.IMAGE_PREFIX }}${{ env.BASE_BUILD_NAME }}@" + $base_tag
 
-          echo "::set-output name=base_tag::$base_tag"
-          echo "::set-output name=base_build_image::$build_base_image"
+          echo "base_tag=$base_tag" >> $Env:GITHUB_OUTPUT
+          echo "base_build_image=$build_base_image" >> $Env:GITHUB_OUTPUT
 
       - name: Build image
         id: docker_build
         run: |
             $context='.\Dockerfiles\${{ env.COMPONENT_BASE_BUILD_NAME }}\windows\'
             $dockerfile= $context + 'Dockerfile.${{ matrix.component }}'
+            # Can not build on GitHub due existing symlink. Must be removed before build process
+            Remove-Item -ErrorAction Ignore -Force -Path $context\README.md
 
             $tags_array=$( "${{ steps.meta.outputs.tags }}".Split("`r`n") )
             $tags=$($tags_array | Foreach-Object { "--tag=$_" })
@@ -269,7 +273,7 @@ jobs:
 
       - name: Upload SHA256 tag
         if: ${{ env.AUTO_PUSH_IMAGES }}
-        uses: actions/upload-artifact@v2.2.4
+        uses: actions/upload-artifact@v3
         with:
          name: ${{ env.COMPONENT_BASE_BUILD_NAME }}${{ env.COMPONENT_BASE_BUILD_ARTIFACT_FILE_SUFFIX }}
          path: ${{ env.COMPONENT_BASE_BUILD_NAME }}${{ env.COMPONENT_BASE_BUILD_ARTIFACT_FILE_SUFFIX }}
@@ -294,7 +298,7 @@ jobs:
 
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v2.3.4
+      - uses: actions/checkout@v3
         with:
           ref: "refs/heads/trunk"
           fetch-depth: 1
@@ -308,21 +312,21 @@ jobs:
         id: base_os_tag
         run: |
             $os_tag=$(Get-Content -Path .\build.json | ConvertFrom-Json).'os-windows'.'${{ matrix.os }}'
-            echo "::set-output name=os_tag::$os_tag"
+            echo "os_tag=$os_tag" >> $Env:GITHUB_OUTPUT
 
       - name: Generate tags
         id: meta
-        uses: docker/metadata-action@v3
+        uses: docker/metadata-action@v4
         with:
           images: ${{ env.DOCKER_REPOSITORY }}/${{ env.IMAGE_PREFIX }}${{ matrix.component }}
           tags: |
             type=raw,value=${{ steps.base_os_tag.outputs.os_tag }}-trunk
             type=raw,value=trunk-${{ steps.base_os_tag.outputs.os_tag }}
-          flavor: |                                                                                                    
+          flavor: |
             latest=false
 
       - name: Download SHA256 tag for ${{ env.COMPONENT_BASE_BUILD_NAME }}:${{ matrix.os }}
-        uses: actions/download-artifact@v2.0.10
+        uses: actions/download-artifact@v3
         with:
           name: ${{ env.COMPONENT_BASE_BUILD_NAME }}${{ env.COMPONENT_BASE_BUILD_ARTIFACT_FILE_SUFFIX }}
 
@@ -332,14 +336,16 @@ jobs:
           $base_tag = Get-Content ${{ env.COMPONENT_BASE_BUILD_NAME }}${{ env.COMPONENT_BASE_BUILD_ARTIFACT_FILE_SUFFIX }} -Raw
           $build_base_image="${{ env.DOCKER_REPOSITORY }}/${{ env.IMAGE_PREFIX }}${{ env.COMPONENT_BASE_BUILD_NAME }}@" + $base_tag
 
-          echo "::set-output name=base_tag::$base_tag"
-          echo "::set-output name=base_build_image::$build_base_image"
+          echo "base_tag=$base_tag" >> $Env:GITHUB_OUTPUT
+          echo "base_build_image=$build_base_image" >> $Env:GITHUB_OUTPUT
 
       - name: Build image
         id: docker_build
         run: |
             $context='.\Dockerfiles\${{ matrix.component }}\windows\'
             $dockerfile= $context + 'Dockerfile'
+            # Can not build on GitHub due existing symlink. Must be removed before build process
+            Remove-Item -ErrorAction Ignore -Force -Path $context\README.md
 
             $tags_array=$( "${{ steps.meta.outputs.tags }}".Split("`r`n") )
             $tags=$($tags_array | Foreach-Object { "--tag=$_" })
