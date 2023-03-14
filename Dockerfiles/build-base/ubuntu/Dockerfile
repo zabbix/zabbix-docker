@@ -22,6 +22,7 @@ RUN set -eux && \
             autoconf \
             automake \
             binutils \
+            curl \
             gcc \
             libc6-dev \
             libcurl4-openssl-dev \
@@ -42,6 +43,7 @@ RUN set -eux && \
             git \
             gnupg \
             curl \
+            unzip \
             unixodbc-dev" && \
     apt-get -y update && \
     DEBIAN_FRONTEND=noninteractive apt-get -y \
