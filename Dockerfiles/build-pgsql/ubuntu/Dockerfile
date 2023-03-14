@@ -79,6 +79,14 @@ RUN set -eux && \
     cat database/postgresql/schema.sql > database/postgresql/create.sql && \
     gzip -c database/postgresql/create.sql > database/postgresql/create_proxy.sql.gz && \
     rm -rf database/postgresql/create.sql && \
+    mkdir /tmp/fonts/ && \
+    curl --silent -L "https://noto-website.storage.googleapis.com/pkgs/NotoSansCJKjp-hinted.zip" -o /tmp/fonts/NotoSansCJKjp-hinted.zip && \
+    unzip /tmp/fonts/NotoSansCJKjp-hinted.zip -d /tmp/fonts/ && \
+    cp /tmp/fonts/NotoSansCJKjp-Regular.otf /tmp/zabbix-${ZBX_VERSION}/ui/assets/fonts/NotoSansCJKjp-Regular.ttf && \
+    cp /tmp/fonts/LICENSE_OFL.txt /tmp/zabbix-${ZBX_VERSION}/ui/assets/fonts/ && \
+    rm -f /tmp/zabbix-${ZBX_VERSION}/ui/assets/fonts/DejaVuSans.ttf && \
+    sed -i -r "s/(define\(.*_FONT_NAME.*)DejaVuSans/\1NotoSansCJKjp-Regular/" /tmp/zabbix-${ZBX_VERSION}/ui/include/defines.inc.php && \
+    rm -rf /tmp/fonts/ && \
     strip /tmp/zabbix-${ZBX_VERSION}/src/zabbix_agent/zabbix_agentd && \
     strip /tmp/zabbix-${ZBX_VERSION}/src/zabbix_server/zabbix_server && \
     strip /tmp/zabbix-${ZBX_VERSION}/src/zabbix_proxy/zabbix_proxy && \
