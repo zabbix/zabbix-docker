@@ -22,6 +22,7 @@ RUN set -eux && \
             autoconf \
             automake \
             binutils \
+            curl \
             gcc \
             libc6-dev \
             libcurl4-openssl-dev \
@@ -43,6 +44,7 @@ RUN set -eux && \
             gettext \
             git \
             golang-1.18 \
+            unzip \
             unixodbc-dev" && \
     apt-get -y update && \
     DEBIAN_FRONTEND=noninteractive apt-get -y \
