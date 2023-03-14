@@ -23,6 +23,7 @@ RUN set -eux && \
             autoconf \
             automake \
             coreutils \
+            curl \
             curl-dev \
             libevent-dev \
             libssh-dev \
