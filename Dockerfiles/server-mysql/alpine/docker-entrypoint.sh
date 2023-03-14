@@ -401,6 +401,7 @@ update_zbx_config() {
     update_config_var $ZBX_CONFIG "StartHTTPPollers" "${ZBX_STARTHTTPPOLLERS}"
     update_config_var $ZBX_CONFIG "StartODBCPollers" "${ZBX_STARTODBCPOLLERS}"
 
+    update_config_var $ZBX_CONFIG "StartConnectors" "${ZBX_STARTCONNECTORS}"
     update_config_var $ZBX_CONFIG "StartPreprocessors" "${ZBX_STARTPREPROCESSORS}"
     update_config_var $ZBX_CONFIG "StartTimers" "${ZBX_STARTTIMERS}"
     update_config_var $ZBX_CONFIG "StartEscalators" "${ZBX_STARTESCALATORS}"

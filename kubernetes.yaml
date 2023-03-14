@@ -884,9 +884,7 @@ spec:
             value: ""
           - name: ZBX_PROXYOFFLINEBUFFER
             value: ""
-          - name: ZBX_PROXYHEARTBEATFREQUENCY
-            value: ""
-          - name: ZBX_CONFIGFREQUENCY
+          - name: ZBX_PROXYCONFIGFREQUENCY
             value: ""
           - name: ZBX_DATASENDERFREQUENCY
             value: ""
