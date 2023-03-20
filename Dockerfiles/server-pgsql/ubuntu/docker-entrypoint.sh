@@ -474,7 +474,6 @@ update_zbx_config() {
 
     update_config_var $ZBX_CONFIG "MaxHousekeeperDelete" "${ZBX_MAXHOUSEKEEPERDELETE}"
     update_config_var $ZBX_CONFIG "ServiceManagerSyncFrequency" "${ZBX_PROBLEMHOUSEKEEPINGFREQUENCY}"
-    update_config_var $ZBX_CONFIG "SenderFrequency" "${ZBX_SENDERFREQUENCY}"
 
     update_config_var $ZBX_CONFIG "CacheSize" "${ZBX_CACHESIZE}"
 
