@@ -3,6 +3,7 @@
     missingok
     daily
     rotate 0
-    minsize 50M notifempty
+    minsize 50M
+    notifempty
     su zabbix zabbix
 }
