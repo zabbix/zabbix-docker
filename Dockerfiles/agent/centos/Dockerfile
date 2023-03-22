@@ -38,7 +38,7 @@ RUN set -eux && \
             tzdata \
             iputils \
             pcre \
-            libcurl \
+            libcurl-minimal \
             openssl-libs \
             zlib" && \
     dnf -y install epel-release && \
