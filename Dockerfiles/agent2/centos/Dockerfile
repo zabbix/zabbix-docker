@@ -43,7 +43,7 @@ RUN set -eux && \
             tzdata \
             iputils \
             pcre2 \
-            libcurl \
+            libcurl-minimal \
             smartmontools \
             sudo \
             openssl-libs" && \
