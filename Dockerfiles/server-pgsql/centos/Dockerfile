@@ -45,6 +45,7 @@ RUN set -eux && \
             iputils \
             tzdata \
             traceroute \
+            libcurl-minimal \
             libevent \
             libssh \
             libxml2 \
