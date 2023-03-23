@@ -38,8 +38,10 @@ RUN set -eux && \
             openldap-devel \
             sqlite-devel \
             postgresql-devel \
-            java-1.8.0-openjdk-devel \
+            java-11-openjdk-devel \
             git \
+            wget \
+            cpio \
             gettext \
             go-toolset \
             unixODBC-devel" && \
