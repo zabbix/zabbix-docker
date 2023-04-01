@@ -54,13 +54,14 @@ RUN set -eux && \
             git \
             gettext \
             unixODBC-devel" && \
+    ARCH_SUFFIX="$(arch)"; \
     microdnf -y install \
             --disablerepo "*" \
             --enablerepo "ubi-9-baseos-rpms" \
             --enablerepo "ubi-9-appstream-rpms" \
-            --enablerepo "rhel-9-for-x86_64-baseos-rpms" \
-            --enablerepo "rhel-9-for-x86_64-appstream-rpms" \
-            --enablerepo "codeready-builder-for-rhel-9-x86_64-rpms" \
+            --enablerepo "rhel-9-for-$ARCH_SUFFIX-baseos-rpms" \
+            --enablerepo "rhel-9-for-$ARCH_SUFFIX-appstream-rpms" \
+            --enablerepo "codeready-builder-for-rhel-9-$ARCH_SUFFIX-rpms" \
             --setopt=install_weak_deps=0 \
             --best \
             --setopt=tsflags=nodocs \
