@@ -84,7 +84,7 @@ RUN set -eux && \
     cp /tmp/fonts/NotoSansCJKjp-Regular.otf /tmp/zabbix-${ZBX_VERSION}/frontends/php/assets/fonts/NotoSansCJKjp-Regular.ttf && \
     cp /tmp/fonts/LICENSE_OFL.txt /tmp/zabbix-${ZBX_VERSION}/frontends/php/assets/fonts/ && \
     rm -f /tmp/zabbix-${ZBX_VERSION}/frontends/php/assets/fonts/DejaVuSans.ttf && \
-    sed -i -r "s/(define\(.*_FONT_NAME.*)DejaVuSans/\1NotoSansCJKjp-Regular/" /tmp/zabbix-${ZBX_VERSION}/ui/include/defines.inc.php && \
+    sed -i -r "s/(define\(.*_FONT_NAME.*)DejaVuSans/\1NotoSansCJKjp-Regular/" /tmp/zabbix-${ZBX_VERSION}/frontends/php/include/defines.inc.php && \
     rm -rf /tmp/fonts/ && \
     strip /tmp/zabbix-${ZBX_VERSION}/src/zabbix_agent/zabbix_agentd && \
     strip /tmp/zabbix-${ZBX_VERSION}/src/zabbix_server/zabbix_server && \
