@@ -44,6 +44,7 @@ RUN set -eux && \
             java-1.8.0-openjdk-devel \
             git \
             gettext \
+            unzip \
             unixODBC-devel" && \
     yum -y install \
             --setopt=tsflags=nodocs \
