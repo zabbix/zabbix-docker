@@ -30,7 +30,7 @@ env:
 jobs:
   init_build:
     name: Initialize build
-    runs-on: self-hosted
+    runs-on: [self-hosted, linux, X64]
     outputs:
       components: ${{ steps.components.outputs.list }}
       is_default_branch: ${{ steps.branch_info.outputs.is_default_branch }}
@@ -81,7 +81,7 @@ jobs:
       matrix:
         build: ["build-base"]
 
-    runs-on: self-hosted
+    runs-on: [self-hosted, linux, X64]
     outputs:
       image: ${{ steps.build_image.outputs.image-with-tag }}
     steps:
@@ -119,7 +119,7 @@ jobs:
       matrix:
         build: ["mysql", "sqlite3"]
 
-    runs-on: self-hosted
+    runs-on: [self-hosted, linux, X64]
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
@@ -154,7 +154,7 @@ jobs:
       matrix:
         build: ${{ fromJson(needs.init_build.outputs.components) }}
 
-    runs-on: self-hosted
+    runs-on: [self-hosted, linux, X64]
     steps:
       - uses: actions/checkout@v3
 
