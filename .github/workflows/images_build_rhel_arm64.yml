@@ -8,7 +8,6 @@ on:
     branches:
       - '5.0'
       - '6.0'
-      - '6.2'
       - '6.4'
     paths:
       - '!**/README.md'
