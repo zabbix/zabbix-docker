@@ -438,7 +438,7 @@ jobs:
             org.opencontainers.image.created=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.created'] }}
           containerfiles: |
             ./Dockerfiles/${{ matrix.build }}/rhel/Dockerfile
-          build-args: BUILD_BASE_IMAGE=zabbix-${{ steps.build_base_image_arm.outputs.build_base }}:sha-${{ needs.init_build.outputs.sha_short }}
+          build-args: BUILD_BASE_IMAGE=zabbix-${{ steps.build_base_image.outputs.build_base }}:sha-${{ needs.init_build.outputs.sha_short }}
 
       - name: Push to RedHat certification procedure
         id: push_to_registry
