@@ -62,6 +62,7 @@ RUN set -eux && \
             --enable-webservice \
             --with-ldap \
             --with-libcurl \
+#            Not available for CentOS 8
 #            --with-libmodbus \
             --with-libpcre2 \
             --with-libxml2 \
