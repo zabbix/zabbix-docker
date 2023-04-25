@@ -90,7 +90,7 @@ jobs:
           driver-opts: image=moby/buildkit:master
 
       - name: Login to Azure
-        uses: docker/login-action@v1
+        uses: docker/login-action@v2
         with:
           registry: ${{ secrets.AZURE_REGISTRY }}.azurecr.io
           username: ${{ secrets.AZURE_USERNAME }}
@@ -161,7 +161,7 @@ jobs:
           driver-opts: image=moby/buildkit:master
 
       - name: Login to Azure
-        uses: docker/login-action@v1
+        uses: docker/login-action@v2
         with:
           registry: ${{ secrets.AZURE_REGISTRY }}.azurecr.io
           username: ${{ secrets.AZURE_USERNAME }}
@@ -246,7 +246,7 @@ jobs:
           driver-opts: image=moby/buildkit:master
 
       - name: Login to Azure
-        uses: docker/login-action@v1
+        uses: docker/login-action@v2
         with:
           registry: ${{ secrets.AZURE_REGISTRY }}.azurecr.io
           username: ${{ secrets.AZURE_USERNAME }}
