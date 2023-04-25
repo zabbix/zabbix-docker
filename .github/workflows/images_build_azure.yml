@@ -112,9 +112,9 @@ jobs:
         with:
           context: ./Dockerfiles/${{ env.BASE_BUILD_NAME }}/${{ matrix.os }}
           file: ./Dockerfiles/${{ env.BASE_BUILD_NAME }}/${{ matrix.os }}/Dockerfile
-          platforms:
-           - linux/amd64
-           - linux/arm64
+          platforms: |
+           linux/amd64
+           linux/arm64
           push: ${{ secrets.AUTO_PUSH_IMAGES }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: |
@@ -197,9 +197,9 @@ jobs:
         with:
           context: ./Dockerfiles/${{ matrix.build }}/${{ matrix.os }}
           file: ./Dockerfiles/${{ matrix.build }}/${{ matrix.os }}/Dockerfile
-          platforms:
-           - linux/amd64
-           - linux/arm64
+          platforms: |
+           linux/amd64
+           linux/arm64
           push: ${{ secrets.AUTO_PUSH_IMAGES }}
           tags: ${{ steps.meta.outputs.tags }}
           build-args: BUILD_BASE_IMAGE=${{ steps.base_build.outputs.base_build_image }}
@@ -319,9 +319,9 @@ jobs:
         with:
           context: ./Dockerfiles/${{ matrix.build }}/${{ matrix.os }}
           file: ./Dockerfiles/${{ matrix.build }}/${{ matrix.os }}/Dockerfile
-          platforms:
-           - linux/amd64
-           - linux/arm64
+          platforms: |
+           linux/amd64
+           linux/arm64
           push: ${{ secrets.AUTO_PUSH_IMAGES }}
           tags: ${{ steps.meta.outputs.tags }}
           build-args: BUILD_BASE_IMAGE=${{ steps.base_build.outputs.base_build_image }}
