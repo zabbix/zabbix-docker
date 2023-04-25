@@ -6,10 +6,9 @@ on:
       - published
   push:
     branches:
-      - '4.0'
       - '5.0'
       - '6.0'
-      - '6.2'
+      - '6.4'
       - 'trunk'
     paths:
       - 'Dockerfiles/**'
@@ -17,15 +16,13 @@ on:
       - '!**/README.md'
       - '!Dockerfiles/*/rhel/*'
       - '!Dockerfiles/*/windows/*'
-      - '.github/workflows/images_build.yml'
+      - '.github/workflows/images_build_azure.yml'
 
 defaults:
   run:
     shell: bash
 
 env:
-  DOCKER_REPOSITORY: "zabbix"
-  LATEST_BRANCH: ${{ github.event.repository.default_branch }}
   BASE_BUILD_NAME: "build-base"
 
 jobs:
@@ -36,7 +33,6 @@ jobs:
       os: ${{ steps.os.outputs.list }}
       database: ${{ steps.database.outputs.list }}
       components: ${{ steps.components.outputs.list }}
-      is_default_branch: ${{ steps.branch_info.outputs.is_default_branch }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
@@ -64,23 +60,6 @@ jobs:
             component_list=$(jq -r '.components | keys | [ .[] | tostring ] | @json' "./build.json")
 
             echo "list=$component_list" >> $GITHUB_OUTPUT
-
-      - name: Get branch info
-        id: branch_info
-        run: |
-            github_ref="${{ github.ref }}"
-            result=false
-
-            if [[ "$github_ref" == "refs/tags/"* ]]; then
-                github_ref=${github_ref%.*}
-            fi
-
-            github_ref=${github_ref##*/}
-
-            if [[ "$github_ref" == "${{ env.LATEST_BRANCH }}" ]]; then
-                result=true
-            fi
-            echo  "is_default_branch=$result" >> $GITHUB_OUTPUT
 
   build_base:
     timeout-minutes: 30
