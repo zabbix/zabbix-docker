@@ -92,7 +92,7 @@ jobs:
       - name: Login to Azure
         uses: docker/login-action@v1
         with:
-          registry: ${{ secrets.azure_registry }}.azurecr.io
+          registry: ${{ secrets.AZURE_REGISTRY }}.azurecr.io
           username: ${{ secrets.AZURE_USERNAME }}
           password: ${{ secrets.AZURE_PASSWORD }}
 
@@ -100,7 +100,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v4
         with:
-          images: ${{ secrets.azure_registry }}.azurecr.io/zabbix-${{ env.BASE_BUILD_NAME }}
+          images: ${{ secrets.AZURE_REGISTRY }}.azurecr.io/zabbix-${{ env.BASE_BUILD_NAME }}
           tags: |
             type=sha
           flavor: |
@@ -163,7 +163,7 @@ jobs:
       - name: Login to Azure
         uses: docker/login-action@v1
         with:
-          registry: ${{ secrets.azure_registry }}.azurecr.io
+          registry: ${{ secrets.AZURE_REGISTRY }}.azurecr.io
           username: ${{ secrets.AZURE_USERNAME }}
           password: ${{ secrets.AZURE_PASSWORD }}
 
@@ -171,7 +171,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v4
         with:
-          images:  ${{ secrets.azure_registry }}.azurecr.io/zabbix-${{ matrix.build }}
+          images:  ${{ secrets.AZURE_REGISTRY }}.azurecr.io/zabbix-${{ matrix.build }}
           tags: |
             type=sha
           flavor: |
@@ -186,7 +186,7 @@ jobs:
         id: base_build
         run: |
           BASE_TAG=$(cat build-base_${{ matrix.os }})
-          BUILD_BASE_IMAGE= ${{ secrets.azure_registry }}.azurecr.io/zabbix-build-base@${BASE_TAG}
+          BUILD_BASE_IMAGE= ${{ secrets.AZURE_REGISTRY }}.azurecr.io/zabbix-build-base@${BASE_TAG}
 
           echo "base_tag=${BASE_TAG}" >> $GITHUB_OUTPUT
           echo "base_build_image=${BUILD_BASE_IMAGE}" >> $GITHUB_OUTPUT
@@ -248,7 +248,7 @@ jobs:
       - name: Login to Azure
         uses: docker/login-action@v1
         with:
-          registry: ${{ secrets.azure_registry }}.azurecr.io
+          registry: ${{ secrets.AZURE_REGISTRY }}.azurecr.io
           username: ${{ secrets.AZURE_USERNAME }}
           password: ${{ secrets.AZURE_PASSWORD }}
 
@@ -290,7 +290,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v4
         with:
-          images: ${{ secrets.azure_registry }}.azurecr.io/zabbix-${{ matrix.build }}
+          images: ${{ secrets.AZURE_REGISTRY }}.azurecr.io/zabbix-${{ matrix.build }}
           tags: |
             type=semver,pattern={{version}}
             type=sha
@@ -308,7 +308,7 @@ jobs:
         if: ${{ matrix.build != 'snmptraps' }}
         run: |
           BASE_TAG=$(cat ${{ steps.build_base_image.outputs.build_base }}_${{ matrix.os }})
-          BUILD_BASE_IMAGE=${{ secrets.azure_registry }}.azurecr.io/zabbix-${{ steps.build_base_image.outputs.build_base }}@${BASE_TAG}
+          BUILD_BASE_IMAGE=${{ secrets.AZURE_REGISTRY }}.azurecr.io/zabbix-${{ steps.build_base_image.outputs.build_base }}@${BASE_TAG}
 
           echo "base_tag=${BASE_TAG}" >> $GITHUB_OUTPUT
           echo "base_build_image=${BUILD_BASE_IMAGE}" >> $GITHUB_OUTPUT
