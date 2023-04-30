@@ -144,6 +144,10 @@ update_config_multiple_var() {
 check_variables_mysql() {
     : ${DB_SERVER_HOST:="mysql-server"}
     : ${DB_SERVER_PORT:="3306"}
+    MYSQL_CONNECT_ARGS="-h ${DB_SERVER_HOST} -P ${DB_SERVER_PORT}"
+    if [ -n "${DB_SERVER_SOCKET}" ]; then
+        MYSQL_CONNECT_ARGS="-S ${DB_SERVER_SOCKET}"
+    fi
     USE_DB_ROOT_USER=false
     CREATE_ZBX_DB_USER=false
     file_env MYSQL_USER
@@ -171,7 +175,7 @@ check_variables_mysql() {
     [ -n "${MYSQL_USER}" ] && [ "${USE_DB_ROOT_USER}" == "true" ] && CREATE_ZBX_DB_USER=true
 
     # If root password is not specified use provided credentials
-    DB_SERVER_ROOT_USER=${DB_SERVER_ROOT_USER:-${MYSQL_USER}}
+    : ${DB_SERVER_ROOT_USER:=${MYSQL_USER}}
     [ "${MYSQL_ALLOW_EMPTY_PASSWORD,,}" == "true" ] || DB_SERVER_ROOT_PASS=${DB_SERVER_ROOT_PASS:-${MYSQL_PASSWORD}}
     DB_SERVER_ZBX_USER=${MYSQL_USER:-"zabbix"}
     DB_SERVER_ZBX_PASS=${MYSQL_PASSWORD:-"zabbix"}
@@ -207,8 +211,12 @@ db_tls_params() {
 
 check_db_connect_mysql() {
     echo "********************"
-    echo "* DB_SERVER_HOST: ${DB_SERVER_HOST}"
-    echo "* DB_SERVER_PORT: ${DB_SERVER_PORT}"
+    if [ -n "${DB_SERVER_SOCKET}" ]; then
+        echo "* DB_SERVER_SOCKET: ${DB_SERVER_SOCKET}"
+    else
+        echo "* DB_SERVER_HOST: ${DB_SERVER_HOST}"
+        echo "* DB_SERVER_PORT: ${DB_SERVER_PORT}"
+    fi
     echo "* DB_SERVER_DBNAME: ${DB_SERVER_DBNAME}"
     if [ "${DEBUG_MODE,,}" == "true" ]; then
         if [ "${USE_DB_ROOT_USER}" == "true" ]; then
@@ -226,7 +234,7 @@ check_db_connect_mysql() {
 
     export MYSQL_PWD="${DB_SERVER_ROOT_PASS}"
 
-    while [ ! "$(mysqladmin ping -h ${DB_SERVER_HOST} -P ${DB_SERVER_PORT} -u ${DB_SERVER_ROOT_USER} \
+    while [ ! "$(mysqladmin ping ${MYSQL_CONNECT_ARGS} -u ${DB_SERVER_ROOT_USER} \
                 --silent --connect_timeout=10 $ssl_opts)" ]; do
         echo "**** MySQL server is not available. Waiting $WAIT_TIMEOUT seconds..."
         sleep $WAIT_TIMEOUT
@@ -243,7 +251,7 @@ mysql_query() {
 
     export MYSQL_PWD="${DB_SERVER_ROOT_PASS}"
 
-    result=$(mysql --silent --skip-column-names -h ${DB_SERVER_HOST} -P ${DB_SERVER_PORT} \
+    result=$(mysql --silent --skip-column-names ${MYSQL_CONNECT_ARGS} \
              -u ${DB_SERVER_ROOT_USER} -e "$query" $ssl_opts)
 
     unset MYSQL_PWD
@@ -266,7 +274,7 @@ exec_sql_file() {
 
     $command "$sql_script" | mysql --silent --skip-column-names \
             --default-character-set=${DB_CHARACTER_SET} \
-            -h ${DB_SERVER_HOST} -P ${DB_SERVER_PORT} \
+            ${MYSQL_CONNECT_ARGS} \
             -u ${DB_SERVER_ROOT_USER} $ssl_opts  \
             ${DB_SERVER_DBNAME} 1>/dev/null
 

@@ -59,7 +59,10 @@ file_env() {
 check_variables() {
     : ${DB_SERVER_HOST:="mysql-server"}
     : ${DB_SERVER_PORT:="3306"}
-
+    MYSQL_CONNECT_ARGS="-h ${DB_SERVER_HOST} -P ${DB_SERVER_PORT}"
+    if [ -n "${DB_SERVER_SOCKET}" ]; then
+        MYSQL_CONNECT_ARGS="-S ${DB_SERVER_SOCKET}"
+    fi
     file_env MYSQL_USER
     file_env MYSQL_PASSWORD
 
@@ -93,8 +96,12 @@ db_tls_params() {
 
 check_db_connect() {
     echo "********************"
-    echo "* DB_SERVER_HOST: ${DB_SERVER_HOST}"
-    echo "* DB_SERVER_PORT: ${DB_SERVER_PORT}"
+    if [ -n "${DB_SERVER_SOCKET}" ]; then
+        echo "* DB_SERVER_SOCKET: ${DB_SERVER_SOCKET}"
+    else
+        echo "* DB_SERVER_HOST: ${DB_SERVER_HOST}"
+        echo "* DB_SERVER_PORT: ${DB_SERVER_PORT}"
+    fi
     echo "* DB_SERVER_DBNAME: ${DB_SERVER_DBNAME}"
     if [ "${DEBUG_MODE,,}" == "true" ]; then
         echo "* DB_SERVER_ZBX_USER: ${DB_SERVER_ZBX_USER}"
@@ -108,7 +115,7 @@ check_db_connect() {
 
     export MYSQL_PWD="${DB_SERVER_ZBX_PASS}"
 
-    while [ ! "$(mysqladmin ping -h ${DB_SERVER_HOST} -P ${DB_SERVER_PORT} -u ${DB_SERVER_ZBX_USER} \
+    while [ ! "$(mysqladmin ping ${MYSQL_CONNECT_ARGS} -u ${DB_SERVER_ZBX_USER} \
                 --silent --connect_timeout=10 $ssl_opts)" ]; do
         echo "**** MySQL server is not available. Waiting $WAIT_TIMEOUT seconds..."
         sleep $WAIT_TIMEOUT
