@@ -43,6 +43,7 @@ services:
    - "10051:10051"
   volumes:
    - /etc/localtime:/etc/localtime:ro
+#   - dbsocket:/var/run/mysqld/
    - ./zbx_env/usr/lib/zabbix/alertscripts:/usr/lib/zabbix/alertscripts:ro
    - ./zbx_env/usr/lib/zabbix/externalscripts:/usr/lib/zabbix/externalscripts:ro
    - ./zbx_env/var/lib/zabbix/dbscripts:/var/lib/zabbix/dbscripts:ro
@@ -171,6 +172,7 @@ services:
    - "10071:10051"
   volumes:
    - /etc/localtime:/etc/localtime:ro
+#   - dbsocket:/var/run/mysqld/
    - ./zbx_env/usr/lib/zabbix/externalscripts:/usr/lib/zabbix/externalscripts:ro
    - ./zbx_env/var/lib/zabbix/modules:/var/lib/zabbix/modules:ro
    - ./zbx_env/var/lib/zabbix/enc:/var/lib/zabbix/enc:ro
@@ -237,6 +239,7 @@ services:
    - "8443:8443"
   volumes:
    - /etc/localtime:/etc/localtime:ro
+#   - dbsocket:/var/run/mysqld/
    - ./zbx_env/etc/ssl/apache2:/etc/ssl/apache2:ro
    - ./zbx_env/usr/share/zabbix/modules/:/usr/share/zabbix/modules/:ro
   deploy:
@@ -297,6 +300,7 @@ services:
    - "443:8443"
   volumes:
    - /etc/localtime:/etc/localtime:ro
+#   - dbsocket:/var/run/mysqld/
    - ./zbx_env/etc/ssl/nginx:/etc/ssl/nginx:ro
    - ./zbx_env/usr/share/zabbix/modules/:/usr/share/zabbix/modules/:ro
   deploy:
@@ -474,6 +478,7 @@ services:
 #   - --ssl-key=/run/secrets/server-key.pem
   volumes:
    - ./zbx_env/var/lib/mysql:/var/lib/mysql:rw
+#   - dbsocket:/var/run/mysqld/
   env_file:
    - ./env_vars/.env_db_mysql
   secrets:
@@ -530,6 +535,7 @@ networks:
 
 volumes:
   snmptraps:
+#  dbsocket:
 
 secrets:
   MYSQL_USER:

@@ -139,8 +139,11 @@ update_config_multiple_var() {
 
 # Check prerequisites for MySQL database
 check_variables_mysql() {
-    : ${DB_SERVER_HOST:="mysql-server"}
-    : ${DB_SERVER_PORT:="3306"}
+    if [ ! -n "${DB_SERVER_SOCKET}" ]; then
+        : ${DB_SERVER_HOST:="mysql-server"}
+        : ${DB_SERVER_PORT:="3306"}
+    fi
+
     USE_DB_ROOT_USER=false
     CREATE_ZBX_DB_USER=false
     file_env MYSQL_USER
@@ -174,6 +177,12 @@ check_variables_mysql() {
     DB_SERVER_ZBX_PASS=${MYSQL_PASSWORD:-"zabbix"}
 
     DB_SERVER_DBNAME=${MYSQL_DATABASE:-"zabbix"}
+
+    if [ ! -n "${DB_SERVER_SOCKET}" ]; then
+        mysql_connect_args="-h ${DB_SERVER_HOST} -P ${DB_SERVER_PORT}"
+    else
+        mysql_connect_args="-S ${DB_SERVER_SOCKET}"
+    fi
 }
 
 db_tls_params() {
@@ -201,8 +210,12 @@ db_tls_params() {
 
 check_db_connect_mysql() {
     echo "********************"
-    echo "* DB_SERVER_HOST: ${DB_SERVER_HOST}"
-    echo "* DB_SERVER_PORT: ${DB_SERVER_PORT}"
+    if [ ! -n "${DB_SERVER_SOCKET}" ]; then
+        echo "* DB_SERVER_HOST: ${DB_SERVER_HOST}"
+        echo "* DB_SERVER_PORT: ${DB_SERVER_PORT}"
+    else
+        echo "* DB_SERVER_SOCKET: ${DB_SERVER_SOCKET}"
+    fi
     echo "* DB_SERVER_DBNAME: ${DB_SERVER_DBNAME}"
     if [ "${DEBUG_MODE,,}" == "true" ]; then
         if [ "${USE_DB_ROOT_USER}" == "true" ]; then
@@ -220,7 +233,7 @@ check_db_connect_mysql() {
 
     export MYSQL_PWD="${DB_SERVER_ROOT_PASS}"
 
-    while [ ! "$(mysqladmin ping -h ${DB_SERVER_HOST} -P ${DB_SERVER_PORT} -u ${DB_SERVER_ROOT_USER} \
+    while [ ! "$(mysqladmin ping $mysql_connect_args -u ${DB_SERVER_ROOT_USER} \
                 --silent --connect_timeout=10 $ssl_opts)" ]; do
         echo "**** MySQL server is not available. Waiting $WAIT_TIMEOUT seconds..."
         sleep $WAIT_TIMEOUT
@@ -237,7 +250,7 @@ mysql_query() {
 
     export MYSQL_PWD="${DB_SERVER_ROOT_PASS}"
 
-    result=$(mysql --silent --skip-column-names -h ${DB_SERVER_HOST} -P ${DB_SERVER_PORT} \
+    result=$(mysql --silent --skip-column-names $mysql_connect_args \
              -u ${DB_SERVER_ROOT_USER} -e "$query" $ssl_opts)
 
     unset MYSQL_PWD
@@ -259,7 +272,7 @@ exec_sql_file() {
     fi
 
     $command "$sql_script" | mysql --silent --skip-column-names \
-            -h ${DB_SERVER_HOST} -P ${DB_SERVER_PORT} \
+            $mysql_connect_args \
             -u ${DB_SERVER_ROOT_USER} $ssl_opts  \
             ${DB_SERVER_DBNAME} 1>/dev/null
 
@@ -350,9 +363,17 @@ update_zbx_config() {
         update_config_var $ZBX_CONFIG "DBTLSCipher13" "${ZBX_DBTLSCIPHER13}"
     fi
 
-    update_config_var $ZBX_CONFIG "DBHost" "${DB_SERVER_HOST}"
+    if [ ! -n "${DB_SERVER_SOCKET}" ]; then
+        update_config_var $ZBX_CONFIG "DBHost" "${DB_SERVER_HOST}"
+        update_config_var $ZBX_CONFIG "DBPort" "${DB_SERVER_PORT}"
+    else
+        update_config_var $ZBX_CONFIG "DBHost"
+        update_config_var $ZBX_CONFIG "DBPort"
+    fi
+    update_config_var $ZBX_CONFIG "DBSocket" "${DB_SERVER_SOCKET}"
     update_config_var $ZBX_CONFIG "DBName" "${DB_SERVER_DBNAME}"
     update_config_var $ZBX_CONFIG "DBSchema" "${DB_SERVER_SCHEMA}"
+
     update_config_var $ZBX_CONFIG "DBUser" "${DB_SERVER_ZBX_USER}"
     update_config_var $ZBX_CONFIG "DBPort" "${DB_SERVER_PORT}"
     update_config_var $ZBX_CONFIG "DBPassword" "${DB_SERVER_ZBX_PASS}"
@@ -360,8 +381,6 @@ update_zbx_config() {
     update_config_var $ZBX_CONFIG "HistoryStorageURL" "${ZBX_HISTORYSTORAGEURL}"
     update_config_var $ZBX_CONFIG "HistoryStorageTypes" "${ZBX_HISTORYSTORAGETYPES}"
     update_config_var $ZBX_CONFIG "HistoryStorageDateIndex" "${ZBX_HISTORYSTORAGEDATEINDEX}"
-
-    update_config_var $ZBX_CONFIG "DBSocket" "${DB_SERVER_SOCKET}"
 
     update_config_var $ZBX_CONFIG "StatsAllowedIP" "${ZBX_STATSALLOWEDIP}"
 
