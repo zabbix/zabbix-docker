@@ -378,7 +378,6 @@ update_zbx_config() {
     update_config_var $ZBX_CONFIG "DBSchema" "${DB_SERVER_SCHEMA}"
 
     update_config_var $ZBX_CONFIG "DBUser" "${DB_SERVER_ZBX_USER}"
-    update_config_var $ZBX_CONFIG "DBPort" "${DB_SERVER_PORT}"
     update_config_var $ZBX_CONFIG "DBPassword" "${DB_SERVER_ZBX_PASS}"
 
     update_config_var $ZBX_CONFIG "HistoryStorageURL" "${ZBX_HISTORYSTORAGEURL}"
