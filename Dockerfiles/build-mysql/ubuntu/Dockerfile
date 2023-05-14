@@ -93,6 +93,7 @@ RUN set -eux && \
     mkdir /tmp/fonts/ && \
     curl --silent -L "https://noto-website.storage.googleapis.com/pkgs/NotoSansCJKjp-hinted.zip" -o /tmp/fonts/NotoSansCJKjp-hinted.zip && \
     unzip /tmp/fonts/NotoSansCJKjp-hinted.zip -d /tmp/fonts/ && \
+    chmod o+r /tmp/fonts/NotoSansCJKjp-Regular.otf && \
     cp /tmp/fonts/NotoSansCJKjp-Regular.otf /tmp/zabbix-${ZBX_VERSION}/ui/assets/fonts/NotoSansCJKjp-Regular.ttf && \
     cp /tmp/fonts/LICENSE_OFL.txt /tmp/zabbix-${ZBX_VERSION}/ui/assets/fonts/ && \
     rm -f /tmp/zabbix-${ZBX_VERSION}/ui/assets/fonts/DejaVuSans.ttf && \
