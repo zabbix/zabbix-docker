@@ -102,6 +102,7 @@ RUN set -eux && \
     rm -f /tmp/zabbix-${ZBX_VERSION}/ui/assets/fonts/DejaVuSans.ttf && \
     sed -i -r "s/(define\(.*_FONT_NAME.*)DejaVuSans/\1NotoSansCJKjp-Regular/" /tmp/zabbix-${ZBX_VERSION}/ui/include/defines.inc.php && \
     rm -rf /tmp/fonts/ && \
+    chmod o+r /tmp/zabbix-${ZBX_VERSION}/ui/assets/fonts/* && \
     strip /tmp/zabbix-${ZBX_VERSION}/src/zabbix_agent/zabbix_agentd && \
     strip /tmp/zabbix-${ZBX_VERSION}/src/zabbix_server/zabbix_server && \
     strip /tmp/zabbix-${ZBX_VERSION}/src/zabbix_proxy/zabbix_proxy && \
