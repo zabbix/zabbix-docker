@@ -361,8 +361,6 @@ services:
    args:
     BUILD_BASE_IMAGE: zabbix-build-mysql:alpine-local
   image: zabbix-agent:alpine-local
-  deploy:
-   mode: global
   profiles:
    - full
    - all
