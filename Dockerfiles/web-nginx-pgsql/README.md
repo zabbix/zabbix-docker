@@ -196,9 +196,31 @@ The variable allows to specify the full path to a valid TLS certificate authorit
 
 The variable allows to activate host verification. Available since 5.0.0.
 
+### `ZBX_SSO_SP_KEY`
+
+The variable allows to specify a custom file path to the Serivce Provider (SP) private key file.
+
+### `ZBX_SSO_SP_CERT`
+
+The variable allows to specify a custom file path to the Serivce Provider (SP) cert file.
+
+### `ZBX_SSO_IDP_CERT`
+
+The variable allows to specify a custom file path to the SAML Certificate provided by the Identity Provider (ID) file.
+
 ## `ZBX_SSO_SETTINGS`
 
 The variable allows to specify custom SSO settings in JSON format. Available since 5.0.0.
+
+Example of YAML Mapping to Sequences
+
+```
+....
+  environment:
+    ZBX_SSO_SETTINGS: "{'baseurl': 'https://zabbix-docker.mydomain.com', 'use_proxy_headers': true, 'strict': false}"
+    ....
+....
+```
 
 ### Other variables
 
