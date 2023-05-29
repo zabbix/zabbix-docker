@@ -61,7 +61,7 @@ RUN Set-Location -Path $env:SystemDrive\.; `
     git -c advice.detachedHead=false clone $env:MONGODB_PLUGIN_SOURCES --branch $env:MONGODB_PLUGIN_VERSION --depth 1 --single-branch $env:SystemDrive\mongodb_plugin; `
     Set-Location -Path $env:SystemDrive\mongodb_plugin; `
     mingw32-make; `
-    mv $env:SystemDrive\mongodb_plugin\zabbix-agent2-plugin-mongodb $env:SystemDrive\mongodb_plugin\zabbix-agent2-plugin-mongodb.exe; `
+    mv $env:SystemDrive\mongodb_plugin\zabbix-agent2-plugin-mongodb.exe $env:SystemDrive\mongodb_plugin\zabbix-agent2-plugin-mongodb.exe; `
     Write-Host 'Verifying build ("zabbix-agent2-plugin-mongodb.exe -V") ...'; `
     & $env:SystemDrive\mongodb_plugin\zabbix-agent2-plugin-mongodb.exe -V; `
     `
@@ -70,7 +70,7 @@ RUN Set-Location -Path $env:SystemDrive\.; `
     git -c advice.detachedHead=false clone $env:POSTGRESQL_PLUGIN_SOURCES --branch $env:POSTGRESQL_PLUGIN_VERSION --depth 1 --single-branch $env:SystemDrive\postgresql_plugin; `
     Set-Location -Path $env:SystemDrive\postgresql_plugin; `
     mingw32-make; `
-    mv $env:SystemDrive\postgresql_plugin\zabbix-agent2-plugin-postgresql $env:SystemDrive\postgresql_plugin\zabbix-agent2-plugin-postgresql.exe; `
+    mv $env:SystemDrive\postgresql_plugin\zabbix-agent2-plugin-postgresql.exe $env:SystemDrive\postgresql_plugin\zabbix-agent2-plugin-postgresql.exe; `
     Write-Host 'Verifying build ("zabbix-agent2-plugin-postgresql.exe -V") ...'; `
     & $env:SystemDrive\postgresql_plugin\zabbix-agent2-plugin-postgresql.exe -V; `
     Write-Host 'Zabbix binaries are compiled...'; `
