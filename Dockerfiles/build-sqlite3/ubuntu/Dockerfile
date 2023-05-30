@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1
 ARG MAJOR_VERSION=6.0
-ARG ZBX_VERSION=${MAJOR_VERSION}.17
+ARG ZBX_VERSION=${MAJOR_VERSION}.18
 ARG BUILD_BASE_IMAGE=zabbix-build-base:ubuntu-${ZBX_VERSION}
 
 FROM ${BUILD_BASE_IMAGE} as builder
