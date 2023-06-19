@@ -5,7 +5,7 @@ ARG BUILD_BASE_IMAGE=zabbix-build-pgsql:alpine-${ZBX_VERSION}
 
 FROM ${BUILD_BASE_IMAGE} as builder
 
-FROM alpine:3.17
+FROM alpine:3.18
 
 ARG MAJOR_VERSION
 ARG ZBX_VERSION

@@ -1,17 +1,16 @@
-version: '3.5'
 services:
  zabbix-build-base:
   build:
    context: ./Dockerfiles/build-base/alpine
    cache_from:
-    - alpine:3.17
+    - alpine:3.18
   image: zabbix-build-base:alpine-local
 
  zabbix-build-mysql:
   build:
    context: ./Dockerfiles/build-mysql/alpine
    cache_from:
-    - alpine:3.17
+    - alpine:3.18
    args:
     BUILD_BASE_IMAGE: zabbix-build-base:alpine-local
   image: zabbix-build-mysql:alpine-local
@@ -22,7 +21,7 @@ services:
   build:
    context: ./Dockerfiles/build-sqlite3/alpine
    cache_from:
-    - alpine:3.17
+    - alpine:3.18
    args:
     BUILD_BASE_IMAGE: zabbix-build-base:alpine-local
   image: zabbix-build-sqlite3:alpine-local
@@ -35,7 +34,7 @@ services:
   build:
    context: ./Dockerfiles/server-mysql/alpine
    cache_from:
-    - alpine:3.17
+    - alpine:3.18
    args:
     BUILD_BASE_IMAGE: zabbix-build-mysql:alpine-local
   image: zabbix-server-mysql:alpine-local
@@ -108,7 +107,7 @@ services:
   build:
    context: ./Dockerfiles/proxy-sqlite3/alpine
    cache_from:
-    - alpine:3.17
+    - alpine:3.18
    args:
     BUILD_BASE_IMAGE: zabbix-build-sqlite3:alpine-local
   image: zabbix-proxy-sqlite3:alpine-local
@@ -164,7 +163,7 @@ services:
   build:
    context: ./Dockerfiles/proxy-mysql/alpine
    cache_from:
-    - alpine:3.17
+    - alpine:3.18
    args:
     BUILD_BASE_IMAGE: zabbix-build-mysql:alpine-local
   image: zabbix-proxy-mysql:alpine-local
@@ -231,7 +230,7 @@ services:
   build:
    context: ./Dockerfiles/web-apache-mysql/alpine
    cache_from:
-    - alpine:3.17
+    - alpine:3.18
    args:
     BUILD_BASE_IMAGE: zabbix-build-mysql:alpine-local
   image: zabbix-web-apache-mysql:alpine-local
@@ -295,7 +294,7 @@ services:
   build:
    context: ./Dockerfiles/web-nginx-mysql/alpine
    cache_from:
-    - alpine:3.17
+    - alpine:3.18
    args:
     BUILD_BASE_IMAGE: zabbix-build-mysql:alpine-local
   image: zabbix-web-nginx-mysql:alpine-local
@@ -357,7 +356,7 @@ services:
   build:
    context: ./Dockerfiles/agent/alpine
    cache_from:
-    - alpine:3.17
+    - alpine:3.18
    args:
     BUILD_BASE_IMAGE: zabbix-build-mysql:alpine-local
   image: zabbix-agent:alpine-local
@@ -405,7 +404,7 @@ services:
   build:
    context: ./Dockerfiles/java-gateway/alpine
    cache_from:
-    - alpine:3.17
+    - alpine:3.18
    args:
     BUILD_BASE_IMAGE: zabbix-build-mysql:alpine-local
   image: zabbix-java-gateway:alpine-local
@@ -442,7 +441,7 @@ services:
   build:
    context: ./Dockerfiles/snmptraps/alpine
    cache_from:
-    - alpine:3.17
+    - alpine:3.18
   image: zabbix-snmptraps:alpine-local
   profiles:
    - full
@@ -475,7 +474,7 @@ services:
   build:
    context: ./Dockerfiles/web-service/alpine
    cache_from:
-    - alpine:3.17
+    - alpine:3.18
    args:
     BUILD_BASE_IMAGE: zabbix-build-mysql:alpine-local
   image: zabbix-web-service:alpine-local
