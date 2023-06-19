@@ -38,6 +38,7 @@ RUN set -eux && \
             coreutils \
             iputils \
             pcre \
+            libgcc \
             libcurl \
             libldap" && \
     apk add \
