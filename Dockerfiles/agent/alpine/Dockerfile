@@ -38,6 +38,7 @@ RUN set -eux && \
             coreutils \
             iputils \
             pcre2 \
+            libgcc \
             libcurl \
             libmodbus \
             libldap" && \
