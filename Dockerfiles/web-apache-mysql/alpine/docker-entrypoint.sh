@@ -59,7 +59,11 @@ file_env() {
 
 # Check prerequisites for MySQL database
 check_variables() {
-    : ${DB_SERVER_HOST:="mysql-server"}
+    if [ ! -n "${DB_SERVER_SOCKET}" ]; then
+        : ${DB_SERVER_HOST:="mysql-server"}
+    else
+        DB_SERVER_HOST="localhost"
+    fi
     : ${DB_SERVER_PORT:="3306"}
 
     file_env MYSQL_USER
