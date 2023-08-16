@@ -399,6 +399,11 @@ update_zbx_config() {
     fi
 
     update_config_var $ZBX_CONFIG "AllowUnsupportedDBVersions" "${ZBX_ALLOWUNSUPPORTEDDBVERSIONS}"
+    update_config_var $ZBX_CONFIG "MaxConcurrentChecksPerPoller" "${ZBX_MAXCONCURRENTCHECKSPERPOLLER}"
+
+    update_config_var $ZBX_CONFIG "ProxyBufferMode" "${ZBX_PROXYBUFFERMODE}"
+    update_config_var $ZBX_CONFIG "ProxyMemoryBufferAge" "${ZBX_PROXYMEMORYBUFFERAGE}"
+    update_config_var $ZBX_CONFIG "ProxyMemoryBufferSize" "${ZBX_PROXYMEMORYBUFFERSIZE}"
 
     update_config_var $ZBX_CONFIG "ProxyLocalBuffer" "${ZBX_PROXYLOCALBUFFER}"
     update_config_var $ZBX_CONFIG "ProxyOfflineBuffer" "${ZBX_PROXYOFFLINEBUFFER}"
@@ -408,14 +413,17 @@ update_zbx_config() {
     update_config_var $ZBX_CONFIG "StatsAllowedIP" "${ZBX_STATSALLOWEDIP}"
     update_config_var $ZBX_CONFIG "StartPreprocessors" "${ZBX_STARTPREPROCESSORS}"
 
+    update_config_var $ZBX_CONFIG "StartAgentPollers" "${ZBX_STARTAGENTPOLLERS}"
     update_config_var $ZBX_CONFIG "StartPollers" "${ZBX_STARTPOLLERS}"
     update_config_var $ZBX_CONFIG "StartIPMIPollers" "${ZBX_IPMIPOLLERS}"
     update_config_var $ZBX_CONFIG "StartPollersUnreachable" "${ZBX_STARTPOLLERSUNREACHABLE}"
     update_config_var $ZBX_CONFIG "StartTrappers" "${ZBX_STARTTRAPPERS}"
     update_config_var $ZBX_CONFIG "StartPingers" "${ZBX_STARTPINGERS}"
     update_config_var $ZBX_CONFIG "StartDiscoverers" "${ZBX_STARTDISCOVERERS}"
+    update_config_var $ZBX_CONFIG "StartHTTPAgentPollers" "${ZBX_STARTHTTPAGENTPOLLERS}"
     update_config_var $ZBX_CONFIG "StartHTTPPollers" "${ZBX_STARTHTTPPOLLERS}"
     update_config_var $ZBX_CONFIG "StartODBCPollers" "${ZBX_STARTODBCPOLLERS}"
+    update_config_var $ZBX_CONFIG "StartSNMPPollers" "${ZBX_STARTSNMPPOLLERS}"
 
     : ${ZBX_JAVAGATEWAY_ENABLE:="false"}
     if [ "${ZBX_JAVAGATEWAY_ENABLE,,}" == "true" ]; then
@@ -443,6 +451,7 @@ update_zbx_config() {
         update_config_var $ZBX_CONFIG "StartSNMPTrapper"
     fi
 
+    update_config_var $ZBX_CONFIG "SocketDir" "/tmp/"
     update_config_var $ZBX_CONFIG "HousekeepingFrequency" "${ZBX_HOUSEKEEPINGFREQUENCY}"
 
     update_config_var $ZBX_CONFIG "CacheSize" "${ZBX_CACHESIZE}"

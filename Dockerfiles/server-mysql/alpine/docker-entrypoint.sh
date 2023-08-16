@@ -397,6 +397,7 @@ update_zbx_config() {
     fi
 
     update_config_var $ZBX_CONFIG "AllowUnsupportedDBVersions" "${ZBX_ALLOWUNSUPPORTEDDBVERSIONS}"
+    update_config_var $ZBX_CONFIG "MaxConcurrentChecksPerPoller" "${ZBX_MAXCONCURRENTCHECKSPERPOLLER}"
 
     update_config_var $ZBX_CONFIG "StartReportWriters" "${ZBX_STARTREPORTWRITERS}"
     : ${ZBX_WEBSERVICEURL:="http://zabbix-web-service:10053/report"}
@@ -415,13 +416,16 @@ update_zbx_config() {
     update_config_var $ZBX_CONFIG "StartPingers" "${ZBX_STARTPINGERS}"
     update_config_var $ZBX_CONFIG "StartDiscoverers" "${ZBX_STARTDISCOVERERS}"
     update_config_var $ZBX_CONFIG "StartHistoryPollers" "${ZBX_STARTHISTORYPOLLERS}"
+    update_config_var $ZBX_CONFIG "StartHTTPAgentPollers" "${ZBX_STARTHTTPAGENTPOLLERS}"
     update_config_var $ZBX_CONFIG "StartHTTPPollers" "${ZBX_STARTHTTPPOLLERS}"
     update_config_var $ZBX_CONFIG "StartODBCPollers" "${ZBX_STARTODBCPOLLERS}"
+    update_config_var $ZBX_CONFIG "StartSNMPPollers" "${ZBX_STARTSNMPPOLLERS}"
 
     update_config_var $ZBX_CONFIG "StartConnectors" "${ZBX_STARTCONNECTORS}"
     update_config_var $ZBX_CONFIG "StartPreprocessors" "${ZBX_STARTPREPROCESSORS}"
     update_config_var $ZBX_CONFIG "StartTimers" "${ZBX_STARTTIMERS}"
     update_config_var $ZBX_CONFIG "StartEscalators" "${ZBX_STARTESCALATORS}"
+    update_config_var $ZBX_CONFIG "StartAgentPollers" "${ZBX_STARTAGENTPOLLERS}"
     update_config_var $ZBX_CONFIG "StartAlerters" "${ZBX_STARTALERTERS}"
     update_config_var $ZBX_CONFIG "StartTimers" "${ZBX_STARTTIMERS}"
     update_config_var $ZBX_CONFIG "StartEscalators" "${ZBX_STARTESCALATORS}"
@@ -453,6 +457,8 @@ update_zbx_config() {
         update_config_var $ZBX_CONFIG "SNMPTrapperFile"
         update_config_var $ZBX_CONFIG "StartSNMPTrapper"
     fi
+
+    update_config_var $ZBX_CONFIG "SocketDir" "/tmp/"
 
     update_config_var $ZBX_CONFIG "HousekeepingFrequency" "${ZBX_HOUSEKEEPINGFREQUENCY}"
     update_config_var $ZBX_CONFIG "MaxHousekeeperDelete" "${ZBX_MAXHOUSEKEEPERDELETE}"
