@@ -164,6 +164,7 @@ function Prepare-Zbx-Agent-Config {
         Update-Config-Var $ZbxAgentConfig "ServerActive"
     }
     Update-Config-Var $ZbxAgentConfig "HeartbeatFrequency" "$env:ZBX_HEARTBEAT_FREQUENCY"
+    Update-Config-Var $ZbxAgentConfig "ForceActiveChecksOnStart" "$env:ZBX_FORCEACTIVECHECKSONSTART"
 
     if ([string]::IsNullOrWhitespace($env:ZBX_ENABLEPERSISTENTBUFFER)) {
         $env:ZBX_ENABLEPERSISTENTBUFFER="true"
