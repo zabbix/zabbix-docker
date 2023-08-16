@@ -153,6 +153,7 @@ prepare_zbx_agent_config() {
         update_config_var $ZBX_AGENT_CONFIG "ServerActive"
     fi
     update_config_var $ZBX_AGENT_CONFIG "HeartbeatFrequency" "${ZBX_HEARTBEAT_FREQUENCY}"
+    update_config_var $ZBX_AGENT_CONFIG "ForceActiveChecksOnStart" "${ZBX_FORCEACTIVECHECKSONSTART}"
 
     if [ "${ZBX_ENABLEPERSISTENTBUFFER,,}" == "true" ]; then
         update_config_var $ZBX_AGENT_CONFIG "EnablePersistentBuffer" "1"
