@@ -1,7 +1,7 @@
 FROM centos:centos7
 
 ARG MAJOR_VERSION=4.0
-ARG ZBX_VERSION=${MAJOR_VERSION}.47
+ARG ZBX_VERSION=${MAJOR_VERSION}.48
 ARG ZBX_SOURCES=https://git.zabbix.com/scm/zbx/zabbix.git
 
 ENV TERM=xterm \
