@@ -38,7 +38,7 @@ The image uses SQLite3 database to store collected data before sending it to Zab
 
 Start a Zabbix proxy container as follows:
 
-    docker run --name some-zabbix-proxy-sqlite3 -e ZBX_HOSTNAME=some-hostname -e ZBX_SERVER_HOST=some-zabbix-server -d zabbix/zabbix-proxy-sqlite3:tag
+    docker run --name some-zabbix-proxy-sqlite3 -e ZBX_HOSTNAME=some-hostname -e ZBX_SERVER_HOST=some-zabbix-server --init -d zabbix/zabbix-proxy-sqlite3:tag
 
 Where `some-zabbix-proxy-sqlite3` is the name you want to assign to your container, `some-hostname` is the hostname, it is Hostname parameter in Zabbix proxy configuration file, `some-zabbix-server` is IP or DNS name of Zabbix server and `tag` is the tag specifying the version you want. See the list above for relevant tags, or look at the [full list of tags](https://hub.docker.com/r/zabbix/zabbix-proxy-sqlite3/tags/).
 
@@ -47,7 +47,7 @@ Where `some-zabbix-proxy-sqlite3` is the name you want to assign to your contain
 This image exposes the standard Zabbix proxy port (10051) and can operate as Passive proxy in case `ZBX_PROXYMODE` = `1`. Start Zabbix server container like this in order to link it to the Zabbix proxy container:
 
 ```console
-$ docker run --name some-zabbix-server --link some-zabbix-proxy-sqlite3:zabbix-proxy-sqlite3 -d zabbix/zabbix-server:latest
+$ docker run --name some-zabbix-server --link some-zabbix-proxy-sqlite3:zabbix-proxy-sqlite3 --init -d zabbix/zabbix-server:latest
 ```
 
 ## Connect to Zabbix server (Active proxy)
@@ -55,7 +55,7 @@ $ docker run --name some-zabbix-server --link some-zabbix-proxy-sqlite3:zabbix-p
 This image can operate as Active proxy (`default` mode). Start your application container like this in order to link Zabbix proxy to Zabbix server containters:
 
 ```console
-$ docker run --name some-zabbix-proxy-sqlite3 --link some-zabbix-server:zabbix-server -d zabbix/zabbix-proxy-sqlite3:latest
+$ docker run --name some-zabbix-proxy-sqlite3 --link some-zabbix-server:zabbix-server --init -d zabbix/zabbix-proxy-sqlite3:latest
 ```
 
 ## Container shell access and viewing Zabbix proxy logs

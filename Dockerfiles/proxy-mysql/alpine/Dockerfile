@@ -35,7 +35,6 @@ COPY --from=builder ["/tmp/zabbix-${ZBX_VERSION}/database/mysql/create_proxy.sql
 
 RUN set -eux && \
     INSTALL_PKGS="bash \
-            tini \
             sudo \
             traceroute \
             nmap \
@@ -97,7 +96,7 @@ VOLUME ["/var/lib/zabbix/snmptraps"]
 
 COPY ["docker-entrypoint.sh", "/usr/bin/"]
 
-ENTRYPOINT ["/sbin/tini", "--", "/usr/bin/docker-entrypoint.sh"]
+ENTRYPOINT ["/usr/bin/docker-entrypoint.sh"]
 
 USER 1997
 

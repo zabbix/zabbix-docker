@@ -45,7 +45,7 @@ Where `some-zabbix-agent` is the name you want to assign to your container, `som
 This image exposes the standard Zabbix agent port (``10050``) to perform passive checks, so container linking makes Zabbix agent instance available to Zabbix server and Zabbix proxy containers. Start your application container like this in order to link it to the Zabbix agent container:
 
 ```console
-$ docker run --name some-zabbix-server --link some-zabbix-agent:zabbix-agent -d zabbix/zabbix-server:latest
+$ docker run --name some-zabbix-server --link some-zabbix-agent:zabbix-agent --init -d zabbix/zabbix-server:latest
 ```
 
 ## Connect to Zabbix server or Zabbix proxy containers (Active checks)
@@ -53,7 +53,7 @@ $ docker run --name some-zabbix-server --link some-zabbix-agent:zabbix-agent -d 
 This image supports perform active checks, so container linking makes Zabbix server and Zabbix proxy containers available to Zabbix agent instance. Start your application container like this in order to link Zabbix agent to Zabbix server or Zabbix proxy containterns:
 
 ```console
-$ docker run --name some-zabbix-agent --link some-zabbix-server:zabbix-server -d zabbix/zabbix-agent:latest
+$ docker run --name some-zabbix-agent --link some-zabbix-server:zabbix-server --init -d zabbix/zabbix-agent:latest
 ```
 
 ## Container shell access and viewing Zabbix agent logs
@@ -75,10 +75,10 @@ $ docker logs some-zabbix-agent
 By default, Docker containers are "unprivileged" and do not have access to the most of host resources. Zabbix agent is designed to monitor system resources, to do that Zabbix agent container must be privileged or you may mount some system-wide volumes. For example:
 
 ```console
-$ docker run --name some-zabbix-agent --link some-zabbix-server:zabbix-server --privileged -d zabbix/zabbix-agent:latest
+$ docker run --name some-zabbix-agent --link some-zabbix-server:zabbix-server --privileged --init -d zabbix/zabbix-agent:latest
 ```
 ```console
-$ docker run --name some-zabbix-agent --link some-zabbix-server:zabbix-server -v /dev/sdc:/dev/sdc -d zabbix/zabbix-agent:latest
+$ docker run --name some-zabbix-agent --link some-zabbix-server:zabbix-server -v /dev/sdc:/dev/sdc --init -d zabbix/zabbix-agent:latest
 ```
 
 ## Environment Variables

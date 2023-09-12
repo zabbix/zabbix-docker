@@ -36,7 +36,6 @@ COPY --from=builder ["/tmp/zabbix-${ZBX_VERSION}/database/mysql/create_proxy.sql
 RUN set -eux && \
     REPOLIST="baseos,appstream,crb,epel" && \
     INSTALL_PKGS="libevent \
-            tini \
             sudo \
             traceroute \
             nmap \
@@ -104,7 +103,7 @@ VOLUME ["/var/lib/zabbix/snmptraps"]
 
 COPY ["docker-entrypoint.sh", "/usr/bin/"]
 
-ENTRYPOINT ["/usr/bin/tini", "--", "/usr/bin/docker-entrypoint.sh"]
+ENTRYPOINT ["/usr/bin/docker-entrypoint.sh"]
 
 USER 1997
 

@@ -39,6 +39,7 @@ services:
    args:
     BUILD_BASE_IMAGE: zabbix-build-mysql:ubuntu-local
   image: zabbix-server-mysql:ubuntu-local
+  init: true
   ports:
    - "10051:10051"
   volumes:
@@ -111,6 +112,7 @@ services:
    args:
     BUILD_BASE_IMAGE: zabbix-build-sqlite3:ubuntu-local
   image: zabbix-proxy-sqlite3:ubuntu-local
+  init: true
   profiles:
    - all
   ports:
@@ -166,6 +168,7 @@ services:
    args:
     BUILD_BASE_IMAGE: zabbix-build-mysql:ubuntu-local
   image: zabbix-proxy-mysql:ubuntu-local
+  init: true
   profiles:
    - all
   ports:
@@ -356,6 +359,7 @@ services:
    args:
     BUILD_BASE_IMAGE: zabbix-build-mysql:ubuntu-local
   image: zabbix-agent:ubuntu-local
+  init: true
   profiles:
    - full
    - all

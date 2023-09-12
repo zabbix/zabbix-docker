@@ -34,7 +34,7 @@ Images are updated when new releases are published. The image with ``latest`` ta
 
 Start a Zabbix agent 2 container as follows:
 
-    docker run --name some-zabbix-agent -e ZBX_HOSTNAME="some-hostname" -e ZBX_SERVER_HOST="some-zabbix-server" -d zabbix/zabbix-agent2:tag
+    docker run --name some-zabbix-agent -e ZBX_HOSTNAME="some-hostname" -e ZBX_SERVER_HOST="some-zabbix-server" --init -d zabbix/zabbix-agent2:tag
 
 Where `some-zabbix-agent2` is the name you want to assign to your container, `some-hostname` is the hostname, it is Hostname parameter in Zabbix agent 2 configuration file, `some-zabbix-server` is IP or DNS name of Zabbix server or proxy and `tag` is the tag specifying the version you want. See the list above for relevant tags, or look at the [full list of tags](https://hub.docker.com/r/zabbix/zabbix-agent2/tags/).
 
@@ -43,7 +43,7 @@ Where `some-zabbix-agent2` is the name you want to assign to your container, `so
 This image exposes the standard Zabbix agent 2 port (``10050``) to perform passive checks, so container linking makes Zabbix agent 2 instance available to Zabbix server and Zabbix proxy containers. Start your application container like this in order to link it to the Zabbix agent 2 container:
 
 ```console
-$ docker run --name some-zabbix-server --link some-zabbix-agent:zabbix-agent2 -d zabbix/zabbix-server:latest
+$ docker run --name some-zabbix-server --link some-zabbix-agent:zabbix-agent2 --init -d zabbix/zabbix-server:latest
 ```
 
 ## Connect to Zabbix server or Zabbix proxy containers (Active checks)
@@ -51,7 +51,7 @@ $ docker run --name some-zabbix-server --link some-zabbix-agent:zabbix-agent2 -d
 This image supports perform active checks, so container linking makes Zabbix server and Zabbix proxy containers available to Zabbix agent 2 instance. Start your application container like this in order to link Zabbix agent 2 to Zabbix server or Zabbix proxy containterns:
 
 ```console
-$ docker run --name some-zabbix-agent --link some-zabbix-server:zabbix-server -d zabbix/zabbix-agent2:latest
+$ docker run --name some-zabbix-agent --link some-zabbix-server:zabbix-server --init -d zabbix/zabbix-agent2:latest
 ```
 
 ## Container shell access and viewing Zabbix agent 2 logs
@@ -73,10 +73,10 @@ $ docker logs some-zabbix-agent
 By default, Docker containers are "unprivileged" and do not have access to the most of host resources. Zabbix agent 2 is designed to monitor system resources, to do that Zabbix agent 2 container must be privileged or you may mount some system-wide volumes. For example:
 
 ```console
-$ docker run --name some-zabbix-agent --link some-zabbix-server:zabbix-server --privileged -d zabbix/zabbix-agent2:latest
+$ docker run --name some-zabbix-agent --link some-zabbix-server:zabbix-server --privileged --init -d zabbix/zabbix-agent2:latest
 ```
 ```console
-$ docker run --name some-zabbix-agent --link some-zabbix-server:zabbix-server -v /dev/sdc:/dev/sdc -d zabbix/zabbix-agent2:latest
+$ docker run --name some-zabbix-agent --link some-zabbix-server:zabbix-server -v /dev/sdc:/dev/sdc --init -d zabbix/zabbix-agent2:latest
 ```
 
 ## Environment Variables

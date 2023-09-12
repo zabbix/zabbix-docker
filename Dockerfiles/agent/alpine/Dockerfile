@@ -32,8 +32,7 @@ COPY --from=builder ["/tmp/zabbix-${ZBX_VERSION}/src/zabbix_sender/zabbix_sender
 COPY --from=builder ["/tmp/zabbix-${ZBX_VERSION}/conf/zabbix_agentd.conf", "/etc/zabbix/zabbix_agentd.conf"]
 
 RUN set -eux && \
-    INSTALL_PKGS="tini \
-            bash \
+    INSTALL_PKGS="bash \
             tzdata \
             coreutils \
             iputils \
@@ -76,7 +75,7 @@ WORKDIR /var/lib/zabbix
 
 COPY ["docker-entrypoint.sh", "/usr/bin/"]
 
-ENTRYPOINT ["/sbin/tini", "--", "/usr/bin/docker-entrypoint.sh"]
+ENTRYPOINT ["/usr/bin/docker-entrypoint.sh"]
 
 USER 1997
 

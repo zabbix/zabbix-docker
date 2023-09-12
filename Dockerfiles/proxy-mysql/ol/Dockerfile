@@ -36,7 +36,6 @@ COPY ["conf/etc/yum.repos.d/oracle-epel-ol9.repo", "/etc/yum.repos.d/oracle-epel
 
 RUN set -eux && \
     INSTALL_PKGS="libevent \
-            tini \
             sudo \
             traceroute \
             nmap \
@@ -106,7 +105,7 @@ VOLUME ["/var/lib/zabbix/snmptraps"]
 
 COPY ["docker-entrypoint.sh", "/usr/bin/"]
 
-ENTRYPOINT ["/usr/bin/tini", "--", "/usr/bin/docker-entrypoint.sh"]
+ENTRYPOINT ["/usr/bin/docker-entrypoint.sh"]
 
 USER 1997
 

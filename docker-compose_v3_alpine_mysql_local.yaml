@@ -38,6 +38,7 @@ services:
    args:
     BUILD_BASE_IMAGE: zabbix-build-mysql:alpine-local
   image: zabbix-server-mysql:alpine-local
+  init: true
   ports:
    - "10051:10051"
   volumes:
@@ -111,6 +112,7 @@ services:
    args:
     BUILD_BASE_IMAGE: zabbix-build-sqlite3:alpine-local
   image: zabbix-proxy-sqlite3:alpine-local
+  init: true
   profiles:
    - all
   ports:
@@ -167,6 +169,7 @@ services:
    args:
     BUILD_BASE_IMAGE: zabbix-build-mysql:alpine-local
   image: zabbix-proxy-mysql:alpine-local
+  init: true
   profiles:
    - all
   ports:
@@ -360,6 +363,7 @@ services:
    args:
     BUILD_BASE_IMAGE: zabbix-build-mysql:alpine-local
   image: zabbix-agent:alpine-local
+  init: true
   profiles:
    - full
    - all

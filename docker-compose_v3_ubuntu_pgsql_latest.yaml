@@ -2,6 +2,7 @@ version: '3.5'
 services:
  zabbix-server:
   image: zabbix/zabbix-server-pgsql:ubuntu-trunk
+  init: true
   ports:
    - "10051:10051"
   volumes:
@@ -64,6 +65,7 @@ services:
 
  zabbix-proxy-sqlite3:
   image: zabbix/zabbix-proxy-sqlite3:ubuntu-trunk
+  init: true
   profiles:
    - all
   ports:
@@ -112,6 +114,7 @@ services:
 
  zabbix-proxy-mysql:
   image: zabbix/zabbix-proxy-mysql:ubuntu-trunk
+  init: true
   profiles:
    - all
   ports:
@@ -275,6 +278,7 @@ services:
 
  zabbix-agent:
   image: zabbix/zabbix-agent:ubuntu-trunk
+  init: true
   profiles:
    - full
    - all

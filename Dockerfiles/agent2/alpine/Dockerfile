@@ -37,8 +37,7 @@ COPY --from=builder ["/tmp/mongodb_plugin/zabbix-agent2-plugin-mongodb", "/usr/s
 COPY --from=builder ["/tmp/postgresql_plugin/zabbix-agent2-plugin-postgresql", "/usr/sbin/zabbix-agent2-plugin/zabbix-agent2-plugin-postgresql"]
 
 RUN set -eux && \
-    INSTALL_PKGS="tini \
-            tzdata \
+    INSTALL_PKGS="tzdata \
             bash \
             pcre2 \
             coreutils \
@@ -80,7 +79,7 @@ WORKDIR /var/lib/zabbix
 
 COPY ["docker-entrypoint.sh", "/usr/bin/"]
 
-ENTRYPOINT ["/sbin/tini", "--", "/usr/bin/docker-entrypoint.sh"]
+ENTRYPOINT ["/usr/bin/docker-entrypoint.sh"]
 
 USER 1997
 

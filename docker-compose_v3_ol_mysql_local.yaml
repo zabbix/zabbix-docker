@@ -39,6 +39,7 @@ services:
    args:
     BUILD_BASE_IMAGE: zabbix-build-mysql:ol-local
   image: zabbix-server-mysql:ol-local
+  init: true
   ports:
    - "10051:10051"
   volumes:
@@ -112,6 +113,7 @@ services:
    args:
     BUILD_BASE_IMAGE: zabbix-build-sqlite3:ol-local
   image: zabbix-proxy-sqlite3:ol-local
+  init: true
   profiles:
    - all
   ports:
@@ -168,6 +170,7 @@ services:
    args:
     BUILD_BASE_IMAGE: zabbix-build-mysql:ol-local
   image: zabbix-proxy-mysql:ol-local
+  init: true
   profiles:
    - all
   ports:
@@ -361,6 +364,7 @@ services:
    args:
     BUILD_BASE_IMAGE: zabbix-build-mysql:ol-local
   image: zabbix-agent:ol-local
+  init: true
   profiles:
    - full
    - all

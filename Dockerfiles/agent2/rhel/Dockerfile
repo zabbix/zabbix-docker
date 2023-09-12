@@ -57,7 +57,6 @@ COPY --from=builder ["/tmp/postgresql_plugin/zabbix-agent2-plugin-postgresql", "
 
 RUN set -eux && \
     INSTALL_PKGS="bash \
-            tini \
             tzdata \
             iputils \
             shadow-utils \
@@ -114,7 +113,7 @@ WORKDIR /var/lib/zabbix
 
 COPY ["docker-entrypoint.sh", "/usr/bin/"]
 
-ENTRYPOINT ["/usr/bin/tini", "--", "/usr/bin/docker-entrypoint.sh"]
+ENTRYPOINT ["/usr/bin/docker-entrypoint.sh"]
 
 USER 1997
 

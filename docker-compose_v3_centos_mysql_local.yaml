@@ -39,6 +39,7 @@ services:
    args:
     BUILD_BASE_IMAGE: zabbix-build-mysql:centos-local
   image: zabbix-server-mysql:centos-local
+  init: true
   ports:
    - "10051:10051"
   volumes:
@@ -112,6 +113,7 @@ services:
    args:
     BUILD_BASE_IMAGE: zabbix-build-sqlite3:centos-local
   image: zabbix-proxy-sqlite3:centos-local
+  init: true
   profiles:
    - all
   ports:
@@ -168,6 +170,7 @@ services:
    args:
     BUILD_BASE_IMAGE: zabbix-build-mysql:centos-local
   image: zabbix-proxy-mysql:centos-local
+  init: true
   profiles:
    - all
   ports:
@@ -361,6 +364,7 @@ services:
    args:
     BUILD_BASE_IMAGE: zabbix-build-mysql:centos-local
   image: zabbix-agent:centos-local
+  init: true
   profiles:
    - full
    - all
