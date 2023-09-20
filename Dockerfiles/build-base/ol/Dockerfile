@@ -38,7 +38,7 @@ RUN set -eux && \
             openldap-devel \
             sqlite-devel \
             postgresql-server-devel \
-            java-1.8.0-openjdk-devel \
+            java-17-openjdk-devel \
             git \
             gettext \
             unixODBC-devel" && \

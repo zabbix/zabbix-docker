@@ -31,7 +31,7 @@ COPY --from=builder ["/tmp/zabbix-${ZBX_VERSION}/src/zabbix_java/lib", "/usr/sbi
 
 RUN set -eux && \
     INSTALL_PKGS="bash \
-            java-1.8.0-openjdk-headless \
+            java-17-openjdk-headless \
             findutils" && \
     microdnf -y install \
             --disablerepo="*" \
