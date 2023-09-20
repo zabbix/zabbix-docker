@@ -52,7 +52,7 @@ RUN set -eux && \
     INSTALL_PKGS="bash \
             findutils \
             shadow-utils \
-            java-1.8.0-openjdk-headless" && \
+            java-17-openjdk-headless" && \
     microdnf -y install \
             --disablerepo "*" \
             --enablerepo "ubi-8-baseos-rpms" \

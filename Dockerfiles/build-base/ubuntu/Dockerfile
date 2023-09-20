@@ -38,7 +38,7 @@ RUN set -eux && \
             libssh-dev \
             libxml2-dev \
             make \
-            openjdk-8-jdk-headless \
+            openjdk-17-jdk-headless \
             patch \
             pkg-config \
             gettext \
