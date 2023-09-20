@@ -148,7 +148,7 @@ RUN Set-Location -Path $env:SystemDrive\.; `
     [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; `
 	Invoke-WebRequest -OutFile $env:SystemDrive\pcre2.zip -Uri $env:PCRE2_URL; `
     `
-    $sha256 = 'c33b418e3b936ee3153de2c61cc638e7e4fe3156022a5c77d0711bcbb9d64f1f'; `
+    $sha256 = '0f2a1403733d1a409e9305996bf8e5ea7f69ed38f38d2bc1e0c0b041ad7a01a9'; `
     Write-Host ('Verifying SHA256 ({0}) ...' -f $sha256); `
     if ((Get-FileHash $env:SystemDrive\pcre2.zip -Algorithm sha256).Hash -ne $sha256) { `
         Write-Host 'Checksum PCRE2 library failed!'; `
