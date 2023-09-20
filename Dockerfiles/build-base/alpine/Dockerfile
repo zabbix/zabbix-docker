@@ -38,13 +38,13 @@ RUN set -eux && \
             patch \
             pcre2-dev \
             postgresql-dev \
-            openjdk8 \
+            openjdk17 \
             gettext \
             git \
             g++ \
             go \
             make \
-            openjdk8-jre-base \
+            openjdk17-jre-headless \
             unixodbc-dev" && \
     apk add \
             --no-cache \

@@ -32,7 +32,7 @@ COPY --from=builder ["/tmp/zabbix-${ZBX_VERSION}/src/zabbix_java/lib", "/usr/sbi
 
 RUN set -eux && \
     INSTALL_PKGS="bash \
-            openjdk8-jre-base" && \
+            openjdk17-jre-headless" && \
     apk add \
             --no-cache \
             --clean-protected \

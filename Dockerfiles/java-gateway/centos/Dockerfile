@@ -32,7 +32,7 @@ COPY --from=builder ["/tmp/zabbix-${ZBX_VERSION}/src/zabbix_java/lib", "/usr/sbi
 RUN set -eux && \
     REPOLIST="baseos,appstream" && \
     INSTALL_PKGS="bash \
-            java-1.8.0-openjdk-headless \
+            java-17-openjdk-headless \
             findutils" && \
     dnf -y install \
         --disablerepo "*" \
