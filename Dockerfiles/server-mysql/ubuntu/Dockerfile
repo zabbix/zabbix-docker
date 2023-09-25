@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1
 ARG MAJOR_VERSION=4.0
-ARG ZBX_VERSION=${MAJOR_VERSION}.48
+ARG ZBX_VERSION=${MAJOR_VERSION}.49
 ARG BUILD_BASE_IMAGE=zabbix-build-mysql:ubuntu-${ZBX_VERSION}
 
 FROM ${BUILD_BASE_IMAGE} as builder
