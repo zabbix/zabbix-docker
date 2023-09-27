@@ -126,7 +126,7 @@ The variable is timezone in PHP format. Full list of supported timezones are ava
 
 ### `ZBX_SERVER_NAME`
 
-The variable is visible Zabbix installation name in right top corner of the web interface.
+The variable is visible Zabbix installation name in right or left top corner of the web interface.
 
 ### `DB_DOUBLE_IEEE754`
 
