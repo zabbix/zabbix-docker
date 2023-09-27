@@ -65,6 +65,14 @@ RUN set -eux && \
             --setopt=install_weak_deps=False \
             --best \
         ${INSTALL_PKGS} && \
+    dnf -y install \
+            --disablerepo "*" \
+            --enablerepo "${REPOLIST}" \
+            --setopt=tsflags=nodocs \
+            --setopt=install_weak_deps=False \
+            --allowerasing \
+            --best \
+        libcurl && \
     groupadd \
             --system \
             --gid 1995 \

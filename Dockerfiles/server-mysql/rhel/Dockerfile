@@ -63,7 +63,9 @@ RUN set -eux && \
             tzdata \
             iputils \
             hostname \
-            libcurl-minimal \
+            libssh \
+            libpsl \
+            libbrotli \
             libevent \
             openldap \
             libssh \
@@ -96,6 +98,10 @@ RUN set -eux && \
             --best \
             --setopt=tsflags=nodocs \
         tzdata && \
+    microdnf download libcurl && \
+    rpm -Uvh --nodeps --replacefiles "*curl*$( uname -i ).rpm" && \
+    microdnf remove -y libcurl-minimal && \
+    rm -rf "*curl*$( uname -i ).rpm" && \
     groupadd \
             --system \
             --gid 1995 \
