@@ -518,7 +518,9 @@ services:
    - mysqld
    - --character-set-server=utf8mb4
    - --collation-server=utf8mb4_bin
-   - --default-authentication-plugin=mysql_native_password
+# Only during upgrade from versions prior 6.4
+#   - --log_bin_trust_function_creators=1
+# Use TLS encryption for connections to database
 #   - --require-secure-transport
 #   - --ssl-ca=/run/secrets/root-ca.pem
 #   - --ssl-cert=/run/secrets/server-cert.pem

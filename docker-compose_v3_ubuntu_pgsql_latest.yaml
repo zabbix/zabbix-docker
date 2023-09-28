@@ -411,7 +411,8 @@ services:
    - mysqld
    - --character-set-server=utf8mb4
    - --collation-server=utf8mb4_bin
-   - --default-authentication-plugin=mysql_native_password
+# Only during upgrade from versions prior 6.4
+#   - --log_bin_trust_function_creators=1
   volumes:
    - ./zbx_env/var/lib/mysql:/var/lib/mysql:rw
   env_file:
@@ -429,7 +430,7 @@ services:
      - mysql-database
 
  postgres-server:
-  image: postgres:14-alpine
+  image: postgres:15-alpine
 #  command: -c ssl=on -c ssl_cert_file=/run/secrets/server-cert.pem -c ssl_key_file=/run/secrets/server-key.pem -c ssl_ca_file=/run/secrets/root-ca.pem
   volumes:
    - ./zbx_env/var/lib/postgresql/data:/var/lib/postgresql/data:rw
