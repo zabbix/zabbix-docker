@@ -32,7 +32,9 @@ COPY --from=builder ["/tmp/zabbix-${ZBX_VERSION}/src/zabbix_get/zabbix_get", "/u
 COPY --from=builder ["/tmp/zabbix-${ZBX_VERSION}/src/zabbix_sender/zabbix_sender", "/usr/bin/zabbix_sender"]
 COPY --from=builder ["/tmp/zabbix-${ZBX_VERSION}/conf/zabbix_server.conf", "/etc/zabbix/zabbix_server.conf"]
 COPY --from=builder ["/tmp/zabbix-${ZBX_VERSION}/database/postgresql/create_server.sql.gz", "/usr/share/doc/zabbix-server-postgresql/create.sql.gz"]
-COPY --from=builder ["/tmp/zabbix-${ZBX_VERSION}/database/postgresql/timescaledb.sql", "/usr/share/doc/zabbix-server-postgresql/timescaledb.sql"]
+COPY --from=builder ["/tmp/zabbix-${ZBX_VERSION}/database/postgresql/timescaledb/schema.sql", "/usr/share/doc/zabbix-server-postgresql/timescaledb.sql"]
+COPY --from=builder ["/tmp/zabbix-${ZBX_VERSION}/database/postgresql/timescaledb/option-patches/with-compression/*.sql", "/usr/share/doc/zabbix-server-postgresql/option-patches/with-compression/"]
+COPY --from=builder ["/tmp/zabbix-${ZBX_VERSION}/database/postgresql/timescaledb/option-patches/without-compression/*.sql", "/usr/share/doc/zabbix-server-postgresql/option-patches/without-compression/"]
 
 RUN set -eux && \
     echo "#!/bin/sh\nexit 101" > /usr/sbin/policy-rc.d && \
