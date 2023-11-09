@@ -6,7 +6,8 @@ ARG ZBX_VERSION=${MAJOR_VERSION}.8
 
 ENV TERM=xterm \
     ZBX_VERSION=${ZBX_VERSION} \
-    PATH=/usr/local/go/bin:$PATH
+    PATH=/usr/local/go/bin:$PATH \
+    GOPROXY=direct
 
 LABEL org.opencontainers.image.authors="Alexey Pustovalov <alexey.pustovalov@zabbix.com>" \
       org.opencontainers.image.description="Zabbix build base image contains all required packages to build Zabbix images" \
