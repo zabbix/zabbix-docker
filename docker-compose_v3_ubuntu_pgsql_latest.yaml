@@ -343,6 +343,9 @@ services:
 
  zabbix-snmptraps:
   image: zabbix/zabbix-snmptraps:ubuntu-5.0-latest
+# Override snmptrapd command arguments to receive SNMP traps by DNS
+# It must be done with ZBX_SNMP_TRAP_USE_DNS=true environment variable
+#  command: /usr/sbin/snmptrapd -C -c /etc/snmp/snmptrapd.conf -Lo -A
   profiles:
    - full
    - all
@@ -358,6 +361,8 @@ services:
     reservations:
       cpus: '0.25'
       memory: 128M
+  env_file:
+   - ./env_vars/.env_snmptraps
   networks:
    zbx_net_frontend:
     aliases:
