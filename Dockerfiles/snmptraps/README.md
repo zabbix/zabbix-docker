@@ -58,6 +58,23 @@ The Zabbix snmptraps log is available through Docker's container log:
 $ docker logs  some-zabbix-snmptraps
 ```
 
+## Environment Variables
+
+When you start the `zabbix-snmptraps` image, you can adjust the configuration by passing one or more environment variables on the `docker run` command line.
+
+### `ZBX_SNMP_TRAP_DATE_FORMAT`
+
+This variable is represent date and time format in the output `snmptraps.log` file. By default, value is `+%Y%m%d.%H%M%S`. Please, refer to `date` command man for more details about date and time format.
+
+### `ZBX_SNMP_TRAP_FORMAT`
+
+This variable is SNMP trap format in the output `snmptraps.log` file. By default, value is `\n`, in this case each new variable is placed on new line.
+
+### `ZBX_SNMP_TRAP_USE_DNS`
+
+This variable manages source network address representation. It can be IP address or DNS of SNMP trap sender. The variable works only when container command is modified and "-n" command argument is removed from argument list. By default, value is `false`.
+
+
 ## Allowed volumes for the Zabbix snmptraps container
 
 ### ``/var/lib/zabbix/snmptraps``
