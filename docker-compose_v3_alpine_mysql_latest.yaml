@@ -2,6 +2,7 @@ version: '3.5'
 services:
  zabbix-server:
   image: zabbix/zabbix-server-mysql:alpine-6.4-latest
+  restart: unless-stopped
   ports:
    - "10051:10051"
   volumes:
@@ -70,6 +71,7 @@ services:
   image: zabbix/zabbix-proxy-sqlite3:alpine-6.4-latest
   profiles:
    - all
+  restart: unless-stopped
   ports:
    - "10061:10051"
   volumes:
@@ -119,6 +121,7 @@ services:
   image: zabbix/zabbix-proxy-mysql:alpine-6.4-latest
   profiles:
    - all
+  restart: unless-stopped
   ports:
    - "10071:10051"
   volumes:
@@ -179,6 +182,7 @@ services:
   image: zabbix/zabbix-web-apache-mysql:alpine-6.4-latest
   profiles:
    - all
+  restart: unless-stopped
   ports:
    - "8081:8080"
    - "8443:8443"
@@ -234,6 +238,7 @@ services:
 
  zabbix-web-nginx-mysql:
   image: zabbix/zabbix-web-nginx-mysql:alpine-6.4-latest
+  restart: unless-stopped
   ports:
    - "80:8080"
    - "443:8443"
@@ -292,6 +297,7 @@ services:
   profiles:
    - full
    - all
+  restart: unless-stopped
   ports:
    - "10050:10050"
   volumes:
@@ -332,6 +338,7 @@ services:
   profiles:
    - full
    - all
+  restart: unless-stopped
   ports:
    - "10052:10052"
   deploy:
@@ -364,6 +371,7 @@ services:
   profiles:
    - full
    - all
+  restart: unless-stopped
   ports:
    - "162:1162/udp"
   volumes:
@@ -395,6 +403,7 @@ services:
   profiles:
    - full
    - all
+  restart: unless-stopped
   ports:
    - "10053:10053"
   volumes:
@@ -425,6 +434,7 @@ services:
 
  mysql-server:
   image: mysql:8.0-oracle
+  restart: unless-stopped
   command:
    - mysqld
    - --character-set-server=utf8mb4
