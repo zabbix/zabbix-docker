@@ -505,7 +505,7 @@ networks:
 
 volumes:
   snmptraps:
-#  dbsocket:
+
 
 secrets:
   MYSQL_USER:
