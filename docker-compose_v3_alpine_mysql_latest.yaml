@@ -516,13 +516,7 @@ secrets:
     file: ./env_vars/.MYSQL_ROOT_USER
   MYSQL_ROOT_PASSWORD:
     file: ./env_vars/.MYSQL_ROOT_PASSWORD
-#  client-key.pem:
-#    file: ./env_vars/.ZBX_DB_KEY_FILE
-#  client-cert.pem:
-#    file: ./env_vars/.ZBX_DB_CERT_FILE
-#  root-ca.pem:
-#    file: ./env_vars/.ZBX_DB_CA_FILE
-#  server-cert.pem:
+
 #    file: ./env_vars/.DB_CERT_FILE
 #  server-key.pem:
 #    file: ./env_vars/.DB_KEY_FILE
