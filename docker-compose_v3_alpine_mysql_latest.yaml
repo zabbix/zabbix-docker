@@ -518,5 +518,4 @@ secrets:
     file: ./env_vars/.MYSQL_ROOT_PASSWORD
 
 #    file: ./env_vars/.DB_CERT_FILE
-#  server-key.pem:
-#    file: ./env_vars/.DB_KEY_FILE
+
