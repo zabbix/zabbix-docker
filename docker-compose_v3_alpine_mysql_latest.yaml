@@ -441,7 +441,6 @@ services:
    - --collation-server=utf8mb4_bin
 # Only during upgrade from versions prior 6.4
 #   - --log_bin_trust_function_creators=1
-# Use TLS encryption for connections to database
 #   - --require-secure-transport
 #   - --ssl-ca=/run/secrets/root-ca.pem
 #   - --ssl-cert=/run/secrets/server-cert.pem
@@ -455,9 +454,7 @@ services:
    - MYSQL_USER
    - MYSQL_PASSWORD
    - MYSQL_ROOT_PASSWORD
-#   - server-key.pem
-#   - server-cert.pem
-#   - root-ca.pem
+
   stop_grace_period: 1m
   networks:
    zbx_net_backend:
