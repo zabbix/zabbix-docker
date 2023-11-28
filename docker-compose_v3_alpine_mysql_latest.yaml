@@ -441,7 +441,6 @@ services:
    - --collation-server=utf8mb4_bin
 # Only during upgrade from versions prior 6.4
 #   - --log_bin_trust_function_creators=1
-#   - --require-secure-transport
 #   - --ssl-ca=/run/secrets/root-ca.pem
 #   - --ssl-cert=/run/secrets/server-cert.pem
 #   - --ssl-key=/run/secrets/server-key.pem
