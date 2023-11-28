@@ -442,7 +442,7 @@ services:
 # Only during upgrade from versions prior 6.4
 #   - --log_bin_trust_function_creators=1
 #   - --ssl-ca=/run/secrets/root-ca.pem
-#   - --ssl-cert=/run/secrets/server-cert.pem
+
 #   - --ssl-key=/run/secrets/server-key.pem
   volumes:
    - ./zbx_env/var/lib/mysql:/var/lib/mysql:rw
