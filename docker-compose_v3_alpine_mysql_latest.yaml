@@ -366,6 +366,8 @@ services:
  zabbix-snmptraps:
   image: zabbix/zabbix-snmptraps:alpine-6.4-latest
 
+
+
 #  command: /usr/sbin/snmptrapd -C -c /etc/snmp/snmptrapd.conf -Lo -A
   profiles:
    - full
