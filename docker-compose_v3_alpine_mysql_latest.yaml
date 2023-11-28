@@ -440,7 +440,7 @@ services:
    - --character-set-server=utf8mb4
    - --collation-server=utf8mb4_bin
 # Only during upgrade from versions prior 6.4
-#   - --log_bin_trust_function_creators=1
+
 #   - --ssl-ca=/run/secrets/root-ca.pem
 
 #   - --ssl-key=/run/secrets/server-key.pem
