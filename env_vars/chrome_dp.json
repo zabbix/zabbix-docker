@@ -87,7 +87,7 @@
       "args": null
     },
     {
-      "name": "clone",
+      "names": ["clone","clone3"],
       "action": "SCMP_ACT_ALLOW",
       "args": null
     },
