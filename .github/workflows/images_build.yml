@@ -1,6 +1,7 @@
 name: Build images (DockerHub)
 
 on:
+  pull_request:
   release:
     types:
       - published
