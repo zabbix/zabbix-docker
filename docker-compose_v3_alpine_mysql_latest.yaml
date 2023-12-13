@@ -454,6 +454,7 @@ services:
 #   - root-ca.pem
   stop_grace_period: 1m
   networks:
+   zbx_net_frontend:
    zbx_net_backend:
     aliases:
      - mysql-server

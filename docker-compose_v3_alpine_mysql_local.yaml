@@ -3,14 +3,14 @@ services:
   build:
    context: ./Dockerfiles/build-base/alpine
    cache_from:
-    - alpine:3.18
+    - alpine:3.19
   image: zabbix-build-base:alpine-local
 
  zabbix-build-mysql:
   build:
    context: ./Dockerfiles/build-mysql/alpine
    cache_from:
-    - alpine:3.18
+    - alpine:3.19
    args:
     BUILD_BASE_IMAGE: zabbix-build-base:alpine-local
   image: zabbix-build-mysql:alpine-local
@@ -21,7 +21,7 @@ services:
   build:
    context: ./Dockerfiles/build-sqlite3/alpine
    cache_from:
-    - alpine:3.18
+    - alpine:3.19
    args:
     BUILD_BASE_IMAGE: zabbix-build-base:alpine-local
   image: zabbix-build-sqlite3:alpine-local
@@ -34,7 +34,7 @@ services:
   build:
    context: ./Dockerfiles/server-mysql/alpine
    cache_from:
-    - alpine:3.18
+    - alpine:3.19
    args:
     BUILD_BASE_IMAGE: zabbix-build-mysql:alpine-local
   image: zabbix-server-mysql:alpine-local
@@ -108,7 +108,7 @@ services:
   build:
    context: ./Dockerfiles/proxy-sqlite3/alpine
    cache_from:
-    - alpine:3.18
+    - alpine:3.19
    args:
     BUILD_BASE_IMAGE: zabbix-build-sqlite3:alpine-local
   image: zabbix-proxy-sqlite3:alpine-local
@@ -165,7 +165,7 @@ services:
   build:
    context: ./Dockerfiles/proxy-mysql/alpine
    cache_from:
-    - alpine:3.18
+    - alpine:3.19
    args:
     BUILD_BASE_IMAGE: zabbix-build-mysql:alpine-local
   image: zabbix-proxy-mysql:alpine-local
@@ -233,7 +233,7 @@ services:
   build:
    context: ./Dockerfiles/web-apache-mysql/alpine
    cache_from:
-    - alpine:3.18
+    - alpine:3.19
    args:
     BUILD_BASE_IMAGE: zabbix-build-mysql:alpine-local
   image: zabbix-web-apache-mysql:alpine-local
@@ -297,7 +297,7 @@ services:
   build:
    context: ./Dockerfiles/web-nginx-mysql/alpine
    cache_from:
-    - alpine:3.18
+    - alpine:3.19
    args:
     BUILD_BASE_IMAGE: zabbix-build-mysql:alpine-local
   image: zabbix-web-nginx-mysql:alpine-local
@@ -359,7 +359,7 @@ services:
   build:
    context: ./Dockerfiles/agent/alpine
    cache_from:
-    - alpine:3.18
+    - alpine:3.19
    args:
     BUILD_BASE_IMAGE: zabbix-build-mysql:alpine-local
   image: zabbix-agent:alpine-local
@@ -408,7 +408,7 @@ services:
   build:
    context: ./Dockerfiles/java-gateway/alpine
    cache_from:
-    - alpine:3.18
+    - alpine:3.19
    args:
     BUILD_BASE_IMAGE: zabbix-build-mysql:alpine-local
   image: zabbix-java-gateway:alpine-local
@@ -445,7 +445,7 @@ services:
   build:
    context: ./Dockerfiles/snmptraps/alpine
    cache_from:
-    - alpine:3.18
+    - alpine:3.19
   image: zabbix-snmptraps:alpine-local
 # Override snmptrapd command arguments to receive SNMP traps by DNS
 # It must be done with ZBX_SNMP_TRAP_USE_DNS=true environment variable
@@ -483,7 +483,7 @@ services:
   build:
    context: ./Dockerfiles/web-service/alpine
    cache_from:
-    - alpine:3.18
+    - alpine:3.19
    args:
     BUILD_BASE_IMAGE: zabbix-build-mysql:alpine-local
   image: zabbix-web-service:alpine-local
@@ -538,6 +538,8 @@ services:
 #   - dbsocket:/var/run/mysqld/
   env_file:
    - ./env_vars/.env_db_mysql
+  ports:
+   - "3306:3306/tcp"
   secrets:
    - MYSQL_USER
    - MYSQL_PASSWORD
@@ -547,6 +549,7 @@ services:
 #   - root-ca.pem
   stop_grace_period: 1m
   networks:
+   zbx_net_frontend:
    zbx_net_backend:
     aliases:
      - mysql-server
