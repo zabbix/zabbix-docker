@@ -1,7 +1,7 @@
 FROM ubuntu:jammy
 
 ARG MAJOR_VERSION=6.0
-ARG ZBX_VERSION=${MAJOR_VERSION}.23
+ARG ZBX_VERSION=${MAJOR_VERSION}.25
 ARG ZBX_SOURCES=https://git.zabbix.com/scm/zbx/zabbix.git
 
 ENV TERM=xterm \
