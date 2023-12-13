@@ -1,58 +1,60 @@
-version: '3.5'
+version: '3.8'
 services:
  zabbix-build-base:
   build:
-   context: ./Dockerfiles/build-base/centos
+   context: ./Dockerfiles/build-base/${CENTOS_OS_TAG_SHORT}
    cache_from:
-    - quay.io/centos/centos:stream8
-  image: zabbix-build-base:centos-local
+    - "${CENTOS_CACHE_FROM}"
+  image: ${BUILD_BASE_IMAGE}:${ZABBIX_CENTOS_IMAGE_TAG}${ZABBIX_LOCAL_IMAGE_TAG_POSTFIX}
 
  zabbix-build-mysql:
   build:
-   context: ./Dockerfiles/build-mysql/centos
+   context: ./Dockerfiles/build-mysql/${CENTOS_OS_TAG_SHORT}
    cache_from:
-    - quay.io/centos/centos:stream8
+    - "${CENTOS_CACHE_FROM}"
    args:
-    BUILD_BASE_IMAGE: zabbix-build-base:centos-local
-  image: zabbix-build-mysql:centos-local
+    BUILD_BASE_IMAGE: ${BUILD_BASE_IMAGE}:${ZABBIX_CENTOS_IMAGE_TAG}${ZABBIX_LOCAL_IMAGE_TAG_POSTFIX}
+  image: ${BUILD_BASE_MYSQL_IMAGE}:${ZABBIX_CENTOS_IMAGE_TAG}${ZABBIX_LOCAL_IMAGE_TAG_POSTFIX}
   depends_on:
    - zabbix-build-base
 
  zabbix-build-sqlite3:
   build:
-   context: ./Dockerfiles/build-sqlite3/centos
+   context: ./Dockerfiles/build-sqlite3/${CENTOS_OS_TAG_SHORT}
    cache_from:
-    - quay.io/centos/centos:stream8
+    - "${CENTOS_CACHE_FROM}"
    args:
-    BUILD_BASE_IMAGE: zabbix-build-base:centos-local
-  image: zabbix-build-sqlite3:centos-local
+    BUILD_BASE_IMAGE: ${BUILD_BASE_IMAGE}:${ZABBIX_CENTOS_IMAGE_TAG}${ZABBIX_LOCAL_IMAGE_TAG_POSTFIX}
+  image: ${BUILD_BASE_SQLITE3_IMAGE}:${ZABBIX_CENTOS_IMAGE_TAG}${ZABBIX_LOCAL_IMAGE_TAG_POSTFIX}
   profiles:
    - all
   depends_on:
    - zabbix-build-base
 
  zabbix-server:
-  build: 
-   context: ./Dockerfiles/server-mysql/centos
+  build:
+   context: ./Dockerfiles/server-mysql/${CENTOS_OS_TAG_SHORT}
    cache_from:
-    - quay.io/centos/centos:stream8
+    - "${CENTOS_CACHE_FROM}"
    args:
-    BUILD_BASE_IMAGE: zabbix-build-mysql:centos-local
-  image: zabbix-server-mysql:centos-local
+    BUILD_BASE_IMAGE: ${BUILD_BASE_MYSQL_IMAGE}:${ZABBIX_CENTOS_IMAGE_TAG}${ZABBIX_LOCAL_IMAGE_TAG_POSTFIX}
+  image: zabbix-server-mysql:${ZABBIX_CENTOS_IMAGE_TAG}${ZABBIX_LOCAL_IMAGE_TAG_POSTFIX}
+  init: true
   ports:
-   - "10051:10051"
+   - "${ZABBIX_SERVER_PORT}:10051"
+  restart: "${RESTART_POLICY}"
   volumes:
    - /etc/localtime:/etc/localtime:ro
-   - /etc/timezone:/etc/timezone:ro 
+   - /etc/timezone:/etc/timezone:ro
 #   - dbsocket:/var/run/mysqld/
-   - ./zbx_env/usr/lib/zabbix/alertscripts:/usr/lib/zabbix/alertscripts:ro
-   - ./zbx_env/usr/lib/zabbix/externalscripts:/usr/lib/zabbix/externalscripts:ro
-   - ./zbx_env/var/lib/zabbix/dbscripts:/var/lib/zabbix/dbscripts:ro
-   - ./zbx_env/var/lib/zabbix/export:/var/lib/zabbix/export:rw
-   - ./zbx_env/var/lib/zabbix/modules:/var/lib/zabbix/modules:ro
-   - ./zbx_env/var/lib/zabbix/enc:/var/lib/zabbix/enc:ro
-   - ./zbx_env/var/lib/zabbix/ssh_keys:/var/lib/zabbix/ssh_keys:ro
-   - ./zbx_env/var/lib/zabbix/mibs:/var/lib/zabbix/mibs:ro
+   - ${DATA_DIRECTORY}/usr/lib/zabbix/alertscripts:/usr/lib/zabbix/alertscripts:ro
+   - ${DATA_DIRECTORY}/usr/lib/zabbix/externalscripts:/usr/lib/zabbix/externalscripts:ro
+   - ${DATA_DIRECTORY}/var/lib/zabbix/dbscripts:/var/lib/zabbix/dbscripts:ro
+   - ${DATA_DIRECTORY}/var/lib/zabbix/export:/var/lib/zabbix/export:rw
+   - ${DATA_DIRECTORY}/var/lib/zabbix/modules:/var/lib/zabbix/modules:ro
+   - ${DATA_DIRECTORY}/var/lib/zabbix/enc:/var/lib/zabbix/enc:ro
+   - ${DATA_DIRECTORY}/var/lib/zabbix/ssh_keys:/var/lib/zabbix/ssh_keys:ro
+   - ${DATA_DIRECTORY}/var/lib/zabbix/mibs:/var/lib/zabbix/mibs:ro
    - snmptraps:/var/lib/zabbix/snmptraps:rw
   ulimits:
    nproc: 65535
@@ -68,8 +70,8 @@ services:
       cpus: '0.5'
       memory: 512M
   env_file:
-   - ./env_vars/.env_db_mysql
-   - ./env_vars/.env_srv
+   - ${ENV_VARS_DIRECTORY}/.env_db_mysql
+   - ${ENV_VARS_DIRECTORY}/.env_srv
   secrets:
    - MYSQL_USER
    - MYSQL_PASSWORD
@@ -86,8 +88,6 @@ services:
      aliases:
       - zabbix-server
       - zabbix-server-mysql
-      - zabbix-server-centos-mysql
-      - zabbix-server-mysql-centos
    zbx_net_frontend:
 #  devices:
 #   - "/dev/ttyUSB0:/dev/ttyUSB0"
@@ -102,28 +102,30 @@ services:
    com.zabbix.company: "Zabbix LLC"
    com.zabbix.component: "zabbix-server"
    com.zabbix.dbtype: "mysql"
-   com.zabbix.os: "centos"
+   com.zabbix.os: "${CENTOS_OS_TAG}"
 
  zabbix-proxy-sqlite3:
   build:
-   context: ./Dockerfiles/proxy-sqlite3/centos
+   context: ./Dockerfiles/proxy-sqlite3/${CENTOS_OS_TAG_SHORT}
    cache_from:
-    - quay.io/centos/centos:stream8
+    - "${CENTOS_CACHE_FROM}"
    args:
-    BUILD_BASE_IMAGE: zabbix-build-sqlite3:centos-local
-  image: zabbix-proxy-sqlite3:centos-local
+    BUILD_BASE_IMAGE: ${BUILD_BASE_SQLITE3_IMAGE}:${ZABBIX_CENTOS_IMAGE_TAG}${ZABBIX_LOCAL_IMAGE_TAG_POSTFIX}
+  image: zabbix-proxy-sqlite3:${ZABBIX_CENTOS_IMAGE_TAG}${ZABBIX_LOCAL_IMAGE_TAG_POSTFIX}
+  init: true
   profiles:
    - all
   ports:
-   - "10061:10051"
+   - "${ZABBIX_PROXY_SQLITE3_PORT}:10051"
+  restart: "${RESTART_POLICY}"
   volumes:
    - /etc/localtime:/etc/localtime:ro
-   - /etc/timezone:/etc/timezone:ro 
-   - ./zbx_env/usr/lib/zabbix/externalscripts:/usr/lib/zabbix/externalscripts:ro
-   - ./zbx_env/var/lib/zabbix/modules:/var/lib/zabbix/modules:ro
-   - ./zbx_env/var/lib/zabbix/enc:/var/lib/zabbix/enc:ro
-   - ./zbx_env/var/lib/zabbix/ssh_keys:/var/lib/zabbix/ssh_keys:ro
-   - ./zbx_env/var/lib/zabbix/mibs:/var/lib/zabbix/mibs:ro
+   - /etc/timezone:/etc/timezone:ro
+   - ${DATA_DIRECTORY}/usr/lib/zabbix/externalscripts:/usr/lib/zabbix/externalscripts:ro
+   - ${DATA_DIRECTORY}/var/lib/zabbix/modules:/var/lib/zabbix/modules:ro
+   - ${DATA_DIRECTORY}/var/lib/zabbix/enc:/var/lib/zabbix/enc:ro
+   - ${DATA_DIRECTORY}/var/lib/zabbix/ssh_keys:/var/lib/zabbix/ssh_keys:ro
+   - ${DATA_DIRECTORY}/var/lib/zabbix/mibs:/var/lib/zabbix/mibs:ro
    - snmptraps:/var/lib/zabbix/snmptraps:rw
   ulimits:
    nproc: 65535
@@ -139,8 +141,8 @@ services:
       cpus: '0.3'
       memory: 256M
   env_file:
-   - ./env_vars/.env_prx
-   - ./env_vars/.env_prx_sqlite3
+   - ${ENV_VARS_DIRECTORY}/.env_prx
+   - ${ENV_VARS_DIRECTORY}/.env_prx_sqlite3
   depends_on:
    - zabbix-java-gateway
    - zabbix-snmptraps
@@ -149,8 +151,6 @@ services:
    zbx_net_backend:
     aliases:
      - zabbix-proxy-sqlite3
-     - zabbix-proxy-centos-sqlite3
-     - zabbix-proxy-sqlite3-centos
    zbx_net_frontend:
   stop_grace_period: 30s
   labels:
@@ -158,29 +158,31 @@ services:
    com.zabbix.company: "Zabbix LLC"
    com.zabbix.component: "zabbix-proxy"
    com.zabbix.dbtype: "sqlite3"
-   com.zabbix.os: "centos"
+   com.zabbix.os: "${CENTOS_OS_TAG}"
 
  zabbix-proxy-mysql:
   build:
-   context: ./Dockerfiles/proxy-mysql/centos
+   context: ./Dockerfiles/proxy-mysql/${CENTOS_OS_TAG_SHORT}
    cache_from:
-    - quay.io/centos/centos:stream8
+    - "${CENTOS_CACHE_FROM}"
    args:
-    BUILD_BASE_IMAGE: zabbix-build-mysql:centos-local
-  image: zabbix-proxy-mysql:centos-local
+    BUILD_BASE_IMAGE: ${BUILD_BASE_MYSQL_IMAGE}:${ZABBIX_CENTOS_IMAGE_TAG}${ZABBIX_LOCAL_IMAGE_TAG_POSTFIX}
+  image: zabbix-proxy-mysql:${ZABBIX_CENTOS_IMAGE_TAG}${ZABBIX_LOCAL_IMAGE_TAG_POSTFIX}
+  init: true
   profiles:
    - all
   ports:
-   - "10071:10051"
+   - "${ZABBIX_PROXY_MYSQL_PORT}:10051"
+  restart: "${RESTART_POLICY}"
   volumes:
    - /etc/localtime:/etc/localtime:ro
    - /etc/timezone:/etc/timezone:ro
 #   - dbsocket:/var/run/mysqld/
-   - ./zbx_env/usr/lib/zabbix/externalscripts:/usr/lib/zabbix/externalscripts:ro
-   - ./zbx_env/var/lib/zabbix/modules:/var/lib/zabbix/modules:ro
-   - ./zbx_env/var/lib/zabbix/enc:/var/lib/zabbix/enc:ro
-   - ./zbx_env/var/lib/zabbix/ssh_keys:/var/lib/zabbix/ssh_keys:ro
-   - ./zbx_env/var/lib/zabbix/mibs:/var/lib/zabbix/mibs:ro
+   - ${DATA_DIRECTORY}/usr/lib/zabbix/externalscripts:/usr/lib/zabbix/externalscripts:ro
+   - ${DATA_DIRECTORY}/var/lib/zabbix/modules:/var/lib/zabbix/modules:ro
+   - ${DATA_DIRECTORY}/var/lib/zabbix/enc:/var/lib/zabbix/enc:ro
+   - ${DATA_DIRECTORY}/var/lib/zabbix/ssh_keys:/var/lib/zabbix/ssh_keys:ro
+   - ${DATA_DIRECTORY}/var/lib/zabbix/mibs:/var/lib/zabbix/mibs:ro
    - snmptraps:/var/lib/zabbix/snmptraps:rw
   ulimits:
    nproc: 65535
@@ -196,9 +198,9 @@ services:
       cpus: '0.3'
       memory: 256M
   env_file:
-   - ./env_vars/.env_db_mysql_proxy
-   - ./env_vars/.env_prx
-   - ./env_vars/.env_prx_mysql
+   - ${ENV_VARS_DIRECTORY}/.env_db_mysql_proxy
+   - ${ENV_VARS_DIRECTORY}/.env_prx
+   - ${ENV_VARS_DIRECTORY}/.env_prx_mysql
   depends_on:
    - mysql-server
    - zabbix-java-gateway
@@ -216,8 +218,6 @@ services:
    zbx_net_backend:
     aliases:
      - zabbix-proxy-mysql
-     - zabbix-proxy-centos-mysql
-     - zabbix-proxy-mysql-centos
    zbx_net_frontend:
   stop_grace_period: 30s
   labels:
@@ -225,27 +225,28 @@ services:
    com.zabbix.company: "Zabbix LLC"
    com.zabbix.component: "zabbix-proxy"
    com.zabbix.dbtype: "mysql"
-   com.zabbix.os: "centos"
+   com.zabbix.os: "${CENTOS_OS_TAG}"
 
  zabbix-web-apache-mysql:
   build:
-   context: ./Dockerfiles/web-apache-mysql/centos
+   context: ./Dockerfiles/web-apache-mysql/${CENTOS_OS_TAG_SHORT}
    cache_from:
-    - quay.io/centos/centos:stream8
+    - "${CENTOS_CACHE_FROM}"
    args:
-    BUILD_BASE_IMAGE: zabbix-build-mysql:centos-local
-  image: zabbix-web-apache-mysql:centos-local
+    BUILD_BASE_IMAGE: ${BUILD_BASE_MYSQL_IMAGE}:${ZABBIX_CENTOS_IMAGE_TAG}${ZABBIX_LOCAL_IMAGE_TAG_POSTFIX}
+  image: zabbix-web-apache-mysql:${ZABBIX_CENTOS_IMAGE_TAG}${ZABBIX_LOCAL_IMAGE_TAG_POSTFIX}
   profiles:
    - all
   ports:
-   - "8081:8080"
-   - "8443:8443"
+   - "${ZABBIX_WEB_APACHE_HTTP_PORT}:8080"
+   - "${ZABBIX_WEB_APACHE_HTTPS_PORT}:8443"
+  restart: "${RESTART_POLICY}"
   volumes:
    - /etc/localtime:/etc/localtime:ro
    - /etc/timezone:/etc/timezone:ro
 #   - dbsocket:/var/run/mysqld/
-   - ./zbx_env/etc/ssl/apache2:/etc/ssl/apache2:ro
-   - ./zbx_env/usr/share/zabbix/modules/:/usr/share/zabbix/modules/:ro
+   - ${DATA_DIRECTORY}/etc/ssl/apache2:/etc/ssl/apache2:ro
+   - ${DATA_DIRECTORY}/usr/share/zabbix/modules/:/usr/share/zabbix/modules/:ro
   deploy:
    resources:
     limits:
@@ -255,8 +256,8 @@ services:
       cpus: '0.5'
       memory: 256M
   env_file:
-   - ./env_vars/.env_db_mysql
-   - ./env_vars/.env_web
+   - ${ENV_VARS_DIRECTORY}/.env_db_mysql
+   - ${ENV_VARS_DIRECTORY}/.env_web
   secrets:
    - MYSQL_USER
    - MYSQL_PASSWORD
@@ -277,8 +278,6 @@ services:
    zbx_net_backend:
     aliases:
      - zabbix-web-apache-mysql
-     - zabbix-web-apache-centos-mysql
-     - zabbix-web-apache-mysql-centos
    zbx_net_frontend:
   stop_grace_period: 10s
   sysctls:
@@ -289,25 +288,26 @@ services:
    com.zabbix.component: "zabbix-frontend"
    com.zabbix.webserver: "apache2"
    com.zabbix.dbtype: "mysql"
-   com.zabbix.os: "centos"
+   com.zabbix.os: "${CENTOS_OS_TAG}"
 
  zabbix-web-nginx-mysql:
   build:
-   context: ./Dockerfiles/web-nginx-mysql/centos
+   context: ./Dockerfiles/web-nginx-mysql/${CENTOS_OS_TAG_SHORT}
    cache_from:
-    - quay.io/centos/centos:stream8
+    - "${CENTOS_CACHE_FROM}"
    args:
-    BUILD_BASE_IMAGE: zabbix-build-mysql:centos-local
-  image: zabbix-web-nginx-mysql:centos-local
+    BUILD_BASE_IMAGE: ${BUILD_BASE_MYSQL_IMAGE}:${ZABBIX_CENTOS_IMAGE_TAG}${ZABBIX_LOCAL_IMAGE_TAG_POSTFIX}
+  image: zabbix-web-nginx-mysql:${ZABBIX_CENTOS_IMAGE_TAG}${ZABBIX_LOCAL_IMAGE_TAG_POSTFIX}
   ports:
-   - "80:8080"
-   - "443:8443"
+   - "${ZABBIX_WEB_NGINX_HTTP_PORT}:8080"
+   - "${ZABBIX_WEB_NGINX_HTTPS_PORT}:8443"
+  restart: "${RESTART_POLICY}"
   volumes:
    - /etc/localtime:/etc/localtime:ro
    - /etc/timezone:/etc/timezone:ro
 #   - dbsocket:/var/run/mysqld/
-   - ./zbx_env/etc/ssl/nginx:/etc/ssl/nginx:ro
-   - ./zbx_env/usr/share/zabbix/modules/:/usr/share/zabbix/modules/:ro
+   - ${DATA_DIRECTORY}/etc/ssl/nginx:/etc/ssl/nginx:ro
+   - ${DATA_DIRECTORY}/usr/share/zabbix/modules/:/usr/share/zabbix/modules/:ro
   deploy:
    resources:
     limits:
@@ -317,8 +317,8 @@ services:
       cpus: '0.5'
       memory: 256M
   env_file:
-   - ./env_vars/.env_db_mysql
-   - ./env_vars/.env_web
+   - ${ENV_VARS_DIRECTORY}/.env_db_mysql
+   - ${ENV_VARS_DIRECTORY}/.env_web
   secrets:
    - MYSQL_USER
    - MYSQL_PASSWORD
@@ -339,8 +339,6 @@ services:
    zbx_net_backend:
     aliases:
      - zabbix-web-nginx-mysql
-     - zabbix-web-nginx-centos-mysql
-     - zabbix-web-nginx-mysql-centos
    zbx_net_frontend:
   stop_grace_period: 10s
   sysctls:
@@ -351,28 +349,30 @@ services:
    com.zabbix.component: "zabbix-frontend"
    com.zabbix.webserver: "nginx"
    com.zabbix.dbtype: "mysql"
-   com.zabbix.os: "centos"
+   com.zabbix.os: "${CENTOS_OS_TAG}"
 
  zabbix-agent:
   build:
-   context: ./Dockerfiles/agent/centos
+   context: ./Dockerfiles/agent/${CENTOS_OS_TAG_SHORT}
    cache_from:
-    - quay.io/centos/centos:stream8
+    - "${CENTOS_CACHE_FROM}"
    args:
-    BUILD_BASE_IMAGE: zabbix-build-mysql:centos-local
-  image: zabbix-agent:centos-local
+    BUILD_BASE_IMAGE: ${BUILD_BASE_MYSQL_IMAGE}:${ZABBIX_CENTOS_IMAGE_TAG}${ZABBIX_LOCAL_IMAGE_TAG_POSTFIX}
+  image: zabbix-agent:${ZABBIX_CENTOS_IMAGE_TAG}${ZABBIX_LOCAL_IMAGE_TAG_POSTFIX}
+  init: true
   profiles:
    - full
    - all
   ports:
-   - "10050:10050"
+   - "${ZABBIX_AGENT_PORT}:10050"
+  restart: "${RESTART_POLICY}"
   volumes:
    - /etc/localtime:/etc/localtime:ro
    - /etc/timezone:/etc/timezone:ro
-   - ./zbx_env/etc/zabbix/zabbix_agentd.d:/etc/zabbix/zabbix_agentd.d:ro
-   - ./zbx_env/var/lib/zabbix/modules:/var/lib/zabbix/modules:ro
-   - ./zbx_env/var/lib/zabbix/enc:/var/lib/zabbix/enc:ro
-   - ./zbx_env/var/lib/zabbix/ssh_keys:/var/lib/zabbix/ssh_keys:ro
+   - ${DATA_DIRECTORY}/etc/zabbix/zabbix_agentd.d:/etc/zabbix/zabbix_agentd.d:ro
+   - ${DATA_DIRECTORY}/var/lib/zabbix/modules:/var/lib/zabbix/modules:ro
+   - ${DATA_DIRECTORY}/var/lib/zabbix/enc:/var/lib/zabbix/enc:ro
+   - ${DATA_DIRECTORY}/var/lib/zabbix/ssh_keys:/var/lib/zabbix/ssh_keys:ro
   deploy:
    resources:
     limits:
@@ -383,37 +383,37 @@ services:
       memory: 64M
    mode: global
   env_file:
-   - ./env_vars/.env_agent
+   - ${ENV_VARS_DIRECTORY}/.env_agent
   privileged: true
   pid: "host"
   depends_on:
-    - zabbix-build-mysql
+   - zabbix-build-mysql
   networks:
    zbx_net_backend:
     aliases:
      - zabbix-agent
      - zabbix-agent-passive
-     - zabbix-agent-centos
   stop_grace_period: 5s
   labels:
    com.zabbix.description: "Zabbix agent"
    com.zabbix.company: "Zabbix LLC"
    com.zabbix.component: "zabbix-agentd"
-   com.zabbix.os: "centos"
+   com.zabbix.os: "${CENTOS_OS_TAG}"
 
  zabbix-java-gateway:
   build:
-   context: ./Dockerfiles/java-gateway/centos
+   context: ./Dockerfiles/java-gateway/${CENTOS_OS_TAG_SHORT}
    cache_from:
-    - quay.io/centos/centos:stream8
+    - "${CENTOS_CACHE_FROM}"
    args:
-    BUILD_BASE_IMAGE: zabbix-build-mysql:centos-local
-  image: zabbix-java-gateway:centos-local
+    BUILD_BASE_IMAGE: ${BUILD_BASE_MYSQL_IMAGE}:${ZABBIX_CENTOS_IMAGE_TAG}${ZABBIX_LOCAL_IMAGE_TAG_POSTFIX}
+  image: zabbix-java-gateway:${ZABBIX_CENTOS_IMAGE_TAG}${ZABBIX_LOCAL_IMAGE_TAG_POSTFIX}
   profiles:
    - full
    - all
   ports:
-   - "10052:10052"
+   - "${ZABBIX_JAVA_GATEWAY_PORT}:10052"
+  restart: "${RESTART_POLICY}"
   deploy:
    resources:
     limits:
@@ -423,27 +423,26 @@ services:
       cpus: '0.25'
       memory: 256M
   env_file:
-   - ./env_vars/.env_java
+   - ${ENV_VARS_DIRECTORY}/.env_java
   depends_on:
    - zabbix-build-mysql
   networks:
    zbx_net_backend:
     aliases:
      - zabbix-java-gateway
-     - zabbix-java-gateway-centos
   stop_grace_period: 5s
   labels:
    com.zabbix.description: "Zabbix Java Gateway"
    com.zabbix.company: "Zabbix LLC"
    com.zabbix.component: "java-gateway"
-   com.zabbix.os: "centos"
+   com.zabbix.os: "${CENTOS_OS_TAG}"
 
  zabbix-snmptraps:
   build:
-   context: ./Dockerfiles/snmptraps/centos
+   context: ./Dockerfiles/snmptraps/${CENTOS_OS_TAG_SHORT}
    cache_from:
-    - quay.io/centos/centos:stream8
-  image: zabbix-snmptraps:centos-local
+    - "${CENTOS_CACHE_FROM}"
+  image: zabbix-snmptraps:${ZABBIX_CENTOS_IMAGE_TAG}${ZABBIX_LOCAL_IMAGE_TAG_POSTFIX}
 # Override snmptrapd command arguments to receive SNMP traps by DNS
 # It must be done with ZBX_SNMP_TRAP_USE_DNS=true environment variable
 #  command: /usr/sbin/snmptrapd -C -c /etc/snmp/snmptrapd.conf -Lo -A
@@ -451,7 +450,8 @@ services:
    - full
    - all
   ports:
-   - "162:1162/udp"
+   - "${ZABBIX_SNMPTRAPS_PORT}:1162/udp"
+  restart: "${RESTART_POLICY}"
   volumes:
    - snmptraps:/var/lib/zabbix/snmptraps:rw
   deploy:
@@ -463,7 +463,7 @@ services:
       cpus: '0.25'
       memory: 128M
   env_file:
-   - ./env_vars/.env_snmptraps
+   - ${ENV_VARS_DIRECTORY}/.env_snmptraps
   networks:
    zbx_net_frontend:
     aliases:
@@ -474,25 +474,26 @@ services:
    com.zabbix.description: "Zabbix snmptraps"
    com.zabbix.company: "Zabbix LLC"
    com.zabbix.component: "snmptraps"
-   com.zabbix.os: "centos"
+   com.zabbix.os: "${CENTOS_OS_TAG}"
 
  zabbix-web-service:
   build:
-   context: ./Dockerfiles/web-service/centos
+   context: ./Dockerfiles/web-service/${CENTOS_OS_TAG_SHORT}
    cache_from:
-    - quay.io/centos/centos:stream8
+    - "${CENTOS_CACHE_FROM}"
    args:
-    BUILD_BASE_IMAGE: zabbix-build-mysql:centos-local
-  image: zabbix-web-service:centos-local
+    BUILD_BASE_IMAGE: ${BUILD_BASE_MYSQL_IMAGE}:${ZABBIX_CENTOS_IMAGE_TAG}${ZABBIX_LOCAL_IMAGE_TAG_POSTFIX}
+  image: zabbix-web-service:${ZABBIX_CENTOS_IMAGE_TAG}${ZABBIX_LOCAL_IMAGE_TAG_POSTFIX}
   profiles:
    - full
    - all
   ports:
-   - "10053:10053"
+   - "${ZABBIX_WEB_SERVICE_PORT}:10053"
+  restart: "${RESTART_POLICY}"
   volumes:
-   - ./zbx_env/var/lib/zabbix/enc:/var/lib/zabbix/enc:ro
+   - ${DATA_DIRECTORY}/var/lib/zabbix/enc:/var/lib/zabbix/enc:ro
   security_opt:
-   - seccomp:./env_vars/chrome_dp.json
+   - seccomp:${ENV_VARS_DIRECTORY}/chrome_dp.json
   deploy:
    resources:
     limits:
@@ -502,23 +503,22 @@ services:
       cpus: '0.25'
       memory: 256M
   env_file:
-   - ./env_vars/.env_web_service
+   - ${ENV_VARS_DIRECTORY}/.env_web_service
   depends_on:
    - zabbix-build-mysql
   networks:
    zbx_net_backend:
     aliases:
      - zabbix-web-service
-     - zabbix-web-service-centos
   stop_grace_period: 5s
   labels:
    com.zabbix.description: "Zabbix web service"
    com.zabbix.company: "Zabbix LLC"
    com.zabbix.component: "web-service"
-   com.zabbix.os: "centos"
+   com.zabbix.os: "${CENTOS_OS_TAG}"
 
  mysql-server:
-  image: mysql:8.0-oracle
+  image: "${MYSQL_IMAGE}:${MYSQL_IMAGE_TAG}"
   command:
    - mysqld
    - --character-set-server=utf8mb4
@@ -527,11 +527,12 @@ services:
 #   - --ssl-ca=/run/secrets/root-ca.pem
 #   - --ssl-cert=/run/secrets/server-cert.pem
 #   - --ssl-key=/run/secrets/server-key.pem
+  restart: "${RESTART_POLICY}"
   volumes:
-   - ./zbx_env/var/lib/mysql:/var/lib/mysql:rw
+   - ${DATA_DIRECTORY}/var/lib/mysql:/var/lib/mysql:rw
 #   - dbsocket:/var/run/mysqld/
   env_file:
-   - ./env_vars/.env_db_mysql
+   - ${ENV_VARS_DIRECTORY}/.env_db_mysql
   secrets:
    - MYSQL_USER
    - MYSQL_PASSWORD
@@ -550,10 +551,11 @@ services:
  db_data_mysql:
   image: busybox
   volumes:
-   - ./zbx_env/var/lib/mysql:/var/lib/mysql:rw
+   - ${DATA_DIRECTORY}/var/lib/mysql:/var/lib/mysql:rw
 
 # elasticsearch:
-#  image: elasticsearch
+#  image: "${ELASTICSEARCH_IMAGE}:${ELASTICSEARCH_IMAGE_TAG}"
+#  restart: "${RESTART_POLICY}"
 #  profiles:
 #   - full
 #   - all
@@ -569,20 +571,20 @@ networks:
   zbx_net_frontend:
     driver: bridge
     driver_opts:
-      com.docker.network.enable_ipv6: "false"
+      com.docker.network.enable_ipv6: "${FRONTEND_ENABLE_IPV6}"
     ipam:
-      driver: default
+      driver: "${FRONTEND_NETWORK_DRIVER}"
       config:
-      - subnet: 172.16.238.0/24
+      - subnet: "${FRONTEND_SUBNET}"
   zbx_net_backend:
     driver: bridge
     driver_opts:
-      com.docker.network.enable_ipv6: "false"
+      com.docker.network.enable_ipv6: "${BACKEND_ENABLE_IPV6}"
     internal: true
     ipam:
-      driver: default
+      driver: "${BACKEND_NETWORK_DRIVER}"
       config:
-      - subnet: 172.16.239.0/24
+      - subnet: "${BACKEND_SUBNET}"
 
 volumes:
   snmptraps:
@@ -590,20 +592,20 @@ volumes:
 
 secrets:
   MYSQL_USER:
-    file: ./env_vars/.MYSQL_USER
+    file: ${ENV_VARS_DIRECTORY}/.MYSQL_USER
   MYSQL_PASSWORD:
-    file: ./env_vars/.MYSQL_PASSWORD
+    file: ${ENV_VARS_DIRECTORY}/.MYSQL_PASSWORD
   MYSQL_ROOT_USER:
-    file: ./env_vars/.MYSQL_ROOT_USER
+    file: ${ENV_VARS_DIRECTORY}/.MYSQL_ROOT_USER
   MYSQL_ROOT_PASSWORD:
-    file: ./env_vars/.MYSQL_ROOT_PASSWORD
+    file: ${ENV_VARS_DIRECTORY}/.MYSQL_ROOT_PASSWORD
 #  client-key.pem:
-#    file: ./env_vars/.ZBX_DB_KEY_FILE
+#    file: ${ENV_VARS_DIRECTORY}/.ZBX_DB_KEY_FILE
 #  client-cert.pem:
-#    file: ./env_vars/.ZBX_DB_CERT_FILE
+#    file: ${ENV_VARS_DIRECTORY}/.ZBX_DB_CERT_FILE
 #  root-ca.pem:
-#    file: ./env_vars/.ZBX_DB_CA_FILE
+#    file: ${ENV_VARS_DIRECTORY}/.ZBX_DB_CA_FILE
 #  server-cert.pem:
-#    file: ./env_vars/.DB_CERT_FILE
+#    file: ${ENV_VARS_DIRECTORY}/.DB_CERT_FILE
 #  server-key.pem:
-#    file: ./env_vars/.DB_KEY_FILE
+#    file: ${ENV_VARS_DIRECTORY}/.DB_KEY_FILE
