@@ -1,0 +1,77 @@
+version: '3.8'
+services:
+ mysql-server:
+  image: "${MYSQL_IMAGE}:${MYSQL_IMAGE_TAG}"
+  command:
+   - mysqld
+   - --character-set-server=utf8mb4
+   - --collation-server=utf8mb4_bin
+# Only during upgrade from versions prior 6.4
+#   - --log_bin_trust_function_creators=1
+# Use TLS encryption for connections to database
+#   - --require-secure-transport
+#   - --ssl-ca=/run/secrets/root-ca.pem
+#   - --ssl-cert=/run/secrets/server-cert.pem
+#   - --ssl-key=/run/secrets/server-key.pem
+  restart: "${RESTART_POLICY}"
+  volumes:
+   - ${DATA_DIRECTORY}/var/lib/mysql:/var/lib/mysql:rw
+#   - dbsocket:/var/run/mysqld/
+  env_file:
+   - ${ENV_VARS_DIRECTORY}/.env_db_mysql
+  secrets:
+   - MYSQL_USER
+   - MYSQL_PASSWORD
+   - MYSQL_ROOT_PASSWORD
+#   - server-key.pem
+#   - server-cert.pem
+#   - root-ca.pem
+  stop_grace_period: 1m
+  networks:
+   zbx_net_database:
+    aliases:
+     - mysql-server
+
+ postgres-server:
+  image: "${POSTGRESQL_IMAGE}:${POSTGRESQL_IMAGE_TAG}"
+#  command: -c ssl=on -c ssl_cert_file=/run/secrets/server-cert.pem -c ssl_key_file=/run/secrets/server-key.pem -c ssl_ca_file=/run/secrets/root-ca.pem
+  restart: "${RESTART_POLICY}"
+  volumes:
+   - ${DATA_DIRECTORY}/var/lib/postgresql/data:/var/lib/postgresql/data:rw
+   - ${ENV_VARS_DIRECTORY}/.ZBX_DB_CA_FILE:/run/secrets/root-ca.pem:ro
+   - ${ENV_VARS_DIRECTORY}/.ZBX_DB_CERT_FILE:/run/secrets/server-cert.pem:ro
+   - ${ENV_VARS_DIRECTORY}/.ZBX_DB_KEY_FILE:/run/secrets/server-key.pem:ro
+  env_file:
+   - ${ENV_VARS_DIRECTORY}/.env_db_pgsql
+  secrets:
+   - POSTGRES_USER
+   - POSTGRES_PASSWORD
+  stop_grace_period: 1m
+  networks:
+   zbx_net_database:
+    aliases:
+     - postgres-server
+
+ db-data-mysql:
+  image: busybox
+  volumes:
+   - ${DATA_DIRECTORY}/var/lib/mysql:/var/lib/mysql:rw
+
+ db-data-pgsql:
+  image: busybox
+  volumes:
+   - ${DATA_DIRECTORY}/var/lib/postgresql/data:/var/lib/postgresql/data:rw
+
+ elasticsearch:
+  image: "${ELASTICSEARCH_IMAGE}:${ELASTICSEARCH_IMAGE_TAG}"
+  restart: "${RESTART_POLICY}"
+  profiles:
+   - full
+   - all
+  environment:
+   - transport.host=0.0.0.0
+   - discovery.zen.minimum_master_nodes=1
+  networks:
+   zbx_net_database:
+    aliases:
+     - elasticsearch
