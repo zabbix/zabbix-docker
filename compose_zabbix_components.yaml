@@ -16,6 +16,7 @@ services:
    - ${DATA_DIRECTORY}/var/lib/zabbix/ssh_keys:/var/lib/zabbix/ssh_keys:ro
    - ${DATA_DIRECTORY}/var/lib/zabbix/mibs:/var/lib/zabbix/mibs:ro
    - snmptraps:/var/lib/zabbix/snmptraps:ro
+  tmpfs: /tmp
   ulimits:
    nproc: 65535
    nofile:
@@ -53,7 +54,6 @@ services:
 
  zabbix-server-mysql:
   extends:
-   file: compose_zabbix_components.yaml
    service: zabbix-server
   volumes:
 #   - dbsocket:/var/run/mysqld/
@@ -77,7 +77,6 @@ services:
 
  zabbix-server-pgsql:
   extends:
-   file: compose_zabbix_components.yaml
    service: zabbix-server
   volumes:
 #   - ${ENV_VARS_DIRECTORY}/.ZBX_DB_CA_FILE:/run/secrets/root-ca.pem:ro
@@ -109,6 +108,7 @@ services:
    - ${DATA_DIRECTORY}/var/lib/zabbix/ssh_keys:/var/lib/zabbix/ssh_keys:ro
    - ${DATA_DIRECTORY}/var/lib/zabbix/mibs:/var/lib/zabbix/mibs:ro
    - snmptraps:/var/lib/zabbix/snmptraps:ro
+  tmpfs: /tmp
   ulimits:
    nproc: 65535
    nofile:
@@ -139,7 +139,6 @@ services:
 
  zabbix-proxy-sqlite3:
   extends:
-   file: compose_zabbix_components.yaml
    service: zabbix-proxy
   ports:
    - "${ZABBIX_PROXY_SQLITE3_PORT}:10051"
@@ -155,7 +154,6 @@ services:
 
  zabbix-proxy-mysql:
   extends:
-   file: compose_zabbix_components.yaml
    service: zabbix-proxy
   ports:
    - "${ZABBIX_PROXY_MYSQL_PORT}:10051"
@@ -194,6 +192,7 @@ services:
    - /etc/localtime:/etc/localtime:ro
    - ${DATA_DIRECTORY}/etc/ssl/apache2:/etc/ssl/apache2:ro
    - ${DATA_DIRECTORY}/usr/share/zabbix/modules/:/usr/share/zabbix/modules/:ro
+  tmpfs: /tmp
   deploy:
    resources:
     limits:
@@ -224,7 +223,6 @@ services:
 
  zabbix-web-apache-mysql:
   extends:
-   file: compose_zabbix_components.yaml
    service: zabbix-web-apache
   volumes:
 #   - dbsocket:/var/run/mysqld/
@@ -242,7 +240,6 @@ services:
 
  zabbix-web-apache-pgsql:
   extends:
-   file: compose_zabbix_components.yaml
    service: zabbix-web-apache
   volumes:
 #   - ${ENV_VARS_DIRECTORY}/.ZBX_DB_CA_FILE:/run/secrets/root-ca.pem:ro
@@ -270,6 +267,7 @@ services:
    - /etc/localtime:/etc/localtime:ro
    - ${DATA_DIRECTORY}/etc/ssl/nginx:/etc/ssl/nginx:ro
    - ${DATA_DIRECTORY}/usr/share/zabbix/modules/:/usr/share/zabbix/modules/:ro
+  tmpfs: /tmp
   deploy:
    resources:
     limits:
@@ -300,7 +298,6 @@ services:
 
  zabbix-web-nginx-mysql:
   extends:
-   file: compose_zabbix_components.yaml
    service: zabbix-web-nginx
   volumes:
 #   - dbsocket:/var/run/mysqld/
@@ -322,7 +319,6 @@ services:
 
  zabbix-web-nginx-pgsql:
   extends:
-   file: compose_zabbix_components.yaml
    service: zabbix-web-nginx
   volumes:
 #   - ${ENV_VARS_DIRECTORY}/.ZBX_DB_CA_FILE:/run/secrets/root-ca.pem:ro
@@ -355,6 +351,7 @@ services:
    - ${DATA_DIRECTORY}/var/lib/zabbix/modules:/var/lib/zabbix/modules:ro
    - ${DATA_DIRECTORY}/var/lib/zabbix/enc:/var/lib/zabbix/enc:ro
    - ${DATA_DIRECTORY}/var/lib/zabbix/ssh_keys:/var/lib/zabbix/ssh_keys:ro
+  tmpfs: /tmp
   deploy:
    resources:
     limits:
@@ -393,6 +390,7 @@ services:
    - ${DATA_DIRECTORY}/var/lib/zabbix/modules:/var/lib/zabbix/modules:ro
    - ${DATA_DIRECTORY}/var/lib/zabbix/enc:/var/lib/zabbix/enc:ro
    - ${DATA_DIRECTORY}/var/lib/zabbix/ssh_keys:/var/lib/zabbix/ssh_keys:ro
+  tmpfs: /tmp
   deploy:
    resources:
     limits:
@@ -456,6 +454,7 @@ services:
   restart: "${RESTART_POLICY}"
   volumes:
    - snmptraps:/var/lib/zabbix/snmptraps:rw
+  tmpfs: /tmp
   deploy:
    resources:
     limits:
@@ -486,6 +485,7 @@ services:
   restart: "${RESTART_POLICY}"
   volumes:
    - ${DATA_DIRECTORY}/var/lib/zabbix/enc:/var/lib/zabbix/enc:ro
+  tmpfs: /tmp
   security_opt:
    - seccomp:${ENV_VARS_DIRECTORY}/chrome_dp.json
   deploy:
