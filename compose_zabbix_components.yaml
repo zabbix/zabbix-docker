@@ -43,11 +43,14 @@ services:
 #  devices:
 #   - "/dev/ttyUSB0:/dev/ttyUSB0"
   stop_grace_period: 30s
+#  cap_add:
+#    - "NET_RAW"
   sysctls:
    - net.ipv4.ip_local_port_range=1024 64999
    - net.ipv4.conf.all.accept_redirects=0
    - net.ipv4.conf.all.secure_redirects=0
    - net.ipv4.conf.all.send_redirects=0
+#   - net.ipv4.ping_group_range=0 1995
   labels:
    com.zabbix.company: "Zabbix LLC"
    com.zabbix.component: "zabbix-server"
@@ -128,11 +131,14 @@ services:
    zbx_net_backend:
    zbx_net_frontend:
   stop_grace_period: 30s
+#  cap_add:
+#    - "NET_RAW"
   sysctls:
    - net.ipv4.ip_local_port_range=1024 64999
    - net.ipv4.conf.all.accept_redirects=0
    - net.ipv4.conf.all.secure_redirects=0
    - net.ipv4.conf.all.send_redirects=0
+#   - net.ipv4.ping_group_range=0 1995
   labels:
    com.zabbix.company: "Zabbix LLC"
    com.zabbix.component: "zabbix-proxy"
