@@ -47,6 +47,16 @@ Start a Zabbix server container as follows:
 
 Where `some-zabbix-server-pgsql` is the name you want to assign to your container, `some-postgres-server` is IP or DNS name of PostgreSQL server, `some-user` is user to connect to Zabbix database on PostgreSQL server, `some-password` is the password to connect to PostgreSQL server and `tag` is the tag specifying the version you want. See the list above for relevant tags, or look at the [full list of tags](https://hub.docker.com/r/zabbix/zabbix-server-pgsql/tags/).
 
+> [!NOTE]
+> Zabbix server has possibility to execute `fping` utility to perform ICMP checks. When containers are running in rootless mode or with specific restrictions environment, you may face errors related to fping:
+> `fping: Operation not permitted`
+> or
+> lost all packets to all resources
+> in this case add `--cap-add=net_raw` to `docker run` or `podman run` commands.
+> Additionally fping executing in non-root environments can require sysctl modification:
+> `net.ipv4.ping_group_range=0 1995`
+> where 1995 is `zabbix` GID.
+
 ## Container shell access and viewing Zabbix server logs
 
 The `docker exec` command allows you to run commands inside a Docker container. The following command line will give you a bash shell inside your `zabbix-server-pgsql` container:
