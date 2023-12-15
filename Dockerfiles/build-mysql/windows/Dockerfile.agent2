@@ -12,6 +12,7 @@ ARG MAJOR_VERSION=7.0
 ARG ZBX_VERSION=${MAJOR_VERSION}
 ARG ZABBIX_VERSION_RC_NUM=2400
 ARG ZBX_SOURCES=https://git.zabbix.com/scm/zbx/zabbix.git
+GIT_BRANCH=master
 ENV ZBX_SOURCES=$ZBX_SOURCES MAJOR_VERSION=$MAJOR_VERSION ZBX_VERSION=$ZBX_VERSION `
     MONGODB_PLUGIN_SOURCES=https://git.zabbix.com/scm/ap/mongodb.git MONGODB_PLUGIN_VERSION=master `
     POSTGRESQL_PLUGIN_SOURCES=https://git.zabbix.com/scm/ap/postgresql.git POSTGRESQL_PLUGIN_VERSION=master
@@ -32,7 +33,7 @@ RUN Set-Location -Path $env:SystemDrive\.; `
     Enter-VsDevShell -VsInstallPath ('{0}\Microsoft Visual Studio\2019\BuildTools' -f ${env:ProgramFiles(x86)}) -DevCmdArguments """-arch=$env:BUILD_ARCH"""; `
     `
     Write-Host ('Checkout GIT {0} (master) repository ...' -f $env:ZBX_SOURCES); `
-    git -c advice.detachedHead=false clone $env:ZBX_SOURCES --branch master --depth 1 --single-branch $env:SystemDrive\zabbix-$env:ZBX_VERSION; `
+    git -c advice.detachedHead=false clone $env:ZBX_SOURCES --branch $env:GIT_BRANCH --depth 1 --single-branch $env:SystemDrive\zabbix-$env:ZBX_VERSION; `
     `
     Write-Host ('Building Zabbix {0} version ...' -f $env:ZBX_VERSION); `
     Set-Location -Path $env:SystemDrive\zabbix-$env:ZBX_VERSION; `

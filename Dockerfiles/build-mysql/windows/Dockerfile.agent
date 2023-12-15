@@ -9,6 +9,7 @@ FROM ${BUILD_BASE_IMAGE} as builder
 ARG MAJOR_VERSION
 ARG ZBX_VERSION
 ARG ZBX_SOURCES=https://git.zabbix.com/scm/zbx/zabbix.git
+ARG GIT_BRANCH=master
 ARG ZABBIX_VERSION_RC_NUM=2400
 ENV ZBX_SOURCES=$ZBX_SOURCES MAJOR_VERSION=$MAJOR_VERSION ZBX_VERSION=$ZBX_VERSION ZABBIX_VERSION_RC_NUM=$ZABBIX_VERSION_RC_NUM
 
@@ -30,7 +31,7 @@ RUN Set-Location -Path $env:SystemDrive\.; `
     Enter-VsDevShell -VsInstallPath ('{0}\Microsoft Visual Studio\2019\BuildTools' -f ${env:ProgramFiles(x86)}) -DevCmdArguments """-arch=$env:BUILD_ARCH"""; `
     `
     Write-Host ('Checkout GIT {0} (master) repository ...' -f $env:ZBX_SOURCES); `
-    git -c advice.detachedHead=false clone $env:ZBX_SOURCES --branch master --depth 1 --single-branch $env:SystemDrive\zabbix-$env:ZBX_VERSION; `
+    git -c advice.detachedHead=false clone $env:ZBX_SOURCES --branch $env:GIT_BRANCH --depth 1 --single-branch $env:SystemDrive\zabbix-$env:ZBX_VERSION; `
     `
     Write-Host ('Building Zabbix {0} version ...' -f $env:ZBX_VERSION); `
     Set-Location -Path $env:SystemDrive\zabbix-$env:ZBX_VERSION; `
