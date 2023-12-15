@@ -46,6 +46,16 @@ Start a Zabbix proxy container as follows:
 
 Where `some-zabbix-proxy-mysql` is the name you want to assign to your container, `some-mysql-server` is IP or DNS name of MySQL server, `some-user` is user to connect to Zabbix database on MySQL server, `some-password` is the password to connect to MySQL server, `some-hostname` is the hostname, it is Hostname parameter in Zabbix proxy configuration file, `some-zabbix-server` is IP or DNS name of Zabbix server and `tag` is the tag specifying the version you want. See the list above for relevant tags, or look at the [full list of tags](https://hub.docker.com/r/zabbix/zabbix-proxy-mysql/tags/).
 
+> [!NOTE]
+> Zabbix server has possibility to execute `fping` utility to perform ICMP checks. When containers are running in rootless mode or with specific restrictions environment, you may face errors related to fping:
+> `fping: Operation not permitted`
+> or
+> lost all packets to all resources
+> in this case add `--cap-add=net_raw` to `docker run` or `podman run` commands.
+> Additionally fping executing in non-root environments can require sysctl modification:
+> `net.ipv4.ping_group_range=0 1995`
+> where 1995 is `zabbix` GID.
+
 ## Connects from Zabbix server (Passive proxy)
 
 This image exposes the standard Zabbix proxy port (10051) and can operate as Passive proxy in case `ZBX_PROXYMODE` = `1`. Start Zabbix server container like this in order to link it to the Zabbix proxy container:
