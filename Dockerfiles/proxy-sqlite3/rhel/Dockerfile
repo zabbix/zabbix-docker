@@ -15,7 +15,8 @@ ARG ZBX_SOURCES=https://git.zabbix.com/scm/zbx/zabbix.git
 
 ENV TERM=xterm \
     ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES} \
-    MIBDIRS=/usr/share/snmp/mibs:/var/lib/zabbix/mibs MIBS=+ALL
+    MIBDIRS=/usr/share/snmp/mibs:/var/lib/zabbix/mibs MIBS=+ALL \
+    NMAP_PRIVILEGED=""
 
 LABEL description="Zabbix proxy with SQLite3 database support" \
       maintainer="alexey.pustovalov@zabbix.com" \
@@ -54,7 +55,6 @@ COPY --from=builder ["/tmp/zabbix-${ZBX_VERSION}/conf/zabbix_proxy.conf", "/etc/
 RUN set -eux && \
     INSTALL_PKGS="bash \
             tini \
-            sudo \
             traceroute \
             nmap \
             shadow-utils \
@@ -97,12 +97,12 @@ RUN set -eux && \
             --system \
             --comment "Zabbix monitoring system" \
             -g zabbix \
-            -G root \
             --uid 1997 \
             --shell /sbin/nologin \
             --home-dir /var/lib/zabbix/ \
         zabbix && \
-    echo "zabbix ALL=(root) NOPASSWD: /usr/bin/nmap" >> /etc/sudoers.d/zabbix && \
+    chgrp zabbix /usr/bin/nmap && \
+    setcap cap_net_raw+eip /usr/bin/nmap && \
     mkdir -p /etc/zabbix && \
     mkdir -p /var/lib/zabbix && \
     mkdir -p /var/lib/zabbix/db_data && \

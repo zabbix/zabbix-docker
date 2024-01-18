@@ -53,11 +53,11 @@ RUN set -eux && \
             --system \
             --comment "Zabbix monitoring system" \
             -g zabbix \
-            -G root \
             --uid 1997 \
             --shell /sbin/nologin \
             --home-dir /var/lib/zabbix/ \
         zabbix && \
+    echo "zabbix ALL=(root) NOPASSWD: /usr/sbin/smartctl" >> /etc/sudoers.d/zabbix && \
     mkdir -p /etc/zabbix && \
     mkdir -p /etc/zabbix/zabbix_agentd.d && \
     mkdir -p /var/lib/zabbix && \

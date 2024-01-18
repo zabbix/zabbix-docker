@@ -82,7 +82,6 @@ RUN set -eux && \
             --system \
             --comment "Zabbix monitoring system" \
             -g zabbix \
-            -G root \
             --uid 1997 \
             --shell /sbin/nologin \
             --home-dir /var/lib/zabbix/ \

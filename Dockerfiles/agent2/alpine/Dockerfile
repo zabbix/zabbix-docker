@@ -58,7 +58,7 @@ RUN set -eux && \
             --shell /sbin/nologin \
             --home /var/lib/zabbix/ \
         zabbix && \
-    adduser zabbix root && \
+    echo "zabbix ALL=(root) NOPASSWD: /usr/sbin/smartctl" >> /etc/sudoers.d/zabbix && \
     mkdir -p /etc/zabbix && \
     mkdir -p /etc/zabbix/zabbix_agentd.d && \
     mkdir -p /var/lib/zabbix && \
