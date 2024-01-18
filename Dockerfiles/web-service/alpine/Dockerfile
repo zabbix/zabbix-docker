@@ -49,7 +49,6 @@ RUN set -eux && \
             --shell /sbin/nologin \
             --home /var/lib/zabbix/ \
         zabbix && \
-    adduser zabbix root && \
     mkdir -p /etc/zabbix && \
     mkdir -p /var/lib/zabbix && \
     chown --quiet -R zabbix:root /etc/zabbix/ /var/lib/zabbix/ && \
