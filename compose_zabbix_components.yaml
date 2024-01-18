@@ -58,7 +58,7 @@ services:
  zabbix-server-mysql:
   extends:
    service: zabbix-server
-  volumes:
+#  volumes:
 #   - dbsocket:/var/run/mysqld/
   env_file:
    - ${ENV_VARS_DIRECTORY}/.env_db_mysql
@@ -81,7 +81,7 @@ services:
  zabbix-server-pgsql:
   extends:
    service: zabbix-server
-  volumes:
+#  volumes:
 #   - ${ENV_VARS_DIRECTORY}/.ZBX_DB_CA_FILE:/run/secrets/root-ca.pem:ro
 #   - ${ENV_VARS_DIRECTORY}/.ZBX_DB_CERT_FILE:/run/secrets/client-cert.pem:ro
 #   - ${ENV_VARS_DIRECTORY}/.ZBX_DB_KEY_FILE:/run/secrets/client-key.pem:ro
@@ -163,7 +163,7 @@ services:
    service: zabbix-proxy
   ports:
    - "${ZABBIX_PROXY_MYSQL_PORT}:10051"
-  volumes:
+#  volumes:
 #   - dbsocket:/var/run/mysqld/
   env_file:
    - ${ENV_VARS_DIRECTORY}/.env_db_mysql_proxy
@@ -230,7 +230,7 @@ services:
  zabbix-web-apache-mysql:
   extends:
    service: zabbix-web-apache
-  volumes:
+#  volumes:
 #   - dbsocket:/var/run/mysqld/
   env_file:
    - ${ENV_VARS_DIRECTORY}/.env_db_mysql
@@ -247,7 +247,7 @@ services:
  zabbix-web-apache-pgsql:
   extends:
    service: zabbix-web-apache
-  volumes:
+#  volumes:
 #   - ${ENV_VARS_DIRECTORY}/.ZBX_DB_CA_FILE:/run/secrets/root-ca.pem:ro
 #   - ${ENV_VARS_DIRECTORY}/.ZBX_DB_CERT_FILE:/run/secrets/client-cert.pem:ro
 #   - ${ENV_VARS_DIRECTORY}/.ZBX_DB_KEY_FILE:/run/secrets/client-key.pem:ro
@@ -305,7 +305,7 @@ services:
  zabbix-web-nginx-mysql:
   extends:
    service: zabbix-web-nginx
-  volumes:
+#  volumes:
 #   - dbsocket:/var/run/mysqld/
   env_file:
    - ${ENV_VARS_DIRECTORY}/.env_db_mysql
@@ -326,7 +326,7 @@ services:
  zabbix-web-nginx-pgsql:
   extends:
    service: zabbix-web-nginx
-  volumes:
+#  volumes:
 #   - ${ENV_VARS_DIRECTORY}/.ZBX_DB_CA_FILE:/run/secrets/root-ca.pem:ro
 #   - ${ENV_VARS_DIRECTORY}/.ZBX_DB_CERT_FILE:/run/secrets/client-cert.pem:ro
 #   - ${ENV_VARS_DIRECTORY}/.ZBX_DB_KEY_FILE:/run/secrets/client-key.pem:ro
