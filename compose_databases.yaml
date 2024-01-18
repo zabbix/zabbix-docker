@@ -14,9 +14,12 @@ services:
   restart: "${RESTART_POLICY}"
   volumes:
    - ${DATA_DIRECTORY}/var/lib/mysql:/var/lib/mysql:rw
+   - ${ENV_VARS_DIRECTORY}/mysql_init/init_proxy_db.sql:/docker-entrypoint-initdb.d/mysql_init_proxy.sql:ro
 #   - dbsocket:/var/run/mysqld/
   env_file:
    - ${ENV_VARS_DIRECTORY}/.env_db_mysql
+  environment:
+   - MYSQL_ROOT_PASSWORD_FILE=/run/secrets/MYSQL_ROOT_PASSWORD
   secrets:
    - MYSQL_USER
    - MYSQL_PASSWORD
