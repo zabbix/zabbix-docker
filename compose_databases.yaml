@@ -6,8 +6,8 @@ services:
    - mysqld
    - --character-set-server=utf8mb4
    - --collation-server=utf8mb4_bin
-# Only during upgrade from versions prior 6.4
-#   - --log_bin_trust_function_creators=1
+# Only during upgrade from versions prior 6.4 and new installations (schema deployment)
+   - --log_bin_trust_function_creators=1
 # Use TLS encryption for connections to database
 #   - --require-secure-transport
 #   - --ssl-ca=/run/secrets/root-ca.pem
@@ -16,9 +16,12 @@ services:
   restart: "${RESTART_POLICY}"
   volumes:
    - ${DATA_DIRECTORY}/var/lib/mysql:/var/lib/mysql:rw
+   - ${ENV_VARS_DIRECTORY}/mysql_init/init_proxy_db.sql:/docker-entrypoint-initdb.d/mysql_init_proxy.sql:ro
 #   - dbsocket:/var/run/mysqld/
   env_file:
    - ${ENV_VARS_DIRECTORY}/.env_db_mysql
+  environment:
+   - MYSQL_ROOT_PASSWORD_FILE=/run/secrets/MYSQL_ROOT_PASSWORD
   secrets:
    - MYSQL_USER
    - MYSQL_PASSWORD
