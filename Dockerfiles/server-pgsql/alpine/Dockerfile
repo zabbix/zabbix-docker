@@ -45,6 +45,7 @@ RUN set -eux && \
             fping \
             tzdata \
             iputils \
+            libcap \
             libcurl \
             libevent \
             libldap \
