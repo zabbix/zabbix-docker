@@ -65,8 +65,6 @@ services:
   secrets:
    - MYSQL_USER
    - MYSQL_PASSWORD
-   - MYSQL_ROOT_USER
-   - MYSQL_ROOT_PASSWORD
 #   - client-key.pem
 #   - client-cert.pem
 #   - root-ca.pem
@@ -171,8 +169,6 @@ services:
   secrets:
    - MYSQL_USER
    - MYSQL_PASSWORD
-   - MYSQL_ROOT_USER
-   - MYSQL_ROOT_PASSWORD
 #   - client-key.pem
 #   - client-cert.pem
 #   - root-ca.pem
