@@ -79,7 +79,7 @@ RUN set -eux && \
     groupadd --system --gid 1995 zabbix && \
     useradd \
             --system --comment "Zabbix monitoring system" \
-            -g zabbix -G root \
+            -g zabbix \
             --uid 1997 \
             --shell /sbin/nologin \
             --home-dir /var/lib/zabbix/ \
