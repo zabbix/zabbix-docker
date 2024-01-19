@@ -80,7 +80,8 @@ RUN set -eux && \
     mkdir -p /var/lib/php/session && \
     rm -rf /etc/php8/php-fpm.d/www.conf && \
     rm -f /etc/nginx/http.d/*.conf && \
-    ln -sf /dev/fd/2 /var/lib/nginx/logs/error.log && \
+    ln -sf /dev/stdout /var/log/nginx/access.log && \
+    ln -sf /dev/stderr /var/log/nginx/error.log && \
     cd /usr/share/zabbix/ && \
     rm -f conf/zabbix.conf.php conf/maintenance.inc.php conf/zabbix.conf.php.example && \
     rm -rf tests && \
