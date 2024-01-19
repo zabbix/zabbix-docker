@@ -58,6 +58,7 @@ RUN set -eux && \
             postgresql \
             postgresql-libs \
             zlib \
+            gzip \
             unixODBC" && \
     microdnf -y install \
             --disablerepo="*" \

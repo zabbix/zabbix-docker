@@ -56,6 +56,7 @@ RUN set -eux && \
             openssl-libs \
             pcre2 \
             zlib \
+            gzip \
             unixODBC" && \
     microdnf -y install \
             --disablerepo="*" \
