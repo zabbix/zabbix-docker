@@ -94,8 +94,9 @@ RUN set -eux && \
     rm -f /etc/nginx/conf.d/*.conf && \
     rm -rf /var/cache/nginx/ && \
     rm -f /etc/php/7.4/fpm/pool.d/www.conf && \
-    ln -sf /dev/fd/2 /var/log/nginx/error.log && \
     rm -f /etc/php/7.4/fpm/php-fpm.conf.dpkg-dist && \
+    ln -sf /dev/stdout /var/log/nginx/access.log && \
+    ln -sf /dev/stderr /var/log/nginx/error.log && \
     cd /usr/share/zabbix/ && \
     rm -f conf/zabbix.conf.php conf/maintenance.inc.php conf/zabbix.conf.php.example && \
     rm -rf tests && \
