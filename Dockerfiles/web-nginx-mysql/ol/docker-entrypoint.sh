@@ -229,9 +229,18 @@ prepare_zbx_web_config() {
         -e "s/{FCGI_READ_TIMEOUT}/${FCGI_READ_TIMEOUT}/g" \
     "$ZABBIX_ETC_DIR/nginx.conf"
 
+    : ${HTTP_INDEX_FILE:="index.php"}
+    sed -i \
+        -e "s/{HTTP_INDEX_FILE}/${HTTP_INDEX_FILE}/g" \
+    "$ZABBIX_ETC_DIR/nginx.conf"
+
     if [ -f "$ZABBIX_ETC_DIR/nginx_ssl.conf" ]; then
         sed -i \
             -e "s/{FCGI_READ_TIMEOUT}/${FCGI_READ_TIMEOUT}/g" \
+        "$ZABBIX_ETC_DIR/nginx_ssl.conf"
+
+        sed -i \
+            -e "s/{HTTP_INDEX_FILE}/${HTTP_INDEX_FILE}/g" \
         "$ZABBIX_ETC_DIR/nginx_ssl.conf"
     fi
 

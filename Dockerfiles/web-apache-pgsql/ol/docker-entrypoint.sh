@@ -205,6 +205,17 @@ prepare_zbx_web_config() {
         rm -f "/tmp/defines.inc.php_tmp"
     fi
 
+    : ${HTTP_INDEX_FILE:="index.php"}
+    sed -i \
+        -e "s/{HTTP_INDEX_FILE}/${HTTP_INDEX_FILE}/g" \
+    "$ZABBIX_ETC_DIR/apache.conf"
+
+    if [ -f "$ZABBIX_ETC_DIR/apache_ssl.conf" ]; then
+        sed -i \
+            -e "s/{HTTP_INDEX_FILE}/${HTTP_INDEX_FILE}/g" \
+        "$ZABBIX_ETC_DIR/apache_ssl.conff"
+    fi
+
     : ${ENABLE_WEB_ACCESS_LOG:="true"}
 
     if [ "${ENABLE_WEB_ACCESS_LOG,,}" == "false" ]; then
