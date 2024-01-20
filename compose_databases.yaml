@@ -6,6 +6,8 @@ services:
    - mysqld
    - --character-set-server=utf8mb4
    - --collation-server=utf8mb4_bin
+# Only during upgrade from versions prior 6.4 and new installations (schema deployment)
+   - --log_bin_trust_function_creators=1
 # Use TLS encryption for connections to database
 #   - --require-secure-transport
 #   - --ssl-ca=/run/secrets/root-ca.pem
