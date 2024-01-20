@@ -477,35 +477,3 @@ services:
    com.zabbix.description: "Zabbix snmptraps"
    com.zabbix.company: "Zabbix LLC"
    com.zabbix.component: "snmptraps"
-
- zabbix-web-service:
-  profiles:
-   - full
-   - all
-  ports:
-   - "${ZABBIX_WEB_SERVICE_PORT}:10053"
-  restart: "${RESTART_POLICY}"
-  volumes:
-   - ${DATA_DIRECTORY}/var/lib/zabbix/enc:/var/lib/zabbix/enc:ro
-  tmpfs: /tmp
-  security_opt:
-   - seccomp:${ENV_VARS_DIRECTORY}/chrome_dp.json
-  deploy:
-   resources:
-    limits:
-      cpus: '0.5'
-      memory: 512M
-    reservations:
-      cpus: '0.25'
-      memory: 256M
-  env_file:
-   - ${ENV_VARS_DIRECTORY}/.env_web_service
-  networks:
-   zbx_net_backend:
-    aliases:
-     - zabbix-web-service
-  stop_grace_period: 5s
-  labels:
-   com.zabbix.description: "Zabbix web service"
-   com.zabbix.company: "Zabbix LLC"
-   com.zabbix.component: "web-service"
