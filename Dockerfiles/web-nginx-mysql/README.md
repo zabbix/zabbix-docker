@@ -137,6 +137,10 @@ Use IEEE754 compatible value range for 64-bit Numeric (float) history values. Av
 
 The variable sets the Access Log directive for Web-server. By default, value corresponds to standard output.
 
+### `HTTP_INDEX_FILE`
+
+The variable controls default index page. By default, `index.php`.
+
 ### `ZBX_MAXEXECUTIONTIME`
 
 The varable is PHP ``max_execution_time`` option. By default, value is `300`.
