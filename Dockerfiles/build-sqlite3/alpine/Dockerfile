@@ -41,7 +41,7 @@ RUN set -eux && \
             additional_components='--enable-java'; \
             ;; \
         ppc64le) \
-            additional_components=''; \
+            additional_components='--enable-java'; \
             ;; \
         *) echo "Unknown ARCH_SUFFIX=${ARCH_SUFFIX-}"; exit 1 ;; \
     esac; \
