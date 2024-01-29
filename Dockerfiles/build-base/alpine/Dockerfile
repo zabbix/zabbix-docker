@@ -19,6 +19,13 @@ LABEL org.opencontainers.image.authors="Alexey Pustovalov <alexey.pustovalov@zab
       org.opencontainers.image.version="${ZBX_VERSION}"
 
 RUN set -eux && \
+    ARCH_SUFFIX="$(arch)"; \
+    case "$ARCH_SUFFIX" in \
+        ppc64le) \
+            openjdk_packages='openjdk11 openjdk11-jre-headless'; \
+            ;; \
+        *) openjdk_packages='openjdk17 openjdk17-jre-headless'; \
+    esac; \
     INSTALL_PKGS="bash \
             autoconf \
             automake \
@@ -38,13 +45,12 @@ RUN set -eux && \
             patch \
             pcre2-dev \
             postgresql-dev \
-            openjdk17 \
             gettext \
             git \
             g++ \
             go \
             make \
-            openjdk17-jre-headless \
+            $openjdk_packages \
             unixodbc-dev" && \
     apk add \
             --no-cache \

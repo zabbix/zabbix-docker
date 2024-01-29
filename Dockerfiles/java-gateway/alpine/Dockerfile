@@ -31,8 +31,15 @@ COPY --from=builder ["/tmp/zabbix-${ZBX_VERSION}/src/zabbix_java/bin", "/usr/sbi
 COPY --from=builder ["/tmp/zabbix-${ZBX_VERSION}/src/zabbix_java/lib", "/usr/sbin/zabbix_java/lib"]
 
 RUN set -eux && \
+    ARCH_SUFFIX="$(arch)"; \
+    case "$ARCH_SUFFIX" in \
+        ppc64le) \
+            openjdk_packages='openjdk11-jre-headless'; \
+            ;; \
+        *) openjdk_packages='openjdk17-jre-headless'; \
+    esac; \
     INSTALL_PKGS="bash \
-            openjdk17-jre-headless" && \
+            $openjdk_packages" && \
     apk add \
             --no-cache \
             --clean-protected \
