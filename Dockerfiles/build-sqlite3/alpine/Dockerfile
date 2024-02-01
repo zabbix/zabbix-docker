@@ -23,8 +23,6 @@ LABEL org.opencontainers.image.authors="Alexey Pustovalov <alexey.pustovalov@zab
 ENV MONGODB_PLUGIN_SOURCES=https://git.zabbix.com/scm/ap/mongodb.git MONGODB_PLUGIN_VERSION=master \
     POSTGRESQL_PLUGIN_SOURCES=https://git.zabbix.com/scm/ap/postgresql.git POSTGRESQL_PLUGIN_VERSION=master
 
-COPY ["conf/agent2_build.patch", "/tmp/agent2_build.patch"]
-
 RUN set -eux && \
     ARCH_SUFFIX="$(arch)"; \
     case "$ARCH_SUFFIX" in \

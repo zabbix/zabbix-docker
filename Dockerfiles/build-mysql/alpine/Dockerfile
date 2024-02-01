@@ -24,7 +24,6 @@ ENV MONGODB_PLUGIN_SOURCES=https://git.zabbix.com/scm/ap/mongodb.git MONGODB_PLU
     POSTGRESQL_PLUGIN_SOURCES=https://git.zabbix.com/scm/ap/postgresql.git POSTGRESQL_PLUGIN_VERSION=master
 
 COPY ["conf/chromedp_no_sandbox.patch", "/tmp/chromedp_no_sandbox.patch"]
-COPY ["conf/agent2_build.patch", "/tmp/agent2_build.patch"]
 
 RUN set -eux && \
     ARCH_SUFFIX="$(arch)"; \
@@ -50,7 +49,6 @@ RUN set -eux && \
     git -c advice.detachedHead=false clone ${ZBX_SOURCES} --branch ${GIT_BRANCH} --depth 1 --single-branch /tmp/zabbix-${ZBX_VERSION} && \
     cd /tmp/zabbix-${ZBX_VERSION} && \
     patch -p1 < /tmp/chromedp_no_sandbox.patch && \
-    patch -p1 < /tmp/agent2_build.patch && \
     zabbix_revision=`git rev-parse --short HEAD` && \
     sed -i "s/{ZABBIX_REVISION}/$zabbix_revision/g" include/version.h && \
     sed -i "s/{ZABBIX_REVISION}/$zabbix_revision/g" src/go/pkg/version/version.go && \
