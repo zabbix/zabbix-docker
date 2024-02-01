@@ -57,6 +57,7 @@ RUN set -eux && \
             libxml2 \
             postgresql-client \
             snmp-mibs-downloader \
+            gzip \
             unixodbc" && \
     apt-get -y update && \
     DEBIAN_FRONTEND=noninteractive apt-get -y \

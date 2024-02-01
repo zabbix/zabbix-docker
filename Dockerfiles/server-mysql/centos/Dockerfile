@@ -56,6 +56,7 @@ RUN set -eux && \
             openssl-libs \
             pcre \
             zlib \
+            gzip \
             unixODBC" && \
     dnf -y module enable mysql && \
     dnf -y install epel-release && \

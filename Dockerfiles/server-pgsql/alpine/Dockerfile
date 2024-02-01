@@ -53,6 +53,7 @@ RUN set -eux && \
             pcre \
             postgresql-client \
             postgresql-libs \
+            gzip \
             unixodbc" && \
     apk add \
             --no-cache \

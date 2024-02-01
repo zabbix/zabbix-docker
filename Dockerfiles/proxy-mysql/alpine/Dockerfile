@@ -51,6 +51,7 @@ RUN set -eux && \
             openipmi-libs \
             pcre \
             unixodbc \
+            gzip \
             fping" && \
     apk add \
             --no-cache \

@@ -52,6 +52,7 @@ RUN set -eux && \
             net-snmp-agent-libs \
             openipmi-libs \
             pcre \
+            gzip \
             unixodbc" && \
     apk add \
             --no-cache \

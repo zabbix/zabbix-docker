@@ -54,6 +54,7 @@ RUN set -eux && \
             libxml2 \
             mysql-client \
             snmp-mibs-downloader \
+            gzip \
             unixodbc" && \
     apt-get -y update && \
     DEBIAN_FRONTEND=noninteractive apt-get -y \
