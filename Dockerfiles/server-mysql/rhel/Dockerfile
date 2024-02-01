@@ -74,6 +74,7 @@ RUN set -eux && \
             net-snmp-agent-libs \
             OpenIPMI-libs \
             pcre2 \
+            gzip \
             unixODBC" && \
     curl -sSL -o /tmp/epel-release-latest-9.noarch.rpm https://dl.fedoraproject.org/pub/epel/epel-release-latest-9.noarch.rpm && \
     rpm -ivh /tmp/epel-release-latest-9.noarch.rpm && \

@@ -54,6 +54,7 @@ RUN set -eux && \
             openssl-libs \
             pcre2 \
             zlib \
+            gzip \
             unixODBC" && \
     dnf -y install epel-release && \
     dnf -y install \

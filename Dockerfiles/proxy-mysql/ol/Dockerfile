@@ -39,7 +39,6 @@ RUN set -eux && \
     INSTALL_PKGS="libevent \
             traceroute \
             nmap \
-            gzip \
             libssh \
             file-libs \
             fping \

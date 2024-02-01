@@ -57,6 +57,7 @@ RUN set -eux && \
             postgresql \
             postgresql-libs \
             zlib \
+            gzip \
             unixODBC" && \
     dnf -y install epel-release && \
     dnf -y install \
