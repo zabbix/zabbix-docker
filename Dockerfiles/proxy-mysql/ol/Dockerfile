@@ -40,7 +40,6 @@ RUN set -eux && \
             tini \
             traceroute \
             nmap \
-            gzip \
             libssh \
             file-libs \
             fping \
