@@ -46,7 +46,6 @@ RUN set -eux && \
     cd /tmp/ && \
     git -c advice.detachedHead=false clone ${ZBX_SOURCES} --branch ${GIT_BRANCH} --depth 1 --single-branch /tmp/zabbix-${ZBX_VERSION} && \
     cd /tmp/zabbix-${ZBX_VERSION} && \
-    patch -p1 < /tmp/agent2_build.patch && \
     zabbix_revision=`git rev-parse --short HEAD` && \
     sed -i "s/{ZABBIX_REVISION}/$zabbix_revision/g" include/version.h && \
     sed -i "s/{ZABBIX_REVISION}/$zabbix_revision/g" src/go/pkg/version/version.go && \
