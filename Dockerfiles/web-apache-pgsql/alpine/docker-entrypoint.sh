@@ -202,7 +202,7 @@ prepare_zbx_web_config() {
     if [ -f "$ZABBIX_ETC_DIR/apache_ssl.conf" ]; then
         sed -i \
             -e "s/{HTTP_INDEX_FILE}/${HTTP_INDEX_FILE}/g" \
-        "$ZABBIX_ETC_DIR/apache_ssl.conff"
+        "$ZABBIX_ETC_DIR/apache_ssl.conf"
     fi
 
     : ${ENABLE_WEB_ACCESS_LOG:="true"}
