@@ -6,10 +6,8 @@ on:
       - published
   push:
     branches:
-      - '4.0'
       - '5.0'
       - '6.0'
-      - '6.2'
       - '6.4'
       - 'trunk'
     paths:
@@ -40,7 +38,7 @@ jobs:
       is_default_branch: ${{ steps.branch_info.outputs.is_default_branch }}
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           fetch-depth: 1
 
@@ -109,23 +107,23 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           fetch-depth: 1
 
       - name: Set up QEMU
-        uses: docker/setup-qemu-action@v2
+        uses: docker/setup-qemu-action@v3
         with:
           image: tonistiigi/binfmt:latest
           platforms: all
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
+        uses: docker/setup-buildx-action@v3
         with:
           driver-opts: image=moby/buildkit:master
 
       - name: Login to DockerHub
-        uses: docker/login-action@v2
+        uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
@@ -140,7 +138,7 @@ jobs:
 
       - name: Generate tags
         id: meta
-        uses: docker/metadata-action@v4
+        uses: docker/metadata-action@v5
         with:
           images: ${{ env.DOCKER_REPOSITORY }}/zabbix-${{ env.BASE_BUILD_NAME }}
           tags: |
@@ -151,7 +149,7 @@ jobs:
 
       - name: Build ${{ env.BASE_BUILD_NAME }}/${{ matrix.os }} and push
         id: docker_build
-        uses: docker/build-push-action@v4
+        uses: docker/build-push-action@v5
         with:
           context: ./Dockerfiles/${{ env.BASE_BUILD_NAME }}/${{ matrix.os }}
           file: ./Dockerfiles/${{ env.BASE_BUILD_NAME }}/${{ matrix.os }}/Dockerfile
@@ -168,7 +166,7 @@ jobs:
             echo "${{ steps.docker_build.outputs.digest }}" > ${{ env.BASE_BUILD_NAME }}_${{ matrix.os }}
 
       - name: Upload SHA256 tag
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
          name: ${{ env.BASE_BUILD_NAME }}_${{ matrix.os }}
          path: ${{ env.BASE_BUILD_NAME }}_${{ matrix.os }}
@@ -184,24 +182,24 @@ jobs:
         build: ${{ fromJson(needs.init_build.outputs.database) }}
         os: ${{ fromJson(needs.init_build.outputs.os) }}
 
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Set up QEMU
-        uses: docker/setup-qemu-action@v2
+        uses: docker/setup-qemu-action@v3
         with:
           image: tonistiigi/binfmt:latest
           platforms: all
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
+        uses: docker/setup-buildx-action@v3
         with:
           driver-opts: image=moby/buildkit:master
 
       - name: Login to DockerHub
-        uses: docker/login-action@v2
+        uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
@@ -216,7 +214,7 @@ jobs:
 
       - name: Generate tags
         id: meta
-        uses: docker/metadata-action@v4
+        uses: docker/metadata-action@v5
         with:
           images: ${{ env.DOCKER_REPOSITORY }}/zabbix-${{ matrix.build }}
           tags: |
@@ -226,7 +224,7 @@ jobs:
             latest=false
 
       - name: Download SHA256 tag  build-base:${{ matrix.os }}
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: build-base_${{ matrix.os }}
 
@@ -241,7 +239,7 @@ jobs:
 
       - name: Build ${{ matrix.build }}/${{ matrix.os }} and push
         id: docker_build
-        uses: docker/build-push-action@v4
+        uses: docker/build-push-action@v5
         with:
           context: ./Dockerfiles/${{ matrix.build }}/${{ matrix.os }}
           file: ./Dockerfiles/${{ matrix.build }}/${{ matrix.os }}/Dockerfile
@@ -259,7 +257,7 @@ jobs:
             echo "${{ steps.docker_build.outputs.digest }}" > ${{ matrix.build }}_${{ matrix.os }}
 
       - name: Upload SHA256 tag
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
          name: ${{ matrix.build }}_${{ matrix.os }}
          path: ${{ matrix.build }}_${{ matrix.os }}
@@ -277,21 +275,21 @@ jobs:
 
     runs-on: ubuntu-20.04
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Set up QEMU
-        uses: docker/setup-qemu-action@v2
+        uses: docker/setup-qemu-action@v3
         with:
           image: tonistiigi/binfmt:latest
           platforms: all
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
+        uses: docker/setup-buildx-action@v3
         with:
           driver-opts: image=moby/buildkit:master
 
       - name: Login to DockerHub
-        uses: docker/login-action@v2
+        uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
@@ -332,7 +330,7 @@ jobs:
 
       - name: Generate tags
         id: meta
-        uses: docker/metadata-action@v4
+        uses: docker/metadata-action@v5
         with:
           images: ${{ env.DOCKER_REPOSITORY }}/zabbix-${{ matrix.build }}
           tags: |
@@ -342,7 +340,7 @@ jobs:
             latest=false
 
       - name: Download SHA256 tag for ${{ steps.build_base_image.outputs.build_base }}:${{ matrix.os }}
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         if: ${{ matrix.build != 'snmptraps' }}
         with:
           name: ${{ steps.build_base_image.outputs.build_base }}_${{ matrix.os }}
@@ -359,7 +357,7 @@ jobs:
 
       - name: Build ${{ matrix.build }}/${{ matrix.os }} and push
         id: docker_build
-        uses: docker/build-push-action@v4
+        uses: docker/build-push-action@v5
         with:
           context: ./Dockerfiles/${{ matrix.build }}/${{ matrix.os }}
           file: ./Dockerfiles/${{ matrix.build }}/${{ matrix.os }}/Dockerfile
