@@ -273,7 +273,7 @@ jobs:
         build: ${{ fromJson(needs.init_build.outputs.components) }}
         os: ${{ fromJson(needs.init_build.outputs.os) }}
 
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
@@ -310,11 +310,6 @@ jobs:
             # Build only Agent and Agent2 on 386
             if [ "${{ matrix.build }}" != "agent"* ]; then
                 platform_list="${platform_list#linux/386,}"
-            fi
-
-            # Can not compile Java applications on ppc64le
-            if [ "${{ matrix.build }}" == "java-gateway" ]; then
-                platform_list="${platform_list%linux/ppc64le}"
             fi
 
             platform_list="${platform_list%,}"
