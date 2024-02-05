@@ -277,13 +277,13 @@ jobs:
       image: ${{ steps.build_image.outputs.image-with-tag }}
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           fetch-depth: 1
 
       - name: Generate tags
         id: meta
-        uses: docker/metadata-action@v4
+        uses: docker/metadata-action@v5
         with:
           images: zabbix-${{ matrix.build }}
           tags: |
@@ -316,13 +316,13 @@ jobs:
     runs-on: [self-hosted, linux, ARM64]
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           fetch-depth: 1
 
       - name: Generate tags
         id: meta
-        uses: docker/metadata-action@v4
+        uses: docker/metadata-action@v5
         with:
           images: zabbix-build-${{ matrix.build }}
           tags: |
