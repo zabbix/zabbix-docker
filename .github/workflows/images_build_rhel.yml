@@ -4,15 +4,6 @@ on:
   release:
     types:
       - published
-  push:
-    branches:
-      - '5.0'
-      - '6.0'
-      - '6.2'
-    paths:
-      - '!**/README.md'
-      - 'Dockerfiles/*/rhel/*'
-      - '.github/workflows/images_build_rhel.yml'
 
 defaults:
   run:
@@ -37,7 +28,7 @@ jobs:
       sha_short: ${{ steps.branch_info.outputs.sha_short }}
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           fetch-depth: 1
 
@@ -85,13 +76,13 @@ jobs:
       image: ${{ steps.build_image.outputs.image-with-tag }}
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           fetch-depth: 1
 
       - name: Generate tags
         id: meta
-        uses: docker/metadata-action@v4
+        uses: docker/metadata-action@v5
         with:
           images: zabbix-${{ matrix.build }}
           tags: |
@@ -121,13 +112,13 @@ jobs:
     runs-on: self-hosted
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           fetch-depth: 1
 
       - name: Generate tags
         id: meta
-        uses: docker/metadata-action@v4
+        uses: docker/metadata-action@v5
         with:
           images: zabbix-build-${{ matrix.build }}
           tags: |
@@ -155,7 +146,7 @@ jobs:
 
     runs-on: self-hosted
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Detect Build Base Image
         id: build_base_image
@@ -166,7 +157,7 @@ jobs:
 
           echo "build_base=$BUILD_BASE" >> $GITHUB_OUTPUT
 
-      - name: Genarate image name
+      - name: Generate image name
         id: image_name
         env:
           REDHAT_CERTIFY_CREDENTIALS: ${{ secrets.REDHAT_CERTIFY_CREDENTIALS }}
@@ -192,7 +183,7 @@ jobs:
           echo "password=$REGISTRY_PASSWORD" >> $GITHUB_OUTPUT
 
       - name: Log in to Quay.io
-        uses: redhat-actions/podman-login@v1.5
+        uses: redhat-actions/podman-login@v1.6
         env:
           LOGIN: ${{ steps.login_credentials.outputs.username }}
           PASSWORD: ${{ steps.login_credentials.outputs.password }}
@@ -209,7 +200,7 @@ jobs:
 
       - name: Generate tags
         id: meta
-        uses: docker/metadata-action@v4
+        uses: docker/metadata-action@v5
         with:
           images: ${{ env.REGISTRY }}/${{ env.REGISTRY_NAMESPACE }}/${{ steps.image_name.outputs.image_name }}
           tags: |
