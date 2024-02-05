@@ -36,6 +36,9 @@ RUN set -eux && \
         i686) \
             openjdk_packages='openjdk8-jre-base'; \
             ;; \
+        armv7) \
+            openjdk_packages='openjdk8 openjdk8-jre-base'; \
+            ;; \
         ppc64le) \
             openjdk_packages='openjdk11-jre-headless'; \
             ;; \
