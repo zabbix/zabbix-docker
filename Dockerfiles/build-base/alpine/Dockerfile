@@ -21,6 +21,9 @@ LABEL org.opencontainers.image.authors="Alexey Pustovalov <alexey.pustovalov@zab
 RUN set -eux && \
     ARCH_SUFFIX="$(arch)"; \
     case "$ARCH_SUFFIX" in \
+        i686) \
+            openjdk_packages='openjdk8 openjdk8-jre-base'; \
+            ;; \
         ppc64le) \
             openjdk_packages='openjdk11 openjdk11-jre-headless'; \
             ;; \
