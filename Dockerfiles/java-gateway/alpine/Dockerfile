@@ -33,6 +33,9 @@ COPY --from=builder ["/tmp/zabbix-${ZBX_VERSION}/src/zabbix_java/lib", "/usr/sbi
 RUN set -eux && \
     ARCH_SUFFIX="$(arch)"; \
     case "$ARCH_SUFFIX" in \
+        i686) \
+            openjdk_packages='openjdk8-jre-base'; \
+            ;; \
         ppc64le) \
             openjdk_packages='openjdk11-jre-headless'; \
             ;; \
