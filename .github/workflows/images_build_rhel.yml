@@ -250,7 +250,7 @@ jobs:
               --env PFLT_DOCKERCONFIG=/temp-authfile.json \
               -v $PFLT_ARTIFACTS:/artifacts \
               -v $PFLT_DOCKERCONFIG:/temp-authfile.json:ro \
-              quay.io/opdev/preflight:1.5.1 check container ${{ steps.build_image.outputs.image-with-tag }} --submit
+              quay.io/opdev/preflight:stable check container ${{ steps.build_image.outputs.image-with-tag }} --submit
 
       - name: Push to RedHat certification procedure
         id: push_to_registry_all_tags
@@ -353,7 +353,7 @@ jobs:
 
     runs-on: [self-hosted, linux, ARM64]
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Detect Build Base Image
         id: build_base_image
@@ -364,7 +364,7 @@ jobs:
 
           echo "build_base=$BUILD_BASE" >> $GITHUB_OUTPUT
 
-      - name: Genarate image name
+      - name: Generate image name
         id: image_name
         env:
           REDHAT_CERTIFY_CREDENTIALS: ${{ secrets.REDHAT_CERTIFY_CREDENTIALS }}
@@ -390,7 +390,7 @@ jobs:
           echo "password=$REGISTRY_PASSWORD" >> $GITHUB_OUTPUT
 
       - name: Log in to Quay.io
-        uses: redhat-actions/podman-login@v1.5
+        uses: redhat-actions/podman-login@v1.6
         env:
           LOGIN: ${{ steps.login_credentials.outputs.username }}
           PASSWORD: ${{ steps.login_credentials.outputs.password }}
@@ -407,7 +407,7 @@ jobs:
 
       - name: Generate tags
         id: meta
-        uses: docker/metadata-action@v4
+        uses: docker/metadata-action@v5
         with:
           images: ${{ env.REGISTRY }}/${{ env.REGISTRY_NAMESPACE }}/${{ steps.image_name.outputs.image_name }}
           tags: |
@@ -458,7 +458,7 @@ jobs:
               --env PFLT_DOCKERCONFIG=/temp-authfile.json \
               -v $PFLT_ARTIFACTS:/artifacts \
               -v $PFLT_DOCKERCONFIG:/temp-authfile.json:ro \
-              quay.io/opdev/preflight:1.5.1 check container ${{ steps.build_image.outputs.image-with-tag }} --submit
+              quay.io/opdev/preflight:stable check container ${{ steps.build_image.outputs.image-with-tag }} --submit
 
       - name: Push to RedHat certification procedure
         id: push_to_registry_all_tags
