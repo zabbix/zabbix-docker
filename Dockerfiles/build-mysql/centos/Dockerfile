@@ -26,19 +26,6 @@ ENV MONGODB_PLUGIN_SOURCES=https://git.zabbix.com/scm/ap/mongodb.git MONGODB_PLU
 COPY ["conf/chromedp_no_sandbox.patch", "/tmp/chromedp_no_sandbox.patch"]
 
 RUN set -eux && \
-    ARCH_SUFFIX="$(arch)"; \
-    case "$ARCH_SUFFIX" in \
-        x86_64) \
-            additional_components='--enable-java'; \
-            ;; \
-        aarch64) \
-            additional_components='--enable-java'; \
-            ;; \
-        ppc64le) \
-            additional_components=''; \
-            ;; \
-        *) echo "Unknown ARCH_SUFFIX=${ARCH_SUFFIX-}"; exit 1 ;; \
-    esac; \
     cd /tmp/ && \
     git -c advice.detachedHead=false clone ${ZBX_SOURCES} --branch ${GIT_BRANCH} --depth 1 --single-branch /tmp/zabbix-${ZBX_VERSION} && \
     cd /tmp/zabbix-${ZBX_VERSION} && \
@@ -72,7 +59,7 @@ RUN set -eux && \
             --with-openssl \
             --with-ssh \
             --with-unixodbc \
-            $additional_components \
+            --enable-java \
             --silent && \
     make -j"$(nproc)" -s dbschema && \
     make -j"$(nproc)" -s && \
