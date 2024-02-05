@@ -19,9 +19,9 @@ LABEL org.opencontainers.image.authors="Alexey Pustovalov <alexey.pustovalov@zab
       org.opencontainers.image.version="${ZBX_VERSION}"
 
 RUN set -eux && \
-    ARCH_SUFFIX="$(arch)"; \
+    ARCH_SUFFIX="$(cat /etc/apk/arch)"; \
     case "$ARCH_SUFFIX" in \
-        i686) \
+        x86) \
             openjdk_packages='openjdk8 openjdk8-jre-base'; \
             ;; \
         armv7) \

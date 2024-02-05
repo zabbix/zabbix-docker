@@ -38,7 +38,6 @@ RUN set -eux && \
             tzdata \
             ca-certificates \
             libssl3 \
-            libxml2 \
             libcurl4 \
             libmodbus5 \
             libpcre2-8-0 \
