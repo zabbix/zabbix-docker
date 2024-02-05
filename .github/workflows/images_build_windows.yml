@@ -6,10 +6,9 @@ on:
       - published
   push:
     branches:
-      - '4.0'
       - '5.0'
       - '6.0'
-      - '6.2'
+      - '6.4'
       - 'trunk'
     paths:
       - 'Dockerfiles/*/windows/*'
@@ -38,7 +37,7 @@ jobs:
       is_default_branch: ${{ steps.branch_info.outputs.is_default_branch }}
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v5
         with:
           fetch-depth: 1
 
@@ -100,7 +99,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v5
         with:
           fetch-depth: 1
 
@@ -117,7 +116,7 @@ jobs:
 
       - name: Generate tags
         id: meta
-        uses: docker/metadata-action@v4
+        uses: docker/metadata-action@v5
         with:
           images: ${{ env.DOCKER_REPOSITORY }}/${{ env.IMAGE_PREFIX }}${{ env.BASE_BUILD_NAME }}
           tags: |
@@ -173,7 +172,7 @@ jobs:
 
       - name: Upload SHA256 tag
         if: ${{ env.AUTO_PUSH_IMAGES }}
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
          name: ${{ env.BASE_BUILD_NAME }}${{ env.BASE_BUILD_ARTIFACT_FILE_SUFFIX }}
          path: ${{ env.BASE_BUILD_NAME }}${{ env.BASE_BUILD_ARTIFACT_FILE_SUFFIX }}
@@ -200,7 +199,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v5
 
       - name: Login to DockerHub
         run: |
@@ -215,7 +214,7 @@ jobs:
 
       - name: Generate tags
         id: meta
-        uses: docker/metadata-action@v4
+        uses: docker/metadata-action@v5
         with:
           images: ${{ env.DOCKER_REPOSITORY }}/${{ env.IMAGE_PREFIX }}${{ env.COMPONENT_BASE_BUILD_NAME }}
           tags: |
@@ -228,7 +227,7 @@ jobs:
             latest=false
 
       - name: Download SHA256 tag build-base:${{ matrix.os }}
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: ${{ env.BASE_BUILD_NAME }}${{ env.BASE_BUILD_ARTIFACT_FILE_SUFFIX }}
 
@@ -285,7 +284,7 @@ jobs:
 
       - name: Upload SHA256 tag
         if: ${{ env.AUTO_PUSH_IMAGES }}
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
          name: ${{ env.COMPONENT_BASE_BUILD_NAME }}${{ env.COMPONENT_BASE_BUILD_ARTIFACT_FILE_SUFFIX }}
          path: ${{ env.COMPONENT_BASE_BUILD_NAME }}${{ env.COMPONENT_BASE_BUILD_ARTIFACT_FILE_SUFFIX }}
@@ -325,7 +324,7 @@ jobs:
 
       - name: Generate tags
         id: meta
-        uses: docker/metadata-action@v4
+        uses: docker/metadata-action@v5
         with:
           images: ${{ env.DOCKER_REPOSITORY }}/${{ env.IMAGE_PREFIX }}${{ matrix.component }}
           tags: |
@@ -338,7 +337,7 @@ jobs:
             latest=false
 
       - name: Download SHA256 tag for ${{ env.COMPONENT_BASE_BUILD_NAME }}:${{ matrix.os }}
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: ${{ env.COMPONENT_BASE_BUILD_NAME }}${{ env.COMPONENT_BASE_BUILD_ARTIFACT_FILE_SUFFIX }}
 
