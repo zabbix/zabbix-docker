@@ -318,11 +318,6 @@ jobs:
                 platform_list="${platform_list#linux/386,}"
             fi
 
-            # Can not compile Java applications on ppc64le
-            if [ "${{ matrix.build }}" == "java-gateway" ]; then
-                platform_list="${platform_list%linux/ppc64le}"
-            fi
-
             platform_list="${platform_list%,}"
 
             echo "list=$platform_list" >> $GITHUB_OUTPUT
