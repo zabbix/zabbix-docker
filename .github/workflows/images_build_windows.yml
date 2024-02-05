@@ -37,7 +37,7 @@ jobs:
       is_default_branch: ${{ steps.branch_info.outputs.is_default_branch }}
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v5
+        uses: actions/checkout@v4
         with:
           fetch-depth: 1
 
@@ -99,7 +99,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v5
+        uses: actions/checkout@v4
         with:
           fetch-depth: 1
 
@@ -196,7 +196,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v5
+        uses: actions/checkout@v4
 
       - name: Login to DockerHub
         run: |
