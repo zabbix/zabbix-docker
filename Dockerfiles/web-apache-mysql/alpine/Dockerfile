@@ -35,22 +35,22 @@ RUN set -eux && \
             curl \
             mariadb-client \
             mariadb-connector-c \
-            php81-apache2 \
-            php81-bcmath \
-            php81-ctype \
-            php81-gd \
-            php81-gettext \
-            php81-json \
-            php81-ldap \
-            php81-mbstring \
-            php81-mysqli \
-            php81-session \
-            php81-simplexml \
-            php81-sockets \
-            php81-fileinfo \
-            php81-xmlreader \
-            php81-xmlwriter \
-            php81-openssl" && \
+            php83-apache2 \
+            php83-bcmath \
+            php83-ctype \
+            php83-gd \
+            php83-gettext \
+            php83-json \
+            php83-ldap \
+            php83-mbstring \
+            php83-mysqli \
+            php83-session \
+            php83-simplexml \
+            php83-sockets \
+            php83-fileinfo \
+            php83-xmlreader \
+            php83-xmlwriter \
+            php83-openssl" && \
     apk add \
             --no-cache \
             --clean-protected \
@@ -98,9 +98,9 @@ RUN set -eux && \
     chown --quiet -R zabbix:root /etc/zabbix/ /usr/share/zabbix/include/defines.inc.php /usr/share/zabbix/modules/ && \
     chgrp -R 0 /etc/zabbix/ /usr/share/zabbix/include/defines.inc.php /usr/share/zabbix/modules/ && \
     chmod -R g=u /etc/zabbix/ /usr/share/zabbix/include/defines.inc.php /usr/share/zabbix/modules/ && \
-    chown --quiet -R zabbix:root /etc/apache2/ /etc/php81/ && \
-    chgrp -R 0 /etc/apache2/ /etc/php81/ && \
-    chmod -R g=u /etc/apache2/ /etc/php81/ && \
+    chown --quiet -R zabbix:root /etc/apache2/ /etc/php83/ && \
+    chgrp -R 0 /etc/apache2/ /etc/php83/ && \
+    chmod -R g=u /etc/apache2/ /etc/php83/ && \
     rm -rf /var/cache/apk/*
 
 EXPOSE 8080/TCP 8443/TCP
