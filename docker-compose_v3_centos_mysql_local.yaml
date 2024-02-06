@@ -34,7 +34,7 @@ services:
  zabbix-server:
   extends:
    file: compose_zabbix_components.yaml
-   service: zabbix-server-mysql
+   service: server-mysql
   build:
    context: ./Dockerfiles/server-mysql/${CENTOS_OS_TAG_SHORT}
    cache_from:
@@ -54,7 +54,7 @@ services:
  zabbix-proxy-sqlite3:
   extends:
    file: compose_zabbix_components.yaml
-   service: zabbix-proxy-sqlite3
+   service: proxy-sqlite3
   build:
    context: ./Dockerfiles/proxy-sqlite3/${CENTOS_OS_TAG_SHORT}
    cache_from:
@@ -72,7 +72,7 @@ services:
  zabbix-proxy-mysql:
   extends:
    file: compose_zabbix_components.yaml
-   service: zabbix-proxy-mysql
+   service: proxy-mysql
   build:
    context: ./Dockerfiles/proxy-mysql/${CENTOS_OS_TAG_SHORT}
    cache_from:
@@ -91,7 +91,7 @@ services:
  zabbix-web-apache-mysql:
   extends:
    file: compose_zabbix_components.yaml
-   service: zabbix-web-apache-mysql
+   service: web-apache-mysql
   build:
    context: ./Dockerfiles/web-apache-mysql/${CENTOS_OS_TAG_SHORT}
    cache_from:
@@ -110,7 +110,7 @@ services:
  zabbix-web-nginx-mysql:
   extends:
    file: compose_zabbix_components.yaml
-   service: zabbix-web-nginx-mysql
+   service: web-nginx-mysql
   build:
    context: ./Dockerfiles/web-nginx-mysql/${CENTOS_OS_TAG_SHORT}
    cache_from:
@@ -129,7 +129,7 @@ services:
  zabbix-agent:
   extends:
    file: compose_zabbix_components.yaml
-   service: zabbix-agent
+   service: agent
   build:
    context: ./Dockerfiles/agent/${CENTOS_OS_TAG_SHORT}
    cache_from:
@@ -147,7 +147,7 @@ services:
  zabbix-java-gateway:
   extends:
    file: compose_zabbix_components.yaml
-   service: zabbix-java-gateway
+   service: java-gateway
   build:
    context: ./Dockerfiles/java-gateway/${CENTOS_OS_TAG_SHORT}
    cache_from:
@@ -163,7 +163,7 @@ services:
  zabbix-snmptraps:
   extends:
    file: compose_zabbix_components.yaml
-   service: zabbix-snmptraps
+   service: snmptraps
   build:
    context: ./Dockerfiles/snmptraps/${CENTOS_OS_TAG_SHORT}
    cache_from:
