@@ -1,6 +1,6 @@
 version: '3.8'
 services:
- zabbix-server:
+ server:
   init: true
   ports:
    - "${ZABBIX_SERVER_PORT}:10051"
@@ -55,9 +55,9 @@ services:
    com.zabbix.company: "Zabbix LLC"
    com.zabbix.component: "zabbix-server"
 
- zabbix-server-mysql:
+ server-mysql:
   extends:
-   service: zabbix-server
+   service: server
 #  volumes:
 #   - dbsocket:/var/run/mysqld/
   env_file:
@@ -76,9 +76,9 @@ services:
    com.zabbix.description: "Zabbix server with MySQL database support"
    com.zabbix.dbtype: "mysql"
 
- zabbix-server-pgsql:
+ server-pgsql:
   extends:
-   service: zabbix-server
+   service: server
 #  volumes:
 #   - ${ENV_VARS_DIRECTORY}/.ZBX_DB_CA_FILE:/run/secrets/root-ca.pem:ro
 #   - ${ENV_VARS_DIRECTORY}/.ZBX_DB_CERT_FILE:/run/secrets/client-cert.pem:ro
@@ -96,7 +96,7 @@ services:
    com.zabbix.description: "Zabbix server with PostgreSQL database support"
    com.zabbix.dbtype: "pgsql"
 
- zabbix-proxy:
+ proxy:
   init: true
   profiles:
    - all
@@ -141,9 +141,9 @@ services:
    com.zabbix.company: "Zabbix LLC"
    com.zabbix.component: "zabbix-proxy"
 
- zabbix-proxy-sqlite3:
+ proxy-sqlite3:
   extends:
-   service: zabbix-proxy
+   service: proxy
   ports:
    - "${ZABBIX_PROXY_SQLITE3_PORT}:10051"
   env_file:
@@ -156,9 +156,9 @@ services:
    com.zabbix.description: "Zabbix proxy with SQLite3 database support"
    com.zabbix.dbtype: "sqlite3"
 
- zabbix-proxy-mysql:
+ proxy-mysql:
   extends:
-   service: zabbix-proxy
+   service: proxy
   ports:
    - "${ZABBIX_PROXY_MYSQL_PORT}:10051"
 #  volumes:
@@ -183,7 +183,7 @@ services:
    com.zabbix.description: "Zabbix proxy with MySQL database support"
    com.zabbix.dbtype: "mysql"
 
- zabbix-web-apache:
+ web-apache:
   profiles:
    - all
   ports:
@@ -223,9 +223,9 @@ services:
    com.zabbix.component: "zabbix-frontend"
    com.zabbix.webserver: "apache2"
 
- zabbix-web-apache-mysql:
+ web-apache-mysql:
   extends:
-   service: zabbix-web-apache
+   service: web-apache
 #  volumes:
 #   - dbsocket:/var/run/mysqld/
   env_file:
@@ -242,7 +242,7 @@ services:
 
  zabbix-web-apache-pgsql:
   extends:
-   service: zabbix-web-apache
+   service: web-apache
 #  volumes:
 #   - ${ENV_VARS_DIRECTORY}/.ZBX_DB_CA_FILE:/run/secrets/root-ca.pem:ro
 #   - ${ENV_VARS_DIRECTORY}/.ZBX_DB_CERT_FILE:/run/secrets/client-cert.pem:ro
@@ -260,7 +260,7 @@ services:
    com.zabbix.description: "Zabbix frontend on Apache web-server with PostgreSQL database support"
    com.zabbix.dbtype: "pgsql"
 
- zabbix-web-nginx:
+ web-nginx:
   ports:
    - "${ZABBIX_WEB_NGINX_HTTP_PORT}:8080"
    - "${ZABBIX_WEB_NGINX_HTTPS_PORT}:8443"
@@ -298,9 +298,9 @@ services:
    com.zabbix.component: "zabbix-frontend"
    com.zabbix.webserver: "nginx"
 
- zabbix-web-nginx-mysql:
+ web-nginx-mysql:
   extends:
-   service: zabbix-web-nginx
+   service: web-nginx
 #  volumes:
 #   - dbsocket:/var/run/mysqld/
   env_file:
@@ -319,9 +319,9 @@ services:
    com.zabbix.description: "Zabbix frontend on Nginx web-server with MySQL database support"
    com.zabbix.dbtype: "mysql"
 
- zabbix-web-nginx-pgsql:
+ web-nginx-pgsql:
   extends:
-   service: zabbix-web-nginx
+   service: web-nginx
 #  volumes:
 #   - ${ENV_VARS_DIRECTORY}/.ZBX_DB_CA_FILE:/run/secrets/root-ca.pem:ro
 #   - ${ENV_VARS_DIRECTORY}/.ZBX_DB_CERT_FILE:/run/secrets/client-cert.pem:ro
@@ -339,7 +339,7 @@ services:
    com.zabbix.description: "Zabbix frontend on Nginx web-server with PostgreSQL database support"
    com.zabbix.dbtype: "pgsql"
 
- zabbix-agent:
+ agent:
   init: true
   profiles:
    - full
@@ -378,7 +378,7 @@ services:
    com.zabbix.company: "Zabbix LLC"
    com.zabbix.component: "zabbix-agentd"
 
- zabbix-agent2:
+ agent2:
   init: true
   profiles:
    - full
@@ -417,7 +417,7 @@ services:
    com.zabbix.company: "Zabbix LLC"
    com.zabbix.component: "zabbix-agent2"
 
- zabbix-java-gateway:
+ java-gateway:
   profiles:
    - full
    - all
@@ -444,7 +444,7 @@ services:
    com.zabbix.company: "Zabbix LLC"
    com.zabbix.component: "java-gateway"
 
- zabbix-snmptraps:
+ snmptraps:
 # Override snmptrapd command arguments to receive SNMP traps by DNS
 # It must be done with ZBX_SNMP_TRAP_USE_DNS=true environment variable
 #  command: /usr/sbin/snmptrapd -C -c /etc/snmp/snmptrapd.conf -Lo -A
@@ -478,7 +478,7 @@ services:
    com.zabbix.company: "Zabbix LLC"
    com.zabbix.component: "snmptraps"
 
- zabbix-web-service:
+ web-service:
   profiles:
    - full
    - all
