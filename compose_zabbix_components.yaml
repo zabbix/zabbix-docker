@@ -1,7 +1,6 @@
 version: '3.8'
 services:
  server:
-  init: true
   ports:
    - "${ZABBIX_SERVER_PORT}:10051"
   restart: "${RESTART_POLICY}"
@@ -97,7 +96,6 @@ services:
    com.zabbix.dbtype: "pgsql"
 
  proxy:
-  init: true
   profiles:
    - all
   restart: "${RESTART_POLICY}"
@@ -340,7 +338,6 @@ services:
    com.zabbix.dbtype: "pgsql"
 
  agent:
-  init: true
   profiles:
    - full
    - all
@@ -379,7 +376,6 @@ services:
    com.zabbix.component: "zabbix-agentd"
 
  agent2:
-  init: true
   profiles:
    - full
    - all
