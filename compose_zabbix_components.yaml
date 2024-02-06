@@ -240,7 +240,7 @@ services:
    com.zabbix.description: "Zabbix frontend on Apache web-server with MySQL database support"
    com.zabbix.dbtype: "mysql"
 
- zabbix-web-apache-pgsql:
+ web-apache-pgsql:
   extends:
    service: web-apache
 #  volumes:
