@@ -3,7 +3,7 @@ services:
  zabbix-server:
   extends:
    file: compose_zabbix_components.yaml
-   service: zabbix-server-mysql
+   service: server-mysql
   image: "${ZABBIX_SERVER_MYSQL_IMAGE}:${ZABBIX_UBUNTU_IMAGE_TAG}${ZABBIX_IMAGE_TAG_POSTFIX}"
   depends_on:
    - mysql-server
@@ -13,7 +13,7 @@ services:
  zabbix-proxy-sqlite3:
   extends:
    file: compose_zabbix_components.yaml
-   service: zabbix-proxy-sqlite3
+   service: proxy-sqlite3
   image: "${ZABBIX_PROXY_SQLITE3_IMAGE}:${ZABBIX_UBUNTU_IMAGE_TAG}${ZABBIX_IMAGE_TAG_POSTFIX}"
   labels:
    com.zabbix.os: "${UBUNTU_OS_TAG}"
@@ -21,7 +21,7 @@ services:
  zabbix-proxy-mysql:
   extends:
    file: compose_zabbix_components.yaml
-   service: zabbix-proxy-mysql
+   service: proxy-mysql
   image: "${ZABBIX_PROXY_MYSQL_IMAGE}:${ZABBIX_UBUNTU_IMAGE_TAG}${ZABBIX_IMAGE_TAG_POSTFIX}"
   depends_on:
    - mysql-server
@@ -31,7 +31,7 @@ services:
  zabbix-web-apache-mysql:
   extends:
    file: compose_zabbix_components.yaml
-   service: zabbix-web-apache-mysql
+   service: web-apache-mysql
   image: "${ZABBIX_WEB_APACHE_MYSQL_IMAGE}:${ZABBIX_UBUNTU_IMAGE_TAG}${ZABBIX_IMAGE_TAG_POSTFIX}"
   depends_on:
    - mysql-server
@@ -41,7 +41,7 @@ services:
  zabbix-web-nginx-mysql:
   extends:
    file: compose_zabbix_components.yaml
-   service: zabbix-web-nginx-mysql
+   service: web-nginx-mysql
   image: "${ZABBIX_WEB_NGINX_MYSQL_IMAGE}:${ZABBIX_UBUNTU_IMAGE_TAG}${ZABBIX_IMAGE_TAG_POSTFIX}"
   depends_on:
    - mysql-server
@@ -51,7 +51,7 @@ services:
  zabbix-agent:
   extends:
    file: compose_zabbix_components.yaml
-   service: zabbix-agent
+   service: agent
   image: "${ZABBIX_AGENT_IMAGE}:${ZABBIX_UBUNTU_IMAGE_TAG}${ZABBIX_IMAGE_TAG_POSTFIX}"
   labels:
    com.zabbix.os: "${UBUNTU_OS_TAG}"
@@ -59,7 +59,7 @@ services:
  zabbix-java-gateway:
   extends:
    file: compose_zabbix_components.yaml
-   service: zabbix-java-gateway
+   service: java-gateway
   image: "${ZABBIX_JAVA_GATEWAY_IMAGE}:${ZABBIX_UBUNTU_IMAGE_TAG}${ZABBIX_IMAGE_TAG_POSTFIX}"
   labels:
    com.zabbix.os: "${UBUNTU_OS_TAG}"
@@ -67,7 +67,7 @@ services:
  zabbix-snmptraps:
   extends:
    file: compose_zabbix_components.yaml
-   service: zabbix-snmptraps
+   service: snmptraps
   image: "${ZABBIX_SNMPTRAPS_IMAGE}:${ZABBIX_UBUNTU_IMAGE_TAG}${ZABBIX_IMAGE_TAG_POSTFIX}"
   labels:
    com.zabbix.os: "${UBUNTU_OS_TAG}"
@@ -75,7 +75,7 @@ services:
  zabbix-web-service:
   extends:
    file: compose_zabbix_components.yaml
-   service: zabbix-web-service
+   service: web-service
   image: "${ZABBIX_WEB_SERVICE_IMAGE}:${ZABBIX_UBUNTU_IMAGE_TAG}${ZABBIX_IMAGE_TAG_POSTFIX}"
   labels:
    com.zabbix.os: "${UBUNTU_OS_TAG}"
