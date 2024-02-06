@@ -23,6 +23,8 @@ fi
 ZABBIX_ETC_DIR="/etc/zabbix"
 # Web interface www-root directory
 ZABBIX_WWW_ROOT="/usr/share/zabbix"
+# Nginx main configuration file
+NGINX_CONF_FILE="/etc/nginx/nginx.conf"
 
 # usage: file_env VAR [DEFAULT]
 # as example: file_env 'MYSQL_PASSWORD' 'zabbix'
@@ -214,7 +216,7 @@ prepare_zbx_web_config() {
     export VAULT_TOKEN=${VAULT_TOKEN}
     export ZBX_VAULTCERTFILE=${ZBX_VAULTCERTFILE}
     export ZBX_VAULTKEYFILE=${ZBX_VAULTKEYFILE}
-    
+
     : ${DB_DOUBLE_IEEE754:="true"}
     export DB_DOUBLE_IEEE754=${DB_DOUBLE_IEEE754,,}
 
@@ -257,14 +259,23 @@ prepare_zbx_web_config() {
     if [ "${ENABLE_WEB_ACCESS_LOG,,}" == "false" ]; then
         sed -ri \
             -e 's!^(\s*access_log).+\;!\1 off\;!g' \
-            "/etc/nginx/nginx.conf"
+            "$NGINX_CONF_FILE"
         sed -ri \
             -e 's!^(\s*access_log).+\;!\1 off\;!g' \
-            "/etc/zabbix/nginx.conf"
+            "$ZABBIX_ETC_DIR/nginx.conf"
         sed -ri \
             -e 's!^(\s*access_log).+\;!\1 off\;!g' \
-            "/etc/zabbix/nginx_ssl.conf"
+            "$ZABBIX_ETC_DIR/nginx_ssl.conf"
     fi
+
+    : ${EXPOSE_WEB_SERVER_INFO:="on"}
+
+    [[ "${EXPOSE_WEB_SERVER_INFO}" != "off" ]] && EXPOSE_WEB_SERVER_INFO="on"
+
+    export EXPOSE_WEB_SERVER_INFO=${EXPOSE_WEB_SERVER_INFO}
+    sed -i \
+        -e "s/{EXPOSE_WEB_SERVER_INFO}/${EXPOSE_WEB_SERVER_INFO}/g" \
+    "$NGINX_CONF_FILE"
 }
 
 #################################################

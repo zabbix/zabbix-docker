@@ -134,11 +134,15 @@ Use IEEE754 compatible value range for 64-bit Numeric (float) history values. Av
 
 ### `ENABLE_WEB_ACCESS_LOG`
 
-The variable sets the Access Log directive for Web-server. By default, value corresponds to standard output.
+The variable sets the Access Log directive for Web server. By default, value corresponds to standard output.
 
 ### `HTTP_INDEX_FILE`
 
 The variable controls default index page. By default, `index.php`.
+
+### `EXPOSE_WEB_SERVER_INFO`
+
+The variable allows to hide Web server and PHP versions. By default, `on`.
 
 ### `ZBX_MAXEXECUTIONTIME`
 
