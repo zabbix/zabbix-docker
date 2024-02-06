@@ -47,7 +47,7 @@ services:
  zabbix-server:
   extends:
    file: compose_zabbix_components.yaml
-   service: zabbix-server-pgsql
+   service: server-pgsql
   build:
    context: ./Dockerfiles/server-pgsql/${OL_OS_TAG_SHORT}
    cache_from:
@@ -66,7 +66,7 @@ services:
  zabbix-proxy-sqlite3:
   extends:
    file: compose_zabbix_components.yaml
-   service: zabbix-proxy-sqlite3
+   service: proxy-sqlite3
   build:
    context: ./Dockerfiles/proxy-sqlite3/${OL_OS_TAG_SHORT}
    cache_from:
@@ -84,7 +84,7 @@ services:
  zabbix-proxy-mysql:
   extends:
    file: compose_zabbix_components.yaml
-   service: zabbix-proxy-mysql
+   service: proxy-mysql
   build:
    context: ./Dockerfiles/proxy-mysql/${OL_OS_TAG_SHORT}
    cache_from:
@@ -103,7 +103,7 @@ services:
  zabbix-web-apache-pgsql:
   extends:
    file: compose_zabbix_components.yaml
-   service: zabbix-web-apache-pgsql
+   service: web-apache-pgsql
   build:
    context: ./Dockerfiles/web-apache-pgsql/${OL_OS_TAG_SHORT}
    cache_from:
@@ -122,7 +122,7 @@ services:
  zabbix-web-nginx-pgsql:
   extends:
    file: compose_zabbix_components.yaml
-   service: zabbix-web-nginx-pgsql
+   service: web-nginx-pgsql
   build:
    context: ./Dockerfiles/web-nginx-pgsql/${OL_OS_TAG_SHORT}
    cache_from:
@@ -141,7 +141,7 @@ services:
  zabbix-agent:
   extends:
    file: compose_zabbix_components.yaml
-   service: zabbix-agent
+   service: agent
   build:
    context: ./Dockerfiles/agent/${OL_OS_TAG_SHORT}
    cache_from:
@@ -159,7 +159,7 @@ services:
  zabbix-java-gateway:
   extends:
    file: compose_zabbix_components.yaml
-   service: zabbix-java-gateway
+   service: java-gateway
   build:
    context: ./Dockerfiles/java-gateway/${OL_OS_TAG_SHORT}
    cache_from:
@@ -175,7 +175,7 @@ services:
  zabbix-snmptraps:
   extends:
    file: compose_zabbix_components.yaml
-   service: zabbix-snmptraps
+   service: snmptraps
   build:
    context: ./Dockerfiles/snmptraps/${OL_OS_TAG_SHORT}
    cache_from:
@@ -189,7 +189,7 @@ services:
  zabbix-web-service:
   extends:
    file: compose_zabbix_components.yaml
-   service: zabbix-web-service
+   service: web-service
   build:
    context: ./Dockerfiles/web-service/${OL_OS_TAG_SHORT}
    cache_from:
