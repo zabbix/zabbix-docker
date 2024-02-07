@@ -152,7 +152,6 @@ jobs:
 
       - name: Generate tags
         id: meta
-        if: ${{ needs.init_build.outputs.current_branch != 'trunk' }}
         uses: docker/metadata-action@v5
         with:
           images: ${{ env.DOCKER_REPOSITORY }}/zabbix-${{ env.BASE_BUILD_NAME }}
