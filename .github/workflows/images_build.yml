@@ -180,7 +180,5 @@ jobs:
       - name: Test Output
         id: meta
         run: |
-            echo "${{ steps.meta_release.outputs }}"
-            #echo "${{ fromJSON(steps.meta_release.outputs.json).labels['org.opencontainers.image.revision'] }}"
+            echo "${{ steps.meta_release }}"
             echo "${{ steps.meta_trunk.outputs.tags }}"
-            echo "${{ fromJSON(steps.meta_trunk.outputs.json).labels['org.opencontainers.image.revision'] }}"
