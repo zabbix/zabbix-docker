@@ -116,9 +116,13 @@ jobs:
 
     runs-on: ubuntu-latest
     steps:
-      - uses: step-security/harden-runner@63c24ba6bd7ba022e95695ff85de572c04a18142 # v2.7.0
+      - name: Block egress traffic
+        uses: step-security/harden-runner@63c24ba6bd7ba022e95695ff85de572c04a18142 # v2.7.0
         with:
-          egress-policy: audit
+          disable-sudo: true
+          egress-policy: block
+          allowed-endpoints: >
+            github.com:443
 
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -175,7 +179,7 @@ jobs:
           file: ./Dockerfiles/${{ env.BASE_BUILD_NAME }}/${{ matrix.os }}/Dockerfile
           platforms: ${{ steps.platform.outputs.list }}
           push: ${{ secrets.AUTO_PUSH_IMAGES }}
-          tags: ${{ steps.meta_release.conclusion == 'skipped' && steps.meta_trunk.outputs.tags || steps.meta_release.outputs.tags }}
+          tags: ${{ steps.meta.outputs.tags }}
           labels: |
             org.opencontainers.image.revision=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.revision'] }}
             org.opencontainers.image.created=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.created'] }}
