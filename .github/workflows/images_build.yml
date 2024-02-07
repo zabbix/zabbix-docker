@@ -151,7 +151,7 @@ jobs:
             echo "list=$platform_list" >> $GITHUB_OUTPUT
 
       - name: Generate tags (release)
-        id: meta
+        id: meta_release
         if: ${{ needs.init_build.outputs.current_branch != 'trunk' }}
         uses: docker/metadata-action@v5
         with:
@@ -166,7 +166,7 @@ jobs:
             latest=${{ (matrix.os == 'alpine') && ( needs.init_build.outputs.is_default_branch == 'true' ) }}
 
       - name: Generate tags (trunk)
-        id: meta
+        id: meta_trunk
         if: ${{ needs.init_build.outputs.current_branch == 'trunk' }}
         uses: docker/metadata-action@v5
         with:
@@ -176,3 +176,11 @@ jobs:
             type=ref,event=branch,suffix=-${{ matrix.os }}
           flavor: |
             latest=false
+
+      - name: Prepare Platform list
+        id: platform
+        run: |
+            echo "${{ steps.meta_release.outputs.tags }}"
+            echo "${{ fromJSON(steps.meta_release.outputs.json).labels['org.opencontainers.image.revision'] }}"
+            echo "${{ steps.meta_trunk.outputs.tags }}"
+            echo "${{ fromJSON(steps.meta_trunk.outputs.json).labels['org.opencontainers.image.revision'] }}"
