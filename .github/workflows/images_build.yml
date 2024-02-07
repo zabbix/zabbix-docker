@@ -185,26 +185,6 @@ jobs:
           file: ./Dockerfiles/${{ env.BASE_BUILD_NAME }}/${{ matrix.os }}/Dockerfile
           platforms: ${{ steps.platform.outputs.list }}
           push: ${{ secrets.AUTO_PUSH_IMAGES }}
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: |
-            org.opencontainers.image.revision=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.revision'] }}
-            org.opencontainers.image.created=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.created'] }}
-
-
-      - name: Test Output
-        id: meta
-        run: |
-            echo "${{ toJSON(steps.meta_release.conclusion) }}"
-            echo "${{ steps.meta_trunk.outputs.tags }}"
-
-      - name: Build ${{ env.BASE_BUILD_NAME }}/${{ matrix.os }} and push
-        id: docker_build
-        uses: docker/build-push-action@v5
-        with:
-          context: ./Dockerfiles/${{ env.BASE_BUILD_NAME }}/${{ matrix.os }}
-          file: ./Dockerfiles/${{ env.BASE_BUILD_NAME }}/${{ matrix.os }}/Dockerfile
-          platforms: ${{ steps.platform.outputs.list }}
-          push: ${{ secrets.AUTO_PUSH_IMAGES }}
           tags: ${{ steps.meta_release.conclusion == 'skipped' && steps.meta_trunk.outputs.tags || steps.meta_release.outputs.tags }}
           labels: |
             org.opencontainers.image.revision=${{ steps.meta_release.conclusion == 'skipped' && fromJSON(steps.meta_trunk.outputs.json).labels['org.opencontainers.image.revision'] || fromJSON(steps.meta_release.outputs.json).labels['org.opencontainers.image.revision'] }}
