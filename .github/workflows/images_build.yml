@@ -180,5 +180,5 @@ jobs:
       - name: Test Output
         id: meta
         run: |
-            echo "${{ steps.meta_release }}"
+            echo "${{ toJSON(steps.meta_release) }}"
             echo "${{ steps.meta_trunk.outputs.tags }}"
