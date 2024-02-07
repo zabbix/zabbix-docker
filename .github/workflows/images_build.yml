@@ -177,8 +177,8 @@ jobs:
           flavor: |
             latest=false
 
-      - name: Prepare Platform list
-        id: platform
+      - name: Test Output
+        id: meta
         run: |
             echo "${{ steps.meta_release.outputs.tags }}"
             echo "${{ fromJSON(steps.meta_release.outputs.json).labels['org.opencontainers.image.revision'] }}"
