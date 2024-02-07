@@ -25,8 +25,6 @@ LABEL org.opencontainers.image.title="Zabbix agent build (Windows)" `
 
 SHELL ["powershell", "-Command", "$ErrorActionPreference = 'Stop'; $ProgressPreference = 'SilentlyContinue';"]
 
-ADD --keep-git-dir=true ${ZBX_SOURCES}#${GIT_BRANCH} $SystemDrive\zabbix-ZBX_VERSION
-
 RUN Set-Location -Path $env:SystemDrive\.; `
     `
     Import-Module ('{0}\Microsoft Visual Studio\2019\BuildTools\Common7\Tools\Microsoft.VisualStudio.DevShell.dll' -f ${env:ProgramFiles(x86)} ); `
