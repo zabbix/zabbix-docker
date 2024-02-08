@@ -108,6 +108,8 @@ jobs:
             if [[ "$github_ref" == "${{ env.LATEST_BRANCH }}" ]]; then
                 result=true
             fi
+            echo "${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}}"
+
             echo "is_default_branch=$result" >> $GITHUB_OUTPUT
             echo "current_branch=$github_ref" >> $GITHUB_OUTPUT
             echo "branch=${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}}" >> $GITHUB_OUTPUT
@@ -142,10 +144,28 @@ jobs:
             archive.ubuntu.com:80
             ports.ubuntu.com:80
             security.ubuntu.com:80
-            mirrors.centos.org:443
             quay.io:443
             cdn03.quay.io:443
+            centos-stream-distro.1gservers.com:443
+            centos-stream-distro.1gservers.com:80
+            ftp-nyc.osuosl.org:80
+            ftp-osl.osuosl.org:80
+            ftpmirror.your.org:80
+            mirror.dogado.de:443
+            mirror.dogado.de:80
+            mirror.netzwerge.de:443
+            mirror.pilotfiber.com:443
+            mirror.pilotfiber.com:80
             mirror.rackspace.com:443
+            mirror.rackspace.com:80
+            mirror.servaxnet.com:80
+            mirror.siena.edu:80
+            mirror.team-cymru.com:80
+            mirror1.hs-esslingen.de:443
+            mirrors.centos.org:443
+            mirrors.iu13.net:80
+            mirrors.ocf.berkeley.edu:443
+            mirrors.xtom.de:80
 
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -205,6 +225,8 @@ jobs:
           labels: |
             org.opencontainers.image.revision=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.revision'] }}
             org.opencontainers.image.created=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.created'] }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
       - name: Image digest
         run: |
@@ -310,6 +332,8 @@ jobs:
           labels: |
             org.opencontainers.image.revision=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.revision'] }}
             org.opencontainers.image.created=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.created'] }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
       - name: Image digest
         run: |
