@@ -300,6 +300,9 @@ jobs:
             proxy.golang.org:443
             registry-1.docker.io:443
             storage.googleapis.com:443
+            fulcio.sigstore.dev:443
+            objects.githubusercontent.com:443
+            tuf-repo-cdn.sigstore.dev:443
 
       - name: Checkout repository
         uses: actions/checkout@v4
