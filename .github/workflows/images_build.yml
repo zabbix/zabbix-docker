@@ -140,6 +140,7 @@ jobs:
             github.com:443
             index.docker.io:443
             objects.githubusercontent.com:443
+            fulcio.sigstore.dev:443
             production.cloudflare.docker.com:443
             registry-1.docker.io:443
             yum.oracle.com:443
