@@ -238,7 +238,8 @@ jobs:
           labels: |
             org.opencontainers.image.revision=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.revision'] }}
             org.opencontainers.image.created=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.created'] }}
-          cache-from: type=gha,scope=${{ fromJSON(steps.meta.outputs.json).tags[0] }}
+          cache-from: |
+              type=registry,ref=${{ fromJSON(steps.meta.outputs.json).tags[0] }}
           cache-to: type=gha,mode=max,scope=${{ fromJSON(steps.meta.outputs.json).tags[0] }}
 
       - name: Sign the images with GitHub OIDC Token
@@ -251,6 +252,13 @@ jobs:
             images+="${tag}@${DIGEST} "
           done
           cosign sign --yes ${images}
+
+      - name: Cache image digest
+        id: cache-image-digest
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.docker_build.outputs.digest }}
+          key: ${{ env.BASE_BUILD_NAME }}-${{ matrix.os }}
 
       - name: Image digest
         run: |
@@ -303,6 +311,7 @@ jobs:
             fulcio.sigstore.dev:443
             objects.githubusercontent.com:443
             tuf-repo-cdn.sigstore.dev:443
+            rekor.sigstore.dev:443
 
       - name: Checkout repository
         uses: actions/checkout@v4
