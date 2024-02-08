@@ -1,0 +1,418 @@
+version: 2
+updates:
+- package-ecosystem: "github-actions"
+  directory: "/"
+  schedule:
+    interval: daily
+    time: "06:00"
+  open-pull-requests-limit: 10
+
+- package-ecosystem: "docker"
+  directory: /Dockerfiles/agent/alpine
+  schedule:
+    interval: daily
+
+- package-ecosystem: "docker"
+  directory: /Dockerfiles/agent/centos
+  schedule:
+    interval: daily
+
+- package-ecosystem: "docker"
+  directory: /Dockerfiles/agent/ol
+  schedule:
+    interval: daily
+
+- package-ecosystem: "docker"
+  directory: /Dockerfiles/agent/rhel
+  schedule:
+    interval: daily
+
+- package-ecosystem: "docker"
+  directory: /Dockerfiles/agent/ubuntu
+  schedule:
+    interval: daily
+
+- package-ecosystem: "docker"
+  directory: /Dockerfiles/agent/windows
+  schedule:
+    interval: daily
+
+- package-ecosystem: "docker"
+  directory: /Dockerfiles/agent2/alpine
+  schedule:
+    interval: daily
+
+- package-ecosystem: "docker"
+  directory: /Dockerfiles/agent2/centos
+  schedule:
+    interval: daily
+
+- package-ecosystem: "docker"
+  directory: /Dockerfiles/agent2/ol
+  schedule:
+    interval: daily
+
+- package-ecosystem: "docker"
+  directory: /Dockerfiles/agent2/rhel
+  schedule:
+    interval: daily
+
+- package-ecosystem: "docker"
+  directory: /Dockerfiles/agent2/ubuntu
+  schedule:
+    interval: daily
+
+- package-ecosystem: "docker"
+  directory: /Dockerfiles/agent2/windows
+  schedule:
+    interval: daily
+
+- package-ecosystem: "docker"
+  directory: /Dockerfiles/build-base/alpine
+  schedule:
+    interval: daily
+
+- package-ecosystem: "docker"
+  directory: /Dockerfiles/build-base/centos
+  schedule:
+    interval: daily
+
+- package-ecosystem: "docker"
+  directory: /Dockerfiles/build-base/ol
+  schedule:
+    interval: daily
+
+- package-ecosystem: "docker"
+  directory: /Dockerfiles/build-base/rhel
+  schedule:
+    interval: daily
+
+- package-ecosystem: "docker"
+  directory: /Dockerfiles/build-base/ubuntu
+  schedule:
+    interval: daily
+
+- package-ecosystem: "docker"
+  directory: /Dockerfiles/build-mysql/alpine
+  schedule:
+    interval: daily
+
+- package-ecosystem: "docker"
+  directory: /Dockerfiles/build-mysql/centos
+  schedule:
+    interval: daily
+
+- package-ecosystem: "docker"
+  directory: /Dockerfiles/build-mysql/ol
+  schedule:
+    interval: daily
+
+- package-ecosystem: "docker"
+  directory: /Dockerfiles/build-mysql/rhel
+  schedule:
+    interval: daily
+
+- package-ecosystem: "docker"
+  directory: /Dockerfiles/build-mysql/ubuntu
+  schedule:
+    interval: daily
+
+- package-ecosystem: "docker"
+  directory: /Dockerfiles/build-pgsql/alpine
+  schedule:
+    interval: daily
+
+- package-ecosystem: "docker"
+  directory: /Dockerfiles/build-pgsql/centos
+  schedule:
+    interval: daily
+
+- package-ecosystem: "docker"
+  directory: /Dockerfiles/build-pgsql/ol
+  schedule:
+    interval: daily
+
+- package-ecosystem: "docker"
+  directory: /Dockerfiles/build-pgsql/ubuntu
+  schedule:
+    interval: daily
+
+- package-ecosystem: "docker"
+  directory: /Dockerfiles/build-sqlite3/alpine
+  schedule:
+    interval: daily
+
+- package-ecosystem: "docker"
+  directory: /Dockerfiles/build-sqlite3/centos
+  schedule:
+    interval: daily
+
+- package-ecosystem: "docker"
+  directory: /Dockerfiles/build-sqlite3/ol
+  schedule:
+    interval: daily
+
+- package-ecosystem: "docker"
+  directory: /Dockerfiles/build-sqlite3/rhel
+  schedule:
+    interval: daily
+
+- package-ecosystem: "docker"
+  directory: /Dockerfiles/build-sqlite3/ubuntu
+  schedule:
+    interval: daily
+
+- package-ecosystem: "docker"
+  directory: /Dockerfiles/java-gateway/alpine
+  schedule:
+    interval: daily
+
+- package-ecosystem: "docker"
+  directory: /Dockerfiles/java-gateway/centos
+  schedule:
+    interval: daily
+
+- package-ecosystem: "docker"
+  directory: /Dockerfiles/java-gateway/ol
+  schedule:
+    interval: daily
+
+- package-ecosystem: "docker"
+  directory: /Dockerfiles/java-gateway/rhel
+  schedule:
+    interval: daily
+
+- package-ecosystem: "docker"
+  directory: /Dockerfiles/java-gateway/ubuntu
+  schedule:
+    interval: daily
+
+- package-ecosystem: "docker"
+  directory: /Dockerfiles/proxy-mysql/alpine
+  schedule:
+    interval: daily
+
+- package-ecosystem: "docker"
+  directory: /Dockerfiles/proxy-mysql/centos
+  schedule:
+    interval: daily
+
+- package-ecosystem: "docker"
+  directory: /Dockerfiles/proxy-mysql/ol
+  schedule:
+    interval: daily
+
+- package-ecosystem: "docker"
+  directory: /Dockerfiles/proxy-mysql/rhel
+  schedule:
+    interval: daily
+
+- package-ecosystem: "docker"
+  directory: /Dockerfiles/proxy-mysql/ubuntu
+  schedule:
+    interval: daily
+
+- package-ecosystem: "docker"
+  directory: /Dockerfiles/proxy-sqlite3/alpine
+  schedule:
+    interval: daily
+
+- package-ecosystem: "docker"
+  directory: /Dockerfiles/proxy-sqlite3/centos
+  schedule:
+    interval: daily
+
+- package-ecosystem: "docker"
+  directory: /Dockerfiles/proxy-sqlite3/ol
+  schedule:
+    interval: daily
+
+- package-ecosystem: "docker"
+  directory: /Dockerfiles/proxy-sqlite3/rhel
+  schedule:
+    interval: daily
+
+- package-ecosystem: "docker"
+  directory: /Dockerfiles/proxy-sqlite3/ubuntu
+  schedule:
+    interval: daily
+
+- package-ecosystem: "docker"
+  directory: /Dockerfiles/server-mysql/alpine
+  schedule:
+    interval: daily
+
+- package-ecosystem: "docker"
+  directory: /Dockerfiles/server-mysql/centos
+  schedule:
+    interval: daily
+
+- package-ecosystem: "docker"
+  directory: /Dockerfiles/server-mysql/ol
+  schedule:
+    interval: daily
+
+- package-ecosystem: "docker"
+  directory: /Dockerfiles/server-mysql/rhel
+  schedule:
+    interval: daily
+
+- package-ecosystem: "docker"
+  directory: /Dockerfiles/server-mysql/ubuntu
+  schedule:
+    interval: daily
+
+- package-ecosystem: "docker"
+  directory: /Dockerfiles/server-pgsql/alpine
+  schedule:
+    interval: daily
+
+- package-ecosystem: "docker"
+  directory: /Dockerfiles/server-pgsql/centos
+  schedule:
+    interval: daily
+
+- package-ecosystem: "docker"
+  directory: /Dockerfiles/server-pgsql/ol
+  schedule:
+    interval: daily
+
+- package-ecosystem: "docker"
+  directory: /Dockerfiles/server-pgsql/ubuntu
+  schedule:
+    interval: daily
+
+- package-ecosystem: "docker"
+  directory: /Dockerfiles/snmptraps/alpine
+  schedule:
+    interval: daily
+
+- package-ecosystem: "docker"
+  directory: /Dockerfiles/snmptraps/centos
+  schedule:
+    interval: daily
+
+- package-ecosystem: "docker"
+  directory: /Dockerfiles/snmptraps/ol
+  schedule:
+    interval: daily
+
+- package-ecosystem: "docker"
+  directory: /Dockerfiles/snmptraps/rhel
+  schedule:
+    interval: daily
+
+- package-ecosystem: "docker"
+  directory: /Dockerfiles/snmptraps/ubuntu
+  schedule:
+    interval: daily
+
+- package-ecosystem: "docker"
+  directory: /Dockerfiles/web-apache-mysql/alpine
+  schedule:
+    interval: daily
+
+- package-ecosystem: "docker"
+  directory: /Dockerfiles/web-apache-mysql/centos
+  schedule:
+    interval: daily
+
+- package-ecosystem: "docker"
+  directory: /Dockerfiles/web-apache-mysql/ol
+  schedule:
+    interval: daily
+
+- package-ecosystem: "docker"
+  directory: /Dockerfiles/web-apache-mysql/ubuntu
+  schedule:
+    interval: daily
+
+- package-ecosystem: "docker"
+  directory: /Dockerfiles/web-apache-pgsql/alpine
+  schedule:
+    interval: daily
+
+- package-ecosystem: "docker"
+  directory: /Dockerfiles/web-apache-pgsql/centos
+  schedule:
+    interval: daily
+
+- package-ecosystem: "docker"
+  directory: /Dockerfiles/web-apache-pgsql/ol
+  schedule:
+    interval: daily
+
+- package-ecosystem: "docker"
+  directory: /Dockerfiles/web-apache-pgsql/ubuntu
+  schedule:
+    interval: daily
+
+- package-ecosystem: "docker"
+  directory: /Dockerfiles/web-nginx-mysql/alpine
+  schedule:
+    interval: daily
+
+- package-ecosystem: "docker"
+  directory: /Dockerfiles/web-nginx-mysql/centos
+  schedule:
+    interval: daily
+
+- package-ecosystem: "docker"
+  directory: /Dockerfiles/web-nginx-mysql/ol
+  schedule:
+    interval: daily
+
+- package-ecosystem: "docker"
+  directory: /Dockerfiles/web-nginx-mysql/rhel
+  schedule:
+    interval: daily
+
+- package-ecosystem: "docker"
+  directory: /Dockerfiles/web-nginx-mysql/ubuntu
+  schedule:
+    interval: daily
+
+- package-ecosystem: "docker"
+  directory: /Dockerfiles/web-nginx-pgsql/alpine
+  schedule:
+    interval: daily
+
+- package-ecosystem: "docker"
+  directory: /Dockerfiles/web-nginx-pgsql/centos
+  schedule:
+    interval: daily
+
+- package-ecosystem: "docker"
+  directory: /Dockerfiles/web-nginx-pgsql/ol
+  schedule:
+    interval: daily
+
+- package-ecosystem: "docker"
+  directory: /Dockerfiles/web-nginx-pgsql/ubuntu
+  schedule:
+    interval: daily
+
+- package-ecosystem: "docker"
+  directory: /Dockerfiles/web-service/alpine
+  schedule:
+    interval: daily
+
+- package-ecosystem: "docker"
+  directory: /Dockerfiles/web-service/centos
+  schedule:
+    interval: daily
+
+- package-ecosystem: "docker"
+  directory: /Dockerfiles/web-service/ol
+  schedule:
+    interval: daily
+
+- package-ecosystem: "docker"
+  directory: /Dockerfiles/web-service/rhel
+  schedule:
+    interval: daily
+
+- package-ecosystem: "docker"
+  directory: /Dockerfiles/web-service/ubuntu
+  schedule:
+    interval: daily
