@@ -440,7 +440,7 @@ jobs:
           CACHE_FILE_NAME: ${{ matrix.build }}_${{ matrix.os }}
         run: |
             echo "$DIGEST"
-            echo "$CACHE_FILE_NAME" > $CACHE_FILE_NAME
+            echo "$DIGEST" > $CACHE_FILE_NAME
 
       - name: Caching SHA256 tag of the image
         uses: actions/cache@v4
