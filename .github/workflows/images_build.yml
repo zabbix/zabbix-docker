@@ -377,7 +377,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: build-base_${{ matrix.os }}
-          key: build-base_${{ matrix.os }}
+          key: build-base-${{ matrix.os }}
 
       - name: Retrieve build-base:${{ matrix.os }} SHA256 tag
         id: base_build
