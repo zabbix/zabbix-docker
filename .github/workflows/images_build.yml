@@ -156,6 +156,7 @@ jobs:
             ftp-osl.osuosl.org:80
             ftpmirror.your.org:80
             fulcio.sigstore.dev:443
+            oauth2.sigstore.dev:443
             github.com:443
             index.docker.io:443
             mirror.dogado.de:443
@@ -318,6 +319,7 @@ jobs:
             registry-1.docker.io:443
             storage.googleapis.com:443
             fulcio.sigstore.dev:443
+            oauth2.sigstore.dev:443
             objects.githubusercontent.com:443
             tuf-repo-cdn.sigstore.dev:443
             rekor.sigstore.dev:443
@@ -550,6 +552,7 @@ jobs:
             objects.githubusercontent.com:443
             tuf-repo-cdn.sigstore.dev:443
             rekor.sigstore.dev:443
+            oauth2.sigstore.dev:443
             api.github.com:443
             auth.docker.io:443
             github.com:443
