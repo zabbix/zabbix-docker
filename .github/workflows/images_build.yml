@@ -144,6 +144,7 @@ jobs:
             security.ubuntu.com:80
             mirrors.centos.org:443
             quay.io:443
+            cdn03.quay.io:443
             mirror.rackspace.com:443
 
       - name: Checkout repository
