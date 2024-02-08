@@ -462,8 +462,7 @@ jobs:
     permissions:
       contents: read
     steps:
-      - name: Block egress traffic (alpine)
-        if: ${{ matrix.os == 'alpine' }}
+      - name: Block egress traffic
         uses: step-security/harden-runner@63c24ba6bd7ba022e95695ff85de572c04a18142 # v2.7.0
         with:
           disable-sudo: true
@@ -480,14 +479,6 @@ jobs:
             objects.githubusercontent.com:443
             tuf-repo-cdn.sigstore.dev:443
             rekor.sigstore.dev:443
-
-      - name: Block egress traffic (centos)
-        if: ${{ matrix.os == 'centos' }}
-        uses: step-security/harden-runner@63c24ba6bd7ba022e95695ff85de572c04a18142 # v2.7.0
-        with:
-          disable-sudo: true
-          egress-policy: block
-          allowed-endpoints: >
             api.github.com:443
             atl.mirrors.knownhost.com:443
             atl.mirrors.knownhost.com:80
@@ -559,14 +550,6 @@ jobs:
             objects.githubusercontent.com:443
             tuf-repo-cdn.sigstore.dev:443
             rekor.sigstore.dev:443
-
-      - name: Block egress traffic (ol)
-        if: ${{ matrix.os == 'ol' }}
-        uses: step-security/harden-runner@63c24ba6bd7ba022e95695ff85de572c04a18142 # v2.7.0
-        with:
-          disable-sudo: true
-          egress-policy: block
-          allowed-endpoints: >
             api.github.com:443
             auth.docker.io:443
             github.com:443
@@ -578,14 +561,6 @@ jobs:
             objects.githubusercontent.com:443
             tuf-repo-cdn.sigstore.dev:443
             rekor.sigstore.dev:443
-
-      - name: Block egress traffic (ubuntu)
-        if: ${{ matrix.os == 'ubuntu' }}
-        uses: step-security/harden-runner@63c24ba6bd7ba022e95695ff85de572c04a18142 # v2.7.0
-        with:
-          disable-sudo: true
-          egress-policy: block
-          allowed-endpoints: >
             api.github.com:443
             archive.ubuntu.com:80
             auth.docker.io:443
