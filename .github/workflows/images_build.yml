@@ -411,7 +411,6 @@ jobs:
             echo "${{ steps.docker_build.outputs.digest }}" > ${{ matrix.build }}_${{ matrix.os }}
 
       - name: Cache image digest
-        id: cache-image-digest
         uses: actions/cache@v4
         with:
           path: ${{ matrix.build }}_${{ matrix.os }}
