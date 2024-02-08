@@ -239,6 +239,7 @@ jobs:
             org.opencontainers.image.revision=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.revision'] }}
             org.opencontainers.image.created=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.created'] }}
           cache-from: |
+              type=gha,scope=${{ fromJSON(steps.meta.outputs.json).tags[0] }}
               type=registry,ref=docker.io/${{ fromJSON(steps.meta.outputs.json).tags[0] }}
           cache-to: type=gha,mode=max,scope=${{ fromJSON(steps.meta.outputs.json).tags[0] }}
 
@@ -366,11 +367,6 @@ jobs:
             type=ref,enable=${{ needs.init_build.outputs.current_branch == 'trunk' }},event=branch,suffix=-${{ matrix.os }}
           flavor: |
             latest=${{ (needs.init_build.outputs.current_branch != 'trunk') && (matrix.os == 'alpine') && ( needs.init_build.outputs.is_default_branch == 'true' ) }}
-
-      - name: Download SHA256 tag  build-base:${{ matrix.os }}
-        uses: actions/download-artifact@v4
-        with:
-          name: build-base_${{ matrix.os }}
 
       - name: Cache image digest
         id: cache-image-digest
