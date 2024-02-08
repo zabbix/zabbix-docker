@@ -238,8 +238,8 @@ jobs:
           labels: |
             org.opencontainers.image.revision=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.revision'] }}
             org.opencontainers.image.created=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.created'] }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          cache-from: type=gha,scope=zabbix-${{ env.BASE_BUILD_NAME }}-${{ matrix.os }}-${{ steps.meta.outputs.tags[0] }}
+          cache-to: type=gha,mode=max,scope=zabbix-${{ env.BASE_BUILD_NAME }}-${{ matrix.os }}-${{ steps.meta.outputs.tags[0] }}
 
       - name: Sign the images with GitHub OIDC Token
         env:
@@ -382,8 +382,8 @@ jobs:
           labels: |
             org.opencontainers.image.revision=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.revision'] }}
             org.opencontainers.image.created=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.created'] }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          cache-from: type=gha,scope=zabbix-${{ matrix.build }}-${{ matrix.os }}-${{ steps.meta.outputs.tags[0] }}
+          cache-to: type=gha,mode=max,scope=zabbix-${{ matrix.build }}-${{ matrix.os }}-${{ steps.meta.outputs.tags[0] }}
 
       - name: Sign the images with GitHub OIDC Token
         env:
@@ -523,6 +523,8 @@ jobs:
           labels: |
             org.opencontainers.image.revision=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.revision'] }}
             org.opencontainers.image.created=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.created'] }}
+          cache-from: type=gha,scope=zabbix-${{ matrix.build }}-${{ matrix.os }}-${{ steps.meta.outputs.tags[0] }}
+          cache-to: type=gha,mode=max,scope=zabbix-${{ matrix.build }}-${{ matrix.os }}-${{ steps.meta.outputs.tags[0] }}
 
       - name: Image digest
         run: echo ${{ steps.docker_build.outputs.digest }}
