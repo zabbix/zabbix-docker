@@ -430,10 +430,147 @@ jobs:
     permissions:
       contents: read
     steps:
-      - name: Block egress traffic
+      - name: Block egress traffic (${{ matrix.os }})
+        if: ${{ matrix.build == 'alpine' }}
         uses: step-security/harden-runner@63c24ba6bd7ba022e95695ff85de572c04a18142 # v2.7.0
         with:
-          egress-policy: audit
+          disable-sudo: true
+          egress-policy: block
+          allowed-endpoints: >
+            api.github.com:443
+            auth.docker.io:443
+            dl-cdn.alpinelinux.org:443
+            github.com:443
+            index.docker.io:443
+            production.cloudflare.docker.com:443
+            registry-1.docker.io:443
+            fulcio.sigstore.dev:443
+            objects.githubusercontent.com:443
+            tuf-repo-cdn.sigstore.dev:443
+            rekor.sigstore.dev:443
+
+      - name: Block egress traffic (${{ matrix.os }})
+        if: ${{ matrix.build == 'centos' }}
+        uses: step-security/harden-runner@63c24ba6bd7ba022e95695ff85de572c04a18142 # v2.7.0
+        with:
+          disable-sudo: true
+          egress-policy: block
+          allowed-endpoints: >
+            api.github.com:443
+            atl.mirrors.knownhost.com:443
+            atl.mirrors.knownhost.com:80
+            auth.docker.io:443
+            cdn03.quay.io:443
+            centos-stream-distro.1gservers.com:443
+            centos-stream-distro.1gservers.com:80
+            d2lzkl7pfhq30w.cloudfront.net:443
+            epel.mirror.constant.com:80
+            forksystems.mm.fcix.net:80
+            ftp-nyc.osuosl.org:443
+            ftp-nyc.osuosl.org:80
+            ftp-osl.osuosl.org:443
+            ftp-osl.osuosl.org:80
+            ftp.plusline.net:80
+            ftpmirror.your.org:80
+            github.com:443
+            iad.mirror.rackspace.com:443
+            index.docker.io:443
+            ix-denver.mm.fcix.net:443
+            mirror-mci.yuki.net.uk:443
+            mirror.23m.com:80
+            mirror.arizona.edu:80
+            mirror.dal.nexril.net:80
+            mirror.de.leaseweb.net:80
+            mirror.dogado.de:80
+            mirror.facebook.net:80
+            mirror.hoobly.com:80
+            mirror.math.princeton.edu:80
+            mirror.netcologne.de:443
+            mirror.netzwerge.de:443
+            mirror.pilotfiber.com:443
+            mirror.pilotfiber.com:80
+            mirror.rackspace.com:443
+            mirror.rackspace.com:80
+            mirror.scaleuptech.com:443
+            mirror.servaxnet.com:443
+            mirror.servaxnet.com:80
+            mirror.sfo12.us.leaseweb.net:80
+            mirror.siena.edu:80
+            mirror.steadfastnet.com:80
+            mirror.team-cymru.com:443
+            mirror.team-cymru.com:80
+            mirror.umd.edu:443
+            mirror1.hs-esslingen.de:443
+            mirrors.centos.org:443
+            mirrors.fedoraproject.org:443
+            mirrors.iu13.net:443
+            mirrors.iu13.net:80
+            mirrors.ocf.berkeley.edu:443
+            mirrors.sonic.net:80
+            mirrors.syringanetworks.net:80
+            mirrors.vcea.wsu.edu:80
+            mirrors.wcupa.edu:80
+            mirrors.xtom.de:80
+            na.edge.kernel.org:443
+            nnenix.mm.fcix.net:80
+            ohioix.mm.fcix.net:80
+            production.cloudflare.docker.com:443
+            pubmirror1.math.uh.edu:443
+            pubmirror3.math.uh.edu:80
+            quay.io:443
+            registry-1.docker.io:443
+            repo.ialab.dsu.edu:80
+            repos.eggycrew.com:80
+            uvermont.mm.fcix.net:80
+            ziply.mm.fcix.net:443
+            fulcio.sigstore.dev:443
+            objects.githubusercontent.com:443
+            tuf-repo-cdn.sigstore.dev:443
+            rekor.sigstore.dev:443
+
+      - name: Block egress traffic (${{ matrix.os }})
+        if: ${{ matrix.build == 'ol' }}
+        uses: step-security/harden-runner@63c24ba6bd7ba022e95695ff85de572c04a18142 # v2.7.0
+        with:
+          disable-sudo: true
+          egress-policy: block
+          allowed-endpoints: >
+            api.github.com:443
+            auth.docker.io:443
+            github.com:443
+            index.docker.io:443
+            production.cloudflare.docker.com:443
+            registry-1.docker.io:443
+            yum.oracle.com:443
+            fulcio.sigstore.dev:443
+            objects.githubusercontent.com:443
+            tuf-repo-cdn.sigstore.dev:443
+            rekor.sigstore.dev:443
+
+      - name: Block egress traffic (${{ matrix.os }})
+        if: ${{ matrix.build == 'ubuntu' }}
+        uses: step-security/harden-runner@63c24ba6bd7ba022e95695ff85de572c04a18142 # v2.7.0
+        with:
+          disable-sudo: true
+          egress-policy: block
+          allowed-endpoints: >
+            api.github.com:443
+            archive.ubuntu.com:80
+            auth.docker.io:443
+            deb.debian.org:80
+            github.com:443
+            index.docker.io:443
+            keyserver.ubuntu.com:11371
+            nginx.org:443
+            nginx.org:80
+            ports.ubuntu.com:80
+            production.cloudflare.docker.com:443
+            registry-1.docker.io:443
+            security.ubuntu.com:80
+            fulcio.sigstore.dev:443
+            objects.githubusercontent.com:443
+            tuf-repo-cdn.sigstore.dev:443
+            rekor.sigstore.dev:443
 
       - name: Checkout repository
         uses: actions/checkout@v4
