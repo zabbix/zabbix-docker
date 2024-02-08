@@ -239,7 +239,7 @@ jobs:
             org.opencontainers.image.revision=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.revision'] }}
             org.opencontainers.image.created=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.created'] }}
           cache-from: |
-              type=registry,ref=${{ fromJSON(steps.meta.outputs.json).tags[0] }}
+              type=registry,ref=docker.io/${{ fromJSON(steps.meta.outputs.json).tags[0] }}
           cache-to: type=gha,mode=max,scope=${{ fromJSON(steps.meta.outputs.json).tags[0] }}
 
       - name: Sign the images with GitHub OIDC Token
@@ -253,17 +253,17 @@ jobs:
           done
           cosign sign --yes ${images}
 
-      - name: Cache image digest
-        id: cache-image-digest
-        uses: actions/cache@v4
-        with:
-          path: ${{ steps.docker_build.outputs.digest }}
-          key: ${{ env.BASE_BUILD_NAME }}-${{ matrix.os }}
-
       - name: Image digest
         run: |
             echo ${{ steps.docker_build.outputs.digest }}
             echo "${{ steps.docker_build.outputs.digest }}" > ${{ env.BASE_BUILD_NAME }}_${{ matrix.os }}
+
+      - name: Cache image digest
+        id: cache-image-digest
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.BASE_BUILD_NAME }}_${{ matrix.os }}
+          key: ${{ env.BASE_BUILD_NAME }}-${{ matrix.os }}
 
       - name: Upload SHA256 tag
         uses: actions/upload-artifact@v4
@@ -372,6 +372,13 @@ jobs:
         with:
           name: build-base_${{ matrix.os }}
 
+      - name: Cache image digest
+        id: cache-image-digest
+        uses: actions/cache@v4
+        with:
+          path: build-base_${{ matrix.os }}
+          key: build-base_${{ matrix.os }}
+
       - name: Retrieve build-base:${{ matrix.os }} SHA256 tag
         id: base_build
         run: |
@@ -394,7 +401,9 @@ jobs:
           labels: |
             org.opencontainers.image.revision=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.revision'] }}
             org.opencontainers.image.created=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.created'] }}
-          cache-from: type=gha,scope=${{ fromJSON(steps.meta.outputs.json).tags[0] }}
+          cache-from: |
+              type=gha,scope=${{ fromJSON(steps.meta.outputs.json).tags[0] }}
+              type=registry,ref=docker.io/${{ fromJSON(steps.meta.outputs.json).tags[0] }}
           cache-to: type=gha,mode=max,scope=${{ fromJSON(steps.meta.outputs.json).tags[0] }}
 
       - name: Sign the images with GitHub OIDC Token
