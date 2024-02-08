@@ -27,6 +27,7 @@ env:
   LATEST_BRANCH: ${{ github.event.repository.default_branch }}
   BASE_BUILD_NAME: "build-base"
   MATRIX_FILE: "build.json"
+  DOCKERFILES_DIRECTORY: "./Dockerfiles"
 
 jobs:
   init_build:
@@ -39,10 +40,16 @@ jobs:
       is_default_branch: ${{ steps.branch_info.outputs.is_default_branch }}
       current_branch: ${{ steps.branch_info.outputs.current_branch }}
       branch: ${{ steps.branch_info.outputs.branch }}
+    permissions:
+      contents: read
     steps:
-      - uses: step-security/harden-runner@63c24ba6bd7ba022e95695ff85de572c04a18142 # v2.7.0
+      - name: Block egress traffic
+        uses: step-security/harden-runner@63c24ba6bd7ba022e95695ff85de572c04a18142 # v2.7.0
         with:
-          egress-policy: audit
+          disable-sudo: true
+          egress-policy: block
+          allowed-endpoints: >
+            github.com:443
 
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -82,7 +89,7 @@ jobs:
       - name: Prepare Zabbix component list
         id: components
         run: |
-            component_list=$(jq -r '.components | keys | [ .[] | tostring ] | @json' "./build.json")
+            component_list=$(jq -r '.components | keys | [ .[] | tostring ] | @json' "${{ env.MATRIX_FILE }}")
 
             echo "list=$component_list" >> $GITHUB_OUTPUT
 
@@ -115,14 +122,13 @@ jobs:
         os: ${{ fromJson(needs.init_build.outputs.os) }}
 
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - name: Block egress traffic
         uses: step-security/harden-runner@63c24ba6bd7ba022e95695ff85de572c04a18142 # v2.7.0
         with:
-          disable-sudo: true
-          egress-policy: block
-          allowed-endpoints: >
-            github.com:443
+          egress-policy: audit
 
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -175,11 +181,243 @@ jobs:
         id: docker_build
         uses: docker/build-push-action@v5
         with:
-          context: ./Dockerfiles/${{ env.BASE_BUILD_NAME }}/${{ matrix.os }}
-          file: ./Dockerfiles/${{ env.BASE_BUILD_NAME }}/${{ matrix.os }}/Dockerfile
+          context: ${{ env.DOCKERFILES_DIRECTORY }}/${{ env.BASE_BUILD_NAME }}/${{ matrix.os }}
+          file: ${{ env.DOCKERFILES_DIRECTORY }}/${{ env.BASE_BUILD_NAME }}/${{ matrix.os }}/Dockerfile
           platforms: ${{ steps.platform.outputs.list }}
           push: ${{ secrets.AUTO_PUSH_IMAGES }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: |
             org.opencontainers.image.revision=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.revision'] }}
             org.opencontainers.image.created=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.created'] }}
+
+      - name: Image digest
+        run: |
+            echo ${{ steps.docker_build.outputs.digest }}
+            echo "${{ steps.docker_build.outputs.digest }}" > ${{ env.BASE_BUILD_NAME }}_${{ matrix.os }}
+
+      - name: Upload SHA256 tag
+        uses: actions/upload-artifact@v4
+        with:
+         name: ${{ env.BASE_BUILD_NAME }}_${{ matrix.os }}
+         path: ${{ env.BASE_BUILD_NAME }}_${{ matrix.os }}
+         if-no-files-found: error
+
+  build_base_database:
+    timeout-minutes: 180
+    needs: [ "build_base", "init_build"]
+    name: Build ${{ matrix.build }} base on ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        build: ${{ fromJson(needs.init_build.outputs.database) }}
+        os: ${{ fromJson(needs.init_build.outputs.os) }}
+
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Block egress traffic
+        uses: step-security/harden-runner@63c24ba6bd7ba022e95695ff85de572c04a18142 # v2.7.0
+        with:
+          egress-policy: audit
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+        with:
+          image: tonistiigi/binfmt:latest
+          platforms: all
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+        with:
+          driver-opts: image=moby/buildkit:master
+
+      - name: Login to DockerHub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Prepare Platform list
+        id: platform
+        run: |
+            platform_list=$(jq -r '.["os-linux"].${{ matrix.os }} | join(",")' "${{ env.MATRIX_FILE }}")
+            platform_list="${platform_list%,}"
+
+            echo "list=$platform_list" >> $GITHUB_OUTPUT
+
+      - name: Generate tags
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.DOCKER_REPOSITORY }}/zabbix-${{ matrix.build }}
+          tags: |
+            type=semver,enable=${{ needs.init_build.outputs.current_branch != 'trunk' }},pattern={{version}},prefix=${{ matrix.os }}-
+            type=semver,enable=${{ needs.init_build.outputs.current_branch != 'trunk' }},pattern={{version}},suffix=-${{ matrix.os }}
+            type=ref,enable=${{ needs.init_build.outputs.current_branch != 'trunk' }},event=branch,prefix=${{ matrix.os }}-,suffix=-latest
+            type=ref,enable=${{ needs.init_build.outputs.current_branch != 'trunk' }},event=branch,suffix=-${{ matrix.os }}-latest
+            type=raw,enable=${{ (needs.init_build.outputs.current_branch != 'trunk') && (needs.init_build.outputs.is_default_branch == 'true') }},value=${{matrix.os}}-latest
+            type=ref,enable=${{ needs.init_build.outputs.current_branch == 'trunk' }},event=branch,prefix=${{ matrix.os }}-
+            type=ref,enable=${{ needs.init_build.outputs.current_branch == 'trunk' }},event=branch,suffix=-${{ matrix.os }}
+          flavor: |
+            latest=${{ (needs.init_build.outputs.current_branch != 'trunk') && (matrix.os == 'alpine') && ( needs.init_build.outputs.is_default_branch == 'true' ) }}
+
+      - name: Download SHA256 tag  build-base:${{ matrix.os }}
+        uses: actions/download-artifact@v4
+        with:
+          name: build-base_${{ matrix.os }}
+
+      - name: Retrieve build-base:${{ matrix.os }} SHA256 tag
+        id: base_build
+        run: |
+          BASE_TAG=$(cat build-base_${{ matrix.os }})
+          BUILD_BASE_IMAGE=${{ env.DOCKER_REPOSITORY }}/zabbix-build-base@${BASE_TAG}
+
+          echo "base_tag=${BASE_TAG}" >> $GITHUB_OUTPUT
+          echo "base_build_image=${BUILD_BASE_IMAGE}" >> $GITHUB_OUTPUT
+
+      - name: Build ${{ matrix.build }}/${{ matrix.os }} and push
+        id: docker_build
+        uses: docker/build-push-action@v5
+        with:
+          context: ${{ env.DOCKERFILES_DIRECTORY }}/${{ matrix.build }}/${{ matrix.os }}
+          file: ${{ env.DOCKERFILES_DIRECTORY }}/${{ matrix.build }}/${{ matrix.os }}/Dockerfile
+          platforms: ${{ steps.platform.outputs.list }}
+          push: ${{ secrets.AUTO_PUSH_IMAGES }}
+          tags: ${{ steps.meta.outputs.tags }}
+          build-args: BUILD_BASE_IMAGE=${{ steps.base_build.outputs.base_build_image }}
+          labels: |
+            org.opencontainers.image.revision=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.revision'] }}
+            org.opencontainers.image.created=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.created'] }}
+
+      - name: Image digest
+        run: |
+            echo ${{ steps.docker_build.outputs.digest }}
+            echo "${{ steps.docker_build.outputs.digest }}" > ${{ matrix.build }}_${{ matrix.os }}
+
+      - name: Upload SHA256 tag
+        uses: actions/upload-artifact@v4
+        with:
+         name: ${{ matrix.build }}_${{ matrix.os }}
+         path: ${{ matrix.build }}_${{ matrix.os }}
+         if-no-files-found: error
+
+  build_images:
+    timeout-minutes: 90
+    needs: [ "build_base_database", "init_build"]
+    name: Build ${{ matrix.build }} on ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        build: ${{ fromJson(needs.init_build.outputs.components) }}
+        os: ${{ fromJson(needs.init_build.outputs.os) }}
+
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Block egress traffic
+        uses: step-security/harden-runner@63c24ba6bd7ba022e95695ff85de572c04a18142 # v2.7.0
+        with:
+          egress-policy: audit
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+        with:
+          image: tonistiigi/binfmt:latest
+          platforms: all
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+        with:
+          driver-opts: image=moby/buildkit:master
+
+      - name: Login to DockerHub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Prepare Platform list
+        id: platform
+        run: |
+            # Chromium on Alpine is available only on linux/amd64, linux/arm64 platforms
+            if ([ "${{ matrix.os }}" == "alpine" ] || [ "${{ matrix.os }}" == "centos" ]) && [ "${{ matrix.build }}" == "web-service" ]; then
+                platform_list="linux/amd64,linux/arm64"
+            # Chromium on Ubuntu is not available on s390x platform
+            elif [ "${{ matrix.os }}" == "ubuntu" ] && [ "${{ matrix.build }}" == "web-service" ]; then
+                platform_list="linux/amd64,linux/arm/v7,linux/arm64"
+            else
+                platform_list=$(jq -r '.["os-linux"].${{ matrix.os }} | join(",")' "${{ env.MATRIX_FILE }}")
+            fi
+
+            # Build only Agent and Agent2 on 386
+            if [ "${{ matrix.build }}" != "agent"* ]; then
+                platform_list="${platform_list#linux/386,}"
+            fi
+
+            platform_list="${platform_list%,}"
+
+            echo "list=$platform_list" >> $GITHUB_OUTPUT
+
+      - name: Detect Build Base Image
+        id: build_base_image
+        run: |
+          BUILD_BASE=$(jq -r '.components."${{ matrix.build }}"' "${{ env.MATRIX_FILE }}")
+
+          echo "build_base=${BUILD_BASE}" >> $GITHUB_OUTPUT
+
+      - name: Generate tags
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.DOCKER_REPOSITORY }}/zabbix-${{ matrix.build }}
+          tags: |
+            type=semver,enable=${{ needs.init_build.outputs.current_branch != 'trunk' }},pattern={{version}},prefix=${{ matrix.os }}-
+            type=semver,enable=${{ needs.init_build.outputs.current_branch != 'trunk' }},pattern={{version}},suffix=-${{ matrix.os }}
+            type=ref,enable=${{ needs.init_build.outputs.current_branch != 'trunk' }},event=branch,prefix=${{ matrix.os }}-,suffix=-latest
+            type=ref,enable=${{ needs.init_build.outputs.current_branch != 'trunk' }},event=branch,suffix=-${{ matrix.os }}-latest
+            type=raw,enable=${{ (needs.init_build.outputs.current_branch != 'trunk') && (needs.init_build.outputs.is_default_branch == 'true') }},value=${{matrix.os}}-latest
+            type=ref,enable=${{ needs.init_build.outputs.current_branch == 'trunk' }},event=branch,prefix=${{ matrix.os }}-
+            type=ref,enable=${{ needs.init_build.outputs.current_branch == 'trunk' }},event=branch,suffix=-${{ matrix.os }}
+          flavor: |
+            latest=${{ (needs.init_build.outputs.current_branch != 'trunk') && (matrix.os == 'alpine') && ( needs.init_build.outputs.is_default_branch == 'true' ) }}
+
+      - name: Download SHA256 tag for ${{ steps.build_base_image.outputs.build_base }}:${{ matrix.os }}
+        uses: actions/download-artifact@v4
+        if: ${{ matrix.build != 'snmptraps' }}
+        with:
+          name: ${{ steps.build_base_image.outputs.build_base }}_${{ matrix.os }}
+
+      - name: Retrieve ${{ steps.build_base_image.outputs.build_base }}:${{ matrix.os }} SHA256 tag
+        id: base_build
+        if: ${{ matrix.build != 'snmptraps' }}
+        run: |
+          BASE_TAG=$(cat ${{ steps.build_base_image.outputs.build_base }}_${{ matrix.os }})
+          BUILD_BASE_IMAGE=${{ env.DOCKER_REPOSITORY }}/zabbix-${{ steps.build_base_image.outputs.build_base }}@${BASE_TAG}
+
+          echo "base_tag=${BASE_TAG}" >> $GITHUB_OUTPUT
+          echo "base_build_image=${BUILD_BASE_IMAGE}" >> $GITHUB_OUTPUT
+
+      - name: Build ${{ matrix.build }}/${{ matrix.os }} and push
+        id: docker_build
+        uses: docker/build-push-action@v5
+        with:
+          context: ${{ env.DOCKERFILES_DIRECTORY }}/${{ matrix.build }}/${{ matrix.os }}
+          file: ${{ env.DOCKERFILES_DIRECTORY }}/${{ matrix.build }}/${{ matrix.os }}/Dockerfile
+          platforms: ${{ steps.platform.outputs.list }}
+          push: ${{ secrets.AUTO_PUSH_IMAGES }}
+          tags: ${{ steps.meta.outputs.tags }}
+          build-args: BUILD_BASE_IMAGE=${{ steps.base_build.outputs.base_build_image }}
+          labels: |
+            org.opencontainers.image.revision=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.revision'] }}
+            org.opencontainers.image.created=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.created'] }}
+
+      - name: Image digest
+        run: echo ${{ steps.docker_build.outputs.digest }}
