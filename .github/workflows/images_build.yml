@@ -215,8 +215,10 @@ jobs:
 
       - name: Prepare Platform list
         id: platform
+        env:
+          MATRIX_FILE: ${{ env.MATRIX_FILE }}
         run: |
-            platform_list=$(jq -r '.["os-linux"].${{ matrix.os }} | join(",")' "${{ env.MATRIX_FILE }}")
+            platform_list=$(jq -r '.["os-linux"].${{ matrix.os }} | join(",")' "$MATRIX_FILE")
             platform_list="${platform_list%,}"
 
             echo "list=$platform_list" >> $GITHUB_OUTPUT
@@ -352,8 +354,10 @@ jobs:
 
       - name: Prepare Platform list
         id: platform
+        env:
+          MATRIX_FILE: ${{ env.MATRIX_FILE }}
         run: |
-            platform_list=$(jq -r '.["os-linux"].${{ matrix.os }} | join(",")' "${{ env.MATRIX_FILE }}")
+            platform_list=$(jq -r '.["os-linux"].${{ matrix.os }} | join(",")' "$MATRIX_FILE")
             platform_list="${platform_list%,}"
 
             echo "list=$platform_list" >> $GITHUB_OUTPUT
@@ -382,9 +386,12 @@ jobs:
 
       - name: Retrieve build-base:${{ matrix.os }} SHA256 tag
         id: base_build
+        env:
+         MATRIX_OS: ${{ matrix.os }}
+         DOCKER_REPOSITORY: ${{ env.DOCKER_REPOSITORY }}
         run: |
-          BASE_TAG=$(cat build-base_${{ matrix.os }})
-          BUILD_BASE_IMAGE=${{ env.DOCKER_REPOSITORY }}/zabbix-build-base@${BASE_TAG}
+          BASE_TAG=$(cat build-base_$MATRIX_OS)
+          BUILD_BASE_IMAGE=$DOCKER_REPOSITORY/zabbix-build-base@${BASE_TAG}
 
           echo "base_tag=${BASE_TAG}" >> $GITHUB_OUTPUT
           echo "base_build_image=${BUILD_BASE_IMAGE}" >> $GITHUB_OUTPUT
@@ -428,9 +435,12 @@ jobs:
           cosign sign --yes ${images}
 
       - name: Image digest
+        env:
+          DIGEST: ${{ steps.docker_build.outputs.digest }}
+          CACHE_FILE_NAME: ${{ matrix.build }}_${{ matrix.os }}
         run: |
-            echo ${{ steps.docker_build.outputs.digest }}
-            echo "${{ steps.docker_build.outputs.digest }}" > ${{ matrix.build }}_${{ matrix.os }}
+            echo "$DIGEST"
+            echo "$CACHE_FILE_NAME" > $CACHE_FILE_NAME
 
       - name: Caching SHA256 tag of the image
         uses: actions/cache@v4
@@ -452,8 +462,8 @@ jobs:
     permissions:
       contents: read
     steps:
-      - name: Block egress traffic (${{ matrix.os }})
-        if: ${{ matrix.build == 'alpine' }}
+      - name: Block egress traffic (alpine)
+        if: ${{ matrix.os == 'alpine' }}
         uses: step-security/harden-runner@63c24ba6bd7ba022e95695ff85de572c04a18142 # v2.7.0
         with:
           disable-sudo: true
@@ -471,8 +481,8 @@ jobs:
             tuf-repo-cdn.sigstore.dev:443
             rekor.sigstore.dev:443
 
-      - name: Block egress traffic (${{ matrix.os }})
-        if: ${{ matrix.build == 'centos' }}
+      - name: Block egress traffic (centos)
+        if: ${{ matrix.os == 'centos' }}
         uses: step-security/harden-runner@63c24ba6bd7ba022e95695ff85de572c04a18142 # v2.7.0
         with:
           disable-sudo: true
@@ -550,8 +560,8 @@ jobs:
             tuf-repo-cdn.sigstore.dev:443
             rekor.sigstore.dev:443
 
-      - name: Block egress traffic (${{ matrix.os }})
-        if: ${{ matrix.build == 'ol' }}
+      - name: Block egress traffic (ol)
+        if: ${{ matrix.os == 'ol' }}
         uses: step-security/harden-runner@63c24ba6bd7ba022e95695ff85de572c04a18142 # v2.7.0
         with:
           disable-sudo: true
@@ -569,8 +579,8 @@ jobs:
             tuf-repo-cdn.sigstore.dev:443
             rekor.sigstore.dev:443
 
-      - name: Block egress traffic (${{ matrix.os }})
-        if: ${{ matrix.build == 'ubuntu' }}
+      - name: Block egress traffic (ubuntu)
+        if: ${{ matrix.os == 'ubuntu' }}
         uses: step-security/harden-runner@63c24ba6bd7ba022e95695ff85de572c04a18142 # v2.7.0
         with:
           disable-sudo: true
@@ -626,6 +636,10 @@ jobs:
 
       - name: Prepare Platform list
         id: platform
+        env:
+          MATRIX_OS: ${{ matrix.os }}
+          MATRIX_BUILD: ${{ matrix.build }}
+          MATRIX_FILE: ${{ env.MATRIX_FILE }}
         run: |
             # Chromium on Alpine is available only on linux/amd64, linux/arm64 platforms
             if ([ "${{ matrix.os }}" == "alpine" ] || [ "${{ matrix.os }}" == "centos" ]) && [ "${{ matrix.build }}" == "web-service" ]; then
@@ -634,7 +648,7 @@ jobs:
             elif [ "${{ matrix.os }}" == "ubuntu" ] && [ "${{ matrix.build }}" == "web-service" ]; then
                 platform_list="linux/amd64,linux/arm/v7,linux/arm64"
             else
-                platform_list=$(jq -r '.["os-linux"].${{ matrix.os }} | join(",")' "${{ env.MATRIX_FILE }}")
+                platform_list=$(jq -r '.["os-linux"].${{ matrix.os }} | join(",")' "$MATRIX_FILE")
             fi
 
             # Build only Agent and Agent2 on 386
@@ -648,8 +662,10 @@ jobs:
 
       - name: Detect Build Base Image
         id: build_base_image
+        env:
+          MATRIX_FILE: ${{ env.MATRIX_FILE }}
         run: |
-          BUILD_BASE=$(jq -r '.components."${{ matrix.build }}"' "${{ env.MATRIX_FILE }}")
+          BUILD_BASE=$(jq -r '.components."${{ matrix.build }}"' "$MATRIX_FILE")
 
           echo "build_base=${BUILD_BASE}" >> $GITHUB_OUTPUT
 
@@ -679,6 +695,7 @@ jobs:
       - name: Retrieve ${{ steps.build_base_image.outputs.build_base }}:${{ matrix.os }} SHA256 tag
         id: base_build
         if: ${{ matrix.build != 'snmptraps' }}
+
         run: |
           BASE_TAG=$(cat ${{ steps.build_base_image.outputs.build_base }}_${{ matrix.os }})
           BUILD_BASE_IMAGE=${{ env.DOCKER_REPOSITORY }}/zabbix-${{ steps.build_base_image.outputs.build_base }}@${BASE_TAG}
