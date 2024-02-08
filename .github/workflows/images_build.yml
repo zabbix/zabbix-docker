@@ -674,7 +674,6 @@ jobs:
       - name: Retrieve ${{ steps.build_base_image.outputs.build_base }}:${{ matrix.os }} SHA256 tag
         id: base_build
         if: ${{ matrix.build != 'snmptraps' }}
-
         run: |
           BASE_TAG=$(cat ${{ steps.build_base_image.outputs.build_base }}_${{ matrix.os }})
           BUILD_BASE_IMAGE=${{ env.DOCKER_REPOSITORY }}/zabbix-${{ steps.build_base_image.outputs.build_base }}@${BASE_TAG}
@@ -683,6 +682,7 @@ jobs:
           echo "base_build_image=${BUILD_BASE_IMAGE}" >> $GITHUB_OUTPUT
 
       - name: Verify ${{ steps.build_base_image.outputs.build_base }}:${{ matrix.os }} cosign
+        if: ${{ matrix.build != 'snmptraps' }}
         env:
          BASE_IMAGE: ${{ steps.base_build.outputs.base_build_image }}
         run: |
