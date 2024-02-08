@@ -41,7 +41,7 @@ jobs:
       components: ${{ steps.components.outputs.list }}
       is_default_branch: ${{ steps.branch_info.outputs.is_default_branch }}
       current_branch: ${{ steps.branch_info.outputs.current_branch }}
-      branch: ${{ steps.branch_info.outputs.branch }}
+      sha_short: ${{ steps.branch_info.outputs.sha_short }}
     steps:
       - name: Block egress traffic
         uses: step-security/harden-runner@63c24ba6bd7ba022e95695ff85de572c04a18142 # v2.7.0
@@ -108,11 +108,10 @@ jobs:
             if [[ "$github_ref" == "${{ env.LATEST_BRANCH }}" ]]; then
                 result=true
             fi
-            echo "${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}}"
 
             echo "is_default_branch=$result" >> $GITHUB_OUTPUT
             echo "current_branch=$github_ref" >> $GITHUB_OUTPUT
-            echo "branch=${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}}" >> $GITHUB_OUTPUT
+            echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
 
   build_base:
     timeout-minutes: 30
@@ -266,13 +265,6 @@ jobs:
           path: ${{ env.BASE_BUILD_NAME }}_${{ matrix.os }}
           key: ${{ env.BASE_BUILD_NAME }}-${{ matrix.os }}
 
-      - name: Upload SHA256 tag
-        uses: actions/upload-artifact@v4
-        with:
-         name: ${{ env.BASE_BUILD_NAME }}_${{ matrix.os }}
-         path: ${{ env.BASE_BUILD_NAME }}_${{ matrix.os }}
-         if-no-files-found: error
-
   build_base_database:
     timeout-minutes: 180
     needs: [ "build_base", "init_build"]
@@ -418,12 +410,12 @@ jobs:
             echo ${{ steps.docker_build.outputs.digest }}
             echo "${{ steps.docker_build.outputs.digest }}" > ${{ matrix.build }}_${{ matrix.os }}
 
-      - name: Upload SHA256 tag
-        uses: actions/upload-artifact@v4
+      - name: Cache image digest
+        id: cache-image-digest
+        uses: actions/cache@v4
         with:
-         name: ${{ matrix.build }}_${{ matrix.os }}
-         path: ${{ matrix.build }}_${{ matrix.os }}
-         if-no-files-found: error
+          path: ${{ matrix.build }}_${{ matrix.os }}
+          key: ${{ matrix.build }}-${{ matrix.os }}
 
   build_images:
     timeout-minutes: 90
@@ -448,6 +440,14 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 1
+
+      - name: Install cosign
+        uses: sigstore/cosign-installer@e1523de7571e31dbe865fd2e80c5c7c23ae71eb4
+        with:
+          cosign-release: 'v2.2.3'
+
+      - name: Check cosign version
+        run: cosign version
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
@@ -512,10 +512,12 @@ jobs:
             latest=${{ (needs.init_build.outputs.current_branch != 'trunk') && (matrix.os == 'alpine') && ( needs.init_build.outputs.is_default_branch == 'true' ) }}
 
       - name: Download SHA256 tag for ${{ steps.build_base_image.outputs.build_base }}:${{ matrix.os }}
-        uses: actions/download-artifact@v4
+        id: cache-image-digest
+        uses: actions/cache@v4
         if: ${{ matrix.build != 'snmptraps' }}
         with:
-          name: ${{ steps.build_base_image.outputs.build_base }}_${{ matrix.os }}
+          path: ${{ steps.build_base_image.outputs.build_base }}_${{ matrix.os }}
+          key: ${{ steps.build_base_image.outputs.build_base }}-${{ matrix.os }}
 
       - name: Retrieve ${{ steps.build_base_image.outputs.build_base }}:${{ matrix.os }} SHA256 tag
         id: base_build
@@ -542,6 +544,17 @@ jobs:
             org.opencontainers.image.created=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.created'] }}
           cache-from: type=gha,scope=${{ fromJSON(steps.meta.outputs.json).tags[0] }}
           cache-to: type=gha,mode=max,scope=${{ fromJSON(steps.meta.outputs.json).tags[0] }}
+
+      - name: Sign the images with GitHub OIDC Token
+        env:
+          DIGEST: ${{ steps.docker_build.outputs.digest }}
+          TAGS: ${{ steps.meta.outputs.tags }}
+        run: |
+          images=""
+          for tag in ${TAGS}; do
+            images+="${tag}@${DIGEST} "
+          done
+          cosign sign --yes ${images}
 
       - name: Image digest
         run: echo ${{ steps.docker_build.outputs.digest }}
