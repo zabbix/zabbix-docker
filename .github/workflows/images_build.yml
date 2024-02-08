@@ -59,44 +59,56 @@ jobs:
 
       - name: Check build.json file
         id: build_exists
+        env:
+          MATRIX_FILE: ${{ env.MATRIX_FILE }}
         run: |
-            if [[ ! -f "${{ env.MATRIX_FILE }}" ]]; then
-                echo "::error::File ${{ env.MATRIX_FILE }} is missing"
+            if [[ ! -f "$MATRIX_FILE" ]]; then
+                echo "::error::File $MATRIX_FILE is missing"
                 exit 1
             fi
 
       - name: Prepare Operating System list
         id: os
+        env:
+          MATRIX_FILE: ${{ env.MATRIX_FILE }}
         run: |
-            os_list=$(jq -r '.["os-linux"] |  keys | [ .[] | tostring ] | @json' "${{ env.MATRIX_FILE }}")
+            os_list=$(jq -r '.["os-linux"] |  keys | [ .[] | tostring ] | @json' "$MATRIX_FILE")
 
             echo "list=$os_list" >> $GITHUB_OUTPUT
 
       - name: Prepare Platform list
         id: platform_list
+        env:
+          MATRIX_FILE: ${{ env.MATRIX_FILE }}
         run: |
-            platform_list=$(jq -r '.["os-linux"] | tostring  | @json' "${{ env.MATRIX_FILE }}")
+            platform_list=$(jq -r '.["os-linux"] | tostring  | @json' "$MATRIX_FILE")
 
             echo "list=$platform_list" >> $GITHUB_OUTPUT
 
       - name: Prepare Database engine list
         id: database
+        env:
+          MATRIX_FILE: ${{ env.MATRIX_FILE }}
         run: |
-            database_list=$(jq -r '[.components | values[] ] | sort | unique | del(.. | select ( . == "" ) ) | [ .[] | tostring ] | @json' "${{ env.MATRIX_FILE }}")
+            database_list=$(jq -r '[.components | values[] ] | sort | unique | del(.. | select ( . == "" ) ) | [ .[] | tostring ] | @json' "$MATRIX_FILE")
 
             echo "list=$database_list" >> $GITHUB_OUTPUT
 
       - name: Prepare Zabbix component list
         id: components
+        env:
+          MATRIX_FILE: ${{ env.MATRIX_FILE }}
         run: |
-            component_list=$(jq -r '.components | keys | [ .[] | tostring ] | @json' "${{ env.MATRIX_FILE }}")
+            component_list=$(jq -r '.components | keys | [ .[] | tostring ] | @json' "$MATRIX_FILE")
 
             echo "list=$component_list" >> $GITHUB_OUTPUT
 
       - name: Get branch info
         id: branch_info
+        env:
+          LATEST_BRANCH: ${{ env.LATEST_BRANCH }}
+          github_ref: ${{ github.ref }}
         run: |
-            github_ref="${{ github.ref }}"
             result=false
 
             if [[ "$github_ref" == "refs/tags/"* ]]; then
@@ -105,7 +117,7 @@ jobs:
 
             github_ref=${github_ref##*/}
 
-            if [[ "$github_ref" == "${{ env.LATEST_BRANCH }}" ]]; then
+            if [[ "$github_ref" == "$LATEST_BRANCH" ]]; then
                 result=true
             fi
 
@@ -254,16 +266,18 @@ jobs:
           cosign sign --yes ${images}
 
       - name: Image digest
+        env:
+          DIGEST: ${{ steps.docker_build.outputs.digest }}
+          CACHE_FILE_NAME: ${{ env.BASE_BUILD_NAME }}_${{ matrix.os }}
         run: |
-            echo ${{ steps.docker_build.outputs.digest }}
-            echo "${{ steps.docker_build.outputs.digest }}" > ${{ env.BASE_BUILD_NAME }}_${{ matrix.os }}
+            echo "$DIGEST"
+            echo "$DIGEST" > $CACHE_FILE_NAME
 
       - name: Cache image digest
-        id: cache-image-digest
         uses: actions/cache@v4
         with:
           path: ${{ env.BASE_BUILD_NAME }}_${{ matrix.os }}
-          key: ${{ env.BASE_BUILD_NAME }}-${{ matrix.os }}
+          key: ${{ env.BASE_BUILD_NAME }}-${{ matrix.os }}-${{ github.run_id }}
 
   build_base_database:
     timeout-minutes: 180
@@ -360,12 +374,11 @@ jobs:
           flavor: |
             latest=${{ (needs.init_build.outputs.current_branch != 'trunk') && (matrix.os == 'alpine') && ( needs.init_build.outputs.is_default_branch == 'true' ) }}
 
-      - name: Cache image digest
-        id: cache-image-digest
+      - name: Download SHA256 tag of build-base:${{ matrix.os }}
         uses: actions/cache@v4
         with:
           path: build-base_${{ matrix.os }}
-          key: build-base-${{ matrix.os }}
+          key: build-base-${{ matrix.os }}-${{ github.run_id }}
 
       - name: Retrieve build-base:${{ matrix.os }} SHA256 tag
         id: base_build
@@ -375,6 +388,15 @@ jobs:
 
           echo "base_tag=${BASE_TAG}" >> $GITHUB_OUTPUT
           echo "base_build_image=${BUILD_BASE_IMAGE}" >> $GITHUB_OUTPUT
+
+      - name: Verify build-base:${{ matrix.os }} cosign
+        env:
+         BASE_IMAGE: ${{ steps.base_build.outputs.base_build_image }}
+        run: |
+          cosign verify \
+                --certificate-oidc-issuer-regexp "https://token.actions.githubusercontent.com" \
+                --certificate-identity-regexp "https://github.com/zabbix/zabbix-docker/.github/" \
+                "$BASE_IMAGE"
 
       - name: Build ${{ matrix.build }}/${{ matrix.os }} and push
         id: docker_build
@@ -410,11 +432,11 @@ jobs:
             echo ${{ steps.docker_build.outputs.digest }}
             echo "${{ steps.docker_build.outputs.digest }}" > ${{ matrix.build }}_${{ matrix.os }}
 
-      - name: Cache image digest
+      - name: Caching SHA256 tag of the image
         uses: actions/cache@v4
         with:
           path: ${{ matrix.build }}_${{ matrix.os }}
-          key: ${{ matrix.build }}-${{ matrix.os }}
+          key: ${{ matrix.build }}-${{ matrix.os }}-${{ github.run_id }}
 
   build_images:
     timeout-minutes: 90
@@ -647,13 +669,12 @@ jobs:
           flavor: |
             latest=${{ (needs.init_build.outputs.current_branch != 'trunk') && (matrix.os == 'alpine') && ( needs.init_build.outputs.is_default_branch == 'true' ) }}
 
-      - name: Download SHA256 tag for ${{ steps.build_base_image.outputs.build_base }}:${{ matrix.os }}
-        id: cache-image-digest
+      - name: Download SHA256 tag of ${{ steps.build_base_image.outputs.build_base }}:${{ matrix.os }}
         uses: actions/cache@v4
         if: ${{ matrix.build != 'snmptraps' }}
         with:
           path: ${{ steps.build_base_image.outputs.build_base }}_${{ matrix.os }}
-          key: ${{ steps.build_base_image.outputs.build_base }}-${{ matrix.os }}
+          key: ${{ steps.build_base_image.outputs.build_base }}-${{ matrix.os }}-${{ github.run_id }}
 
       - name: Retrieve ${{ steps.build_base_image.outputs.build_base }}:${{ matrix.os }} SHA256 tag
         id: base_build
@@ -664,6 +685,15 @@ jobs:
 
           echo "base_tag=${BASE_TAG}" >> $GITHUB_OUTPUT
           echo "base_build_image=${BUILD_BASE_IMAGE}" >> $GITHUB_OUTPUT
+
+      - name: Verify ${{ steps.build_base_image.outputs.build_base }}:${{ matrix.os }} cosign
+        env:
+         BASE_IMAGE: ${{ steps.base_build.outputs.base_build_image }}
+        run: |
+          cosign verify \
+                --certificate-oidc-issuer-regexp "https://token.actions.githubusercontent.com" \
+                --certificate-identity-regexp "https://github.com/zabbix/zabbix-docker/.github/" \
+                "$BASE_IMAGE"
 
       - name: Build ${{ matrix.build }}/${{ matrix.os }} and push
         id: docker_build
@@ -693,4 +723,6 @@ jobs:
           cosign sign --yes ${images}
 
       - name: Image digest
-        run: echo ${{ steps.docker_build.outputs.digest }}
+        env:
+          DIGEST: ${{ steps.docker_build.outputs.digest }}
+        run: echo "$DIGEST"
