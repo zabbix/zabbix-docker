@@ -228,6 +228,7 @@ jobs:
                 if (-not $?) {throw "Failed"}
             }
 
+            echo "$digest"
             echo "digest=$digest" >> $Env:GITHUB_OUTPUT
 
       - name: Sign the images with GitHub OIDC Token
@@ -235,9 +236,9 @@ jobs:
           DIGEST: ${{ steps.docker_build.outputs.digest }}
           TAGS: ${{ steps.meta.outputs.tags }}
         run: |
-          images=""
+          $images=""
           foreach ($tag in $Env:TAGS) {
-            images=$images + "$tag@$Env:DIGEST "
+            $images=$images + "$tag@$Env:DIGEST "
           }
           cosign sign --yes $images
 
