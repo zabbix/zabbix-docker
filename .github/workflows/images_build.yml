@@ -29,6 +29,9 @@ env:
   MATRIX_FILE: "build.json"
   DOCKERFILES_DIRECTORY: "./Dockerfiles"
 
+  OIDC_ISSUER: "https://token.actions.githubusercontent.com"
+  IDENITY_REGEX: "https://github.com/zabbix/zabbix-docker/.github/"
+
 jobs:
   init_build:
     name: Initialize build
@@ -217,9 +220,10 @@ jobs:
       - name: Prepare Platform list
         id: platform
         env:
+          MATRIX_OS: ${{ matrix.os }}
           MATRIX_FILE: ${{ env.MATRIX_FILE }}
         run: |
-            platform_list=$(jq -r '.["os-linux"].${{ matrix.os }} | join(",")' "$MATRIX_FILE")
+            platform_list=$(jq -r ".[\"os-linux\"].$MATRIX_OS | join(\",\")" "$MATRIX_FILE")
             platform_list="${platform_list%,}"
 
             echo "list=$platform_list" >> $GITHUB_OUTPUT
@@ -240,7 +244,7 @@ jobs:
           flavor: |
             latest=${{ (needs.init_build.outputs.current_branch != 'trunk') && (matrix.os == 'alpine') && ( needs.init_build.outputs.is_default_branch == 'true' ) }}
 
-      - name: Build ${{ env.BASE_BUILD_NAME }}/${{ matrix.os }} and push
+      - name: Build and publish image
         id: docker_build
         uses: docker/build-push-action@v5
         with:
@@ -274,7 +278,7 @@ jobs:
           CACHE_FILE_NAME: ${{ env.BASE_BUILD_NAME }}_${{ matrix.os }}
         run: |
             echo "$DIGEST"
-            echo "$DIGEST" > $CACHE_FILE_NAME
+            echo "$DIGEST" > "$CACHE_FILE_NAME"
 
       - name: Cache image digest
         uses: actions/cache@v4
@@ -357,9 +361,10 @@ jobs:
       - name: Prepare Platform list
         id: platform
         env:
+          MATRIX_OS: ${{ matrix.os }}
           MATRIX_FILE: ${{ env.MATRIX_FILE }}
         run: |
-            platform_list=$(jq -r '.["os-linux"].${{ matrix.os }} | join(",")' "$MATRIX_FILE")
+            platform_list=$(jq -r ".[\"os-linux\"].$MATRIX_OS | join(\",\")" "$MATRIX_FILE")
             platform_list="${platform_list%,}"
 
             echo "list=$platform_list" >> $GITHUB_OUTPUT
@@ -392,8 +397,8 @@ jobs:
          MATRIX_OS: ${{ matrix.os }}
          DOCKER_REPOSITORY: ${{ env.DOCKER_REPOSITORY }}
         run: |
-          BASE_TAG=$(cat build-base_$MATRIX_OS)
-          BUILD_BASE_IMAGE=$DOCKER_REPOSITORY/zabbix-build-base@${BASE_TAG}
+          BASE_TAG=$(cat "build-base_$MATRIX_OS")
+          BUILD_BASE_IMAGE="$DOCKER_REPOSITORY/zabbix-build-base@${BASE_TAG}"
 
           echo "base_tag=${BASE_TAG}" >> $GITHUB_OUTPUT
           echo "base_build_image=${BUILD_BASE_IMAGE}" >> $GITHUB_OUTPUT
@@ -401,10 +406,12 @@ jobs:
       - name: Verify build-base:${{ matrix.os }} cosign
         env:
          BASE_IMAGE: ${{ steps.base_build.outputs.base_build_image }}
+         OIDC_ISSUER: ${{ env.OIDC_ISSUER }}
+         IDENITY_REGEX: ${{ env.IDENITY_REGEX }}
         run: |
           cosign verify \
-                --certificate-oidc-issuer-regexp "https://token.actions.githubusercontent.com" \
-                --certificate-identity-regexp "https://github.com/zabbix/zabbix-docker/.github/" \
+                --certificate-oidc-issuer-regexp "$OIDC_ISSUER" \
+                --certificate-identity-regexp "$IDENITY_REGEX" \
                 "$BASE_IMAGE"
 
       - name: Build ${{ matrix.build }}/${{ matrix.os }} and push
@@ -621,17 +628,17 @@ jobs:
           MATRIX_FILE: ${{ env.MATRIX_FILE }}
         run: |
             # Chromium on Alpine is available only on linux/amd64, linux/arm64 platforms
-            if ([ "${{ matrix.os }}" == "alpine" ] || [ "${{ matrix.os }}" == "centos" ]) && [ "${{ matrix.build }}" == "web-service" ]; then
+            if ([ "$MATRIX_OS" == "alpine" ] || [ "$MATRIX_OS" == "centos" ]) && [ "$MATRIX_OS" == "web-service" ]; then
                 platform_list="linux/amd64,linux/arm64"
             # Chromium on Ubuntu is not available on s390x platform
-            elif [ "${{ matrix.os }}" == "ubuntu" ] && [ "${{ matrix.build }}" == "web-service" ]; then
+            elif [ "$MATRIX_OS" == "ubuntu" ] && [ "$MATRIX_BUILD" == "web-service" ]; then
                 platform_list="linux/amd64,linux/arm/v7,linux/arm64"
             else
-                platform_list=$(jq -r '.["os-linux"].${{ matrix.os }} | join(",")' "$MATRIX_FILE")
+                platform_list=$(jq -r ".[\"os-linux\"].\"$MATRIX_OS\" | join(\",\")" "$MATRIX_FILE")
             fi
 
             # Build only Agent and Agent2 on 386
-            if [ "${{ matrix.build }}" != "agent"* ]; then
+            if [ "$MATRIX_BUILD" != "agent"* ]; then
                 platform_list="${platform_list#linux/386,}"
             fi
 
@@ -642,9 +649,10 @@ jobs:
       - name: Detect Build Base Image
         id: build_base_image
         env:
+          MATRIX_BUILD: ${{ matrix.build }}
           MATRIX_FILE: ${{ env.MATRIX_FILE }}
         run: |
-          BUILD_BASE=$(jq -r '.components."${{ matrix.build }}"' "$MATRIX_FILE")
+          BUILD_BASE=$(jq -r ".components.\"$MATRIX_BUILD\"" "$MATRIX_FILE")
 
           echo "build_base=${BUILD_BASE}" >> $GITHUB_OUTPUT
 
@@ -674,9 +682,13 @@ jobs:
       - name: Retrieve ${{ steps.build_base_image.outputs.build_base }}:${{ matrix.os }} SHA256 tag
         id: base_build
         if: ${{ matrix.build != 'snmptraps' }}
+        env:
+          BUILD_BASE: ${{ steps.build_base_image.outputs.build_base }}
+          MATRIX_OS: ${{ matrix.os }}
+          DOCKER_REPOSITORY: ${{ env.DOCKER_REPOSITORY }}
         run: |
-          BASE_TAG=$(cat ${{ steps.build_base_image.outputs.build_base }}_${{ matrix.os }})
-          BUILD_BASE_IMAGE=${{ env.DOCKER_REPOSITORY }}/zabbix-${{ steps.build_base_image.outputs.build_base }}@${BASE_TAG}
+          BASE_TAG=$(cat "${BUILD_BASE}_${MATRIX_OS}")
+          BUILD_BASE_IMAGE=$DOCKER_REPOSITORY/zabbix-$MATRIX_OS@${BASE_TAG}
 
           echo "base_tag=${BASE_TAG}" >> $GITHUB_OUTPUT
           echo "base_build_image=${BUILD_BASE_IMAGE}" >> $GITHUB_OUTPUT
@@ -685,10 +697,12 @@ jobs:
         if: ${{ matrix.build != 'snmptraps' }}
         env:
          BASE_IMAGE: ${{ steps.base_build.outputs.base_build_image }}
+         OIDC_ISSUER: ${{ env.OIDC_ISSUER }}
+         IDENITY_REGEX: ${{ env.IDENITY_REGEX }}
         run: |
           cosign verify \
-                --certificate-oidc-issuer-regexp "https://token.actions.githubusercontent.com" \
-                --certificate-identity-regexp "https://github.com/zabbix/zabbix-docker/.github/" \
+                --certificate-oidc-issuer-regexp "$OIDC_ISSUER" \
+                --certificate-identity-regexp "$IDENITY_REGEX" \
                 "$BASE_IMAGE"
 
       - name: Build ${{ matrix.build }}/${{ matrix.os }} and push
