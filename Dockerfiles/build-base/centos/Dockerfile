@@ -19,7 +19,7 @@ LABEL org.opencontainers.image.authors="Alexey Pustovalov <alexey.pustovalov@zab
       org.opencontainers.image.version="${ZBX_VERSION}"
 
 RUN set -eux && \
-    REPOLIST="baseos,appstream,crb" && \
+    REPOLIST="baseos,appstream,crb,epel" && \
     INSTALL_PKGS="autoconf \
             automake \
             bash \
@@ -29,6 +29,7 @@ RUN set -eux && \
             libcurl-devel \
             libevent-devel \
             libssh-devel \
+            libmodbus-devel \
             libxml2-devel \
             openssl-devel \
             openldap-devel \
@@ -44,6 +45,7 @@ RUN set -eux && \
             gettext \
             go-toolset \
             unixODBC-devel" && \
+    dnf -y install epel-release && \
     dnf -y install \
         --disablerepo "*" \
         --enablerepo "${REPOLIST}" \

@@ -57,6 +57,7 @@ RUN set -eux && \
             iputils \
             shadow-utils \
             pcre2 \
+            libmodbus \
             libcurl-minimal" && \
     curl -sSL -o /tmp/epel-release-latest-9.noarch.rpm https://dl.fedoraproject.org/pub/epel/epel-release-latest-9.noarch.rpm && \
     rpm -ivh /tmp/epel-release-latest-9.noarch.rpm && \

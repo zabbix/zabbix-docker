@@ -39,6 +39,7 @@ RUN set -eux && \
             iputils \
             pcre2 \
             libcurl \
+            libmodbus \
             openssl-libs \
             zlib" && \
     microdnf -y install \

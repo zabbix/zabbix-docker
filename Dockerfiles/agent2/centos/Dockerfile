@@ -44,6 +44,7 @@ RUN set -eux && \
             iputils \
             pcre2 \
             libcurl-minimal \
+            libmodbus \
             smartmontools \
             sudo \
             openssl-libs" && \
