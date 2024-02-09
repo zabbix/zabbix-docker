@@ -230,6 +230,7 @@ jobs:
             echo "::endgroup::"
             echo "::group::Pull base image"
             docker pull $base_os_image
+            if (-not $?) {throw "Failed"}
             echo "::endgroup::"
 
             echo "::group::Build Image"
@@ -453,7 +454,8 @@ jobs:
             echo "$Env:TAGS"
             echo "::endgroup::"
             echo "::group::Pull base image"
-            docker pull $base_os_image
+            docker pull $base_build_image
+            if (-not $?) {throw "Failed"}
             echo "::endgroup::"
 
             echo "::group::Build Image"
@@ -623,7 +625,7 @@ jobs:
         run: |
             $base_image_file=$Env:BASE_BUILD_IMAGE_NAME + '_' + $Env:MATRIX_OS + '_' + $Env:MATRIX_COMPONENT
             $base_tag = Get-Content $base_image_file -Raw
-            $build_base_image="$Env:MATRIX_COMPONENT/$Env:IMAGES_PREFIX$Env:BASE_BUILD_IMAGE_NAME@" + $base_tag
+            $build_base_image="$Env:DOCKER_REPOSITORY/$Env:IMAGES_PREFIX$Env:BASE_BUILD_IMAGE_NAME@" + $base_tag
 
             echo "::group::Base image Info"
             echo "base_tag=$base_tag"
@@ -633,7 +635,7 @@ jobs:
             echo "base_tag=$base_tag" >> $Env:GITHUB_OUTPUT
             echo "base_build_image=$build_base_image" >> $Env:GITHUB_OUTPUT
 
-      - name: Verify ${{ env.COMPONENT_BASE_BUILD_NAME }}:${{ matrix.os }} cosign
+      - name: Verify ${{ env.BASE_BUILD_IMAGE_NAME }}:${{ matrix.os }} cosign
         env:
          BASE_IMAGE: ${{ steps.base_build.outputs.base_build_image }}
          OIDC_ISSUER: ${{ env.OIDC_ISSUER }}
@@ -683,7 +685,8 @@ jobs:
             echo "$Env:TAGS"
             echo "::endgroup::"
             echo "::group::Pull base image"
-            docker pull $base_os_image
+            docker pull $base_build_image
+            if (-not $?) {throw "Failed"}
             echo "::endgroup::"
 
             echo "::group::Build Image"
