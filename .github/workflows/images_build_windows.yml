@@ -26,6 +26,7 @@ env:
   LATEST_BRANCH: ${{ github.event.repository.default_branch }}
   IMAGE_PREFIX: "zabbix-"
 
+  BASE_BUILD_IMAGE: "mcr.microsoft.com/windows/servercore"
   BASE_BUILD_NAME: "build-base"
   COMPONENT_BASE_BUILD_NAME: "build-mysql"
 
@@ -176,6 +177,7 @@ jobs:
         id: docker_build
         env:
           DOCKERFILES_DIRECTORY: ${{ env.DOCKERFILES_DIRECTORY }}
+          BASE_BUILD_IMAGE: ${{ env.BASE_BUILD_IMAGE }}
           BASE_BUILD_NAME: ${{ env.BASE_BUILD_NAME }}
           MATRIX_COMPONENT: ${{ matrix.component }}
           TAGS: ${{ steps.meta.outputs.tags }}
@@ -183,20 +185,18 @@ jobs:
           LABEL_REVISION: ${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.revision'] }}
           LABEL_CREATED: ${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.created'] }}
         run: |
+            Set-PSDebug -Trace 1
             $context="$Env:DOCKERFILES_DIRECTORY\$Env:BASE_BUILD_NAME\windows\"
             $dockerfile= $context + 'Dockerfile.' + $Env:MATRIX_COMPONENT
             # Can not build on GitHub due existing symlink. Must be removed before build process
             Remove-Item -ErrorAction Ignore -Force -Path $context\README.md
-            echo "${{ steps.meta.outputs.tags }}"
-            echo "$Env:TAGS"
 
             $tags_array=$( "$Env:TAGS".Split("`n") )
             $tags=$( $tags_array | Foreach-Object { "--tag=$_" } )
 
-            echo "docker build --file=$dockerfile $tags $context"
             docker build --label org.opencontainers.image.revision=$Env:LABEL_REVISION `
                          --label org.opencontainers.image.created=$Env:LABEL_CREATED `
-                         --build-arg=BUILD_BASE_IMAGE=mcr.microsoft.com/windows/servercore:$Env:BASE_OS_TAG `
+                         --build-arg=BUILD_BASE_IMAGE=$Env:BASE_BUILD_IMAGE:$Env:BASE_OS_TAG `
                          --file=$dockerfile `
                          $tags `
                     $context
