@@ -188,17 +188,20 @@ jobs:
         run: |
             $context="$Env:DOCKERFILES_DIRECTORY\$Env:BASE_BUILD_NAME\windows\"
             $dockerfile= $context + 'Dockerfile.' + $Env:MATRIX_COMPONENT
+            $base_os_image= $Env:BASE_BUILD_IMAGE + ':' + $Env:BASE_OS_TAG
             # Can not build on GitHub due existing symlink. Must be removed before build process
             Remove-Item -ErrorAction Ignore -Force -Path $context\README.md
 
             $tags_array=$( "$Env:TAGS".Split("`n") )
             $tags=$( $tags_array | Foreach-Object { "--tag=$_" } )
 
-            echo "docker build --label org.opencontainers.image.revision=$Env:LABEL_REVISION --label org.opencontainers.image.created=$Env:LABEL_CREATED --build-arg=BUILD_BASE_IMAGE=$Env:BASE_BUILD_IMAGE:$Env:BASE_OS_TAG --file=$dockerfile $tags $context"
+            echo "docker build --label org.opencontainers.image.revision=$Env:LABEL_REVISION --label org.opencontainers.image.created=$Env:LABEL_CREATED --build-arg=BUILD_BASE_IMAGE=$base_os_image --file=$dockerfile $tags $context"
+
+            docker pull $base_os_image
 
             docker build --label org.opencontainers.image.revision=$Env:LABEL_REVISION `
                          --label org.opencontainers.image.created=$Env:LABEL_CREATED `
-                         --build-arg=BUILD_BASE_IMAGE=$Env:BASE_BUILD_IMAGE:$Env:BASE_OS_TAG `
+                         --build-arg=BUILD_BASE_IMAGE=$base_os_image `
                          --file=$dockerfile `
                          $tags `
                     $context
