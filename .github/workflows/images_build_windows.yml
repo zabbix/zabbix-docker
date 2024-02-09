@@ -30,7 +30,7 @@ env:
   COMPONENT_BASE_BUILD_NAME: "build-mysql"
 
   MATRIX_FILE: "build.json"
-  DOCKERFILES_DIRECTORY: ".\Dockerfiles"
+  DOCKERFILES_DIRECTORY: "Dockerfiles"
 
   OIDC_ISSUER: "https://token.actions.githubusercontent.com"
   IDENITY_REGEX: "https://github.com/zabbix/zabbix-docker/.github/"
