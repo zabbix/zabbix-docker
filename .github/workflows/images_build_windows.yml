@@ -234,7 +234,8 @@ jobs:
             echo "::endgroup::"
 
             echo "::group::Build Image"
-            Write-Host @"docker build --label org.opencontainers.image.revision=$Env:LABEL_REVISION
+            Write-Host @"
+            docker build --label org.opencontainers.image.revision=$Env:LABEL_REVISION
                          --label org.opencontainers.image.created=$Env:LABEL_CREATED
                          --build-arg=BUILD_BASE_IMAGE=$base_os_image
                          --file=$dockerfile
