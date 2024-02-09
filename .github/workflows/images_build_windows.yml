@@ -120,6 +120,7 @@ jobs:
     needs: init_build
     permissions:
       contents: read
+      id-token: write
     env:
       BASE_BUILD_ARTIFACT_FILE_SUFFIX: "_${{ matrix.os }}_${{ matrix.component }}"
     strategy:
@@ -174,7 +175,7 @@ jobs:
           flavor: |
             latest=false
 
-      - name: Build image
+      - name: Build and push image
         id: docker_build
         env:
           DOCKERFILES_DIRECTORY: ${{ env.DOCKERFILES_DIRECTORY }}
@@ -185,6 +186,7 @@ jobs:
           BASE_OS_TAG: ${{ steps.base_os_tag.outputs.os_tag }}
           LABEL_REVISION: ${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.revision'] }}
           LABEL_CREATED: ${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.created'] }}
+          AUTO_PUSH_IMAGES: ${{ env.AUTO_PUSH_IMAGES }}
         run: |
             $context="$Env:DOCKERFILES_DIRECTORY\$Env:BASE_BUILD_NAME\windows\"
             $dockerfile= $context + 'Dockerfile.' + $Env:MATRIX_COMPONENT
@@ -196,6 +198,7 @@ jobs:
             $tags=$( $tags_array | Foreach-Object { "--tag=$_" } )
 
             echo "docker build --label org.opencontainers.image.revision=$Env:LABEL_REVISION --label org.opencontainers.image.created=$Env:LABEL_CREATED --build-arg=BUILD_BASE_IMAGE=$base_os_image --file=$dockerfile $tags $context"
+            echo "$Env:AUTO_PUSH_IMAGES"
 
             docker pull $base_os_image
 
@@ -207,23 +210,16 @@ jobs:
                     $context
             if (-not $?) {throw "Failed"}
 
-            $digest=$(docker inspect $tags_array[0] --format "{{ index .RepoDigests 0}}").Split('@')[-1]
-            if (-not $?) {throw "Failed"}
-
-            echo "digest=$digest" >> $Env:GITHUB_OUTPUT
-
-      - name: Push image
-        if: ${{ env.AUTO_PUSH_IMAGES }}
-        env:
-          TAGS: ${{ steps.meta.outputs.tags }}
-        run: |
-            $tags_array=$( "$Env:TAGS".Split("`n") )
-
             Foreach ($tag in $tags_array) {
                 echo "docker image push $tag"
                 docker image push $tag
                 if (-not $?) {throw "Failed"}
             }
+
+            $digest=$(docker inspect $tags_array[0] --format "{{ index .RepoDigests 0}}").Split('@')[-1]
+            if (-not $?) {throw "Failed"}
+
+            echo "digest=$digest" >> $Env:GITHUB_OUTPUT
 
       - name: Sign the images with GitHub OIDC Token
         env:
@@ -257,6 +253,7 @@ jobs:
     name: Build ${{ matrix.component }} sources on ${{ matrix.os }}
     permissions:
       contents: read
+      id-token: write
     env:
       BASE_BUILD_ARTIFACT_FILE_SUFFIX: "_${{ matrix.os }}_${{ matrix.component }}"
       COMPONENT_BASE_BUILD_ARTIFACT_FILE_SUFFIX: "_${{ matrix.os }}_${{ matrix.component }}"
@@ -381,6 +378,9 @@ jobs:
     timeout-minutes: 70
     needs: [ "build_components", "init_build"]
     name: Build ${{ matrix.component }} on ${{ matrix.os }}
+    permissions:
+      contents: read
+      id-token: write
     env:
       COMPONENT_BASE_BUILD_ARTIFACT_FILE_SUFFIX: "_${{ matrix.os }}_${{ matrix.component }}"
     strategy:
