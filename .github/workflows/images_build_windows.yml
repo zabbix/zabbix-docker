@@ -181,7 +181,7 @@ jobs:
           DOCKERFILES_DIRECTORY: ${{ env.DOCKERFILES_DIRECTORY }}
           BASE_BUILD_NAME: ${{ env.BASE_BUILD_NAME }}
           MATRIX_COMPONENT: ${{ matrix.component }}
-          TAGS: ${{ fromJSON(steps.meta.outputs.json.tags) }}
+          TAGS: ${{ fromJSON(steps.meta.outputs.json).tags }}
           BASE_OS_TAG: ${{ steps.base_os_tag.outputs.os_tag }}
           LABEL_REVISION: ${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.revision'] }}
           LABEL_CREATED: ${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.created'] }}
