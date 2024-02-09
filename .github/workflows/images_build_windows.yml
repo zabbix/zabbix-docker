@@ -156,7 +156,7 @@ jobs:
           MATRIX_OS: ${{ matrix.os }}
           MATRIX_FILE: ${{ env.MATRIX_FILE }}
         run: |
-            $os_tag=$(Get-Content -Path $Env:MATRIX_FILE | ConvertFrom-Json).'os-windows'.'$Env:MATRIX_OS'
+            $os_tag=$(Get-Content -Path $Env:MATRIX_FILE | ConvertFrom-Json).'os-windows'."$Env:MATRIX_OS"
             echo "os_tag=$os_tag" >> $Env:GITHUB_OUTPUT
 
       - name: Generate tags
