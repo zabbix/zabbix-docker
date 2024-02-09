@@ -24,11 +24,11 @@ env:
 
   DOCKER_REPOSITORY: "zabbix"
   LATEST_BRANCH: ${{ github.event.repository.default_branch }}
-  IMAGE_PREFIX: "zabbix-"
+  IMAGES_PREFIX: "zabbix-"
 
-  BASE_BUILD_IMAGE: "mcr.microsoft.com/windows/servercore"
-  BASE_BUILD_NAME: "build-base"
-  COMPONENT_BASE_BUILD_NAME: "build-mysql"
+  MSFT_BASE_BUILD_IMAGE: "mcr.microsoft.com/windows/servercore"
+  BASE_IMAGE_NAME: "build-base"
+  BASE_BUILD_IMAGE_NAME: "build-mysql"
 
   MATRIX_FILE: "build.json"
   DOCKERFILES_DIRECTORY: "Dockerfiles"
@@ -131,9 +131,10 @@ jobs:
             echo "sha_short=$sha_short" >> $GITHUB_OUTPUT
 
   build_base:
-    timeout-minutes: 70
     name: Build ${{ matrix.component }} base on ${{ matrix.os }}
     needs: init_build
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 70
     permissions:
       contents: read
       id-token: write
@@ -142,8 +143,6 @@ jobs:
       matrix:
         os: ${{ fromJson(needs.init_build.outputs.os) }}
         component: ${{ fromJson(needs.init_build.outputs.components) }}
-
-    runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -164,7 +163,7 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: Base OS tag
+      - name: Base Windows OS tag
         id: base_os_tag
         env:
           MATRIX_OS: ${{ matrix.os }}
@@ -172,7 +171,7 @@ jobs:
         run: |
             $os_tag=$(Get-Content -Path $Env:MATRIX_FILE | ConvertFrom-Json).'os-windows'."$Env:MATRIX_OS"
 
-            echo "::group::Base Windows OS tag"
+            echo "::group::Base Microsoft Windows OS tag"
             echo "$os_tag"
             echo "::endgroup::"
 
@@ -182,7 +181,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ${{ env.DOCKER_REPOSITORY }}/${{ env.IMAGE_PREFIX }}${{ env.BASE_BUILD_NAME }}
+          images: ${{ env.DOCKER_REPOSITORY }}/${{ env.IMAGE_PREFIX }}${{ env.BASE_IMAGE_NAME }}
           tags: |
             type=semver,enable=${{ needs.init_build.outputs.current_branch != 'trunk' }},pattern={{version}},prefix=${{ matrix.component }}-${{ steps.base_os_tag.outputs.os_tag }}-
             type=semver,enable=${{ needs.init_build.outputs.current_branch != 'trunk' }},pattern={{version}},suffix=-${{ steps.base_os_tag.outputs.os_tag }},prefix=${{ matrix.component }}-
@@ -198,15 +197,14 @@ jobs:
         id: docker_build
         env:
           DOCKERFILES_DIRECTORY: ${{ env.DOCKERFILES_DIRECTORY }}
-          BASE_BUILD_IMAGE: ${{ env.BASE_BUILD_IMAGE }}
-          BASE_BUILD_NAME: ${{ env.BASE_BUILD_NAME }}
+          BASE_BUILD_IMAGE: ${{ env.MSFT_BASE_BUILD_IMAGE }}
+          BASE_IMAGE_NAME: ${{ env.BASE_IMAGE_NAME }}
           MATRIX_COMPONENT: ${{ matrix.component }}
           TAGS: ${{ steps.meta.outputs.tags }}
           BASE_OS_TAG: ${{ steps.base_os_tag.outputs.os_tag }}
           LABEL_REVISION: ${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.revision'] }}
           LABEL_CREATED: ${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.created'] }}
           AUTO_PUSH_IMAGES: ${{ env.AUTO_PUSH_IMAGES }}
-          SHA_SHORT: ${{ needs.init_build.outputs.sha_short }}
         run: |
             echo "::group::Docker version"
             docker version
@@ -215,7 +213,7 @@ jobs:
             docker info
             echo "::endgroup::"
 
-            $context="$Env:DOCKERFILES_DIRECTORY\$Env:BASE_BUILD_NAME\windows\"
+            $context="$Env:DOCKERFILES_DIRECTORY\$Env:BASE_IMAGE_NAME\windows\"
             $dockerfile= $context + 'Dockerfile.' + $Env:MATRIX_COMPONENT
             $base_os_image= $Env:BASE_BUILD_IMAGE + ':' + $Env:BASE_OS_TAG
             # Can not build on GitHub due existing symlink. Must be removed before build process
@@ -300,7 +298,7 @@ jobs:
         if: ${{ env.AUTO_PUSH_IMAGES }}
         env:
           DIGEST: ${{ steps.docker_build.outputs.digest }}
-          CACHE_FILE_NAME: ${{ env.BASE_BUILD_NAME }}_${{ matrix.os }}_${{ matrix.component }}
+          CACHE_FILE_NAME: ${{ env.BASE_IMAGE_NAME }}_${{ matrix.os }}_${{ matrix.component }}
         run: |
             echo "::group::Image digest"
             echo "$Env:DIGEST"
@@ -315,13 +313,14 @@ jobs:
       - name: Cache image digest
         uses: actions/cache@v4
         with:
-          path: ${{ env.BASE_BUILD_NAME }}_${{ matrix.os }}_${{ matrix.component }}
-          key: ${{ env.BASE_BUILD_NAME }}-${{ matrix.os }}-${{ github.run_id }}
+          path: ${{ env.BASE_IMAGE_NAME }}_${{ matrix.os }}_${{ matrix.component }}
+          key: ${{ env.BASE_IMAGE_NAME }}-${{ matrix.os }}-${{ github.run_id }}
 
   build_components:
-    timeout-minutes: 70
-    needs: [ "build_base", "init_build"]
     name: Build ${{ matrix.component }} sources on ${{ matrix.os }}
+    needs: [ "build_base", "init_build"]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 70
     permissions:
       contents: read
       id-token: write
@@ -330,8 +329,6 @@ jobs:
       matrix:
         os: ${{ fromJson(needs.init_build.outputs.os) }}
         component: ${{ fromJson(needs.init_build.outputs.components) }}
-
-    runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -370,7 +367,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ${{ env.DOCKER_REPOSITORY }}/${{ env.IMAGE_PREFIX }}${{ env.COMPONENT_BASE_BUILD_NAME }}
+          images: ${{ env.DOCKER_REPOSITORY }}/${{ env.IMAGE_PREFIX }}${{ env.BASE_BUILD_IMAGE_NAME }}
           tags: |
             type=semver,enable=${{ needs.init_build.outputs.current_branch != 'trunk' }},pattern={{version}},prefix=${{ matrix.component }}-${{ steps.base_os_tag.outputs.os_tag }}-
             type=semver,enable=${{ needs.init_build.outputs.current_branch != 'trunk' }},pattern={{version}},suffix=-${{ steps.base_os_tag.outputs.os_tag }},prefix=${{ matrix.component }}-
@@ -382,24 +379,24 @@ jobs:
           flavor: |
             latest=false
 
-      - name: Download SHA256 tag of build-base:${{ matrix.os }}
+      - name: Download SHA256 tag of ${{ env.BASE_IMAGE_NAME }}:${{ matrix.os }}
         uses: actions/cache@v4
         with:
-          path: ${{ env.BASE_BUILD_NAME }}_${{ matrix.os }}_${{ matrix.component }}
-          key: ${{ env.BASE_BUILD_NAME }}-${{ matrix.os }}-${{ github.run_id }}
+          path: ${{ env.BASE_IMAGE_NAME }}_${{ matrix.os }}_${{ matrix.component }}
+          key: ${{ env.BASE_IMAGE_NAME }}-${{ matrix.os }}-${{ github.run_id }}
 
-      - name: Retrieve ${{ env.BASE_BUILD_NAME }}:${{ matrix.os }} SHA256 tag
+      - name: Retrieve ${{ env.BASE_IMAGE_NAME }}:${{ matrix.os }} SHA256 tag
         id: base_build
         env:
-          BASE_BUILD_NAME: ${{ env.BASE_BUILD_NAME }}
+          BASE_IMAGE_NAME: ${{ env.BASE_IMAGE_NAME }}
           MATRIX_OS: ${{ matrix.os }}
           MATRIX_COMPONENT: ${{ matrix.component }}
           DOCKER_REPOSITORY: ${{ env.DOCKER_REPOSITORY }}
           IMAGE_PREFIX: ${{ env.IMAGE_PREFIX }}
         run: |
-            $base_image_file=$Env:BASE_BUILD_NAME + '_' + $Env:MATRIX_OS + '_' + $Env:MATRIX_COMPONENT
+            $base_image_file=$Env:BASE_IMAGE_NAME + '_' + $Env:MATRIX_OS + '_' + $Env:MATRIX_COMPONENT
             $base_tag = Get-Content $base_image_file -Raw
-            $build_base_image="$Env:DOCKER_REPOSITORY/$Env:IMAGE_PREFIX$Env:BASE_BUILD_NAME@" + $base_tag
+            $build_base_image="$Env:DOCKER_REPOSITORY/$Env:IMAGE_PREFIX$Env:BASE_IMAGE_NAME@" + $base_tag
 
             echo "::group::Base image Info"
             echo "base_tag=$base_tag"
@@ -409,7 +406,7 @@ jobs:
             echo "base_tag=$base_tag" >> $Env:GITHUB_OUTPUT
             echo "base_build_image=$build_base_image" >> $Env:GITHUB_OUTPUT
 
-      - name: Verify build-base:${{ matrix.os }} cosign
+      - name: Verify ${{ env.BASE_IMAGE_NAME }}:${{ matrix.os }} cosign
         env:
          BASE_IMAGE: ${{ steps.base_build.outputs.base_build_image }}
          OIDC_ISSUER: ${{ env.OIDC_ISSUER }}
@@ -424,15 +421,14 @@ jobs:
         id: docker_build
         env:
           DOCKERFILES_DIRECTORY: ${{ env.DOCKERFILES_DIRECTORY }}
-          COMPONENT_BASE_BUILD_IMAGE: ${{ steps.base_build.outputs.base_build_image }}
-          COMPONENT_BASE_BUILD_NAME: ${{ env.COMPONENT_BASE_BUILD_NAME }}
+          BASE_BUILD_IMAGE: ${{ steps.base_build.outputs.base_build_image }}
+          BASE_BUILD_IMAGE_NAME: ${{ env.BASE_BUILD_IMAGE_NAME }}
+          BASE_BUILD_OS_TAG: ${{ steps.base_os_tag.outputs.os_tag }}
           MATRIX_COMPONENT: ${{ matrix.component }}
           TAGS: ${{ steps.meta.outputs.tags }}
-          COMPONENT_BASE_OS_TAG: ${{ steps.base_os_tag.outputs.os_tag }}
           LABEL_REVISION: ${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.revision'] }}
           LABEL_CREATED: ${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.created'] }}
           AUTO_PUSH_IMAGES: ${{ env.AUTO_PUSH_IMAGES }}
-          SHA_SHORT: ${{ needs.init_build.outputs.sha_short }}
         run: |
             echo "::group::Docker version"
             docker version
@@ -441,9 +437,9 @@ jobs:
             docker info
             echo "::endgroup::"
 
-            $context="$Env:DOCKERFILES_DIRECTORY\$Env:COMPONENT_BASE_BUILD_NAME\windows\"
+            $context="$Env:DOCKERFILES_DIRECTORY\$Env:BASE_BUILD_IMAGE_NAME\windows\"
             $dockerfile= $context + 'Dockerfile.' + $Env:MATRIX_COMPONENT
-            $base_build_image= $Env:COMPONENT_BASE_BUILD_IMAGE + ':' + $Env:COMPONENT_BASE_OS_TAG
+            $base_build_image= $Env:BASE_BUILD_IMAGE
             # Can not build on GitHub due existing symlink. Must be removed before build process
             Remove-Item -ErrorAction Ignore -Force -Path $context\README.md
 
@@ -526,7 +522,7 @@ jobs:
         if: ${{ env.AUTO_PUSH_IMAGES }}
         env:
           DIGEST: ${{ steps.docker_build.outputs.digest }}
-          CACHE_FILE_NAME: ${{ env.COMPONENT_BASE_BUILD_NAME }}_${{ matrix.os }}_${{ matrix.component }}
+          CACHE_FILE_NAME: ${{ env.BASE_BUILD_IMAGE_NAME }}_${{ matrix.os }}_${{ matrix.component }}
         run: |
             echo "::group::Image digest"
             echo "$Env:DIGEST"
@@ -541,25 +537,22 @@ jobs:
       - name: Cache image digest
         uses: actions/cache@v4
         with:
-          path: ${{ env.COMPONENT_BASE_BUILD_NAME }}_${{ matrix.os }}_${{ matrix.component }}
-          key: ${{ env.COMPONENT_BASE_BUILD_NAME }}-${{ matrix.os }}-${{ github.run_id }}
+          path: ${{ env.BASE_BUILD_IMAGE_NAME }}_${{ matrix.os }}_${{ matrix.component }}
+          key: ${{ env.BASE_BUILD_IMAGE_NAME }}-${{ matrix.os }}-${{ github.run_id }}
 
   build_images:
-    timeout-minutes: 70
-    needs: [ "build_components", "init_build"]
     name: Build ${{ matrix.component }} on ${{ matrix.os }}
+    needs: [ "build_components", "init_build"]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 70
     permissions:
       contents: read
       id-token: write
-    env:
-      COMPONENT_BASE_BUILD_ARTIFACT_FILE_SUFFIX: "_${{ matrix.os }}_${{ matrix.component }}"
     strategy:
       fail-fast: false
       matrix:
         os: ${{ fromJson(needs.init_build.outputs.os) }}
         component: ${{ fromJson(needs.init_build.outputs.components) }}
-
-    runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -588,7 +581,7 @@ jobs:
         run: |
             $os_tag=$(Get-Content -Path $Env:MATRIX_FILE | ConvertFrom-Json).'os-windows'."$Env:MATRIX_OS"
 
-            echo "::group::Base Windows OS tag"
+            echo "::group::Base OS tag"
             echo "$os_tag"
             echo "::endgroup::"
 
@@ -610,24 +603,24 @@ jobs:
           flavor: |
             latest=false
 
-      - name: Download SHA256 tag of ${{ env.COMPONENT_BASE_BUILD_NAME }}:${{ matrix.os }}
+      - name: Download SHA256 tag of ${{ env.BASE_BUILD_IMAGE_NAME }}:${{ matrix.os }}
         uses: actions/cache@v4
         with:
-          path: ${{ env.COMPONENT_BASE_BUILD_NAME }}_${{ matrix.os }}_${{ matrix.component }}
-          key: ${{ env.COMPONENT_BASE_BUILD_NAME }}-${{ matrix.os }}-${{ github.run_id }}
+          path: ${{ env.BASE_BUILD_IMAGE_NAME }}_${{ matrix.os }}_${{ matrix.component }}
+          key: ${{ env.BASE_BUILD_IMAGE_NAME }}-${{ matrix.os }}-${{ github.run_id }}
 
-      - name: Retrieve ${{ env.COMPONENT_BASE_BUILD_NAME }}:${{ matrix.os }} SHA256 tag
+      - name: Retrieve ${{ env.BASE_BUILD_IMAGE_NAME }}:${{ matrix.os }} SHA256 tag
         id: base_build
         env:
-          COMPONENT_BASE_BUILD_NAME: ${{ env.COMPONENT_BASE_BUILD_NAME }}
+          BASE_BUILD_IMAGE_NAME: ${{ env.BASE_BUILD_IMAGE_NAME }}
           MATRIX_OS: ${{ matrix.os }}
           MATRIX_COMPONENT: ${{ matrix.component }}
           DOCKER_REPOSITORY: ${{ env.DOCKER_REPOSITORY }}
           IMAGE_PREFIX: ${{ env.IMAGE_PREFIX }}
         run: |
-            $base_image_file=$Env:COMPONENT_BASE_BUILD_NAME + '_' + $Env:MATRIX_OS + '_' + $Env:MATRIX_COMPONENT
+            $base_image_file=$Env:BASE_BUILD_IMAGE_NAME + '_' + $Env:MATRIX_OS + '_' + $Env:MATRIX_COMPONENT
             $base_tag = Get-Content $base_image_file -Raw
-            $build_base_image="$Env:MATRIX_COMPONENT/$Env:IMAGE_PREFIX$Env:COMPONENT_BASE_BUILD_NAME@" + $base_tag
+            $build_base_image="$Env:MATRIX_COMPONENT/$Env:IMAGE_PREFIX$Env:BASE_BUILD_IMAGE_NAME@" + $base_tag
 
             echo "::group::Base image Info"
             echo "base_tag=$base_tag"
@@ -652,15 +645,14 @@ jobs:
         id: docker_build
         env:
           DOCKERFILES_DIRECTORY: ${{ env.DOCKERFILES_DIRECTORY }}
-          COMPONENT_BASE_BUILD_IMAGE: ${{ steps.base_build.outputs.base_build_image }}
-          COMPONENT_BASE_BUILD_NAME: ${{ env.COMPONENT_BASE_BUILD_NAME }}
+          BASE_BUILD_IMAGE: ${{ steps.base_build.outputs.base_build_image }}
+          BASE_BUILD_IMAGE_NAME: ${{ env.BASE_BUILD_IMAGE_NAME }}
           MATRIX_COMPONENT: ${{ matrix.component }}
           TAGS: ${{ steps.meta.outputs.tags }}
-          COMPONENT_BASE_OS_TAG: ${{ steps.base_os_tag.outputs.os_tag }}
+          BASE_BUILD_OS_TAG: ${{ steps.base_os_tag.outputs.os_tag }}
           LABEL_REVISION: ${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.revision'] }}
           LABEL_CREATED: ${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.created'] }}
           AUTO_PUSH_IMAGES: ${{ env.AUTO_PUSH_IMAGES }}
-          SHA_SHORT: ${{ needs.init_build.outputs.sha_short }}
         run: |
             echo "::group::Docker version"
             docker version
@@ -671,7 +663,7 @@ jobs:
 
             $context="$Env:DOCKERFILES_DIRECTORY\$Env:MATRIX_COMPONENT\windows\"
             $dockerfile= $context + 'Dockerfile'
-            $base_build_image= $Env:COMPONENT_BASE_BUILD_IMAGE + ':' + $Env:COMPONENT_BASE_BUILD_IMAGE
+            $base_build_image= $Env:BASE_BUILD_IMAGE
             # Can not build on GitHub due existing symlink. Must be removed before build process
             Remove-Item -ErrorAction Ignore -Force -Path $context\README.md
 
@@ -679,7 +671,7 @@ jobs:
             $tags=$( $tags_array | Foreach-Object { "--tag=$_" } )
 
             # PowerShell images based on LTSC 2019 and LTSC 2016 do not have "ltsc" prefix
-            $os_tag_suffix=$Env:COMPONENT_BASE_OS_TAG
+            $os_tag_suffix=$Env:BASE_BUILD_OS_TAG
             $os_tag_suffix=$os_tag_suffix -replace "ltsc2019",'1809'
 
             echo "::group::Image tags"
@@ -760,14 +752,7 @@ jobs:
         if: ${{ env.AUTO_PUSH_IMAGES }}
         env:
           DIGEST: ${{ steps.docker_build.outputs.digest }}
-          CACHE_FILE_NAME: ${{ env.COMPONENT_BASE_BUILD_NAME }}_${{ matrix.os }}_${{ matrix.component }}
         run: |
             echo "::group::Image digest"
             echo "$Env:DIGEST"
             echo "::endgroup::"
-
-            echo "::group::Cache file name"
-            echo "$Env:CACHE_FILE_NAME"
-            echo "::endgroup::"
-
-            $Env:DIGEST | Set-Content -Path $Env:CACHE_FILE_NAME
