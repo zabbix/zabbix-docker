@@ -237,7 +237,8 @@ jobs:
           TAGS: ${{ steps.meta.outputs.tags }}
         run: |
           $images=""
-          foreach ($tag in $Env:TAGS) {
+          $tags_array=$( "$Env:TAGS".Split("`n") )
+          foreach ($tag in $tags_array) {
             $images=$images + "$tag@$Env:DIGEST "
           }
           cosign sign --yes $images
