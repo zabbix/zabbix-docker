@@ -11,9 +11,11 @@ on:
 
 env:
   DOCKER_REPOSITORY: "zabbix"
+  DOCKERFILES_DIRECTORY: "./Dockerfiles"
 
 jobs:
   main:
+    name: Update description
     runs-on: ubuntu-latest
     env:
       DOCKER_REPOSITORY: "zabbix"
@@ -57,4 +59,4 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
           repository: ${{ env.DOCKER_REPOSITORY }}/zabbix-${{ matrix.component }}
-          readme-filepath: ./Dockerfiles/${{ matrix.build }}/README.md
+          readme-filepath: ${{ env.DOCKERFILES_DIRECTORY }}/${{ matrix.component }}/README.md
