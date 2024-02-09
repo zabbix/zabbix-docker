@@ -288,11 +288,11 @@ jobs:
                 $tag_list+="$tag_name@$Env:DIGEST"
             }
             echo "::group::Images to sign"
-	    echo "$tag_list"
+            echo "$tag_list"
             echo "::endgroup::"
 
             echo "::group::Signing"
-	    echo "cosign sign --yes $tag_list"
+            echo "cosign sign --yes $tag_list"
             cosign sign --yes $tag_list
             echo "::endgroup::"
 
