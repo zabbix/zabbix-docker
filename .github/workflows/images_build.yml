@@ -688,7 +688,7 @@ jobs:
           DOCKER_REPOSITORY: ${{ env.DOCKER_REPOSITORY }}
         run: |
           BASE_TAG=$(cat "${BUILD_BASE}_${MATRIX_OS}")
-          BUILD_BASE_IMAGE=$DOCKER_REPOSITORY/zabbix-$MATRIX_OS@${BASE_TAG}
+          BUILD_BASE_IMAGE=$DOCKER_REPOSITORY/zabbix-$BUILD_BASE@${BASE_TAG}
 
           echo "base_tag=${BASE_TAG}" >> $GITHUB_OUTPUT
           echo "base_build_image=${BUILD_BASE_IMAGE}" >> $GITHUB_OUTPUT
