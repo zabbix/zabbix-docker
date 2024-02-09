@@ -122,6 +122,7 @@ jobs:
       contents: read
     env:
       BASE_BUILD_ARTIFACT_FILE_SUFFIX: "_${{ matrix.os }}_${{ matrix.component }}"
+      CACHE_FILE_NAME: ${{ env.BASE_BUILD_NAME }}${{ env.BASE_BUILD_ARTIFACT_FILE_SUFFIX }}
     strategy:
       fail-fast: false
       matrix:
@@ -207,10 +208,17 @@ jobs:
                     $context
             if (-not $?) {throw "Failed"}
 
+            $digest=$(docker inspect $tags_array[0] --format "{{ index .RepoDigests 0}}").Split('@')[-1]
+            if (-not $?) {throw "Failed"}
+
+            echo "digest=$digest" >> $Env:GITHUB_OUTPUT
+
       - name: Push image
         if: ${{ env.AUTO_PUSH_IMAGES }}
+        env:
+          TAGS: ${{ steps.meta.outputs.tags }}
         run: |
-            $tags_array=$( "${{ steps.meta.outputs.tags }}".Split("`r`n") )
+            $tags_array=$( "$Env:TAGS".Split("`n") )
 
             Foreach ($tag in $tags_array) {
                 echo "docker image push $tag"
@@ -218,33 +226,31 @@ jobs:
                 if (-not $?) {throw "Failed"}
             }
 
+      - name: Sign the images with GitHub OIDC Token
+        env:
+          DIGEST: ${{ steps.docker_build.outputs.digest }}
+          TAGS: ${{ steps.meta.outputs.tags }}
+        run: |
+          images=""
+          for tag in ${TAGS}; do
+            images+="${tag}@${DIGEST} "
+          done
+          cosign sign --yes ${images}
+
       - name: Image digest
         if: ${{ env.AUTO_PUSH_IMAGES }}
         env:
-          TAGS: ${{ steps.meta.outputs.tags }}
-          BASE_BUILD_ARTIFACT_FILE_SUFFIX: ${{ env.BASE_BUILD_ARTIFACT_FILE_SUFFIX }}
-          BASE_BUILD_NAME: ${{ env.BASE_BUILD_NAME }}
+          DIGEST: ${{ steps.docker_build.outputs.digest }}
+          CACHE_FILE_NAME: ${{ env.BASE_BUILD_NAME }}${{ env.BASE_BUILD_ARTIFACT_FILE_SUFFIX }}
         run: |
-            $tags_array=$( "$Env:TAGS".Split("`r`n") )
+            echo "$Env:DIGEST"
+            $Env:DIGEST | Set-Content -Path $Env:CACHE_FILE_NAME
 
-            $digest=$(docker inspect $tags_array[0] --format "{{ index .RepoDigests 0}}").Split('@')[-1]
-            if (-not $?) {throw "Failed"}
-
-            echo $digest
-            $digest | Set-Content -Path $Env:BASE_BUILD_NAME$Env:BASE_BUILD_ARTIFACT_FILE_SUFFIX
-
-      - name: Upload SHA256 tag
-        if: ${{ env.AUTO_PUSH_IMAGES }}
-        uses: actions/upload-artifact@v4
+      - name: Cache image digest
+        uses: actions/cache@v4
         with:
-         name: ${{ env.BASE_BUILD_NAME }}${{ env.BASE_BUILD_ARTIFACT_FILE_SUFFIX }}
-         path: ${{ env.BASE_BUILD_NAME }}${{ env.BASE_BUILD_ARTIFACT_FILE_SUFFIX }}
-         if-no-files-found: error
-
-      - name: Logout from DockerHub
-        run: |
-            docker logout
-            if (-not $?) {throw "Failed"}
+          path: ${{ env.CACHE_FILE_NAME }}
+          key: ${{ env.BASE_BUILD_NAME }}-${{ matrix.os }}-${{ github.run_id }}
 
   build_components:
     timeout-minutes: 70
