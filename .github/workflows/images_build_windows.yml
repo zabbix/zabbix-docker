@@ -64,6 +64,7 @@ jobs:
 
       - name: Check ${{ env.MATRIX_FILE }} file
         id: build_exists
+        shell: bash
         env:
           MATRIX_FILE: ${{ env.MATRIX_FILE }}
         run: |
