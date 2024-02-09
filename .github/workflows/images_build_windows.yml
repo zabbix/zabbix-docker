@@ -48,6 +48,14 @@ jobs:
       current_branch: ${{ steps.branch_info.outputs.current_branch }}
       sha_short: ${{ steps.branch_info.outputs.sha_short }}
     steps:
+      - name: Block egress traffic
+        uses: step-security/harden-runner@63c24ba6bd7ba022e95695ff85de572c04a18142 # v2.7.0
+        with:
+          disable-sudo: true
+          egress-policy: block
+          allowed-endpoints: >
+            github.com:443
+
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
@@ -121,11 +129,6 @@ jobs:
 
     runs-on: ${{ matrix.os }}
     steps:
-      - name: Block egress traffic
-        uses: step-security/harden-runner@63c24ba6bd7ba022e95695ff85de572c04a18142 # v2.7.0
-        with:
-          egress-policy: audit
-
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
@@ -187,7 +190,7 @@ jobs:
             echo "${{ steps.meta.outputs.tags }}"
             echo "$Env:TAGS"
 
-            $tags_array=$( "${{ steps.meta.outputs.tags }}".Split("`r`n") )
+            $tags_array=$( "$Env:TAGS".Split("`n") )
             $tags=$( $tags_array | Foreach-Object { "--tag=$_" } )
 
             echo "docker build --file=$dockerfile $tags $context"
@@ -255,11 +258,6 @@ jobs:
 
     runs-on: ${{ matrix.os }}
     steps:
-      - name: Block egress traffic
-        uses: step-security/harden-runner@63c24ba6bd7ba022e95695ff85de572c04a18142 # v2.7.0
-        with:
-          egress-policy: audit
-
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
