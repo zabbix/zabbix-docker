@@ -23,9 +23,14 @@ defaults:
     shell: bash
 
 env:
+  AUTO_PUSH_IMAGES: ${{ secrets.AUTO_PUSH_IMAGES }}
+
   DOCKER_REPOSITORY: "zabbix"
   LATEST_BRANCH: ${{ github.event.repository.default_branch }}
+  IMAGE_PREFIX: "zabbix-"
+
   BASE_BUILD_NAME: "build-base"
+
   MATRIX_FILE: "build.json"
   DOCKERFILES_DIRECTORY: "./Dockerfiles"
 
@@ -60,7 +65,7 @@ jobs:
           fetch-depth: 1
           sparse-checkout: ${{ env.MATRIX_FILE }}
 
-      - name: Check build.json file
+      - name: Check ${{ env.MATRIX_FILE }} file
         id: build_exists
         env:
           MATRIX_FILE: ${{ env.MATRIX_FILE }}
@@ -77,6 +82,10 @@ jobs:
         run: |
             os_list=$(jq -r '.["os-linux"] |  keys | [ .[] | tostring ] | @json' "$MATRIX_FILE")
 
+            echo "::group::Operating System List"
+            echo "$os_list"
+            echo "::endgroup::"
+
             echo "list=$os_list" >> $GITHUB_OUTPUT
 
       - name: Prepare Platform list
@@ -85,6 +94,10 @@ jobs:
           MATRIX_FILE: ${{ env.MATRIX_FILE }}
         run: |
             platform_list=$(jq -r '.["os-linux"] | tostring  | @json' "$MATRIX_FILE")
+
+            echo "::group::Platform List"
+            echo "$platform_list"
+            echo "::endgroup::"
 
             echo "list=$platform_list" >> $GITHUB_OUTPUT
 
@@ -95,6 +108,10 @@ jobs:
         run: |
             database_list=$(jq -r '[.components | values[] ] | sort | unique | del(.. | select ( . == "" ) ) | [ .[] | tostring ] | @json' "$MATRIX_FILE")
 
+            echo "::group::Database List"
+            echo "$database_list"
+            echo "::endgroup::"
+
             echo "list=$database_list" >> $GITHUB_OUTPUT
 
       - name: Prepare Zabbix component list
@@ -103,6 +120,10 @@ jobs:
           MATRIX_FILE: ${{ env.MATRIX_FILE }}
         run: |
             component_list=$(jq -r '.components | keys | [ .[] | tostring ] | @json' "$MATRIX_FILE")
+
+            echo "::group::Zabbix Component List"
+            echo "$component_list"
+            echo "::endgroup::"
 
             echo "list=$component_list" >> $GITHUB_OUTPUT
 
@@ -113,6 +134,7 @@ jobs:
           github_ref: ${{ github.ref }}
         run: |
             result=false
+            sha_short=$(git rev-parse --short HEAD)
 
             if [[ "$github_ref" == "refs/tags/"* ]]; then
                 github_ref=${github_ref%.*}
@@ -124,9 +146,15 @@ jobs:
                 result=true
             fi
 
+            echo "::group::Branch data"
+            echo "is_default_branch - $result"
+            echo "current_branch - $github_ref"
+            echo "sha_short - $sha_short"
+            echo "::endgroup::"
+
             echo "is_default_branch=$result" >> $GITHUB_OUTPUT
             echo "current_branch=$github_ref" >> $GITHUB_OUTPUT
-            echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+            echo "sha_short=$sha_short" >> $GITHUB_OUTPUT
 
   build_base:
     timeout-minutes: 30
@@ -232,7 +260,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ${{ env.DOCKER_REPOSITORY }}/zabbix-${{ env.BASE_BUILD_NAME }}
+          images: ${{ env.DOCKER_REPOSITORY }}/${{ env.IMAGE_PREFIX }}${{ env.BASE_BUILD_NAME }}
           tags: |
             type=semver,enable=${{ needs.init_build.outputs.current_branch != 'trunk' }},pattern={{version}},prefix=${{ matrix.os }}-
             type=semver,enable=${{ needs.init_build.outputs.current_branch != 'trunk' }},pattern={{version}},suffix=-${{ matrix.os }}
@@ -270,6 +298,7 @@ jobs:
           for tag in ${TAGS}; do
             images+="${tag}@${DIGEST} "
           done
+          echo "$images"
           cosign sign --yes ${images}
 
       - name: Image digest
@@ -277,7 +306,13 @@ jobs:
           DIGEST: ${{ steps.docker_build.outputs.digest }}
           CACHE_FILE_NAME: ${{ env.BASE_BUILD_NAME }}_${{ matrix.os }}
         run: |
+            echo "::group::Image digest"
             echo "$DIGEST"
+            echo "::endgroup::"
+            echo "::group::Cache file name"
+            echo "$CACHE_FILE_NAME"
+            echo "::endgroup::"
+
             echo "$DIGEST" > "$CACHE_FILE_NAME"
 
       - name: Cache image digest
