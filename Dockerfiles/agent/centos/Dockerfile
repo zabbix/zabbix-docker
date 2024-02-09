@@ -38,6 +38,7 @@ RUN set -eux && \
             iputils \
             pcre2 \
             libcurl-minimal \
+            libmodbus \
             openssl-libs \
             zlib" && \
     dnf -y install epel-release && \

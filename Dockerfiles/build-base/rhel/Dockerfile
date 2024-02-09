@@ -40,6 +40,7 @@ RUN set -eux && \
             libcurl-devel \
             libevent-devel \
             libssh-devel \
+            libmodbus-devel \
             libxml2-devel \
             openssl-devel \
             openldap-devel \
@@ -54,6 +55,9 @@ RUN set -eux && \
             git \
             gettext \
             unixODBC-devel" && \
+    curl -sSL -o /tmp/epel-release-latest-9.noarch.rpm https://dl.fedoraproject.org/pub/epel/epel-release-latest-9.noarch.rpm && \
+    rpm -ivh /tmp/epel-release-latest-9.noarch.rpm && \
+    rm -rf /tmp/epel-release-latest-9.noarch.rpm && \
     ARCH_SUFFIX="$(arch)"; \
     microdnf -y install \
             --disablerepo "*" \
@@ -62,6 +66,7 @@ RUN set -eux && \
             --enablerepo "rhel-9-for-$ARCH_SUFFIX-baseos-rpms" \
             --enablerepo "rhel-9-for-$ARCH_SUFFIX-appstream-rpms" \
             --enablerepo "codeready-builder-for-rhel-9-$ARCH_SUFFIX-rpms" \
+            --enablerepo "epel" \
             --setopt=install_weak_deps=0 \
             --best \
             --setopt=tsflags=nodocs \
