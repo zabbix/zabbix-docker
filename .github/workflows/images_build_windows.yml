@@ -27,6 +27,8 @@ env:
   IMAGES_PREFIX: "zabbix-"
 
   MSFT_BASE_BUILD_IMAGE: "mcr.microsoft.com/windows/servercore"
+  PWSH_BASE_IMAGE_NAME: "mcr.microsoft.com/powershell"
+  PWSH_BASE_IMAGE_PREFIX: "lts-nanoserver-"
   BASE_IMAGE_NAME: "build-base"
   BASE_BUILD_IMAGE_NAME: "build-mysql"
 
@@ -181,7 +183,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ${{ env.DOCKER_REPOSITORY }}/${{ env.IMAGE_PREFIX }}${{ env.BASE_IMAGE_NAME }}
+          images: ${{ env.DOCKER_REPOSITORY }}/${{ env.IMAGES_PREFIX }}${{ env.BASE_IMAGE_NAME }}
           tags: |
             type=semver,enable=${{ needs.init_build.outputs.current_branch != 'trunk' }},pattern={{version}},prefix=${{ matrix.component }}-${{ steps.base_os_tag.outputs.os_tag }}-
             type=semver,enable=${{ needs.init_build.outputs.current_branch != 'trunk' }},pattern={{version}},suffix=-${{ steps.base_os_tag.outputs.os_tag }},prefix=${{ matrix.component }}-
@@ -367,7 +369,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ${{ env.DOCKER_REPOSITORY }}/${{ env.IMAGE_PREFIX }}${{ env.BASE_BUILD_IMAGE_NAME }}
+          images: ${{ env.DOCKER_REPOSITORY }}/${{ env.IMAGES_PREFIX }}${{ env.BASE_BUILD_IMAGE_NAME }}
           tags: |
             type=semver,enable=${{ needs.init_build.outputs.current_branch != 'trunk' }},pattern={{version}},prefix=${{ matrix.component }}-${{ steps.base_os_tag.outputs.os_tag }}-
             type=semver,enable=${{ needs.init_build.outputs.current_branch != 'trunk' }},pattern={{version}},suffix=-${{ steps.base_os_tag.outputs.os_tag }},prefix=${{ matrix.component }}-
@@ -392,11 +394,11 @@ jobs:
           MATRIX_OS: ${{ matrix.os }}
           MATRIX_COMPONENT: ${{ matrix.component }}
           DOCKER_REPOSITORY: ${{ env.DOCKER_REPOSITORY }}
-          IMAGE_PREFIX: ${{ env.IMAGE_PREFIX }}
+          IMAGES_PREFIX: ${{ env.IMAGES_PREFIX }}
         run: |
             $base_image_file=$Env:BASE_IMAGE_NAME + '_' + $Env:MATRIX_OS + '_' + $Env:MATRIX_COMPONENT
             $base_tag = Get-Content $base_image_file -Raw
-            $build_base_image="$Env:DOCKER_REPOSITORY/$Env:IMAGE_PREFIX$Env:BASE_IMAGE_NAME@" + $base_tag
+            $build_base_image="$Env:DOCKER_REPOSITORY/$Env:IMAGES_PREFIX$Env:BASE_IMAGE_NAME@" + $base_tag
 
             echo "::group::Base image Info"
             echo "base_tag=$base_tag"
@@ -591,7 +593,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ${{ env.DOCKER_REPOSITORY }}/${{ env.IMAGE_PREFIX }}${{ matrix.component }}
+          images: ${{ env.DOCKER_REPOSITORY }}/${{ env.IMAGES_PREFIX }}${{ matrix.component }}
           tags: |
             type=semver,enable=${{ needs.init_build.outputs.current_branch != 'trunk' }},pattern={{version}},prefix=${{ steps.base_os_tag.outputs.os_tag }}-
             type=semver,enable=${{ needs.init_build.outputs.current_branch != 'trunk' }},pattern={{version}},suffix=-${{ steps.base_os_tag.outputs.os_tag }}
@@ -616,11 +618,11 @@ jobs:
           MATRIX_OS: ${{ matrix.os }}
           MATRIX_COMPONENT: ${{ matrix.component }}
           DOCKER_REPOSITORY: ${{ env.DOCKER_REPOSITORY }}
-          IMAGE_PREFIX: ${{ env.IMAGE_PREFIX }}
+          IMAGES_PREFIX: ${{ env.IMAGES_PREFIX }}
         run: |
             $base_image_file=$Env:BASE_BUILD_IMAGE_NAME + '_' + $Env:MATRIX_OS + '_' + $Env:MATRIX_COMPONENT
             $base_tag = Get-Content $base_image_file -Raw
-            $build_base_image="$Env:MATRIX_COMPONENT/$Env:IMAGE_PREFIX$Env:BASE_BUILD_IMAGE_NAME@" + $base_tag
+            $build_base_image="$Env:MATRIX_COMPONENT/$Env:IMAGES_PREFIX$Env:BASE_BUILD_IMAGE_NAME@" + $base_tag
 
             echo "::group::Base image Info"
             echo "base_tag=$base_tag"
@@ -652,6 +654,8 @@ jobs:
           BASE_BUILD_OS_TAG: ${{ steps.base_os_tag.outputs.os_tag }}
           LABEL_REVISION: ${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.revision'] }}
           LABEL_CREATED: ${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.created'] }}
+          PWSH_BASE_IMAGE_NAME: ${{ env.PWSH_BASE_IMAGE_NAME }}
+          PWSH_BASE_IMAGE_PREFIX: ${{ env.PWSH_BASE_IMAGE_PREFIX }}
           AUTO_PUSH_IMAGES: ${{ env.AUTO_PUSH_IMAGES }}
         run: |
             echo "::group::Docker version"
@@ -686,7 +690,7 @@ jobs:
             docker build --label org.opencontainers.image.revision=$Env:LABEL_REVISION
                          --label org.opencontainers.image.created=$Env:LABEL_CREATED
                          --build-arg=BUILD_BASE_IMAGE=$base_build_image
-                         --build-arg=BASE_IMAGE=mcr.microsoft.com/powershell:lts-nanoserver-$os_tag_suffix
+                         --build-arg=BASE_IMAGE=$Env:PWSH_BASE_IMAGE_NAME:$Env:PWSH_BASE_IMAGE_PREFIX$os_tag_suffix
                          --file=$dockerfile
                          $tags
                     $context
@@ -695,7 +699,7 @@ jobs:
             docker build --label org.opencontainers.image.revision=$Env:LABEL_REVISION `
                          --label org.opencontainers.image.created=$Env:LABEL_CREATED `
                          --build-arg=BUILD_BASE_IMAGE=$base_build_image `
-                         --build-arg=BASE_IMAGE=mcr.microsoft.com/powershell:lts-nanoserver-$os_tag_suffix `
+                         --build-arg=BASE_IMAGE=$Env:PWSH_BASE_IMAGE_NAME:$Env:PWSH_BASE_IMAGE_PREFIX$os_tag_suffix `
                          --file=$dockerfile `
                          $tags `
                     $context
