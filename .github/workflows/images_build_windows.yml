@@ -175,6 +175,15 @@ jobs:
           flavor: |
             latest=false
 
+      -
+        # Add support for more platforms with QEMU (optional)
+        # https://github.com/docker/setup-qemu-action
+        name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+      -
+        name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
       - name: Build and push image
         id: docker_build
         env:
@@ -200,31 +209,33 @@ jobs:
 
             docker version
             docker info
-            docker buildx version
 
-            docker buildx create --name builder-$Env:SHA_SHORT --driver docker-container `
-                --driver-opt image=moby/buildkit:master `
-                --buildkitd-flags --allow-insecure-entitlement security.insecure `
-                --allow-insecure-entitlement network.host --use
-            docker buildx inspect --bootstrap --builder builder-$Env:SHA_SHORT
+            echo "docker build --label org.opencontainers.image.revision=$Env:LABEL_REVISION --label org.opencontainers.image.created=$Env:LABEL_CREATED --build-arg=BUILD_BASE_IMAGE=$base_os_image --file=$dockerfile $tags $context"
 
-            docker buildx build --build-arg BUILD_BASE_IMAGE=$base_os_image --file $dockerfile `
-                            --iidfile $Env:HOME\iidfile `
-                            --label org.opencontainers.image.revision=$Env:LABEL_REVISION `
-                            --label org.opencontainers.image.created=$Env:LABEL_CREATED `
-                            --platform windows/amd64 `
-                            --cache-from=type=gha,scope=$tags_array[0] `
-                            --cache-to=type=gha,mode=max,scope=$tags_array[0] `
-                            $tags `
-                            --metadata-file $Env:HOME\metadata-file `
-                            --push `
-                            $context
+            docker pull $base_os_image
+
+            docker build --label org.opencontainers.image.revision=$Env:LABEL_REVISION `
+                         --label org.opencontainers.image.created=$Env:LABEL_CREATED `
+                         --build-arg=BUILD_BASE_IMAGE=$base_os_image `
+                         --file=$dockerfile `
+                         $tags `
+                    $context
             if (-not $?) {throw "Failed"}
 
-            $json_data =$(Get-Content $Env:HOME\metadata-file | Out-String | ConvertFrom-Json)
-            $digest = $json_data.'containerimage.digest'
+            if ( $Env:AUTO_PUSH_IMAGES -eq 'true' ) {
+                Foreach ($tag in $tags_array) {
+                    echo "docker image push $tag"
+                    docker image push $tag
+                    if (-not $?) {throw "Failed"}
+                }
 
-            docker buildx rm builder-$Env:SHA_SHORT
+                $digest=$(docker inspect $tags_array[0] --format "{{ index .RepoDigests 0}}").Split('@')[-1]
+                if (-not $?) {throw "Failed"}
+            }
+            else {
+                $digest=$(docker inspect $tags_array[0] --format "{{ index .Id}}")
+                if (-not $?) {throw "Failed"}
+            }
 
             echo "digest=$digest" >> $Env:GITHUB_OUTPUT
 
