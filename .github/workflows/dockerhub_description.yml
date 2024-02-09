@@ -9,15 +9,20 @@ on:
       - '.github/workflows/dockerhub_description.yml'
   workflow_dispatch:
 
+env:
+  DOCKER_REPOSITORY: "zabbix"
+
 jobs:
   main:
     runs-on: ubuntu-latest
     env:
       DOCKER_REPOSITORY: "zabbix"
+    permissions:
+      contents: read
     strategy:
       fail-fast: false
       matrix:
-        build:
+        component:
           - build-base
           - build-mysql
           - build-pgsql
@@ -36,13 +41,20 @@ jobs:
           - web-nginx-pgsql
           - web-service
     steps:
-      -
+      - name: Block egress traffic
+        uses: step-security/harden-runner@63c24ba6bd7ba022e95695ff85de572c04a18142 # v2.7.0
+        with:
+          egress-policy: audit
+
+      - name: Checkout repository
         uses: actions/checkout@v4
-      -
-        name: Update DockerHub repo description
+        with:
+          fetch-depth: 1
+
+      - name: Update DockerHub repo description (zabbix-${{ matrix.component }})
         uses: peter-evans/dockerhub-description@v4
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
-          repository: ${{ env.DOCKER_REPOSITORY }}/zabbix-${{ matrix.build }}
+          repository: ${{ env.DOCKER_REPOSITORY }}/zabbix-${{ matrix.component }}
           readme-filepath: ./Dockerfiles/${{ matrix.build }}/README.md
