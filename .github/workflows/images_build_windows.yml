@@ -238,12 +238,14 @@ jobs:
         run: |
           $images=""
           $tags_array=$( "$Env:TAGS".Split("`n") )
+          $tags_final=@()
           foreach ($tag in $tags_array) {
             $tag_name=$tag.Split(":")[0]
             $images=$images + "$tag_name@$Env:DIGEST "
+            $tags_final.Add("$tag_name@$Env:DIGEST")
           }
-          echo "$images"
-          cosign sign --yes $images
+          echo "$tags_final"
+          cosign sign --yes $tags_final
 
       - name: Image digest
         if: ${{ env.AUTO_PUSH_IMAGES }}
