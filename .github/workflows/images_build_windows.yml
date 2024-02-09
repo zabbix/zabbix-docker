@@ -122,7 +122,6 @@ jobs:
       contents: read
     env:
       BASE_BUILD_ARTIFACT_FILE_SUFFIX: "_${{ matrix.os }}_${{ matrix.component }}"
-      CACHE_FILE_NAME: ${{ env.BASE_BUILD_NAME }}${{ env.BASE_BUILD_ARTIFACT_FILE_SUFFIX }}
     strategy:
       fail-fast: false
       matrix:
@@ -249,7 +248,7 @@ jobs:
       - name: Cache image digest
         uses: actions/cache@v4
         with:
-          path: ${{ env.CACHE_FILE_NAME }}
+          path: ${{ env.BASE_BUILD_NAME }}${{ env.BASE_BUILD_ARTIFACT_FILE_SUFFIX }}
           key: ${{ env.BASE_BUILD_NAME }}-${{ matrix.os }}-${{ github.run_id }}
 
   build_components:
