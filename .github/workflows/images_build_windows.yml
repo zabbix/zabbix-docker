@@ -239,8 +239,10 @@ jobs:
           $images=""
           $tags_array=$( "$Env:TAGS".Split("`n") )
           foreach ($tag in $tags_array) {
-            $images=$images + "$tag@$Env:DIGEST "
+            $tag_name=$tag.Split(":")[0]
+            $images=$images + "$tag_name@$Env:DIGEST "
           }
+          echo "$images"
           cosign sign --yes $images
 
       - name: Image digest
