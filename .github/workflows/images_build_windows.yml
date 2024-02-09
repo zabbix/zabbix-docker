@@ -222,7 +222,7 @@ jobs:
             if (-not $?) {throw "Failed"}
 
             $json_data =$(Get-Content $Env:HOME\metadata-file | Out-String | ConvertFrom-Json)
-            $digest = $json_data.["containerimage.digest"]
+            $digest = $json_data.'containerimage.digest'
 
             docker buildx rm builder-$Env:SHA_SHORT
 
