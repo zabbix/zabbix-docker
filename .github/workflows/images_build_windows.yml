@@ -242,7 +242,7 @@ jobs:
           foreach ($tag in $tags_array) {
             $tag_name=$tag.Split(":")[0]
             $images=$images + "$tag_name@$Env:DIGEST "
-            $tags_final.Add("$tag_name@$Env:DIGEST")
+            $tags_final+="$tag_name@$Env:DIGEST"
           }
           echo "$tags_final"
           cosign sign --yes $tags_final
