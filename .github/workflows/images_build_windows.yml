@@ -217,7 +217,7 @@ jobs:
         if: ${{ env.AUTO_PUSH_IMAGES }}
         env:
           TAGS: ${{ steps.meta.outputs.tags }}
-          BASE_BUILD_ARTIFACT_FILE_SUFFIX: {{ env.BASE_BUILD_ARTIFACT_FILE_SUFFIX }}
+          BASE_BUILD_ARTIFACT_FILE_SUFFIX: ${{ env.BASE_BUILD_ARTIFACT_FILE_SUFFIX }}
           BASE_BUILD_NAME: ${{ env.BASE_BUILD_NAME }}
         run: |
             $tags_array=$( "$Env:TAGS".Split("`r`n") )
