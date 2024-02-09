@@ -204,6 +204,7 @@ jobs:
             mirrors.centos.org:443
             mirrors.iu13.net:80
             mirrors.ocf.berkeley.edu:443
+            mirrors.fedoraproject.org:443
             mirrors.xtom.de:80
             objects.githubusercontent.com:443
             ports.ubuntu.com:80
@@ -254,6 +255,10 @@ jobs:
             platform_list=$(jq -r ".[\"os-linux\"].$MATRIX_OS | join(\",\")" "$MATRIX_FILE")
             platform_list="${platform_list%,}"
 
+            echo "::group::Platform List"
+            echo "$platform_list"
+            echo "::endgroup::"
+
             echo "list=$platform_list" >> $GITHUB_OUTPUT
 
       - name: Generate tags
@@ -294,12 +299,19 @@ jobs:
           DIGEST: ${{ steps.docker_build.outputs.digest }}
           TAGS: ${{ steps.meta.outputs.tags }}
         run: |
-          images=""
-          for tag in ${TAGS}; do
-            images+="${tag}@${DIGEST} "
-          done
-          echo "$images"
-          cosign sign --yes ${images}
+            images=""
+            for tag in ${TAGS}; do
+                images+="${tag}@${DIGEST} "
+            done
+
+            echo "::group::Images to sign"
+            echo "$images"
+            echo "::endgroup::"
+
+            echo "::group::Signing"
+            echo "cosign sign --yes $images"
+            cosign sign --yes ${images}
+            echo "::endgroup::"
 
       - name: Image digest
         env:
