@@ -628,7 +628,7 @@ jobs:
           MATRIX_FILE: ${{ env.MATRIX_FILE }}
         run: |
             # Chromium on Alpine is available only on linux/amd64, linux/arm64 platforms
-            if ([ "$MATRIX_OS" == "alpine" ] || [ "$MATRIX_OS" == "centos" ]) && [ "$MATRIX_OS" == "web-service" ]; then
+            if ([ "$MATRIX_OS" == "alpine" ] || [ "$MATRIX_OS" == "centos" ]) && [ "$MATRIX_BUILD" == "web-service" ]; then
                 platform_list="linux/amd64,linux/arm64"
             # Chromium on Ubuntu is not available on s390x platform
             elif [ "$MATRIX_OS" == "ubuntu" ] && [ "$MATRIX_BUILD" == "web-service" ]; then
