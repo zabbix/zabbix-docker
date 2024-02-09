@@ -30,7 +30,7 @@ env:
   COMPONENT_BASE_BUILD_NAME: "build-mysql"
 
   MATRIX_FILE: "build.json"
-  DOCKERFILES_DIRECTORY: "./Dockerfiles"
+  DOCKERFILES_DIRECTORY: ".\Dockerfiles"
 
   OIDC_ISSUER: "https://token.actions.githubusercontent.com"
   IDENITY_REGEX: "https://github.com/zabbix/zabbix-docker/.github/"
@@ -181,7 +181,7 @@ jobs:
           DOCKERFILES_DIRECTORY: ${{ env.DOCKERFILES_DIRECTORY }}
           BASE_BUILD_NAME: ${{ env.BASE_BUILD_NAME }}
           MATRIX_COMPONENT: ${{ matrix.component }}
-          TAGS: ${{ steps.meta.outputs.tags }}
+          TAGS: ${{ fromJSON(steps.meta.outputs.json.tags) }}
           BASE_OS_TAG: ${{ steps.base_os_tag.outputs.os_tag }}
           LABEL_REVISION: ${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.revision'] }}
           LABEL_CREATED: ${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.created'] }}
