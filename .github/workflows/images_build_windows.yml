@@ -48,14 +48,6 @@ jobs:
       current_branch: ${{ steps.branch_info.outputs.current_branch }}
       sha_short: ${{ steps.branch_info.outputs.sha_short }}
     steps:
-      - name: Block egress traffic
-        uses: step-security/harden-runner@63c24ba6bd7ba022e95695ff85de572c04a18142 # v2.7.0
-        with:
-          disable-sudo: true
-          egress-policy: block
-          allowed-endpoints: >
-            github.com:443
-
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
@@ -117,6 +109,8 @@ jobs:
     timeout-minutes: 70
     name: Build ${{ matrix.component }} base on ${{ matrix.os }}
     needs: init_build
+    permissions:
+      contents: read
     env:
       BASE_BUILD_ARTIFACT_FILE_SUFFIX: "_${{ matrix.os }}_${{ matrix.component }}"
     strategy:
@@ -181,7 +175,7 @@ jobs:
           DOCKERFILES_DIRECTORY: ${{ env.DOCKERFILES_DIRECTORY }}
           BASE_BUILD_NAME: ${{ env.BASE_BUILD_NAME }}
           MATRIX_COMPONENT: ${{ matrix.component }}
-          TAGS: ${{ fromJSON(steps.meta.outputs.json).tags }}
+          TAGS: ${{ steps.meta.outputs.tags }}
           BASE_OS_TAG: ${{ steps.base_os_tag.outputs.os_tag }}
           LABEL_REVISION: ${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.revision'] }}
           LABEL_CREATED: ${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.created'] }}
@@ -190,8 +184,10 @@ jobs:
             $dockerfile= $context + 'Dockerfile.' + $Env:MATRIX_COMPONENT
             # Can not build on GitHub due existing symlink. Must be removed before build process
             Remove-Item -ErrorAction Ignore -Force -Path $context\README.md
+            echo "${{ steps.meta.outputs.tags }}"
+            echo "$Env:TAGS"
 
-            $tags_array=$( "$Env:TAGS".Split("`r`n") )
+            $tags_array=$( "${{ steps.meta.outputs.tags }}".Split("`r`n") )
             $tags=$( $tags_array | Foreach-Object { "--tag=$_" } )
 
             echo "docker build --file=$dockerfile $tags $context"
@@ -246,6 +242,8 @@ jobs:
     timeout-minutes: 70
     needs: [ "build_base", "init_build"]
     name: Build ${{ matrix.component }} sources on ${{ matrix.os }}
+    permissions:
+      contents: read
     env:
       BASE_BUILD_ARTIFACT_FILE_SUFFIX: "_${{ matrix.os }}_${{ matrix.component }}"
       COMPONENT_BASE_BUILD_ARTIFACT_FILE_SUFFIX: "_${{ matrix.os }}_${{ matrix.component }}"
