@@ -82,6 +82,10 @@ jobs:
         run: |
             os_list=$(jq -r '.["os-windows"] |  keys | [ .[] | tostring ] | @json' "$MATRIX_FILE")
 
+            echo "::group::Operating System List"
+            echo "$os_list"
+            echo "::endgroup::"
+
             echo "list=$os_list" >> $GITHUB_OUTPUT
 
       - name: Prepare Zabbix component list
@@ -89,6 +93,10 @@ jobs:
         shell: bash
         run: |
             component_list='["agent","agent2"]'
+
+            echo "::group::Operating System List"
+            echo "$component_list"
+            echo "::endgroup::"
 
             echo "list=$component_list" >> $GITHUB_OUTPUT
 
@@ -100,6 +108,7 @@ jobs:
           github_ref: ${{ github.ref }}
         run: |
             result=false
+            sha_short=$(git rev-parse --short HEAD)
 
             if [[ "$github_ref" == "refs/tags/"* ]]; then
                 github_ref=${github_ref%.*}
@@ -110,9 +119,16 @@ jobs:
             if [[ "$github_ref" == "$LATEST_BRANCH" ]]; then
                 result=true
             fi
+
+            echo "::group::Branch data"
+            echo "is_default_branch - $result"
+            echo "current_branch - $github_ref"
+            echo "sha_short - $sha_short"
+            echo "::endgroup::"
+
             echo "is_default_branch=$result" >> $GITHUB_OUTPUT
             echo "current_branch=$github_ref" >> $GITHUB_OUTPUT
-            echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+            echo "sha_short=$sha_short" >> $GITHUB_OUTPUT
 
   build_base:
     timeout-minutes: 70
