@@ -29,6 +29,7 @@ env:
   MSFT_BASE_BUILD_IMAGE: "mcr.microsoft.com/windows/servercore"
   PWSH_BASE_IMAGE_NAME: "mcr.microsoft.com/powershell"
   PWSH_BASE_IMAGE_PREFIX: "lts-nanoserver-"
+
   BASE_IMAGE_NAME: "build-base"
   BASE_BUILD_IMAGE_NAME: "build-mysql"
 
