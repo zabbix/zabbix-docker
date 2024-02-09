@@ -198,26 +198,33 @@ jobs:
             $tags=$( $tags_array | Foreach-Object { "--tag=$_" } )
 
             echo "docker build --label org.opencontainers.image.revision=$Env:LABEL_REVISION --label org.opencontainers.image.created=$Env:LABEL_CREATED --build-arg=BUILD_BASE_IMAGE=$base_os_image --file=$dockerfile $tags $context"
-            echo "$Env:AUTO_PUSH_IMAGES"
 
             docker pull $base_os_image
 
             docker build --label org.opencontainers.image.revision=$Env:LABEL_REVISION `
                          --label org.opencontainers.image.created=$Env:LABEL_CREATED `
                          --build-arg=BUILD_BASE_IMAGE=$base_os_image `
+                         --cache-from=type=gha,scope=$tags_array[0] `
+                         --cache-to=type=gha,mode=max,scope=$tags_array[0] `
                          --file=$dockerfile `
                          $tags `
                     $context
             if (-not $?) {throw "Failed"}
 
-            Foreach ($tag in $tags_array) {
-                echo "docker image push $tag"
-                docker image push $tag
+            if ( $Env:AUTO_PUSH_IMAGES -eq 'true' ) {
+                Foreach ($tag in $tags_array) {
+                    echo "docker image push $tag"
+                    docker image push $tag
+                    if (-not $?) {throw "Failed"}
+                }
+
+                $digest=$(docker inspect $tags_array[0] --format "{{ index .RepoDigests 0}}").Split('@')[-1]
                 if (-not $?) {throw "Failed"}
             }
-
-            $digest=$(docker inspect $tags_array[0] --format "{{ index .RepoDigests 0}}").Split('@')[-1]
-            if (-not $?) {throw "Failed"}
+            else {
+                $digest=$(docker inspect $tags_array[0] --format "{{ index .Id}}")
+                if (-not $?) {throw "Failed"}
+            }
 
             echo "digest=$digest" >> $Env:GITHUB_OUTPUT
 
@@ -227,10 +234,10 @@ jobs:
           TAGS: ${{ steps.meta.outputs.tags }}
         run: |
           images=""
-          for tag in ${TAGS}; do
-            images+="${tag}@${DIGEST} "
-          done
-          cosign sign --yes ${images}
+          foreach ($tag in $Env:TAGS) {
+            images=$images + "$tag@$Env:DIGEST "
+          }
+          cosign sign --yes $images
 
       - name: Image digest
         if: ${{ env.AUTO_PUSH_IMAGES }}
