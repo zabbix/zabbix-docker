@@ -152,6 +152,8 @@ jobs:
           DIGEST: ${{ steps.docker_build.outputs.digest }}
           CACHE_FILE_NAME: ${{ env.BASE_BUILD_NAME }}_${{ matrix.arch }}
         run: |
+            echo "${{ steps.docker_build.outputs }}"
+            echo "{{ steps.docker_build.outputs }}"
             echo "::group::Image digest"
             echo "$DIGEST"
             echo "::endgroup::"
