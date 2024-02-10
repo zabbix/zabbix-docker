@@ -147,7 +147,7 @@ jobs:
           IMAGE_TAG: ${{ fromJSON(steps.meta.outputs.json).tags[0] }}
           CACHE_FILE_NAME: ${{ env.BASE_BUILD_NAME }}_${{ matrix.arch }}
         run: |
-            DIGEST=$(podman inspect $IMAGE_TAG --format "{{ index .RepoDigests 0}}" | cut -d '@' -f2)
+            DIGEST=$(podman inspect ${IMAGE_TAG,,} --format "{{ index .RepoDigests 0}}" | cut -d '@' -f2)
             echo "::group::Image digest"
             echo "$DIGEST"
             echo "::endgroup::"
@@ -230,7 +230,7 @@ jobs:
           IMAGE_TAG: ${{ fromJSON(steps.meta.outputs.json).tags[0] }}
           CACHE_FILE_NAME: ${{ matrix.build }}_${{ matrix.arch }}
         run: |
-            DIGEST=$(podman inspect $IMAGE_TAG --format "{{ index .RepoDigests 0}}" | cut -d '@' -f2)
+            DIGEST=$(podman inspect ${IMAGE_TAG,,} --format "{{ index .RepoDigests 0}}" | cut -d '@' -f2)
             echo "::group::Image digest"
             echo "$DIGEST"
             echo "::endgroup::"
