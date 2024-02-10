@@ -101,9 +101,11 @@ jobs:
         env:
           LATEST_BRANCH: ${{ env.LATEST_BRANCH }}
           github_ref: ${{ github.ref }}
+          EVENT_NAME: ${{ github.event_name }}
         run: |
             result=false
             sha_short=$(git rev-parse --short HEAD)
+            github_ref=$(git symbolic-ref HEAD)
 
             if [[ "$github_ref" == "refs/tags/"* ]]; then
                 github_ref=${github_ref%.*}
@@ -116,6 +118,7 @@ jobs:
             fi
 
             echo "::group::Branch data"
+            echo "event_name - $EVENT_NAME"
             echo "is_default_branch - $result"
             echo "current_branch - $github_ref"
             echo "sha_short - $sha_short"
