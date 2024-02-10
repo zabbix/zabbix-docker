@@ -2,7 +2,7 @@ name: Nightly build images (DockerHub, Windows)
 
 on:
   schedule:
-    - cron:  '5 2 * * *'
+    - cron:  '49 12 * * *'
   workflow_dispatch:
 
 defaults:
