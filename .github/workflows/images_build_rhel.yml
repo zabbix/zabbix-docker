@@ -352,11 +352,12 @@ jobs:
         with:
           images: ${{ env.REGISTRY }}/${{ env.REGISTRY_NAMESPACE }}/${{ steps.image_name.outputs.image_name }}
           tags: |
-            type=semver,enable=${{ matrix.arch == 'AMD64' }},pattern={{version}}
+            type=semver,enable=${{ matrix.arch == 'X64' }},pattern={{version}}
             type=semver,enable=${{ matrix.arch == 'ARM64' }},pattern={{version}},suffix=-${{ steps.lc.outputs.arch }}
-            type=sha
+            type=sha,enable=${{ matrix.arch == 'X64' }}
+            type=sha,enable=${{ matrix.arch == 'ARM64' }},pattern={{version}},suffix=-${{ steps.lc.outputs.arch }}
           flavor: |
-            latest=${{ (github.event_name == 'release') && (matrix.arch == 'AMD64') }}
+            latest=${{ (github.event_name == 'release') && (matrix.arch == 'X64') }}
 
       - name: Download SHA256 tag of ${{ steps.build_base_image.outputs.build_base }}:${{ matrix.arch }}
         uses: actions/cache@v4
