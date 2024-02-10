@@ -202,7 +202,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ${{IMAGES_PREFIX}}${{ matrix.build }}
+          images: ${{ env.IMAGES_PREFIX }}${{ matrix.build }}
           tags: |
             type=sha,suffix=-${{ steps.lc.outputs.arch }}
 
