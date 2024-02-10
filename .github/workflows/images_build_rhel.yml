@@ -95,8 +95,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        build: ["build-base"]
-        arch: ["X64", "ARM64"]
+        build: [build-base]
+        arch: [X64, ARM64]
     runs-on: [self-hosted, linux, ${{ matrix.arch }}]
     permissions:
       contents: read
@@ -167,8 +167,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        build: ["mysql", "sqlite3"]
-        arch: ["X64", "ARM64"]
+        build: [mysql, sqlite3]
+        arch: [X64, ARM64]
     runs-on: [self-hosted, linux, ${{ matrix.arch }}]
     permissions:
       contents: read
