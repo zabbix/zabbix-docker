@@ -99,7 +99,7 @@ jobs:
 
   build_base:
     timeout-minutes: 30
-    name: Build ${{ matrix.build }} base on RHEL (${{ matrix.arch }})
+    name: Build ${{ matrix.build }} base (${{ matrix.arch }})
     needs: ["init_build"]
     strategy:
       fail-fast: false
@@ -124,13 +124,20 @@ jobs:
       - name: Check cosign version
         run: cosign version
 
+      - name: Fix string case
+        id: lc
+        env:
+          ARCH: ${{ matrix.arch }}
+        run: |
+          echo "arch=${ARCH,,}" >> $GITHUB_OUTPUT
+
       - name: Generate tags
         id: meta
         uses: docker/metadata-action@v5
         with:
           images: ${{ env.IMAGES_PREFIX }}${{ matrix.build }}
           tags: |
-            type=sha,suffix=-${{ matrix.arch }}
+            type=sha,suffix=-${{ steps.lc.outputs.arch }}
 
       - name: Build Zabbix Build Base
         id: build_image
@@ -140,7 +147,7 @@ jobs:
           layers: false
           tags: ${{ steps.meta.outputs.tags }}
           containerfiles: |
-            ./Dockerfiles/${{ matrix.build }}/rhel/Dockerfile
+            ${{ env.DOCKERFILES_DIRECTORY }}/${{ matrix.build }}/rhel/Dockerfile
           extra-args: |
             --pull
 
@@ -149,7 +156,7 @@ jobs:
           IMAGE_TAG: ${{ fromJSON(steps.meta.outputs.json).tags[0] }}
           CACHE_FILE_NAME: ${{ env.BASE_BUILD_NAME }}_${{ matrix.arch }}
         run: |
-            DIGEST=$(podman inspect ${IMAGE_TAG,,} --format "{{ index .RepoDigests 0}}" | cut -d '@' -f2)
+            DIGEST=$(podman inspect ${IMAGE_TAG} --format "{{ index .RepoDigests 0}}" | cut -d '@' -f2)
             echo "::group::Image digest"
             echo "$DIGEST"
             echo "::endgroup::"
@@ -168,7 +175,7 @@ jobs:
   build_base_database:
     timeout-minutes: 180
     needs: [ "build_base", "init_build"]
-    name: Build ${{ matrix.build }} base on RHEL (${{ matrix.arch }})
+    name: Build ${{ matrix.build }} base (${{ matrix.arch }})
     strategy:
       fail-fast: false
       matrix:
@@ -184,13 +191,20 @@ jobs:
         with:
           fetch-depth: 1
 
+      - name: Fix string case
+        id: lc
+        env:
+          ARCH: ${{ matrix.arch }}
+        run: |
+          echo "arch=${ARCH,,}" >> $GITHUB_OUTPUT
+
       - name: Generate tags
         id: meta
         uses: docker/metadata-action@v5
         with:
           images: zabbix-build-${{ matrix.build }}
           tags: |
-            type=sha,suffix=-${{ matrix.arch }}
+            type=sha,suffix=-${{ steps.lc.outputs.arch }}
 
       - name: Download SHA256 tag of ${{ env.BASE_BUILD_NAME }}:${{ matrix.arch }}
         uses: actions/cache@v4
@@ -232,7 +246,7 @@ jobs:
           IMAGE_TAG: ${{ fromJSON(steps.meta.outputs.json).tags[0] }}
           CACHE_FILE_NAME: ${{ matrix.build }}_${{ matrix.arch }}
         run: |
-            DIGEST=$(podman inspect ${IMAGE_TAG,,} --format "{{ index .RepoDigests 0}}" | cut -d '@' -f2)
+            DIGEST=$(podman inspect ${IMAGE_TAG} --format "{{ index .RepoDigests 0}}" | cut -d '@' -f2)
             echo "::group::Image digest"
             echo "$DIGEST"
             echo "::endgroup::"
@@ -245,8 +259,15 @@ jobs:
       - name: Cache image digest
         uses: actions/cache@v4
         with:
-          path: ${{ matrix.build }}_${{ matrix.arch }}
-          key: ${{ matrix.build }}-${{ matrix.arch }}-${{ github.run_id }}
+          path: build_${{ matrix.build }}_${{ matrix.arch }}
+          key: build-${{ matrix.build }}-${{ matrix.arch }}-${{ github.run_id }}
+
+      - name: Cleanup artifacts
+        if: success() || failure()
+        env:
+          BUILD_BASE_IMAGE: ${{ steps.base_build.outputs.base_build_image }}
+        run: |
+            podman rmi -i -f ${BUILD_BASE_IMAGE}
 
   build_images:
     timeout-minutes: 90
@@ -258,15 +279,30 @@ jobs:
         build: ${{ fromJson(needs.init_build.outputs.components) }}
         arch: [X64, ARM64]
     runs-on: [self-hosted, linux, "${{ matrix.arch }}"]
+    permissions:
+      contents: read
+      id-token: write
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Fix string case
+        id: lc
+        env:
+          ARCH: ${{ matrix.arch }}
+        run: |
+          echo "arch=${ARCH,,}" >> $GITHUB_OUTPUT
 
       - name: Detect Build Base Image
         id: build_base_image
         env:
           REDHAT_CERTIFY_CREDENTIALS: ${{ secrets.REDHAT_CERTIFY_CREDENTIALS }}
+          MATRIX_BUILD: ${{ matrix.build }}
+          CURRENT_BRANCH: ${{ needs.init_build.outputs.current_branch }}
         run: |
-          BUILD_BASE=$(jq --raw-output --argjson data "$REDHAT_CERTIFY_CREDENTIALS" -n '$data."${{ needs.init_build.outputs.current_branch }}".components."${{ matrix.build }}".build_base')
+          BUILD_BASE=$(jq --raw-output --argjson data "$REDHAT_CERTIFY_CREDENTIALS" -n "\$data.\"$CURRENT_BRANCH\".components.\"$MATRIX_BUILD\".build_base")
 
           echo "build_base=$BUILD_BASE" >> $GITHUB_OUTPUT
 
@@ -274,8 +310,10 @@ jobs:
         id: image_name
         env:
           REDHAT_CERTIFY_CREDENTIALS: ${{ secrets.REDHAT_CERTIFY_CREDENTIALS }}
+          MATRIX_BUILD: ${{ matrix.build }}
+          CURRENT_BRANCH: ${{ needs.init_build.outputs.current_branch }}
         run: |
-          IMAGE_NAME=$(jq --raw-output --argjson data "$REDHAT_CERTIFY_CREDENTIALS" -n '$data."${{ needs.init_build.outputs.current_branch }}".components."${{ matrix.build }}".login')
+          IMAGE_NAME=$(jq --raw-output --argjson data "$REDHAT_CERTIFY_CREDENTIALS" -n "\$data.\"$CURRENT_BRANCH\".components.\"$MATRIX_BUILD\".login")
 
           echo "::add-mask::$IMAGE_NAME"
           echo "image_name=$IMAGE_NAME" >> $GITHUB_OUTPUT
@@ -284,9 +322,11 @@ jobs:
         id: login_credentials
         env:
           REDHAT_CERTIFY_CREDENTIALS: ${{ secrets.REDHAT_CERTIFY_CREDENTIALS }}
+          MATRIX_BUILD: ${{ matrix.build }}
+          CURRENT_BRANCH: ${{ needs.init_build.outputs.current_branch }}
         run: |
-          IMAGE_NAME=$(jq --raw-output --argjson data "$REDHAT_CERTIFY_CREDENTIALS" -n '$data."${{ needs.init_build.outputs.current_branch }}".components."${{ matrix.build }}".login')
-          REGISTRY_PASSWORD=$(jq --raw-output --argjson data "$REDHAT_CERTIFY_CREDENTIALS" -n '$data."${{ needs.init_build.outputs.current_branch }}".components."${{ matrix.build }}".secret')
+          IMAGE_NAME=$(jq --raw-output --argjson data "$REDHAT_CERTIFY_CREDENTIALS" -n "\$data.\"$CURRENT_BRANCH\".components.\"$MATRIX_BUILD\".login")
+          REGISTRY_PASSWORD=$(jq --raw-output --argjson data "$REDHAT_CERTIFY_CREDENTIALS" -n "\$data.\"$CURRENT_BRANCH\".components.\"$MATRIX_BUILD\".secret")
 
           echo "::add-mask::$IMAGE_NAME"
           echo "::add-mask::redhat-isv-containers+$IMAGE_NAME-robot"
@@ -304,12 +344,14 @@ jobs:
           username: redhat-isv-containers+${{ env.LOGIN }}-robot
           password: ${{ env.PASSWORD }}
           registry: ${{ env.REGISTRY }}
-          auth_file_path: /tmp/.docker_${{ matrix.build }}_${{ needs.init_build.outputs.sha_short }}
+          auth_file_path: /tmp/.docker_${{ matrix.build }}_${{ matrix.arch }}_${{ needs.init_build.outputs.sha_short }}
 
       - name: Remove smartmontools
         if: ${{ matrix.build == 'agent2' }}
+        env:
+          DOCKERFILES_DIRECTORY: ${{ env.DOCKERFILES_DIRECTORY }}
         run: |
-          sed -i '/smartmontools/d' Dockerfiles/agent2/rhel/Dockerfile
+          sed -i '/smartmontools/d' "$DOCKERFILES_DIRECTORY/agent2/rhel/Dockerfile"
 
       - name: Generate tags
         id: meta
@@ -317,24 +359,49 @@ jobs:
         with:
           images: ${{ env.REGISTRY }}/${{ env.REGISTRY_NAMESPACE }}/${{ steps.image_name.outputs.image_name }}
           tags: |
-            type=semver,pattern={{version}}
+            type=semver,enable=${{ matrix.arch == 'AMD64' }},pattern={{version}}
+            type=semver,enable=${{ matrix.arch == 'ARM64' }},pattern={{version}},suffix=-${{ steps.lc.outputs.arch }}
             type=sha
           flavor: |
-            latest=${{ ( github.event_name == 'release' ) }}
+            latest=${{ (github.event_name == 'release') && (matrix.arch == 'AMD64') }}
 
-      - name: Build ${{ matrix.build }} and push
+      - name: Download SHA256 tag of ${{ steps.build_base_image.outputs.build_base }}:${{ matrix.arch }}
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.build_base_image.outputs.build_base }}_${{ matrix.arch }}
+          key: ${{ steps.build_base_image.outputs.build_base }}-${{ matrix.arch }}-${{ github.run_id }}
+
+      - name: Retrieve ${{ steps.build_base_image.outputs.build_base }}:${{ matrix.arch }} SHA256 tag
+        id: base_build
+        env:
+         MATRIX_ARCH: ${{ matrix.arch }}
+         BASE_IMAGE: ${{ steps.build_base_image.outputs.build_base }}
+         IMAGES_PREFIX: ${{ env.IMAGES_PREFIX }}
+        run: |
+            BASE_TAG=$(cat "${BASE_IMAGE}_${MATRIX_ARCH}")
+            BUILD_BASE_IMAGE="${IMAGES_PREFIX}${BASE_IMAGE}@${BASE_TAG}"
+
+            echo "::group::Base build image information"
+            echo "base_tag=${BASE_TAG}"
+            echo "base_build_image=${BUILD_BASE_IMAGE}"
+            echo "::endgroup::"
+
+            echo "base_tag=${BASE_TAG}" >> $GITHUB_OUTPUT
+            echo "base_build_image=${BUILD_BASE_IMAGE}" >> $GITHUB_OUTPUT
+
+      - name: Build ${{ matrix.build }}
         id: build_image
         uses: redhat-actions/buildah-build@v2
         with:
-          context: ./Dockerfiles/${{ matrix.build }}/rhel
+          context: ${{ env.DOCKERFILES_DIRECTORY }}/${{ matrix.build }}/rhel
           layers: false
           tags: ${{ steps.meta.outputs.tags }}
           labels: |
             org.opencontainers.image.revision=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.revision'] }}
             org.opencontainers.image.created=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.created'] }}
           containerfiles: |
-            ./Dockerfiles/${{ matrix.build }}/rhel/Dockerfile
-          build-args: BUILD_BASE_IMAGE=zabbix-${{ steps.build_base_image.outputs.build_base }}:sha-${{ needs.init_build.outputs.sha_short }}
+            ${{ env.DOCKERFILES_DIRECTORY }}/${{ matrix.build }}/rhel/Dockerfile
+          build-args: BUILD_BASE_IMAGE=${{ steps.base_build.outputs.base_build_image }}
 
       - name: Push to RedHat certification procedure
         id: push_to_registry
@@ -346,11 +413,12 @@ jobs:
       - name: Preflight
         if: ${{ env.AUTO_PUSH_IMAGES }}
         env:
-          PFLT_DOCKERCONFIG: /tmp/.docker_${{ matrix.build }}_${{ needs.init_build.outputs.sha_short }}
+          PFLT_DOCKERCONFIG: /tmp/.docker_${{ matrix.build }}_${{ matrix.arch }}_${{ needs.init_build.outputs.sha_short }}
           PFLT_CERTIFICATION_PROJECT_ID: ${{ steps.login_credentials.outputs.username }}
           PFLT_PYXIS_API_TOKEN: ${{ secrets.REDHAT_API_TOKEN }}
           PFLT_ARTIFACTS: ${{ env.PFLT_ARTIFACTS }}
           PFLT_LOGLEVEL: ${{ env.PFLT_LOGLEVEL }}
+          IMAGE_TAG: ${{ steps.build_image.outputs.image-with-tag }}
         run: |
           mkdir -p $PFLT_ARTIFACTS
           podman run \
@@ -365,7 +433,7 @@ jobs:
               --env PFLT_DOCKERCONFIG=/temp-authfile.json \
               -v $PFLT_ARTIFACTS:/artifacts \
               -v $PFLT_DOCKERCONFIG:/temp-authfile.json:ro \
-              quay.io/opdev/preflight:stable check container ${{ steps.build_image.outputs.image-with-tag }} --submit
+              quay.io/opdev/preflight:stable check container $IMAGE_TAG --submit
 
       - name: Push to RedHat certification procedure
         id: push_to_registry_all_tags
@@ -374,7 +442,9 @@ jobs:
         with:
           tags: ${{ steps.meta.outputs.tags }}
 
-      - name: Cleanup
+      - name: Cleanup artifacts
+        if: always()
         run: |
           echo "${{ steps.meta.outputs.tags }}" | while IFS= read -r image_name ; do podman rmi -i -f $image_name; done
+          podman rmi -i -f ${{ steps.base_build.outputs.base_build_image }}
           rm -rf ${{ env.PFLT_ARTIFACTS }}
