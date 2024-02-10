@@ -451,7 +451,7 @@ jobs:
         build: [mysql, sqlite3]
         arch: [X64, ARM64]
     runs-on: [self-hosted, linux, "${{ matrix.arch }}"]
-    if: ${{ always() }}
+    if: ${{ always() && needs.build_images.result == 'success' }}
     permissions: {}
     steps:
       - name: Download SHA256 tag of build-${{ matrix.build }}:${{ matrix.arch }}
