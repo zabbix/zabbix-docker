@@ -90,14 +90,14 @@ jobs:
 
   build_base:
     timeout-minutes: 30
-    name: Build ${{ matrix.build }} base on RHEL (${{ matrix.os }})
-    runs-on: [self-hosted, linux, "${{ matrix.os }}"]
+    name: Build ${{ matrix.build }} base on RHEL (${{ matrix.arch }})
     needs: ["init_build"]
     strategy:
       fail-fast: false
       matrix:
         build: [build-base]
-        os: [X64, ARM64]
+        arch: [X64, ARM64]
+    runs-on: [self-hosted, linux, "${{ matrix.arch }}"]
     permissions:
       contents: read
       id-token: write
@@ -169,7 +169,7 @@ jobs:
       matrix:
         build: [mysql, sqlite3]
         arch: [X64, ARM64]
-    runs-on: [self-hosted, linux, ${{ matrix.arch }}]
+    runs-on: [self-hosted, linux, "${{ matrix.arch }}"]
     permissions:
       contents: read
       id-token: write
