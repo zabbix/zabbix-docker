@@ -15,7 +15,7 @@ env:
 
   DOCKER_REPOSITORY: ${{ vars.DOCKER_REPOSITORY }}
   LATEST_BRANCH: ${{ github.event.repository.default_branch }}
-  GIT_BRANCH: "refs/heads/trunk"
+  TRUNK_GIT_BRANCH: ${{ env.TRUNK_ONLY_EVENT != true && "refs/heads/trunk" }}
   IMAGES_PREFIX: "zabbix-"
 
   MSFT_BASE_BUILD_IMAGE: "mcr.microsoft.com/windows/servercore"
@@ -55,7 +55,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          ref: ${{ env.GIT_BRANCH }}
+          ref: ${{ env.TRUNK_GIT_BRANCH }}
           fetch-depth: 1
           sparse-checkout: ${{ env.MATRIX_FILE }}
 
@@ -122,7 +122,6 @@ jobs:
             fi
 
             echo "::group::Branch data"
-            echo "event_name - $EVENT_NAME"
             echo "is_default_branch - $result"
             echo "current_branch - $github_ref"
             echo "sha_short - $sha_short"
@@ -149,7 +148,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          ref: ${{ env.GIT_BRANCH }}
+          ref: ${{ env.TRUNK_GIT_BRANCH }}
           fetch-depth: 1
 
       - name: Install cosign
@@ -184,7 +183,6 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          context: ${{ (env.TRUNK_ONLY_EVENT != true) && 'git' }}
           images: ${{ env.DOCKER_REPOSITORY }}/${{ env.IMAGES_PREFIX }}${{ env.BASE_IMAGE_NAME }}
           tags: |
             type=semver,enable=${{ needs.init_build.outputs.current_branch != 'trunk' }},pattern={{version}},prefix=${{ matrix.component }}-${{ steps.base_os_tag.outputs.os_tag }}-
@@ -338,7 +336,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          ref: ${{ env.GIT_BRANCH }}
+          ref: ${{ env.TRUNK_GIT_BRANCH }}
           fetch-depth: 1
 
       - name: Install cosign
@@ -565,7 +563,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          ref: ${{ env.GIT_BRANCH }}
+          ref: ${{ env.TRUNK_GIT_BRANCH }}
           fetch-depth: 1
 
       - name: Install cosign
