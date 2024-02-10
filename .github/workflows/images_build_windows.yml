@@ -54,6 +54,8 @@ jobs:
       is_default_branch: ${{ steps.branch_info.outputs.is_default_branch }}
       current_branch: ${{ steps.branch_info.outputs.current_branch }}
       sha_short: ${{ steps.branch_info.outputs.sha_short }}
+    env:
+      GIT_REF: ${{ env.TRUNK_ONLY_EVENT && env.TRUNK_GIT_BRANCH || '' }}
     steps:
       - name: Block egress traffic
         uses: step-security/harden-runner@63c24ba6bd7ba022e95695ff85de572c04a18142 # v2.7.0
@@ -66,7 +68,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          ref: ${{ (env.TRUNK_ONLY_EVENT && env.TRUNK_GIT_BRANCH) || '' }}
+          ref: ${{ env.GIT_REF }}
           fetch-depth: 1
           sparse-checkout: ${{ env.MATRIX_FILE }}
 
