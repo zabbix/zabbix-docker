@@ -21,7 +21,7 @@ defaults:
     shell: pwsh
 
 env:
-  TRUNK_ONLY_EVENT: ${{ contains(fromJSON('["schedule", "workflow_dispatch2"]'), github.event_name) }}
+  TRUNK_ONLY_EVENT: ${{ contains(fromJSON('["schedule", "workflow_dispatch"]'), github.event_name) }}
   AUTO_PUSH_IMAGES: ${{ vars.AUTO_PUSH_IMAGES }}
 
   DOCKER_REPOSITORY: ${{ vars.DOCKER_REPOSITORY }}
@@ -61,7 +61,7 @@ jobs:
           disable-sudo: true
           egress-policy: block
           allowed-endpoints: >
-            github.com:443 ${{ env.TRUNK_ONLY_EVENT && env.TRUNK_GIT_BRANCH || '' }}
+            github.com:443
 
       - name: Test
         shell: bash
@@ -77,7 +77,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          ref: ${{ env.GIT_REF }}
+          ref: ${{ env.TRUNK_ONLY_EVENT == true && env.TRUNK_GIT_BRANCH || '' }}
           fetch-depth: 1
           sparse-checkout: ${{ env.MATRIX_FILE }}
 
@@ -123,7 +123,7 @@ jobs:
         shell: bash
         env:
           LATEST_BRANCH: ${{ env.LATEST_BRANCH }}
-          github_ref: ${{ (env.TRUNK_ONLY_EVENT && env.TRUNK_GIT_BRANCH) || github.ref }}
+          github_ref: ${{ env.TRUNK_ONLY_EVENT == true && env.TRUNK_GIT_BRANCH || github.ref }}
         run: |
             result=false
             sha_short=$(git rev-parse --short HEAD)
@@ -165,7 +165,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          ref: ${{ (env.TRUNK_ONLY_EVENT && env.TRUNK_GIT_BRANCH) || '' }}
+          ref: ${{ env.TRUNK_ONLY_EVENT == true && env.TRUNK_GIT_BRANCH || '' }}
           fetch-depth: 1
 
       - name: Install cosign
@@ -201,7 +201,7 @@ jobs:
         uses: docker/metadata-action@v5
         with:
           images: ${{ env.DOCKER_REPOSITORY }}/${{ env.IMAGES_PREFIX }}${{ env.BASE_IMAGE_NAME }}
-          context: ${{ (env.TRUNK_ONLY_EVENT && 'git') || '' }}
+          context: ${{ env.TRUNK_ONLY_EVENT == true && 'git' || '' }}
           tags: |
             type=semver,enable=${{ needs.init_build.outputs.current_branch != 'trunk' }},pattern={{version}},prefix=${{ matrix.component }}-${{ steps.base_os_tag.outputs.os_tag }}-
             type=semver,enable=${{ needs.init_build.outputs.current_branch != 'trunk' }},pattern={{version}},suffix=-${{ steps.base_os_tag.outputs.os_tag }},prefix=${{ matrix.component }}-
@@ -354,7 +354,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          ref: ${{ (env.TRUNK_ONLY_EVENT && env.TRUNK_GIT_BRANCH) || '' }}
+          ref: ${{ env.TRUNK_ONLY_EVENT == true && env.TRUNK_GIT_BRANCH || '' }}
           fetch-depth: 1
 
       - name: Install cosign
@@ -390,7 +390,7 @@ jobs:
         uses: docker/metadata-action@v5
         with:
           images: ${{ env.DOCKER_REPOSITORY }}/${{ env.IMAGES_PREFIX }}${{ env.BASE_BUILD_IMAGE_NAME }}
-          context: ${{ (env.TRUNK_ONLY_EVENT && 'git') || '' }}
+          context: ${{ env.TRUNK_ONLY_EVENT == true && 'git' || '' }}
           tags: |
             type=semver,enable=${{ needs.init_build.outputs.current_branch != 'trunk' }},pattern={{version}},prefix=${{ matrix.component }}-${{ steps.base_os_tag.outputs.os_tag }}-
             type=semver,enable=${{ needs.init_build.outputs.current_branch != 'trunk' }},pattern={{version}},suffix=-${{ steps.base_os_tag.outputs.os_tag }},prefix=${{ matrix.component }}-
@@ -581,7 +581,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          ref: ${{ (env.TRUNK_ONLY_EVENT && env.TRUNK_GIT_BRANCH) || '' }}
+          ref: ${{ env.TRUNK_ONLY_EVENT == true && env.TRUNK_GIT_BRANCH || '' }}
           fetch-depth: 1
 
       - name: Install cosign
@@ -617,7 +617,7 @@ jobs:
         uses: docker/metadata-action@v5
         with:
           images: ${{ env.DOCKER_REPOSITORY }}/${{ env.IMAGES_PREFIX }}${{ matrix.component }}
-          context: ${{ (env.TRUNK_ONLY_EVENT && 'git') || '' }}
+          context: ${{ env.TRUNK_ONLY_EVENT == true && 'git' || '' }}
           tags: |
             type=semver,enable=${{ needs.init_build.outputs.current_branch != 'trunk' }},pattern={{version}},prefix=${{ steps.base_os_tag.outputs.os_tag }}-
             type=semver,enable=${{ needs.init_build.outputs.current_branch != 'trunk' }},pattern={{version}},suffix=-${{ steps.base_os_tag.outputs.os_tag }}
