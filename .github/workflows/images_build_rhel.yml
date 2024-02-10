@@ -179,7 +179,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        build: [mysql, sqlite3]
+        build: [build-mysql, build-sqlite3]
         arch: [X64, ARM64]
     runs-on: [self-hosted, linux, "${{ matrix.arch }}"]
     permissions:
@@ -202,7 +202,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: zabbix-build-${{ matrix.build }}
+          images: ${{IMAGES_PREFIX}}${{ matrix.build }}
           tags: |
             type=sha,suffix=-${{ steps.lc.outputs.arch }}
 
@@ -234,17 +234,17 @@ jobs:
         id: build_image
         uses: redhat-actions/buildah-build@v2
         with:
-          context: ${{ env.DOCKERFILES_DIRECTORY }}/build-${{ matrix.build }}/rhel
+          context: ${{ env.DOCKERFILES_DIRECTORY }}/${{ matrix.build }}/rhel
           layers: false
           tags: ${{ steps.meta.outputs.tags }}
           containerfiles: |
-            ${{ env.DOCKERFILES_DIRECTORY }}/build-${{ matrix.build }}/rhel/Dockerfile
+            ${{ env.DOCKERFILES_DIRECTORY }}/${{ matrix.build }}/rhel/Dockerfile
           build-args: BUILD_BASE_IMAGE=${{ steps.base_build.outputs.base_build_image }}
 
       - name: Image digest
         env:
           IMAGE_TAG: ${{ fromJSON(steps.meta.outputs.json).tags[0] }}
-          CACHE_FILE_NAME: build_${{ matrix.build }}_${{ matrix.arch }}
+          CACHE_FILE_NAME: ${{ matrix.build }}_${{ matrix.arch }}
         run: |
             DIGEST=$(podman inspect ${IMAGE_TAG} --format "{{ index .RepoDigests 0}}" | cut -d '@' -f2)
             echo "::group::Image digest"
@@ -259,8 +259,8 @@ jobs:
       - name: Cache image digest
         uses: actions/cache@v4
         with:
-          path: build_${{ matrix.build }}_${{ matrix.arch }}
-          key: build-${{ matrix.build }}-${{ matrix.arch }}-${{ github.run_id }}
+          path: ${{ matrix.build }}_${{ matrix.arch }}
+          key: ${{ matrix.build }}-${{ matrix.arch }}-${{ github.run_id }}
 
   build_images:
     timeout-minutes: 90
