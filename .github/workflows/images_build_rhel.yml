@@ -452,8 +452,7 @@ jobs:
         arch: [X64, ARM64]
     runs-on: [self-hosted, linux, "${{ matrix.arch }}"]
     if: ${{ always() }}
-    permissions:
-      metadata: read
+    permissions: {}
     steps:
       - name: Download SHA256 tag of build-${{ matrix.build }}:${{ matrix.arch }}
         uses: actions/cache@v4
