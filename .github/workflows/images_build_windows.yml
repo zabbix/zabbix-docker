@@ -66,11 +66,13 @@ jobs:
       - name: Test
         shell: bash
         env:
-          GIT_REF: ${{ env.TRUNK_ONLY_EVENT && env.TRUNK_GIT_BRANCH || '' }}
+          GIT_REF_TEST: ${{ env.TRUNK_ONLY_EVENT == true && env.TRUNK_GIT_BRANCH || '' }}
+          GIT_REF_TEST2: ${{ env.TRUNK_ONLY_EVENT == 'true' && env.TRUNK_GIT_BRANCH || '' }}
         run: |
-            echo $GIT_REF
+            echo $GIT_REF_TEST
+            echo $GIT_REF_TEST2
             echo "${{ env.TRUNK_ONLY_EVENT }}"
-            echo "$${{ env.TRUNK_GIT_BRANCH }}"
+            echo "${{ env.TRUNK_GIT_BRANCH }}"
 
       - name: Checkout repository
         uses: actions/checkout@v4
