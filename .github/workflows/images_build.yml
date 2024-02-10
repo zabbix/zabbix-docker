@@ -464,7 +464,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ${{ env.DOCKER_REPOSITORY }}/${{ env.IMAGES_PREFIX }}-${{ matrix.build }}
+          images: ${{ env.DOCKER_REPOSITORY }}/${{ env.IMAGES_PREFIX }}${{ matrix.build }}
           tags: |
             type=semver,enable=${{ needs.init_build.outputs.current_branch != 'trunk' }},pattern={{version}},prefix=${{ matrix.os }}-
             type=semver,enable=${{ needs.init_build.outputs.current_branch != 'trunk' }},pattern={{version}},suffix=-${{ matrix.os }}
