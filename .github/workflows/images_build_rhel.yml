@@ -11,6 +11,8 @@ defaults:
     shell: bash
 
 env:
+  AUTO_PUSH_IMAGES: false
+
   LATEST_BRANCH: ${{ github.event.repository.default_branch }}
   IMAGES_PREFIX: "zabbix-"
   BASE_BUILD_NAME: "build-base"
@@ -166,7 +168,7 @@ jobs:
   build_base_database:
     timeout-minutes: 180
     needs: [ "build_base", "init_build"]
-    name: Build ${{ matrix.build }} base on RHEL
+    name: Build ${{ matrix.build }} base on RHEL (${{ matrix.arch }})
     strategy:
       fail-fast: false
       matrix:
@@ -218,7 +220,7 @@ jobs:
         id: build_image
         uses: redhat-actions/buildah-build@v2
         with:
-          context: ${{ env.DOCKERFILES_DIRECTORY }}/${{ matrix.build }}/rhel
+          context: ${{ env.DOCKERFILES_DIRECTORY }}/build-${{ matrix.build }}/rhel
           layers: false
           tags: ${{ steps.meta.outputs.tags }}
           containerfiles: |
@@ -336,11 +338,13 @@ jobs:
 
       - name: Push to RedHat certification procedure
         id: push_to_registry
+        if: ${{ env.AUTO_PUSH_IMAGES }}
         uses: redhat-actions/push-to-registry@v2
         with:
           tags: ${{ steps.meta.outputs.tags }}
 
       - name: Preflight
+        if: ${{ env.AUTO_PUSH_IMAGES }}
         env:
           PFLT_DOCKERCONFIG: /tmp/.docker_${{ matrix.build }}_${{ needs.init_build.outputs.sha_short }}
           PFLT_CERTIFICATION_PROJECT_ID: ${{ steps.login_credentials.outputs.username }}
@@ -365,6 +369,7 @@ jobs:
 
       - name: Push to RedHat certification procedure
         id: push_to_registry_all_tags
+        if: ${{ env.AUTO_PUSH_IMAGES }}
         uses: redhat-actions/push-to-registry@v2
         with:
           tags: ${{ steps.meta.outputs.tags }}
