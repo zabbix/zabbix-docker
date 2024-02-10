@@ -1,0 +1,766 @@
+name: Build images (DockerHub, Windows)
+
+on:
+  schedule:
+    - cron:  '5 2 * * *'
+  workflow_dispatch:
+
+defaults:
+  run:
+    shell: pwsh
+
+env:
+  AUTO_PUSH_IMAGES: ${{ vars.AUTO_PUSH_IMAGES }}
+
+  DOCKER_REPOSITORY: ${{ vars.DOCKER_REPOSITORY }}
+  LATEST_BRANCH: ${{ github.event.repository.default_branch }}
+  GIT_BRANCH: "refs/heads/trunk"
+  IMAGES_PREFIX: "zabbix-"
+
+  MSFT_BASE_BUILD_IMAGE: "mcr.microsoft.com/windows/servercore"
+  PWSH_BASE_IMAGE_NAME: "mcr.microsoft.com/powershell"
+  PWSH_BASE_IMAGE_PREFIX: "lts-nanoserver-"
+
+  BASE_IMAGE_NAME: "build-base"
+  BASE_BUILD_IMAGE_NAME: "build-mysql"
+
+  MATRIX_FILE: "build.json"
+  DOCKERFILES_DIRECTORY: "Dockerfiles"
+
+  OIDC_ISSUER: "https://token.actions.githubusercontent.com"
+  IDENITY_REGEX: "https://github.com/zabbix/zabbix-docker/.github/"
+
+jobs:
+  init_build:
+    name: Initialize build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      os: ${{ steps.os.outputs.list }}
+      components: ${{ steps.components.outputs.list }}
+      is_default_branch: ${{ steps.branch_info.outputs.is_default_branch }}
+      current_branch: ${{ steps.branch_info.outputs.current_branch }}
+      sha_short: ${{ steps.branch_info.outputs.sha_short }}
+    steps:
+      - name: Block egress traffic
+        uses: step-security/harden-runner@63c24ba6bd7ba022e95695ff85de572c04a18142 # v2.7.0
+        with:
+          disable-sudo: true
+          egress-policy: block
+          allowed-endpoints: >
+            github.com:443
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ env.GIT_BRANCH }}
+          fetch-depth: 1
+          sparse-checkout: ${{ env.MATRIX_FILE }}
+
+      - name: Check ${{ env.MATRIX_FILE }} file
+        id: build_exists
+        shell: bash
+        env:
+          MATRIX_FILE: ${{ env.MATRIX_FILE }}
+        run: |
+            if [[ ! -f "$MATRIX_FILE" ]]; then
+                echo "::error::File $MATRIX_FILE is missing"
+                exit 1
+            fi
+
+      - name: Prepare Operating System list
+        id: os
+        shell: bash
+        env:
+          MATRIX_FILE: ${{ env.MATRIX_FILE }}
+        run: |
+            os_list=$(jq -r '.["os-windows"] |  keys | [ .[] | tostring ] | @json' "$MATRIX_FILE")
+
+            echo "::group::Operating System List"
+            echo "$os_list"
+            echo "::endgroup::"
+
+            echo "list=$os_list" >> $GITHUB_OUTPUT
+
+      - name: Prepare Zabbix component list
+        id: components
+        shell: bash
+        run: |
+            component_list='["agent","agent2"]'
+
+            echo "::group::Zabbix Component List"
+            echo "$component_list"
+            echo "::endgroup::"
+
+            echo "list=$component_list" >> $GITHUB_OUTPUT
+
+      - name: Get branch info
+        id: branch_info
+        shell: bash
+        env:
+          LATEST_BRANCH: ${{ env.LATEST_BRANCH }}
+          github_ref: ${{ github.ref }}
+        run: |
+            result=false
+            sha_short=$(git rev-parse --short HEAD)
+
+            if [[ "$github_ref" == "refs/tags/"* ]]; then
+                github_ref=${github_ref%.*}
+            fi
+
+            github_ref=${github_ref##*/}
+
+            if [[ "$github_ref" == "$LATEST_BRANCH" ]]; then
+                result=true
+            fi
+
+            echo "::group::Branch data"
+            echo "is_default_branch - $result"
+            echo "current_branch - $github_ref"
+            echo "sha_short - $sha_short"
+            echo "::endgroup::"
+
+            echo "is_default_branch=$result" >> $GITHUB_OUTPUT
+            echo "current_branch=$github_ref" >> $GITHUB_OUTPUT
+            echo "sha_short=$sha_short" >> $GITHUB_OUTPUT
+
+  build_base:
+    name: Build ${{ matrix.component }} base on ${{ matrix.os }}
+    needs: init_build
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 70
+    permissions:
+      contents: read
+      id-token: write
+    strategy:
+      fail-fast: false
+      matrix:
+        os: ${{ fromJson(needs.init_build.outputs.os) }}
+        component: ${{ fromJson(needs.init_build.outputs.components) }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ env.GIT_BRANCH }}
+          fetch-depth: 1
+
+      - name: Install cosign
+        uses: sigstore/cosign-installer@e1523de7571e31dbe865fd2e80c5c7c23ae71eb4
+        with:
+          cosign-release: 'v2.2.3'
+
+      - name: Check cosign version
+        run: cosign version
+
+      - name: Login to DockerHub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Base Windows OS tag
+        id: base_os_tag
+        env:
+          MATRIX_OS: ${{ matrix.os }}
+          MATRIX_FILE: ${{ env.MATRIX_FILE }}
+        run: |
+            $os_tag=$(Get-Content -Path $Env:MATRIX_FILE | ConvertFrom-Json).'os-windows'."$Env:MATRIX_OS"
+
+            echo "::group::Base Microsoft Windows OS tag"
+            echo "$os_tag"
+            echo "::endgroup::"
+
+            echo "os_tag=$os_tag" >> $Env:GITHUB_OUTPUT
+
+      - name: Generate tags
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.DOCKER_REPOSITORY }}/${{ env.IMAGES_PREFIX }}${{ env.BASE_IMAGE_NAME }}
+          tags: |
+            type=semver,enable=${{ needs.init_build.outputs.current_branch != 'trunk' }},pattern={{version}},prefix=${{ matrix.component }}-${{ steps.base_os_tag.outputs.os_tag }}-
+            type=semver,enable=${{ needs.init_build.outputs.current_branch != 'trunk' }},pattern={{version}},suffix=-${{ steps.base_os_tag.outputs.os_tag }},prefix=${{ matrix.component }}-
+            type=ref,enable=${{ needs.init_build.outputs.current_branch != 'trunk' }},event=branch,prefix=${{ matrix.component }}-${{ steps.base_os_tag.outputs.os_tag }}-,suffix=-latest
+            type=ref,enable=${{ needs.init_build.outputs.current_branch != 'trunk' }},event=branch,suffix=-${{ steps.base_os_tag.outputs.os_tag }}-latest,prefix=${{ matrix.component }}-
+            type=raw,enable=${{ (needs.init_build.outputs.current_branch != 'trunk') && (needs.init_build.outputs.is_default_branch == 'true') }},value=${{ matrix.component }}-${{ steps.base_os_tag.outputs.os_tag }}-latest
+            type=ref,enable=${{ needs.init_build.outputs.current_branch == 'trunk' }},event=branch,prefix=${{ matrix.component }}-${{ steps.base_os_tag.outputs.os_tag }}-
+            type=ref,enable=${{ needs.init_build.outputs.current_branch == 'trunk' }},event=branch,suffix=-${{ steps.base_os_tag.outputs.os_tag }},prefix=${{ matrix.component }}-
+          flavor: |
+            latest=false
+
+      - name: Build and push image
+        id: docker_build
+        env:
+          DOCKERFILES_DIRECTORY: ${{ env.DOCKERFILES_DIRECTORY }}
+          BASE_BUILD_IMAGE: ${{ env.MSFT_BASE_BUILD_IMAGE }}
+          BASE_IMAGE_NAME: ${{ env.BASE_IMAGE_NAME }}
+          MATRIX_COMPONENT: ${{ matrix.component }}
+          TAGS: ${{ steps.meta.outputs.tags }}
+          BASE_OS_TAG: ${{ steps.base_os_tag.outputs.os_tag }}
+          LABEL_REVISION: ${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.revision'] }}
+          LABEL_CREATED: ${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.created'] }}
+          AUTO_PUSH_IMAGES: ${{ env.AUTO_PUSH_IMAGES }}
+        run: |
+            echo "::group::Docker version"
+            docker version
+            echo "::endgroup::"
+            echo "::group::Docker info"
+            docker info
+            echo "::endgroup::"
+
+            $context="$Env:DOCKERFILES_DIRECTORY\$Env:BASE_IMAGE_NAME\windows\"
+            $dockerfile= $context + 'Dockerfile.' + $Env:MATRIX_COMPONENT
+            $base_os_image= $Env:BASE_BUILD_IMAGE + ':' + $Env:BASE_OS_TAG
+            # Can not build on GitHub due existing symlink. Must be removed before build process
+            Remove-Item -ErrorAction Ignore -Force -Path $context\README.md
+
+            $tags_array=$( "$Env:TAGS".Split("`n") )
+            $tags=$( $tags_array | Foreach-Object { "--tag=$_" } )
+
+            echo "::group::Image tags"
+            echo "$Env:TAGS"
+            echo "::endgroup::"
+            echo "::group::Pull base image"
+            docker pull $base_os_image
+            if (-not $?) {throw "Failed"}
+            echo "::endgroup::"
+
+            echo "::group::Build Image"
+            Write-Host @"
+            docker build --label org.opencontainers.image.revision=$Env:LABEL_REVISION
+                         --label org.opencontainers.image.created=$Env:LABEL_CREATED
+                         --build-arg=BUILD_BASE_IMAGE=$base_os_image
+                         --file=$dockerfile
+                         $tags
+                    $context
+            "@
+
+            docker build --label org.opencontainers.image.revision=$Env:LABEL_REVISION `
+                         --label org.opencontainers.image.created=$Env:LABEL_CREATED `
+                         --build-arg=BUILD_BASE_IMAGE=$base_os_image `
+                         --file=$dockerfile `
+                         $tags `
+                    $context
+            if (-not $?) {throw "Failed"}
+            echo "::endgroup::"
+
+            echo "::group::Publish Image"
+            if ( $Env:AUTO_PUSH_IMAGES -eq 'true' ) {
+                Foreach ($tag in $tags_array) {
+                    echo "docker image push $tag"
+                    docker image push $tag
+                    if (-not $?) {throw "Failed"}
+                }
+
+                $digest=$(docker inspect $tags_array[0] --format "{{ index .RepoDigests 0}}").Split('@')[-1]
+                if (-not $?) {throw "Failed"}
+                echo "Image digest got from RepoDigests"
+            }
+            else {
+                $digest=$(docker inspect $tags_array[0] --format "{{ index .Id}}")
+                if (-not $?) {throw "Failed"}
+                echo "Image digest got from Id"
+            }
+            echo "::endgroup::"
+
+            echo "::group::Digest"
+            echo "$digest"
+            echo "::endgroup::"
+            echo "digest=$digest" >> $Env:GITHUB_OUTPUT
+
+      - name: Sign the images with GitHub OIDC Token
+        env:
+          DIGEST: ${{ steps.docker_build.outputs.digest }}
+          TAGS: ${{ steps.meta.outputs.tags }}
+        run: |
+            $tags_array=$( "$Env:TAGS".Split("`n") )
+            $tag_list=@()
+
+
+            foreach ($tag in $tags_array) {
+                $tag_name=$tag.Split(":")[0]
+                $tag_list+="$tag_name@$Env:DIGEST"
+            }
+            echo "::group::Images to sign"
+            echo "$tag_list"
+            echo "::endgroup::"
+
+            echo "::group::Signing"
+            echo "cosign sign --yes $tag_list"
+            cosign sign --yes $tag_list
+            echo "::endgroup::"
+
+      - name: Image digest
+        if: ${{ env.AUTO_PUSH_IMAGES }}
+        env:
+          DIGEST: ${{ steps.docker_build.outputs.digest }}
+          CACHE_FILE_NAME: ${{ env.BASE_IMAGE_NAME }}_${{ matrix.os }}_${{ matrix.component }}
+        run: |
+            echo "::group::Image digest"
+            echo "$Env:DIGEST"
+            echo "::endgroup::"
+
+            echo "::group::Cache file name"
+            echo "$Env:CACHE_FILE_NAME"
+            echo "::endgroup::"
+
+            $Env:DIGEST | Set-Content -Path $Env:CACHE_FILE_NAME
+
+      - name: Cache image digest
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.BASE_IMAGE_NAME }}_${{ matrix.os }}_${{ matrix.component }}
+          key: ${{ env.BASE_IMAGE_NAME }}-${{ matrix.os }}-${{ github.run_id }}
+
+  build_components:
+    name: Build ${{ matrix.component }} sources on ${{ matrix.os }}
+    needs: [ "build_base", "init_build"]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 70
+    permissions:
+      contents: read
+      id-token: write
+    strategy:
+      fail-fast: false
+      matrix:
+        os: ${{ fromJson(needs.init_build.outputs.os) }}
+        component: ${{ fromJson(needs.init_build.outputs.components) }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ env.GIT_BRANCH }}
+          fetch-depth: 1
+
+      - name: Install cosign
+        uses: sigstore/cosign-installer@e1523de7571e31dbe865fd2e80c5c7c23ae71eb4
+        with:
+          cosign-release: 'v2.2.3'
+
+      - name: Check cosign version
+        run: cosign version
+
+      - name: Login to DockerHub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Base OS tag
+        id: base_os_tag
+        env:
+          MATRIX_OS: ${{ matrix.os }}
+          MATRIX_FILE: ${{ env.MATRIX_FILE }}
+        run: |
+            $os_tag=$(Get-Content -Path $Env:MATRIX_FILE | ConvertFrom-Json).'os-windows'."$Env:MATRIX_OS"
+
+            echo "::group::Base Windows OS tag"
+            echo "$os_tag"
+            echo "::endgroup::"
+
+            echo "os_tag=$os_tag" >> $Env:GITHUB_OUTPUT
+
+      - name: Generate tags
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.DOCKER_REPOSITORY }}/${{ env.IMAGES_PREFIX }}${{ env.BASE_BUILD_IMAGE_NAME }}
+          tags: |
+            type=semver,enable=${{ needs.init_build.outputs.current_branch != 'trunk' }},pattern={{version}},prefix=${{ matrix.component }}-${{ steps.base_os_tag.outputs.os_tag }}-
+            type=semver,enable=${{ needs.init_build.outputs.current_branch != 'trunk' }},pattern={{version}},suffix=-${{ steps.base_os_tag.outputs.os_tag }},prefix=${{ matrix.component }}-
+            type=ref,enable=${{ needs.init_build.outputs.current_branch != 'trunk' }},event=branch,prefix=${{ matrix.component }}-${{ steps.base_os_tag.outputs.os_tag }}-,suffix=-latest
+            type=ref,enable=${{ needs.init_build.outputs.current_branch != 'trunk' }},event=branch,suffix=-${{ steps.base_os_tag.outputs.os_tag }}-latest,prefix=${{ matrix.component }}-
+            type=raw,enable=${{ (needs.init_build.outputs.current_branch != 'trunk') && (needs.init_build.outputs.is_default_branch == 'true') }},value=${{ matrix.component }}-${{ steps.base_os_tag.outputs.os_tag }}-latest
+            type=ref,enable=${{ needs.init_build.outputs.current_branch == 'trunk' }},event=branch,prefix=${{ matrix.component }}-${{ steps.base_os_tag.outputs.os_tag }}-
+            type=ref,enable=${{ needs.init_build.outputs.current_branch == 'trunk' }},event=branch,suffix=-${{ steps.base_os_tag.outputs.os_tag }},prefix=${{ matrix.component }}-
+          flavor: |
+            latest=false
+
+      - name: Download SHA256 tag of ${{ env.BASE_IMAGE_NAME }}:${{ matrix.os }}
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.BASE_IMAGE_NAME }}_${{ matrix.os }}_${{ matrix.component }}
+          key: ${{ env.BASE_IMAGE_NAME }}-${{ matrix.os }}-${{ github.run_id }}
+
+      - name: Retrieve ${{ env.BASE_IMAGE_NAME }}:${{ matrix.os }} SHA256 tag
+        id: base_build
+        env:
+          BASE_IMAGE_NAME: ${{ env.BASE_IMAGE_NAME }}
+          MATRIX_OS: ${{ matrix.os }}
+          MATRIX_COMPONENT: ${{ matrix.component }}
+          DOCKER_REPOSITORY: ${{ env.DOCKER_REPOSITORY }}
+          IMAGES_PREFIX: ${{ env.IMAGES_PREFIX }}
+        run: |
+            $base_image_file=$Env:BASE_IMAGE_NAME + '_' + $Env:MATRIX_OS + '_' + $Env:MATRIX_COMPONENT
+            $base_tag = Get-Content $base_image_file -Raw
+            $build_base_image="$Env:DOCKER_REPOSITORY/$Env:IMAGES_PREFIX$Env:BASE_IMAGE_NAME@" + $base_tag
+
+            echo "::group::Base image Info"
+            echo "base_tag=$base_tag"
+            echo "base_build_image=$build_base_image"
+            echo "::endgroup::"
+
+            echo "base_tag=$base_tag" >> $Env:GITHUB_OUTPUT
+            echo "base_build_image=$build_base_image" >> $Env:GITHUB_OUTPUT
+
+      - name: Verify ${{ env.BASE_IMAGE_NAME }}:${{ matrix.os }} cosign
+        env:
+         BASE_IMAGE: ${{ steps.base_build.outputs.base_build_image }}
+         OIDC_ISSUER: ${{ env.OIDC_ISSUER }}
+         IDENITY_REGEX: ${{ env.IDENITY_REGEX }}
+        run: |
+            cosign verify `
+                --certificate-oidc-issuer-regexp "$Env:OIDC_ISSUER" `
+                --certificate-identity-regexp "$Env:IDENITY_REGEX" `
+                "$Env:BASE_IMAGE"
+
+      - name: Build and push image
+        id: docker_build
+        env:
+          DOCKERFILES_DIRECTORY: ${{ env.DOCKERFILES_DIRECTORY }}
+          BASE_BUILD_IMAGE: ${{ steps.base_build.outputs.base_build_image }}
+          BASE_BUILD_IMAGE_NAME: ${{ env.BASE_BUILD_IMAGE_NAME }}
+          BASE_BUILD_OS_TAG: ${{ steps.base_os_tag.outputs.os_tag }}
+          MATRIX_COMPONENT: ${{ matrix.component }}
+          TAGS: ${{ steps.meta.outputs.tags }}
+          LABEL_REVISION: ${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.revision'] }}
+          LABEL_CREATED: ${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.created'] }}
+          AUTO_PUSH_IMAGES: ${{ env.AUTO_PUSH_IMAGES }}
+        run: |
+            echo "::group::Docker version"
+            docker version
+            echo "::endgroup::"
+            echo "::group::Docker info"
+            docker info
+            echo "::endgroup::"
+
+            $context="$Env:DOCKERFILES_DIRECTORY\$Env:BASE_BUILD_IMAGE_NAME\windows\"
+            $dockerfile= $context + 'Dockerfile.' + $Env:MATRIX_COMPONENT
+            $base_build_image= $Env:BASE_BUILD_IMAGE
+            # Can not build on GitHub due existing symlink. Must be removed before build process
+            Remove-Item -ErrorAction Ignore -Force -Path $context\README.md
+
+            $tags_array=$( "$Env:TAGS".Split("`n") )
+            $tags=$( $tags_array | Foreach-Object { "--tag=$_" } )
+
+            echo "::group::Image tags"
+            echo "$Env:TAGS"
+            echo "::endgroup::"
+            echo "::group::Pull base image"
+            docker pull $base_build_image
+            if (-not $?) {throw "Failed"}
+            echo "::endgroup::"
+
+            echo "::group::Build Image"
+            Write-Host @"
+            docker build --label org.opencontainers.image.revision=$Env:LABEL_REVISION
+                         --label org.opencontainers.image.created=$Env:LABEL_CREATED
+                         --build-arg=BUILD_BASE_IMAGE=$base_build_image
+                         --file=$dockerfile
+                         $tags
+                    $context
+            "@
+
+            docker build --label org.opencontainers.image.revision=$Env:LABEL_REVISION `
+                         --label org.opencontainers.image.created=$Env:LABEL_CREATED `
+                         --build-arg=BUILD_BASE_IMAGE=$base_build_image `
+                         --file=$dockerfile `
+                         $tags `
+                    $context
+            if (-not $?) {throw "Failed"}
+            echo "::endgroup::"
+
+            echo "::group::Publish Image"
+            if ( $Env:AUTO_PUSH_IMAGES -eq 'true' ) {
+                Foreach ($tag in $tags_array) {
+                    echo "docker image push $tag"
+                    docker image push $tag
+                    if (-not $?) {throw "Failed"}
+                }
+
+                $digest=$(docker inspect $tags_array[0] --format "{{ index .RepoDigests 0}}").Split('@')[-1]
+                if (-not $?) {throw "Failed"}
+                echo "Image digest got from RepoDigests"
+            }
+            else {
+                $digest=$(docker inspect $tags_array[0] --format "{{ index .Id}}")
+                if (-not $?) {throw "Failed"}
+                echo "Image digest got from Id"
+            }
+            echo "::endgroup::"
+
+            echo "::group::Digest"
+            echo "$digest"
+            echo "::endgroup::"
+            echo "digest=$digest" >> $Env:GITHUB_OUTPUT
+
+      - name: Sign the images with GitHub OIDC Token
+        env:
+          DIGEST: ${{ steps.docker_build.outputs.digest }}
+          TAGS: ${{ steps.meta.outputs.tags }}
+        run: |
+            $tags_array=$( "$Env:TAGS".Split("`n") )
+            $tag_list=@()
+
+
+            foreach ($tag in $tags_array) {
+                $tag_name=$tag.Split(":")[0]
+                $tag_list+="$tag_name@$Env:DIGEST"
+            }
+            echo "::group::Images to sign"
+            echo "$tag_list"
+            echo "::endgroup::"
+
+            echo "::group::Signing"
+            echo "cosign sign --yes $tag_list"
+            cosign sign --yes $tag_list
+            echo "::endgroup::"
+
+      - name: Image digest
+        if: ${{ env.AUTO_PUSH_IMAGES }}
+        env:
+          DIGEST: ${{ steps.docker_build.outputs.digest }}
+          CACHE_FILE_NAME: ${{ env.BASE_BUILD_IMAGE_NAME }}_${{ matrix.os }}_${{ matrix.component }}
+        run: |
+            echo "::group::Image digest"
+            echo "$Env:DIGEST"
+            echo "::endgroup::"
+
+            echo "::group::Cache file name"
+            echo "$Env:CACHE_FILE_NAME"
+            echo "::endgroup::"
+
+            $Env:DIGEST | Set-Content -Path $Env:CACHE_FILE_NAME
+
+      - name: Cache image digest
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.BASE_BUILD_IMAGE_NAME }}_${{ matrix.os }}_${{ matrix.component }}
+          key: ${{ env.BASE_BUILD_IMAGE_NAME }}-${{ matrix.os }}-${{ github.run_id }}
+
+  build_images:
+    name: Build ${{ matrix.component }} on ${{ matrix.os }}
+    needs: [ "build_components", "init_build"]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 70
+    permissions:
+      contents: read
+      id-token: write
+    strategy:
+      fail-fast: false
+      matrix:
+        os: ${{ fromJson(needs.init_build.outputs.os) }}
+        component: ${{ fromJson(needs.init_build.outputs.components) }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ env.GIT_BRANCH }}
+          fetch-depth: 1
+
+      - name: Install cosign
+        uses: sigstore/cosign-installer@e1523de7571e31dbe865fd2e80c5c7c23ae71eb4
+        with:
+          cosign-release: 'v2.2.3'
+
+      - name: Check cosign version
+        run: cosign version
+
+      - name: Login to DockerHub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Base OS tag
+        id: base_os_tag
+        env:
+          MATRIX_OS: ${{ matrix.os }}
+          MATRIX_FILE: ${{ env.MATRIX_FILE }}
+        run: |
+            $os_tag=$(Get-Content -Path $Env:MATRIX_FILE | ConvertFrom-Json).'os-windows'."$Env:MATRIX_OS"
+
+            echo "::group::Base OS tag"
+            echo "$os_tag"
+            echo "::endgroup::"
+
+            echo "os_tag=$os_tag" >> $Env:GITHUB_OUTPUT
+
+      - name: Generate tags
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.DOCKER_REPOSITORY }}/${{ env.IMAGES_PREFIX }}${{ matrix.component }}
+          tags: |
+            type=semver,enable=${{ needs.init_build.outputs.current_branch != 'trunk' }},pattern={{version}},prefix=${{ steps.base_os_tag.outputs.os_tag }}-
+            type=semver,enable=${{ needs.init_build.outputs.current_branch != 'trunk' }},pattern={{version}},suffix=-${{ steps.base_os_tag.outputs.os_tag }}
+            type=ref,enable=${{ needs.init_build.outputs.current_branch != 'trunk' }},event=branch,prefix=${{ steps.base_os_tag.outputs.os_tag }}-,suffix=-latest
+            type=ref,enable=${{ needs.init_build.outputs.current_branch != 'trunk' }},event=branch,suffix=-${{ steps.base_os_tag.outputs.os_tag }}-latest
+            type=raw,enable=${{ (needs.init_build.outputs.current_branch != 'trunk') && (needs.init_build.outputs.is_default_branch == 'true') }},value=${{ steps.base_os_tag.outputs.os_tag }}-latest
+            type=ref,enable=${{ needs.init_build.outputs.current_branch == 'trunk' }},event=branch,prefix=${{ steps.base_os_tag.outputs.os_tag }}-
+            type=ref,enable=${{ needs.init_build.outputs.current_branch == 'trunk' }},event=branch,suffix=-${{ steps.base_os_tag.outputs.os_tag }}
+          flavor: |
+            latest=false
+
+      - name: Download SHA256 tag of ${{ env.BASE_BUILD_IMAGE_NAME }}:${{ matrix.os }}
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.BASE_BUILD_IMAGE_NAME }}_${{ matrix.os }}_${{ matrix.component }}
+          key: ${{ env.BASE_BUILD_IMAGE_NAME }}-${{ matrix.os }}-${{ github.run_id }}
+
+      - name: Retrieve ${{ env.BASE_BUILD_IMAGE_NAME }}:${{ matrix.os }} SHA256 tag
+        id: base_build
+        env:
+          BASE_BUILD_IMAGE_NAME: ${{ env.BASE_BUILD_IMAGE_NAME }}
+          MATRIX_OS: ${{ matrix.os }}
+          MATRIX_COMPONENT: ${{ matrix.component }}
+          DOCKER_REPOSITORY: ${{ env.DOCKER_REPOSITORY }}
+          IMAGES_PREFIX: ${{ env.IMAGES_PREFIX }}
+        run: |
+            $base_image_file=$Env:BASE_BUILD_IMAGE_NAME + '_' + $Env:MATRIX_OS + '_' + $Env:MATRIX_COMPONENT
+            $base_tag = Get-Content $base_image_file -Raw
+            $build_base_image="$Env:DOCKER_REPOSITORY/$Env:IMAGES_PREFIX$Env:BASE_BUILD_IMAGE_NAME@" + $base_tag
+
+            echo "::group::Base image Info"
+            echo "base_tag=$base_tag"
+            echo "base_build_image=$build_base_image"
+            echo "::endgroup::"
+
+            echo "base_tag=$base_tag" >> $Env:GITHUB_OUTPUT
+            echo "base_build_image=$build_base_image" >> $Env:GITHUB_OUTPUT
+
+      - name: Verify ${{ env.BASE_BUILD_IMAGE_NAME }}:${{ matrix.os }} cosign
+        env:
+         BASE_IMAGE: ${{ steps.base_build.outputs.base_build_image }}
+         OIDC_ISSUER: ${{ env.OIDC_ISSUER }}
+         IDENITY_REGEX: ${{ env.IDENITY_REGEX }}
+        run: |
+            cosign verify `
+                --certificate-oidc-issuer-regexp "$Env:OIDC_ISSUER" `
+                --certificate-identity-regexp "$Env:IDENITY_REGEX" `
+                "$Env:BASE_IMAGE"
+
+      - name: Build and push image
+        id: docker_build
+        env:
+          DOCKERFILES_DIRECTORY: ${{ env.DOCKERFILES_DIRECTORY }}
+          BASE_BUILD_IMAGE: ${{ steps.base_build.outputs.base_build_image }}
+          BASE_BUILD_IMAGE_NAME: ${{ env.BASE_BUILD_IMAGE_NAME }}
+          MATRIX_COMPONENT: ${{ matrix.component }}
+          TAGS: ${{ steps.meta.outputs.tags }}
+          BASE_BUILD_OS_TAG: ${{ steps.base_os_tag.outputs.os_tag }}
+          LABEL_REVISION: ${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.revision'] }}
+          LABEL_CREATED: ${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.created'] }}
+          PWSH_BASE_IMAGE_NAME: ${{ env.PWSH_BASE_IMAGE_NAME }}
+          PWSH_BASE_IMAGE_PREFIX: ${{ env.PWSH_BASE_IMAGE_PREFIX }}
+          AUTO_PUSH_IMAGES: ${{ env.AUTO_PUSH_IMAGES }}
+        run: |
+            echo "::group::Docker version"
+            docker version
+            echo "::endgroup::"
+            echo "::group::Docker info"
+            docker info
+            echo "::endgroup::"
+
+            $context="$Env:DOCKERFILES_DIRECTORY\$Env:MATRIX_COMPONENT\windows\"
+            $dockerfile= $context + 'Dockerfile'
+            $base_build_image= $Env:BASE_BUILD_IMAGE
+            # Can not build on GitHub due existing symlink. Must be removed before build process
+            Remove-Item -ErrorAction Ignore -Force -Path $context\README.md
+
+            $tags_array=$( "$Env:TAGS".Split("`n") )
+            $tags=$( $tags_array | Foreach-Object { "--tag=$_" } )
+
+            # PowerShell images based on LTSC 2019 and LTSC 2016 do not have "ltsc" prefix
+            $os_tag_suffix=$Env:BASE_BUILD_OS_TAG
+            $os_tag_suffix=$os_tag_suffix -replace "ltsc2019",'1809'
+            $base_image=$Env:PWSH_BASE_IMAGE_NAME + ':' + $Env:PWSH_BASE_IMAGE_PREFIX + $os_tag_suffix
+
+            echo "::group::Image tags"
+            echo "$Env:TAGS"
+            echo "::endgroup::"
+            echo "::group::Pull build base image"
+            docker pull $base_build_image
+            if (-not $?) {throw "Failed"}
+            echo "::endgroup::"
+            echo "::group::Pull Powershell base image"
+            docker pull $base_image
+            if (-not $?) {throw "Failed"}
+            echo "::endgroup::"
+
+            echo "::group::Build Image"
+            Write-Host @"
+            docker build --label org.opencontainers.image.revision=$Env:LABEL_REVISION
+                         --label org.opencontainers.image.created=$Env:LABEL_CREATED
+                         --build-arg=BUILD_BASE_IMAGE=$base_build_image
+                         --build-arg=BASE_IMAGE=$base_image
+                         --file=$dockerfile
+                         $tags
+                    $context
+            "@
+
+            docker build --label org.opencontainers.image.revision=$Env:LABEL_REVISION `
+                         --label org.opencontainers.image.created=$Env:LABEL_CREATED `
+                         --build-arg=BUILD_BASE_IMAGE=$base_build_image `
+                         --build-arg=BASE_IMAGE=$base_image `
+                         --file=$dockerfile `
+                         $tags `
+                    $context
+            if (-not $?) {throw "Failed"}
+            echo "::endgroup::"
+
+            echo "::group::Publish Image"
+            if ( $Env:AUTO_PUSH_IMAGES -eq 'true' ) {
+                Foreach ($tag in $tags_array) {
+                    echo "docker image push $tag"
+                    docker image push $tag
+                    if (-not $?) {throw "Failed"}
+                }
+
+                $digest=$(docker inspect $tags_array[0] --format "{{ index .RepoDigests 0}}").Split('@')[-1]
+                if (-not $?) {throw "Failed"}
+                echo "Image digest got from RepoDigests"
+            }
+            else {
+                $digest=$(docker inspect $tags_array[0] --format "{{ index .Id}}")
+                if (-not $?) {throw "Failed"}
+                echo "Image digest got from Id"
+            }
+            echo "::endgroup::"
+
+            echo "::group::Digest"
+            echo "$digest"
+            echo "::endgroup::"
+            echo "digest=$digest" >> $Env:GITHUB_OUTPUT
+
+      - name: Sign the images with GitHub OIDC Token
+        env:
+          DIGEST: ${{ steps.docker_build.outputs.digest }}
+          TAGS: ${{ steps.meta.outputs.tags }}
+        run: |
+            $tags_array=$( "$Env:TAGS".Split("`n") )
+            $tag_list=@()
+
+
+            foreach ($tag in $tags_array) {
+                $tag_name=$tag.Split(":")[0]
+                $tag_list+="$tag_name@$Env:DIGEST"
+            }
+            echo "::group::Images to sign"
+            echo "$tag_list"
+            echo "::endgroup::"
+
+            echo "::group::Signing"
+            echo "cosign sign --yes $tag_list"
+            cosign sign --yes $tag_list
+            echo "::endgroup::"
+
+      - name: Image digest
+        if: ${{ env.AUTO_PUSH_IMAGES }}
+        env:
+          DIGEST: ${{ steps.docker_build.outputs.digest }}
+        run: |
+            echo "::group::Image digest"
+            echo "$Env:DIGEST"
+            echo "::endgroup::"
