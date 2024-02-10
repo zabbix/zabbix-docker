@@ -436,8 +436,57 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
 
       - name: Cleanup artifacts
-        if: always()
+        if: ${{ always() }}
         run: |
           echo "${{ steps.meta.outputs.tags }}" | while IFS= read -r image_name ; do podman rmi -i -f $image_name; done
-          podman rmi -i -f ${{ steps.base_build.outputs.base_build_image }}
           rm -rf ${{ env.PFLT_ARTIFACTS }}
+
+  clean_artifacts:
+    timeout-minutes: 90
+    needs: [ "build_images", "init_build"]
+    name: Build ${{ matrix.build }} image (${{ matrix.arch }})
+    strategy:
+      fail-fast: false
+      matrix:
+        build: [mysql, sqlite3]
+        arch: [X64, ARM64]
+    runs-on: [self-hosted, linux, "${{ matrix.arch }}"]
+    if: ${{ always() }}
+    permissions:
+      metadata: read
+    steps:
+      - name: Download SHA256 tag of build-${{ matrix.build }}:${{ matrix.arch }}
+        uses: actions/cache@v4
+        with:
+          path: build_${{ matrix.build }}_${{ matrix.arch }}
+          key: build-${{ matrix.build }}-${{ matrix.arch }}-${{ github.run_id }}
+
+      - name: Remove build-${{ matrix.build }}:${{ matrix.arch }} SHA256 tag
+        env:
+         MATRIX_ARCH: ${{ matrix.arch }}
+         BASE_IMAGE: build_${{ matrix.build }}
+         IMAGES_PREFIX: ${{ env.IMAGES_PREFIX }}
+        run: |
+            BASE_TAG=$(cat "${BASE_IMAGE}_${MATRIX_ARCH}")
+            BUILD_BASE_IMAGE="${IMAGES_PREFIX}${BASE_IMAGE}@${BASE_TAG}"
+
+            podman rmi -i -f "$BUILD_BASE_IMAGE"
+
+      - name: Download SHA256 tag of ${{ env.BASE_BUILD_NAME }}:${{ matrix.arch }}
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.BASE_BUILD_NAME }}_${{ matrix.arch }}
+          key: ${{ env.BASE_BUILD_NAME }}-${{ matrix.arch }}-${{ github.run_id }}
+
+
+      - name: Remove ${{ env.BASE_BUILD_NAME }}:${{ matrix.arch }} SHA256 tag
+        if: ${{ matrix.build == 'mysql' }}
+        env:
+         MATRIX_ARCH: ${{ matrix.arch }}
+         BASE_IMAGE: ${{ env.BASE_BUILD_NAME }}
+         IMAGES_PREFIX: ${{ env.IMAGES_PREFIX }}
+        run: |
+            BASE_TAG=$(cat "${BASE_IMAGE}_${MATRIX_ARCH}")
+            BUILD_BASE_IMAGE="${IMAGES_PREFIX}${BASE_IMAGE}@${BASE_TAG}"
+
+            podman rmi -i -f "$BUILD_BASE_IMAGE"
