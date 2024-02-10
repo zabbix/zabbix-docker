@@ -109,11 +109,6 @@ jobs:
       contents: read
       id-token: write
     steps:
-      - name: Block egress traffic
-        uses: step-security/harden-runner@63c24ba6bd7ba022e95695ff85de572c04a18142 # v2.7.0
-        with:
-          egress-policy: audit
-
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
@@ -137,7 +132,7 @@ jobs:
 
       - name: Image digest
         env:
-          TAGS: ${{ steps.meta.outputs.json.tags[0] }}
+          TAGS: ${{ fromJSON(steps.meta.outputs.json).tags[0] }}
           CACHE_FILE_NAME: ${{ env.BASE_BUILD_NAME }}_${{ matrix.arch }}
         run: |
             echo "$TAGS"
@@ -198,11 +193,6 @@ jobs:
       contents: read
       id-token: write
     steps:
-      - name: Block egress traffic
-        uses: step-security/harden-runner@63c24ba6bd7ba022e95695ff85de572c04a18142 # v2.7.0
-        with:
-          egress-policy: audit
-
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
