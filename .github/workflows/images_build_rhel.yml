@@ -223,7 +223,7 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           containerfiles: |
             ${{ env.DOCKERFILES_DIRECTORY }}/build-${{ matrix.build }}/rhel/Dockerfile
-          extra-args: BUILD_BASE_IMAGE=${{ steps.base_build.outputs.base_build_image }}
+          build-args: BUILD_BASE_IMAGE=${{ steps.base_build.outputs.base_build_image }}
 
       - name: Image digest
         env:
