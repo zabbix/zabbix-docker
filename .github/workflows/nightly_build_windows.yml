@@ -55,7 +55,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          ref: ${{ ! env.TRUNK_ONLY_EVENT && env.TRUNK_GIT_BRANCH }}
+          ref: ${{ ! env.TRUNK_ONLY_EVENT && env.TRUNK_GIT_BRANCH || '' }}
           fetch-depth: 1
           sparse-checkout: ${{ env.MATRIX_FILE }}
 
