@@ -15,16 +15,21 @@ on:
       - '!Dockerfiles/*/rhel/*'
       - '!Dockerfiles/*/windows/*'
       - '.github/workflows/images_build.yml'
+  schedule:
+    - cron:  '10 14 * * *'
+  workflow_dispatch:
 
 defaults:
   run:
     shell: bash
 
 env:
+  TRUNK_ONLY_EVENT: ${{ contains(fromJSON('["schedule"]'), github.event_name) }}
   AUTO_PUSH_IMAGES: ${{ vars.AUTO_PUSH_IMAGES }}
 
   DOCKER_REPOSITORY: ${{ vars.DOCKER_REPOSITORY }}
   LATEST_BRANCH: ${{ github.event.repository.default_branch }}
+  TRUNK_GIT_BRANCH: "refs/heads/trunk"
   IMAGES_PREFIX: "zabbix-"
 
   BASE_BUILD_NAME: "build-base"
@@ -60,6 +65,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
+          ref: ${{ env.TRUNK_ONLY_EVENT == 'true' && env.TRUNK_GIT_BRANCH || '' }}
           fetch-depth: 1
           sparse-checkout: ${{ env.MATRIX_FILE }}
 
@@ -129,7 +135,7 @@ jobs:
         id: branch_info
         env:
           LATEST_BRANCH: ${{ env.LATEST_BRANCH }}
-          github_ref: ${{ github.ref }}
+          github_ref: ${{ env.TRUNK_ONLY_EVENT == 'true' && env.TRUNK_GIT_BRANCH || github.ref }}
         run: |
             result=false
             sha_short=$(git rev-parse --short HEAD)
@@ -259,6 +265,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
+          ref: ${{ env.TRUNK_ONLY_EVENT == 'true' && env.TRUNK_GIT_BRANCH || '' }}
           fetch-depth: 1
 
       - name: Install cosign
@@ -306,6 +313,7 @@ jobs:
         uses: docker/metadata-action@v5
         with:
           images: ${{ env.DOCKER_REPOSITORY }}/${{ env.IMAGES_PREFIX }}${{ env.BASE_BUILD_NAME }}
+          context: ${{ env.TRUNK_ONLY_EVENT == 'true' && 'git' || '' }}
           tags: |
             type=semver,enable=${{ needs.init_build.outputs.current_branch != 'trunk' }},pattern={{version}},prefix=${{ matrix.os }}-
             type=semver,enable=${{ needs.init_build.outputs.current_branch != 'trunk' }},pattern={{version}},suffix=-${{ matrix.os }}
@@ -418,6 +426,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
+          ref: ${{ env.TRUNK_ONLY_EVENT == 'true' && env.TRUNK_GIT_BRANCH || '' }}
           fetch-depth: 1
 
       - name: Install cosign
@@ -465,6 +474,7 @@ jobs:
         uses: docker/metadata-action@v5
         with:
           images: ${{ env.DOCKER_REPOSITORY }}/${{ env.IMAGES_PREFIX }}${{ matrix.build }}
+          context: ${{ env.TRUNK_ONLY_EVENT == 'true' && 'git' || '' }}
           tags: |
             type=semver,enable=${{ needs.init_build.outputs.current_branch != 'trunk' }},pattern={{version}},prefix=${{ matrix.os }}-
             type=semver,enable=${{ needs.init_build.outputs.current_branch != 'trunk' }},pattern={{version}},suffix=-${{ matrix.os }}
@@ -712,6 +722,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
+          ref: ${{ env.TRUNK_ONLY_EVENT == 'true' && env.TRUNK_GIT_BRANCH || '' }}
           fetch-depth: 1
 
       - name: Install cosign
@@ -788,6 +799,7 @@ jobs:
         uses: docker/metadata-action@v5
         with:
           images: ${{ env.DOCKER_REPOSITORY }}/${{ env.IMAGES_PREFIX}}${{ matrix.build }}
+          context: ${{ env.TRUNK_ONLY_EVENT == 'true' && 'git' || '' }}
           tags: |
             type=semver,enable=${{ needs.init_build.outputs.current_branch != 'trunk' }},pattern={{version}},prefix=${{ matrix.os }}-
             type=semver,enable=${{ needs.init_build.outputs.current_branch != 'trunk' }},pattern={{version}},suffix=-${{ matrix.os }}
