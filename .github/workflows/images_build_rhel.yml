@@ -250,13 +250,13 @@ jobs:
   build_images:
     timeout-minutes: 90
     needs: [ "build_base_database", "init_build"]
-    name: Build ${{ matrix.build }} image
+    name: Build ${{ matrix.build }} image (${{ matrix.arch }})
     strategy:
       fail-fast: false
       matrix:
         build: ${{ fromJson(needs.init_build.outputs.components) }}
-
-    runs-on: [self-hosted, linux, X64]
+        arch: [X64, ARM64]
+    runs-on: [self-hosted, linux, "${{ matrix.arch }}"]
     steps:
       - uses: actions/checkout@v4
 
