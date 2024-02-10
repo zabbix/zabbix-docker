@@ -54,8 +54,6 @@ jobs:
       is_default_branch: ${{ steps.branch_info.outputs.is_default_branch }}
       current_branch: ${{ steps.branch_info.outputs.current_branch }}
       sha_short: ${{ steps.branch_info.outputs.sha_short }}
-    env:
-      GIT_REF: ${{ env.TRUNK_ONLY_EVENT && env.TRUNK_GIT_BRANCH || '' }}
     steps:
       - name: Block egress traffic
         uses: step-security/harden-runner@63c24ba6bd7ba022e95695ff85de572c04a18142 # v2.7.0
@@ -63,7 +61,16 @@ jobs:
           disable-sudo: true
           egress-policy: block
           allowed-endpoints: >
-            github.com:443
+            github.com:443 ${{ env.TRUNK_ONLY_EVENT && env.TRUNK_GIT_BRANCH || '' }}
+
+      - name: Test
+        shell: bash
+        env:
+          GIT_REF: ${{ env.TRUNK_ONLY_EVENT && env.TRUNK_GIT_BRANCH || '' }}
+        run: |
+            echo $GIT_REF
+            echo "${{ env.TRUNK_ONLY_EVENT }}"
+            echo "$${{ env.TRUNK_GIT_BRANCH }}"
 
       - name: Checkout repository
         uses: actions/checkout@v4
