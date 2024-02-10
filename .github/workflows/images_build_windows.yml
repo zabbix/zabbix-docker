@@ -13,7 +13,7 @@ on:
       - '!**/README.md'
       - '.github/workflows/images_build_windows.yml'
   schedule:
-    - cron:  '49 12 * * *'
+    - cron:  '05 02 * * *'
   workflow_dispatch:
 
 defaults:
@@ -21,7 +21,7 @@ defaults:
     shell: pwsh
 
 env:
-  TRUNK_ONLY_EVENT: ${{ contains(fromJSON('["schedule", "workflow_dispatch"]'), github.event_name) }}
+  TRUNK_ONLY_EVENT: ${{ contains(fromJSON('["schedule"]'), github.event_name) }}
   AUTO_PUSH_IMAGES: ${{ vars.AUTO_PUSH_IMAGES }}
 
   DOCKER_REPOSITORY: ${{ vars.DOCKER_REPOSITORY }}
@@ -62,17 +62,6 @@ jobs:
           egress-policy: block
           allowed-endpoints: >
             github.com:443
-
-      - name: Test
-        shell: bash
-        env:
-          GIT_REF_TEST: ${{ env.TRUNK_ONLY_EVENT == true && env.TRUNK_GIT_BRANCH || '' }}
-          GIT_REF_TEST2: ${{ env.TRUNK_ONLY_EVENT == 'true' && env.TRUNK_GIT_BRANCH || '' }}
-        run: |
-            echo $GIT_REF_TEST
-            echo $GIT_REF_TEST2
-            echo "${{ env.TRUNK_ONLY_EVENT }}"
-            echo "${{ env.TRUNK_GIT_BRANCH }}"
 
       - name: Checkout repository
         uses: actions/checkout@v4

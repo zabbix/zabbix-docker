@@ -6,9 +6,7 @@ on:
       - published
   push:
     branches:
-      - '5.0'
-      - '6.0'
-      - '6.4'
+      - '[0-9]+.[0-9]+'
       - 'trunk'
     paths:
       - 'Dockerfiles/**'
@@ -17,72 +15,130 @@ on:
       - '!Dockerfiles/*/rhel/*'
       - '!Dockerfiles/*/windows/*'
       - '.github/workflows/images_build.yml'
+  schedule:
+    - cron:  '10 14 * * *'
+  workflow_dispatch:
 
 defaults:
   run:
     shell: bash
 
 env:
-  DOCKER_REPOSITORY: "zabbix"
+  TRUNK_ONLY_EVENT: ${{ contains(fromJSON('["schedule"]'), github.event_name) }}
+  AUTO_PUSH_IMAGES: ${{ vars.AUTO_PUSH_IMAGES }}
+
+  DOCKER_REPOSITORY: ${{ vars.DOCKER_REPOSITORY }}
   LATEST_BRANCH: ${{ github.event.repository.default_branch }}
+  TRUNK_GIT_BRANCH: "refs/heads/trunk"
+  IMAGES_PREFIX: "zabbix-"
+
   BASE_BUILD_NAME: "build-base"
+
+  MATRIX_FILE: "build.json"
+  DOCKERFILES_DIRECTORY: "./Dockerfiles"
+
+  OIDC_ISSUER: "https://token.actions.githubusercontent.com"
+  IDENITY_REGEX: "https://github.com/zabbix/zabbix-docker/.github/"
 
 jobs:
   init_build:
     name: Initialize build
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     outputs:
       os: ${{ steps.os.outputs.list }}
       database: ${{ steps.database.outputs.list }}
       components: ${{ steps.components.outputs.list }}
       is_default_branch: ${{ steps.branch_info.outputs.is_default_branch }}
+      current_branch: ${{ steps.branch_info.outputs.current_branch }}
+      sha_short: ${{ steps.branch_info.outputs.sha_short }}
     steps:
+      - name: Block egress traffic
+        uses: step-security/harden-runner@63c24ba6bd7ba022e95695ff85de572c04a18142 # v2.7.0
+        with:
+          disable-sudo: true
+          egress-policy: block
+          allowed-endpoints: >
+            github.com:443
+
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
+          ref: ${{ env.TRUNK_ONLY_EVENT == 'true' && env.TRUNK_GIT_BRANCH || '' }}
           fetch-depth: 1
+          sparse-checkout: ${{ env.MATRIX_FILE }}
 
-      - name: Check build.json file
+      - name: Check ${{ env.MATRIX_FILE }} file
         id: build_exists
+        env:
+          MATRIX_FILE: ${{ env.MATRIX_FILE }}
         run: |
-            if [[ ! -f "./build.json" ]]; then
-                echo "::error::File build.json is missing"
+            if [[ ! -f "$MATRIX_FILE" ]]; then
+                echo "::error::File $MATRIX_FILE is missing"
                 exit 1
             fi
 
       - name: Prepare Operating System list
         id: os
+        env:
+          MATRIX_FILE: ${{ env.MATRIX_FILE }}
         run: |
-            os_list=$(jq -r '.["os-linux"] |  keys | [ .[] | tostring ] | @json' "./build.json")
+            os_list=$(jq -r '.["os-linux"] |  keys | [ .[] | tostring ] | @json' "$MATRIX_FILE")
+
+            echo "::group::Operating System List"
+            echo "$os_list"
+            echo "::endgroup::"
 
             echo "list=$os_list" >> $GITHUB_OUTPUT
 
       - name: Prepare Platform list
         id: platform_list
+        env:
+          MATRIX_FILE: ${{ env.MATRIX_FILE }}
         run: |
-            platform_list=$(jq -r '.["os-linux"] | tostring  | @json' "./build.json")
+            platform_list=$(jq -r '.["os-linux"] | tostring  | @json' "$MATRIX_FILE")
+
+            echo "::group::Platform List"
+            echo "$platform_list"
+            echo "::endgroup::"
 
             echo "list=$platform_list" >> $GITHUB_OUTPUT
 
       - name: Prepare Database engine list
         id: database
+        env:
+          MATRIX_FILE: ${{ env.MATRIX_FILE }}
         run: |
-            database_list=$(jq -r '[.components | values[] ] | sort | unique | del(.. | select ( . == "" ) ) | [ .[] | tostring ] | @json' "./build.json")
+            database_list=$(jq -r '[.components | values[] ] | sort | unique | del(.. | select ( . == "" ) ) | [ .[] | tostring ] | @json' "$MATRIX_FILE")
+
+            echo "::group::Database List"
+            echo "$database_list"
+            echo "::endgroup::"
 
             echo "list=$database_list" >> $GITHUB_OUTPUT
 
       - name: Prepare Zabbix component list
         id: components
+        env:
+          MATRIX_FILE: ${{ env.MATRIX_FILE }}
         run: |
-            component_list=$(jq -r '.components | keys | [ .[] | tostring ] | @json' "./build.json")
+            component_list=$(jq -r '.components | keys | [ .[] | tostring ] | @json' "$MATRIX_FILE")
+
+            echo "::group::Zabbix Component List"
+            echo "$component_list"
+            echo "::endgroup::"
 
             echo "list=$component_list" >> $GITHUB_OUTPUT
 
       - name: Get branch info
         id: branch_info
+        env:
+          LATEST_BRANCH: ${{ env.LATEST_BRANCH }}
+          github_ref: ${{ env.TRUNK_ONLY_EVENT == 'true' && env.TRUNK_GIT_BRANCH || github.ref }}
         run: |
-            github_ref="${{ github.ref }}"
             result=false
+            sha_short=$(git rev-parse --short HEAD)
 
             if [[ "$github_ref" == "refs/tags/"* ]]; then
                 github_ref=${github_ref%.*}
@@ -90,10 +146,19 @@ jobs:
 
             github_ref=${github_ref##*/}
 
-            if [[ "$github_ref" == "${{ env.LATEST_BRANCH }}" ]]; then
+            if [[ "$github_ref" == "$LATEST_BRANCH" ]]; then
                 result=true
             fi
-            echo  "is_default_branch=$result" >> $GITHUB_OUTPUT
+
+            echo "::group::Branch data"
+            echo "is_default_branch - $result"
+            echo "current_branch - $github_ref"
+            echo "sha_short - $sha_short"
+            echo "::endgroup::"
+
+            echo "is_default_branch=$result" >> $GITHUB_OUTPUT
+            echo "current_branch=$github_ref" >> $GITHUB_OUTPUT
+            echo "sha_short=$sha_short" >> $GITHUB_OUTPUT
 
   build_base:
     timeout-minutes: 30
@@ -105,11 +170,111 @@ jobs:
         os: ${{ fromJson(needs.init_build.outputs.os) }}
 
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
     steps:
+      - name: Block egress traffic
+        uses: step-security/harden-runner@63c24ba6bd7ba022e95695ff85de572c04a18142 # v2.7.0
+        with:
+          disable-sudo: true
+          egress-policy: block
+          allowed-endpoints: >
+            api.github.com:443
+            archive.ubuntu.com:80
+            atl.mirrors.knownhost.com:443
+            atl.mirrors.knownhost.com:80
+            auth.docker.io:443
+            cdn03.quay.io:443
+            centos-stream-distro.1gservers.com:443
+            centos-stream-distro.1gservers.com:80
+            dfw.mirror.rackspace.com:443
+            dfw.mirror.rackspace.com:80
+            dl-cdn.alpinelinux.org:443
+            download.cf.centos.org:443
+            download.cf.centos.org:80
+            epel.mirror.constant.com:443
+            ftp-nyc.osuosl.org:443
+            ftp-nyc.osuosl.org:80
+            ftp-osl.osuosl.org:443
+            ftp-osl.osuosl.org:80
+            ftp.plusline.net:443
+            ftp.plusline.net:80
+            ftpmirror.your.org:80
+            fulcio.sigstore.dev:443
+            github.com:443
+            iad.mirror.rackspace.com:443
+            iad.mirror.rackspace.com:80
+            index.docker.io:443
+            lesnet.mm.fcix.net:443
+            mirror-mci.yuki.net.uk:443
+            mirror-mci.yuki.net.uk:80
+            mirror.arizona.edu:443
+            mirror.arizona.edu:80
+            mirror.dogado.de:443
+            mirror.dogado.de:80
+            mirror.facebook.net:443
+            mirror.facebook.net:80
+            mirror.fcix.net:443
+            mirror.hoobly.com:443
+            mirror.math.princeton.edu:443
+            mirror.netzwerge.de:443
+            mirror.pilotfiber.com:443
+            mirror.pilotfiber.com:80
+            mirror.rackspace.com:443
+            mirror.rackspace.com:80
+            mirror.scaleuptech.com:443
+            mirror.scaleuptech.com:80
+            mirror.servaxnet.com:443
+            mirror.servaxnet.com:80
+            mirror.siena.edu:80
+            mirror.stream.centos.org:443
+            mirror.stream.centos.org:80
+            mirror.team-cymru.com:443
+            mirror.team-cymru.com:80
+            mirror1.hs-esslingen.de:443
+            mirrors.centos.org:443
+            mirrors.fedoraproject.org:443
+            mirrors.fedoraproject.org:80
+            mirrors.iu13.net:80
+            mirrors.mit.edu:443
+            mirrors.ocf.berkeley.edu:443
+            mirrors.ocf.berkeley.edu:80
+            mirrors.sonic.net:443
+            mirrors.wcupa.edu:443
+            mirrors.wcupa.edu:80
+            mirrors.xtom.de:80
+            na.edge.kernel.org:443
+            nocix.mm.fcix.net:443
+            oauth2.sigstore.dev:443
+            objects.githubusercontent.com:443
+            ports.ubuntu.com:80
+            production.cloudflare.docker.com:443
+            quay.io:443
+            registry-1.docker.io:443
+            rekor.sigstore.dev:443
+            repo.ialab.dsu.edu:443
+            repos.eggycrew.com:443
+            repos.eggycrew.com:80
+            security.ubuntu.com:80
+            tuf-repo-cdn.sigstore.dev:443
+            uvermont.mm.fcix.net:443
+            yum.oracle.com:443
+            ziply.mm.fcix.net:443
+
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
+          ref: ${{ env.TRUNK_ONLY_EVENT == 'true' && env.TRUNK_GIT_BRANCH || '' }}
           fetch-depth: 1
+
+      - name: Install cosign
+        uses: sigstore/cosign-installer@e1523de7571e31dbe865fd2e80c5c7c23ae71eb4
+        with:
+          cosign-release: 'v2.2.3'
+
+      - name: Check cosign version
+        run: cosign version
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
@@ -130,9 +295,16 @@ jobs:
 
       - name: Prepare Platform list
         id: platform
+        env:
+          MATRIX_OS: ${{ matrix.os }}
+          MATRIX_FILE: ${{ env.MATRIX_FILE }}
         run: |
-            platform_list=$(jq -r '.["os-linux"].${{ matrix.os }} | join(",")' "./build.json")
+            platform_list=$(jq -r ".[\"os-linux\"].$MATRIX_OS | join(\",\")" "$MATRIX_FILE")
             platform_list="${platform_list%,}"
+
+            echo "::group::Platform List"
+            echo "$platform_list"
+            echo "::endgroup::"
 
             echo "list=$platform_list" >> $GITHUB_OUTPUT
 
@@ -140,55 +312,130 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ${{ env.DOCKER_REPOSITORY }}/zabbix-${{ env.BASE_BUILD_NAME }}
+          images: ${{ env.DOCKER_REPOSITORY }}/${{ env.IMAGES_PREFIX }}${{ env.BASE_BUILD_NAME }}
+          context: ${{ env.TRUNK_ONLY_EVENT == 'true' && 'git' || '' }}
           tags: |
-            type=semver,pattern={{version}},prefix=${{ matrix.os }}-
-            type=semver,pattern={{version}},suffix=-${{ matrix.os }}
-            type=ref,event=branch,prefix=${{ matrix.os }}-,suffix=-latest
-            type=ref,event=branch,suffix=-${{ matrix.os }}-latest
-            type=raw,enable=${{ needs.init_build.outputs.is_default_branch == 'true' }},value=${{matrix.os}}-latest
+            type=semver,enable=${{ needs.init_build.outputs.current_branch != 'trunk' }},pattern={{version}},prefix=${{ matrix.os }}-
+            type=semver,enable=${{ needs.init_build.outputs.current_branch != 'trunk' }},pattern={{version}},suffix=-${{ matrix.os }}
+            type=ref,enable=${{ needs.init_build.outputs.current_branch != 'trunk' }},event=branch,prefix=${{ matrix.os }}-,suffix=-latest
+            type=ref,enable=${{ needs.init_build.outputs.current_branch != 'trunk' }},event=branch,suffix=-${{ matrix.os }}-latest
+            type=raw,enable=${{ (needs.init_build.outputs.current_branch != 'trunk') && (needs.init_build.outputs.is_default_branch == 'true') }},value=${{matrix.os}}-latest
+            type=ref,enable=${{ needs.init_build.outputs.current_branch == 'trunk' }},event=branch,prefix=${{ matrix.os }}-
+            type=ref,enable=${{ needs.init_build.outputs.current_branch == 'trunk' }},event=branch,suffix=-${{ matrix.os }}
           flavor: |
-            latest=${{ (matrix.os == 'alpine') && ( needs.init_build.outputs.is_default_branch == 'true' ) }}
+            latest=${{ (needs.init_build.outputs.current_branch != 'trunk') && (matrix.os == 'alpine') && ( needs.init_build.outputs.is_default_branch == 'true' ) }}
 
-      - name: Build ${{ env.BASE_BUILD_NAME }}/${{ matrix.os }} and push
+      - name: Build and publish image
         id: docker_build
         uses: docker/build-push-action@v5
         with:
-          context: ./Dockerfiles/${{ env.BASE_BUILD_NAME }}/${{ matrix.os }}
-          file: ./Dockerfiles/${{ env.BASE_BUILD_NAME }}/${{ matrix.os }}/Dockerfile
+          context: ${{ env.DOCKERFILES_DIRECTORY }}/${{ env.BASE_BUILD_NAME }}/${{ matrix.os }}
+          file: ${{ env.DOCKERFILES_DIRECTORY }}/${{ env.BASE_BUILD_NAME }}/${{ matrix.os }}/Dockerfile
           platforms: ${{ steps.platform.outputs.list }}
-          push: ${{ secrets.AUTO_PUSH_IMAGES }}
+          push: ${{ env.AUTO_PUSH_IMAGES }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: |
             org.opencontainers.image.revision=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.revision'] }}
             org.opencontainers.image.created=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.created'] }}
+          cache-from: |
+              type=gha,scope=${{ fromJSON(steps.meta.outputs.json).tags[0] }}
+              type=registry,ref=docker.io/${{ fromJSON(steps.meta.outputs.json).tags[0] }}
+          cache-to: type=gha,mode=max,scope=${{ fromJSON(steps.meta.outputs.json).tags[0] }}
+
+      - name: Sign the images with GitHub OIDC Token
+        env:
+          DIGEST: ${{ steps.docker_build.outputs.digest }}
+          TAGS: ${{ steps.meta.outputs.tags }}
+        run: |
+            images=""
+            for tag in ${TAGS}; do
+                images+="${tag}@${DIGEST} "
+            done
+
+            echo "::group::Images to sign"
+            echo "$images"
+            echo "::endgroup::"
+
+            echo "::group::Signing"
+            echo "cosign sign --yes $images"
+            cosign sign --yes ${images}
+            echo "::endgroup::"
 
       - name: Image digest
+        env:
+          DIGEST: ${{ steps.docker_build.outputs.digest }}
+          CACHE_FILE_NAME: ${{ env.BASE_BUILD_NAME }}_${{ matrix.os }}
         run: |
-            echo ${{ steps.docker_build.outputs.digest }}
-            echo "${{ steps.docker_build.outputs.digest }}" > ${{ env.BASE_BUILD_NAME }}_${{ matrix.os }}
+            echo "::group::Image digest"
+            echo "$DIGEST"
+            echo "::endgroup::"
+            echo "::group::Cache file name"
+            echo "$CACHE_FILE_NAME"
+            echo "::endgroup::"
 
-      - name: Upload SHA256 tag
-        uses: actions/upload-artifact@v4
+            echo "$DIGEST" > "$CACHE_FILE_NAME"
+
+      - name: Cache image digest
+        uses: actions/cache@v4
         with:
-         name: ${{ env.BASE_BUILD_NAME }}_${{ matrix.os }}
-         path: ${{ env.BASE_BUILD_NAME }}_${{ matrix.os }}
-         if-no-files-found: error
+          path: ${{ env.BASE_BUILD_NAME }}_${{ matrix.os }}
+          key: ${{ env.BASE_BUILD_NAME }}-${{ matrix.os }}-${{ github.run_id }}
 
   build_base_database:
     timeout-minutes: 180
     needs: [ "build_base", "init_build"]
     name: Build ${{ matrix.build }} base on ${{ matrix.os }}
     strategy:
-      fail-fast: false  
+      fail-fast: false
       matrix:
         build: ${{ fromJson(needs.init_build.outputs.database) }}
         os: ${{ fromJson(needs.init_build.outputs.os) }}
 
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
     steps:
+      - name: Block egress traffic
+        uses: step-security/harden-runner@63c24ba6bd7ba022e95695ff85de572c04a18142 # v2.7.0
+        with:
+          disable-sudo: true
+          egress-policy: block
+          allowed-endpoints: >
+            api.github.com:443
+            auth.docker.io:443
+            git.zabbix.com:443
+            github.com:443
+            go.googlesource.com:443
+            go.mongodb.org:443
+            golang.org:443
+            google.golang.org:443
+            gopkg.in:443
+            index.docker.io:443
+            noto-website.storage.googleapis.com:443
+            production.cloudflare.docker.com:443
+            proxy.golang.org:443
+            registry-1.docker.io:443
+            storage.googleapis.com:443
+            fulcio.sigstore.dev:443
+            oauth2.sigstore.dev:443
+            objects.githubusercontent.com:443
+            tuf-repo-cdn.sigstore.dev:443
+            rekor.sigstore.dev:443
+
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          ref: ${{ env.TRUNK_ONLY_EVENT == 'true' && env.TRUNK_GIT_BRANCH || '' }}
+          fetch-depth: 1
+
+      - name: Install cosign
+        uses: sigstore/cosign-installer@e1523de7571e31dbe865fd2e80c5c7c23ae71eb4
+        with:
+          cosign-release: 'v2.2.3'
+
+      - name: Check cosign version
+        run: cosign version
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
@@ -209,9 +456,16 @@ jobs:
 
       - name: Prepare Platform list
         id: platform
+        env:
+          MATRIX_OS: ${{ matrix.os }}
+          MATRIX_FILE: ${{ env.MATRIX_FILE }}
         run: |
-            platform_list=$(jq -r '.["os-linux"].${{ matrix.os }} | join(",")' "./build.json")
+            platform_list=$(jq -r ".[\"os-linux\"].$MATRIX_OS | join(\",\")" "$MATRIX_FILE")
             platform_list="${platform_list%,}"
+
+            echo "::group::Platform List"
+            echo "$platform_list"
+            echo "::endgroup::"
 
             echo "list=$platform_list" >> $GITHUB_OUTPUT
 
@@ -219,55 +473,118 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ${{ env.DOCKER_REPOSITORY }}/zabbix-${{ matrix.build }}
+          images: ${{ env.DOCKER_REPOSITORY }}/${{ env.IMAGES_PREFIX }}${{ matrix.build }}
+          context: ${{ env.TRUNK_ONLY_EVENT == 'true' && 'git' || '' }}
           tags: |
-            type=semver,pattern={{version}},prefix=${{ matrix.os }}-
-            type=semver,pattern={{version}},suffix=-${{ matrix.os }}
-            type=ref,event=branch,prefix=${{ matrix.os }}-,suffix=-latest
-            type=ref,event=branch,suffix=-${{ matrix.os }}-latest
-            type=raw,enable=${{ needs.init_build.outputs.is_default_branch == 'true' }},value=${{matrix.os}}-latest
+            type=semver,enable=${{ needs.init_build.outputs.current_branch != 'trunk' }},pattern={{version}},prefix=${{ matrix.os }}-
+            type=semver,enable=${{ needs.init_build.outputs.current_branch != 'trunk' }},pattern={{version}},suffix=-${{ matrix.os }}
+            type=ref,enable=${{ needs.init_build.outputs.current_branch != 'trunk' }},event=branch,prefix=${{ matrix.os }}-,suffix=-latest
+            type=ref,enable=${{ needs.init_build.outputs.current_branch != 'trunk' }},event=branch,suffix=-${{ matrix.os }}-latest
+            type=raw,enable=${{ (needs.init_build.outputs.current_branch != 'trunk') && (needs.init_build.outputs.is_default_branch == 'true') }},value=${{matrix.os}}-latest
+            type=ref,enable=${{ needs.init_build.outputs.current_branch == 'trunk' }},event=branch,prefix=${{ matrix.os }}-
+            type=ref,enable=${{ needs.init_build.outputs.current_branch == 'trunk' }},event=branch,suffix=-${{ matrix.os }}
           flavor: |
-            latest=${{ (matrix.os == 'alpine') && ( needs.init_build.outputs.is_default_branch == 'true' ) }}
+            latest=${{ (needs.init_build.outputs.current_branch != 'trunk') && (matrix.os == 'alpine') && ( needs.init_build.outputs.is_default_branch == 'true' ) }}
 
-      - name: Download SHA256 tag  build-base:${{ matrix.os }}
-        uses: actions/download-artifact@v4
+      - name: Download SHA256 tag of ${{ env.BASE_BUILD_NAME }}:${{ matrix.os }}
+        uses: actions/cache@v4
         with:
-          name: build-base_${{ matrix.os }}
+          path: ${{ env.BASE_BUILD_NAME }}_${{ matrix.os }}
+          key: ${{ env.BASE_BUILD_NAME }}-${{ matrix.os }}-${{ github.run_id }}
 
-      - name: Retrieve build-base:${{ matrix.os }} SHA256 tag
+      - name: Retrieve ${{ env.BASE_BUILD_NAME }}:${{ matrix.os }} SHA256 tag
         id: base_build
+        env:
+         MATRIX_OS: ${{ matrix.os }}
+         DOCKER_REPOSITORY: ${{ env.DOCKER_REPOSITORY }}
+         BASE_IMAGE: ${{ env.BASE_BUILD_NAME }}
+         IMAGES_PREFIX: ${{ env.IMAGES_PREFIX }}
         run: |
-          BASE_TAG=$(cat build-base_${{ matrix.os }})
-          BUILD_BASE_IMAGE=${{ env.DOCKER_REPOSITORY }}/zabbix-build-base@${BASE_TAG}
+            BASE_TAG=$(cat "${BASE_IMAGE}_${MATRIX_OS}")
+            BUILD_BASE_IMAGE="${DOCKER_REPOSITORY}/${IMAGES_PREFIX}${BASE_IMAGE}@${BASE_TAG}"
 
-          echo "base_tag=${BASE_TAG}" >> $GITHUB_OUTPUT
-          echo "base_build_image=${BUILD_BASE_IMAGE}" >> $GITHUB_OUTPUT
+            echo "::group::Base build image information"
+            echo "base_tag=${BASE_TAG}"
+            echo "base_build_image=${BUILD_BASE_IMAGE}"
+            echo "::endgroup::"
+
+            echo "base_tag=${BASE_TAG}" >> $GITHUB_OUTPUT
+            echo "base_build_image=${BUILD_BASE_IMAGE}" >> $GITHUB_OUTPUT
+
+      - name: Verify ${{ env.BASE_BUILD_NAME }}:${{ matrix.os }} cosign
+        env:
+         BASE_IMAGE: ${{ steps.base_build.outputs.base_build_image }}
+         OIDC_ISSUER: ${{ env.OIDC_ISSUER }}
+         IDENITY_REGEX: ${{ env.IDENITY_REGEX }}
+        run: |
+            echo "::group::Image sign data"
+            echo "OIDC issuer=$OIDC_ISSUER"
+            echo "Identity=$IDENITY_REGEX"
+            echo "Image to verify=$BASE_IMAGE"
+            echo "::endgroup::"
+
+            echo "::group::Verify signature"
+            cosign verify \
+                    --certificate-oidc-issuer-regexp "$OIDC_ISSUER" \
+                    --certificate-identity-regexp "$IDENITY_REGEX" \
+                "$BASE_IMAGE"
+            echo "::endgroup::"
 
       - name: Build ${{ matrix.build }}/${{ matrix.os }} and push
         id: docker_build
         uses: docker/build-push-action@v5
         with:
-          context: ./Dockerfiles/${{ matrix.build }}/${{ matrix.os }}
-          file: ./Dockerfiles/${{ matrix.build }}/${{ matrix.os }}/Dockerfile
+          context: ${{ env.DOCKERFILES_DIRECTORY }}/${{ matrix.build }}/${{ matrix.os }}
+          file: ${{ env.DOCKERFILES_DIRECTORY }}/${{ matrix.build }}/${{ matrix.os }}/Dockerfile
           platforms: ${{ steps.platform.outputs.list }}
-          push: ${{ secrets.AUTO_PUSH_IMAGES }}
+          push: ${{ env.AUTO_PUSH_IMAGES }}
           tags: ${{ steps.meta.outputs.tags }}
           build-args: BUILD_BASE_IMAGE=${{ steps.base_build.outputs.base_build_image }}
           labels: |
             org.opencontainers.image.revision=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.revision'] }}
             org.opencontainers.image.created=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.created'] }}
+          cache-from: |
+              type=gha,scope=${{ fromJSON(steps.meta.outputs.json).tags[0] }}
+              type=registry,ref=docker.io/${{ fromJSON(steps.meta.outputs.json).tags[0] }}
+          cache-to: type=gha,mode=max,scope=${{ fromJSON(steps.meta.outputs.json).tags[0] }}
+
+      - name: Sign the images with GitHub OIDC Token
+        env:
+          DIGEST: ${{ steps.docker_build.outputs.digest }}
+          TAGS: ${{ steps.meta.outputs.tags }}
+        run: |
+            images=""
+            for tag in ${TAGS}; do
+                images+="${tag}@${DIGEST} "
+            done
+
+            echo "::group::Images to sign"
+            echo "$images"
+            echo "::endgroup::"
+
+            echo "::group::Signing"
+            echo "cosign sign --yes $images"
+            cosign sign --yes ${images}
+            echo "::endgroup::"
 
       - name: Image digest
+        env:
+          DIGEST: ${{ steps.docker_build.outputs.digest }}
+          CACHE_FILE_NAME: ${{ matrix.build }}_${{ matrix.os }}
         run: |
-            echo ${{ steps.docker_build.outputs.digest }}
-            echo "${{ steps.docker_build.outputs.digest }}" > ${{ matrix.build }}_${{ matrix.os }}
+            echo "::group::Image digest"
+            echo "$DIGEST"
+            echo "::endgroup::"
+            echo "::group::Cache file name"
+            echo "$CACHE_FILE_NAME"
+            echo "::endgroup::"
+            echo "$DIGEST" > $CACHE_FILE_NAME
 
-      - name: Upload SHA256 tag
-        uses: actions/upload-artifact@v4
+      - name: Caching SHA256 tag of the image
+        uses: actions/cache@v4
         with:
-         name: ${{ matrix.build }}_${{ matrix.os }}
-         path: ${{ matrix.build }}_${{ matrix.os }}
-         if-no-files-found: error
+          path: ${{ matrix.build }}_${{ matrix.os }}
+          key: ${{ matrix.build }}-${{ matrix.os }}-${{ github.run_id }}
 
   build_images:
     timeout-minutes: 90
@@ -280,8 +597,141 @@ jobs:
         os: ${{ fromJson(needs.init_build.outputs.os) }}
 
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
     steps:
-      - uses: actions/checkout@v4
+      - name: Block egress traffic
+        uses: step-security/harden-runner@63c24ba6bd7ba022e95695ff85de572c04a18142 # v2.7.0
+        with:
+          disable-sudo: true
+          egress-policy: block
+          allowed-endpoints: >
+            api.github.com:443
+            auth.docker.io:443
+            dl-cdn.alpinelinux.org:443
+            github.com:443
+            index.docker.io:443
+            production.cloudflare.docker.com:443
+            registry-1.docker.io:443
+            fulcio.sigstore.dev:443
+            objects.githubusercontent.com:443
+            tuf-repo-cdn.sigstore.dev:443
+            rekor.sigstore.dev:443
+            api.github.com:443
+            atl.mirrors.knownhost.com:443
+            atl.mirrors.knownhost.com:80
+            auth.docker.io:443
+            cdn03.quay.io:443
+            centos-stream-distro.1gservers.com:443
+            centos-stream-distro.1gservers.com:80
+            d2lzkl7pfhq30w.cloudfront.net:443
+            epel.mirror.constant.com:80
+            forksystems.mm.fcix.net:80
+            ftp-nyc.osuosl.org:443
+            ftp-nyc.osuosl.org:80
+            ftp-osl.osuosl.org:443
+            ftp-osl.osuosl.org:80
+            ftp.plusline.net:80
+            ftpmirror.your.org:80
+            github.com:443
+            iad.mirror.rackspace.com:443
+            index.docker.io:443
+            ix-denver.mm.fcix.net:443
+            mirror-mci.yuki.net.uk:443
+            mirror.23m.com:80
+            mirror.arizona.edu:80
+            mirror.dal.nexril.net:80
+            mirror.de.leaseweb.net:80
+            mirror.dogado.de:80
+            mirror.facebook.net:80
+            mirror.hoobly.com:80
+            mirror.math.princeton.edu:80
+            mirror.netcologne.de:443
+            mirror.netzwerge.de:443
+            mirror.pilotfiber.com:443
+            mirror.pilotfiber.com:80
+            mirror.rackspace.com:443
+            mirror.rackspace.com:80
+            mirror.scaleuptech.com:443
+            mirror.servaxnet.com:443
+            mirror.servaxnet.com:80
+            mirror.sfo12.us.leaseweb.net:80
+            mirror.siena.edu:80
+            mirror.steadfastnet.com:80
+            mirror.team-cymru.com:443
+            mirror.team-cymru.com:80
+            mirror.umd.edu:443
+            mirror1.hs-esslingen.de:443
+            mirrors.centos.org:443
+            mirrors.fedoraproject.org:443
+            mirrors.iu13.net:443
+            mirrors.iu13.net:80
+            mirrors.ocf.berkeley.edu:443
+            mirrors.sonic.net:80
+            mirrors.syringanetworks.net:80
+            mirrors.vcea.wsu.edu:80
+            mirrors.wcupa.edu:80
+            mirrors.xtom.de:80
+            na.edge.kernel.org:443
+            nnenix.mm.fcix.net:80
+            ohioix.mm.fcix.net:80
+            production.cloudflare.docker.com:443
+            pubmirror1.math.uh.edu:443
+            pubmirror3.math.uh.edu:80
+            quay.io:443
+            registry-1.docker.io:443
+            repo.ialab.dsu.edu:80
+            repos.eggycrew.com:80
+            uvermont.mm.fcix.net:80
+            ziply.mm.fcix.net:443
+            fulcio.sigstore.dev:443
+            objects.githubusercontent.com:443
+            tuf-repo-cdn.sigstore.dev:443
+            rekor.sigstore.dev:443
+            oauth2.sigstore.dev:443
+            api.github.com:443
+            auth.docker.io:443
+            github.com:443
+            index.docker.io:443
+            production.cloudflare.docker.com:443
+            registry-1.docker.io:443
+            yum.oracle.com:443
+            fulcio.sigstore.dev:443
+            objects.githubusercontent.com:443
+            tuf-repo-cdn.sigstore.dev:443
+            rekor.sigstore.dev:443
+            api.github.com:443
+            archive.ubuntu.com:80
+            auth.docker.io:443
+            deb.debian.org:80
+            github.com:443
+            index.docker.io:443
+            keyserver.ubuntu.com:11371
+            nginx.org:443
+            nginx.org:80
+            ports.ubuntu.com:80
+            production.cloudflare.docker.com:443
+            registry-1.docker.io:443
+            security.ubuntu.com:80
+            fulcio.sigstore.dev:443
+            objects.githubusercontent.com:443
+            tuf-repo-cdn.sigstore.dev:443
+            rekor.sigstore.dev:443
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ env.TRUNK_ONLY_EVENT == 'true' && env.TRUNK_GIT_BRANCH || '' }}
+          fetch-depth: 1
+
+      - name: Install cosign
+        uses: sigstore/cosign-installer@e1523de7571e31dbe865fd2e80c5c7c23ae71eb4
+        with:
+          cosign-release: 'v2.2.3'
+
+      - name: Check cosign version
+        run: cosign version
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
@@ -302,76 +752,151 @@ jobs:
 
       - name: Prepare Platform list
         id: platform
+        env:
+          MATRIX_OS: ${{ matrix.os }}
+          MATRIX_BUILD: ${{ matrix.build }}
+          MATRIX_FILE: ${{ env.MATRIX_FILE }}
         run: |
             # Chromium on Alpine is available only on linux/amd64, linux/arm64 platforms
-            if ([ "${{ matrix.os }}" == "alpine" ] || [ "${{ matrix.os }}" == "centos" ]) && [ "${{ matrix.build }}" == "web-service" ]; then
+            if ([ "$MATRIX_OS" == "alpine" ] || [ "$MATRIX_OS" == "centos" ]) && [ "$MATRIX_BUILD" == "web-service" ]; then
                 platform_list="linux/amd64,linux/arm64"
             # Chromium on Ubuntu is not available on s390x platform
-            elif [ "${{ matrix.os }}" == "ubuntu" ] && [ "${{ matrix.build }}" == "web-service" ]; then
+            elif [ "$MATRIX_OS" == "ubuntu" ] && [ "$MATRIX_BUILD" == "web-service" ]; then
                 platform_list="linux/amd64,linux/arm/v7,linux/arm64"
             else
-                platform_list=$(jq -r '.["os-linux"].${{ matrix.os }} | join(",")' "./build.json")
+                platform_list=$(jq -r ".[\"os-linux\"].\"$MATRIX_OS\" | join(\",\")" "$MATRIX_FILE")
             fi
 
             # Build only Agent and Agent2 on 386
-            if [ "${{ matrix.build }}" != "agent"* ]; then
+            if [ "$MATRIX_BUILD" != "agent"* ]; then
                 platform_list="${platform_list#linux/386,}"
             fi
 
             platform_list="${platform_list%,}"
 
+            echo "::group::Platform List"
+            echo "$platform_list"
+            echo "::endgroup::"
+
             echo "list=$platform_list" >> $GITHUB_OUTPUT
 
       - name: Detect Build Base Image
         id: build_base_image
+        env:
+          MATRIX_BUILD: ${{ matrix.build }}
+          MATRIX_FILE: ${{ env.MATRIX_FILE }}
         run: |
-          BUILD_BASE=$(jq -r '.components."${{ matrix.build }}"' "./build.json")
+            BUILD_BASE=$(jq -r ".components.\"$MATRIX_BUILD\"" "$MATRIX_FILE")
 
-          echo "build_base=${BUILD_BASE}" >> $GITHUB_OUTPUT
+            echo "::group::Base Build Image"
+            echo "$BUILD_BASE"
+            echo "::endgroup::"
+
+            echo "build_base=${BUILD_BASE}" >> $GITHUB_OUTPUT
 
       - name: Generate tags
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ${{ env.DOCKER_REPOSITORY }}/zabbix-${{ matrix.build }}
+          images: ${{ env.DOCKER_REPOSITORY }}/${{ env.IMAGES_PREFIX}}${{ matrix.build }}
+          context: ${{ env.TRUNK_ONLY_EVENT == 'true' && 'git' || '' }}
           tags: |
-            type=semver,pattern={{version}},prefix=${{ matrix.os }}-
-            type=semver,pattern={{version}},suffix=-${{ matrix.os }}
-            type=ref,event=branch,prefix=${{ matrix.os }}-,suffix=-latest
-            type=ref,event=branch,suffix=-${{ matrix.os }}-latest
-            type=raw,enable=${{ needs.init_build.outputs.is_default_branch == 'true' }},value=${{matrix.os}}-latest
+            type=semver,enable=${{ needs.init_build.outputs.current_branch != 'trunk' }},pattern={{version}},prefix=${{ matrix.os }}-
+            type=semver,enable=${{ needs.init_build.outputs.current_branch != 'trunk' }},pattern={{version}},suffix=-${{ matrix.os }}
+            type=ref,enable=${{ needs.init_build.outputs.current_branch != 'trunk' }},event=branch,prefix=${{ matrix.os }}-,suffix=-latest
+            type=ref,enable=${{ needs.init_build.outputs.current_branch != 'trunk' }},event=branch,suffix=-${{ matrix.os }}-latest
+            type=raw,enable=${{ (needs.init_build.outputs.current_branch != 'trunk') && (needs.init_build.outputs.is_default_branch == 'true') }},value=${{matrix.os}}-latest
+            type=ref,enable=${{ needs.init_build.outputs.current_branch == 'trunk' }},event=branch,prefix=${{ matrix.os }}-
+            type=ref,enable=${{ needs.init_build.outputs.current_branch == 'trunk' }},event=branch,suffix=-${{ matrix.os }}
           flavor: |
-            latest=${{ (matrix.os == 'alpine') && ( needs.init_build.outputs.is_default_branch == 'true' ) }}
+            latest=${{ (needs.init_build.outputs.current_branch != 'trunk') && (matrix.os == 'alpine') && ( needs.init_build.outputs.is_default_branch == 'true' ) }}
 
-      - name: Download SHA256 tag for ${{ steps.build_base_image.outputs.build_base }}:${{ matrix.os }}
-        uses: actions/download-artifact@v4
+      - name: Download SHA256 tag of ${{ steps.build_base_image.outputs.build_base }}:${{ matrix.os }}
+        uses: actions/cache@v4
         if: ${{ matrix.build != 'snmptraps' }}
         with:
-          name: ${{ steps.build_base_image.outputs.build_base }}_${{ matrix.os }}
+          path: ${{ steps.build_base_image.outputs.build_base }}_${{ matrix.os }}
+          key: ${{ steps.build_base_image.outputs.build_base }}-${{ matrix.os }}-${{ github.run_id }}
 
       - name: Retrieve ${{ steps.build_base_image.outputs.build_base }}:${{ matrix.os }} SHA256 tag
         id: base_build
         if: ${{ matrix.build != 'snmptraps' }}
+        env:
+          BUILD_BASE: ${{ steps.build_base_image.outputs.build_base }}
+          MATRIX_OS: ${{ matrix.os }}
+          DOCKER_REPOSITORY: ${{ env.DOCKER_REPOSITORY }}
+          IMAGES_PREFIX: ${{ env.IMAGES_PREFIX }}
         run: |
-          BASE_TAG=$(cat ${{ steps.build_base_image.outputs.build_base }}_${{ matrix.os }})
-          BUILD_BASE_IMAGE=${{ env.DOCKER_REPOSITORY }}/zabbix-${{ steps.build_base_image.outputs.build_base }}@${BASE_TAG}
+            BASE_TAG=$(cat "${BUILD_BASE}_${MATRIX_OS}")
+            BUILD_BASE_IMAGE=${DOCKER_REPOSITORY}/${IMAGES_PREFIX}${BUILD_BASE}@${BASE_TAG}
 
-          echo "base_tag=${BASE_TAG}" >> $GITHUB_OUTPUT
-          echo "base_build_image=${BUILD_BASE_IMAGE}" >> $GITHUB_OUTPUT
+            echo "::group::Base build image information"
+            echo "base_tag=${BASE_TAG}"
+            echo "base_build_image=${BUILD_BASE_IMAGE}"
+            echo "::endgroup::"
 
-      - name: Build ${{ matrix.build }}/${{ matrix.os }} and push
+            echo "base_tag=${BASE_TAG}" >> $GITHUB_OUTPUT
+            echo "base_build_image=${BUILD_BASE_IMAGE}" >> $GITHUB_OUTPUT
+
+      - name: Verify ${{ steps.build_base_image.outputs.build_base }}:${{ matrix.os }} cosign
+        if: ${{ matrix.build != 'snmptraps' }}
+        env:
+         BASE_IMAGE: ${{ steps.base_build.outputs.base_build_image }}
+         OIDC_ISSUER: ${{ env.OIDC_ISSUER }}
+         IDENITY_REGEX: ${{ env.IDENITY_REGEX }}
+        run: |
+            echo "::group::Image sign data"
+            echo "OIDC issuer=$OIDC_ISSUER"
+            echo "Identity=$IDENITY_REGEX"
+            echo "Image to verify=$BASE_IMAGE"
+            echo "::endgroup::"
+
+            echo "::group::Verify signature"
+            cosign verify \
+                    --certificate-oidc-issuer-regexp "$OIDC_ISSUER" \
+                    --certificate-identity-regexp "$IDENITY_REGEX" \
+                "$BASE_IMAGE"
+            echo "::endgroup::"
+
+      - name: Build and push image
         id: docker_build
         uses: docker/build-push-action@v5
         with:
-          context: ./Dockerfiles/${{ matrix.build }}/${{ matrix.os }}
-          file: ./Dockerfiles/${{ matrix.build }}/${{ matrix.os }}/Dockerfile
+          context: ${{ env.DOCKERFILES_DIRECTORY }}/${{ matrix.build }}/${{ matrix.os }}
+          file: ${{ env.DOCKERFILES_DIRECTORY }}/${{ matrix.build }}/${{ matrix.os }}/Dockerfile
           platforms: ${{ steps.platform.outputs.list }}
-          push: ${{ secrets.AUTO_PUSH_IMAGES }}
+          push: ${{ env.AUTO_PUSH_IMAGES }}
           tags: ${{ steps.meta.outputs.tags }}
           build-args: BUILD_BASE_IMAGE=${{ steps.base_build.outputs.base_build_image }}
           labels: |
             org.opencontainers.image.revision=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.revision'] }}
             org.opencontainers.image.created=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.created'] }}
+          cache-from: type=gha,scope=${{ fromJSON(steps.meta.outputs.json).tags[0] }}
+          cache-to: type=gha,mode=max,scope=${{ fromJSON(steps.meta.outputs.json).tags[0] }}
+
+      - name: Sign the images with GitHub OIDC Token
+        env:
+          DIGEST: ${{ steps.docker_build.outputs.digest }}
+          TAGS: ${{ steps.meta.outputs.tags }}
+        run: |
+            images=""
+            for tag in ${TAGS}; do
+                images+="${tag}@${DIGEST} "
+            done
+
+            echo "::group::Images to sign"
+            echo "$images"
+            echo "::endgroup::"
+
+            echo "::group::Signing"
+            echo "cosign sign --yes $images"
+            cosign sign --yes ${images}
+            echo "::endgroup::"
 
       - name: Image digest
-        run: echo ${{ steps.docker_build.outputs.digest }}
+        env:
+          DIGEST: ${{ steps.docker_build.outputs.digest }}
+        run: |
+            echo "::group::Image digest"
+            echo "$DIGEST"
+            echo "::endgroup::"
