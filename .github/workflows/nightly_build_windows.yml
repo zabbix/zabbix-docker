@@ -10,6 +10,7 @@ defaults:
     shell: pwsh
 
 env:
+  TRUNK_ONLY_EVENT: ${{ contains(fromJSON('["schedule", "workflow_dispatch"]'), github.event_name) }}
   AUTO_PUSH_IMAGES: ${{ vars.AUTO_PUSH_IMAGES }}
 
   DOCKER_REPOSITORY: ${{ vars.DOCKER_REPOSITORY }}
@@ -99,13 +100,16 @@ jobs:
         id: branch_info
         shell: bash
         env:
+          TRUNK_ONLY_EVENT: ${{ env.TRUNK_ONLY_EVENT }}
           LATEST_BRANCH: ${{ env.LATEST_BRANCH }}
           github_ref: ${{ github.ref }}
-          EVENT_NAME: ${{ github.event_name }}
         run: |
             result=false
             sha_short=$(git rev-parse --short HEAD)
-            github_ref=$(git symbolic-ref HEAD)
+
+            if [[ "$TRUNK_ONLY_EVENT" == "true" ]]; then
+                github_ref=$(git symbolic-ref HEAD)
+            fi
 
             if [[ "$github_ref" == "refs/tags/"* ]]; then
                 github_ref=${github_ref%.*}
@@ -180,7 +184,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          context: git
+          context: ${{ (env.TRUNK_ONLY_EVENT != true) && 'git' }}
           images: ${{ env.DOCKER_REPOSITORY }}/${{ env.IMAGES_PREFIX }}${{ env.BASE_IMAGE_NAME }}
           tags: |
             type=semver,enable=${{ needs.init_build.outputs.current_branch != 'trunk' }},pattern={{version}},prefix=${{ matrix.component }}-${{ steps.base_os_tag.outputs.os_tag }}-
