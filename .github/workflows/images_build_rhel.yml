@@ -137,7 +137,7 @@ jobs:
 
       - name: Image digest
         env:
-          TAGS: ${{ steps.meta.outputs.tags[0] }}
+          TAGS: ${{ steps.meta.outputs.json.tags[0] }}
           CACHE_FILE_NAME: ${{ env.BASE_BUILD_NAME }}_${{ matrix.arch }}
         run: |
             echo "$TAGS"
