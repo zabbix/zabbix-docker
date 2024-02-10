@@ -42,6 +42,13 @@ jobs:
         with:
           disable-sudo: true
           egress-policy: block
+          allowed-endpoints: >
+            github.com:443
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
 
       - name: Get branch info
         id: branch_info
