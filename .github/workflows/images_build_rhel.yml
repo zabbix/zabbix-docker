@@ -90,14 +90,14 @@ jobs:
 
   build_base:
     timeout-minutes: 30
-    name: Build ${{ matrix.build }} base on RHEL (${{ matrix.server_arch }})
+    name: Build ${{ matrix.build }} base on RHEL (${{ matrix.os }})
+    runs-on: [self-hosted, linux, ${{ matrix.os }}]
     needs: ["init_build"]
     strategy:
       fail-fast: false
       matrix:
         build: [build-base]
-        server_arch: [X64, ARM64]
-    runs-on: [self-hosted, linux, ${{ matrix.server_arch }}]
+        os: [X64, ARM64]
     permissions:
       contents: read
       id-token: write
