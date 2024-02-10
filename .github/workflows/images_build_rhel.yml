@@ -262,13 +262,6 @@ jobs:
           path: build_${{ matrix.build }}_${{ matrix.arch }}
           key: build-${{ matrix.build }}-${{ matrix.arch }}-${{ github.run_id }}
 
-      - name: Cleanup artifacts
-        if: success() || failure()
-        env:
-          BUILD_BASE_IMAGE: ${{ steps.base_build.outputs.base_build_image }}
-        run: |
-            podman rmi -i -f ${BUILD_BASE_IMAGE}
-
   build_images:
     timeout-minutes: 90
     needs: [ "build_base_database", "init_build"]
