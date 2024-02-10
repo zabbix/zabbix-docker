@@ -135,6 +135,21 @@ jobs:
           tags: |
             type=sha,suffix=-${{ matrix.arch }}
 
+      - name: Image digest
+        env:
+          TAGS: ${{ steps.meta.outputs.tags[0] }}
+          CACHE_FILE_NAME: ${{ env.BASE_BUILD_NAME }}_${{ matrix.arch }}
+        run: |
+            echo "$TAGS"
+            echo "::group::Image digest"
+            echo "$DIGEST"
+            echo "::endgroup::"
+            echo "::group::Cache file name"
+            echo "$CACHE_FILE_NAME"
+            echo "::endgroup::"
+
+            echo "$DIGEST" > "$CACHE_FILE_NAME"
+
       - name: Build Zabbix Build Base
         id: build_image
         uses: redhat-actions/buildah-build@v2
@@ -149,7 +164,7 @@ jobs:
 
       - name: Image digest
         env:
-          DIGEST: ${{ steps.docker_build.outputs.digest }}
+          TAGS: ${{ steps.meta.outputs.tags[0] }}
           CACHE_FILE_NAME: ${{ env.BASE_BUILD_NAME }}_${{ matrix.arch }}
         run: |
             echo "${{ steps.docker_build.outputs }}"
