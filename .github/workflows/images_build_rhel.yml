@@ -10,6 +10,9 @@ defaults:
   run:
     shell: bash
 
+permissions:
+   contents: read
+
 env:
   AUTO_PUSH_IMAGES: ${{ contains(fromJSON('["workflow_dispatch"]'), github.event_name) && 'false' || vars.AUTO_PUSH_IMAGES }}
 
