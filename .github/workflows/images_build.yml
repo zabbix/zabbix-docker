@@ -234,6 +234,7 @@ jobs:
             mirror.team-cymru.com:80
             mirror1.hs-esslingen.de:443
             mirrors.centos.org:443
+            mirrorlist.centos.org:80
             mirrors.fedoraproject.org:443
             mirrors.fedoraproject.org:80
             mirrors.iu13.net:80
@@ -664,6 +665,7 @@ jobs:
             mirror.umd.edu:443
             mirror1.hs-esslingen.de:443
             mirrors.centos.org:443
+            mirrorlist.centos.org:80
             mirrors.fedoraproject.org:443
             mirrors.iu13.net:443
             mirrors.iu13.net:80
