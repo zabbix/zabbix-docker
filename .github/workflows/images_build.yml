@@ -16,7 +16,7 @@ on:
       - '!Dockerfiles/*/windows/*'
       - '.github/workflows/images_build.yml'
   schedule:
-    - cron:  '10 14 * * *'
+    - cron:  '50 02 * * *'
   workflow_dispatch:
 
 defaults:
@@ -544,8 +544,8 @@ jobs:
             org.opencontainers.image.revision=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.revision'] }}
             org.opencontainers.image.created=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.created'] }}
           cache-from: |
-              type=gha,scope=${{ fromJSON(steps.meta.outputs.json).tags[0] }}
-              type=registry,ref=docker.io/${{ fromJSON(steps.meta.outputs.json).tags[0] }}
+              type=gha,scope=${{ steps.base_build.outputs.base_build_image }}
+              type=registry,ref=${{ steps.base_build.outputs.base_build_image }}
           cache-to: type=gha,mode=max,scope=${{ fromJSON(steps.meta.outputs.json).tags[0] }}
 
       - name: Sign the images with GitHub OIDC Token
@@ -858,6 +858,22 @@ jobs:
                 "$BASE_IMAGE"
             echo "::endgroup::"
 
+      - name: Prepare cache data
+        id: cache_data
+        env:
+          BASE_IMAGE_TAG: ${{ steps.base_build.outputs.base_build_image }}
+        run: |
+            cache_images=""
+            if [[ ! -z "$BASE_IMAGE_TAG" ]]; then
+                cache_images="type=gha,scope=$BASE_IMAGE_TAG"$'\n'"type=registry,ref=$BASE_IMAGE_TAG"
+            fi
+
+            echo "::group::Base images cache"
+            echo "$cache_images"
+            echo "::endgroup::"
+
+            echo "cache_from=$cache_images" >> $GITHUB_OUTPUT
+
       - name: Build and push image
         id: docker_build
         uses: docker/build-push-action@v5
@@ -871,8 +887,7 @@ jobs:
           labels: |
             org.opencontainers.image.revision=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.revision'] }}
             org.opencontainers.image.created=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.created'] }}
-          cache-from: type=gha,scope=${{ fromJSON(steps.meta.outputs.json).tags[0] }}
-          cache-to: type=gha,mode=max,scope=${{ fromJSON(steps.meta.outputs.json).tags[0] }}
+          cache-from: ${{ steps.cache_data.outputs.cache_from }}
 
       - name: Sign the images with GitHub OIDC Token
         env:
