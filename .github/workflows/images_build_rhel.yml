@@ -24,6 +24,7 @@ env:
 
   REGISTRY: "quay.io"
   REGISTRY_NAMESPACE: "redhat-isv-containers"
+  PREFLIGHT_IMAGE: "quay.io/opdev/preflight:stable"
   PFLT_LOGLEVEL: "warn"
   PFLT_ARTIFACTS: "/tmp/artifacts"
 
@@ -285,7 +286,7 @@ jobs:
         env:
           ARCH: ${{ matrix.arch }}
         run: |
-          echo "arch=${ARCH,,}" >> $GITHUB_OUTPUT
+            echo "arch=${ARCH,,}" >> $GITHUB_OUTPUT
 
       - name: Detect Build Base Image
         id: build_base_image
@@ -309,10 +310,10 @@ jobs:
           MATRIX_BUILD: ${{ matrix.build }}
           CURRENT_BRANCH: ${{ needs.init_build.outputs.current_branch }}
         run: |
-          IMAGE_NAME=$(jq --raw-output --argjson data "$REDHAT_CERTIFY_CREDENTIALS" -n "\$data.\"$CURRENT_BRANCH\".components.\"$MATRIX_BUILD\".login")
+            IMAGE_NAME=$(jq --raw-output --argjson data "$REDHAT_CERTIFY_CREDENTIALS" -n "\$data.\"$CURRENT_BRANCH\".components.\"$MATRIX_BUILD\".login")
 
-          echo "::add-mask::$IMAGE_NAME"
-          echo "image_name=$IMAGE_NAME" >> $GITHUB_OUTPUT
+            echo "::add-mask::$IMAGE_NAME"
+            echo "image_name=$IMAGE_NAME" >> $GITHUB_OUTPUT
 
       - name: Generate credentials
         id: login_credentials
@@ -321,15 +322,15 @@ jobs:
           MATRIX_BUILD: ${{ matrix.build }}
           CURRENT_BRANCH: ${{ needs.init_build.outputs.current_branch }}
         run: |
-          IMAGE_NAME=$(jq --raw-output --argjson data "$REDHAT_CERTIFY_CREDENTIALS" -n "\$data.\"$CURRENT_BRANCH\".components.\"$MATRIX_BUILD\".login")
-          REGISTRY_PASSWORD=$(jq --raw-output --argjson data "$REDHAT_CERTIFY_CREDENTIALS" -n "\$data.\"$CURRENT_BRANCH\".components.\"$MATRIX_BUILD\".secret")
+            IMAGE_NAME=$(jq --raw-output --argjson data "$REDHAT_CERTIFY_CREDENTIALS" -n "\$data.\"$CURRENT_BRANCH\".components.\"$MATRIX_BUILD\".login")
+            REGISTRY_PASSWORD=$(jq --raw-output --argjson data "$REDHAT_CERTIFY_CREDENTIALS" -n "\$data.\"$CURRENT_BRANCH\".components.\"$MATRIX_BUILD\".secret")
 
-          echo "::add-mask::$IMAGE_NAME"
-          echo "::add-mask::redhat-isv-containers+$IMAGE_NAME-robot"
-          echo "::add-mask::$REGISTRY_PASSWORD"
+            echo "::add-mask::$IMAGE_NAME"
+            echo "::add-mask::redhat-isv-containers+$IMAGE_NAME-robot"
+            echo "::add-mask::$REGISTRY_PASSWORD"
 
-          echo "username=$IMAGE_NAME" >> $GITHUB_OUTPUT
-          echo "password=$REGISTRY_PASSWORD" >> $GITHUB_OUTPUT
+            echo "username=$IMAGE_NAME" >> $GITHUB_OUTPUT
+            echo "password=$REGISTRY_PASSWORD" >> $GITHUB_OUTPUT
 
       - name: Log in to Quay.io
         uses: redhat-actions/podman-login@v1.6
@@ -415,9 +416,15 @@ jobs:
           PFLT_ARTIFACTS: ${{ env.PFLT_ARTIFACTS }}
           PFLT_LOGLEVEL: ${{ env.PFLT_LOGLEVEL }}
           IMAGE_TAG: ${{ steps.build_image.outputs.image-with-tag }}
+          PREFLIGHT_IMAGE: ${{ env.PREFLIGHT_IMAGE }}
         run: |
-          mkdir -p $PFLT_ARTIFACTS
-          podman run \
+            mkdir -p $PFLT_ARTIFACTS
+            echo "::group::Pull preflight image"
+            podman pull "$PREFLIGHT_IMAGE"
+            echo "::endgroup::"
+
+            echo "::group::Perform certification tests"
+            podman run \
               -it \
               --rm \
               --security-opt=label=disable \
@@ -429,7 +436,9 @@ jobs:
               --env PFLT_DOCKERCONFIG=/temp-authfile.json \
               -v $PFLT_ARTIFACTS:/artifacts \
               -v $PFLT_DOCKERCONFIG:/temp-authfile.json:ro \
-              quay.io/opdev/preflight:stable check container $IMAGE_TAG --submit
+                "$PREFLIGHT_IMAGE" check container $IMAGE_TAG --submit
+            podman rmi -i -f "$PREFLIGHT_IMAGE"
+            echo "::endgroup::"
 
       - name: Push to RedHat certification procedure
         id: push_to_registry_all_tags
@@ -440,9 +449,16 @@ jobs:
 
       - name: Cleanup artifacts
         if: ${{ always() }}
+        env:
+          PREFLIGHT_IMAGE: ${{ env.PREFLIGHT_IMAGE }}
+          PFLT_ARTIFACTS: ${{ env.PFLT_ARTIFACTS }}
+          TAGS: ${{ steps.meta.outputs.tags }}
         run: |
-          echo "${{ steps.meta.outputs.tags }}" | while IFS= read -r image_name ; do podman rmi -i -f $image_name; done
-          rm -rf ${{ env.PFLT_ARTIFACTS }}
+            echo "::group::Post build actions"
+            echo "$TAGS" | while IFS= read -r image_name ; do podman rmi -i -f "$image_name"; done
+            rm -rf "$PFLT_ARTIFACTS"
+            podman rmi -i -f "$PREFLIGHT_IMAGE"
+            echo "::endgroup::"
 
   clean_artifacts:
     timeout-minutes: 90
@@ -451,22 +467,22 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        build: [mysql, sqlite3]
+        build: [build-mysql, build-sqlite3]
         arch: [X64, ARM64]
     runs-on: [self-hosted, linux, "${{ matrix.arch }}"]
     if: ${{ always() && needs.build_base_database.result == 'success' }}
     permissions: {}
     steps:
-      - name: Download SHA256 tag of build-${{ matrix.build }}:${{ matrix.arch }}
+      - name: Download SHA256 tag of ${{ matrix.build }}:${{ matrix.arch }}
         uses: actions/cache@v4
         with:
-          path: build_${{ matrix.build }}_${{ matrix.arch }}
-          key: build-${{ matrix.build }}-${{ matrix.arch }}-${{ github.run_id }}
+          path: ${{ matrix.build }}_${{ matrix.arch }}
+          key: ${{ matrix.build }}-${{ matrix.arch }}-${{ github.run_id }}
 
-      - name: Remove build-${{ matrix.build }}:${{ matrix.arch }} SHA256 tag
+      - name: Remove ${{ matrix.build }}:${{ matrix.arch }} SHA256 tag
         env:
          MATRIX_ARCH: ${{ matrix.arch }}
-         BASE_IMAGE: build_${{ matrix.build }}
+         BASE_IMAGE: ${{ matrix.build }}
          IMAGES_PREFIX: ${{ env.IMAGES_PREFIX }}
         run: |
             BASE_TAG=$(cat "${BASE_IMAGE}_${MATRIX_ARCH}")
@@ -482,7 +498,6 @@ jobs:
 
 
       - name: Remove ${{ env.BASE_BUILD_NAME }}:${{ matrix.arch }} SHA256 tag
-        if: ${{ matrix.build == 'mysql' }}
         env:
          MATRIX_ARCH: ${{ matrix.arch }}
          BASE_IMAGE: ${{ env.BASE_BUILD_NAME }}
