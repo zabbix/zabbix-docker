@@ -55,7 +55,7 @@ RUN set -eux && \
             --enable-proxy \
             --with-ldap \
             --with-libcurl \
-#            --with-libmodbus \
+            --with-libmodbus \
             --with-libpcre2 \
             --with-libxml2 \
             --with-net-snmp \
