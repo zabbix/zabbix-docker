@@ -67,7 +67,7 @@ jobs:
             github.com:443
 
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
         with:
           ref: ${{ env.TRUNK_ONLY_EVENT == 'true' && env.TRUNK_GIT_BRANCH || '' }}
           fetch-depth: 1
@@ -154,8 +154,13 @@ jobs:
         os: ${{ fromJson(needs.init_build.outputs.os) }}
         component: ${{ fromJson(needs.init_build.outputs.components) }}
     steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@63c24ba6bd7ba022e95695ff85de572c04a18142 # v2.7.0
+        with:
+          egress-policy: audit
+
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
         with:
           ref: ${{ env.TRUNK_ONLY_EVENT == 'true' && env.TRUNK_GIT_BRANCH || '' }}
           fetch-depth: 1
@@ -169,7 +174,7 @@ jobs:
         run: cosign version
 
       - name: Login to DockerHub
-        uses: docker/login-action@v3
+        uses: docker/login-action@343f7c4344506bcbf9b4de18042ae17996df046d # v3.0.0
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
@@ -190,7 +195,7 @@ jobs:
 
       - name: Generate tags
         id: meta
-        uses: docker/metadata-action@v5
+        uses: docker/metadata-action@8e5442c4ef9f78752691e2d8f8d19755c6f78e81 # v5.5.1
         with:
           images: ${{ env.DOCKER_REPOSITORY }}/${{ env.IMAGES_PREFIX }}${{ env.BASE_IMAGE_NAME }}
           context: ${{ env.TRUNK_ONLY_EVENT == 'true' && 'git' || '' }}
@@ -324,7 +329,7 @@ jobs:
             $Env:DIGEST | Set-Content -Path $Env:CACHE_FILE_NAME
 
       - name: Cache image digest
-        uses: actions/cache@v4
+        uses: actions/cache@13aacd865c20de90d75de3b17ebe84f7a17d57d2 # v4.0.0
         with:
           path: ${{ env.BASE_IMAGE_NAME }}_${{ matrix.os }}_${{ matrix.component }}
           key: ${{ env.BASE_IMAGE_NAME }}-${{ matrix.os }}-${{ github.run_id }}
@@ -343,8 +348,13 @@ jobs:
         os: ${{ fromJson(needs.init_build.outputs.os) }}
         component: ${{ fromJson(needs.init_build.outputs.components) }}
     steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@63c24ba6bd7ba022e95695ff85de572c04a18142 # v2.7.0
+        with:
+          egress-policy: audit
+
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
         with:
           ref: ${{ env.TRUNK_ONLY_EVENT == 'true' && env.TRUNK_GIT_BRANCH || '' }}
           fetch-depth: 1
@@ -358,7 +368,7 @@ jobs:
         run: cosign version
 
       - name: Login to DockerHub
-        uses: docker/login-action@v3
+        uses: docker/login-action@343f7c4344506bcbf9b4de18042ae17996df046d # v3.0.0
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
@@ -379,7 +389,7 @@ jobs:
 
       - name: Generate tags
         id: meta
-        uses: docker/metadata-action@v5
+        uses: docker/metadata-action@8e5442c4ef9f78752691e2d8f8d19755c6f78e81 # v5.5.1
         with:
           images: ${{ env.DOCKER_REPOSITORY }}/${{ env.IMAGES_PREFIX }}${{ env.BASE_BUILD_IMAGE_NAME }}
           context: ${{ env.TRUNK_ONLY_EVENT == 'true' && 'git' || '' }}
@@ -395,7 +405,7 @@ jobs:
             latest=false
 
       - name: Download SHA256 tag of ${{ env.BASE_IMAGE_NAME }}:${{ matrix.os }}
-        uses: actions/cache@v4
+        uses: actions/cache@13aacd865c20de90d75de3b17ebe84f7a17d57d2 # v4.0.0
         with:
           path: ${{ env.BASE_IMAGE_NAME }}_${{ matrix.os }}_${{ matrix.component }}
           key: ${{ env.BASE_IMAGE_NAME }}-${{ matrix.os }}-${{ github.run_id }}
@@ -551,7 +561,7 @@ jobs:
             $Env:DIGEST | Set-Content -Path $Env:CACHE_FILE_NAME
 
       - name: Cache image digest
-        uses: actions/cache@v4
+        uses: actions/cache@13aacd865c20de90d75de3b17ebe84f7a17d57d2 # v4.0.0
         with:
           path: ${{ env.BASE_BUILD_IMAGE_NAME }}_${{ matrix.os }}_${{ matrix.component }}
           key: ${{ env.BASE_BUILD_IMAGE_NAME }}-${{ matrix.os }}-${{ github.run_id }}
@@ -570,8 +580,13 @@ jobs:
         os: ${{ fromJson(needs.init_build.outputs.os) }}
         component: ${{ fromJson(needs.init_build.outputs.components) }}
     steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@63c24ba6bd7ba022e95695ff85de572c04a18142 # v2.7.0
+        with:
+          egress-policy: audit
+
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
         with:
           ref: ${{ env.TRUNK_ONLY_EVENT == 'true' && env.TRUNK_GIT_BRANCH || '' }}
           fetch-depth: 1
@@ -585,7 +600,7 @@ jobs:
         run: cosign version
 
       - name: Login to DockerHub
-        uses: docker/login-action@v3
+        uses: docker/login-action@343f7c4344506bcbf9b4de18042ae17996df046d # v3.0.0
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
@@ -606,7 +621,7 @@ jobs:
 
       - name: Generate tags
         id: meta
-        uses: docker/metadata-action@v5
+        uses: docker/metadata-action@8e5442c4ef9f78752691e2d8f8d19755c6f78e81 # v5.5.1
         with:
           images: ${{ env.DOCKER_REPOSITORY }}/${{ env.IMAGES_PREFIX }}${{ matrix.component }}
           context: ${{ env.TRUNK_ONLY_EVENT == 'true' && 'git' || '' }}
@@ -622,7 +637,7 @@ jobs:
             latest=false
 
       - name: Download SHA256 tag of ${{ env.BASE_BUILD_IMAGE_NAME }}:${{ matrix.os }}
-        uses: actions/cache@v4
+        uses: actions/cache@13aacd865c20de90d75de3b17ebe84f7a17d57d2 # v4.0.0
         with:
           path: ${{ env.BASE_BUILD_IMAGE_NAME }}_${{ matrix.os }}_${{ matrix.component }}
           key: ${{ env.BASE_BUILD_IMAGE_NAME }}-${{ matrix.os }}-${{ github.run_id }}

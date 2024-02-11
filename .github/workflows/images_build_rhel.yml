@@ -53,7 +53,7 @@ jobs:
             github.com:443
 
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
         with:
           fetch-depth: 1
 
@@ -115,8 +115,13 @@ jobs:
     permissions:
       contents: read
     steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@63c24ba6bd7ba022e95695ff85de572c04a18142 # v2.7.0
+        with:
+          egress-policy: audit
+
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
         with:
           fetch-depth: 1
 
@@ -137,7 +142,7 @@ jobs:
 
       - name: Generate tags
         id: meta
-        uses: docker/metadata-action@v5
+        uses: docker/metadata-action@8e5442c4ef9f78752691e2d8f8d19755c6f78e81 # v5.5.1
         with:
           images: ${{ env.IMAGES_PREFIX }}${{ matrix.build }}
           tags: |
@@ -145,7 +150,7 @@ jobs:
 
       - name: Build Zabbix Build Base
         id: build_image
-        uses: redhat-actions/buildah-build@v2
+        uses: redhat-actions/buildah-build@b4dc19b4ba891854660ab1f88a097d45aa158f76 # v2.12
         with:
           context: ${{ env.DOCKERFILES_DIRECTORY }}/${{ matrix.build }}/rhel
           layers: false
@@ -171,7 +176,7 @@ jobs:
             echo "$DIGEST" > "$CACHE_FILE_NAME"
 
       - name: Cache image digest
-        uses: actions/cache@v4
+        uses: actions/cache@13aacd865c20de90d75de3b17ebe84f7a17d57d2 # v4.0.0
         with:
           path: ${{ env.BASE_BUILD_NAME }}_${{ matrix.arch }}
           key: ${{ env.BASE_BUILD_NAME }}-${{ matrix.arch }}-${{ github.run_id }}
@@ -190,8 +195,13 @@ jobs:
       contents: read
       id-token: write
     steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@63c24ba6bd7ba022e95695ff85de572c04a18142 # v2.7.0
+        with:
+          egress-policy: audit
+
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
         with:
           fetch-depth: 1
 
@@ -204,14 +214,14 @@ jobs:
 
       - name: Generate tags
         id: meta
-        uses: docker/metadata-action@v5
+        uses: docker/metadata-action@8e5442c4ef9f78752691e2d8f8d19755c6f78e81 # v5.5.1
         with:
           images: ${{ env.IMAGES_PREFIX }}${{ matrix.build }}
           tags: |
             type=sha,suffix=-${{ steps.lc.outputs.arch }}
 
       - name: Download SHA256 tag of ${{ env.BASE_BUILD_NAME }}:${{ matrix.arch }}
-        uses: actions/cache@v4
+        uses: actions/cache@13aacd865c20de90d75de3b17ebe84f7a17d57d2 # v4.0.0
         with:
           path: ${{ env.BASE_BUILD_NAME }}_${{ matrix.arch }}
           key: ${{ env.BASE_BUILD_NAME }}-${{ matrix.arch }}-${{ github.run_id }}
@@ -236,7 +246,7 @@ jobs:
 
       - name: Build Zabbix Build Base
         id: build_image
-        uses: redhat-actions/buildah-build@v2
+        uses: redhat-actions/buildah-build@b4dc19b4ba891854660ab1f88a097d45aa158f76 # v2.12
         with:
           context: ${{ env.DOCKERFILES_DIRECTORY }}/${{ matrix.build }}/rhel
           layers: false
@@ -261,7 +271,7 @@ jobs:
             echo "$DIGEST" > "$CACHE_FILE_NAME"
 
       - name: Cache image digest
-        uses: actions/cache@v4
+        uses: actions/cache@13aacd865c20de90d75de3b17ebe84f7a17d57d2 # v4.0.0
         with:
           path: ${{ matrix.build }}_${{ matrix.arch }}
           key: ${{ matrix.build }}-${{ matrix.arch }}-${{ github.run_id }}
@@ -280,8 +290,13 @@ jobs:
       contents: read
       id-token: write
     steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@63c24ba6bd7ba022e95695ff85de572c04a18142 # v2.7.0
+        with:
+          egress-policy: audit
+
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
         with:
           fetch-depth: 1
 
@@ -337,7 +352,7 @@ jobs:
             echo "password=$REGISTRY_PASSWORD" >> $GITHUB_OUTPUT
 
       - name: Log in to Quay.io
-        uses: redhat-actions/podman-login@v1.6
+        uses: redhat-actions/podman-login@9184318aae1ee5034fbfbacc0388acf12669171f # v1.6
         if: ${{ env.AUTO_PUSH_IMAGES == 'true' }}
         env:
           LOGIN: ${{ steps.login_credentials.outputs.username }}
@@ -357,7 +372,7 @@ jobs:
 
       - name: Generate tags
         id: meta
-        uses: docker/metadata-action@v5
+        uses: docker/metadata-action@8e5442c4ef9f78752691e2d8f8d19755c6f78e81 # v5.5.1
         with:
           images: ${{ env.REGISTRY }}/${{ env.REGISTRY_NAMESPACE }}/${{ steps.image_name.outputs.image_name }}
           tags: |
@@ -368,7 +383,7 @@ jobs:
             suffix=${{ matrix.arch == 'ARM64' && '-arm64' || '' }},onlatest=true
 
       - name: Download SHA256 tag of ${{ steps.build_base_image.outputs.build_base }}:${{ matrix.arch }}
-        uses: actions/cache@v4
+        uses: actions/cache@13aacd865c20de90d75de3b17ebe84f7a17d57d2 # v4.0.0
         with:
           path: ${{ steps.build_base_image.outputs.build_base }}_${{ matrix.arch }}
           key: ${{ steps.build_base_image.outputs.build_base }}-${{ matrix.arch }}-${{ github.run_id }}
@@ -393,7 +408,7 @@ jobs:
 
       - name: Build ${{ matrix.build }}
         id: build_image
-        uses: redhat-actions/buildah-build@v2
+        uses: redhat-actions/buildah-build@b4dc19b4ba891854660ab1f88a097d45aa158f76 # v2.12
         with:
           context: ${{ env.DOCKERFILES_DIRECTORY }}/${{ matrix.build }}/rhel
           layers: false
@@ -408,7 +423,7 @@ jobs:
       - name: Push to RedHat certification procedure
         id: push_to_registry
         if: ${{ env.AUTO_PUSH_IMAGES == 'true' }}
-        uses: redhat-actions/push-to-registry@v2
+        uses: redhat-actions/push-to-registry@9986a6552bc4571882a4a67e016b17361412b4df # v2.7.1
         with:
           tags: ${{ steps.meta.outputs.tags }}
 
@@ -448,7 +463,7 @@ jobs:
       - name: Push to RedHat certification procedure
         id: push_to_registry_all_tags
         if: ${{ env.AUTO_PUSH_IMAGES == 'true' }}
-        uses: redhat-actions/push-to-registry@v2
+        uses: redhat-actions/push-to-registry@9986a6552bc4571882a4a67e016b17361412b4df # v2.7.1
         with:
           tags: ${{ steps.meta.outputs.tags }}
 
@@ -478,8 +493,13 @@ jobs:
     if: ${{ always() && needs.build_base_database.result == 'success' }}
     permissions: {}
     steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@63c24ba6bd7ba022e95695ff85de572c04a18142 # v2.7.0
+        with:
+          egress-policy: audit
+
       - name: Download SHA256 tag of ${{ matrix.build }}:${{ matrix.arch }}
-        uses: actions/cache@v4
+        uses: actions/cache@13aacd865c20de90d75de3b17ebe84f7a17d57d2 # v4.0.0
         with:
           path: ${{ matrix.build }}_${{ matrix.arch }}
           key: ${{ matrix.build }}-${{ matrix.arch }}-${{ github.run_id }}
@@ -496,7 +516,7 @@ jobs:
             podman rmi -i -f "$BUILD_BASE_IMAGE"
 
       - name: Download SHA256 tag of ${{ env.BASE_BUILD_NAME }}:${{ matrix.arch }}
-        uses: actions/cache@v4
+        uses: actions/cache@13aacd865c20de90d75de3b17ebe84f7a17d57d2 # v4.0.0
         with:
           path: ${{ env.BASE_BUILD_NAME }}_${{ matrix.arch }}
           key: ${{ env.BASE_BUILD_NAME }}-${{ matrix.arch }}-${{ github.run_id }}
