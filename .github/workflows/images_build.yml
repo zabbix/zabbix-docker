@@ -865,7 +865,7 @@ jobs:
         run: |
             cache_images=""
             if [[ ! -z "$BASE_IMAGE_TAG" ]]; then
-                cache_images="type=gha,scope=$BASE_IMAGE_TAG\ntype=registry,ref=$BASE_IMAGE_TAG"
+                cache_images="type=gha,scope=$BASE_IMAGE_TAG"$'\n'"type=registry,ref=$BASE_IMAGE_TAG"
             fi
 
             echo "::group::Base images cache"
