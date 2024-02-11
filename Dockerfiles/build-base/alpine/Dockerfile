@@ -50,6 +50,6 @@ RUN set -eux && \
     apk add \
             --no-cache \
             --clean-protected \
-            --repository=http://dl-cdn.alpinelinux.org/alpine/edge/community \
+            --repository=https://dl-cdn.alpinelinux.org/alpine/edge/community \
         go && \
     rm -rf /var/cache/apk/*
