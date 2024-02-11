@@ -13,8 +13,7 @@ on:
     - cron: '39 3 * * 2'
   push:
     branches:
-      - '[0-9]+.[0-9]+'
-      - 'trunk'
+      - '6.4'
 
 # Declare default permissions as read only.
 permissions: read-all
