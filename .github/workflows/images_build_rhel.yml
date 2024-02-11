@@ -11,9 +11,10 @@ defaults:
     shell: bash
 
 env:
-  AUTO_PUSH_IMAGES: ${{ vars.AUTO_PUSH_IMAGES }}
+  AUTO_PUSH_IMAGES: ${{ contains(fromJSON('["workflow_dispatch"]'), github.event_name) && 'false' || vars.AUTO_PUSH_IMAGES }}
 
   LATEST_BRANCH: ${{ github.event.repository.default_branch }}
+  TRUNK_GIT_BRANCH: "refs/heads/trunk"
   IMAGES_PREFIX: "zabbix-"
   BASE_BUILD_NAME: "build-base"
 
@@ -58,7 +59,7 @@ jobs:
         shell: bash
         env:
           LATEST_BRANCH: ${{ env.LATEST_BRANCH }}
-          github_ref: ${{ env.TRUNK_ONLY_EVENT == 'true' && env.TRUNK_GIT_BRANCH || github.ref }}
+          github_ref: ${{ github.ref }}
         run: |
             result=false
             sha_short=$(git rev-parse --short HEAD)
@@ -334,6 +335,7 @@ jobs:
 
       - name: Log in to Quay.io
         uses: redhat-actions/podman-login@v1.6
+        if: ${{ env.AUTO_PUSH_IMAGES == 'true' }}
         env:
           LOGIN: ${{ steps.login_credentials.outputs.username }}
           PASSWORD: ${{ steps.login_credentials.outputs.password }}
