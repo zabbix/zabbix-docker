@@ -109,7 +109,6 @@ jobs:
     runs-on: [self-hosted, linux, "${{ matrix.arch }}"]
     permissions:
       contents: read
-      id-token: write
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -295,9 +294,13 @@ jobs:
           MATRIX_BUILD: ${{ matrix.build }}
           CURRENT_BRANCH: ${{ needs.init_build.outputs.current_branch }}
         run: |
-          BUILD_BASE=$(jq --raw-output --argjson data "$REDHAT_CERTIFY_CREDENTIALS" -n "\$data.\"$CURRENT_BRANCH\".components.\"$MATRIX_BUILD\".build_base")
+            BUILD_BASE=$(jq --raw-output --argjson data "$REDHAT_CERTIFY_CREDENTIALS" -n "\$data.\"$CURRENT_BRANCH\".components.\"$MATRIX_BUILD\".build_base")
 
-          echo "build_base=$BUILD_BASE" >> $GITHUB_OUTPUT
+            echo "::group::Build base image"
+            echo "build_base=$BUILD_BASE"
+            echo "::endgroup::"
+
+            echo "build_base=$BUILD_BASE" >> $GITHUB_OUTPUT
 
       - name: Generate image name
         id: image_name
@@ -352,12 +355,11 @@ jobs:
         with:
           images: ${{ env.REGISTRY }}/${{ env.REGISTRY_NAMESPACE }}/${{ steps.image_name.outputs.image_name }}
           tags: |
-            type=semver,enable=${{ matrix.arch == 'X64' }},pattern={{version}}
-            type=semver,enable=${{ matrix.arch == 'ARM64' }},pattern={{version}},suffix=-${{ steps.lc.outputs.arch }}
-            type=sha,enable=${{ matrix.arch == 'X64' }}
-            type=sha,enable=${{ matrix.arch == 'ARM64' }},pattern={{version}},suffix=-${{ steps.lc.outputs.arch }}
+            type=semver,pattern={{version}}
+            type=sha
           flavor: |
-            latest=${{ (github.event_name == 'release') && (matrix.arch == 'X64') }}
+            latest=${{ github.event_name == 'release' }}
+            suffix=${{ matrix.arch == 'ARM64' && '-arm64' || '' }},onlatest=true
 
       - name: Download SHA256 tag of ${{ steps.build_base_image.outputs.build_base }}:${{ matrix.arch }}
         uses: actions/cache@v4
@@ -452,7 +454,7 @@ jobs:
         build: [mysql, sqlite3]
         arch: [X64, ARM64]
     runs-on: [self-hosted, linux, "${{ matrix.arch }}"]
-    if: ${{ always() && needs.build_images.result == 'success' }}
+    if: ${{ always() && needs.build_base_database.result == 'success' }}
     permissions: {}
     steps:
       - name: Download SHA256 tag of build-${{ matrix.build }}:${{ matrix.arch }}
