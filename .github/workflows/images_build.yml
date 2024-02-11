@@ -23,6 +23,9 @@ defaults:
   run:
     shell: bash
 
+permissions:
+   contents: read
+
 env:
   TRUNK_ONLY_EVENT: ${{ contains(fromJSON('["schedule"]'), github.event_name) }}
   AUTO_PUSH_IMAGES: ${{ vars.AUTO_PUSH_IMAGES }}
