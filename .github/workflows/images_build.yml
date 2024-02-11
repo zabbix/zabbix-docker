@@ -543,6 +543,9 @@ jobs:
           labels: |
             org.opencontainers.image.revision=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.revision'] }}
             org.opencontainers.image.created=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.created'] }}
+          cache-from: |
+              type=gha,scope=${{ steps.base_build.outputs.base_build_image }} }}
+              type=registry,ref=${{ steps.base_build.outputs.base_build_image }} }}
           cache-to: type=gha,mode=max,scope=${{ fromJSON(steps.meta.outputs.json).tags[0] }}
 
       - name: Sign the images with GitHub OIDC Token
