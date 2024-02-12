@@ -763,6 +763,10 @@ jobs:
             yum.oracle.com:443
             ziply.mm.fcix.net:443
             ziply.mm.fcix.net:80
+            keyserver.ubuntu.com:80
+            p80.pool.sks-keyservers.net:80
+            pgp.mit.edu:11371
+            ha.pool.sks-keyservers.net:11371
 
       - name: Checkout repository
         uses: actions/checkout@v4
