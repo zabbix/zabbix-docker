@@ -1,5 +1,9 @@
 ![logo](https://assets.zabbix.com/img/logo/zabbix_logo_500x131.png)
 
+
+[![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/zabbix/zabbix-docker/badge)](https://securityscorecards.dev/viewer/?uri=github.com/zabbix/zabbix-docker)
+[![OpenSSF Best Practices](https://www.bestpractices.dev/projects/8395/badge)](https://www.bestpractices.dev/projects/8395)
+
 [![Build images (DockerHub)](https://github.com/zabbix/zabbix-docker/actions/workflows/images_build.yml/badge.svg?branch=trunk&event=push)](https://github.com/zabbix/zabbix-docker/actions/workflows/images_build.yml)
 [![Build images (DockerHub, Windows)](https://github.com/zabbix/zabbix-docker/actions/workflows/images_build_windows.yml/badge.svg?branch=trunk&event=push)](https://github.com/zabbix/zabbix-docker/actions/workflows/images_build_windows.yml)
 
