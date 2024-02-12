@@ -95,6 +95,10 @@ jobs:
           REDHAT_CERTIFY_CREDENTIALS: ${{ secrets.REDHAT_CERTIFY_CREDENTIALS }}
           CURRENT_BRANCH: ${{ steps.branch_info.outputs.current_branch }}
         run: |
+            if [[ -z "$REDHAT_CERTIFY_CREDENTIALS" ]]; then
+                echo "::error::Missing RedHat Certification details"
+                exit 1
+            fi
             component_list=$(jq --raw-output --argjson data "$REDHAT_CERTIFY_CREDENTIALS" -n "\$data.\"$CURRENT_BRANCH\".components | keys | @json")
 
             echo "::group::Zabbix Component List"
