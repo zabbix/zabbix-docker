@@ -7,7 +7,14 @@
    hooks:
    - id: shellcheck
  - repo: https://github.com/pre-commit/pre-commit-hooks
-   rev: v4.4.0
+   rev: v4.5.0
    hooks:
    - id: end-of-file-fixer
    - id: trailing-whitespace
+   - id: check-yaml
+   - id: check-symlinks
+   - id: pretty-format-json
+-   repo: https://github.com/asottile/setup-cfg-fmt
+    rev: v2.5.0
+    hooks:
+    -   id: setup-cfg-fmt
