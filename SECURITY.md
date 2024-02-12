@@ -26,7 +26,7 @@ The following information will be helpful for Zabbix Security team:
 1. Zabbix Security team reviews the issue and evaluates its potential impact.
 2. If the security issue is found not to be related to security then the issue will be moved to ZBX project.
 3. Zabbix security team works on the issue to provide a solution and keeps all details on the problem until the next version of Zabbix is out.
-4. New images are created and made available for download on [https://zabbix.com/download](http://hub.docker.com/r/zabbix/) and [Red Hat Certified Container Catalog](https://catalog.redhat.com/software/containers/search?vendor_name=Zabbix%20Sia&p=1)
+4. New images are created and made available for download on [https://www.zabbix.com/container_images](https://www.zabbix.com/container_images), [https://hub.docker.com/u/zabbix](http://hub.docker.com/r/zabbix/) and [Red Hat Certified Container Catalog](https://catalog.redhat.com/software/containers/search?vendor_name=Zabbix%20Sia&p=1)
 5. Zabbix requests [CVE identifiers](https://cve.mitre.org/) for the security issue.
 6. Clients with valid support agreements are emailed giving a period of time when it is possible to upgrade before the issue becomes known to the public.
 7. A public announcement for the community is made.
