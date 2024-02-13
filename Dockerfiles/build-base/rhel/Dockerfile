@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1
-FROM registry.access.redhat.com/ubi9/ubi-minimal
+FROM registry.access.redhat.com/ubi9/ubi-minimal:latest
 
 ARG MAJOR_VERSION=6.4
 ARG RELEASE=11
