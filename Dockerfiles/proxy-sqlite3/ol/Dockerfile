@@ -3,7 +3,7 @@ ARG MAJOR_VERSION=7.0
 ARG ZBX_VERSION=${MAJOR_VERSION}
 ARG BUILD_BASE_IMAGE=zabbix-build-sqlite3:ol-${ZBX_VERSION}
 
-FROM ${BUILD_BASE_IMAGE} as builder
+FROM ${BUILD_BASE_IMAGE} AS builder
 
 FROM oraclelinux:9-slim
 

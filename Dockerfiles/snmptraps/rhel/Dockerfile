@@ -1,4 +1,4 @@
-FROM registry.access.redhat.com/ubi9/ubi-minimal
+FROM registry.access.redhat.com/ubi9/ubi-minimal:latest
 
 ARG MAJOR_VERSION=7.0
 ARG RELEASE=0
