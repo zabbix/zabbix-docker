@@ -222,7 +222,7 @@ jobs:
             echo "$IMAGE_TAG" > "${CACHE_FILE_NAME}_tag"
 
       - name: Cache image digest
-        uses: actions/cache@13aacd865c20de90d75de3b17ebe84f7a17d57d2 # v4.0.0
+        uses: actions/cache/save@13aacd865c20de90d75de3b17ebe84f7a17d57d2 # v4.0.0
         with:
           path: |
               ${{ env.BASE_BUILD_NAME }}_${{ matrix.arch }}_digest
@@ -286,7 +286,7 @@ jobs:
             type=sha,suffix=-${{ steps.lc.outputs.arch }}
 
       - name: Download SHA256 tag of ${{ env.BASE_BUILD_NAME }}:${{ matrix.arch }}
-        uses: actions/cache@13aacd865c20de90d75de3b17ebe84f7a17d57d2 # v4.0.0
+        uses: actions/cache/restore@13aacd865c20de90d75de3b17ebe84f7a17d57d2 # v4.0.0
         with:
           path: |
               ${{ env.BASE_BUILD_NAME }}_${{ matrix.arch }}_digest
@@ -362,7 +362,7 @@ jobs:
             echo "$IMAGE_TAG" > "${CACHE_FILE_NAME}_tag"
 
       - name: Cache image digest
-        uses: actions/cache@13aacd865c20de90d75de3b17ebe84f7a17d57d2 # v4.0.0
+        uses: actions/cache/save@13aacd865c20de90d75de3b17ebe84f7a17d57d2 # v4.0.0
         with:
           path: |
               ${{ matrix.build }}_${{ matrix.arch }}_digest
@@ -457,7 +457,7 @@ jobs:
 
       - name: Download SHA256 tag of ${{ steps.build_base_image.outputs.build_base }}:${{ matrix.arch }}
         if: ${{ matrix.build != 'snmptraps' }}
-        uses: actions/cache@13aacd865c20de90d75de3b17ebe84f7a17d57d2 # v4.0.0
+        uses: actions/cache/restore@13aacd865c20de90d75de3b17ebe84f7a17d57d2 # v4.0.0
         with:
           path: |
               ${{ steps.build_base_image.outputs.build_base }}_${{ matrix.arch }}_digest
@@ -571,15 +571,22 @@ jobs:
         with:
           tags: ${{ steps.meta.outputs.tags }}
 
-      - name: Cleanup artifacts
+      - name: Post build image
+        if: ${{ always() }}
+        env:
+          TAGS: ${{ steps.meta.outputs.tags }}
+        run: |
+            echo "::group::Result"
+            echo "$TAGS" | while IFS= read -r image_name ; do podman rmi -i -f "$image_name"; done
+            echo "::endgroup::"
+
+      - name: Post Preflight
         if: ${{ always() }}
         env:
           PREFLIGHT_IMAGE: ${{ env.PREFLIGHT_IMAGE }}
           PFLT_ARTIFACTS: ${{ env.PFLT_ARTIFACTS }}
-          TAGS: ${{ steps.meta.outputs.tags }}
         run: |
-            echo "::group::Post build actions"
-            echo "$TAGS" | while IFS= read -r image_name ; do podman rmi -i -f "$image_name"; done
+            echo "::group::Result"
             rm -rf "$PFLT_ARTIFACTS"
             podman rmi -i -f "$PREFLIGHT_IMAGE"
             echo "::endgroup::"
@@ -592,13 +599,13 @@ jobs:
       fail-fast: false
       matrix:
         build: [build-mysql, build-sqlite3]
-        arch: [X64, ARM64]
+        arch: ${{ fromJson(needs.init_build.outputs.platforms) }}
     runs-on: [self-hosted, linux, "${{ matrix.arch }}"]
     if: ${{ always() && needs.build_base_database.result == 'success' }}
     permissions: {}
     steps:
       - name: Download SHA256 tag of ${{ matrix.build }}:${{ matrix.arch }}
-        uses: actions/cache@13aacd865c20de90d75de3b17ebe84f7a17d57d2 # v4.0.0
+        uses: actions/cache/restore@13aacd865c20de90d75de3b17ebe84f7a17d57d2 # v4.0.0
         with:
           path: ${{ matrix.build }}_${{ matrix.arch }}_digest
           key: ${{ matrix.build }}-${{ matrix.arch }}-${{ github.run_id }}
@@ -614,7 +621,7 @@ jobs:
             rm -rf "${IMAGE_DIR}/${BASE_TAG}"
 
       - name: Download SHA256 tag of ${{ env.BASE_BUILD_NAME }}:${{ matrix.arch }}
-        uses: actions/cache@13aacd865c20de90d75de3b17ebe84f7a17d57d2 # v4.0.0
+        uses: actions/cache/restore@13aacd865c20de90d75de3b17ebe84f7a17d57d2 # v4.0.0
         with:
           path: ${{ env.BASE_BUILD_NAME }}_${{ matrix.arch }}_digest
           key: ${{ env.BASE_BUILD_NAME }}-${{ matrix.arch }}-${{ github.run_id }}
