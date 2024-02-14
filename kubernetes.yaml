@@ -603,12 +603,6 @@ spec:
             periodSeconds: 5
             timeoutSeconds: 3
             failureThreshold: 40
-          livenessProbe:
-            tcpSocket:
-              port: 10051
-            timeoutSeconds: 3
-            failureThreshold: 3
-            periodSeconds: 10
           securityContext:
             capabilities: {}
             privileged: false
