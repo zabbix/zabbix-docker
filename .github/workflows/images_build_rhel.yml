@@ -329,7 +329,10 @@ jobs:
         run: |
             MATRIX_BUILD=${MATRIX_BUILD^^}
             MATRIX_BUILD=${MATRIX_BUILD//-/_}
-            echo "matrix_build=${MATRIX_BUILD,,}" >> $GITHUB_OUTPUT
+            echo "::group::Result"
+            echo "matrix_build=${MATRIX_BUILD}"
+            echo "::endgroup::"
+            echo "matrix_build=${MATRIX_BUILD}" >> $GITHUB_OUTPUT
 
       - name: Detect Build Base Image
         id: build_base_image
