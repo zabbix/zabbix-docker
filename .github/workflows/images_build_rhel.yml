@@ -29,7 +29,7 @@ permissions:
    contents: read
 
 env:
-  AUTO_PUSH_IMAGES: ${{ github.event.inputs.publish_images }}
+  AUTO_PUSH_IMAGES: ${{ contains(fromJSON('["workflow_dispatch", "push"]'), github.event_name) && 'false' || vars.AUTO_PUSH_IMAGES }}
 
   LATEST_BRANCH: ${{ github.event.repository.default_branch }}
   TRUNK_GIT_BRANCH: "refs/heads/trunk"
@@ -354,15 +354,6 @@ jobs:
 
             echo "build_base=${BUILD_BASE}" >> $GITHUB_OUTPUT
 
-      - name: Log in to Quay.io
-        uses: redhat-actions/podman-login@9184318aae1ee5034fbfbacc0388acf12669171f # v1.6
-        if: ${{ env.AUTO_PUSH_IMAGES == 'true' }}
-        with:
-          username: ${{ format('redhat-isv-containers+{0}-robot', secrets[format('{0}_{1}_PROJECT',  needs.init_build.outputs.secret_prefix, steps.var_format.outputs.matrix_build)]) }}
-          password: ${{ secrets[format('{0}_{1}_SECRET', needs.init_build.outputs.secret_prefix, steps.var_format.outputs.matrix_build)] }}
-          registry: ${{ env.REGISTRY }}
-          auth_file_path: /tmp/.docker_${{ matrix.build }}_${{ matrix.arch }}_${{ needs.init_build.outputs.sha_short }}
-
       - name: Remove smartmontools
         if: ${{ matrix.build == 'agent2' }}
         env:
@@ -421,6 +412,15 @@ jobs:
           containerfiles: |
             ${{ env.DOCKERFILES_DIRECTORY }}/${{ matrix.build }}/rhel/Dockerfile
           build-args: BUILD_BASE_IMAGE=${{ steps.base_build.outputs.base_build_image }}
+
+      - name: Log in to Quay.io
+        uses: redhat-actions/podman-login@9184318aae1ee5034fbfbacc0388acf12669171f # v1.6
+        if: ${{ env.AUTO_PUSH_IMAGES == 'true' }}
+        with:
+          username: ${{ format('redhat-isv-containers+{0}-robot', secrets[format('{0}_{1}_PROJECT',  needs.init_build.outputs.secret_prefix, steps.var_format.outputs.matrix_build)]) }}
+          password: ${{ secrets[format('{0}_{1}_SECRET', needs.init_build.outputs.secret_prefix, steps.var_format.outputs.matrix_build)] }}
+          registry: ${{ env.REGISTRY }}
+          auth_file_path: /tmp/.docker_${{ matrix.build }}_${{ matrix.arch }}_${{ needs.init_build.outputs.sha_short }}
 
       - name: Push to RedHat certification procedure
         id: push_to_registry
