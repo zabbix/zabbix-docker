@@ -249,7 +249,7 @@ jobs:
             echo "::group::Result"
             echo "podman rmi -i -f \"${IMAGE_TAG}\""
             podman rmi -i -f "${IMAGE_TAG}"
-            buildah rm -a
+            buildah rm -a || true
             podman system prune --external
             podman system prune -a --volumes -f
             podman system reset -f 2>/dev/null || true
@@ -394,7 +394,7 @@ jobs:
             echo "::group::Result"
             echo "podman rmi -i -f \"${IMAGE_TAG}\""
             podman rmi -i -f "${IMAGE_TAG}"
-            buildah rm -a
+            buildah rm -a || true
             podman system prune --external
             podman system prune -a --volumes -f
             podman system reset -f 2>/dev/null || true
@@ -599,7 +599,7 @@ jobs:
         run: |
             echo "::group::Result"
             echo "$TAGS" | while IFS= read -r image_name ; do podman rmi -i -f "$image_name"; done
-            buildah rm -a
+            buildah rm -a || true
             podman system prune --external
             podman system prune -a --volumes -f
             podman system reset -f 2>/dev/null || true
