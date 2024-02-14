@@ -210,6 +210,7 @@ jobs:
             echo "::group::Cache file name"
             echo "$CACHE_FILE_NAME"
             echo "::endgroup::"
+            podman push ${IMAGE_TAG} dir:"/tmp/images/$DIGEST"
 
             echo "$DIGEST" > "$CACHE_FILE_NAME"
 
@@ -273,6 +274,8 @@ jobs:
             echo "base_tag=${BASE_TAG}"
             echo "base_build_image=${BUILD_BASE_IMAGE}"
             echo "::endgroup::"
+            echo "podman pull \"dir:/tmp/images/${BASE_TAG}\""
+            podman pull dir:"/tmp/images/${BASE_TAG}"
 
             echo "base_tag=${BASE_TAG}" >> $GITHUB_OUTPUT
             echo "base_build_image=${BUILD_BASE_IMAGE}" >> $GITHUB_OUTPUT
@@ -300,6 +303,7 @@ jobs:
             echo "::group::Cache file name"
             echo "$CACHE_FILE_NAME"
             echo "::endgroup::"
+            podman push ${IMAGE_TAG} dir:"/tmp/images/$DIGEST"
 
             echo "$DIGEST" > "$CACHE_FILE_NAME"
 
@@ -395,6 +399,8 @@ jobs:
             echo "base_tag=${BASE_TAG}"
             echo "base_build_image=${BUILD_BASE_IMAGE}"
             echo "::endgroup::"
+            echo "podman pull \"dir:/tmp/images/${BASE_TAG}\""
+            podman pull dir:"/tmp/images/${BASE_TAG}"
 
             echo "base_tag=${BASE_TAG}" >> $GITHUB_OUTPUT
             echo "base_build_image=${BUILD_BASE_IMAGE}" >> $GITHUB_OUTPUT
