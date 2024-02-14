@@ -253,7 +253,7 @@ jobs:
             podman system prune --external
             podman system prune -a --volumes -f
             podman system reset -f
-            rm -rf /home/podman/.local/share/containers/
+            #rm -rf /home/podman/.local/share/containers/
             echo "::endgroup::"
 
   build_base_database:
@@ -398,7 +398,7 @@ jobs:
             podman system prune --external
             podman system prune -a --volumes -f
             podman system reset -f
-            rm -rf /home/podman/.local/share/containers/
+            #rm -rf /home/podman/.local/share/containers/
             echo "::endgroup::"
 
   build_images:
@@ -603,7 +603,7 @@ jobs:
             podman system prune --external
             podman system prune -a --volumes -f
             podman system reset -f
-            rm -rf /home/podman/.local/share/containers/
+            #rm -rf /home/podman/.local/share/containers/
             echo "::endgroup::"
 
   clean_artifacts:
