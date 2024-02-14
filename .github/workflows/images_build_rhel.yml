@@ -4,6 +4,15 @@ on:
   release:
     types:
       - published
+  push:
+    branches:
+      - '[0-9]+.[0-9]+'
+      - 'trunk'
+    paths:
+      - 'Dockerfiles/*/rhel/*'
+      - 'build.json'
+      - '!**/README.md'
+      - '.github/workflows/images_build_rhel.yml'
   workflow_dispatch:
 
 defaults:
@@ -14,13 +23,14 @@ permissions:
    contents: read
 
 env:
-  AUTO_PUSH_IMAGES: ${{ contains(fromJSON('["workflow_dispatch"]'), github.event_name) && 'false' || vars.AUTO_PUSH_IMAGES }}
+  AUTO_PUSH_IMAGES: ${{ contains(fromJSON('["workflow_dispatch", "push"]'), github.event_name) && 'false' || vars.AUTO_PUSH_IMAGES }}
 
   LATEST_BRANCH: ${{ github.event.repository.default_branch }}
   TRUNK_GIT_BRANCH: "refs/heads/trunk"
   IMAGES_PREFIX: "zabbix-"
   BASE_BUILD_NAME: "build-base"
 
+  MATRIX_FILE: "build.json"
   DOCKERFILES_DIRECTORY: "Dockerfiles"
 
   OIDC_ISSUER: "https://token.actions.githubusercontent.com"
@@ -39,10 +49,12 @@ jobs:
     permissions:
       contents: read
     outputs:
+      platforms: ${{ steps.platform_list.outputs.list }}
       components: ${{ steps.components.outputs.list }}
       is_default_branch: ${{ steps.branch_info.outputs.is_default_branch }}
       current_branch: ${{ steps.branch_info.outputs.current_branch }}
       sha_short: ${{ steps.branch_info.outputs.sha_short }}
+      secret_prefix: ${{ steps.branch_info.outputs.secret_prefix }}
     steps:
       - name: Block egress traffic
         uses: step-security/harden-runner@63c24ba6bd7ba022e95695ff85de572c04a18142 # v2.7.0
@@ -56,6 +68,42 @@ jobs:
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
         with:
           fetch-depth: 1
+
+      - name: Check ${{ env.MATRIX_FILE }} file
+        id: build_exists
+        env:
+          MATRIX_FILE: ${{ env.MATRIX_FILE }}
+        run: |
+            if [[ ! -f "$MATRIX_FILE" ]]; then
+                echo "::error::File $MATRIX_FILE is missing"
+                exit 1
+            fi
+
+      - name: Prepare Platform list
+        id: platform_list
+        env:
+          MATRIX_FILE: ${{ env.MATRIX_FILE }}
+        run: |
+            platform_list=$(jq -r '.["os-linux"].rhel | @json' "$MATRIX_FILE")
+
+            echo "::group::Platform List"
+            echo "$platform_list"
+            echo "::endgroup::"
+
+            echo "list=$platform_list" >> $GITHUB_OUTPUT
+
+      - name: Prepare Zabbix component list
+        id: components
+        env:
+          MATRIX_FILE: ${{ env.MATRIX_FILE }}
+        run: |
+            component_list=$(jq -r '.components |map_values(select(.rhel == true)) | keys | @json' "$MATRIX_FILE")
+
+            echo "::group::Zabbix Component List"
+            echo "$component_list"
+            echo "::endgroup::"
+
+            echo "list=$component_list" >> $GITHUB_OUTPUT
 
       - name: Get branch info
         id: branch_info
@@ -80,31 +128,16 @@ jobs:
             echo "::group::Branch data"
             echo "is_default_branch - $result"
             echo "current_branch - $github_ref"
+            echo "secret_prefix=RHEL_${github_ref//.}"
             echo "sha_short - $sha_short"
             echo "::endgroup::"
 
             echo "is_default_branch=$result" >> $GITHUB_OUTPUT
             echo "current_branch=$github_ref" >> $GITHUB_OUTPUT
+            echo "secret_prefix=RHEL_${github_ref//.}" >> $GITHUB_OUTPUT
             echo "sha_short=$sha_short" >> $GITHUB_OUTPUT
 
 
-      - name: Prepare Zabbix component list
-        id: components
-        env:
-          REDHAT_CERTIFY_CREDENTIALS: ${{ secrets.REDHAT_CERTIFY_CREDENTIALS }}
-          CURRENT_BRANCH: ${{ steps.branch_info.outputs.current_branch }}
-        run: |
-            if [[ -z "$REDHAT_CERTIFY_CREDENTIALS" ]]; then
-                echo "::error::Missing RedHat Certification details"
-                exit 1
-            fi
-            component_list=$(jq --raw-output --argjson data "$REDHAT_CERTIFY_CREDENTIALS" -n "\$data.\"$CURRENT_BRANCH\".components | keys | @json")
-
-            echo "::group::Zabbix Component List"
-            echo "$component_list"
-            echo "::endgroup::"
-
-            echo "list=$component_list" >> $GITHUB_OUTPUT
 
   build_base:
     timeout-minutes: 30
@@ -114,7 +147,7 @@ jobs:
       fail-fast: false
       matrix:
         build: [build-base]
-        arch: [X64, ARM64]
+        arch: ${{ fromJson(needs.init_build.outputs.platforms) }}
     runs-on: [self-hosted, linux, "${{ matrix.arch }}"]
     permissions:
       contents: read
@@ -188,7 +221,7 @@ jobs:
       fail-fast: false
       matrix:
         build: [build-mysql, build-sqlite3]
-        arch: [X64, ARM64]
+        arch: ${{ fromJson(needs.init_build.outputs.platforms) }}
     runs-on: [self-hosted, linux, "${{ matrix.arch }}"]
     permissions:
       contents: read
@@ -278,7 +311,7 @@ jobs:
       fail-fast: false
       matrix:
         build: ${{ fromJson(needs.init_build.outputs.components) }}
-        arch: [X64, ARM64]
+        arch: ${{ fromJson(needs.init_build.outputs.platforms) }}
     runs-on: [self-hosted, linux, "${{ matrix.arch }}"]
     permissions:
       contents: read
@@ -289,66 +322,38 @@ jobs:
         with:
           fetch-depth: 1
 
-      - name: Fix string case
-        id: lc
+      - name: Variables formating
+        id: var_format
         env:
-          ARCH: ${{ matrix.arch }}
+          MATRIX_BUILD: ${{ matrix.build }}
         run: |
-            echo "arch=${ARCH,,}" >> $GITHUB_OUTPUT
+            MATRIX_BUILD=${MATRIX_BUILD^^}
+            MATRIX_BUILD=${MATRIX_BUILD//-/_}
+            echo "::group::Result"
+            echo "matrix_build=${MATRIX_BUILD}"
+            echo "::endgroup::"
+            echo "matrix_build=${MATRIX_BUILD}" >> $GITHUB_OUTPUT
 
       - name: Detect Build Base Image
         id: build_base_image
         env:
-          REDHAT_CERTIFY_CREDENTIALS: ${{ secrets.REDHAT_CERTIFY_CREDENTIALS }}
           MATRIX_BUILD: ${{ matrix.build }}
-          CURRENT_BRANCH: ${{ needs.init_build.outputs.current_branch }}
+          MATRIX_FILE: ${{ env.MATRIX_FILE }}
         run: |
-            BUILD_BASE=$(jq --raw-output --argjson data "$REDHAT_CERTIFY_CREDENTIALS" -n "\$data.\"$CURRENT_BRANCH\".components.\"$MATRIX_BUILD\".build_base")
+            BUILD_BASE=$(jq -r ".components.\"$MATRIX_BUILD\".base" "$MATRIX_FILE")
 
-            echo "::group::Build base image"
-            echo "build_base=$BUILD_BASE"
+            echo "::group::Base Build Image"
+            echo "$BUILD_BASE"
             echo "::endgroup::"
 
-            echo "build_base=$BUILD_BASE" >> $GITHUB_OUTPUT
-
-      - name: Generate image name
-        id: image_name
-        env:
-          REDHAT_CERTIFY_CREDENTIALS: ${{ secrets.REDHAT_CERTIFY_CREDENTIALS }}
-          MATRIX_BUILD: ${{ matrix.build }}
-          CURRENT_BRANCH: ${{ needs.init_build.outputs.current_branch }}
-        run: |
-            IMAGE_NAME=$(jq --raw-output --argjson data "$REDHAT_CERTIFY_CREDENTIALS" -n "\$data.\"$CURRENT_BRANCH\".components.\"$MATRIX_BUILD\".login")
-
-            echo "::add-mask::$IMAGE_NAME"
-            echo "image_name=$IMAGE_NAME" >> $GITHUB_OUTPUT
-
-      - name: Generate credentials
-        id: login_credentials
-        env:
-          REDHAT_CERTIFY_CREDENTIALS: ${{ secrets.REDHAT_CERTIFY_CREDENTIALS }}
-          MATRIX_BUILD: ${{ matrix.build }}
-          CURRENT_BRANCH: ${{ needs.init_build.outputs.current_branch }}
-        run: |
-            IMAGE_NAME=$(jq --raw-output --argjson data "$REDHAT_CERTIFY_CREDENTIALS" -n "\$data.\"$CURRENT_BRANCH\".components.\"$MATRIX_BUILD\".login")
-            REGISTRY_PASSWORD=$(jq --raw-output --argjson data "$REDHAT_CERTIFY_CREDENTIALS" -n "\$data.\"$CURRENT_BRANCH\".components.\"$MATRIX_BUILD\".secret")
-
-            echo "::add-mask::$IMAGE_NAME"
-            echo "::add-mask::redhat-isv-containers+$IMAGE_NAME-robot"
-            echo "::add-mask::$REGISTRY_PASSWORD"
-
-            echo "username=$IMAGE_NAME" >> $GITHUB_OUTPUT
-            echo "password=$REGISTRY_PASSWORD" >> $GITHUB_OUTPUT
+            echo "build_base=${BUILD_BASE}" >> $GITHUB_OUTPUT
 
       - name: Log in to Quay.io
         uses: redhat-actions/podman-login@9184318aae1ee5034fbfbacc0388acf12669171f # v1.6
         if: ${{ env.AUTO_PUSH_IMAGES == 'true' }}
-        env:
-          LOGIN: ${{ steps.login_credentials.outputs.username }}
-          PASSWORD: ${{ steps.login_credentials.outputs.password }}
         with:
-          username: redhat-isv-containers+${{ env.LOGIN }}-robot
-          password: ${{ env.PASSWORD }}
+          username: ${{ format('redhat-isv-containers+{0}-robot', secrets[format('{0}_{1}_PROJECT',  needs.init_build.outputs.secret_prefix, steps.var_format.outputs.matrix_build)]) }}
+          password: ${{ secrets[format('{0}_{1}_SECRET', needs.init_build.outputs.secret_prefix, matrix.build)] }}
           registry: ${{ env.REGISTRY }}
           auth_file_path: /tmp/.docker_${{ matrix.build }}_${{ matrix.arch }}_${{ needs.init_build.outputs.sha_short }}
 
@@ -363,7 +368,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@8e5442c4ef9f78752691e2d8f8d19755c6f78e81 # v5.5.1
         with:
-          images: ${{ env.REGISTRY }}/${{ env.REGISTRY_NAMESPACE }}/${{ steps.image_name.outputs.image_name }}
+          images: ${{ env.REGISTRY }}/${{ env.REGISTRY_NAMESPACE }}/${{ secrets[format('{0}_{1}_PROJECT', needs.init_build.outputs.secret_prefix, steps.var_format.outputs.matrix_build)] }}
           tags: |
             type=semver,pattern={{version}}
             type=sha
@@ -372,6 +377,7 @@ jobs:
             suffix=${{ matrix.arch == 'ARM64' && '-arm64' || '' }},onlatest=true
 
       - name: Download SHA256 tag of ${{ steps.build_base_image.outputs.build_base }}:${{ matrix.arch }}
+        if: ${{ matrix.build != 'snmptraps' }}
         uses: actions/cache@13aacd865c20de90d75de3b17ebe84f7a17d57d2 # v4.0.0
         with:
           path: ${{ steps.build_base_image.outputs.build_base }}_${{ matrix.arch }}
@@ -379,6 +385,7 @@ jobs:
 
       - name: Retrieve ${{ steps.build_base_image.outputs.build_base }}:${{ matrix.arch }} SHA256 tag
         id: base_build
+        if: ${{ matrix.build != 'snmptraps' }}
         env:
          MATRIX_ARCH: ${{ matrix.arch }}
          BASE_IMAGE: ${{ steps.build_base_image.outputs.build_base }}
@@ -420,7 +427,7 @@ jobs:
         if: ${{ env.AUTO_PUSH_IMAGES == 'true' }}
         env:
           PFLT_DOCKERCONFIG: /tmp/.docker_${{ matrix.build }}_${{ matrix.arch }}_${{ needs.init_build.outputs.sha_short }}
-          PFLT_CERTIFICATION_PROJECT_ID: ${{ steps.login_credentials.outputs.username }}
+          PFLT_CERTIFICATION_PROJECT_ID: ${{ secrets[format('{0}_{1}_PROJECT', needs.init_build.outputs.secret_prefix, steps.var_format.outputs.matrix_build)] }}
           PFLT_PYXIS_API_TOKEN: ${{ secrets.REDHAT_API_TOKEN }}
           PFLT_ARTIFACTS: ${{ env.PFLT_ARTIFACTS }}
           PFLT_LOGLEVEL: ${{ env.PFLT_LOGLEVEL }}
