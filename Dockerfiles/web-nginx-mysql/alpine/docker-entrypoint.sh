@@ -209,7 +209,7 @@ prepare_zbx_web_config() {
     export ZBX_DB_CA_FILE=${ZBX_DB_CA_FILE}
     : ${ZBX_DB_VERIFY_HOST:="false"}
     export ZBX_DB_VERIFY_HOST=${ZBX_DB_VERIFY_HOST,,}
-    
+
     export ZBX_VAULT=${ZBX_VAULT}
     export ZBX_VAULTURL=${ZBX_VAULTURL}
     export ZBX_VAULTDBPATH=${ZBX_VAULTDBPATH}
