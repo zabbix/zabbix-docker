@@ -249,6 +249,10 @@ jobs:
             echo "::group::Result"
             echo "podman rmi -i -f \"${IMAGE_TAG}\""
             podman rmi -i -f "${IMAGE_TAG}"
+            buildah rm -a
+            podman system prune --external
+            podman system prune -a --volumes
+            podman system reset -f
             echo "::endgroup::"
 
   build_base_database:
@@ -389,6 +393,10 @@ jobs:
             echo "::group::Result"
             echo "podman rmi -i -f \"${IMAGE_TAG}\""
             podman rmi -i -f "${IMAGE_TAG}"
+            buildah rm -a
+            podman system prune --external
+            podman system prune -a --volumes
+            podman system reset -f
             echo "::endgroup::"
 
   build_images:
@@ -571,15 +579,6 @@ jobs:
         with:
           tags: ${{ steps.meta.outputs.tags }}
 
-      - name: Post build image
-        if: ${{ always() }}
-        env:
-          TAGS: ${{ steps.meta.outputs.tags }}
-        run: |
-            echo "::group::Result"
-            echo "$TAGS" | while IFS= read -r image_name ; do podman rmi -i -f "$image_name"; done
-            echo "::endgroup::"
-
       - name: Post Preflight
         if: ${{ always() }}
         env:
@@ -589,6 +588,19 @@ jobs:
             echo "::group::Result"
             rm -rf "$PFLT_ARTIFACTS"
             podman rmi -i -f "$PREFLIGHT_IMAGE"
+            echo "::endgroup::"
+
+      - name: Post build image
+        if: ${{ always() }}
+        env:
+          TAGS: ${{ steps.meta.outputs.tags }}
+        run: |
+            echo "::group::Result"
+            echo "$TAGS" | while IFS= read -r image_name ; do podman rmi -i -f "$image_name"; done
+            buildah rm -a
+            podman system prune --external
+            podman system prune -a --volumes
+            podman system reset -f
             echo "::endgroup::"
 
   clean_artifacts:
