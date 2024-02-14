@@ -295,8 +295,7 @@ jobs:
             echo "base_tag=${BASE_TAG}" >> $GITHUB_OUTPUT
             echo "base_build_image=${BUILD_BASE_IMAGE}" >> $GITHUB_OUTPUT
 
-      - name: Rull ${{ env.BASE_BUILD_NAME }}:${{ matrix.arch }} image
-        id: base_build
+      - name: Pull ${{ env.BASE_BUILD_NAME }}:${{ matrix.arch }} image
         env:
          MATRIX_ARCH: ${{ matrix.arch }}
          BASE_IMAGE: ${{ env.BASE_BUILD_NAME }}
