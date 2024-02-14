@@ -4,6 +4,15 @@ on:
   release:
     types:
       - published
+  push:
+    branches:
+      - '[0-9]+.[0-9]+'
+      - 'trunk'
+    paths:
+      - 'Dockerfiles/*/rhel/*'
+      - 'build.json'
+      - '!**/README.md'
+      - '.github/workflows/images_build_rhel.yml'
   workflow_dispatch:
 
 defaults:
@@ -320,7 +329,10 @@ jobs:
         run: |
             MATRIX_BUILD=${MATRIX_BUILD^^}
             MATRIX_BUILD=${MATRIX_BUILD//-/_}
-            echo "matrix_build=${MATRIX_BUILD,,}" >> $GITHUB_OUTPUT
+            echo "::group::Result"
+            echo "matrix_build=${MATRIX_BUILD}"
+            echo "::endgroup::"
+            echo "matrix_build=${MATRIX_BUILD}" >> $GITHUB_OUTPUT
 
       - name: Detect Build Base Image
         id: build_base_image
@@ -365,6 +377,7 @@ jobs:
             suffix=${{ matrix.arch == 'ARM64' && '-arm64' || '' }},onlatest=true
 
       - name: Download SHA256 tag of ${{ steps.build_base_image.outputs.build_base }}:${{ matrix.arch }}
+        if: ${{ matrix.build != 'snmptraps' }}
         uses: actions/cache@13aacd865c20de90d75de3b17ebe84f7a17d57d2 # v4.0.0
         with:
           path: ${{ steps.build_base_image.outputs.build_base }}_${{ matrix.arch }}
@@ -372,6 +385,7 @@ jobs:
 
       - name: Retrieve ${{ steps.build_base_image.outputs.build_base }}:${{ matrix.arch }} SHA256 tag
         id: base_build
+        if: ${{ matrix.build != 'snmptraps' }}
         env:
          MATRIX_ARCH: ${{ matrix.arch }}
          BASE_IMAGE: ${{ steps.build_base_image.outputs.build_base }}
