@@ -87,7 +87,7 @@ jobs:
         env:
           MATRIX_FILE: ${{ env.MATRIX_FILE }}
         run: |
-            os_list=$(jq -r '.["os-linux"] |  keys | [ .[] | tostring ] | @json' "$MATRIX_FILE")
+            os_list=$(jq -r '.["os-linux"] |  keys | map(select(. != "rhel")) | [ .[] | tostring ] | @json' "$MATRIX_FILE")
 
             echo "::group::Operating System List"
             echo "$os_list"
@@ -95,25 +95,12 @@ jobs:
 
             echo "list=$os_list" >> $GITHUB_OUTPUT
 
-      - name: Prepare Platform list
-        id: platform_list
-        env:
-          MATRIX_FILE: ${{ env.MATRIX_FILE }}
-        run: |
-            platform_list=$(jq -r '.["os-linux"] | tostring  | @json' "$MATRIX_FILE")
-
-            echo "::group::Platform List"
-            echo "$platform_list"
-            echo "::endgroup::"
-
-            echo "list=$platform_list" >> $GITHUB_OUTPUT
-
       - name: Prepare Database engine list
         id: database
         env:
           MATRIX_FILE: ${{ env.MATRIX_FILE }}
         run: |
-            database_list=$(jq -r '[.components | values[] ] | sort | unique | del(.. | select ( . == "" ) ) | [ .[] | tostring ] | @json' "$MATRIX_FILE")
+            database_list=$(jq -r '[.components | values[].base ] | sort | unique | del(.. | select ( . == "" ) ) | @json' "$MATRIX_FILE")
 
             echo "::group::Database List"
             echo "$database_list"
@@ -126,7 +113,7 @@ jobs:
         env:
           MATRIX_FILE: ${{ env.MATRIX_FILE }}
         run: |
-            component_list=$(jq -r '.components | keys | [ .[] | tostring ] | @json' "$MATRIX_FILE")
+            component_list=$(jq -r '.components | keys | @json' "$MATRIX_FILE")
 
             echo "::group::Zabbix Component List"
             echo "$component_list"
@@ -789,7 +776,7 @@ jobs:
           MATRIX_BUILD: ${{ matrix.build }}
           MATRIX_FILE: ${{ env.MATRIX_FILE }}
         run: |
-            BUILD_BASE=$(jq -r ".components.\"$MATRIX_BUILD\"" "$MATRIX_FILE")
+            BUILD_BASE=$(jq -r ".components.\"$MATRIX_BUILD\".base" "$MATRIX_FILE")
 
             echo "::group::Base Build Image"
             echo "$BUILD_BASE"
