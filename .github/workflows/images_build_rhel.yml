@@ -354,7 +354,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@8e5442c4ef9f78752691e2d8f8d19755c6f78e81 # v5.5.1
         with:
-          images: ${{ env.REGISTRY }}/${{ env.REGISTRY_NAMESPACE }}/${{ format('redhat-isv-containers+{0}-robot', secrets[format('{0}_{1}_PROJECT', needs.init_build.outputs.secret_prefix, matrix.build)]) }}
+          images: ${{ env.REGISTRY }}/${{ env.REGISTRY_NAMESPACE }}/${{ secrets[format('{0}_{1}_PROJECT', needs.init_build.outputs.secret_prefix, matrix.build)] }}
           tags: |
             type=semver,pattern={{version}}
             type=sha
