@@ -252,7 +252,7 @@ jobs:
             buildah rm -a
             podman system prune --external
             podman system prune -a --volumes -f
-            podman system reset -f
+            podman system reset -f 2>/dev/null || true
             #rm -rf /home/podman/.local/share/containers/
             echo "::endgroup::"
 
@@ -397,7 +397,7 @@ jobs:
             buildah rm -a
             podman system prune --external
             podman system prune -a --volumes -f
-            podman system reset -f
+            podman system reset -f 2>/dev/null || true
             #rm -rf /home/podman/.local/share/containers/
             echo "::endgroup::"
 
@@ -602,7 +602,7 @@ jobs:
             buildah rm -a
             podman system prune --external
             podman system prune -a --volumes -f
-            podman system reset -f
+            podman system reset -f 2>/dev/null || true
             #rm -rf /home/podman/.local/share/containers/
             echo "::endgroup::"
 
