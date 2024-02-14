@@ -251,7 +251,7 @@ jobs:
             podman rmi -i -f "${IMAGE_TAG}"
             buildah rm -a
             podman system prune --external
-            podman system prune -a --volumes
+            podman system prune -a --volumes -f
             podman system reset -f
             rm -rf /home/podman/.local/share/containers/
             echo "::endgroup::"
@@ -396,7 +396,7 @@ jobs:
             podman rmi -i -f "${IMAGE_TAG}"
             buildah rm -a
             podman system prune --external
-            podman system prune -a --volumes
+            podman system prune -a --volumes -f
             podman system reset -f
             rm -rf /home/podman/.local/share/containers/
             echo "::endgroup::"
@@ -601,7 +601,7 @@ jobs:
             echo "$TAGS" | while IFS= read -r image_name ; do podman rmi -i -f "$image_name"; done
             buildah rm -a
             podman system prune --external
-            podman system prune -a --volumes
+            podman system prune -a --volumes -f
             podman system reset -f
             rm -rf /home/podman/.local/share/containers/
             echo "::endgroup::"
