@@ -600,34 +600,32 @@ jobs:
       - name: Download SHA256 tag of ${{ matrix.build }}:${{ matrix.arch }}
         uses: actions/cache@13aacd865c20de90d75de3b17ebe84f7a17d57d2 # v4.0.0
         with:
-          path: ${{ matrix.build }}_${{ matrix.arch }}
+          path: ${{ matrix.build }}_${{ matrix.arch }}_digest
           key: ${{ matrix.build }}-${{ matrix.arch }}-${{ github.run_id }}
 
-      - name: Remove ${{ matrix.build }}:${{ matrix.arch }} SHA256 tag
+      - name: Remove ${{ matrix.build }}:${{ matrix.arch }} cache
         env:
          MATRIX_ARCH: ${{ matrix.arch }}
          BASE_IMAGE: ${{ matrix.build }}
-         IMAGES_PREFIX: ${{ env.IMAGES_PREFIX }}
+         IMAGE_DIR: ${{ env.IMAGE_DIR }}
         run: |
-            BASE_TAG=$(cat "${BASE_IMAGE}_${MATRIX_ARCH}")
-            BUILD_BASE_IMAGE="${IMAGES_PREFIX}${BASE_IMAGE}@${BASE_TAG}"
+            BASE_TAG=$(cat "${BASE_IMAGE}_${MATRIX_ARCH}_digest")
 
-            podman rmi -i -f "$BUILD_BASE_IMAGE"
+            rm -rf "${IMAGE_DIR}/${BASE_TAG}"
 
       - name: Download SHA256 tag of ${{ env.BASE_BUILD_NAME }}:${{ matrix.arch }}
         uses: actions/cache@13aacd865c20de90d75de3b17ebe84f7a17d57d2 # v4.0.0
         with:
-          path: ${{ env.BASE_BUILD_NAME }}_${{ matrix.arch }}
+          path: ${{ env.BASE_BUILD_NAME }}_${{ matrix.arch }}_digest
           key: ${{ env.BASE_BUILD_NAME }}-${{ matrix.arch }}-${{ github.run_id }}
 
 
-      - name: Remove ${{ env.BASE_BUILD_NAME }}:${{ matrix.arch }} SHA256 tag
+      - name: Remove ${{ env.BASE_BUILD_NAME }}:${{ matrix.arch }} cache
         env:
          MATRIX_ARCH: ${{ matrix.arch }}
          BASE_IMAGE: ${{ env.BASE_BUILD_NAME }}
-         IMAGES_PREFIX: ${{ env.IMAGES_PREFIX }}
+         IMAGE_DIR: ${{ env.IMAGE_DIR }}
         run: |
-            BASE_TAG=$(cat "${BASE_IMAGE}_${MATRIX_ARCH}")
-            BUILD_BASE_IMAGE="${IMAGES_PREFIX}${BASE_IMAGE}@${BASE_TAG}"
+            BASE_TAG=$(cat "${BASE_IMAGE}_${MATRIX_ARCH}_digest")
 
-            podman rmi -i -f "$BUILD_BASE_IMAGE"
+            rm -rf "${IMAGE_DIR}/${BASE_TAG}"
