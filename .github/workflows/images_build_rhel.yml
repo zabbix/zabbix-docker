@@ -45,6 +45,7 @@ jobs:
       is_default_branch: ${{ steps.branch_info.outputs.is_default_branch }}
       current_branch: ${{ steps.branch_info.outputs.current_branch }}
       sha_short: ${{ steps.branch_info.outputs.sha_short }}
+      secret_prefix: ${{ steps.branch_info.outputs.secret_prefix }}
     steps:
       - name: Block egress traffic
         uses: step-security/harden-runner@63c24ba6bd7ba022e95695ff85de572c04a18142 # v2.7.0
@@ -118,11 +119,13 @@ jobs:
             echo "::group::Branch data"
             echo "is_default_branch - $result"
             echo "current_branch - $github_ref"
+            echo "secret_prefix=RHEL_${github_ref//.}"
             echo "sha_short - $sha_short"
             echo "::endgroup::"
 
             echo "is_default_branch=$result" >> $GITHUB_OUTPUT
             echo "current_branch=$github_ref" >> $GITHUB_OUTPUT
+            echo "secret_prefix=RHEL_${github_ref//.}" >> $GITHUB_OUTPUT
             echo "sha_short=$sha_short" >> $GITHUB_OUTPUT
 
 
@@ -335,8 +338,8 @@ jobs:
         uses: redhat-actions/podman-login@9184318aae1ee5034fbfbacc0388acf12669171f # v1.6
         if: ${{ env.AUTO_PUSH_IMAGES == 'true' }}
         with:
-          username: ${{ format('redhat-isv-containers+{0}-robot', secrets[format('RHEL_{0}_{1}_PROJECT', ${{ needs.init_build.outputs.current_branch }}, ${{ matrix.build }})]) }}
-          password: ${{ secrets[format('RHEL_{0}_{1}_SECRET', ${{ needs.init_build.outputs.current_branch }}, ${{ matrix.build }})] }}
+          username: ${{ format('redhat-isv-containers+{0}-robot', secrets[format('{0}_{1}_PROJECT', ${{ needs.init_build.outputs.secret_prefix }}, ${{ matrix.build }})]) }}
+          password: ${{ secrets[format('{0}_{1}_SECRET', ${{ needs.init_build.outputs.secret_prefix }}, ${{ matrix.build }})] }}
           registry: ${{ env.REGISTRY }}
           auth_file_path: /tmp/.docker_${{ matrix.build }}_${{ matrix.arch }}_${{ needs.init_build.outputs.sha_short }}
 
@@ -351,7 +354,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@8e5442c4ef9f78752691e2d8f8d19755c6f78e81 # v5.5.1
         with:
-          images: ${{ env.REGISTRY }}/${{ env.REGISTRY_NAMESPACE }}/${{ format('redhat-isv-containers+{0}-robot', secrets[format('RHEL_{0}_{1}_PROJECT', ${{ needs.init_build.outputs.current_branch }}, ${{ matrix.build }})]) }}
+          images: ${{ env.REGISTRY }}/${{ env.REGISTRY_NAMESPACE }}/${{ format('redhat-isv-containers+{0}-robot', secrets[format('{0}_{1}_PROJECT', ${{ needs.init_build.outputs.secret_prefix }}, ${{ matrix.build }})]) }}
           tags: |
             type=semver,pattern={{version}}
             type=sha
@@ -408,7 +411,7 @@ jobs:
         if: ${{ env.AUTO_PUSH_IMAGES == 'true' }}
         env:
           PFLT_DOCKERCONFIG: /tmp/.docker_${{ matrix.build }}_${{ matrix.arch }}_${{ needs.init_build.outputs.sha_short }}
-          PFLT_CERTIFICATION_PROJECT_ID: ${{ format('redhat-isv-containers+{0}-robot', secrets[format('RHEL_{0}_{1}_PROJECT', ${{ needs.init_build.outputs.current_branch }}, ${{ matrix.build }})]) }}
+          PFLT_CERTIFICATION_PROJECT_ID: ${{ format('redhat-isv-containers+{0}-robot', secrets[format('{0}_{1}_PROJECT', ${{ needs.init_build.outputs.secret_prefix }}, ${{ matrix.build }})]) }}
           PFLT_PYXIS_API_TOKEN: ${{ secrets.REDHAT_API_TOKEN }}
           PFLT_ARTIFACTS: ${{ env.PFLT_ARTIFACTS }}
           PFLT_LOGLEVEL: ${{ env.PFLT_LOGLEVEL }}
