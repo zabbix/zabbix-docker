@@ -353,7 +353,7 @@ jobs:
         if: ${{ env.AUTO_PUSH_IMAGES == 'true' }}
         with:
           username: ${{ format('redhat-isv-containers+{0}-robot', secrets[format('{0}_{1}_PROJECT',  needs.init_build.outputs.secret_prefix, steps.var_format.outputs.matrix_build)]) }}
-          password: ${{ secrets[format('{0}_{1}_SECRET', needs.init_build.outputs.secret_prefix, matrix.build)] }}
+          password: ${{ secrets[format('{0}_{1}_SECRET', needs.init_build.outputs.secret_prefix, steps.var_format.outputs.matrix_build)] }}
           registry: ${{ env.REGISTRY }}
           auth_file_path: /tmp/.docker_${{ matrix.build }}_${{ matrix.arch }}_${{ needs.init_build.outputs.sha_short }}
 
