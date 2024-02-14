@@ -30,9 +30,7 @@ name: SonarCloud analysis
 
 on:
   push:
-    branches:
-      - '[0-9]+.[0-9]+'
-      - 'trunk'
+    branches: [ "6.4" ]
   pull_request:
     branches: [ "6.4" ]
   workflow_dispatch:

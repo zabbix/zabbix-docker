@@ -14,6 +14,12 @@ on:
       - '!**/README.md'
       - '.github/workflows/images_build_rhel.yml'
   workflow_dispatch:
+    inputs:
+      publish_images:
+        description: 'Publish images'
+        required: true
+        default: false
+        type: boolean
 
 defaults:
   run:
@@ -348,15 +354,6 @@ jobs:
 
             echo "build_base=${BUILD_BASE}" >> $GITHUB_OUTPUT
 
-      - name: Log in to Quay.io
-        uses: redhat-actions/podman-login@9184318aae1ee5034fbfbacc0388acf12669171f # v1.6
-        if: ${{ env.AUTO_PUSH_IMAGES == 'true' }}
-        with:
-          username: ${{ format('redhat-isv-containers+{0}-robot', secrets[format('{0}_{1}_PROJECT',  needs.init_build.outputs.secret_prefix, steps.var_format.outputs.matrix_build)]) }}
-          password: ${{ secrets[format('{0}_{1}_SECRET', needs.init_build.outputs.secret_prefix, steps.var_format.outputs.matrix_build)] }}
-          registry: ${{ env.REGISTRY }}
-          auth_file_path: /tmp/.docker_${{ matrix.build }}_${{ matrix.arch }}_${{ needs.init_build.outputs.sha_short }}
-
       - name: Remove smartmontools
         if: ${{ matrix.build == 'agent2' }}
         env:
@@ -402,7 +399,7 @@ jobs:
             echo "base_tag=${BASE_TAG}" >> $GITHUB_OUTPUT
             echo "base_build_image=${BUILD_BASE_IMAGE}" >> $GITHUB_OUTPUT
 
-      - name: Build ${{ matrix.build }}
+      - name: Build image
         id: build_image
         uses: redhat-actions/buildah-build@b4dc19b4ba891854660ab1f88a097d45aa158f76 # v2.12
         with:
@@ -416,7 +413,16 @@ jobs:
             ${{ env.DOCKERFILES_DIRECTORY }}/${{ matrix.build }}/rhel/Dockerfile
           build-args: BUILD_BASE_IMAGE=${{ steps.base_build.outputs.base_build_image }}
 
-      - name: Push to RedHat certification procedure
+      - name: Log in to Quay.io
+        uses: redhat-actions/podman-login@9184318aae1ee5034fbfbacc0388acf12669171f # v1.6
+        if: ${{ env.AUTO_PUSH_IMAGES == 'true' }}
+        with:
+          username: ${{ format('redhat-isv-containers+{0}-robot', secrets[format('{0}_{1}_PROJECT',  needs.init_build.outputs.secret_prefix, steps.var_format.outputs.matrix_build)]) }}
+          password: ${{ secrets[format('{0}_{1}_SECRET', needs.init_build.outputs.secret_prefix, steps.var_format.outputs.matrix_build)] }}
+          registry: ${{ env.REGISTRY }}
+          auth_file_path: /tmp/.docker_${{ matrix.build }}_${{ matrix.arch }}_${{ needs.init_build.outputs.sha_short }}
+
+      - name: Push to RedHat certification procedure (1st)
         id: push_to_registry
         if: ${{ env.AUTO_PUSH_IMAGES == 'true' }}
         uses: redhat-actions/push-to-registry@9986a6552bc4571882a4a67e016b17361412b4df # v2.7.1
@@ -456,7 +462,7 @@ jobs:
             podman rmi -i -f "$PREFLIGHT_IMAGE"
             echo "::endgroup::"
 
-      - name: Push to RedHat certification procedure
+      - name: Push to RedHat certification procedure (2nd)
         id: push_to_registry_all_tags
         if: ${{ env.AUTO_PUSH_IMAGES == 'true' }}
         uses: redhat-actions/push-to-registry@9986a6552bc4571882a4a67e016b17361412b4df # v2.7.1
