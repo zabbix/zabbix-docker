@@ -313,12 +313,14 @@ jobs:
         with:
           fetch-depth: 1
 
-      - name: Fix string case
-        id: lc
+      - name: Variables formating
+        id: var_format
         env:
-          ARCH: ${{ matrix.arch }}
+          MATRIX_BUILD: ${{ matrix.build }}
         run: |
-            echo "arch=${ARCH,,}" >> $GITHUB_OUTPUT
+            MATRIX_BUILD=${MATRIX_BUILD^^}
+            MATRIX_BUILD=${MATRIX_BUILD//-/_}
+            echo "matrix_build=${MATRIX_BUILD,,}" >> $GITHUB_OUTPUT
 
       - name: Detect Build Base Image
         id: build_base_image
@@ -338,7 +340,7 @@ jobs:
         uses: redhat-actions/podman-login@9184318aae1ee5034fbfbacc0388acf12669171f # v1.6
         if: ${{ env.AUTO_PUSH_IMAGES == 'true' }}
         with:
-          username: ${{ format('redhat-isv-containers+{0}-robot', secrets[format('{0}_{1}_PROJECT',  needs.init_build.outputs.secret_prefix, matrix.build)]) }}
+          username: ${{ format('redhat-isv-containers+{0}-robot', secrets[format('{0}_{1}_PROJECT',  needs.init_build.outputs.secret_prefix, steps.var_format.outputs.matrix_build)]) }}
           password: ${{ secrets[format('{0}_{1}_SECRET', needs.init_build.outputs.secret_prefix, matrix.build)] }}
           registry: ${{ env.REGISTRY }}
           auth_file_path: /tmp/.docker_${{ matrix.build }}_${{ matrix.arch }}_${{ needs.init_build.outputs.sha_short }}
@@ -354,7 +356,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@8e5442c4ef9f78752691e2d8f8d19755c6f78e81 # v5.5.1
         with:
-          images: ${{ env.REGISTRY }}/${{ env.REGISTRY_NAMESPACE }}/${{ secrets[format('{0}_{1}_PROJECT', needs.init_build.outputs.secret_prefix, matrix.build)] }}
+          images: ${{ env.REGISTRY }}/${{ env.REGISTRY_NAMESPACE }}/${{ secrets[format('{0}_{1}_PROJECT', needs.init_build.outputs.secret_prefix, steps.var_format.outputs.matrix_build)] }}
           tags: |
             type=semver,pattern={{version}}
             type=sha
@@ -411,7 +413,7 @@ jobs:
         if: ${{ env.AUTO_PUSH_IMAGES == 'true' }}
         env:
           PFLT_DOCKERCONFIG: /tmp/.docker_${{ matrix.build }}_${{ matrix.arch }}_${{ needs.init_build.outputs.sha_short }}
-          PFLT_CERTIFICATION_PROJECT_ID: ${{ format('redhat-isv-containers+{0}-robot', secrets[format('{0}_{1}_PROJECT', needs.init_build.outputs.secret_prefix, matrix.build)]) }}
+          PFLT_CERTIFICATION_PROJECT_ID: ${{ secrets[format('{0}_{1}_PROJECT', needs.init_build.outputs.secret_prefix, steps.var_format.outputs.matrix_build)] }}
           PFLT_PYXIS_API_TOKEN: ${{ secrets.REDHAT_API_TOKEN }}
           PFLT_ARTIFACTS: ${{ env.PFLT_ARTIFACTS }}
           PFLT_LOGLEVEL: ${{ env.PFLT_LOGLEVEL }}
