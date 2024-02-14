@@ -374,6 +374,7 @@ jobs:
             suffix=${{ matrix.arch == 'ARM64' && '-arm64' || '' }},onlatest=true
 
       - name: Download SHA256 tag of ${{ steps.build_base_image.outputs.build_base }}:${{ matrix.arch }}
+        if: ${{ matrix.build != 'snmptraps' }}
         uses: actions/cache@13aacd865c20de90d75de3b17ebe84f7a17d57d2 # v4.0.0
         with:
           path: ${{ steps.build_base_image.outputs.build_base }}_${{ matrix.arch }}
@@ -381,6 +382,7 @@ jobs:
 
       - name: Retrieve ${{ steps.build_base_image.outputs.build_base }}:${{ matrix.arch }} SHA256 tag
         id: base_build
+        if: ${{ matrix.build != 'snmptraps' }}
         env:
          MATRIX_ARCH: ${{ matrix.arch }}
          BASE_IMAGE: ${{ steps.build_base_image.outputs.build_base }}
