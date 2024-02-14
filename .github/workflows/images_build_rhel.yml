@@ -399,7 +399,7 @@ jobs:
             echo "base_tag=${BASE_TAG}" >> $GITHUB_OUTPUT
             echo "base_build_image=${BUILD_BASE_IMAGE}" >> $GITHUB_OUTPUT
 
-      - name: Build ${{ matrix.build }}
+      - name: Build image
         id: build_image
         uses: redhat-actions/buildah-build@b4dc19b4ba891854660ab1f88a097d45aa158f76 # v2.12
         with:
@@ -422,7 +422,7 @@ jobs:
           registry: ${{ env.REGISTRY }}
           auth_file_path: /tmp/.docker_${{ matrix.build }}_${{ matrix.arch }}_${{ needs.init_build.outputs.sha_short }}
 
-      - name: Push to RedHat certification procedure
+      - name: Push to RedHat certification procedure (1st)
         id: push_to_registry
         if: ${{ env.AUTO_PUSH_IMAGES == 'true' }}
         uses: redhat-actions/push-to-registry@9986a6552bc4571882a4a67e016b17361412b4df # v2.7.1
@@ -462,7 +462,7 @@ jobs:
             podman rmi -i -f "$PREFLIGHT_IMAGE"
             echo "::endgroup::"
 
-      - name: Push to RedHat certification procedure
+      - name: Push to RedHat certification procedure (2nd)
         id: push_to_registry_all_tags
         if: ${{ env.AUTO_PUSH_IMAGES == 'true' }}
         uses: redhat-actions/push-to-registry@9986a6552bc4571882a4a67e016b17361412b4df # v2.7.1
