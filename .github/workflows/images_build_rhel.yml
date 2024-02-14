@@ -75,7 +75,7 @@ jobs:
         env:
           MATRIX_FILE: ${{ env.MATRIX_FILE }}
         run: |
-            platform_list=$(jq -r '.["os-linux"].rhel | tostring  | @json' "$MATRIX_FILE")
+            platform_list=$(jq -r '.["os-linux"].rhel | @json' "$MATRIX_FILE")
 
             echo "::group::Platform List"
             echo "$platform_list"
