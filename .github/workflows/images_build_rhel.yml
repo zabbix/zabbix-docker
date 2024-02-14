@@ -202,7 +202,9 @@ jobs:
         env:
           IMAGE_TAG: ${{ fromJSON(steps.meta.outputs.json).tags[0] }}
           CACHE_FILE_NAME: ${{ env.BASE_BUILD_NAME }}_${{ matrix.arch }}
+          IMAGE_FULL: $${{ steps.build_image.outputs.image-with-tag }}
         run: |
+            echo "${IMAGE_FULL}"
             DIGEST=$(podman inspect ${IMAGE_TAG} --format "{{.Id}}")
             echo "::group::Image digest"
             echo "$DIGEST"
@@ -211,7 +213,7 @@ jobs:
             echo "$CACHE_FILE_NAME"
             echo "::endgroup::"
             podman push ${IMAGE_TAG} dir:"/tmp/images/$DIGEST"
-
+            exit 1
             echo "$DIGEST" > "$CACHE_FILE_NAME"
 
       - name: Cache image digest
