@@ -57,6 +57,7 @@ jobs:
       contents: read
     outputs:
       platforms: ${{ steps.platform_list.outputs.list }}
+      database: ${{ steps.database.outputs.list }}
       components: ${{ steps.components.outputs.list }}
       is_default_branch: ${{ steps.branch_info.outputs.is_default_branch }}
       current_branch: ${{ steps.branch_info.outputs.current_branch }}
@@ -98,6 +99,19 @@ jobs:
             echo "::endgroup::"
 
             echo "list=$platform_list" >> $GITHUB_OUTPUT
+
+      - name: Prepare Database engine list
+        id: database
+        env:
+          MATRIX_FILE: ${{ env.MATRIX_FILE }}
+        run: |
+            database_list=$(jq -r '[.components | map_values(select(.rhel == true)) | values[].base ] | sort | unique | del(.. | select ( . == "" ) ) | @json' "$MATRIX_FILE")
+
+            echo "::group::Database List"
+            echo "$database_list"
+            echo "::endgroup::"
+
+            echo "list=$database_list" >> $GITHUB_OUTPUT
 
       - name: Prepare Zabbix component list
         id: components
@@ -273,7 +287,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        build: [build-mysql, build-sqlite3]
+        build: ${{ fromJson(needs.init_build.outputs.database) }}
         arch: ${{ fromJson(needs.init_build.outputs.platforms) }}
     runs-on: [self-hosted, linux, "${{ matrix.arch }}"]
     permissions:
@@ -448,6 +462,7 @@ jobs:
 
       - name: Detect Build Base Image
         id: build_base_image
+        if: ${{ matrix.build != 'snmptraps' }}
         env:
           MATRIX_BUILD: ${{ matrix.build }}
           MATRIX_FILE: ${{ env.MATRIX_FILE }}
@@ -471,6 +486,7 @@ jobs:
 
       - name: Pull ${{ steps.build_base_image.outputs.build_base }}:${{ matrix.arch }} image
         id: base_build
+        if: ${{ matrix.build != 'snmptraps' }}
         env:
          MATRIX_ARCH: ${{ matrix.arch }}
          BASE_IMAGE: ${{ steps.build_base_image.outputs.build_base }}
@@ -607,18 +623,21 @@ jobs:
             echo "podman rmi -i -f \"${IMAGE_TAG}\""
 
             podman rmi -i -f "${IMAGE_TAG}" || true
+            echo "buildah rm -a"
             buildah rm -a || true
+            echo "podman system prune --external"
             podman system prune --external
+            echo "podman system prune -a --volumes -f"
             podman system prune -a --volumes -f
+            echo "podman system reset"
             podman system reset -f 2>/dev/null || true
-            #rm -rf /home/podman/.local/share/containers/
 
             echo "::endgroup::"
 
   clean_artifacts:
     timeout-minutes: 90
-    needs: [ "build_images", "init_build"]
-    name: Build ${{ matrix.build }} image (${{ matrix.arch }})
+    needs: ${{ fromJson(needs.init_build.outputs.database) }}
+    name: Clear ${{ matrix.build }} image cache (${{ matrix.arch }})
     strategy:
       fail-fast: false
       matrix:
@@ -632,7 +651,6 @@ jobs:
         uses: actions/cache/restore@13aacd865c20de90d75de3b17ebe84f7a17d57d2 # v4.0.0
         with:
           path: |
-              ${{ matrix.build }}_${{ matrix.arch }}_digest
               ${{ matrix.build }}_${{ matrix.arch }}_tag_id
               ${{ matrix.build }}_${{ matrix.arch }}_tag
           key: ${{ matrix.build }}-${{ matrix.arch }}-${{ github.run_id }}
@@ -643,14 +661,14 @@ jobs:
          BASE_IMAGE: ${{ matrix.build }}
          IMAGE_DIR: ${{ env.IMAGE_DIR }}
         run: |
-            BASE_TAG=$(cat "${BASE_IMAGE}_${MATRIX_ARCH}_digest")
+            BASE_TAG=$(cat "${BASE_IMAGE}_${MATRIX_ARCH}_tag_id")
 
             rm -rf "${IMAGE_DIR}/${BASE_TAG}"
 
       - name: Download SHA256 tag of ${{ env.BASE_BUILD_NAME }}:${{ matrix.arch }}
         uses: actions/cache/restore@13aacd865c20de90d75de3b17ebe84f7a17d57d2 # v4.0.0
         with:
-          path: ${{ env.BASE_BUILD_NAME }}_${{ matrix.arch }}_digest
+          path: ${{ env.BASE_BUILD_NAME }}_${{ matrix.arch }}_tag_id
           key: ${{ env.BASE_BUILD_NAME }}-${{ matrix.arch }}-${{ github.run_id }}
 
 
@@ -660,6 +678,6 @@ jobs:
          BASE_IMAGE: ${{ env.BASE_BUILD_NAME }}
          IMAGE_DIR: ${{ env.IMAGE_DIR }}
         run: |
-            BASE_TAG=$(cat "${BASE_IMAGE}_${MATRIX_ARCH}_digest")
+            BASE_TAG=$(cat "${BASE_IMAGE}_${MATRIX_ARCH}_tag_id")
 
             rm -rf "${IMAGE_DIR}/${BASE_TAG}"
