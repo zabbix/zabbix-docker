@@ -200,13 +200,13 @@ jobs:
             --pull
             --iidfile=${{ github.workspace }}/iidfile
 
-      - name: Image digest
+      - name: Prepare image metadata
+        id: image_metadata
         env:
           IMAGE_TAG: ${{ steps.build_image.outputs.image-with-tag }}
           CACHE_FILE_NAME: ${{ env.BASE_BUILD_NAME }}_${{ matrix.arch }}
           GITHUB_WORKSPACE: ${{ github.workspace }}
         run: |
-            env
             TAG_ID=$(cat $GITHUB_WORKSPACE/iidfile)
 
             echo "::group::Image tag"
@@ -222,6 +222,9 @@ jobs:
             echo "$TAG_ID" > "${CACHE_FILE_NAME}_tag_id"
             echo "$IMAGE_TAG" > "${CACHE_FILE_NAME}_tag"
 
+            echo "image_tag_id=${TAG_ID}" >> $GITHUB_OUTPUT
+            echo "image_tag=${IMAGE_TAG}" >> $GITHUB_OUTPUT
+
       - name: Cache image digest
         uses: actions/cache/save@13aacd865c20de90d75de3b17ebe84f7a17d57d2 # v4.0.0
         with:
@@ -232,21 +235,20 @@ jobs:
 
       - name: Push image to local storage
         env:
-          IMAGE_TAG: ${{ steps.build_image.outputs.image-with-tag }}
+          IMAGE_TAG: ${{ steps.image_metadata.outputs.image_tag }}
+          IMAGE_TAG_ID: ${{ steps.image_metadata.outputs.image_tag_id }}
           IMAGE_DIR: ${{ env.IMAGE_DIR }}
           GITHUB_WORKSPACE: ${{ github.workspace }}
         run: |
-            TAG_ID=$(cat $GITHUB_WORKSPACE/iidfile)
-
             echo "::group::Result"
-            echo "podman push \"${IMAGE_TAG}\" dir:\"${IMAGE_DIR}/${TAG_ID}\""
-            podman push "${IMAGE_TAG}" dir:"${IMAGE_DIR}/${TAG_ID}"
+            echo "podman push \"${IMAGE_TAG}\" dir:\"${IMAGE_DIR}/${IMAGE_TAG_ID}\""
+            podman push "${IMAGE_TAG}" dir:"${IMAGE_DIR}/${IMAGE_TAG_ID}"
             echo "::endgroup::"
 
       - name: Post build image
         if: ${{ success() || failure() }}
         env:
-          IMAGE_TAG: ${{ steps.build_image.outputs.image-with-tag }}
+          IMAGE_TAG: ${{ steps.image_metadata.outputs.image_tag }}
           GITHUB_WORKSPACE: ${{ github.workspace }}
         run: |
             echo "::group::Result"
@@ -290,14 +292,6 @@ jobs:
         run: |
           echo "arch=${ARCH,,}" >> $GITHUB_OUTPUT
 
-      - name: Generate tags
-        id: meta
-        uses: docker/metadata-action@8e5442c4ef9f78752691e2d8f8d19755c6f78e81 # v5.5.1
-        with:
-          images: ${{ env.IMAGES_PREFIX }}${{ matrix.build }}
-          tags: |
-            type=sha,suffix=-${{ steps.lc.outputs.arch }}
-
       - name: Download SHA256 tag of ${{ env.BASE_BUILD_NAME }}:${{ matrix.arch }}
         uses: actions/cache/restore@13aacd865c20de90d75de3b17ebe84f7a17d57d2 # v4.0.0
         with:
@@ -334,6 +328,14 @@ jobs:
 
             echo "base_build_image=${BASE_BUILD_IMAGE}" >> $GITHUB_OUTPUT
 
+      - name: Generate tags
+        id: meta
+        uses: docker/metadata-action@8e5442c4ef9f78752691e2d8f8d19755c6f78e81 # v5.5.1
+        with:
+          images: ${{ env.IMAGES_PREFIX }}${{ matrix.build }}
+          tags: |
+            type=sha,suffix=-${{ steps.lc.outputs.arch }}
+
       - name: Build Zabbix Build Base
         id: build_image
         uses: redhat-actions/buildah-build@b4dc19b4ba891854660ab1f88a097d45aa158f76 # v2.12
@@ -344,63 +346,73 @@ jobs:
           containerfiles: |
             ${{ env.DOCKERFILES_DIRECTORY }}/${{ matrix.build }}/rhel/Dockerfile
           build-args: BUILD_BASE_IMAGE=${{ steps.base_build.outputs.base_build_image }}
+          extra-args: |
+            --iidfile=${{ github.workspace }}/iidfile
 
-      - name: Image digest
+      - name: Prepare image metadata
+        id: image_metadata
         env:
           IMAGE_TAG: ${{ steps.build_image.outputs.image-with-tag }}
           CACHE_FILE_NAME: ${{ matrix.build }}_${{ matrix.arch }}
+          GITHUB_WORKSPACE: ${{ github.workspace }}
         run: |
-            DIGEST=$(podman inspect ${IMAGE_TAG} --format "{{ index .RepoDigests 0}}" | cut -d '@' -f2)
-            TAG_ID=$(podman inspect "${IMAGE_TAG}" --format "{{ .Id }}")
+            TAG_ID=$(cat $GITHUB_WORKSPACE/iidfile)
 
             echo "::group::Image tag"
             echo "image_tag=$IMAGE_TAG"
             echo "::endgroup::"
-            echo "::group::Image digest"
-            echo "digest=$DIGEST"
+            echo "::group::Image Tag ID"
+            echo "tag_id=$TAG_ID"
             echo "::endgroup::"
             echo "::group::Cache file name"
             echo "$CACHE_FILE_NAME"
             echo "::endgroup::"
 
-            echo "$DIGEST" > "${CACHE_FILE_NAME}_digest"
             echo "$TAG_ID" > "${CACHE_FILE_NAME}_tag_id"
             echo "$IMAGE_TAG" > "${CACHE_FILE_NAME}_tag"
+
+            echo "image_tag_id=${TAG_ID}" >> $GITHUB_OUTPUT
+            echo "image_tag=${IMAGE_TAG}" >> $GITHUB_OUTPUT
 
       - name: Cache image digest
         uses: actions/cache/save@13aacd865c20de90d75de3b17ebe84f7a17d57d2 # v4.0.0
         with:
           path: |
-              ${{ matrix.build }}_${{ matrix.arch }}_digest
               ${{ matrix.build }}_${{ matrix.arch }}_tag_id
               ${{ matrix.build }}_${{ matrix.arch }}_tag
           key: ${{ matrix.build }}-${{ matrix.arch }}-${{ github.run_id }}
 
       - name: Push image to local storage
         env:
-          IMAGE_TAG: ${{ steps.build_image.outputs.image-with-tag }}
+          IMAGE_TAG: ${{ steps.image_metadata.outputs.image_tag }}
+          IMAGE_TAG_ID: ${{ steps.image_metadata.outputs.image_tag_id }}
           IMAGE_DIR: ${{ env.IMAGE_DIR }}
+          GITHUB_WORKSPACE: ${{ github.workspace }}
         run: |
-            DIGEST=$(podman inspect "${IMAGE_TAG}" --format "{{ index .RepoDigests 0}}" | cut -d '@' -f2)
-
             echo "::group::Result"
-            echo "podman push \"${IMAGE_TAG}\" dir:\"${IMAGE_DIR}/${DIGEST}\""
-            podman push "${IMAGE_TAG}" dir:"${IMAGE_DIR}/${DIGEST}"
+            echo "podman push \"${IMAGE_TAG}\" dir:\"${IMAGE_DIR}/${IMAGE_TAG_ID}\""
+            podman push "${IMAGE_TAG}" dir:"${IMAGE_DIR}/${IMAGE_TAG_ID}"
             echo "::endgroup::"
 
       - name: Post build image
         if: ${{ success() || failure() }}
         env:
-          IMAGE_TAG: ${{ steps.build_image.outputs.image-with-tag }}
+          IMAGE_TAG: ${{ steps.image_metadata.outputs.image_tag }}
+          GITHUB_WORKSPACE: ${{ github.workspace }}
         run: |
             echo "::group::Result"
+
+            rm -rf "$GITHUB_WORKSPACE/iidfile"
+
             echo "podman rmi -i -f \"${IMAGE_TAG}\""
-            podman rmi -i -f "${IMAGE_TAG}"
+
+            podman rmi -i -f "${IMAGE_TAG}" || true
             buildah rm -a || true
             podman system prune --external
             podman system prune -a --volumes -f
             podman system reset -f 2>/dev/null || true
             #rm -rf /home/podman/.local/share/containers/
+
             echo "::endgroup::"
 
   build_images:
@@ -448,6 +460,43 @@ jobs:
 
             echo "build_base=${BUILD_BASE}" >> $GITHUB_OUTPUT
 
+      - name: Download SHA256 tag of ${{ steps.build_base_image.outputs.build_base }}:${{ matrix.arch }}
+        if: ${{ matrix.build != 'snmptraps' }}
+        uses: actions/cache/restore@13aacd865c20de90d75de3b17ebe84f7a17d57d2 # v4.0.0
+        with:
+          path: |
+              ${{ steps.build_base_image.outputs.build_base }}_${{ matrix.arch }}_tag_id
+              ${{ steps.build_base_image.outputs.build_base }}_${{ matrix.arch }}_tag
+          key: ${{ steps.build_base_image.outputs.build_base }}-${{ matrix.arch }}-${{ github.run_id }}
+
+      - name: Pull ${{ steps.build_base_image.outputs.build_base }}:${{ matrix.arch }} image
+        id: base_build
+        env:
+         MATRIX_ARCH: ${{ matrix.arch }}
+         BASE_IMAGE: ${{ steps.build_base_image.outputs.build_base }}
+         IMAGES_PREFIX: ${{ env.IMAGES_PREFIX }}
+        run: |
+            BASE_TAG_ID=$(cat "${BASE_IMAGE}_${MATRIX_ARCH}_tag_id")
+            BASE_IMAGE_TAG=$(cat "${BASE_IMAGE}_${MATRIX_ARCH}_tag")
+
+            echo "::group::Pull image"
+            echo "podman pull dir:\"${IMAGE_DIR}/${BASE_TAG_ID}\""
+            podman pull dir:"${IMAGE_DIR}/${BASE_TAG_ID}"
+            echo "::endgroup::"
+
+            echo "::group::Tag image"
+            echo "podman tag \"${BASE_TAG_ID}\" \"${BASE_IMAGE_TAG}\""
+            podman tag "${BASE_TAG_ID}" "${BASE_IMAGE_TAG}"
+            echo "::endgroup::"
+
+            echo "::group::SHA256 tag"
+            DIGEST=$(podman inspect "${BASE_TAG_ID}" --format '{{ .Digest }}')
+            BASE_BUILD_IMAGE="${IMAGES_PREFIX}${BASE_IMAGE}@${DIGEST}"
+            echo "digest=${BASE_BUILD_IMAGE}"
+            echo "::endgroup::"
+
+            echo "base_build_image=${BASE_BUILD_IMAGE}" >> $GITHUB_OUTPUT
+
       - name: Remove smartmontools
         if: ${{ matrix.build == 'agent2' }}
         env:
@@ -466,52 +515,6 @@ jobs:
           flavor: |
             latest=${{ github.event_name == 'release' }}
             suffix=${{ matrix.arch == 'ARM64' && '-arm64' || '' }},onlatest=true
-
-      - name: Download SHA256 tag of ${{ steps.build_base_image.outputs.build_base }}:${{ matrix.arch }}
-        if: ${{ matrix.build != 'snmptraps' }}
-        uses: actions/cache/restore@13aacd865c20de90d75de3b17ebe84f7a17d57d2 # v4.0.0
-        with:
-          path: |
-              ${{ steps.build_base_image.outputs.build_base }}_${{ matrix.arch }}_digest
-              ${{ steps.build_base_image.outputs.build_base }}_${{ matrix.arch }}_tag_id
-              ${{ steps.build_base_image.outputs.build_base }}_${{ matrix.arch }}_tag
-          key: ${{ steps.build_base_image.outputs.build_base }}-${{ matrix.arch }}-${{ github.run_id }}
-
-      - name: Retrieve ${{ steps.build_base_image.outputs.build_base }}:${{ matrix.arch }} info
-        id: base_build
-        if: ${{ matrix.build != 'snmptraps' }}
-        env:
-         MATRIX_ARCH: ${{ matrix.arch }}
-         BASE_IMAGE: ${{ steps.build_base_image.outputs.build_base }}
-         IMAGES_PREFIX: ${{ env.IMAGES_PREFIX }}
-        run: |
-            BASE_TAG=$(cat "${BASE_IMAGE}_${MATRIX_ARCH}_digest")
-            BUILD_BASE_IMAGE="${IMAGES_PREFIX}${BASE_IMAGE}@${BASE_TAG}"
-
-            echo "::group::Base build image information"
-            echo "base_build_image=${BUILD_BASE_IMAGE}"
-            echo "::endgroup::"
-
-            echo "base_tag=${BASE_TAG}" >> $GITHUB_OUTPUT
-            echo "base_build_image=${BUILD_BASE_IMAGE}" >> $GITHUB_OUTPUT
-
-      - name: Pull ${{ env.BASE_BUILD_NAME }}:${{ matrix.arch }} image
-        if: ${{ matrix.build != 'snmptraps' }}
-        env:
-         MATRIX_ARCH: ${{ matrix.arch }}
-         BASE_IMAGE: ${{ steps.build_base_image.outputs.build_base }}
-         IMAGES_PREFIX: ${{ env.IMAGES_PREFIX }}
-        run: |
-            BASE_DIGEST=$(cat "${BASE_IMAGE}_${MATRIX_ARCH}_digest")
-            BASE_TAG=$(cat "${BASE_IMAGE}_${MATRIX_ARCH}_tag_id")
-            BUILD_BASE_IMAGE=$(cat "${BASE_IMAGE}_${MATRIX_ARCH}_tag")
-
-            echo "::group::Pull image"
-            echo "podman pull dir:\"${IMAGE_DIR}/${BASE_DIGEST}\""
-            podman pull dir:"${IMAGE_DIR}/${BASE_DIGEST}"
-            echo "podman tag \"${BASE_TAG}\" \"${BUILD_BASE_IMAGE}\""
-            podman tag "${BASE_TAG}" "${BUILD_BASE_IMAGE}"
-            echo "::endgroup::"
 
       - name: Build image
         id: build_image
@@ -555,7 +558,7 @@ jobs:
           PREFLIGHT_IMAGE: ${{ env.PREFLIGHT_IMAGE }}
         run: |
             mkdir -p $PFLT_ARTIFACTS
-            echo "::group::Pull preflight image"
+            echo "::group::Pull preflight \"$PREFLIGHT_IMAGE\" image"
             podman pull "$PREFLIGHT_IMAGE"
             echo "::endgroup::"
 
@@ -584,7 +587,7 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
 
       - name: Post Preflight
-        if: ${{ always() }}
+        if: ${{ success() || failure() }}
         env:
           PREFLIGHT_IMAGE: ${{ env.PREFLIGHT_IMAGE }}
           PFLT_ARTIFACTS: ${{ env.PFLT_ARTIFACTS }}
@@ -597,15 +600,19 @@ jobs:
       - name: Post build image
         if: ${{ success() || failure() }}
         env:
-          TAGS: ${{ steps.meta.outputs.tags }}
+          IMAGE_TAG: ${{ steps.image_metadata.outputs.image_tag }}
         run: |
             echo "::group::Result"
-            echo "$TAGS" | while IFS= read -r image_name ; do podman rmi -i -f "$image_name"; done
+
+            echo "podman rmi -i -f \"${IMAGE_TAG}\""
+
+            podman rmi -i -f "${IMAGE_TAG}" || true
             buildah rm -a || true
             podman system prune --external
             podman system prune -a --volumes -f
             podman system reset -f 2>/dev/null || true
             #rm -rf /home/podman/.local/share/containers/
+
             echo "::endgroup::"
 
   clean_artifacts:
