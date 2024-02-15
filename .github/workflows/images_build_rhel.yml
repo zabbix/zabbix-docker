@@ -198,6 +198,8 @@ jobs:
             ${{ env.DOCKERFILES_DIRECTORY }}/${{ matrix.build }}/rhel/Dockerfile
           extra-args: |
             --pull
+          build-args: |
+            --iidfile=./iidfile
 
       - name: Image digest
         env:
@@ -206,6 +208,8 @@ jobs:
         run: |
             DIGEST=$(podman inspect "${IMAGE_TAG}" --format "{{ index .RepoDigests 0}}" | cut -d '@' -f2)
             TAG_ID=$(podman inspect "${IMAGE_TAG}" --format "{{ .Id }}")
+
+            cat ./iidfile
 
             echo "::group::Image tag"
             echo "image_tag=$IMAGE_TAG"
@@ -228,7 +232,7 @@ jobs:
               ${{ env.BASE_BUILD_NAME }}_${{ matrix.arch }}_digest
               ${{ env.BASE_BUILD_NAME }}_${{ matrix.arch }}_tag_id
               ${{ env.BASE_BUILD_NAME }}_${{ matrix.arch }}_tag
-          key: ${{ env.BASE_BUILD_NAME }}-${{ matrix.arch }}-${{ github.run_id }}-{{ github.run_attempt }}
+          key: ${{ env.BASE_BUILD_NAME }}-${{ matrix.arch }}-${{ github.run_id }}-${{ github.run_attempt }}
 
       - name: Push image to local storage
         env:
@@ -297,7 +301,7 @@ jobs:
               ${{ env.BASE_BUILD_NAME }}_${{ matrix.arch }}_digest
               ${{ env.BASE_BUILD_NAME }}_${{ matrix.arch }}_tag_id
               ${{ env.BASE_BUILD_NAME }}_${{ matrix.arch }}_tag
-          key: ${{ env.BASE_BUILD_NAME }}-${{ matrix.arch }}-${{ github.run_id }}-{{ github.run_attempt }}
+          key: ${{ env.BASE_BUILD_NAME }}-${{ matrix.arch }}-${{ github.run_id }}-${{ github.run_attempt }}
 
       - name: Retrieve ${{ env.BASE_BUILD_NAME }}:${{ matrix.arch }} info
         id: base_build
@@ -373,7 +377,7 @@ jobs:
               ${{ matrix.build }}_${{ matrix.arch }}_digest
               ${{ matrix.build }}_${{ matrix.arch }}_tag_id
               ${{ matrix.build }}_${{ matrix.arch }}_tag
-          key: ${{ matrix.build }}-${{ matrix.arch }}-${{ github.run_id }}-{{ github.run_attempt }}
+          key: ${{ matrix.build }}-${{ matrix.arch }}-${{ github.run_id }}-${{ github.run_attempt }}
 
       - name: Push image to local storage
         env:
@@ -473,7 +477,7 @@ jobs:
               ${{ steps.build_base_image.outputs.build_base }}_${{ matrix.arch }}_digest
               ${{ steps.build_base_image.outputs.build_base }}_${{ matrix.arch }}_tag_id
               ${{ steps.build_base_image.outputs.build_base }}_${{ matrix.arch }}_tag
-          key: ${{ steps.build_base_image.outputs.build_base }}-${{ matrix.arch }}-${{ github.run_id }}-{{ github.run_attempt }}
+          key: ${{ steps.build_base_image.outputs.build_base }}-${{ matrix.arch }}-${{ github.run_id }}-${{ github.run_attempt }}
 
       - name: Retrieve ${{ steps.build_base_image.outputs.build_base }}:${{ matrix.arch }} info
         id: base_build
@@ -622,8 +626,11 @@ jobs:
       - name: Download SHA256 tag of ${{ matrix.build }}:${{ matrix.arch }}
         uses: actions/cache/restore@13aacd865c20de90d75de3b17ebe84f7a17d57d2 # v4.0.0
         with:
-          path: ${{ matrix.build }}_${{ matrix.arch }}_digest
-          key: ${{ matrix.build }}-${{ matrix.arch }}-${{ github.run_id }}-{{ github.run_attempt }}
+          path: |
+              ${{ matrix.build }}_${{ matrix.arch }}_digest
+              ${{ matrix.build }}_${{ matrix.arch }}_tag_id
+              ${{ matrix.build }}_${{ matrix.arch }}_tag
+          key: ${{ matrix.build }}-${{ matrix.arch }}-${{ github.run_id }}-${{ github.run_attempt }}
 
       - name: Remove ${{ matrix.build }}:${{ matrix.arch }} cache
         env:
@@ -639,7 +646,7 @@ jobs:
         uses: actions/cache/restore@13aacd865c20de90d75de3b17ebe84f7a17d57d2 # v4.0.0
         with:
           path: ${{ env.BASE_BUILD_NAME }}_${{ matrix.arch }}_digest
-          key: ${{ env.BASE_BUILD_NAME }}-${{ matrix.arch }}-${{ github.run_id }}-{{ github.run_attempt }}
+          key: ${{ env.BASE_BUILD_NAME }}-${{ matrix.arch }}-${{ github.run_id }}-${{ github.run_attempt }}
 
 
       - name: Remove ${{ env.BASE_BUILD_NAME }}:${{ matrix.arch }} cache
