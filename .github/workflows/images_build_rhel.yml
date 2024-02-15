@@ -191,7 +191,7 @@ jobs:
         id: build_image
         uses: redhat-actions/buildah-build@b4dc19b4ba891854660ab1f88a097d45aa158f76 # v2.12
         env:
-          GITHUB_WORKSPACE: ${{ env.GITHUB_WORKSPACE }}
+          GITHUB_WORKSPACE: ${{ github.workspace }}
         with:
           context: ${{ env.DOCKERFILES_DIRECTORY }}/${{ matrix.build }}/rhel
           layers: false
@@ -206,7 +206,7 @@ jobs:
         env:
           IMAGE_TAG: ${{ steps.build_image.outputs.image-with-tag }}
           CACHE_FILE_NAME: ${{ env.BASE_BUILD_NAME }}_${{ matrix.arch }}
-          GITHUB_WORKSPACE: ${{ env.GITHUB_WORKSPACE }}
+          GITHUB_WORKSPACE: ${{ github.workspace }}
         run: |
             env
             TAG_ID=$(cat $GITHUB_WORKSPACE/iidfile)
