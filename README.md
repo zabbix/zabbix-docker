@@ -2,7 +2,7 @@
 
 
 [![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/zabbix/zabbix-docker/badge)](https://securityscorecards.dev/viewer/?uri=github.com/zabbix/zabbix-docker)
-[![OpenSSF Best Practices](https://www.bestpractices.dev/projects/8395/badge)](https://www.bestpractices.dev/projects/8395)
+<a href="https://bestpractices.coreinfrastructure.org/projects/8395" style="display: inline;"><img src="https://bestpractices.coreinfrastructure.org/projects/8395/badge" style="display: inline;"></a>
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=zabbix_zabbix-docker&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=zabbix_zabbix-docker)
 
 [![Build images (DockerHub)](https://github.com/zabbix/zabbix-docker/actions/workflows/images_build.yml/badge.svg?branch=trunk&event=push)](https://github.com/zabbix/zabbix-docker/actions/workflows/images_build.yml)
