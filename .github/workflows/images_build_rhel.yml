@@ -636,12 +636,12 @@ jobs:
 
   clean_artifacts:
     timeout-minutes: 90
-    needs: ${{ fromJson(needs.init_build.outputs.database) }}
+    needs: [ "build_images", "init_build"]
     name: Clear ${{ matrix.build }} image cache (${{ matrix.arch }})
     strategy:
       fail-fast: false
       matrix:
-        build: [build-mysql, build-sqlite3]
+        build: ${{ fromJson(needs.init_build.outputs.database) }}
         arch: ${{ fromJson(needs.init_build.outputs.platforms) }}
     runs-on: [self-hosted, linux, "${{ matrix.arch }}"]
     if: ${{ always() && needs.build_base_database.result == 'success' }}
