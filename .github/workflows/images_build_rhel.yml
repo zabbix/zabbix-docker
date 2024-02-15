@@ -256,7 +256,7 @@ jobs:
           GITHUB_WORKSPACE: ${{ github.workspace }}
         run: |
             echo "::group::Result"
-            echo "podman push \"${IMAGE_TAG}\" dir:\"${IMAGE_DIR}/${IMAGE_TAG_ID}\""
+            echo "Image ${IMAGE_TAG} location: \"${IMAGE_DIR}/${IMAGE_TAG_ID}\""
             podman push "${IMAGE_TAG}" dir:"${IMAGE_DIR}/${IMAGE_TAG_ID}"
             echo "::endgroup::"
 
