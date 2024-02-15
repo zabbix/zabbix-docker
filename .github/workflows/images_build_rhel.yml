@@ -161,6 +161,28 @@ jobs:
             echo "secret_prefix=RHEL_${github_ref//.}" >> $GITHUB_OUTPUT
             echo "sha_short=$sha_short" >> $GITHUB_OUTPUT
 
+      - name: Cleanup cache
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          BRANCH: ${{ steps.branch_info.outputs.current_branch }}
+          GH_RUN_ID: ${{ github.run_id }}
+        run: |
+            gh extension install actions/gh-actions-cache
+
+            cache_keys=$(gh actions-cache list -R "${REPO}" -B "${BRANCH}" -L 100 --sort created-at --order desc | cut -f 1)
+
+            ## Setting this to not fail the workflow while deleting cache keys
+            set +e
+            echo "Deleting caches..."
+            for cache_key in $cache_keys
+            do
+                if [[ "$cache_key" == *"${GH_RUN_ID}" ]]; then
+                    gh actions-cache delete $cache_key -R "${REPO}" -B "${BRANCH}" --confirm
+                fi
+            done
+
   build_base:
     timeout-minutes: 30
     name: Build ${{ matrix.build }} base (${{ matrix.arch }})
