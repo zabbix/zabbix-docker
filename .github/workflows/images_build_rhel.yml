@@ -337,6 +337,7 @@ jobs:
             echo "::group::SHA256 tag"
             DIGEST=$(podman inspect "${BASE_TAG_ID}" --format '{{ .Digest }}')
             BASE_BUILD_IMAGE="${IMAGES_PREFIX}${BASE_IMAGE}@${DIGEST}"
+
             echo "base_build_image=${BASE_BUILD_IMAGE}"
             echo "::endgroup::"
 
