@@ -49,6 +49,8 @@ env:
   PFLT_ARTIFACTS: "/tmp/artifacts"
   IMAGE_DIR: "/tmp/images"
 
+  RHEL_BUILD: "true"
+
 jobs:
   init_build:
     name: Initialize build
@@ -118,7 +120,7 @@ jobs:
         env:
           MATRIX_FILE: ${{ env.MATRIX_FILE }}
         run: |
-            component_list=$(jq -r '.components |map_values(select(.rhel == true)) | keys | @json' "$MATRIX_FILE")
+            component_list=$(jq -r '.components | map_values(select(.rhel == true)) | keys | @json' "$MATRIX_FILE")
 
             echo "::group::Zabbix Component List"
             echo "$component_list"
@@ -146,7 +148,7 @@ jobs:
                 result=true
             fi
 
-            echo "::group::Branch data"
+            echo "::group::Branch metadata"
             echo "is_default_branch - $result"
             echo "current_branch - $github_ref"
             echo "secret_prefix=RHEL_${github_ref//.}"
@@ -157,8 +159,6 @@ jobs:
             echo "current_branch=$github_ref" >> $GITHUB_OUTPUT
             echo "secret_prefix=RHEL_${github_ref//.}" >> $GITHUB_OUTPUT
             echo "sha_short=$sha_short" >> $GITHUB_OUTPUT
-
-
 
   build_base:
     timeout-minutes: 30
@@ -201,7 +201,7 @@ jobs:
           tags: |
             type=sha,suffix=-${{ steps.lc.outputs.arch }}
 
-      - name: Build Zabbix Build Base
+      - name: Build image
         id: build_image
         uses: redhat-actions/buildah-build@b4dc19b4ba891854660ab1f88a097d45aa158f76 # v2.12
         with:
@@ -239,7 +239,7 @@ jobs:
             echo "image_tag_id=${TAG_ID}" >> $GITHUB_OUTPUT
             echo "image_tag=${IMAGE_TAG}" >> $GITHUB_OUTPUT
 
-      - name: Cache image digest
+      - name: Cache image metadata
         uses: actions/cache/save@13aacd865c20de90d75de3b17ebe84f7a17d57d2 # v4.0.0
         with:
           path: |
@@ -262,21 +262,20 @@ jobs:
       - name: Post build image
         if: ${{ success() || failure() }}
         env:
-          IMAGE_TAG: ${{ steps.image_metadata.outputs.image_tag }}
-          GITHUB_WORKSPACE: ${{ github.workspace }}
+         GITHUB_WORKSPACE: ${{ github.workspace }}
         run: |
             echo "::group::Result"
 
             rm -rf "$GITHUB_WORKSPACE/iidfile"
 
-            echo "podman rmi -i -f \"${IMAGE_TAG}\""
-
-            podman rmi -i -f "${IMAGE_TAG}" || true
-            buildah rm -a || true
-            podman system prune --external
-            podman system prune -a --volumes -f
+            echo "Removing working containers"
+            buildah rm -a 2>/dev/null || true
+            echo "Removing container data in storage not controlled by podman"
+            podman system prune --external 2>/dev/null
+            echo "Removing all unused container data with volumes"
+            podman system prune -a --volumes -f 2>/dev/null
+            echo "Reseting podman storage to default state"
             podman system reset -f 2>/dev/null || true
-            #rm -rf /home/podman/.local/share/containers/
 
             echo "::endgroup::"
 
@@ -306,7 +305,7 @@ jobs:
         run: |
           echo "arch=${ARCH,,}" >> $GITHUB_OUTPUT
 
-      - name: Download SHA256 tag of ${{ env.BASE_BUILD_NAME }}:${{ matrix.arch }}
+      - name: Download metadata of ${{ env.BASE_BUILD_NAME }}:${{ matrix.arch }}
         uses: actions/cache/restore@13aacd865c20de90d75de3b17ebe84f7a17d57d2 # v4.0.0
         with:
           path: |
@@ -337,7 +336,7 @@ jobs:
             echo "::group::SHA256 tag"
             DIGEST=$(podman inspect "${BASE_TAG_ID}" --format '{{ .Digest }}')
             BASE_BUILD_IMAGE="${IMAGES_PREFIX}${BASE_IMAGE}@${DIGEST}"
-            echo "digest=${BASE_BUILD_IMAGE}"
+            echo "base_build_image=${BASE_BUILD_IMAGE}"
             echo "::endgroup::"
 
             echo "base_build_image=${BASE_BUILD_IMAGE}" >> $GITHUB_OUTPUT
@@ -350,7 +349,7 @@ jobs:
           tags: |
             type=sha,suffix=-${{ steps.lc.outputs.arch }}
 
-      - name: Build Zabbix Build Base
+      - name: Build image
         id: build_image
         uses: redhat-actions/buildah-build@b4dc19b4ba891854660ab1f88a097d45aa158f76 # v2.12
         with:
@@ -411,21 +410,20 @@ jobs:
       - name: Post build image
         if: ${{ success() || failure() }}
         env:
-          IMAGE_TAG: ${{ steps.image_metadata.outputs.image_tag }}
-          GITHUB_WORKSPACE: ${{ github.workspace }}
+         GITHUB_WORKSPACE: ${{ github.workspace }}
         run: |
             echo "::group::Result"
 
             rm -rf "$GITHUB_WORKSPACE/iidfile"
 
-            echo "podman rmi -i -f \"${IMAGE_TAG}\""
-
-            podman rmi -i -f "${IMAGE_TAG}" || true
-            buildah rm -a || true
-            podman system prune --external
-            podman system prune -a --volumes -f
+            echo "Removing working containers"
+            buildah rm -a 2>/dev/null || true
+            echo "Removing container data in storage not controlled by podman"
+            podman system prune --external 2>/dev/null
+            echo "Removing all unused container data with volumes"
+            podman system prune -a --volumes -f 2>/dev/null
+            echo "Reseting podman storage to default state"
             podman system reset -f 2>/dev/null || true
-            #rm -rf /home/podman/.local/share/containers/
 
             echo "::endgroup::"
 
@@ -455,6 +453,7 @@ jobs:
         run: |
             MATRIX_BUILD=${MATRIX_BUILD^^}
             MATRIX_BUILD=${MATRIX_BUILD//-/_}
+
             echo "::group::Result"
             echo "matrix_build=${MATRIX_BUILD}"
             echo "::endgroup::"
@@ -475,7 +474,7 @@ jobs:
 
             echo "build_base=${BUILD_BASE}" >> $GITHUB_OUTPUT
 
-      - name: Download SHA256 tag of ${{ steps.build_base_image.outputs.build_base }}:${{ matrix.arch }}
+      - name: Download metadata of ${{ steps.build_base_image.outputs.build_base }}:${{ matrix.arch }}
         if: ${{ matrix.build != 'snmptraps' }}
         uses: actions/cache/restore@13aacd865c20de90d75de3b17ebe84f7a17d57d2 # v4.0.0
         with:
@@ -546,7 +545,7 @@ jobs:
             ${{ env.DOCKERFILES_DIRECTORY }}/${{ matrix.build }}/rhel/Dockerfile
           build-args: BUILD_BASE_IMAGE=${{ steps.base_build.outputs.base_build_image }}
 
-      - name: Log in to Quay.io
+      - name: Log in to ${{ env.REGISTRY }}
         uses: redhat-actions/podman-login@9184318aae1ee5034fbfbacc0388acf12669171f # v1.6
         if: ${{ env.AUTO_PUSH_IMAGES == 'true' }}
         with:
@@ -562,7 +561,7 @@ jobs:
         with:
           tags: ${{ steps.meta.outputs.tags }}
 
-      - name: Preflight
+      - name: Preflight certification
         if: ${{ env.AUTO_PUSH_IMAGES == 'true' }}
         env:
           PFLT_DOCKERCONFIG: /tmp/.docker_${{ matrix.build }}_${{ matrix.arch }}_${{ needs.init_build.outputs.sha_short }}
@@ -595,15 +594,15 @@ jobs:
             podman rmi -i -f "$PREFLIGHT_IMAGE"
             echo "::endgroup::"
 
-      - name: Push to RedHat certification procedure (2nd)
+      - name: Push to RedHat certification procedure (all tags)
         id: push_to_registry_all_tags
         if: ${{ env.AUTO_PUSH_IMAGES == 'true' }}
         uses: redhat-actions/push-to-registry@9986a6552bc4571882a4a67e016b17361412b4df # v2.7.1
         with:
           tags: ${{ steps.meta.outputs.tags }}
 
-      - name: Post Preflight
-        if: ${{ success() || failure() }}
+      - name: Post Preflight certification
+        if: ${{ env.AUTO_PUSH_IMAGES == 'true' && (success() || failure()) }}
         env:
           PREFLIGHT_IMAGE: ${{ env.PREFLIGHT_IMAGE }}
           PFLT_ARTIFACTS: ${{ env.PFLT_ARTIFACTS }}
@@ -615,26 +614,21 @@ jobs:
 
       - name: Post build image
         if: ${{ success() || failure() }}
-        env:
-          IMAGE_TAG: ${{ steps.image_metadata.outputs.image_tag }}
         run: |
             echo "::group::Result"
 
-            echo "podman rmi -i -f \"${IMAGE_TAG}\""
-
-            podman rmi -i -f "${IMAGE_TAG}" || true
-            echo "buildah rm -a"
-            buildah rm -a || true
-            echo "podman system prune --external"
-            podman system prune --external
-            echo "podman system prune -a --volumes -f"
-            podman system prune -a --volumes -f
-            echo "podman system reset"
+            echo "Removing working containers"
+            buildah rm -a 2>/dev/null || true
+            echo "Removing container data in storage not controlled by podman"
+            podman system prune --external 2>/dev/null
+            echo "Removing all unused container data with volumes"
+            podman system prune -a --volumes -f 2>/dev/null
+            echo "Reseting podman storage to default state"
             podman system reset -f 2>/dev/null || true
 
             echo "::endgroup::"
 
-  clean_artifacts:
+  clear_artifacts:
     timeout-minutes: 90
     needs: [ "build_images", "init_build"]
     name: Clear ${{ matrix.build }} image cache (${{ matrix.arch }})
@@ -644,10 +638,10 @@ jobs:
         build: ${{ fromJson(needs.init_build.outputs.database) }}
         arch: ${{ fromJson(needs.init_build.outputs.platforms) }}
     runs-on: [self-hosted, linux, "${{ matrix.arch }}"]
-    if: ${{ always() && needs.build_base_database.result == 'success' }}
+    if: ${{ needs.build_base_database.result == 'success' }}
     permissions: {}
     steps:
-      - name: Download SHA256 tag of ${{ matrix.build }}:${{ matrix.arch }}
+      - name: Download metadata of ${{ matrix.build }}:${{ matrix.arch }}
         uses: actions/cache/restore@13aacd865c20de90d75de3b17ebe84f7a17d57d2 # v4.0.0
         with:
           path: |
@@ -657,27 +651,31 @@ jobs:
 
       - name: Remove ${{ matrix.build }}:${{ matrix.arch }} cache
         env:
-         MATRIX_ARCH: ${{ matrix.arch }}
-         BASE_IMAGE: ${{ matrix.build }}
+         CACHE_FILE_NAME: ${{ matrix.build }}_${{ matrix.arch }}
          IMAGE_DIR: ${{ env.IMAGE_DIR }}
         run: |
-            BASE_TAG=$(cat "${BASE_IMAGE}_${MATRIX_ARCH}_tag_id")
-
+            echo "::group::Result"
+            BASE_TAG=$(cat "${CACHE_FILE_NAME}_tag_id")
+            echo "Removing ${IMAGE_DIR}/${BASE_TAG}"
             rm -rf "${IMAGE_DIR}/${BASE_TAG}"
 
-      - name: Download SHA256 tag of ${{ env.BASE_BUILD_NAME }}:${{ matrix.arch }}
+            echo "::endgroup::"
+
+      - name: Download metadata of ${{ env.BASE_BUILD_NAME }}:${{ matrix.arch }}
         uses: actions/cache/restore@13aacd865c20de90d75de3b17ebe84f7a17d57d2 # v4.0.0
         with:
-          path: ${{ env.BASE_BUILD_NAME }}_${{ matrix.arch }}_tag_id
+          path: |
+              ${{ env.BASE_BUILD_NAME }}_${{ matrix.arch }}_tag_id
+              ${{ env.BASE_BUILD_NAME }}_${{ matrix.arch }}_tag
           key: ${{ env.BASE_BUILD_NAME }}-${{ matrix.arch }}-${{ github.run_id }}
-
 
       - name: Remove ${{ env.BASE_BUILD_NAME }}:${{ matrix.arch }} cache
         env:
-         MATRIX_ARCH: ${{ matrix.arch }}
-         BASE_IMAGE: ${{ env.BASE_BUILD_NAME }}
+         CACHE_FILE_NAME: ${{ env.BASE_BUILD_NAME }}_${{ matrix.arch }}
          IMAGE_DIR: ${{ env.IMAGE_DIR }}
         run: |
-            BASE_TAG=$(cat "${BASE_IMAGE}_${MATRIX_ARCH}_tag_id")
-
+            echo "::group::Result"
+            BASE_TAG=$(cat "${CACHE_FILE_NAME}_tag_id")
+            echo "Removing ${IMAGE_DIR}/${BASE_TAG}"
             rm -rf "${IMAGE_DIR}/${BASE_TAG}"
+            echo "::endgroup::"
