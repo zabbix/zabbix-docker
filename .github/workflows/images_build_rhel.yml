@@ -190,6 +190,8 @@ jobs:
       - name: Build Zabbix Build Base
         id: build_image
         uses: redhat-actions/buildah-build@b4dc19b4ba891854660ab1f88a097d45aa158f76 # v2.12
+        env:
+          GITHUB_WORKSPACE: ${{ env.GITHUB_WORKSPACE }}
         with:
           context: ${{ env.DOCKERFILES_DIRECTORY }}/${{ matrix.build }}/rhel
           layers: false
@@ -198,14 +200,16 @@ jobs:
             ${{ env.DOCKERFILES_DIRECTORY }}/${{ matrix.build }}/rhel/Dockerfile
           extra-args: |
             --pull
-            --iidfile=$HOME/iidfile
+            --iidfile=$GITHUB_WORKSPACE/iidfile
 
       - name: Image digest
         env:
           IMAGE_TAG: ${{ steps.build_image.outputs.image-with-tag }}
           CACHE_FILE_NAME: ${{ env.BASE_BUILD_NAME }}_${{ matrix.arch }}
+          GITHUB_WORKSPACE: ${{ env.GITHUB_WORKSPACE }}
         run: |
-            TAG_ID=$(cat $HOME/iidfile)
+            env
+            TAG_ID=$(cat $GITHUB_WORKSPACE/iidfile)
 
             echo "::group::Image tag"
             echo "image_tag=$IMAGE_TAG"
