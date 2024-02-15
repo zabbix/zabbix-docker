@@ -306,7 +306,7 @@ jobs:
               ${{ env.BASE_BUILD_NAME }}_${{ matrix.arch }}_tag
           key: ${{ env.BASE_BUILD_NAME }}-${{ matrix.arch }}-${{ github.run_id }}
 
-      - name: Retrieve ${{ env.BASE_BUILD_NAME }}:${{ matrix.arch }} info
+      - name: Pull ${{ env.BASE_BUILD_NAME }}:${{ matrix.arch }} image
         id: base_build
         env:
          MATRIX_ARCH: ${{ matrix.arch }}
@@ -314,30 +314,25 @@ jobs:
          IMAGES_PREFIX: ${{ env.IMAGES_PREFIX }}
         run: |
             BASE_TAG_ID=$(cat "${BASE_IMAGE}_${MATRIX_ARCH}_tag_id")
-            BUILD_BASE_IMAGE="${IMAGES_PREFIX}${BASE_IMAGE}@${BASE_TAG_ID}"
-
-            echo "::group::Base build image information"
-            echo "base_build_image=${BUILD_BASE_IMAGE}"
-            echo "::endgroup::"
-
-            echo "base_tag_id=${BASE_TAG_ID}" >> $GITHUB_OUTPUT
-            echo "base_build_image=${BUILD_BASE_IMAGE}" >> $GITHUB_OUTPUT
-
-      - name: Pull ${{ env.BASE_BUILD_NAME }}:${{ matrix.arch }} image
-        env:
-         MATRIX_ARCH: ${{ matrix.arch }}
-         BASE_IMAGE: ${{ env.BASE_BUILD_NAME }}
-         IMAGES_PREFIX: ${{ env.IMAGES_PREFIX }}
-        run: |
-            BASE_TAG_ID=$(cat "${BASE_IMAGE}_${MATRIX_ARCH}_tag_id")
-            BUILD_BASE_IMAGE=$(cat "${BASE_IMAGE}_${MATRIX_ARCH}_tag")
+            BASE_IMAGE_TAG=$(cat "${BASE_IMAGE}_${MATRIX_ARCH}_tag")
 
             echo "::group::Pull image"
             echo "podman pull dir:\"${IMAGE_DIR}/${BASE_TAG_ID}\""
             podman pull dir:"${IMAGE_DIR}/${BASE_TAG_ID}"
-            echo "podman tag \"${BASE_TAG_ID}\" \"${BUILD_BASE_IMAGE}\""
-            podman tag "${BASE_TAG_ID}" "${BUILD_BASE_IMAGE}"
             echo "::endgroup::"
+
+            echo "::group::Tag image"
+            echo "podman tag \"${BASE_TAG_ID}\" \"${BASE_IMAGE_TAG}\""
+            podman tag "${BASE_TAG_ID}" "${BASE_IMAGE_TAG}"
+            echo "::endgroup::"
+
+            echo "::group::SHA256 tag"
+            DIGEST=$(podman inspect "${BASE_TAG_ID}" --format '{{ .Digest }}')
+            BASE_BUILD_IMAGE="${IMAGES_PREFIX}${BASE_IMAGE}@${DIGEST}"
+            echo "digest=${BASE_BUILD_IMAGE}"
+            echo "::endgroup::"
+
+            echo "base_build_image=${BASE_BUILD_IMAGE}" >> $GITHUB_OUTPUT
 
       - name: Build Zabbix Build Base
         id: build_image
