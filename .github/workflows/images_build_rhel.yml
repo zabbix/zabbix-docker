@@ -57,6 +57,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
+      actions: write
     outputs:
       platforms: ${{ steps.platform_list.outputs.list }}
       database: ${{ steps.database.outputs.list }}
