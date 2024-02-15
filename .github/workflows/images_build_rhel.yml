@@ -198,7 +198,6 @@ jobs:
             ${{ env.DOCKERFILES_DIRECTORY }}/${{ matrix.build }}/rhel/Dockerfile
           extra-args: |
             --pull
-          build-args: |
             --iidfile=./iidfile
 
       - name: Image digest
