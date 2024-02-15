@@ -306,7 +306,7 @@ jobs:
 
             echo "::endgroup::"
 
-      - name: Post build image
+      - name: Check on failures
         if: ${{ (cancelled() || failure()) && ( steps.push_image.outcome == 'failure' || steps.push_image.outcome == 'cancelled') }}
         env:
           IMAGE_TAG_ID: ${{ steps.image_metadata.outputs.image_tag_id }}
@@ -465,7 +465,7 @@ jobs:
 
             echo "::endgroup::"
 
-      - name: Post build image
+      - name: Check on failures
         if: ${{ (cancelled() || failure()) && ( steps.push_image.outcome == 'failure' || steps.push_image.outcome == 'cancelled') }}
         env:
           IMAGE_TAG_ID: ${{ steps.image_metadata.outputs.image_tag_id }}
