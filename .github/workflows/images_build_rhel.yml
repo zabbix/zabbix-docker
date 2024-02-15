@@ -190,8 +190,6 @@ jobs:
       - name: Build Zabbix Build Base
         id: build_image
         uses: redhat-actions/buildah-build@b4dc19b4ba891854660ab1f88a097d45aa158f76 # v2.12
-        env:
-          GITHUB_WORKSPACE: ${{ github.workspace }}
         with:
           context: ${{ env.DOCKERFILES_DIRECTORY }}/${{ matrix.build }}/rhel
           layers: false
@@ -200,7 +198,7 @@ jobs:
             ${{ env.DOCKERFILES_DIRECTORY }}/${{ matrix.build }}/rhel/Dockerfile
           extra-args: |
             --pull
-            --iidfile=$GITHUB_WORKSPACE/iidfile
+            --iidfile=${{ github.workspace }}/iidfile
 
       - name: Image digest
         env:
@@ -236,8 +234,9 @@ jobs:
         env:
           IMAGE_TAG: ${{ steps.build_image.outputs.image-with-tag }}
           IMAGE_DIR: ${{ env.IMAGE_DIR }}
+          GITHUB_WORKSPACE: ${{ github.workspace }}
         run: |
-            TAG_ID=$(cat $HOME/iidfile)
+            TAG_ID=$(cat $GITHUB_WORKSPACE/iidfile)
 
             echo "::group::Result"
             echo "podman push \"${IMAGE_TAG}\" dir:\"${IMAGE_DIR}/${TAG_ID}\""
@@ -248,15 +247,21 @@ jobs:
         if: ${{ success() || failure() }}
         env:
           IMAGE_TAG: ${{ steps.build_image.outputs.image-with-tag }}
+          GITHUB_WORKSPACE: ${{ github.workspace }}
         run: |
             echo "::group::Result"
+
+            rm -rf "$GITHUB_WORKSPACE/iidfile"
+
             echo "podman rmi -i -f \"${IMAGE_TAG}\""
-            podman rmi -i -f "${IMAGE_TAG}"
+
+            podman rmi -i -f "${IMAGE_TAG}" || true
             buildah rm -a || true
             podman system prune --external
             podman system prune -a --volumes -f
             podman system reset -f 2>/dev/null || true
             #rm -rf /home/podman/.local/share/containers/
+
             echo "::endgroup::"
 
   build_base_database:
