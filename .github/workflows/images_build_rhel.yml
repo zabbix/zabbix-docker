@@ -274,6 +274,7 @@ jobs:
           key: ${{ env.BASE_BUILD_NAME }}-${{ matrix.arch }}-${{ github.run_id }}
 
       - name: Push image to local storage
+        id: push_image
         env:
           IMAGE_TAG: ${{ steps.image_metadata.outputs.image_tag }}
           IMAGE_TAG_ID: ${{ steps.image_metadata.outputs.image_tag_id }}
@@ -303,6 +304,15 @@ jobs:
             echo "Reseting podman storage to default state"
             podman system reset -f 2>/dev/null || true
 
+            echo "::endgroup::"
+
+      - name: Post build image
+        if: ${{ (cancelled() || failure()) && ( steps.push_image.outcome == 'failure' || steps.push_image.outcome == 'cancelled') }}
+        env:
+          IMAGE_TAG_ID: ${{ steps.image_metadata.outputs.image_tag_id }}
+        run: |
+            echo "::group::Removing orphaned image"
+            rm -rf "${IMAGE_DIR}/${IMAGE_TAG_ID}"
             echo "::endgroup::"
 
   build_base_database:
@@ -423,6 +433,7 @@ jobs:
           key: ${{ matrix.build }}-${{ matrix.arch }}-${{ github.run_id }}
 
       - name: Push image to local storage
+        id: push_image
         env:
           IMAGE_TAG: ${{ steps.image_metadata.outputs.image_tag }}
           IMAGE_TAG_ID: ${{ steps.image_metadata.outputs.image_tag_id }}
@@ -452,6 +463,15 @@ jobs:
             echo "Reseting podman storage to default state"
             podman system reset -f 2>/dev/null || true
 
+            echo "::endgroup::"
+
+      - name: Post build image
+        if: ${{ (cancelled() || failure()) && ( steps.push_image.outcome == 'failure' || steps.push_image.outcome == 'cancelled') }}
+        env:
+          IMAGE_TAG_ID: ${{ steps.image_metadata.outputs.image_tag_id }}
+        run: |
+            echo "::group::Removing orphaned image"
+            rm -rf "${IMAGE_DIR}/${IMAGE_TAG_ID}"
             echo "::endgroup::"
 
   build_images:
