@@ -327,7 +327,6 @@ jobs:
     runs-on: [self-hosted, linux, "${{ matrix.arch }}"]
     permissions:
       contents: read
-      id-token: write
     steps:
       - name: Checkout repository
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
@@ -486,7 +485,6 @@ jobs:
     runs-on: [self-hosted, linux, "${{ matrix.arch }}"]
     permissions:
       contents: read
-      id-token: write
     steps:
       - name: Checkout repository
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
@@ -702,6 +700,7 @@ jobs:
          IMAGE_DIR: ${{ env.IMAGE_DIR }}
         run: |
             echo "::group::Result"
+
             BASE_TAG=$(cat "${CACHE_FILE_NAME}_tag_id")
             echo "Removing ${IMAGE_DIR}/${BASE_TAG}"
             rm -rf "${IMAGE_DIR}/${BASE_TAG}"
@@ -722,7 +721,9 @@ jobs:
          IMAGE_DIR: ${{ env.IMAGE_DIR }}
         run: |
             echo "::group::Result"
+
             BASE_TAG=$(cat "${CACHE_FILE_NAME}_tag_id")
             echo "Removing ${IMAGE_DIR}/${BASE_TAG}"
             rm -rf "${IMAGE_DIR}/${BASE_TAG}"
+
             echo "::endgroup::"
