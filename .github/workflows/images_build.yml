@@ -710,7 +710,6 @@ jobs:
             objects.githubusercontent.com:443
             tuf-repo-cdn.sigstore.dev:443
             rekor.sigstore.dev:443
->>>>>>> 05d38ba67 (Merge pull request #1188 from zabbix/merge_6.0)
 
       - name: Checkout repository
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
