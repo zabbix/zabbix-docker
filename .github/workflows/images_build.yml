@@ -170,25 +170,41 @@ jobs:
           disable-sudo: true
           egress-policy: block
           allowed-endpoints: >
+            abqix.mm.fcix.net:80
             api.github.com:443
+            archive.ubuntu.com:443
             archive.ubuntu.com:80
             atl.mirrors.knownhost.com:443
             atl.mirrors.knownhost.com:80
             auth.docker.io:443
             cdn03.quay.io:443
+            centos-distro.1gservers.com:80
             centos-stream-distro.1gservers.com:443
             centos-stream-distro.1gservers.com:80
+            centos.hivelocity.net:80
+            centos.mirror.constant.com:80
+            centos.mirror.shastacoe.net:80
             dfw.mirror.rackspace.com:443
             dfw.mirror.rackspace.com:80
+            distro.ibiblio.org:80
             dl-cdn.alpinelinux.org:443
             dl.google.com:443
             download.cf.centos.org:443
             download.cf.centos.org:80
+            epel.gb.ssimn.org:443
             epel.mirror.constant.com:443
+            epel.mirror.constant.com:80
+            forksystems.mm.fcix.net:80
             ftp-nyc.osuosl.org:443
             ftp-nyc.osuosl.org:80
             ftp-osl.osuosl.org:443
             ftp-osl.osuosl.org:80
+            ftp.agdsn.de:443
+            ftp.agdsn.de:80
+            ftp.fau.de:443
+            ftp.halifax.rwth-aachen.de:443
+            ftp.halifax.rwth-aachen.de:80
+            ftp.osuosl.org:80
             ftp.plusline.net:443
             ftp.plusline.net:80
             ftpmirror.your.org:80
@@ -197,20 +213,41 @@ jobs:
             iad.mirror.rackspace.com:443
             iad.mirror.rackspace.com:80
             index.docker.io:443
+            ix-denver.mm.fcix.net:80
             keyserver.ubuntu.com:11371
+            la.mirrors.clouvider.net:80
             lesnet.mm.fcix.net:443
+            lesnet.mm.fcix.net:80
+            linux-mirrors.fnal.gov:80
             mirror-mci.yuki.net.uk:443
             mirror-mci.yuki.net.uk:80
+            mirror.23m.com:443
             mirror.arizona.edu:443
             mirror.arizona.edu:80
+            mirror.ash.fastserv.com:80
+            mirror.chpc.utah.edu:80
+            mirror.clarkson.edu:80
+            mirror.de.leaseweb.net:443
+            mirror.de.leaseweb.net:80
             mirror.dogado.de:443
             mirror.dogado.de:80
+            mirror.ette.biz:80
             mirror.facebook.net:443
             mirror.facebook.net:80
             mirror.fcix.net:443
+            mirror.genesishosting.com:80
+            mirror.grid.uchicago.edu:80
             mirror.hoobly.com:443
+            mirror.hoobly.com:80
+            mirror.keystealth.org:80
             mirror.math.princeton.edu:443
+            mirror.math.princeton.edu:80
+            mirror.metrocast.net:80
+            mirror.netcologne.de:443
+            mirror.netcologne.de:80
             mirror.netzwerge.de:443
+            mirror.netzwerge.de:80
+            mirror.nodesdirect.com:80
             mirror.pilotfiber.com:443
             mirror.pilotfiber.com:80
             mirror.rackspace.com:443
@@ -219,40 +256,94 @@ jobs:
             mirror.scaleuptech.com:80
             mirror.servaxnet.com:443
             mirror.servaxnet.com:80
+            mirror.sfo12.us.leaseweb.net:80
             mirror.siena.edu:80
+            mirror.steadfastnet.com:80
             mirror.stream.centos.org:443
             mirror.stream.centos.org:80
             mirror.team-cymru.com:443
             mirror.team-cymru.com:80
+            mirror.umd.edu:443
+            mirror.umd.edu:80
+            mirror.us-midwest-1.nexcess.net:80
+            mirror.us.oneandone.net:80
+            mirror.vacares.com:80
+            mirror.vtti.vt.edu:80
+            mirror.wdc2.us.leaseweb.net:80
             mirror1.hs-esslingen.de:443
+            mirror1.hs-esslingen.de:80
+            mirrorlist.centos.org:80
+            mirrors.advancedhosters.com:80
             mirrors.centos.org:443
+            mirrors.cmich.edu:80
             mirrors.fedoraproject.org:443
             mirrors.fedoraproject.org:80
+            mirrors.iu13.net:443
             mirrors.iu13.net:80
+            mirrors.liquidweb.com:80
+            mirrors.lug.mtu.edu:443
+            mirrors.lug.mtu.edu:80
+            mirrors.maine.edu:80
             mirrors.mit.edu:443
+            mirrors.mit.edu:80
             mirrors.ocf.berkeley.edu:443
             mirrors.ocf.berkeley.edu:80
+            mirrors.oit.uci.edu:80
+            mirrors.raystedman.org:80
+            mirrors.rcs.alaska.edu:80
             mirrors.sonic.net:443
+            mirrors.sonic.net:80
+            mirrors.syringanetworks.net:80
+            mirrors.tscak.com:80
+            mirrors.unifiedlayer.com:80
             mirrors.wcupa.edu:443
             mirrors.wcupa.edu:80
+            mirrors.xtom.com:80
+            mirrors.xtom.de:443
             mirrors.xtom.de:80
+            mnvoip.mm.fcix.net:80
             na.edge.kernel.org:443
+            nc-centos-mirror.iwebfusion.net:80
+            nnenix.mm.fcix.net:80
             nocix.mm.fcix.net:443
+            nocix.mm.fcix.net:80
             oauth2.sigstore.dev:443
             objects.githubusercontent.com:443
+            ohioix.mm.fcix.net:80
+            opencolo.mm.fcix.net:443
+            opencolo.mm.fcix.net:80
+            or-mirror.iwebfusion.net:80
+            packages.oit.ncsu.edu:80
+            paducahix.mm.fcix.net:80
+            ports.ubuntu.com:443
             ports.ubuntu.com:80
             production.cloudflare.docker.com:443
+            pubmirror2.math.uh.edu:80
             quay.io:443
             registry-1.docker.io:443
             rekor.sigstore.dev:443
             repo.ialab.dsu.edu:443
+            repo.ialab.dsu.edu:80
+            repo1.sea.innoscale.net:80
             repos.eggycrew.com:443
             repos.eggycrew.com:80
+            ridgewireless.mm.fcix.net:443
+            ridgewireless.mm.fcix.net:80
+            scientificlinux.physik.uni-muenchen.de:443
+            scientificlinux.physik.uni-muenchen.de:80
+            security.ubuntu.com:443
             security.ubuntu.com:80
+            southfront.mm.fcix.net:80
             tuf-repo-cdn.sigstore.dev:443
+            tx-mirror.tier.net:80
+            us.mirrors.virtono.com:80
             uvermont.mm.fcix.net:443
+            uvermont.mm.fcix.net:80
+            volico.mm.fcix.net:80
+            www.gtlib.gatech.edu:80
             yum.oracle.com:443
             ziply.mm.fcix.net:443
+            ziply.mm.fcix.net:80
 
       - name: Checkout repository
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
@@ -599,117 +690,180 @@ jobs:
           disable-sudo: true
           egress-policy: block
           allowed-endpoints: >
+            abqix.mm.fcix.net:80
             api.github.com:443
-            auth.docker.io:443
-            dl-cdn.alpinelinux.org:443
-            github.com:443
-            index.docker.io:443
-            production.cloudflare.docker.com:443
-            registry-1.docker.io:443
-            fulcio.sigstore.dev:443
-            objects.githubusercontent.com:443
-            tuf-repo-cdn.sigstore.dev:443
-            rekor.sigstore.dev:443
-            api.github.com:443
+            archive.ubuntu.com:443
+            archive.ubuntu.com:80
             atl.mirrors.knownhost.com:443
             atl.mirrors.knownhost.com:80
             auth.docker.io:443
             cdn03.quay.io:443
+            centos-distro.1gservers.com:80
             centos-stream-distro.1gservers.com:443
             centos-stream-distro.1gservers.com:80
-            d2lzkl7pfhq30w.cloudfront.net:443
+            centos.hivelocity.net:80
+            centos.mirror.constant.com:80
+            centos.mirror.shastacoe.net:80
+            dfw.mirror.rackspace.com:443
+            dfw.mirror.rackspace.com:80
+            distro.ibiblio.org:80
+            dl-cdn.alpinelinux.org:443
+            dl.google.com:443
+            download.cf.centos.org:443
+            download.cf.centos.org:80
+            epel.gb.ssimn.org:443
+            epel.mirror.constant.com:443
             epel.mirror.constant.com:80
             forksystems.mm.fcix.net:80
             ftp-nyc.osuosl.org:443
             ftp-nyc.osuosl.org:80
             ftp-osl.osuosl.org:443
             ftp-osl.osuosl.org:80
+            ftp.agdsn.de:443
+            ftp.agdsn.de:80
+            ftp.fau.de:443
+            ftp.halifax.rwth-aachen.de:443
+            ftp.halifax.rwth-aachen.de:80
+            ftp.osuosl.org:80
+            ftp.plusline.net:443
             ftp.plusline.net:80
             ftpmirror.your.org:80
+            fulcio.sigstore.dev:443
             github.com:443
             iad.mirror.rackspace.com:443
+            iad.mirror.rackspace.com:80
             index.docker.io:443
-            ix-denver.mm.fcix.net:443
+            ix-denver.mm.fcix.net:80
+            keyserver.ubuntu.com:11371
+            la.mirrors.clouvider.net:80
+            lesnet.mm.fcix.net:443
+            lesnet.mm.fcix.net:80
+            linux-mirrors.fnal.gov:80
             mirror-mci.yuki.net.uk:443
-            mirror.23m.com:80
+            mirror-mci.yuki.net.uk:80
+            mirror.23m.com:443
+            mirror.arizona.edu:443
             mirror.arizona.edu:80
-            mirror.dal.nexril.net:80
+            mirror.ash.fastserv.com:80
+            mirror.chpc.utah.edu:80
+            mirror.clarkson.edu:80
+            mirror.de.leaseweb.net:443
             mirror.de.leaseweb.net:80
+            mirror.dogado.de:443
             mirror.dogado.de:80
+            mirror.ette.biz:80
+            mirror.facebook.net:443
             mirror.facebook.net:80
+            mirror.fcix.net:443
+            mirror.genesishosting.com:80
+            mirror.grid.uchicago.edu:80
+            mirror.hoobly.com:443
             mirror.hoobly.com:80
+            mirror.keystealth.org:80
+            mirror.math.princeton.edu:443
             mirror.math.princeton.edu:80
+            mirror.metrocast.net:80
             mirror.netcologne.de:443
+            mirror.netcologne.de:80
             mirror.netzwerge.de:443
+            mirror.netzwerge.de:80
+            mirror.nodesdirect.com:80
             mirror.pilotfiber.com:443
             mirror.pilotfiber.com:80
             mirror.rackspace.com:443
             mirror.rackspace.com:80
             mirror.scaleuptech.com:443
+            mirror.scaleuptech.com:80
             mirror.servaxnet.com:443
             mirror.servaxnet.com:80
             mirror.sfo12.us.leaseweb.net:80
             mirror.siena.edu:80
             mirror.steadfastnet.com:80
+            mirror.stream.centos.org:443
+            mirror.stream.centos.org:80
             mirror.team-cymru.com:443
             mirror.team-cymru.com:80
             mirror.umd.edu:443
+            mirror.umd.edu:80
+            mirror.us-midwest-1.nexcess.net:80
+            mirror.us.oneandone.net:80
+            mirror.vacares.com:80
+            mirror.vtti.vt.edu:80
+            mirror.wdc2.us.leaseweb.net:80
             mirror1.hs-esslingen.de:443
+            mirror1.hs-esslingen.de:80
+            mirrorlist.centos.org:80
+            mirrors.advancedhosters.com:80
             mirrors.centos.org:443
+            mirrors.cmich.edu:80
             mirrors.fedoraproject.org:443
+            mirrors.fedoraproject.org:80
             mirrors.iu13.net:443
             mirrors.iu13.net:80
+            mirrors.liquidweb.com:80
+            mirrors.lug.mtu.edu:443
+            mirrors.lug.mtu.edu:80
+            mirrors.maine.edu:80
+            mirrors.mit.edu:443
+            mirrors.mit.edu:80
             mirrors.ocf.berkeley.edu:443
+            mirrors.ocf.berkeley.edu:80
+            mirrors.oit.uci.edu:80
+            mirrors.raystedman.org:80
+            mirrors.rcs.alaska.edu:80
+            mirrors.sonic.net:443
             mirrors.sonic.net:80
             mirrors.syringanetworks.net:80
-            mirrors.vcea.wsu.edu:80
+            mirrors.tscak.com:80
+            mirrors.unifiedlayer.com:80
+            mirrors.wcupa.edu:443
             mirrors.wcupa.edu:80
+            mirrors.xtom.com:80
+            mirrors.xtom.de:443
             mirrors.xtom.de:80
+            mnvoip.mm.fcix.net:80
             na.edge.kernel.org:443
+            nc-centos-mirror.iwebfusion.net:80
             nnenix.mm.fcix.net:80
-            ohioix.mm.fcix.net:80
-            production.cloudflare.docker.com:443
-            pubmirror1.math.uh.edu:443
-            pubmirror3.math.uh.edu:80
-            quay.io:443
-            registry-1.docker.io:443
-            repo.ialab.dsu.edu:80
-            repos.eggycrew.com:80
-            uvermont.mm.fcix.net:80
-            ziply.mm.fcix.net:443
-            fulcio.sigstore.dev:443
-            objects.githubusercontent.com:443
-            tuf-repo-cdn.sigstore.dev:443
-            rekor.sigstore.dev:443
+            nocix.mm.fcix.net:443
+            nocix.mm.fcix.net:80
             oauth2.sigstore.dev:443
-            api.github.com:443
-            auth.docker.io:443
-            github.com:443
-            index.docker.io:443
-            production.cloudflare.docker.com:443
-            registry-1.docker.io:443
-            yum.oracle.com:443
-            fulcio.sigstore.dev:443
             objects.githubusercontent.com:443
-            tuf-repo-cdn.sigstore.dev:443
-            rekor.sigstore.dev:443
-            api.github.com:443
-            archive.ubuntu.com:80
-            auth.docker.io:443
-            deb.debian.org:80
-            github.com:443
-            index.docker.io:443
-            keyserver.ubuntu.com:11371
-            nginx.org:443
-            nginx.org:80
+            ohioix.mm.fcix.net:80
+            opencolo.mm.fcix.net:443
+            opencolo.mm.fcix.net:80
+            or-mirror.iwebfusion.net:80
+            packages.oit.ncsu.edu:80
+            paducahix.mm.fcix.net:80
+            ports.ubuntu.com:443
             ports.ubuntu.com:80
             production.cloudflare.docker.com:443
+            pubmirror2.math.uh.edu:80
+            quay.io:443
             registry-1.docker.io:443
-            security.ubuntu.com:80
-            fulcio.sigstore.dev:443
-            objects.githubusercontent.com:443
-            tuf-repo-cdn.sigstore.dev:443
             rekor.sigstore.dev:443
+            repo.ialab.dsu.edu:443
+            repo.ialab.dsu.edu:80
+            repo1.sea.innoscale.net:80
+            repos.eggycrew.com:443
+            repos.eggycrew.com:80
+            ridgewireless.mm.fcix.net:443
+            ridgewireless.mm.fcix.net:80
+            scientificlinux.physik.uni-muenchen.de:443
+            scientificlinux.physik.uni-muenchen.de:80
+            security.ubuntu.com:443
+            security.ubuntu.com:80
+            southfront.mm.fcix.net:80
+            tuf-repo-cdn.sigstore.dev:443
+            tx-mirror.tier.net:80
+            us.mirrors.virtono.com:80
+            uvermont.mm.fcix.net:443
+            uvermont.mm.fcix.net:80
+            volico.mm.fcix.net:80
+            www.gtlib.gatech.edu:80
+            yum.oracle.com:443
+            ziply.mm.fcix.net:443
+            ziply.mm.fcix.net:80
 
       - name: Checkout repository
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
