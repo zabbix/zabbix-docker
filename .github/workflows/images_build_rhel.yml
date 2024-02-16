@@ -47,6 +47,9 @@ env:
   PREFLIGHT_IMAGE: "quay.io/opdev/preflight:stable"
   PFLT_LOGLEVEL: "warn"
   PFLT_ARTIFACTS: "/tmp/artifacts"
+  IMAGE_DIR: "/tmp/images"
+
+  RHEL_BUILD: "true"
 
 jobs:
   init_build:
@@ -54,8 +57,10 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
+      actions: write
     outputs:
       platforms: ${{ steps.platform_list.outputs.list }}
+      database: ${{ steps.database.outputs.list }}
       components: ${{ steps.components.outputs.list }}
       is_default_branch: ${{ steps.branch_info.outputs.is_default_branch }}
       current_branch: ${{ steps.branch_info.outputs.current_branch }}
@@ -68,12 +73,15 @@ jobs:
           disable-sudo: true
           egress-policy: block
           allowed-endpoints: >
+            api.github.com:443
             github.com:443
+            objects.githubusercontent.com:443
 
       - name: Checkout repository
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
         with:
           fetch-depth: 1
+          sparse-checkout: ${{ env.MATRIX_FILE }}
 
       - name: Check ${{ env.MATRIX_FILE }} file
         id: build_exists
@@ -98,12 +106,25 @@ jobs:
 
             echo "list=$platform_list" >> $GITHUB_OUTPUT
 
+      - name: Prepare Database engine list
+        id: database
+        env:
+          MATRIX_FILE: ${{ env.MATRIX_FILE }}
+        run: |
+            database_list=$(jq -r '[.components | map_values(select(.rhel == true)) | values[].base ] | sort | unique | del(.. | select ( . == "" ) ) | @json' "$MATRIX_FILE")
+
+            echo "::group::Database List"
+            echo "$database_list"
+            echo "::endgroup::"
+
+            echo "list=$database_list" >> $GITHUB_OUTPUT
+
       - name: Prepare Zabbix component list
         id: components
         env:
           MATRIX_FILE: ${{ env.MATRIX_FILE }}
         run: |
-            component_list=$(jq -r '.components |map_values(select(.rhel == true)) | keys | @json' "$MATRIX_FILE")
+            component_list=$(jq -r '.components | map_values(select(.rhel == true)) | keys | @json' "$MATRIX_FILE")
 
             echo "::group::Zabbix Component List"
             echo "$component_list"
@@ -131,7 +152,7 @@ jobs:
                 result=true
             fi
 
-            echo "::group::Branch data"
+            echo "::group::Branch metadata"
             echo "is_default_branch - $result"
             echo "current_branch - $github_ref"
             echo "secret_prefix=RHEL_${github_ref//.}"
@@ -143,7 +164,27 @@ jobs:
             echo "secret_prefix=RHEL_${github_ref//.}" >> $GITHUB_OUTPUT
             echo "sha_short=$sha_short" >> $GITHUB_OUTPUT
 
+      - name: Cleanup cache
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          BRANCH: ${{ steps.branch_info.outputs.current_branch }}
+          GH_RUN_ID: ${{ github.run_id }}
+        run: |
+            gh extension install actions/gh-actions-cache
 
+            cache_keys=$(gh actions-cache list -R "${REPO}" -B "${BRANCH}" -L 100 --sort created-at --order desc | cut -f 1)
+
+            ## Setting this to not fail the workflow while deleting cache keys
+            set +e
+            echo "Deleting caches..."
+            for cache_key in $cache_keys
+            do
+                if [[ "$cache_key" == *"${GH_RUN_ID}" ]]; then
+                    gh actions-cache delete $cache_key -R "${REPO}" -B "${BRANCH}" --confirm
+                fi
+            done
 
   build_base:
     timeout-minutes: 30
@@ -186,7 +227,7 @@ jobs:
           tags: |
             type=sha,suffix=-${{ steps.lc.outputs.arch }}
 
-      - name: Build Zabbix Build Base
+      - name: Build image
         id: build_image
         uses: redhat-actions/buildah-build@b4dc19b4ba891854660ab1f88a097d45aa158f76 # v2.12
         with:
@@ -197,27 +238,82 @@ jobs:
             ${{ env.DOCKERFILES_DIRECTORY }}/${{ matrix.build }}/rhel/Dockerfile
           extra-args: |
             --pull
+            --iidfile=${{ github.workspace }}/iidfile
 
-      - name: Image digest
+      - name: Prepare image metadata
+        id: image_metadata
         env:
-          IMAGE_TAG: ${{ fromJSON(steps.meta.outputs.json).tags[0] }}
+          IMAGE_TAG: ${{ steps.build_image.outputs.image-with-tag }}
           CACHE_FILE_NAME: ${{ env.BASE_BUILD_NAME }}_${{ matrix.arch }}
+          GITHUB_WORKSPACE: ${{ github.workspace }}
         run: |
-            DIGEST=$(podman inspect ${IMAGE_TAG} --format "{{ index .RepoDigests 0}}" | cut -d '@' -f2)
-            echo "::group::Image digest"
-            echo "$DIGEST"
+            TAG_ID=$(cat $GITHUB_WORKSPACE/iidfile)
+
+            echo "::group::Image tag"
+            echo "image_tag=$IMAGE_TAG"
+            echo "::endgroup::"
+            echo "::group::Image Tag ID"
+            echo "tag_id=$TAG_ID"
             echo "::endgroup::"
             echo "::group::Cache file name"
             echo "$CACHE_FILE_NAME"
             echo "::endgroup::"
 
-            echo "$DIGEST" > "$CACHE_FILE_NAME"
+            echo "$TAG_ID" > "${CACHE_FILE_NAME}_tag_id"
+            echo "$IMAGE_TAG" > "${CACHE_FILE_NAME}_tag"
 
-      - name: Cache image digest
-        uses: actions/cache@13aacd865c20de90d75de3b17ebe84f7a17d57d2 # v4.0.0
+            echo "image_tag_id=${TAG_ID}" >> $GITHUB_OUTPUT
+            echo "image_tag=${IMAGE_TAG}" >> $GITHUB_OUTPUT
+
+      - name: Cache image metadata
+        uses: actions/cache/save@13aacd865c20de90d75de3b17ebe84f7a17d57d2 # v4.0.0
         with:
-          path: ${{ env.BASE_BUILD_NAME }}_${{ matrix.arch }}
+          path: |
+              ${{ env.BASE_BUILD_NAME }}_${{ matrix.arch }}_tag_id
+              ${{ env.BASE_BUILD_NAME }}_${{ matrix.arch }}_tag
           key: ${{ env.BASE_BUILD_NAME }}-${{ matrix.arch }}-${{ github.run_id }}
+
+      - name: Push image to local storage
+        id: push_image
+        env:
+          IMAGE_TAG: ${{ steps.image_metadata.outputs.image_tag }}
+          IMAGE_TAG_ID: ${{ steps.image_metadata.outputs.image_tag_id }}
+          IMAGE_DIR: ${{ env.IMAGE_DIR }}
+          GITHUB_WORKSPACE: ${{ github.workspace }}
+        run: |
+            echo "::group::Result"
+            echo "Image ${IMAGE_TAG} location: \"${IMAGE_DIR}/${IMAGE_TAG_ID}\""
+            podman push "${IMAGE_TAG}" dir:"${IMAGE_DIR}/${IMAGE_TAG_ID}"
+            echo "::endgroup::"
+
+      - name: Post build image
+        if: ${{ success() || failure() }}
+        env:
+         GITHUB_WORKSPACE: ${{ github.workspace }}
+        run: |
+            echo "::group::Result"
+
+            rm -rf "$GITHUB_WORKSPACE/iidfile"
+
+            echo "Removing working containers"
+            buildah rm -a 2>/dev/null || true
+            echo "Removing container data in storage not controlled by podman"
+            podman system prune --external 2>/dev/null
+            echo "Removing all unused container data with volumes"
+            podman system prune -a --volumes -f 2>/dev/null
+            echo "Reseting podman storage to default state"
+            podman system reset -f 2>/dev/null || true
+
+            echo "::endgroup::"
+
+      - name: Check on failures
+        if: ${{ (cancelled() || failure()) && ( steps.push_image.outcome == 'failure' || steps.push_image.outcome == 'cancelled') }}
+        env:
+          IMAGE_TAG_ID: ${{ steps.image_metadata.outputs.image_tag_id }}
+        run: |
+            echo "::group::Removing orphaned image"
+            rm -rf "${IMAGE_DIR}/${IMAGE_TAG_ID}"
+            echo "::endgroup::"
 
   build_base_database:
     timeout-minutes: 180
@@ -226,12 +322,11 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        build: [build-mysql, build-sqlite3]
+        build: ${{ fromJson(needs.init_build.outputs.database) }}
         arch: ${{ fromJson(needs.init_build.outputs.platforms) }}
     runs-on: [self-hosted, linux, "${{ matrix.arch }}"]
     permissions:
       contents: read
-      id-token: write
     steps:
       - name: Checkout repository
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
@@ -245,6 +340,43 @@ jobs:
         run: |
           echo "arch=${ARCH,,}" >> $GITHUB_OUTPUT
 
+      - name: Download metadata of ${{ env.BASE_BUILD_NAME }}:${{ matrix.arch }}
+        uses: actions/cache/restore@13aacd865c20de90d75de3b17ebe84f7a17d57d2 # v4.0.0
+        with:
+          path: |
+              ${{ env.BASE_BUILD_NAME }}_${{ matrix.arch }}_tag_id
+              ${{ env.BASE_BUILD_NAME }}_${{ matrix.arch }}_tag
+          key: ${{ env.BASE_BUILD_NAME }}-${{ matrix.arch }}-${{ github.run_id }}
+
+      - name: Pull ${{ env.BASE_BUILD_NAME }}:${{ matrix.arch }} image
+        id: base_build
+        env:
+         MATRIX_ARCH: ${{ matrix.arch }}
+         BASE_IMAGE: ${{ env.BASE_BUILD_NAME }}
+         IMAGES_PREFIX: ${{ env.IMAGES_PREFIX }}
+        run: |
+            BASE_TAG_ID=$(cat "${BASE_IMAGE}_${MATRIX_ARCH}_tag_id")
+            BASE_IMAGE_TAG=$(cat "${BASE_IMAGE}_${MATRIX_ARCH}_tag")
+
+            echo "::group::Pull image"
+            echo "podman pull dir:\"${IMAGE_DIR}/${BASE_TAG_ID}\""
+            podman pull dir:"${IMAGE_DIR}/${BASE_TAG_ID}"
+            echo "::endgroup::"
+
+            echo "::group::Tag image"
+            echo "podman tag \"${BASE_TAG_ID}\" \"${BASE_IMAGE_TAG}\""
+            podman tag "${BASE_TAG_ID}" "${BASE_IMAGE_TAG}"
+            echo "::endgroup::"
+
+            echo "::group::SHA256 tag"
+            DIGEST=$(podman inspect "${BASE_TAG_ID}" --format '{{ .Digest }}')
+            BASE_BUILD_IMAGE="${IMAGES_PREFIX}${BASE_IMAGE}@${DIGEST}"
+
+            echo "base_build_image=${BASE_BUILD_IMAGE}"
+            echo "::endgroup::"
+
+            echo "base_build_image=${BASE_BUILD_IMAGE}" >> $GITHUB_OUTPUT
+
       - name: Generate tags
         id: meta
         uses: docker/metadata-action@8e5442c4ef9f78752691e2d8f8d19755c6f78e81 # v5.5.1
@@ -253,31 +385,7 @@ jobs:
           tags: |
             type=sha,suffix=-${{ steps.lc.outputs.arch }}
 
-      - name: Download SHA256 tag of ${{ env.BASE_BUILD_NAME }}:${{ matrix.arch }}
-        uses: actions/cache@13aacd865c20de90d75de3b17ebe84f7a17d57d2 # v4.0.0
-        with:
-          path: ${{ env.BASE_BUILD_NAME }}_${{ matrix.arch }}
-          key: ${{ env.BASE_BUILD_NAME }}-${{ matrix.arch }}-${{ github.run_id }}
-
-      - name: Retrieve ${{ env.BASE_BUILD_NAME }}:${{ matrix.arch }} SHA256 tag
-        id: base_build
-        env:
-         MATRIX_ARCH: ${{ matrix.arch }}
-         BASE_IMAGE: ${{ env.BASE_BUILD_NAME }}
-         IMAGES_PREFIX: ${{ env.IMAGES_PREFIX }}
-        run: |
-            BASE_TAG=$(cat "${BASE_IMAGE}_${MATRIX_ARCH}")
-            BUILD_BASE_IMAGE="${IMAGES_PREFIX}${BASE_IMAGE}@${BASE_TAG}"
-
-            echo "::group::Base build image information"
-            echo "base_tag=${BASE_TAG}"
-            echo "base_build_image=${BUILD_BASE_IMAGE}"
-            echo "::endgroup::"
-
-            echo "base_tag=${BASE_TAG}" >> $GITHUB_OUTPUT
-            echo "base_build_image=${BUILD_BASE_IMAGE}" >> $GITHUB_OUTPUT
-
-      - name: Build Zabbix Build Base
+      - name: Build image
         id: build_image
         uses: redhat-actions/buildah-build@b4dc19b4ba891854660ab1f88a097d45aa158f76 # v2.12
         with:
@@ -287,27 +395,83 @@ jobs:
           containerfiles: |
             ${{ env.DOCKERFILES_DIRECTORY }}/${{ matrix.build }}/rhel/Dockerfile
           build-args: BUILD_BASE_IMAGE=${{ steps.base_build.outputs.base_build_image }}
+          extra-args: |
+            --iidfile=${{ github.workspace }}/iidfile
 
-      - name: Image digest
+      - name: Prepare image metadata
+        id: image_metadata
         env:
-          IMAGE_TAG: ${{ fromJSON(steps.meta.outputs.json).tags[0] }}
+          IMAGE_TAG: ${{ steps.build_image.outputs.image-with-tag }}
           CACHE_FILE_NAME: ${{ matrix.build }}_${{ matrix.arch }}
+          GITHUB_WORKSPACE: ${{ github.workspace }}
         run: |
-            DIGEST=$(podman inspect ${IMAGE_TAG} --format "{{ index .RepoDigests 0}}" | cut -d '@' -f2)
-            echo "::group::Image digest"
-            echo "$DIGEST"
+            TAG_ID=$(cat $GITHUB_WORKSPACE/iidfile)
+
+            echo "::group::Image tag"
+            echo "image_tag=$IMAGE_TAG"
+            echo "::endgroup::"
+            echo "::group::Image Tag ID"
+            echo "tag_id=$TAG_ID"
             echo "::endgroup::"
             echo "::group::Cache file name"
             echo "$CACHE_FILE_NAME"
             echo "::endgroup::"
 
-            echo "$DIGEST" > "$CACHE_FILE_NAME"
+            echo "$TAG_ID" > "${CACHE_FILE_NAME}_tag_id"
+            echo "$IMAGE_TAG" > "${CACHE_FILE_NAME}_tag"
+
+            echo "image_tag_id=${TAG_ID}" >> $GITHUB_OUTPUT
+            echo "image_tag=${IMAGE_TAG}" >> $GITHUB_OUTPUT
 
       - name: Cache image digest
-        uses: actions/cache@13aacd865c20de90d75de3b17ebe84f7a17d57d2 # v4.0.0
+        uses: actions/cache/save@13aacd865c20de90d75de3b17ebe84f7a17d57d2 # v4.0.0
         with:
-          path: ${{ matrix.build }}_${{ matrix.arch }}
+          path: |
+              ${{ matrix.build }}_${{ matrix.arch }}_tag_id
+              ${{ matrix.build }}_${{ matrix.arch }}_tag
           key: ${{ matrix.build }}-${{ matrix.arch }}-${{ github.run_id }}
+
+      - name: Push image to local storage
+        id: push_image
+        env:
+          IMAGE_TAG: ${{ steps.image_metadata.outputs.image_tag }}
+          IMAGE_TAG_ID: ${{ steps.image_metadata.outputs.image_tag_id }}
+          IMAGE_DIR: ${{ env.IMAGE_DIR }}
+          GITHUB_WORKSPACE: ${{ github.workspace }}
+        run: |
+            echo "::group::Result"
+            echo "podman push \"${IMAGE_TAG}\" dir:\"${IMAGE_DIR}/${IMAGE_TAG_ID}\""
+            podman push "${IMAGE_TAG}" dir:"${IMAGE_DIR}/${IMAGE_TAG_ID}"
+            echo "::endgroup::"
+
+      - name: Post build image
+        if: ${{ success() || failure() }}
+        env:
+         GITHUB_WORKSPACE: ${{ github.workspace }}
+        run: |
+            echo "::group::Result"
+
+            rm -rf "$GITHUB_WORKSPACE/iidfile"
+
+            echo "Removing working containers"
+            buildah rm -a 2>/dev/null || true
+            echo "Removing container data in storage not controlled by podman"
+            podman system prune --external 2>/dev/null
+            echo "Removing all unused container data with volumes"
+            podman system prune -a --volumes -f 2>/dev/null
+            echo "Reseting podman storage to default state"
+            podman system reset -f 2>/dev/null || true
+
+            echo "::endgroup::"
+
+      - name: Check on failures
+        if: ${{ (cancelled() || failure()) && ( steps.push_image.outcome == 'failure' || steps.push_image.outcome == 'cancelled') }}
+        env:
+          IMAGE_TAG_ID: ${{ steps.image_metadata.outputs.image_tag_id }}
+        run: |
+            echo "::group::Removing orphaned image"
+            rm -rf "${IMAGE_DIR}/${IMAGE_TAG_ID}"
+            echo "::endgroup::"
 
   build_images:
     timeout-minutes: 90
@@ -321,7 +485,6 @@ jobs:
     runs-on: [self-hosted, linux, "${{ matrix.arch }}"]
     permissions:
       contents: read
-      id-token: write
     steps:
       - name: Checkout repository
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
@@ -335,6 +498,7 @@ jobs:
         run: |
             MATRIX_BUILD=${MATRIX_BUILD^^}
             MATRIX_BUILD=${MATRIX_BUILD//-/_}
+
             echo "::group::Result"
             echo "matrix_build=${MATRIX_BUILD}"
             echo "::endgroup::"
@@ -342,6 +506,7 @@ jobs:
 
       - name: Detect Build Base Image
         id: build_base_image
+        if: ${{ matrix.build != 'snmptraps' }}
         env:
           MATRIX_BUILD: ${{ matrix.build }}
           MATRIX_FILE: ${{ env.MATRIX_FILE }}
@@ -354,6 +519,44 @@ jobs:
 
             echo "build_base=${BUILD_BASE}" >> $GITHUB_OUTPUT
 
+      - name: Download metadata of ${{ steps.build_base_image.outputs.build_base }}:${{ matrix.arch }}
+        if: ${{ matrix.build != 'snmptraps' }}
+        uses: actions/cache/restore@13aacd865c20de90d75de3b17ebe84f7a17d57d2 # v4.0.0
+        with:
+          path: |
+              ${{ steps.build_base_image.outputs.build_base }}_${{ matrix.arch }}_tag_id
+              ${{ steps.build_base_image.outputs.build_base }}_${{ matrix.arch }}_tag
+          key: ${{ steps.build_base_image.outputs.build_base }}-${{ matrix.arch }}-${{ github.run_id }}
+
+      - name: Pull ${{ steps.build_base_image.outputs.build_base }}:${{ matrix.arch }} image
+        id: base_build
+        if: ${{ matrix.build != 'snmptraps' }}
+        env:
+         MATRIX_ARCH: ${{ matrix.arch }}
+         BASE_IMAGE: ${{ steps.build_base_image.outputs.build_base }}
+         IMAGES_PREFIX: ${{ env.IMAGES_PREFIX }}
+        run: |
+            BASE_TAG_ID=$(cat "${BASE_IMAGE}_${MATRIX_ARCH}_tag_id")
+            BASE_IMAGE_TAG=$(cat "${BASE_IMAGE}_${MATRIX_ARCH}_tag")
+
+            echo "::group::Pull image"
+            echo "podman pull dir:\"${IMAGE_DIR}/${BASE_TAG_ID}\""
+            podman pull dir:"${IMAGE_DIR}/${BASE_TAG_ID}"
+            echo "::endgroup::"
+
+            echo "::group::Tag image"
+            echo "podman tag \"${BASE_TAG_ID}\" \"${BASE_IMAGE_TAG}\""
+            podman tag "${BASE_TAG_ID}" "${BASE_IMAGE_TAG}"
+            echo "::endgroup::"
+
+            echo "::group::SHA256 tag"
+            DIGEST=$(podman inspect "${BASE_TAG_ID}" --format '{{ .Digest }}')
+            BASE_BUILD_IMAGE="${IMAGES_PREFIX}${BASE_IMAGE}@${DIGEST}"
+            echo "digest=${BASE_BUILD_IMAGE}"
+            echo "::endgroup::"
+
+            echo "base_build_image=${BASE_BUILD_IMAGE}" >> $GITHUB_OUTPUT
+
       - name: Remove smartmontools
         if: ${{ matrix.build == 'agent2' }}
         env:
@@ -365,39 +568,13 @@ jobs:
         id: meta
         uses: docker/metadata-action@8e5442c4ef9f78752691e2d8f8d19755c6f78e81 # v5.5.1
         with:
-          images: ${{ env.REGISTRY }}/${{ env.REGISTRY_NAMESPACE }}/${{ secrets[format('{0}_{1}_PROJECT', needs.init_build.outputs.secret_prefix, steps.var_format.outputs.matrix_build)] }}
+          images: ${{ env.REGISTRY }}/${{ env.REGISTRY_NAMESPACE }}/${{ secrets[format('{0}_{1}_PROJECT', needs.init_build.outputs.secret_prefix, steps.var_format.outputs.matrix_build)] || matrix.build }}
           tags: |
             type=semver,pattern={{version}}
             type=sha
           flavor: |
             latest=${{ github.event_name == 'release' }}
             suffix=${{ matrix.arch == 'ARM64' && '-arm64' || '' }},onlatest=true
-
-      - name: Download SHA256 tag of ${{ steps.build_base_image.outputs.build_base }}:${{ matrix.arch }}
-        if: ${{ matrix.build != 'snmptraps' }}
-        uses: actions/cache@13aacd865c20de90d75de3b17ebe84f7a17d57d2 # v4.0.0
-        with:
-          path: ${{ steps.build_base_image.outputs.build_base }}_${{ matrix.arch }}
-          key: ${{ steps.build_base_image.outputs.build_base }}-${{ matrix.arch }}-${{ github.run_id }}
-
-      - name: Retrieve ${{ steps.build_base_image.outputs.build_base }}:${{ matrix.arch }} SHA256 tag
-        id: base_build
-        if: ${{ matrix.build != 'snmptraps' }}
-        env:
-         MATRIX_ARCH: ${{ matrix.arch }}
-         BASE_IMAGE: ${{ steps.build_base_image.outputs.build_base }}
-         IMAGES_PREFIX: ${{ env.IMAGES_PREFIX }}
-        run: |
-            BASE_TAG=$(cat "${BASE_IMAGE}_${MATRIX_ARCH}")
-            BUILD_BASE_IMAGE="${IMAGES_PREFIX}${BASE_IMAGE}@${BASE_TAG}"
-
-            echo "::group::Base build image information"
-            echo "base_tag=${BASE_TAG}"
-            echo "base_build_image=${BUILD_BASE_IMAGE}"
-            echo "::endgroup::"
-
-            echo "base_tag=${BASE_TAG}" >> $GITHUB_OUTPUT
-            echo "base_build_image=${BUILD_BASE_IMAGE}" >> $GITHUB_OUTPUT
 
       - name: Build image
         id: build_image
@@ -413,7 +590,7 @@ jobs:
             ${{ env.DOCKERFILES_DIRECTORY }}/${{ matrix.build }}/rhel/Dockerfile
           build-args: BUILD_BASE_IMAGE=${{ steps.base_build.outputs.base_build_image }}
 
-      - name: Log in to Quay.io
+      - name: Log in to ${{ env.REGISTRY }}
         uses: redhat-actions/podman-login@9184318aae1ee5034fbfbacc0388acf12669171f # v1.6
         if: ${{ env.AUTO_PUSH_IMAGES == 'true' }}
         with:
@@ -429,7 +606,7 @@ jobs:
         with:
           tags: ${{ steps.meta.outputs.tags }}
 
-      - name: Preflight
+      - name: Preflight certification
         if: ${{ env.AUTO_PUSH_IMAGES == 'true' }}
         env:
           PFLT_DOCKERCONFIG: /tmp/.docker_${{ matrix.build }}_${{ matrix.arch }}_${{ needs.init_build.outputs.sha_short }}
@@ -441,7 +618,7 @@ jobs:
           PREFLIGHT_IMAGE: ${{ env.PREFLIGHT_IMAGE }}
         run: |
             mkdir -p $PFLT_ARTIFACTS
-            echo "::group::Pull preflight image"
+            echo "::group::Pull preflight \"$PREFLIGHT_IMAGE\" image"
             podman pull "$PREFLIGHT_IMAGE"
             echo "::endgroup::"
 
@@ -462,70 +639,91 @@ jobs:
             podman rmi -i -f "$PREFLIGHT_IMAGE"
             echo "::endgroup::"
 
-      - name: Push to RedHat certification procedure (2nd)
+      - name: Push to RedHat certification procedure (all tags)
         id: push_to_registry_all_tags
         if: ${{ env.AUTO_PUSH_IMAGES == 'true' }}
         uses: redhat-actions/push-to-registry@9986a6552bc4571882a4a67e016b17361412b4df # v2.7.1
         with:
           tags: ${{ steps.meta.outputs.tags }}
 
-      - name: Cleanup artifacts
-        if: ${{ always() }}
+      - name: Post Preflight certification
+        if: ${{ env.AUTO_PUSH_IMAGES == 'true' && (success() || failure()) }}
         env:
           PREFLIGHT_IMAGE: ${{ env.PREFLIGHT_IMAGE }}
           PFLT_ARTIFACTS: ${{ env.PFLT_ARTIFACTS }}
-          TAGS: ${{ steps.meta.outputs.tags }}
         run: |
-            echo "::group::Post build actions"
-            echo "$TAGS" | while IFS= read -r image_name ; do podman rmi -i -f "$image_name"; done
+            echo "::group::Result"
             rm -rf "$PFLT_ARTIFACTS"
             podman rmi -i -f "$PREFLIGHT_IMAGE"
             echo "::endgroup::"
 
-  clean_artifacts:
+      - name: Post build image
+        if: ${{ success() || failure() }}
+        run: |
+            echo "::group::Result"
+
+            echo "Removing working containers"
+            buildah rm -a 2>/dev/null || true
+            echo "Removing container data in storage not controlled by podman"
+            podman system prune --external 2>/dev/null
+            echo "Removing all unused container data with volumes"
+            podman system prune -a --volumes -f 2>/dev/null
+            echo "Reseting podman storage to default state"
+            podman system reset -f 2>/dev/null || true
+
+            echo "::endgroup::"
+
+  clear_artifacts:
     timeout-minutes: 90
     needs: [ "build_images", "init_build"]
-    name: Build ${{ matrix.build }} image (${{ matrix.arch }})
+    name: Clear ${{ matrix.build }} image cache (${{ matrix.arch }})
     strategy:
       fail-fast: false
       matrix:
-        build: [build-mysql, build-sqlite3]
-        arch: [X64, ARM64]
+        build: ${{ fromJson(needs.init_build.outputs.database) }}
+        arch: ${{ fromJson(needs.init_build.outputs.platforms) }}
     runs-on: [self-hosted, linux, "${{ matrix.arch }}"]
-    if: ${{ always() && needs.build_base_database.result == 'success' }}
+    if: ${{ needs.build_base_database.result == 'success' }}
     permissions: {}
     steps:
-      - name: Download SHA256 tag of ${{ matrix.build }}:${{ matrix.arch }}
-        uses: actions/cache@13aacd865c20de90d75de3b17ebe84f7a17d57d2 # v4.0.0
+      - name: Download metadata of ${{ matrix.build }}:${{ matrix.arch }}
+        uses: actions/cache/restore@13aacd865c20de90d75de3b17ebe84f7a17d57d2 # v4.0.0
         with:
-          path: ${{ matrix.build }}_${{ matrix.arch }}
+          path: |
+              ${{ matrix.build }}_${{ matrix.arch }}_tag_id
+              ${{ matrix.build }}_${{ matrix.arch }}_tag
           key: ${{ matrix.build }}-${{ matrix.arch }}-${{ github.run_id }}
 
-      - name: Remove ${{ matrix.build }}:${{ matrix.arch }} SHA256 tag
+      - name: Remove ${{ matrix.build }}:${{ matrix.arch }} cache
         env:
-         MATRIX_ARCH: ${{ matrix.arch }}
-         BASE_IMAGE: ${{ matrix.build }}
-         IMAGES_PREFIX: ${{ env.IMAGES_PREFIX }}
+         CACHE_FILE_NAME: ${{ matrix.build }}_${{ matrix.arch }}
+         IMAGE_DIR: ${{ env.IMAGE_DIR }}
         run: |
-            BASE_TAG=$(cat "${BASE_IMAGE}_${MATRIX_ARCH}")
-            BUILD_BASE_IMAGE="${IMAGES_PREFIX}${BASE_IMAGE}@${BASE_TAG}"
+            echo "::group::Result"
 
-            podman rmi -i -f "$BUILD_BASE_IMAGE"
+            BASE_TAG=$(cat "${CACHE_FILE_NAME}_tag_id")
+            echo "Removing ${IMAGE_DIR}/${BASE_TAG}"
+            rm -rf "${IMAGE_DIR}/${BASE_TAG}"
 
-      - name: Download SHA256 tag of ${{ env.BASE_BUILD_NAME }}:${{ matrix.arch }}
-        uses: actions/cache@13aacd865c20de90d75de3b17ebe84f7a17d57d2 # v4.0.0
+            echo "::endgroup::"
+
+      - name: Download metadata of ${{ env.BASE_BUILD_NAME }}:${{ matrix.arch }}
+        uses: actions/cache/restore@13aacd865c20de90d75de3b17ebe84f7a17d57d2 # v4.0.0
         with:
-          path: ${{ env.BASE_BUILD_NAME }}_${{ matrix.arch }}
+          path: |
+              ${{ env.BASE_BUILD_NAME }}_${{ matrix.arch }}_tag_id
+              ${{ env.BASE_BUILD_NAME }}_${{ matrix.arch }}_tag
           key: ${{ env.BASE_BUILD_NAME }}-${{ matrix.arch }}-${{ github.run_id }}
 
-
-      - name: Remove ${{ env.BASE_BUILD_NAME }}:${{ matrix.arch }} SHA256 tag
+      - name: Remove ${{ env.BASE_BUILD_NAME }}:${{ matrix.arch }} cache
         env:
-         MATRIX_ARCH: ${{ matrix.arch }}
-         BASE_IMAGE: ${{ env.BASE_BUILD_NAME }}
-         IMAGES_PREFIX: ${{ env.IMAGES_PREFIX }}
+         CACHE_FILE_NAME: ${{ env.BASE_BUILD_NAME }}_${{ matrix.arch }}
+         IMAGE_DIR: ${{ env.IMAGE_DIR }}
         run: |
-            BASE_TAG=$(cat "${BASE_IMAGE}_${MATRIX_ARCH}")
-            BUILD_BASE_IMAGE="${IMAGES_PREFIX}${BASE_IMAGE}@${BASE_TAG}"
+            echo "::group::Result"
 
-            podman rmi -i -f "$BUILD_BASE_IMAGE"
+            BASE_TAG=$(cat "${CACHE_FILE_NAME}_tag_id")
+            echo "Removing ${IMAGE_DIR}/${BASE_TAG}"
+            rm -rf "${IMAGE_DIR}/${BASE_TAG}"
+
+            echo "::endgroup::"
