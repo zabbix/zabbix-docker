@@ -36,7 +36,7 @@ if (file_exists('/etc/zabbix/web/certs/vault.crt')) {
    $DB['VAULT_CERT_FILE'] = file_exists('/etc/zabbix/web/certs/vault.crt');
 }
 elseif (file_exists(getenv('ZBX_VAULTCERTFILE'))) {
-   $DB['VAULT_CERT_FILE'] = $DB['VAULT_CERT_FILE'];
+   $DB['VAULT_CERT_FILE'] = getenv('ZBX_VAULTCERTFILE');
 }
 else {
    $DB['VAULT_CERT_FILE'] = '';
