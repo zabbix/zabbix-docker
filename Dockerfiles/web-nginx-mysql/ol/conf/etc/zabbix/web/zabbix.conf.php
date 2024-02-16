@@ -20,7 +20,7 @@ $ZBX_SERVER_NAME = getenv('ZBX_SERVER_NAME');
 
 // Used for TLS connection.
 $DB['ENCRYPTION']               = getenv('ZBX_DB_ENCRYPTION') == 'true' ? true: false;
-$DB['KEY_FILE']	                = getenv('ZBX_DB_KEY_FILE');
+$DB['KEY_FILE']                 = getenv('ZBX_DB_KEY_FILE');
 $DB['CERT_FILE']                = getenv('ZBX_DB_CERT_FILE');
 $DB['CA_FILE']                  = getenv('ZBX_DB_CA_FILE');
 $DB['VERIFY_HOST']              = getenv('ZBX_DB_VERIFY_HOST') == 'true' ? true: false;
