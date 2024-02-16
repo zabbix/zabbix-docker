@@ -8,39 +8,42 @@
       "linux/s390x",
       "linux/ppc64le"
     ],
+    "centos": [
+      "linux/amd64",
+      "linux/arm64",
+      "linux/ppc64le"
+    ],
     "ol": [
       "linux/amd64",
       "linux/arm64"
+    ],
+    "rhel": [
+      "X64"
     ],
     "ubuntu": [
       "linux/amd64",
       "linux/arm/v7",
       "linux/arm64",
       "linux/s390x"
-    ],
-    "centos": [
-      "linux/amd64",
-      "linux/arm64",
-      "linux/ppc64le"
     ]
   },
   "os-windows": {
-   "windows-2022": "ltsc2022",
-   "windows-2019": "ltsc2019"
+    "windows-2019": "ltsc2019",
+    "windows-2022": "ltsc2022"
   },
   "components": {
-    "agent": "build-mysql",
-    "agent2": "build-mysql",
-    "java-gateway": "build-mysql",
-    "proxy-mysql": "build-mysql",
-    "proxy-sqlite3": "build-sqlite3",
-    "server-mysql": "build-mysql",
-    "server-pgsql": "build-pgsql",
-    "snmptraps": "",
-    "web-apache-mysql": "build-mysql",
-    "web-apache-pgsql": "build-pgsql",
-    "web-nginx-mysql": "build-mysql",
-    "web-nginx-pgsql": "build-mysql",
-    "web-service": "build-mysql"
+    "agent": { "base": "build-mysql", "rhel": true },
+    "agent2": { "base": "build-mysql", "rhel": true },
+    "java-gateway": { "base": "build-mysql", "rhel": true },
+    "proxy-mysql": { "base": "build-mysql", "rhel": true },
+    "proxy-sqlite3": { "base": "build-sqlite3", "rhel": true },
+    "server-mysql": { "base": "build-mysql", "rhel": true },
+    "server-pgsql": { "base": "build-pgsql", "rhel": false },
+    "snmptraps": { "base": "", "rhel": true },
+    "web-apache-mysql": { "base": "build-mysql", "rhel": false },
+    "web-apache-pgsql": { "base": "build-pgsql", "rhel": false },
+    "web-nginx-mysql": { "base": "build-mysql", "rhel": true },
+    "web-nginx-pgsql": { "base": "build-mysql", "rhel": false },
+    "web-service": { "base": "build-mysql", "rhel": true }
   }
 }
