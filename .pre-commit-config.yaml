@@ -1,0 +1,41 @@
+repos:
+- repo: https://github.com/gitleaks/gitleaks
+  rev: v8.16.3
+  hooks:
+  - id: gitleaks
+- repo: https://github.com/jumanjihouse/pre-commit-hooks
+  rev: 3.0.0
+  hooks:
+  - id: shellcheck
+- repo: https://github.com/pre-commit/pre-commit-hooks
+  rev: v4.5.0
+  hooks:
+  - id: end-of-file-fixer
+    exclude: |
+     (?x)(
+         ^env_vars/\.MYSQL |
+         ^env_vars/\.POSTGRES
+     )
+- repo: https://github.com/pre-commit/pre-commit-hooks
+  rev: v4.5.0
+  hooks:
+  - id: trailing-whitespace
+    exclude: |
+     (?x)(
+         .*\.patch$
+     )
+  - id: check-yaml
+    args: [--allow-multiple-documents]
+  - id: check-symlinks
+#  - id: pretty-format-json
+  - id: check-added-large-files
+#- repo: https://github.com/adrienverge/yamllint.git
+#  rev: v1.21.0        # or higher tag
+#  hooks:
+#  - id: yamllint
+#    args: [--format, parsable, --strict]
+#- repo: https://github.com/jumanjihouse/pre-commit-hook-yamlfmt
+#  rev: 0.2.3
+#  hooks:
+#  - id: yamlfmt
+#    args: [--mapping, '2', --sequence, '1', --offset, '0', --colons, --width, '400']

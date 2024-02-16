@@ -113,7 +113,7 @@ This variable is port Zabbix server listening on. By default, value is `10051`.
 This variable is IP or DNS name of MySQL server. By default, value is 'mysql-server'
 
 ### `DB_SERVER_PORT`
-    
+
 This variable is port of MySQL server. By default, value is '3306'.
 
 ### `MYSQL_USER`, `MYSQL_PASSWORD`, `MYSQL_USER_FILE`, `MYSQL_PASSWORD_FILE`

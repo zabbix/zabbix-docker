@@ -1,12 +1,12 @@
 # syntax=docker/dockerfile:1
-ARG MAJOR_VERSION=6.0
-ARG RELEASE=26
-ARG ZBX_VERSION=${MAJOR_VERSION}.26
+ARG MAJOR_VERSION=7.0
+ARG RELEASE=0
+ARG ZBX_VERSION=${MAJOR_VERSION}
 ARG BUILD_BASE_IMAGE=zabbix-build-mysql:rhel-${ZBX_VERSION}
 
-FROM ${BUILD_BASE_IMAGE} as builder
+FROM ${BUILD_BASE_IMAGE} AS builder
 
-FROM registry.access.redhat.com/ubi8/ubi-minimal
+FROM registry.access.redhat.com/ubi9/ubi-minimal:9.3
 
 ARG MAJOR_VERSION
 ARG RELEASE
@@ -19,9 +19,9 @@ ENV TERM=xterm \
 
 LABEL description="Zabbix web service for performing various tasks using headless web browser" \
       maintainer="alexey.pustovalov@zabbix.com" \
-      name="zabbix/zabbix-web-service-60" \
+      name="zabbix/zabbix-web-service-trunk" \
       release="${RELEASE}" \
-      run="docker run --name zabbix-web-service --link zabbix-server:zabbix-server -p 10053:10053 -d registry.connect.redhat.com/zabbix/zabbix-web-service-60:${ZBX_VERSION}" \
+      run="docker run --name zabbix-web-service --link zabbix-server:zabbix-server -p 10053:10053 -d registry.connect.redhat.com/zabbix/zabbix-web-service-trunk:${ZBX_VERSION}" \
       summary="Zabbix web service" \
       url="https://www.zabbix.com/" \
       vendor="Zabbix LLC" \
@@ -32,7 +32,7 @@ LABEL description="Zabbix web service for performing various tasks using headles
       io.openshift.tags="zabbix,zabbix-web-service" \
       org.label-schema.build-date="${BUILD_DATE}" \
       org.label-schema.description="Zabbix web service for performing various tasks using headless web browser" \
-      org.label-schema.docker.cmd="docker run --name zabbix-web-service --link zabbix-server:zabbix-server -p 10053:10053 -d registry.connect.redhat.com/zabbix/zabbix-web-service-60:${ZBX_VERSION}" \
+      org.label-schema.docker.cmd="docker run --name zabbix-web-service --link zabbix-server:zabbix-server -p 10053:10053 -d registry.connect.redhat.com/zabbix/zabbix-web-service-trunk:${ZBX_VERSION}" \
       org.label-schema.license="GPL v2.0" \
       org.label-schema.name="zabbix-web-service-rhel" \
       org.label-schema.schema-version="1.0" \
@@ -53,15 +53,16 @@ RUN set -eux && \
     INSTALL_PKGS="bash \
             shadow-utils \
             chromium-headless" && \
-    curl -sSL -o /tmp/epel-release-latest-8.noarch.rpm https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm && \
-    rpm -ivh /tmp/epel-release-latest-8.noarch.rpm && \
-    rm -rf /tmp/epel-release-latest-8.noarch.rpm && \
+    curl --tlsv1.2 -sSf -L -o /tmp/epel-release-latest-9.noarch.rpm https://dl.fedoraproject.org/pub/epel/epel-release-latest-9.noarch.rpm && \
+    rpm -ivh /tmp/epel-release-latest-9.noarch.rpm && \
+    rm -rf /tmp/epel-release-latest-9.noarch.rpm && \
+    ARCH_SUFFIX="$(arch)"; \
     microdnf -y install \
             --disablerepo "*" \
-            --enablerepo "ubi-8-baseos-rpms" \
-            --enablerepo "ubi-8-appstream-rpms" \
-            --enablerepo "rhel-8-for-x86_64-baseos-rpms" \
-            --enablerepo "rhel-8-for-x86_64-appstream-rpms" \
+            --enablerepo "ubi-9-baseos-rpms" \
+            --enablerepo "ubi-9-appstream-rpms" \
+            --enablerepo "rhel-9-for-$ARCH_SUFFIX-baseos-rpms" \
+            --enablerepo "rhel-9-for-$ARCH_SUFFIX-appstream-rpms" \
             --enablerepo "epel" \
             --setopt=install_weak_deps=0 \
             --best \
@@ -69,8 +70,8 @@ RUN set -eux && \
         ${INSTALL_PKGS} && \
     microdnf -y install \
             --disablerepo "*" \
-            --enablerepo "ubi-8-baseos-rpms" \
-            --enablerepo "ubi-8-appstream-rpms" \
+            --enablerepo "ubi-9-baseos-rpms" \
+            --enablerepo "ubi-9-appstream-rpms" \
             --setopt=install_weak_deps=0 \
             --best \
             --setopt=tsflags=nodocs \

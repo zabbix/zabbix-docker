@@ -104,7 +104,7 @@ RUN set -eux && \
     rm -rf /var/lib/apt/lists/*
 
 EXPOSE 8080/TCP 8443/TCP
-    
+
 WORKDIR /usr/share/zabbix
 
 COPY ["docker-entrypoint.sh", "/usr/bin/"]
