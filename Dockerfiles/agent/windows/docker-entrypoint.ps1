@@ -40,7 +40,7 @@ function Update-Config-Var {
     if (-not(Test-Path -Path $ConfigPath -PathType Leaf)) {
         throw "**** Configuration file '$ConfigPath' does not exist"
     }
-  
+
     if ($MaskList.Contains($VarName) -eq $true -And [string]::IsNullOrWhitespace($VarValue) -ne $true) {
         Write-Host -NoNewline "** Updating '$ConfigPath' parameter ""$VarName"": '****'. Enable DEBUG_MODE to view value ..."
     }
@@ -50,12 +50,12 @@ function Update-Config-Var {
 
     if ([string]::IsNullOrWhitespace($VarValue)) {
         if ((Get-Content $ConfigPath | %{$_ -match "^$VarName="}) -contains $true) {
-            (Get-Content $ConfigPath) | 
+            (Get-Content $ConfigPath) |
                 Where-Object {$_ -notmatch "^$VarName=" } |
                 Set-Content $ConfigPath
          }
 
-        Write-Host "removed"    
+        Write-Host "removed"
         return
     }
 
@@ -64,7 +64,7 @@ function Update-Config-Var {
         Write-Host "undefined"
         return
     }
-  
+
     if ($VarName -match '^TLS.*File$') {
         $VarValue="$ZabbixUserHomeDir\enc\$VarValue"
     }
@@ -75,7 +75,7 @@ function Update-Config-Var {
         Write-Host updated
     }
     elseif ((Get-Content $ConfigPath | select-string -pattern "^[#;] $VarName=").length -gt 0) {
-        (Get-Content $ConfigPath) | 
+        (Get-Content $ConfigPath) |
             Foreach-Object {
                 $_
                 if ($_ -match "^[#;] $VarName=") {

@@ -76,7 +76,7 @@ RUN set -eux && \
     gzip -c database/mysql/create.sql > database/mysql/create_proxy.sql.gz && \
     rm -rf database/mysql/create.sql && \
     mkdir /tmp/fonts/ && \
-    curl --silent -L "https://noto-website.storage.googleapis.com/pkgs/NotoSansCJKjp-hinted.zip" -o /tmp/fonts/NotoSansCJKjp-hinted.zip && \
+    curl --tlsv1.2 -sSf -L "https://noto-website.storage.googleapis.com/pkgs/NotoSansCJKjp-hinted.zip" -o /tmp/fonts/NotoSansCJKjp-hinted.zip && \
     unzip /tmp/fonts/NotoSansCJKjp-hinted.zip -d /tmp/fonts/ && \
     cp /tmp/fonts/NotoSansCJKjp-Regular.otf /tmp/zabbix-${ZBX_VERSION}/ui/assets/fonts/NotoSansCJKjp-Regular.ttf && \
     cp /tmp/fonts/LICENSE_OFL.txt /tmp/zabbix-${ZBX_VERSION}/ui/assets/fonts/ && \
