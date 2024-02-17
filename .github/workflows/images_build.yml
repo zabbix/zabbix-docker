@@ -259,13 +259,13 @@ jobs:
           fetch-depth: 1
 
       - name: Install cosign
-        if: ${{ env.AUTO_PUSH_IMAGES }}
+        if: ${{ env.AUTO_PUSH_IMAGES == 'true' }}
         uses: sigstore/cosign-installer@e1523de7571e31dbe865fd2e80c5c7c23ae71eb4
         with:
           cosign-release: 'v2.2.3'
 
       - name: Check cosign version
-        if: env.AUTO_PUSH_IMAGES
+        if: ${{ env.AUTO_PUSH_IMAGES == 'true' }}
         run: cosign version
 
       - name: Set up QEMU
@@ -280,7 +280,7 @@ jobs:
           driver-opts: image=moby/buildkit:master
 
       - name: Login to DockerHub
-        if: fromJSON(env.AUTO_PUSH_IMAGES)
+        if: ${{ env.AUTO_PUSH_IMAGES == 'true' }}
         uses: docker/login-action@343f7c4344506bcbf9b4de18042ae17996df046d # v3.0.0
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
@@ -322,7 +322,7 @@ jobs:
         id: cache_data
         env:
           IMAGE_TAG: ${{ fromJSON(steps.meta.outputs.json).tags[0] }}
-          PUBLISH_IMAGES: ${{ env.AUTO_PUSH_IMAGES }}
+          PUBLISH_IMAGES: ${{ env.AUTO_PUSH_IMAGES == 'true' }}
         run: |
             cache_from=()
             cache_to=()
@@ -357,7 +357,7 @@ jobs:
           context: ${{ env.DOCKERFILES_DIRECTORY }}/${{ env.BASE_BUILD_NAME }}/${{ matrix.os }}
           file: ${{ env.DOCKERFILES_DIRECTORY }}/${{ env.BASE_BUILD_NAME }}/${{ matrix.os }}/Dockerfile
           platforms: ${{ steps.platform.outputs.list }}
-          push: ${{ env.AUTO_PUSH_IMAGES }}
+          push: ${{ env.AUTO_PUSH_IMAGES == 'true' }}
           load: ${{ ! env.AUTO_PUSH_IMAGES }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: |
@@ -367,7 +367,7 @@ jobs:
           cache-to: ${{ steps.cache_data.outputs.cache_to }}
 
       - name: Sign the images with GitHub OIDC Token
-        if: ${{ env.AUTO_PUSH_IMAGES }}
+        if: ${{ env.AUTO_PUSH_IMAGES == 'true' }}
         env:
           DIGEST: ${{ steps.docker_build.outputs.digest }}
           TAGS: ${{ steps.meta.outputs.tags }}
@@ -537,7 +537,7 @@ jobs:
             echo "base_build_image=${BUILD_BASE_IMAGE}" >> $GITHUB_OUTPUT
 
       - name: Verify ${{ env.BASE_BUILD_NAME }}:${{ matrix.os }} cosign
-        if: ${{ env.AUTO_PUSH_IMAGES }}
+        if: ${{ env.AUTO_PUSH_IMAGES == 'true' }}
         env:
          BASE_IMAGE: ${{ steps.base_build.outputs.base_build_image }}
          OIDC_ISSUER: ${{ env.OIDC_ISSUER }}
@@ -561,7 +561,7 @@ jobs:
         env:
           BASE_IMAGE_TAG: ${{ steps.base_build.outputs.base_build_image }}
           IMAGE_TAG: ${{ fromJSON(steps.meta.outputs.json).tags[0] }}
-          PUBLISH_IMAGES: ${{ env.AUTO_PUSH_IMAGES }}
+          PUBLISH_IMAGES: ${{ env.AUTO_PUSH_IMAGES == 'true' }}
         run: |
             cache_from=()
             cache_to=()
@@ -598,7 +598,7 @@ jobs:
           context: ${{ env.DOCKERFILES_DIRECTORY }}/${{ matrix.build }}/${{ matrix.os }}
           file: ${{ env.DOCKERFILES_DIRECTORY }}/${{ matrix.build }}/${{ matrix.os }}/Dockerfile
           platforms: ${{ steps.platform.outputs.list }}
-          push: ${{ env.AUTO_PUSH_IMAGES }}
+          push: ${{ env.AUTO_PUSH_IMAGES == 'true' }}
           tags: ${{ steps.meta.outputs.tags }}
           build-args: BUILD_BASE_IMAGE=${{ steps.base_build.outputs.base_build_image }}
           labels: |
@@ -610,7 +610,7 @@ jobs:
           cache-to: type=gha,mode=max,scope=${{ fromJSON(steps.meta.outputs.json).tags[0] }}
 
       - name: Sign the images with GitHub OIDC Token
-        if: ${{ env.AUTO_PUSH_IMAGES }}
+        if: ${{ env.AUTO_PUSH_IMAGES == 'true' }}
         env:
           DIGEST: ${{ steps.docker_build.outputs.digest }}
           TAGS: ${{ steps.meta.outputs.tags }}
@@ -807,7 +807,7 @@ jobs:
           driver-opts: image=moby/buildkit:master
 
       - name: Login to DockerHub
-        if: ${{ env.AUTO_PUSH_IMAGES }}
+        if: ${{ env.AUTO_PUSH_IMAGES == 'true' }}
         uses: docker/login-action@343f7c4344506bcbf9b4de18042ae17996df046d # v3.0.0
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
@@ -902,7 +902,7 @@ jobs:
             echo "base_build_image=${BUILD_BASE_IMAGE}" >> $GITHUB_OUTPUT
 
       - name: Verify ${{ steps.build_base_image.outputs.build_base }}:${{ matrix.os }} cosign
-        if: ${{ matrix.build != 'snmptraps' && env.AUTO_PUSH_IMAGES }}
+        if: ${{ matrix.build != 'snmptraps' && env.AUTO_PUSH_IMAGES == 'true' }}
         env:
          BASE_IMAGE: ${{ steps.base_build.outputs.base_build_image }}
          OIDC_ISSUER: ${{ env.OIDC_ISSUER }}
@@ -949,7 +949,7 @@ jobs:
           context: ${{ env.DOCKERFILES_DIRECTORY }}/${{ matrix.build }}/${{ matrix.os }}
           file: ${{ env.DOCKERFILES_DIRECTORY }}/${{ matrix.build }}/${{ matrix.os }}/Dockerfile
           platforms: ${{ steps.platform.outputs.list }}
-          push: ${{ env.AUTO_PUSH_IMAGES }}
+          push: ${{ env.AUTO_PUSH_IMAGES == 'true' }}
           tags: ${{ steps.meta.outputs.tags }}
           build-args: BUILD_BASE_IMAGE=${{ steps.base_build.outputs.base_build_image }}
           labels: |
@@ -958,7 +958,7 @@ jobs:
           cache-from: ${{ steps.cache_data.outputs.cache_from }}
 
       - name: Sign the images with GitHub OIDC Token
-        if: ${{ env.AUTO_PUSH_IMAGES }}
+        if: ${{ env.AUTO_PUSH_IMAGES == 'true' }}
         env:
           DIGEST: ${{ steps.docker_build.outputs.digest }}
           TAGS: ${{ steps.meta.outputs.tags }}
