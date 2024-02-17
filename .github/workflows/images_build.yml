@@ -337,7 +337,7 @@ jobs:
             echo "${cache_to[*]}"
             echo "::endgroup::"
 
-            cache_from=$(printf '%s,' "${cache_from[@]}")
+            cache_from=$(printf '%s\n' "${cache_from[@]}")
             cache_from="${cache_from%,}"
             cache_to=$(printf '%s,' "${cache_to[@]}")
             cache_to="${cache_to%,}"
