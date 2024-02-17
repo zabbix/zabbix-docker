@@ -348,10 +348,10 @@ jobs:
       - name: Prepare cache data
         env:
           CACHE_FROM: ${{ steps.cache_data.outputs.cache_from }}
-          PLATFORMS: ${{ steps.platform.outputs.list }}
+          PLATFORMS: ${{ steps.meta.outputs.tags }}
         run: |
             echo "$CACHE_FROM"
-            echo "$PLATFORMS"
+            echo "'$PLATFORMS'"
 
       - name: Build and publish image
         id: docker_build
