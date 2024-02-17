@@ -316,7 +316,7 @@ jobs:
             type=ref,enable=${{ needs.init_build.outputs.current_branch == 'trunk' }},event=branch,prefix=${{ matrix.os }}-
             type=ref,enable=${{ needs.init_build.outputs.current_branch == 'trunk' }},event=branch,suffix=-${{ matrix.os }}
           flavor: |
-            latest=${{ (needs.init_build.outputs.current_branch != 'trunk') && (matrix.os == 'alpine') && (!contains(fromJSON('["workflow_dispatch"]'), github.event_name)) && ( needs.init_build.outputs.is_default_branch == 'true' ) }}
+            latest=${{ (matrix.os == 'alpine') && (!contains(fromJSON('["workflow_dispatch"]'), github.event_name)) && ( needs.init_build.outputs.is_default_branch == 'true' ) }}
 
       - name: Prepare cache data
         id: cache_data
@@ -362,8 +362,14 @@ jobs:
           labels: |
             org.opencontainers.image.revision=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.revision'] }}
             org.opencontainers.image.created=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.created'] }}
-          cache-from: ${{ steps.cache_data.outputs.cache_from }}
-          cache-to: ${{ steps.cache_data.outputs.cache_to }}
+          cache-from: type=local,src=/tmp/.buildx-base-cache
+          cache-to: type=local,src=/tmp/.buildx-base-cache
+
+      - name: Cache image
+        uses: actions/cache/save@13aacd865c20de90d75de3b17ebe84f7a17d57d2 # v4.0.0
+        with:
+          path: /tmp/.buildx-base-cache
+          key: ${{ env.BASE_BUILD_NAME }}-${{ matrix.os }}-${{ github.run_id }}
 
       - name: Sign the images with GitHub OIDC Token
         if: ${{ env.AUTO_PUSH_IMAGES == 'true' }}
@@ -371,10 +377,7 @@ jobs:
           DIGEST: ${{ steps.docker_build.outputs.digest }}
           TAGS: ${{ steps.meta.outputs.tags }}
         run: |
-            images=""
-            for tag in ${TAGS}; do
-                images+="${tag}@${DIGEST} "
-            done
+            images=$(printf "%s@${DIGEST}" "${TAGS[@]}")
 
             echo "::group::Images to sign"
             echo "$images"
@@ -511,7 +514,7 @@ jobs:
             type=ref,enable=${{ needs.init_build.outputs.current_branch == 'trunk' }},event=branch,prefix=${{ matrix.os }}-
             type=ref,enable=${{ needs.init_build.outputs.current_branch == 'trunk' }},event=branch,suffix=-${{ matrix.os }}
           flavor: |
-            latest=${{ (needs.init_build.outputs.current_branch != 'trunk') && (matrix.os == 'alpine') && (!contains(fromJSON('["workflow_dispatch"]'), github.event_name)) && ( needs.init_build.outputs.is_default_branch == 'true' ) }}
+            latest=${{ (matrix.os == 'alpine') && (!contains(fromJSON('["workflow_dispatch"]'), github.event_name)) && ( needs.init_build.outputs.is_default_branch == 'true' ) }}
 
       - name: Download SHA256 tag of ${{ env.BASE_BUILD_NAME }}:${{ matrix.os }}
         uses: actions/cache@13aacd865c20de90d75de3b17ebe84f7a17d57d2 # v4.0.0
@@ -573,9 +576,9 @@ jobs:
             cache_to=()
 
             cache_from+=("type=gha,scope=${BASE_IMAGE_TAG}")
-            #cache_from+=("type=registry,ref=${BASE_IMAGE_TAG}")
+            cache_from+=("type=registry,ref=${BASE_IMAGE_TAG}")
             cache_from+=("type=gha,scope=${IMAGE_TAG}")
-            #cache_from+=("type=registry,ref=${IMAGE_TAG}")
+            cache_from+=("type=registry,ref=${IMAGE_TAG}")
 
             cache_to+=("type=gha,mode=max,scope=${IMAGE_TAG}")
 
@@ -597,6 +600,18 @@ jobs:
             echo "$cache_to" >> "$GITHUB_OUTPUT"
             echo 'EOF' >> "$GITHUB_OUTPUT"
 
+      - name: Download metadata of ${{ env.BASE_BUILD_NAME }}:${{ matrix.os }}
+        uses: actions/cache/restore@13aacd865c20de90d75de3b17ebe84f7a17d57d2 # v4.0.0
+        with:
+          path: /tmp/.buildx-base-cache
+          key: ${{ env.BASE_BUILD_NAME }}-${{ matrix.os }}-${{ github.run_id }}
+
+      - name: Download metadata of ${{ matrix.build }}:${{ matrix.os }}
+        uses: actions/cache/restore@13aacd865c20de90d75de3b17ebe84f7a17d57d2 # v4.0.0
+        with:
+          path: /tmp/.buildx-build-cache
+          key: ${{ matrix.build }}-${{ matrix.os }}-${{ github.run_id }}
+
       - name: Build ${{ matrix.build }}/${{ matrix.os }} and push
         id: docker_build
         uses: docker/build-push-action@4a13e500e55cf31b7a5d59a38ab2040ab0f42f56 # v5.1.0
@@ -610,8 +625,16 @@ jobs:
           labels: |
             org.opencontainers.image.revision=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.revision'] }}
             org.opencontainers.image.created=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.created'] }}
-          cache-from: ${{ steps.cache_data.outputs.cache_from }}
-          cache-to: ${{ steps.cache_data.outputs.cache_to }}
+          cache-from: |
+              type=local,src=/tmp/.buildx-base-cache
+              type=local,src=/tmp/.buildx-build-cache
+          cache-to: type=local,src=/tmp/.buildx-build-cache
+
+      - name: Cache image
+        uses: actions/cache/save@13aacd865c20de90d75de3b17ebe84f7a17d57d2 # v4.0.0
+        with:
+          path: /tmp/.buildx-build-cache
+          key: ${{ matrix.build }}-${{ matrix.os }}-${{ github.run_id }}
 
       - name: Sign the images with GitHub OIDC Token
         if: ${{ env.AUTO_PUSH_IMAGES == 'true' }}
@@ -619,10 +642,7 @@ jobs:
           DIGEST: ${{ steps.docker_build.outputs.digest }}
           TAGS: ${{ steps.meta.outputs.tags }}
         run: |
-            images=""
-            for tag in ${TAGS}; do
-                images+="${tag}@${DIGEST} "
-            done
+            images=$(printf "%s@${DIGEST}" "${TAGS[@]}")
 
             echo "::group::Images to sign"
             echo "$images"
@@ -876,7 +896,7 @@ jobs:
             type=ref,enable=${{ needs.init_build.outputs.current_branch == 'trunk' }},event=branch,prefix=${{ matrix.os }}-
             type=ref,enable=${{ needs.init_build.outputs.current_branch == 'trunk' }},event=branch,suffix=-${{ matrix.os }}
           flavor: |
-            latest=${{ (needs.init_build.outputs.current_branch != 'trunk') && (matrix.os == 'alpine') && (!contains(fromJSON('["workflow_dispatch"]'), github.event_name)) && ( needs.init_build.outputs.is_default_branch == 'true' ) }}
+            latest=${{ (matrix.os == 'alpine') && (!contains(fromJSON('["workflow_dispatch"]'), github.event_name)) && ( needs.init_build.outputs.is_default_branch == 'true' ) }}
 
       - name: Download SHA256 tag of ${{ steps.build_base_image.outputs.build_base }}:${{ matrix.os }}
         uses: actions/cache@13aacd865c20de90d75de3b17ebe84f7a17d57d2 # v4.0.0
@@ -967,10 +987,7 @@ jobs:
           DIGEST: ${{ steps.docker_build.outputs.digest }}
           TAGS: ${{ steps.meta.outputs.tags }}
         run: |
-            images=""
-            for tag in ${TAGS}; do
-                images+="${tag}@${DIGEST} "
-            done
+            images=$(printf "%s@${DIGEST}" "${TAGS[@]}")
 
             echo "::group::Images to sign"
             echo "$images"
