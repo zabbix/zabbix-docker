@@ -358,7 +358,6 @@ jobs:
           file: ${{ env.DOCKERFILES_DIRECTORY }}/${{ env.BASE_BUILD_NAME }}/${{ matrix.os }}/Dockerfile
           platforms: ${{ steps.platform.outputs.list }}
           push: ${{ env.AUTO_PUSH_IMAGES == 'true' }}
-          load:  ${{ env.AUTO_PUSH_IMAGES != 'true' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: |
             org.opencontainers.image.revision=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.revision'] }}
@@ -388,7 +387,7 @@ jobs:
 
       - name: Image digest
         env:
-          DIGEST: ${{ steps.docker_build.outputs.digest }}
+          DIGEST: ${{ steps.docker_build.outputs.digest || fromJSON(steps.meta.outputs.json).tags[0] }}
           CACHE_FILE_NAME: ${{ env.BASE_BUILD_NAME }}_${{ matrix.os }}
         run: |
             echo "::group::Image digest"
