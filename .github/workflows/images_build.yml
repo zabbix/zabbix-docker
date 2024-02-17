@@ -28,7 +28,7 @@ permissions:
 
 env:
   TRUNK_ONLY_EVENT: ${{ contains(fromJSON('["schedule"]'), github.event_name) }}
-  AUTO_PUSH_IMAGES: ${{ contains(fromJSON('["workflow_dispatch"]'), github.event_name) && 'false' || vars.AUTO_PUSH_IMAGES }}
+  AUTO_PUSH_IMAGES: ${{ contains(fromJSON('["workflow_dispatch"]'), github.event_name) && false || vars.AUTO_PUSH_IMAGES }}
 
   DOCKER_REPOSITORY: ${{ vars.DOCKER_REPOSITORY }}
   LATEST_BRANCH: ${{ github.event.repository.default_branch }}
@@ -259,11 +259,13 @@ jobs:
           fetch-depth: 1
 
       - name: Install cosign
+        if: ${{ env.AUTO_PUSH_IMAGES }}
         uses: sigstore/cosign-installer@e1523de7571e31dbe865fd2e80c5c7c23ae71eb4
         with:
           cosign-release: 'v2.2.3'
 
       - name: Check cosign version
+        if: ${{ env.AUTO_PUSH_IMAGES }}
         run: cosign version
 
       - name: Set up QEMU
