@@ -342,6 +342,7 @@ jobs:
 
             cache_from=$(printf '%s\n' "${cache_from[@]}")
             cache_to=$(printf '%s\n' "${cache_to[@]}")
+            mkdir -p /tmp/.buildx-base-cache
 
             echo 'cache_from<<EOF' >> "$GITHUB_OUTPUT"
             echo "$cache_from" >> "$GITHUB_OUTPUT"
@@ -349,6 +350,12 @@ jobs:
             echo 'cache_to<<EOF' >> "$GITHUB_OUTPUT"
             echo "$cache_to" >> "$GITHUB_OUTPUT"
             echo 'EOF' >> "$GITHUB_OUTPUT"
+
+      - name: Download metadata of ${{ env.BASE_BUILD_NAME }}:${{ matrix.os }}
+        uses: actions/cache/restore@13aacd865c20de90d75de3b17ebe84f7a17d57d2 # v4.0.0
+        with:
+          path: /tmp/.buildx-base-cache
+          key: ${{ env.BASE_BUILD_NAME }}-${{ matrix.os }}-${{ github.run_id }}
 
       - name: Build and publish image
         id: docker_build
@@ -565,6 +572,18 @@ jobs:
                 "$BASE_IMAGE"
             echo "::endgroup::"
 
+      - name: Download metadata of ${{ env.BASE_BUILD_NAME }}:${{ matrix.os }}
+        uses: actions/cache/restore@13aacd865c20de90d75de3b17ebe84f7a17d57d2 # v4.0.0
+        with:
+          path: /tmp/.buildx-base-cache
+          key: ${{ env.BASE_BUILD_NAME }}-${{ matrix.os }}-${{ github.run_id }}
+
+      - name: Download metadata of ${{ matrix.build }}:${{ matrix.os }}
+        uses: actions/cache/restore@13aacd865c20de90d75de3b17ebe84f7a17d57d2 # v4.0.0
+        with:
+          path: /tmp/.buildx-build-cache
+          key: ${{ matrix.build }}-${{ matrix.os }}-${{ github.run_id }}
+
       - name: Prepare cache data
         id: cache_data
         env:
@@ -599,18 +618,6 @@ jobs:
             echo 'cache_to<<EOF' >> "$GITHUB_OUTPUT"
             echo "$cache_to" >> "$GITHUB_OUTPUT"
             echo 'EOF' >> "$GITHUB_OUTPUT"
-
-      - name: Download metadata of ${{ env.BASE_BUILD_NAME }}:${{ matrix.os }}
-        uses: actions/cache/restore@13aacd865c20de90d75de3b17ebe84f7a17d57d2 # v4.0.0
-        with:
-          path: /tmp/.buildx-base-cache
-          key: ${{ env.BASE_BUILD_NAME }}-${{ matrix.os }}-${{ github.run_id }}
-
-      - name: Download metadata of ${{ matrix.build }}:${{ matrix.os }}
-        uses: actions/cache/restore@13aacd865c20de90d75de3b17ebe84f7a17d57d2 # v4.0.0
-        with:
-          path: /tmp/.buildx-build-cache
-          key: ${{ matrix.build }}-${{ matrix.os }}-${{ github.run_id }}
 
       - name: Build ${{ matrix.build }}/${{ matrix.os }} and push
         id: docker_build
