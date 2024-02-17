@@ -337,6 +337,9 @@ jobs:
             echo "${cache_to[*]}"
             echo "::endgroup::"
 
+            cache_from=$(printf '%s\n' "${cache_from[@]}")
+            cache_to=$(printf '%s\n' "${cache_to[@]}")
+
             echo "cache_from=$cache_from" >> $GITHUB_OUTPUT
             echo "cache_to=$cache_to" >> $GITHUB_OUTPUT
 
