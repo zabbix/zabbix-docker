@@ -337,8 +337,8 @@ jobs:
             echo "${cache_to[*]}"
             echo "::endgroup::"
 
-            echo "cache_from=$cache_images" >> $GITHUB_OUTPUT
-            echo "cache_to=$cache_images" >> $GITHUB_OUTPUT
+            echo "cache_from=$cache_from" >> $GITHUB_OUTPUT
+            echo "cache_to=$cache_to" >> $GITHUB_OUTPUT
 
       - name: Build and publish image
         id: docker_build
