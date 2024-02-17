@@ -328,6 +328,7 @@ jobs:
             cache_from+=("type=registry,ref=${IMAGE_TAG}")
 
             cache_to+=("type=gha,mode=max,scope=$IMAGE_TAG")
+            cache_to+=("type=gha,mode=max,scope=test$IMAGE_TAG")
 
             echo "::group::Cache from data"
             echo "${cache_from[*]}"
@@ -337,10 +338,10 @@ jobs:
             echo "${cache_to[*]}"
             echo "::endgroup::"
 
-            cache_from=$(printf '%s, ' "${cache_from[@]}")
-            cache_from="${cache_from%, }"
-            cache_to=$(printf '%s, ' "${cache_to[@]}")
-            cache_to="${cache_to%, }"
+            cache_from=$(printf '%s%%0A' "${cache_from[@]}")
+            #cache_from="${cache_from%, }"
+            cache_to=$(printf '%s\n' "${cache_to[@]}")
+            cache_to="${cache_to//$'\n'/'%0A'}"
 
             echo "cache_from=$cache_from" >> $GITHUB_OUTPUT
             echo "cache_to=$cache_to" >> $GITHUB_OUTPUT
