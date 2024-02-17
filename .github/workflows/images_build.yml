@@ -454,11 +454,13 @@ jobs:
           fetch-depth: 1
 
       - name: Install cosign
+        if: ${{ env.AUTO_PUSH_IMAGES == 'true' }}
         uses: sigstore/cosign-installer@e1523de7571e31dbe865fd2e80c5c7c23ae71eb4
         with:
           cosign-release: 'v2.2.3'
 
       - name: Check cosign version
+        if: ${{ env.AUTO_PUSH_IMAGES == 'true' }}
         run: cosign version
 
       - name: Set up QEMU
@@ -473,6 +475,7 @@ jobs:
           driver-opts: image=moby/buildkit:master
 
       - name: Login to DockerHub
+        if: ${{ env.AUTO_PUSH_IMAGES == 'true' }}
         uses: docker/login-action@343f7c4344506bcbf9b4de18042ae17996df046d # v3.0.0
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
@@ -525,7 +528,11 @@ jobs:
          IMAGES_PREFIX: ${{ env.IMAGES_PREFIX }}
         run: |
             BASE_TAG=$(cat "${BASE_IMAGE}_${MATRIX_OS}")
-            BUILD_BASE_IMAGE="${DOCKER_REPOSITORY}/${IMAGES_PREFIX}${BASE_IMAGE}@${BASE_TAG}"
+            if [[ "${BASE_TAG}" == "sha256"* ]]; then
+                BUILD_BASE_IMAGE="${DOCKER_REPOSITORY}/${IMAGES_PREFIX}${BASE_IMAGE}@${BASE_TAG}"
+            else
+                BUILD_BASE_IMAGE=${BASE_TAG}
+            fi
 
             echo "::group::Base build image information"
             echo "base_tag=${BASE_TAG}"
