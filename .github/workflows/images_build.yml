@@ -315,6 +315,31 @@ jobs:
           flavor: |
             latest=${{ (needs.init_build.outputs.current_branch != 'trunk') && (matrix.os == 'alpine') && ( needs.init_build.outputs.is_default_branch == 'true' ) }}
 
+      - name: Prepare cache data
+        id: cache_data
+        env:
+          IMAGE_TAG: ${{ fromJSON(steps.meta.outputs.json).tags[0] }}
+          PUBLISH_IMAGES: ${{ env.AUTO_PUSH_IMAGES }}
+        run: |
+            cache_from=()
+            cache_to=()
+
+            cache_from+=("type=gha,scope=${IMAGE_TAG}")
+            cache_from+=("type=registry,ref=${IMAGE_TAG}")
+
+            cache_to+=("type=gha,mode=max,scope=$IMAGE_TAG")
+
+            echo "::group::Cache from data"
+            echo "${cache_from[*]}"
+            echo "::endgroup::"
+
+            echo "::group::Cache to data"
+            echo "${cache_to[*]}"
+            echo "::endgroup::"
+
+            echo "cache_from=$cache_images" >> $GITHUB_OUTPUT
+            echo "cache_to=$cache_images" >> $GITHUB_OUTPUT
+
       - name: Build and publish image
         id: docker_build
         uses: docker/build-push-action@4a13e500e55cf31b7a5d59a38ab2040ab0f42f56 # v5.1.0
@@ -327,12 +352,11 @@ jobs:
           labels: |
             org.opencontainers.image.revision=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.revision'] }}
             org.opencontainers.image.created=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.created'] }}
-          cache-from: |
-              type=gha,scope=${{ fromJSON(steps.meta.outputs.json).tags[0] }}
-              type=registry,ref=docker.io/${{ fromJSON(steps.meta.outputs.json).tags[0] }}
-          cache-to: type=gha,mode=max,scope=${{ fromJSON(steps.meta.outputs.json).tags[0] }}
+          cache-from: ${{ steps.cache_data.outputs.cache_from }}
+          cache-to: ${{ steps.cache_data.outputs.cache_to }}
 
       - name: Sign the images with GitHub OIDC Token
+        if: ${{ env.AUTO_PUSH_IMAGES }}
         env:
           DIGEST: ${{ steps.docker_build.outputs.digest }}
           TAGS: ${{ steps.meta.outputs.tags }}
@@ -880,6 +904,7 @@ jobs:
           cache-from: ${{ steps.cache_data.outputs.cache_from }}
 
       - name: Sign the images with GitHub OIDC Token
+        if: ${{ env.AUTO_PUSH_IMAGES }}
         env:
           DIGEST: ${{ steps.docker_build.outputs.digest }}
           TAGS: ${{ steps.meta.outputs.tags }}
