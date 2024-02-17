@@ -265,7 +265,7 @@ jobs:
           cosign-release: 'v2.2.3'
 
       - name: Check cosign version
-        if: {{ env.AUTO_PUSH_IMAGES }}
+        if: env.AUTO_PUSH_IMAGES
         run: cosign version
 
       - name: Set up QEMU
