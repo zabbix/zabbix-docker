@@ -338,13 +338,9 @@ jobs:
             echo "::endgroup::"
 
             cache_from=$(printf '%s\n' "${cache_from[@]}")
-            cache_from="${cache_from%,}"
-            cache_to=$(printf '%s,' "${cache_to[@]}")
-            cache_to="${cache_to%,}"
-
-            for i in "${!cache_from[@]}"; do
-                echo "cache_$i_from=${cache_from[$i]}" >> $GITHUB_OUTPUT
-	    done
+            cache_from="${cache_from%, }"
+            cache_to=$(printf '%s, ' "${cache_to[@]}")
+            cache_to="${cache_to%, }"
 
             echo "cache_from=$cache_from" >> $GITHUB_OUTPUT
             echo "cache_to=$cache_to" >> $GITHUB_OUTPUT
@@ -369,7 +365,7 @@ jobs:
           labels: |
             org.opencontainers.image.revision=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.revision'] }}
             org.opencontainers.image.created=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.created'] }}
-          cache-from: ${{ steps.cache_data.outputs.cache_*_from }}
+          cache-from: ${{ steps.cache_data.outputs.cache_from }}
           cache-to: ${{ steps.cache_data.outputs.cache_to }}
 
       - name: Sign the images with GitHub OIDC Token
