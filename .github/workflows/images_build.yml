@@ -573,9 +573,9 @@ jobs:
             cache_to=()
 
             cache_from+=("type=gha,scope=${BASE_IMAGE_TAG}")
-            cache_from+=("type=registry,ref=${BASE_IMAGE_TAG}")
+            #cache_from+=("type=registry,ref=${BASE_IMAGE_TAG}")
             cache_from+=("type=gha,scope=${IMAGE_TAG}")
-            cache_from+=("type=registry,ref=${IMAGE_TAG}")
+            #cache_from+=("type=registry,ref=${IMAGE_TAG}")
 
             cache_to+=("type=gha,mode=max,scope=${IMAGE_TAG}")
 
