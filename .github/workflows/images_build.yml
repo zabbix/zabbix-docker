@@ -370,7 +370,7 @@ jobs:
             org.opencontainers.image.revision=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.revision'] }}
             org.opencontainers.image.created=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.created'] }}
           cache-from: type=local,src=/tmp/.buildx-base-cache
-          cache-to: type=local,src=/tmp/.buildx-base-cache
+          cache-to: type=local,dest=/tmp/.buildx-base-cache
 
       - name: Cache image
         uses: actions/cache/save@13aacd865c20de90d75de3b17ebe84f7a17d57d2 # v4.0.0
@@ -635,7 +635,7 @@ jobs:
           cache-from: |
               type=local,src=/tmp/.buildx-base-cache
               type=local,src=/tmp/.buildx-build-cache
-          cache-to: type=local,src=/tmp/.buildx-build-cache
+          cache-to: type=local,dest=/tmp/.buildx-build-cache
 
       - name: Cache image
         uses: actions/cache/save@13aacd865c20de90d75de3b17ebe84f7a17d57d2 # v4.0.0
