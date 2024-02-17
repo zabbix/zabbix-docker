@@ -28,7 +28,7 @@ permissions:
 
 env:
   TRUNK_ONLY_EVENT: ${{ contains(fromJSON('["schedule"]'), github.event_name) }}
-  AUTO_PUSH_IMAGES: ${{ !contains(fromJSON('["workflow_dispatch"]'), github.event_name) && 'false' || vars.AUTO_PUSH_IMAGES }}
+  AUTO_PUSH_IMAGES: ${{ contains(fromJSON('["workflow_dispatch"]'), github.event_name) && 'false' || vars.AUTO_PUSH_IMAGES }}
 
   DOCKER_REPOSITORY: ${{ vars.DOCKER_REPOSITORY }}
   LATEST_BRANCH: ${{ github.event.repository.default_branch }}
