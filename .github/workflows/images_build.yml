@@ -49,6 +49,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
+      actions: write
     outputs:
       os: ${{ steps.os.outputs.list }}
       database: ${{ steps.database.outputs.list }}
@@ -149,6 +150,28 @@ jobs:
             echo "is_default_branch=$result" >> $GITHUB_OUTPUT
             echo "current_branch=$github_ref" >> $GITHUB_OUTPUT
             echo "sha_short=$sha_short" >> $GITHUB_OUTPUT
+
+      - name: Cleanup cache
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          BRANCH: ${{ steps.branch_info.outputs.current_branch }}
+          GH_RUN_ID: ${{ github.run_id }}
+        run: |
+            gh extension install actions/gh-actions-cache
+
+            cache_keys=$(gh actions-cache list -R "${REPO}" -B "${BRANCH}" -L 100 --sort created-at --order desc | cut -f 1)
+
+            ## Setting this to not fail the workflow while deleting cache keys
+            set +e
+            echo "Deleting caches..."
+            for cache_key in $cache_keys
+            do
+                if [[ "$cache_key" == *"${GH_RUN_ID}" ]] && [[ "$cache_key" != *"${GH_RUN_ID}-image" ]]; then
+                    gh actions-cache delete $cache_key -R "${REPO}" -B "${BRANCH}" --confirm
+                fi
+            done
 
   build_base:
     timeout-minutes: 30
@@ -355,7 +378,7 @@ jobs:
         uses: actions/cache/restore@13aacd865c20de90d75de3b17ebe84f7a17d57d2 # v4.0.0
         with:
           path: /tmp/.buildx-base-cache
-          key: ${{ env.BASE_BUILD_NAME }}-${{ matrix.os }}-${{ github.run_id }}
+          key: ${{ env.BASE_BUILD_NAME }}-${{ matrix.os }}-${{ github.run_id }}-image
 
       - name: Build and publish image
         id: docker_build
@@ -376,7 +399,7 @@ jobs:
         uses: actions/cache/save@13aacd865c20de90d75de3b17ebe84f7a17d57d2 # v4.0.0
         with:
           path: /tmp/.buildx-base-cache
-          key: ${{ env.BASE_BUILD_NAME }}-${{ matrix.os }}-${{ github.run_id }}
+          key: ${{ env.BASE_BUILD_NAME }}-${{ matrix.os }}-${{ github.run_id }}-image
 
       - name: Sign the images with GitHub OIDC Token
         if: ${{ env.AUTO_PUSH_IMAGES == 'true' }}
@@ -576,13 +599,13 @@ jobs:
         uses: actions/cache/restore@13aacd865c20de90d75de3b17ebe84f7a17d57d2 # v4.0.0
         with:
           path: /tmp/.buildx-base-cache
-          key: ${{ env.BASE_BUILD_NAME }}-${{ matrix.os }}-${{ github.run_id }}
+          key: ${{ env.BASE_BUILD_NAME }}-${{ matrix.os }}-${{ github.run_id }}-image
 
       - name: Download metadata of ${{ matrix.build }}:${{ matrix.os }}
         uses: actions/cache/restore@13aacd865c20de90d75de3b17ebe84f7a17d57d2 # v4.0.0
         with:
           path: /tmp/.buildx-build-cache
-          key: ${{ matrix.build }}-${{ matrix.os }}-${{ github.run_id }}
+          key: ${{ matrix.build }}-${{ matrix.os }}-${{ github.run_id }}-image
 
       - name: Prepare cache data
         id: cache_data
@@ -641,7 +664,7 @@ jobs:
         uses: actions/cache/save@13aacd865c20de90d75de3b17ebe84f7a17d57d2 # v4.0.0
         with:
           path: /tmp/.buildx-build-cache
-          key: ${{ matrix.build }}-${{ matrix.os }}-${{ github.run_id }}
+          key: ${{ matrix.build }}-${{ matrix.os }}-${{ github.run_id }}-image
 
       - name: Sign the images with GitHub OIDC Token
         if: ${{ env.AUTO_PUSH_IMAGES == 'true' }}
