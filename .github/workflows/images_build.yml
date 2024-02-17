@@ -337,11 +337,13 @@ jobs:
             echo "${cache_to[*]}"
             echo "::endgroup::"
 
-            cache_from=$(printf '%s\n' "${cache_from[@]}" | jq -R . | jq -s --compact-output .)
-            cache_to=$(printf '%s\n' "${cache_to[@]}" | jq -R . | jq -s --compact-output .)
+            cache_from=$(printf '"%s",' "${cache_from[@]}")
+            cache_from="${cache_from%,}"
+            cache_to=$(printf '"%s",' "${cache_to[@]}")
+            cache_to="${cache_to%,}"
 
-            echo "cache_from=\"$cache_from\"" >> $GITHUB_OUTPUT
-            echo "cache_to=\"$cache_to\"" >> $GITHUB_OUTPUT
+            echo "cache_from=$cache_from" >> $GITHUB_OUTPUT
+            echo "cache_to=$cache_to" >> $GITHUB_OUTPUT
 
       - name: Build and publish image
         id: docker_build
@@ -355,8 +357,8 @@ jobs:
           labels: |
             org.opencontainers.image.revision=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.revision'] }}
             org.opencontainers.image.created=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.created'] }}
-          cache-from: ${{ toJSON(steps.cache_data.outputs.cache_from) }}
-          cache-to: ${{ toJSON(steps.cache_data.outputs.cache_to) }}
+          cache-from: ${{ steps.cache_data.outputs.cache_from }}
+          cache-to: ${{ steps.cache_data.outputs.cache_to }}
 
       - name: Sign the images with GitHub OIDC Token
         if: ${{ env.AUTO_PUSH_IMAGES }}
