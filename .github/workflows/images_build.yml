@@ -636,6 +636,7 @@ jobs:
 
             cache_from=$(printf '%s\n' "${cache_from[@]}")
             cache_to=$(printf '%s\n' "${cache_to[@]}")
+            mkdir -p /tmp/.buildx-build-cache/
 
             echo 'cache_from<<EOF' >> "$GITHUB_OUTPUT"
             echo "$cache_from" >> "$GITHUB_OUTPUT"
