@@ -42,7 +42,8 @@ STOPSIGNAL SIGTERM
 
 COPY ["licenses", "/licenses"]
 
-RUN set -eux && \
+RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
+    set -eux && \
     INSTALL_PKGS="bash \
             shadow-utils \
             tzdata \
@@ -52,6 +53,7 @@ RUN set -eux && \
             --enablerepo "ubi-9-baseos-rpms" \
             --enablerepo "ubi-9-appstream-rpms" \
             --setopt=install_weak_deps=0 \
+            --setopt=keepcache=0 \
             --best \
             --setopt=tsflags=nodocs \
         ${INSTALL_PKGS} && \
@@ -74,9 +76,7 @@ RUN set -eux && \
     chown --quiet -R zabbix:root /etc/snmp/ /var/lib/zabbix/ /var/tmp/ /var/run/ && \
     chgrp -R 0 /etc/snmp/ /var/lib/zabbix/ /var/tmp/ /var/run/ && \
     chmod -R g=u /etc/snmp/ /var/lib/zabbix/ /var/tmp/ /var/run/ && \
-    microdnf -y clean all && \
-    rm -rf /var/cache/yum /var/lib/yum/yumdb/* /usr/lib/udev/hwdb.d/* && \
-    rm -rf /var/cache/dnf /etc/udev/hwdb.bin /root/.pki
+    microdnf -y clean all
 
 EXPOSE 1162/UDP
 

@@ -36,7 +36,8 @@ COPY --from=builder ["/tmp/postgresql_plugin/postgresql.conf", "/etc/zabbix/zabb
 COPY --from=builder ["/tmp/mongodb_plugin/zabbix-agent2-plugin-mongodb", "/usr/sbin/zabbix-agent2-plugin/zabbix-agent2-plugin-mongodb"]
 COPY --from=builder ["/tmp/postgresql_plugin/zabbix-agent2-plugin-postgresql", "/usr/sbin/zabbix-agent2-plugin/zabbix-agent2-plugin-postgresql"]
 
-RUN set -eux && \
+RUN --mount=type=cache,target=/var/lib/apt/,sharing=locked \
+    set -eux && \
     echo "#!/bin/sh\nexit 101" > /usr/sbin/policy-rc.d && \
     INSTALL_PKGS="tzdata \
             ca-certificates \
@@ -73,8 +74,7 @@ RUN set -eux && \
     chgrp -R 0 /etc/zabbix/ /var/lib/zabbix/ /usr/sbin/zabbix-agent2-plugin/ && \
     chmod -R g=u /etc/zabbix/ /var/lib/zabbix/ /usr/sbin/zabbix-agent2-plugin/ && \
     apt-get -y autoremove && \
-    apt-get -y clean && \
-    rm -rf /var/lib/apt/lists/*
+    apt-get -y clean
 
 EXPOSE 10050/TCP
 

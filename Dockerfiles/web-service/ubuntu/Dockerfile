@@ -30,7 +30,8 @@ COPY --from=builder ["/tmp/zabbix-${ZBX_VERSION}/src/go/bin/zabbix_web_service",
 COPY --from=builder ["/tmp/zabbix-${ZBX_VERSION}/src/go/conf/zabbix_web_service.conf", "/etc/zabbix/zabbix_web_service.conf"]
 COPY ["conf/etc/apt/preferences.d/chromium.pref", "/etc/apt/preferences.d/chromium.pref"]
 
-RUN set -eux && \
+RUN --mount=type=cache,target=/var/lib/apt/,sharing=locked \
+    set -eux && \
     echo "#!/bin/sh\nexit 101" > /usr/sbin/policy-rc.d && \
     INSTALL_PKGS="bash \
             ca-certificates \
@@ -71,8 +72,7 @@ RUN set -eux && \
             purge \
         ${INSTALL_TEMP_PKGS} && \
     apt-get -y autoremove && \
-    apt-get -y clean && \
-    rm -rf /var/lib/apt/lists/*
+    apt-get -y clean
 
 EXPOSE 10053/TCP
 

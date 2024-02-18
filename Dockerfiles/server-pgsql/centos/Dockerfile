@@ -37,8 +37,8 @@ COPY --from=builder ["/tmp/zabbix-${ZBX_VERSION}/database/postgresql/timescaledb
 COPY --from=builder ["/tmp/zabbix-${ZBX_VERSION}/database/postgresql/timescaledb/option-patches/with-compression/*.sql", "/usr/share/doc/zabbix-server-postgresql/option-patches/with-compression/"]
 COPY --from=builder ["/tmp/zabbix-${ZBX_VERSION}/database/postgresql/timescaledb/option-patches/without-compression/*.sql", "/usr/share/doc/zabbix-server-postgresql/option-patches/without-compression/"]
 
-RUN set -eux && \
-    REPOLIST="baseos,appstream,epel" && \
+RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
+    set -eux && \
     INSTALL_PKGS="fping \
             file-libs \
             traceroute \
@@ -117,9 +117,7 @@ RUN set -eux && \
     chown --quiet -R zabbix:root /etc/zabbix/ /var/lib/zabbix/ && \
     chgrp -R 0 /etc/zabbix/ /var/lib/zabbix/ && \
     chmod -R g=u /etc/zabbix/ /var/lib/zabbix/ && \
-    microdnf -y clean all && \
-    rm -rf /var/cache/yum /var/lib/yum/yumdb/* /usr/lib/udev/hwdb.d/* && \
-    rm -rf /var/cache/dnf /etc/udev/hwdb.bin /root/.pki
+    microdnf -y clean all
 
 EXPOSE 10051/TCP
 

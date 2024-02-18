@@ -29,7 +29,8 @@ STOPSIGNAL SIGTERM
 COPY --from=builder ["/tmp/zabbix-${ZBX_VERSION}/ui", "/usr/share/zabbix"]
 COPY ["conf/etc/", "/etc/"]
 
-RUN set -eux && \
+RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
+    set -eux && \
     INSTALL_PKGS="bash \
             curl-minimal \
             findutils \
@@ -112,9 +113,7 @@ RUN set -eux && \
     microdnf -y remove \
             findutils \
             glibc-locale-source && \
-    microdnf -y clean all && \
-    rm -rf /var/cache/yum /var/lib/yum/yumdb/* /usr/lib/udev/hwdb.d/* && \
-    rm -rf /var/cache/dnf /etc/udev/hwdb.bin /root/.pki
+    microdnf -y clean all
 
 EXPOSE 8080/TCP 8443/TCP
 

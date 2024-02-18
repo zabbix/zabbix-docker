@@ -52,7 +52,8 @@ COPY --from=builder ["/tmp/zabbix-${ZBX_VERSION}/src/zabbix_get/zabbix_get", "/u
 COPY --from=builder ["/tmp/zabbix-${ZBX_VERSION}/src/zabbix_sender/zabbix_sender", "/usr/bin/zabbix_sender"]
 COPY --from=builder ["/tmp/zabbix-${ZBX_VERSION}/conf/zabbix_proxy.conf", "/etc/zabbix/zabbix_proxy.conf"]
 
-RUN set -eux && \
+RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
+    set -eux && \
     INSTALL_PKGS="bash \
             traceroute \
             nmap \
@@ -81,12 +82,14 @@ RUN set -eux && \
             --enablerepo "rhel-9-for-$ARCH_SUFFIX-appstream-rpms" \
             --enablerepo "epel" \
             --setopt=install_weak_deps=0 \
+            --setopt=keepcache=0 \
             --best \
             --setopt=tsflags=nodocs \
         ${INSTALL_PKGS} && \
     microdnf -y reinstall \
             --enablerepo "ubi-9-baseos-rpms" \
             --setopt=install_weak_deps=0 \
+            --setopt=keepcache=0 \
             --best \
             --setopt=tsflags=nodocs \
         tzdata && \
@@ -120,9 +123,7 @@ RUN set -eux && \
     chown --quiet -R zabbix:root /etc/zabbix/ /var/lib/zabbix/ && \
     chgrp -R 0 /etc/zabbix/ /var/lib/zabbix/ && \
     chmod -R g=u /etc/zabbix/ /var/lib/zabbix/ && \
-    microdnf -y clean all && \
-    rm -rf /var/cache/yum /var/lib/yum/yumdb/* /usr/lib/udev/hwdb.d/* && \
-    rm -rf /var/cache/dnf /etc/udev/hwdb.bin /root/.pki
+    microdnf -y clean all
 
 EXPOSE 10051/TCP
 
