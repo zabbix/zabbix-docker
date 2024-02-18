@@ -18,7 +18,8 @@ LABEL org.opencontainers.image.authors="Alexey Pustovalov <alexey.pustovalov@zab
       org.opencontainers.image.vendor="Zabbix LLC" \
       org.opencontainers.image.version="${ZBX_VERSION}"
 
-RUN set -eux && \
+RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
+    set -eux && \
     REPOLIST="baseos,appstream,crb,epel" && \
     INSTALL_PKGS="autoconf \
             automake \
@@ -53,6 +54,4 @@ RUN set -eux && \
         --setopt=install_weak_deps=False \
         --best \
         ${INSTALL_PKGS} && \
-    dnf -y clean all && \
-    rm -rf /var/cache/yum /var/lib/yum/yumdb/* /usr/lib/udev/hwdb.d/* && \
-    rm -rf /var/cache/dnf /etc/udev/hwdb.bin /root/.pki
+    dnf -y clean all
