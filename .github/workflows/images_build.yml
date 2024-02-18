@@ -583,18 +583,6 @@ jobs:
                 "$BASE_IMAGE"
             echo "::endgroup::"
 
-      - name: Download metadata of ${{ env.BASE_BUILD_NAME }}:${{ matrix.os }}
-        uses: actions/cache/restore@13aacd865c20de90d75de3b17ebe84f7a17d57d2 # v4.0.0
-        with:
-          path: /tmp/.buildx-base-cache
-          key: ${{ env.BASE_BUILD_NAME }}-${{ matrix.os }}-${{ github.run_id }}-image
-
-      - name: Download metadata of ${{ matrix.build }}:${{ matrix.os }}
-        uses: actions/cache/restore@13aacd865c20de90d75de3b17ebe84f7a17d57d2 # v4.0.0
-        with:
-          path: /tmp/.buildx-build-cache
-          key: ${{ matrix.build }}-${{ matrix.os }}-${{ github.run_id }}-image
-
       - name: Prepare cache data
         id: cache_data
         env:
@@ -679,21 +667,21 @@ jobs:
 
       - name: Image digest
         env:
-          DIGEST: ${{ steps.docker_build.outputs.digest }}
-          CACHE_FILE_NAME: ${{ matrix.build }}_${{ matrix.os }}
+          CACHE_FILE_NAME: "base_build_image_metadata.json"
         run: |
-            echo "::group::Image digest"
-            echo "$DIGEST"
+            echo "::group::Image metadata"
+            echo "${METADATA}"
             echo "::endgroup::"
             echo "::group::Cache file name"
-            echo "$CACHE_FILE_NAME"
+            echo "${CACHE_FILE_NAME}"
             echo "::endgroup::"
-            echo "$DIGEST" > $CACHE_FILE_NAME
+
+            echo "${METADATA}" > "$CACHE_FILE_NAME"
 
       - name: Caching SHA256 tag of the image
         uses: actions/cache@13aacd865c20de90d75de3b17ebe84f7a17d57d2 # v4.0.0
         with:
-          path: ${{ matrix.build }}_${{ matrix.os }}
+          path: "base_build_image_metadata.json"
           key: ${{ matrix.build }}-${{ matrix.os }}-${{ github.run_id }}
 
   build_images:
@@ -928,7 +916,7 @@ jobs:
             type=ref,enable=${{ needs.init_build.outputs.current_branch != 'trunk' }},event=branch,suffix=-${{ matrix.os }}-latest
             type=raw,enable=${{ (needs.init_build.outputs.current_branch != 'trunk') && (needs.init_build.outputs.is_default_branch == 'true') }},value=${{matrix.os}}-latest
             type=ref,enable=${{ needs.init_build.outputs.current_branch == 'trunk' }},event=branch,prefix=${{ matrix.os }}-
-            type=ref,enable=${{ needs.init_build.outputs.current_branch == 'trunk' }},event=branch,suffix=-${{ matrix.os }}
+            type=ref,enable=${{ needs.init_build.outputs.current_branch == 'trunk' || contains(fromJSON('["workflow_dispatch"]'), github.event_name) }},event=branch,suffix=-${{ matrix.os }}
           flavor: |
             latest=${{ (matrix.os == 'alpine') && (!contains(fromJSON('["workflow_dispatch"]'), github.event_name)) && ( needs.init_build.outputs.is_default_branch == 'true' ) }}
 
@@ -936,28 +924,21 @@ jobs:
         uses: actions/cache@13aacd865c20de90d75de3b17ebe84f7a17d57d2 # v4.0.0
         if: ${{ matrix.build != 'snmptraps' }}
         with:
-          path: ${{ steps.build_base_image.outputs.build_base }}_${{ matrix.os }}
+          path: "base_build_image_metadata.json"
           key: ${{ steps.build_base_image.outputs.build_base }}-${{ matrix.os }}-${{ github.run_id }}
 
       - name: Retrieve ${{ steps.build_base_image.outputs.build_base }}:${{ matrix.os }} SHA256 tag
         id: base_build
         if: ${{ matrix.build != 'snmptraps' }}
-        env:
-          BUILD_BASE: ${{ steps.build_base_image.outputs.build_base }}
-          MATRIX_OS: ${{ matrix.os }}
-          DOCKER_REPOSITORY: ${{ env.AUTO_PUSH_IMAGES != 'true' && 'ghcr.io/' }}${{ env.AUTO_PUSH_IMAGES == 'true' && env.DOCKER_REPOSITORY || env.DOCKER_REGISTRY_TEST }}
-          IMAGES_PREFIX: ${{ env.IMAGES_PREFIX }}
         run: |
-            BASE_TAG=$(cat "${BUILD_BASE}_${MATRIX_OS}")
-            BUILD_BASE_IMAGE=${DOCKER_REPOSITORY}/${IMAGES_PREFIX}${BUILD_BASE}@${BASE_TAG}
-
-            echo "::group::Base build image information"
-            echo "base_tag=${BASE_TAG}"
-            echo "base_build_image=${BUILD_BASE_IMAGE}"
+            echo "::group::Base build image metadata"
+            cat "base_build_image_metadata.json"
             echo "::endgroup::"
 
-            echo "base_tag=${BASE_TAG}" >> $GITHUB_OUTPUT
-            echo "base_build_image=${BUILD_BASE_IMAGE}" >> $GITHUB_OUTPUT
+            IMAGE_DIGEST=$(jq -r '."containerimage.digest"' "base_image_metadata.json")
+            IMAGE_NAME=$(jq -r '."image.name"' "base_image_metadata.json" | cut -d: -f1)
+
+            echo "base_build_image=${IMAGE_NAME}@${IMAGE_DIGEST}" >> $GITHUB_OUTPUT
 
       - name: Verify ${{ steps.build_base_image.outputs.build_base }}:${{ matrix.os }} cosign
         if: ${{ matrix.build != 'snmptraps' && env.AUTO_PUSH_IMAGES == 'true' }}
@@ -1031,10 +1012,10 @@ jobs:
             cosign sign --yes ${images}
             echo "::endgroup::"
 
-      - name: Image digest
+      - name: Image metadata
         env:
-          DIGEST: ${{ steps.docker_build.outputs.digest }}
+          METADATA: ${{ steps.docker_build.outputs.metadata }}
         run: |
-            echo "::group::Image digest"
-            echo "$DIGEST"
+            echo "::group::Image metadata"
+            echo "${METADATA}"
             echo "::endgroup::"
