@@ -545,7 +545,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@8e5442c4ef9f78752691e2d8f8d19755c6f78e81 # v5.5.1
         with:
-          images: ${{ env.DOCKER_REPOSITORY }}/${{ env.IMAGES_PREFIX }}${{ matrix.build }}
+          images: ${{ env.AUTO_PUSH_IMAGES != 'true' && 'ghcr.io/' }}${{ env.AUTO_PUSH_IMAGES == 'true' && env.DOCKER_REPOSITORY || env.DOCKER_REGISTRY_TEST }}/${{ env.IMAGES_PREFIX }}${{ matrix.build }}
           context: ${{ env.TRUNK_ONLY_EVENT == 'true' && 'git' || '' }}
           tags: |
             type=semver,enable=${{ needs.init_build.outputs.current_branch != 'trunk' }},pattern={{version}},prefix=${{ matrix.os }}-
@@ -568,7 +568,7 @@ jobs:
         id: base_build
         env:
          MATRIX_OS: ${{ matrix.os }}
-         DOCKER_REPOSITORY: ${{ env.DOCKER_REPOSITORY }}
+         DOCKER_REPOSITORY: ${{ env.AUTO_PUSH_IMAGES != 'true' && 'ghcr.io/' }}${{ env.AUTO_PUSH_IMAGES == 'true' && env.DOCKER_REPOSITORY || env.DOCKER_REGISTRY_TEST }}
          BASE_IMAGE: ${{ env.BASE_BUILD_NAME }}
          IMAGES_PREFIX: ${{ env.IMAGES_PREFIX }}
         run: |
@@ -659,10 +659,10 @@ jobs:
         id: docker_build
         uses: docker/build-push-action@4a13e500e55cf31b7a5d59a38ab2040ab0f42f56 # v5.1.0
         with:
-          context: ${{ env.DOCKERFILES_DIRECTORY }}/${{ matrix.build }}/${{ matrix.os }}
+          context: ${{ env.AUTO_PUSH_IMAGES != 'true' && 'ghcr.io/' }}${{ env.AUTO_PUSH_IMAGES == 'true' && env.DOCKER_REPOSITORY || env.DOCKER_REGISTRY_TEST }}/${{ matrix.build }}/${{ matrix.os }}
           file: ${{ env.DOCKERFILES_DIRECTORY }}/${{ matrix.build }}/${{ matrix.os }}/Dockerfile
           platforms: ${{ steps.platform.outputs.list }}
-          push: ${{ env.AUTO_PUSH_IMAGES == 'true' }}
+          push: true
           tags: ${{ steps.meta.outputs.tags }}
           build-args: BUILD_BASE_IMAGE=${{ steps.base_build.outputs.base_build_image }}
           labels: |
