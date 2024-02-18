@@ -21,7 +21,8 @@ LABEL org.opencontainers.image.authors="Alexey Pustovalov <alexey.pustovalov@zab
 
 STOPSIGNAL SIGTERM
 
-RUN set -eux && \
+RUN --mount=type=cache,target=/var/lib/apt/,sharing=locked \
+    set -eux && \
     echo "#!/bin/sh\nexit 101" > /usr/sbin/policy-rc.d && \
     INSTALL_PKGS="bash \
             tzdata \
@@ -49,8 +50,7 @@ RUN set -eux && \
     mkdir -p /var/lib/zabbix/mibs && \
     chown --quiet -R zabbix:root /etc/snmp/ /var/lib/zabbix/ /var/tmp/ /var/run/ && \
     chgrp -R 0 /etc/snmp/ /var/lib/zabbix/ /var/tmp/ /var/run/ && \
-    chmod -R g=u /etc/snmp/ /var/lib/zabbix/ /var/tmp/ /var/run/ && \
-    rm -rf /var/lib/apt/lists/*
+    chmod -R g=u /etc/snmp/ /var/lib/zabbix/ /var/tmp/ /var/run/
 
 EXPOSE 1162/UDP
 

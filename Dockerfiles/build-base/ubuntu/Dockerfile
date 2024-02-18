@@ -17,7 +17,7 @@ LABEL org.opencontainers.image.authors="Alexey Pustovalov <alexey.pustovalov@zab
       org.opencontainers.image.vendor="Zabbix LLC" \
       org.opencontainers.image.version="${ZBX_VERSION}"
 
-RUN --mount=type=cache,target=/var/lib/apt,sharing=locked \
+RUN --mount=type=cache,target=/var/lib/apt/,sharing=locked \
     set -eux && \
     INSTALL_PKGS="bash \
             autoconf \
