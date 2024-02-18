@@ -30,7 +30,8 @@ COPY --from=builder ["/tmp/zabbix-${ZBX_VERSION}/ui", "/usr/share/zabbix"]
 COPY ["conf/etc/", "/etc/"]
 COPY ["conf/etc/yum.repos.d/oracle-epel-ol9.repo", "/etc/yum.repos.d/oracle-epel-ol9.repo"]
 
-RUN set -eux && \
+RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
+    set -eux && \
     INSTALL_PKGS="bash \
             curl \
             httpd \
@@ -54,6 +55,7 @@ RUN set -eux && \
             --enablerepo="ol9_appstream" \
             --enablerepo="ol9_developer_EPEL" \
             --setopt=install_weak_deps=0 \
+            --setopt=keepcache=0 \
             --best \
             --nodocs \
         ${INSTALL_PKGS} && \
@@ -103,9 +105,7 @@ RUN set -eux && \
     microdnf -y remove \
         findutils \
         glibc-locale-source && \
-    microdnf -y clean all && \
-    rm -rf /var/cache/yum /var/lib/yum/yumdb/* /usr/lib/udev/hwdb.d/* && \
-    rm -rf /var/cache/dnf /etc/udev/hwdb.bin /root/.pki
+    microdnf -y clean all
 
 EXPOSE 8080/TCP 8443/TCP
 
