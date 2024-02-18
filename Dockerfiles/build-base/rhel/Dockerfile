@@ -29,7 +29,8 @@ LABEL description="Prepared environment to build Zabbix components" \
 
 COPY ["licenses", "/licenses"]
 
-RUN set -eux && \
+RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
+    set -eux && \
     INSTALL_PKGS="autoconf \
             automake \
             bash \
@@ -63,9 +64,8 @@ RUN set -eux && \
             --enablerepo "rhel-8-for-x86_64-appstream-rpms" \
             --enablerepo "codeready-builder-for-rhel-8-x86_64-rpms" \
             --setopt=install_weak_deps=0 \
+            --setopt=keepcache=0 \
             --best \
             --setopt=tsflags=nodocs \
         ${INSTALL_PKGS} && \
-    microdnf -y clean all && \
-    rm -rf /var/cache/yum /var/lib/yum/yumdb/* /usr/lib/udev/hwdb.d/* && \
-    rm -rf /var/cache/dnf /etc/udev/hwdb.bin /root/.pki
+    microdnf -y clean all
