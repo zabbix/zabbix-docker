@@ -1,4 +1,4 @@
-FROM quay.io/centos/centos:stream9
+FROM quay.io/centos/centos:stream9-minimal
 
 ARG MAJOR_VERSION=7.0
 ARG ZBX_VERSION=${MAJOR_VERSION}
@@ -22,17 +22,18 @@ LABEL org.opencontainers.image.authors="Alexey Pustovalov <alexey.pustovalov@zab
 STOPSIGNAL SIGTERM
 
 RUN set -eux && \
-    REPOLIST="baseos,appstream" && \
     INSTALL_PKGS="bash \
             tzdata \
+            shadow-utils \
             net-snmp" && \
-    dnf -y install \
-            --disablerepo "*" \
-            --enablerepo "${REPOLIST}" \
-            --setopt=tsflags=nodocs \
-            --setopt=install_weak_deps=False \
-            --best \
-        ${INSTALL_PKGS} && \
+    microdnf -y install \
+        --disablerepo "*" \
+        --enablerepo "baseos" \
+        --enablerepo "appstream" \
+        --setopt=install_weak_deps=0 \
+        --setopt=keepcache=0 \
+        --best \
+        --nodocs ${INSTALL_PKGS} && \
     groupadd \
             --system \
             --gid 1995 \
@@ -52,7 +53,7 @@ RUN set -eux && \
     chown --quiet -R zabbix:root /etc/snmp/ /var/lib/zabbix/ /var/tmp/ /var/run/ && \
     chgrp -R 0 /etc/snmp/ /var/lib/zabbix/ /var/tmp/ /var/run/ && \
     chmod -R g=u /etc/snmp/ /var/lib/zabbix/ /var/tmp/ /var/run/ && \
-    dnf -y clean all && \
+    microdnf -y clean all && \
     rm -rf /var/cache/yum /var/lib/yum/yumdb/* /usr/lib/udev/hwdb.d/* && \
     rm -rf /var/cache/dnf /etc/udev/hwdb.bin /root/.pki
 
