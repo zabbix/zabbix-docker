@@ -345,7 +345,7 @@ jobs:
         uses: docker/metadata-action@8e5442c4ef9f78752691e2d8f8d19755c6f78e81 # v5.5.1
         with:
           images: |
-              ${{ format('{0}{1}/{2}{3}', env.DOCKER_REGISTRY_TEST, env.DOCKER_REPOSITORY_TEST, env.IMAGES_PREFIX, env.BASE_BUILD_NAME ) }},enable=${{ env.AUTO_PUSH_IMAGES != 'true' }}
+              ${{ format('{0}/{1}/{2}{3}', env.DOCKER_REGISTRY_TEST, env.DOCKER_REPOSITORY_TEST, env.IMAGES_PREFIX, env.BASE_BUILD_NAME ) }},enable=${{ env.AUTO_PUSH_IMAGES != 'true' }}
               ${{ format('{0}/{1}{2}', env.DOCKER_REPOSITORY, env.IMAGES_PREFIX, env.BASE_BUILD_NAME ) }},enable=${{ env.AUTO_PUSH_IMAGES == 'true' }}
           context: ${{ env.TRUNK_ONLY_EVENT == 'true' && 'git' || '' }}
           tags: |
