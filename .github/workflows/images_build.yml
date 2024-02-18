@@ -396,8 +396,8 @@ jobs:
         id: docker_build
         uses: docker/build-push-action@4a13e500e55cf31b7a5d59a38ab2040ab0f42f56 # v5.1.0
         with:
-          context: ${{ format("{0}/{1}/{2}", env.DOCKERFILES_DIRECTORY, env.BASE_BUILD_NAME, matrix.os) }}
-          file: ${{ format("{0}/{1}/{2}/Dockerfile", env.DOCKERFILES_DIRECTORY, env.BASE_BUILD_NAME, matrix.os) }}
+          context: ${{ format('{0}/{1}/{2}', env.DOCKERFILES_DIRECTORY, env.BASE_BUILD_NAME, matrix.os) }}
+          file: ${{ format('{0}/{1}/{2}/Dockerfile', env.DOCKERFILES_DIRECTORY, env.BASE_BUILD_NAME, matrix.os) }}
           platforms: ${{ steps.platform.outputs.list }}
           push: true
           tags: ${{ steps.meta.outputs.tags }}
