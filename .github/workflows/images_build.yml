@@ -670,6 +670,7 @@ jobs:
       - name: Image digest
         env:
           CACHE_FILE_NAME: "base_build_image_metadata.json"
+          METADATA: ${{ steps.docker_build.outputs.metadata }}
         run: |
             echo "::group::Image metadata"
             echo "${METADATA}"
