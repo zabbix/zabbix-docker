@@ -368,7 +368,6 @@ jobs:
 
             cache_from=$(printf '%s\n' "${cache_from[@]}")
             cache_to=$(printf '%s\n' "${cache_to[@]}")
-            mkdir -p /tmp/.buildx-base-cache
 
             echo 'cache_from<<EOF' >> "$GITHUB_OUTPUT"
             echo "$cache_from" >> "$GITHUB_OUTPUT"
@@ -404,6 +403,7 @@ jobs:
           labels: |
             org.opencontainers.image.revision=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.revision'] }}
             org.opencontainers.image.created=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.created'] }}
+          cache-from: ${{ steps.cache_data.outputs.cache_from }}
 
       - name: Sign the images with GitHub OIDC Token
         if: ${{ env.AUTO_PUSH_IMAGES == 'true' }}
@@ -649,6 +649,7 @@ jobs:
           labels: |
             org.opencontainers.image.revision=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.revision'] }}
             org.opencontainers.image.created=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.created'] }}
+          cache-from: ${{ steps.cache_data.outputs.cache_from }}
 
       - name: Sign the images with GitHub OIDC Token
         if: ${{ env.AUTO_PUSH_IMAGES == 'true' }}
@@ -782,6 +783,7 @@ jobs:
             pubmirror1.math.uh.edu:443
             pubmirror3.math.uh.edu:80
             quay.io:443
+            ghcr.io:443
             registry-1.docker.io:443
             repo.ialab.dsu.edu:80
             repos.eggycrew.com:80
