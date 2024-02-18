@@ -5,7 +5,7 @@ ARG BUILD_BASE_IMAGE=zabbix-build-mysql:centos-${ZBX_VERSION}
 
 FROM ${BUILD_BASE_IMAGE} AS builder
 
-FROM quay.io/centos/centos:stream9
+FROM quay.io/centos/centos:stream9-minimal
 
 ARG MAJOR_VERSION
 ARG ZBX_VERSION
@@ -33,7 +33,6 @@ COPY --from=builder ["/tmp/zabbix-${ZBX_VERSION}/conf/zabbix_agentd.conf", "/etc
 
 RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
     set -eux && \
-    REPOLIST="baseos,appstream,epel" && \
     INSTALL_PKGS="bash \
             tzdata \
             iputils \
@@ -41,15 +40,24 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             libcurl-minimal \
             libmodbus \
             openssl-libs \
+            shadow-utils \
             zlib" && \
-    dnf -y install epel-release && \
-    dnf -y install \
-            --disablerepo "*" \
-            --enablerepo "${REPOLIST}" \
-            --setopt=tsflags=nodocs \
-            --setopt=install_weak_deps=False \
-            --best \
-        ${INSTALL_PKGS} && \
+    microdnf -y install \
+        --disablerepo "*" \
+        --enablerepo "extras-common" \
+        --setopt=install_weak_deps=0 \
+        --setopt=keepcache=0 \
+        --best \
+        --nodocs epel-release && \
+    microdnf -y install \
+        --disablerepo "*" \
+        --enablerepo "baseos" \
+        --enablerepo "appstream" \
+        --enablerepo="epel" \
+        --setopt=install_weak_deps=0 \
+        --setopt=keepcache=0 \
+        --best \
+        --nodocs ${INSTALL_PKGS} && \
     groupadd \
             --system \
             --gid 1995 \
@@ -69,7 +77,7 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
     chown --quiet -R zabbix:root /etc/zabbix/ /var/lib/zabbix/ && \
     chgrp -R 0 /etc/zabbix/ /var/lib/zabbix/ && \
     chmod -R g=u /etc/zabbix/ /var/lib/zabbix/ && \
-    dnf -y clean all
+    microdnf -y clean all
 
 EXPOSE 10050/TCP
 

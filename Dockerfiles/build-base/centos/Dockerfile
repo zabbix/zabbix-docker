@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1
-FROM quay.io/centos/centos:stream9
+FROM quay.io/centos/centos:stream9-minimal
 
 ARG MAJOR_VERSION=7.0
 ARG ZBX_VERSION=${MAJOR_VERSION}
@@ -20,7 +20,6 @@ LABEL org.opencontainers.image.authors="Alexey Pustovalov <alexey.pustovalov@zab
 
 RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
     set -eux && \
-    REPOLIST="baseos,appstream,crb,epel" && \
     INSTALL_PKGS="autoconf \
             automake \
             bash \
@@ -46,12 +45,21 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             gettext \
             go-toolset \
             unixODBC-devel" && \
-    dnf -y install epel-release && \
-    dnf -y install \
+    microdnf -y install \
         --disablerepo "*" \
-        --enablerepo "${REPOLIST}" \
-        --setopt=tsflags=nodocs \
-        --setopt=install_weak_deps=False \
+        --enablerepo "extras-common" \
+        --setopt=install_weak_deps=0 \
+        --setopt=keepcache=0 \
         --best \
-        ${INSTALL_PKGS} && \
-    dnf -y clean all
+        --nodocs epel-release && \
+    microdnf -y install \
+        --disablerepo "*" \
+        --enablerepo "baseos" \
+        --enablerepo "appstream" \
+        --enablerepo "crb" \
+        --enablerepo="epel" \
+        --setopt=install_weak_deps=0 \
+        --setopt=keepcache=0 \
+        --best \
+        --nodocs ${INSTALL_PKGS} && \
+    microdnf -y clean all

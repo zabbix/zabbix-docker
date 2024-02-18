@@ -5,7 +5,7 @@ ARG BUILD_BASE_IMAGE=zabbix-build-pgsql:centos-${ZBX_VERSION}
 
 FROM ${BUILD_BASE_IMAGE} AS builder
 
-FROM quay.io/centos/centos:stream9
+FROM quay.io/centos/centos:stream9-minimal
 
 ARG MAJOR_VERSION
 ARG ZBX_VERSION
@@ -39,7 +39,6 @@ COPY --from=builder ["/tmp/zabbix-${ZBX_VERSION}/database/postgresql/timescaledb
 
 RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
     set -eux && \
-    REPOLIST="baseos,appstream,epel" && \
     INSTALL_PKGS="fping \
             file-libs \
             traceroute \
@@ -49,6 +48,8 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             traceroute \
             libevent \
             libssh \
+            libpsl \
+            libbrotli \
             libxml2 \
             net-snmp-libs \
             OpenIPMI-libs \
@@ -57,25 +58,30 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             pcre2 \
             postgresql \
             postgresql-libs \
+            shadow-utils \
             zlib \
             gzip \
             unixODBC" && \
-    dnf -y install epel-release && \
-    dnf -y install \
-            --disablerepo "*" \
-            --enablerepo "${REPOLIST}" \
-            --setopt=tsflags=nodocs \
-            --setopt=install_weak_deps=False \
-            --best \
-        ${INSTALL_PKGS} && \
-    dnf -y install \
-            --disablerepo "*" \
-            --enablerepo "${REPOLIST}" \
-            --setopt=tsflags=nodocs \
-            --setopt=install_weak_deps=False \
-            --allowerasing \
-            --best \
-        libcurl && \
+    microdnf -y install \
+        --disablerepo "*" \
+        --enablerepo "extras-common" \
+        --setopt=install_weak_deps=0 \
+        --setopt=keepcache=0 \
+        --best \
+        --nodocs epel-release && \
+    microdnf -y install \
+        --disablerepo "*" \
+        --enablerepo "baseos" \
+        --enablerepo "appstream" \
+        --enablerepo="epel" \
+        --setopt=install_weak_deps=0 \
+        --setopt=keepcache=0 \
+        --best \
+        --nodocs ${INSTALL_PKGS} && \
+    microdnf download libcurl && \
+    rpm -Uvh --nodeps --replacefiles "*curl*$( uname -i ).rpm" && \
+    microdnf remove -y libcurl-minimal && \
+    rm -rf "*curl*$( uname -i ).rpm" && \
     groupadd \
             --system \
             --gid 1995 \
@@ -111,7 +117,7 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
     chown --quiet -R zabbix:root /etc/zabbix/ /var/lib/zabbix/ && \
     chgrp -R 0 /etc/zabbix/ /var/lib/zabbix/ && \
     chmod -R g=u /etc/zabbix/ /var/lib/zabbix/ && \
-    dnf -y clean all
+    microdnf -y clean all
 
 EXPOSE 10051/TCP
 
