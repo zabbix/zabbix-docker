@@ -31,7 +31,6 @@ env:
   AUTO_PUSH_IMAGES: ${{ ! contains(fromJSON('["workflow_dispatch"]'), github.event_name) && vars.AUTO_PUSH_IMAGES }}
 
   DOCKER_REPOSITORY: ${{ vars.DOCKER_REPOSITORY }}
-  DOCKER_REGISTRY_TEST: "zabbix"
   LATEST_BRANCH: ${{ github.event.repository.default_branch }}
   TRUNK_GIT_BRANCH: "refs/heads/trunk"
   IMAGES_PREFIX: "zabbix-"
@@ -43,6 +42,9 @@ env:
 
   OIDC_ISSUER: "https://token.actions.githubusercontent.com"
   IDENITY_REGEX: "https://github.com/zabbix/zabbix-docker/.github/"
+
+  DOCKER_REGISTRY_TEST: "ghcr.io"
+  DOCKER_REPOSITORY_TEST: "zabbix"
 
 jobs:
   init_build:
@@ -315,11 +317,11 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: Login to DockerHub
+      - name: Login to ${{ env.DOCKER_REGISTRY_TEST }}
         if: ${{ env.AUTO_PUSH_IMAGES != 'true' }}
         uses: docker/login-action@343f7c4344506bcbf9b4de18042ae17996df046d # v3.0.0
         with:
-          registry: ghcr.io
+          registry: ${{ env.DOCKER_REGISTRY_TEST }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
@@ -342,7 +344,9 @@ jobs:
         id: meta
         uses: docker/metadata-action@8e5442c4ef9f78752691e2d8f8d19755c6f78e81 # v5.5.1
         with:
-          images: ${{ env.AUTO_PUSH_IMAGES != 'true' && 'ghcr.io/' }}${{ env.AUTO_PUSH_IMAGES == 'true' && env.DOCKER_REPOSITORY || env.DOCKER_REGISTRY_TEST }}/${{ env.IMAGES_PREFIX }}${{ env.BASE_BUILD_NAME }}
+          images: |
+              ${{ format('{0}{1}/{2}{3}', env.DOCKER_REGISTRY_TEST, env.DOCKER_REPOSITORY_TEST, env.IMAGES_PREFIX, env.BASE_BUILD_NAME ) }},enable=${{ env.AUTO_PUSH_IMAGES != 'true' }}
+              ${{ format('{0}/{1}{2}', env.DOCKER_REPOSITORY, env.IMAGES_PREFIX, env.BASE_BUILD_NAME ) }},enable=${{ env.AUTO_PUSH_IMAGES == 'true' }}
           context: ${{ env.TRUNK_ONLY_EVENT == 'true' && 'git' || '' }}
           tags: |
             type=semver,enable=${{ needs.init_build.outputs.current_branch != 'trunk' }},pattern={{version}},prefix=${{ matrix.os }}-
@@ -388,30 +392,18 @@ jobs:
             echo "$cache_to" >> "$GITHUB_OUTPUT"
             echo 'EOF' >> "$GITHUB_OUTPUT"
 
-      - name: Download metadata of ${{ env.BASE_BUILD_NAME }}:${{ matrix.os }}
-        uses: actions/cache/restore@13aacd865c20de90d75de3b17ebe84f7a17d57d2 # v4.0.0
-        with:
-          path: /tmp/.buildx-base-cache
-          key: ${{ env.BASE_BUILD_NAME }}-${{ matrix.os }}-${{ github.run_id }}-image
-
       - name: Build and publish image
         id: docker_build
         uses: docker/build-push-action@4a13e500e55cf31b7a5d59a38ab2040ab0f42f56 # v5.1.0
         with:
-          context: ${{ env.DOCKERFILES_DIRECTORY }}/${{ env.BASE_BUILD_NAME }}/${{ matrix.os }}
-          file: ${{ env.DOCKERFILES_DIRECTORY }}/${{ env.BASE_BUILD_NAME }}/${{ matrix.os }}/Dockerfile
+          context: ${{ format("{0}/{1}/{2}", env.DOCKERFILES_DIRECTORY, env.BASE_BUILD_NAME, matrix.os) }}
+          file: ${{ format("{0}/{1}/{2}/Dockerfile", env.DOCKERFILES_DIRECTORY, env.BASE_BUILD_NAME, matrix.os) }}
           platforms: ${{ steps.platform.outputs.list }}
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: |
             org.opencontainers.image.revision=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.revision'] }}
             org.opencontainers.image.created=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.created'] }}
-
-      - name: Cache image
-        uses: actions/cache/save@13aacd865c20de90d75de3b17ebe84f7a17d57d2 # v4.0.0
-        with:
-          path: /tmp/.buildx-base-cache
-          key: ${{ env.BASE_BUILD_NAME }}-${{ matrix.os }}-${{ github.run_id }}-image
 
       - name: Sign the images with GitHub OIDC Token
         if: ${{ env.AUTO_PUSH_IMAGES == 'true' }}
@@ -432,8 +424,9 @@ jobs:
 
       - name: Image digest
         env:
-          DIGEST: ${{ steps.docker_build.outputs.digest || fromJSON(steps.meta.outputs.json).tags[0] }}
-          CACHE_FILE_NAME: ${{ env.BASE_BUILD_NAME }}_${{ matrix.os }}
+          DIGEST: ${{ steps.docker_build.outputs.digest }}
+          CACHE_FILE_NAME: "base_image_metadata"
+          METADATA: ${{ steps.docker_build.outputs }}
         run: |
             echo "::group::Image digest"
             echo "$DIGEST"
@@ -441,13 +434,16 @@ jobs:
             echo "::group::Cache file name"
             echo "$CACHE_FILE_NAME"
             echo "::endgroup::"
+            echo "$METADATA" > test_file
+
+            cat test_file
 
             echo "$DIGEST" > "$CACHE_FILE_NAME"
 
       - name: Cache image digest
         uses: actions/cache@13aacd865c20de90d75de3b17ebe84f7a17d57d2 # v4.0.0
         with:
-          path: ${{ env.BASE_BUILD_NAME }}_${{ matrix.os }}
+          path: "base_image_metadata"
           key: ${{ env.BASE_BUILD_NAME }}-${{ matrix.os }}-${{ github.run_id }}
 
   build_base_database:
@@ -459,7 +455,6 @@ jobs:
       matrix:
         build: ${{ fromJson(needs.init_build.outputs.database) }}
         os: ${{ fromJson(needs.init_build.outputs.os) }}
-
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -583,7 +578,7 @@ jobs:
          BASE_IMAGE: ${{ env.BASE_BUILD_NAME }}
          IMAGES_PREFIX: ${{ env.IMAGES_PREFIX }}
         run: |
-            BASE_TAG=$(cat "${BASE_IMAGE}_${MATRIX_OS}")
+            BASE_TAG=$(cat "base_image_metadata")
             if [[ "${BASE_TAG}" == "sha256"* ]]; then
                 BUILD_BASE_IMAGE="${DOCKER_REPOSITORY}/${IMAGES_PREFIX}${BASE_IMAGE}@${BASE_TAG}"
             else
