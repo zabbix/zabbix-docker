@@ -219,6 +219,7 @@ jobs:
             ftpmirror.your.org:80
             fulcio.sigstore.dev:443
             github.com:443
+            ghcr.io:443
             iad.mirror.rackspace.com:443
             iad.mirror.rackspace.com:80
             index.docker.io:443
@@ -477,6 +478,7 @@ jobs:
             golang.org:443
             google.golang.org:443
             gopkg.in:443
+            ghcr.io:443
             index.docker.io:443
             noto-website.storage.googleapis.com:443
             production.cloudflare.docker.com:443
