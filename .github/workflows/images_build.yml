@@ -937,13 +937,15 @@ jobs:
       - name: Retrieve ${{ steps.build_base_image.outputs.build_base }}:${{ matrix.os }} SHA256 tag
         id: base_build
         if: ${{ matrix.build != 'snmptraps' }}
+        env:
+          CACHE_FILE_NAME: "base_build_image_metadata.json"
         run: |
             echo "::group::Base build image metadata"
-            cat "base_build_image_metadata.json"
+            cat "${CACHE_FILE_NAME}"
             echo "::endgroup::"
 
-            IMAGE_DIGEST=$(jq -r '."containerimage.digest"' "base_image_metadata.json")
-            IMAGE_NAME=$(jq -r '."image.name"' "base_image_metadata.json" | cut -d: -f1)
+            IMAGE_DIGEST=$(jq -r '."containerimage.digest"' "${CACHE_FILE_NAME}")
+            IMAGE_NAME=$(jq -r '."image.name"' "${CACHE_FILE_NAME}" | cut -d: -f1)
 
             echo "base_build_image=${IMAGE_NAME}@${IMAGE_DIGEST}" >> $GITHUB_OUTPUT
 
