@@ -23,7 +23,9 @@ LABEL org.opencontainers.image.authors="Alexey Pustovalov <alexey.pustovalov@zab
 ENV MONGODB_PLUGIN_SOURCES=https://git.zabbix.com/scm/ap/mongodb.git MONGODB_PLUGIN_VERSION=master \
     POSTGRESQL_PLUGIN_SOURCES=https://git.zabbix.com/scm/ap/postgresql.git POSTGRESQL_PLUGIN_VERSION=master
 
-RUN set -eux && \
+RUN --mount=type=cache,target=/root/.cache/go-build/ \
+    --mount=type=cache,target=/root/go/ \
+    set -eux && \
     cd /tmp/ && \
     git -c advice.detachedHead=false clone ${ZBX_SOURCES} --branch ${GIT_BRANCH} --depth 1 --single-branch /tmp/zabbix-${ZBX_VERSION} && \
     cd /tmp/zabbix-${ZBX_VERSION} && \
@@ -81,5 +83,4 @@ RUN set -eux && \
     git -c advice.detachedHead=false clone ${POSTGRESQL_PLUGIN_SOURCES} --branch ${POSTGRESQL_PLUGIN_VERSION} --depth 1 --single-branch /tmp/postgresql_plugin && \
     cd /tmp/postgresql_plugin && \
     make && \
-    strip /tmp/postgresql_plugin/zabbix-agent2-plugin-postgresql && \
-    rm -rf $(go env GOCACHE)
+    strip /tmp/postgresql_plugin/zabbix-agent2-plugin-postgresql

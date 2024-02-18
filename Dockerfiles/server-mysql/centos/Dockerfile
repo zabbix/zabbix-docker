@@ -5,7 +5,7 @@ ARG BUILD_BASE_IMAGE=zabbix-build-mysql:centos-${ZBX_VERSION}
 
 FROM ${BUILD_BASE_IMAGE} AS builder
 
-FROM quay.io/centos/centos:stream9
+FROM quay.io/centos/centos:stream9-minimal
 
 ARG MAJOR_VERSION
 ARG ZBX_VERSION
@@ -34,8 +34,8 @@ COPY --from=builder ["/tmp/zabbix-${ZBX_VERSION}/src/zabbix_sender/zabbix_sender
 COPY --from=builder ["/tmp/zabbix-${ZBX_VERSION}/conf/zabbix_server.conf", "/etc/zabbix/zabbix_server.conf"]
 COPY --from=builder ["/tmp/zabbix-${ZBX_VERSION}/database/mysql/create_server.sql.gz", "/usr/share/doc/zabbix-server-mysql/create.sql.gz"]
 
-RUN set -eux && \
-    REPOLIST="baseos,appstream,crb,epel" && \
+RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
+    set -eux && \
     INSTALL_PKGS="fping \
             traceroute \
             nmap \
@@ -43,9 +43,13 @@ RUN set -eux && \
             tzdata \
             iputils \
             traceroute \
+            libpsl \
+            libbrotli \
             libevent \
-            libxml2 \
             libssh \
+            libpsl \
+            libbrotli \
+            libxml2 \
             mysql \
             mysql-libs \
             net-snmp-libs \
@@ -53,25 +57,31 @@ RUN set -eux && \
             openldap \
             openssl-libs \
             pcre2 \
+            shadow-utils \
             zlib \
             gzip \
             unixODBC" && \
-    dnf -y install epel-release && \
-    dnf -y install \
-            --disablerepo "*" \
-            --enablerepo "${REPOLIST}" \
-            --setopt=tsflags=nodocs \
-            --setopt=install_weak_deps=False \
-            --best \
-        ${INSTALL_PKGS} && \
-    dnf -y install \
-            --disablerepo "*" \
-            --enablerepo "${REPOLIST}" \
-            --setopt=tsflags=nodocs \
-            --setopt=install_weak_deps=False \
-            --allowerasing \
-            --best \
-        libcurl && \
+    microdnf -y install \
+        --disablerepo "*" \
+        --enablerepo "extras-common" \
+        --setopt=install_weak_deps=0 \
+        --setopt=keepcache=0 \
+        --best \
+        --nodocs epel-release && \
+    microdnf -y install \
+        --disablerepo "*" \
+        --enablerepo "baseos" \
+        --enablerepo "appstream" \
+        --enablerepo "crb" \
+        --enablerepo="epel" \
+        --setopt=install_weak_deps=0 \
+        --setopt=keepcache=0 \
+        --best \
+        --nodocs ${INSTALL_PKGS} && \
+    microdnf download libcurl && \
+    rpm -Uvh --nodeps --replacefiles "*curl*$( uname -i ).rpm" && \
+    microdnf remove -y libcurl-minimal && \
+    rm -rf "*curl*$( uname -i ).rpm" && \
     groupadd \
             --system \
             --gid 1995 \
@@ -107,9 +117,7 @@ RUN set -eux && \
     chown --quiet -R zabbix:root /etc/zabbix/ /var/lib/zabbix/ && \
     chgrp -R 0 /etc/zabbix/ /var/lib/zabbix/ && \
     chmod -R g=u /etc/zabbix/ /var/lib/zabbix/ && \
-    dnf -y clean all && \
-    rm -rf /var/cache/yum /var/lib/yum/yumdb/* /usr/lib/udev/hwdb.d/* && \
-    rm -rf /var/cache/dnf /etc/udev/hwdb.bin /root/.pki
+    microdnf -y clean all
 
 EXPOSE 10051/TCP
 

@@ -97,8 +97,7 @@ RUN set -eux && \
     chmod -R g=u /etc/nginx/ /etc/php83/php-fpm.d/ /etc/php83/php-fpm.conf && \
     chown --quiet -R zabbix:root /var/lib/php/session/ /var/lib/nginx/ && \
     chgrp -R 0 /var/lib/php/session/ /var/lib/nginx/ && \
-    chmod -R g=u /var/lib/php/session/ /var/lib/nginx/ && \
-    rm -rf /var/cache/apk/*
+    chmod -R g=u /var/lib/php/session/ /var/lib/nginx/
 
 EXPOSE 8080/TCP 8443/TCP
 
