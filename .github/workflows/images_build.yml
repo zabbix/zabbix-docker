@@ -659,7 +659,7 @@ jobs:
         id: docker_build
         uses: docker/build-push-action@4a13e500e55cf31b7a5d59a38ab2040ab0f42f56 # v5.1.0
         with:
-          context: ${{ env.AUTO_PUSH_IMAGES != 'true' && 'ghcr.io/' }}${{ env.AUTO_PUSH_IMAGES == 'true' && env.DOCKER_REPOSITORY || env.DOCKER_REGISTRY_TEST }}/${{ matrix.build }}/${{ matrix.os }}
+          context: ${{ env.DOCKERFILES_DIRECTORY }}/${{ env.BASE_BUILD_NAME }}/${{ matrix.os }}
           file: ${{ env.DOCKERFILES_DIRECTORY }}/${{ matrix.build }}/${{ matrix.os }}/Dockerfile
           platforms: ${{ steps.platform.outputs.list }}
           push: true
@@ -668,10 +668,6 @@ jobs:
           labels: |
             org.opencontainers.image.revision=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.revision'] }}
             org.opencontainers.image.created=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.created'] }}
-          cache-from: |
-              type=local,src=/tmp/.buildx-base-cache
-              type=local,src=/tmp/.buildx-build-cache
-          cache-to: type=local,dest=/tmp/.buildx-build-cache
 
       - name: Cache image
         uses: actions/cache/save@13aacd865c20de90d75de3b17ebe84f7a17d57d2 # v4.0.0
@@ -928,7 +924,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@8e5442c4ef9f78752691e2d8f8d19755c6f78e81 # v5.5.1
         with:
-          images: ${{ env.DOCKER_REPOSITORY }}/${{ env.IMAGES_PREFIX}}${{ matrix.build }}
+          images:  ${{ env.AUTO_PUSH_IMAGES != 'true' && 'ghcr.io/' }}${{ env.AUTO_PUSH_IMAGES == 'true' && env.DOCKER_REPOSITORY || env.DOCKER_REGISTRY_TEST }}/${{ env.IMAGES_PREFIX}}${{ matrix.build }}
           context: ${{ env.TRUNK_ONLY_EVENT == 'true' && 'git' || '' }}
           tags: |
             type=semver,enable=${{ needs.init_build.outputs.current_branch != 'trunk' }},pattern={{version}},prefix=${{ matrix.os }}-
@@ -954,7 +950,7 @@ jobs:
         env:
           BUILD_BASE: ${{ steps.build_base_image.outputs.build_base }}
           MATRIX_OS: ${{ matrix.os }}
-          DOCKER_REPOSITORY: ${{ env.DOCKER_REPOSITORY }}
+          DOCKER_REPOSITORY: ${{ env.AUTO_PUSH_IMAGES != 'true' && 'ghcr.io/' }}${{ env.AUTO_PUSH_IMAGES == 'true' && env.DOCKER_REPOSITORY || env.DOCKER_REGISTRY_TEST }}
           IMAGES_PREFIX: ${{ env.IMAGES_PREFIX }}
         run: |
             BASE_TAG=$(cat "${BUILD_BASE}_${MATRIX_OS}")
@@ -1022,7 +1018,6 @@ jobs:
           labels: |
             org.opencontainers.image.revision=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.revision'] }}
             org.opencontainers.image.created=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.created'] }}
-          cache-from: ${{ steps.cache_data.outputs.cache_from }}
 
       - name: Sign the images with GitHub OIDC Token
         if: ${{ env.AUTO_PUSH_IMAGES == 'true' }}
