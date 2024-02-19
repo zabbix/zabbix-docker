@@ -69,6 +69,7 @@ jobs:
             echo "::group::Branch metadata"
             echo "secret_prefix=RHEL_${github_ref//.}"
             echo "::endgroup::"
+            github_ref="64"
 
             echo "secret_prefix=RHEL_${github_ref//.}" >> $GITHUB_OUTPUT
 
@@ -108,26 +109,20 @@ jobs:
             echo "::endgroup::"
             echo "matrix_build=${MATRIX_BUILD}" >> $GITHUB_OUTPUT
 
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+
+      - name: install python packages
+        run: |
+          python -m pip install --upgrade pip
+          pip install markdown
+
       - name: Update Red Hat project description (zabbix-${{ matrix.component }})
         env:
-          DESCRIPTION_FILE: ${{ format('{0}/{1}/rhel/README.html', env.DOCKERFILES_DIRECTORY, matrix.build) }}
+          DESCRIPTION_FILE: ${{ format('{0}/{1}/rhel/README', env.DOCKERFILES_DIRECTORY, matrix.build) }}
           PROJECT_ID: ${{ secrets[format('{0}_{1}_PROJECT',  steps.branch_info.outputs.secret_prefix, steps.var_format.outputs.matrix_build)] }}
           PYXIS_API_TOKEN: ${{ secrets.REDHAT_API_TOKEN }}
           API_URL: ${{ env.API_URL }}
-        run: |
-            import requests
-            import json
-            import os
+        run: python ./github/scripts/rhel_description.py
 
-            file = open(os.environ["DESCRIPTION_FILE"],mode='r')
-            repository_description = file.read()
-            file.close()
-
-            data = dict()
-            data['container'] = dict()
-            data['container']['repository_description'] = repository_description[:32768]
-
-            headers = {'accept' : 'application/json', 'X-API-KEY' : os.environ["PYXIS_API_TOKEN"], 'Content-Type' : 'application/json'}
-            result = requests.patch(os.environ["API_URL"] + os.environ["PROJECT_ID"], headers = headers, data = json.dumps(data))
-            print(result)
-            print(json.loads(r.content)['last_update_date'])
