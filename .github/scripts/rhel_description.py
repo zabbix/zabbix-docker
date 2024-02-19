@@ -40,4 +40,4 @@ data['container']['repository_description'] = repository_description[:32768]
 headers = {'accept' : 'application/json', 'X-API-KEY' : os.environ["PYXIS_API_TOKEN"], 'Content-Type' : 'application/json'}
 result = requests.patch(os.environ["API_URL"] + os.environ["PROJECT_ID"], headers = headers, data = json.dumps(data))
 print(result)
-print(json.loads(r.content)['last_update_date'])
+print(json.loads(result.content)['last_update_date'])
