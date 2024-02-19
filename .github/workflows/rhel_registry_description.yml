@@ -12,6 +12,7 @@ on:
 env:
   DOCKERFILES_DIRECTORY: "./Dockerfiles"
   API_URL: "https://catalog.redhat.com/api/containers/v1/projects/certification/id/"
+  MATRIX_FILE: "build.json"
 
 defaults:
   run:
@@ -70,6 +71,16 @@ jobs:
             echo "::endgroup::"
 
             echo "secret_prefix=RHEL_${github_ref//.}" >> $GITHUB_OUTPUT
+
+      - name: Check ${{ env.MATRIX_FILE }} file
+        id: build_exists
+        env:
+          MATRIX_FILE: ${{ env.MATRIX_FILE }}
+        run: |
+            if [[ ! -f "$MATRIX_FILE" ]]; then
+                echo "::error::File $MATRIX_FILE is missing"
+                exit 1
+            fi
 
       - name: Prepare Zabbix component list
         id: components
