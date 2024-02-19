@@ -65,6 +65,7 @@ jobs:
             sha_short=$(git rev-parse --short HEAD)
 
             github_ref=${github_ref##*/}
+            github_ref="6.4"
 
             echo "::group::Branch metadata"
             echo "secret_prefix=RHEL_${github_ref//.}"
