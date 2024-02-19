@@ -6,16 +6,16 @@ import os
 
 repository_description = None
 
-if ("DESCRIPTION_FILE" not in os.environ):
+if ("DESCRIPTION_FILE" not in os.environ or len(os.environ["DESCRIPTION_FILE"]) == 0):
     print("Description file environment variable is not specified")
     sys.exit(1)
-if ("PYXIS_API_TOKEN" not in os.environ):
+if ("PYXIS_API_TOKEN" not in os.environ or len(os.environ["PYXIS_API_TOKEN"]) == 0):
     print("API token environment variable is not specified")
     sys.exit(1)
-if ("API_URL" not in os.environ):
+if ("API_URL" not in os.environ or len(os.environ["API_URL"]) == 0):
     print("API URL environment variable is not specified")
     sys.exit(1)
-if ("PROJECT_ID" not in os.environ):
+if ("PROJECT_ID" not in os.environ or len(os.environ["PROJECT_ID"]) == 0):
     print("RedHat project ID environment variable is not specified")
     sys.exit(1)
 
@@ -38,6 +38,11 @@ data['container'] = dict()
 data['container']['repository_description'] = repository_description[:32768]
 
 headers = {'accept' : 'application/json', 'X-API-KEY' : os.environ["PYXIS_API_TOKEN"], 'Content-Type' : 'application/json'}
-result = requests.patch(os.environ["API_URL"] + os.environ["PROJECT_ID"], headers = headers, data = json.dumps(data))
-print(result)
-print(json.loads(result.content)['last_update_date'])
+result = requests.patch(os.environ["API_URL"] + os.environ["PROJECT_ID"],
+                        headers = headers,
+                        data = json.dumps(data))
+
+print("::group::Result")
+print("Response code: " + result)
+print("Last update date: " + json.loads(result.content)['last_update_date'])
+print("::endgroup::")

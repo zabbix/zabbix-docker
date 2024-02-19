@@ -65,13 +65,12 @@ jobs:
             sha_short=$(git rev-parse --short HEAD)
 
             github_ref=${github_ref##*/}
-            github_ref="6.4"
 
             echo "::group::Branch metadata"
             echo "secret_prefix=RHEL_${github_ref//.}"
             echo "::endgroup::"
 
-            echo "zabbix_release=64" >> $GITHUB_OUTPUT
+            echo "zabbix_release=${github_ref//.}" >> $GITHUB_OUTPUT
             echo "secret_prefix=RHEL_${github_ref//.}" >> $GITHUB_OUTPUT
 
       - name: Check ${{ env.MATRIX_FILE }} file
