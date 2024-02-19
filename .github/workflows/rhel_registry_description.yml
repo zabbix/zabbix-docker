@@ -1,0 +1,122 @@
+name: Red Hat Catalog Description
+
+on:
+  push:
+    branches:
+      - 'trunk'
+    paths:
+      - 'Dockerfiles/*/*/README.html'
+      - '.github/workflows/rhel_registry_description.yml'
+  workflow_dispatch:
+
+env:
+  DOCKERFILES_DIRECTORY: "./Dockerfiles"
+  API_URL: "https://catalog.redhat.com/api/containers/v1/projects/certification/id/"
+
+defaults:
+  run:
+    shell: bash
+
+permissions:
+   contents: read
+
+jobs:
+  init:
+    name: Initialize build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        component:
+          - agent
+          - agent2
+          - java-gateway
+          - proxy-mysql
+          - proxy-sqlite3
+          - server-mysql
+          - snmptraps
+          - web-nginx-mysql
+          - web-service
+    steps:
+      - name: Block egress traffic
+        uses: step-security/harden-runner@63c24ba6bd7ba022e95695ff85de572c04a18142 # v2.7.0
+        with:
+          disable-sudo: true
+          egress-policy: audit
+          allowed-endpoints: >
+            github.com:443
+            hub.docker.com:443
+
+      - name: Checkout repository
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+        with:
+          fetch-depth: 1
+
+      - name: Get branch info
+        id: branch_info
+        shell: bash
+        env:
+          github_ref: ${{ github.ref }}
+        run: |
+            result=false
+            sha_short=$(git rev-parse --short HEAD)
+
+            github_ref=${github_ref##*/}
+
+            echo "::group::Branch metadata"
+            echo "secret_prefix=RHEL_${github_ref//.}"
+            echo "::endgroup::"
+
+            echo "secret_prefix=RHEL_${github_ref//.}" >> $GITHUB_OUTPUT
+
+      - name: Prepare Zabbix component list
+        id: components
+        env:
+          MATRIX_FILE: ${{ env.MATRIX_FILE }}
+        run: |
+            component_list=$(jq -r '.components | map_values(select(.rhel == true)) | keys | @json' "$MATRIX_FILE")
+
+            echo "::group::Zabbix Component List"
+            echo "$component_list"
+            echo "::endgroup::"
+
+            echo "list=$component_list" >> $GITHUB_OUTPUT
+
+      - name: Variables formating
+        id: var_format
+        env:
+          MATRIX_BUILD: ${{ matrix.build }}
+        run: |
+            MATRIX_BUILD=${MATRIX_BUILD^^}
+            MATRIX_BUILD=${MATRIX_BUILD//-/_}
+
+            echo "::group::Result"
+            echo "matrix_build=${MATRIX_BUILD}"
+            echo "::endgroup::"
+            echo "matrix_build=${MATRIX_BUILD}" >> $GITHUB_OUTPUT
+
+      - name: Update Red Hat project description (zabbix-${{ matrix.component }})
+        env:
+          DESCRIPTION_FILE: ${{ format('{0}/{1}/rhel/README.html', env.DOCKERFILES_DIRECTORY, matrix.build) }}
+          PROJECT_ID: ${{ secrets[format('{0}_{1}_PROJECT',  steps.branch_info.outputs.secret_prefix, steps.var_format.outputs.matrix_build)] }}
+          PYXIS_API_TOKEN: ${{ secrets.REDHAT_API_TOKEN }}
+          API_URL: ${{ env.API_URL }}
+        run: |
+            import requests
+            import json
+            import os
+
+            file = open(os.environ["DESCRIPTION_FILE"],mode='r')
+            repository_description = file.read()
+            file.close()
+
+            data = dict()
+            data['container'] = dict()
+            data['container']['repository_description'] = repository_description[:32768]
+
+            headers = {'accept' : 'application/json', 'X-API-KEY' : os.environ["PYXIS_API_TOKEN"], 'Content-Type' : 'application/json'}
+            result = requests.patch(os.environ["API_URL"] + os.environ["PROJECT_ID"], headers = headers, data = json.dumps(data))
+            print(result)
+            print(json.loads(r.content)['last_update_date'])
