@@ -36,12 +36,14 @@ env:
   IMAGES_PREFIX: "zabbix-"
 
   BASE_BUILD_NAME: "build-base"
+  BASE_CACHE_FILE_NAME: "base_image_metadata.json"
+  BUILD_CACHE_FILE_NAME: "base_build_image_metadata.json"
 
   MATRIX_FILE: "build.json"
   DOCKERFILES_DIRECTORY: "./Dockerfiles"
 
   OIDC_ISSUER: "https://token.actions.githubusercontent.com"
-  IDENITY_REGEX: "https://github.com/zabbix/zabbix-docker/.github/"
+  IDENTITY_REGEX: "https://github.com/zabbix/zabbix-docker/.github/"
 
   DOCKER_REGISTRY_TEST: "ghcr.io"
   DOCKER_REPOSITORY_TEST: "zabbix"
@@ -52,7 +54,6 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      actions: write
     outputs:
       os: ${{ steps.os.outputs.list }}
       database: ${{ steps.database.outputs.list }}
@@ -155,28 +156,6 @@ jobs:
             echo "is_default_branch=$result" >> $GITHUB_OUTPUT
             echo "current_branch=$github_ref" >> $GITHUB_OUTPUT
             echo "sha_short=$sha_short" >> $GITHUB_OUTPUT
-
-      - name: Cleanup cache
-        shell: bash
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          REPO: ${{ github.repository }}
-          BRANCH: ${{ steps.branch_info.outputs.current_branch }}
-          GH_RUN_ID: ${{ github.run_id }}
-        run: |
-            gh extension install actions/gh-actions-cache
-
-            cache_keys=$(gh actions-cache list -R "${REPO}" -B "${BRANCH}" -L 100 --sort created-at --order desc | cut -f 1)
-
-            ## Setting this to not fail the workflow while deleting cache keys
-            set +e
-            echo "Deleting caches..."
-            for cache_key in $cache_keys
-            do
-                if [[ "$cache_key" == *"${GH_RUN_ID}" ]] && [[ "$cache_key" != *"${GH_RUN_ID}-image" ]]; then
-                    gh actions-cache delete $cache_key -R "${REPO}" -B "${BRANCH}" --confirm
-                fi
-            done
 
   build_base:
     timeout-minutes: 30
@@ -353,8 +332,8 @@ jobs:
             cache_from=()
             cache_to=()
 
-            #cache_from+=("type=gha,scope=${IMAGE_TAG}")
-            cache_from+=("type=registry,ref=${IMAGE_TAG}")
+            cache_from+=("type=gha,scope=${IMAGE_TAG}")
+            #cache_from+=("type=registry,ref=${IMAGE_TAG}")
 
             cache_to+=("type=gha,mode=max,scope=${IMAGE_TAG}")
 
@@ -404,6 +383,7 @@ jobs:
             org.opencontainers.image.revision=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.revision'] }}
             org.opencontainers.image.created=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.created'] }}
           cache-from: ${{ steps.cache_data.outputs.cache_from }}
+          cache-to: ${{ steps.cache_data.outputs.cache_to }}
 
       - name: Sign the images with GitHub OIDC Token
         if: ${{ env.AUTO_PUSH_IMAGES == 'true' }}
@@ -422,9 +402,9 @@ jobs:
             cosign sign --yes ${images}
             echo "::endgroup::"
 
-      - name: Image digest
+      - name: Image metadata
         env:
-          CACHE_FILE_NAME: "base_image_metadata.json"
+          CACHE_FILE_NAME: ${{ env.BASE_CACHE_FILE_NAME }}
           METADATA: ${{ steps.docker_build.outputs.metadata }}
         run: |
             echo "::group::Image metadata"
@@ -436,10 +416,10 @@ jobs:
 
             echo "${METADATA}" > "$CACHE_FILE_NAME"
 
-      - name: Cache image digest
+      - name: Cache image metadata
         uses: actions/cache@13aacd865c20de90d75de3b17ebe84f7a17d57d2 # v4.0.0
         with:
-          path: "base_image_metadata.json"
+          path: ${{ env.BASE_CACHE_FILE_NAME }}
           key: ${{ env.BASE_BUILD_NAME }}-${{ matrix.os }}-${{ github.run_id }}
 
   build_base_database:
@@ -547,21 +527,23 @@ jobs:
           flavor: |
             latest=${{ (matrix.os == 'alpine') && (!contains(fromJSON('["workflow_dispatch"]'), github.event_name)) && ( needs.init_build.outputs.is_default_branch == 'true' ) }}
 
-      - name: Download SHA256 tag of ${{ env.BASE_BUILD_NAME }}:${{ matrix.os }}
+      - name: Download metadata of ${{ env.BASE_BUILD_NAME }}:${{ matrix.os }}
         uses: actions/cache@13aacd865c20de90d75de3b17ebe84f7a17d57d2 # v4.0.0
         with:
-          path: "base_image_metadata.json"
+          path: ${{ env.BASE_CACHE_FILE_NAME }}
           key: ${{ env.BASE_BUILD_NAME }}-${{ matrix.os }}-${{ github.run_id }}
 
       - name: Process ${{ env.BASE_BUILD_NAME }}:${{ matrix.os }} image metadata
         id: base_build
+        env:
+          CACHE_FILE_NAME: ${{ env.BASE_CACHE_FILE_NAME }}
         run: |
             echo "::group::Base image metadata"
-            cat "base_image_metadata.json"
+            cat "${CACHE_FILE_NAME}"
             echo "::endgroup::"
 
-            IMAGE_DIGEST=$(jq -r '."containerimage.digest"' "base_image_metadata.json")
-            IMAGE_NAME=$(jq -r '."image.name"' "base_image_metadata.json" | cut -d: -f1)
+            IMAGE_DIGEST=$(jq -r '."containerimage.digest"' "${CACHE_FILE_NAME}")
+            IMAGE_NAME=$(jq -r '."image.name"' "${CACHE_FILE_NAME}" | cut -d: -f1)
 
             echo "base_build_image=${IMAGE_NAME}@${IMAGE_DIGEST}" >> $GITHUB_OUTPUT
 
@@ -570,18 +552,18 @@ jobs:
         env:
          BASE_IMAGE: ${{ steps.base_build.outputs.base_build_image }}
          OIDC_ISSUER: ${{ env.OIDC_ISSUER }}
-         IDENITY_REGEX: ${{ env.IDENITY_REGEX }}
+         IDENTITY_REGEX: ${{ env.IDENTITY_REGEX }}
         run: |
             echo "::group::Image sign data"
             echo "OIDC issuer=$OIDC_ISSUER"
-            echo "Identity=$IDENITY_REGEX"
+            echo "Identity=$IDENTITY_REGEX"
             echo "Image to verify=$BASE_IMAGE"
             echo "::endgroup::"
 
             echo "::group::Verify signature"
             cosign verify \
                     --certificate-oidc-issuer-regexp "$OIDC_ISSUER" \
-                    --certificate-identity-regexp "$IDENITY_REGEX" \
+                    --certificate-identity-regexp "$IDENTITY_REGEX" \
                 "$BASE_IMAGE"
             echo "::endgroup::"
 
@@ -595,9 +577,9 @@ jobs:
             cache_from=()
             cache_to=()
 
-            #cache_from+=("type=gha,scope=${BASE_IMAGE_TAG}")
-            #cache_from+=("type=registry,ref=${BASE_IMAGE_TAG}")
-            #cache_from+=("type=gha,scope=${IMAGE_TAG}")
+            cache_from+=("type=gha,scope=${BASE_IMAGE_TAG}")
+            cache_from+=("type=registry,ref=${BASE_IMAGE_TAG}")
+            cache_from+=("type=gha,scope=${IMAGE_TAG}")
             cache_from+=("type=registry,ref=${IMAGE_TAG}")
 
             cache_to+=("type=gha,mode=max,scope=${IMAGE_TAG}")
@@ -612,7 +594,6 @@ jobs:
 
             cache_from=$(printf '%s\n' "${cache_from[@]}")
             cache_to=$(printf '%s\n' "${cache_to[@]}")
-            mkdir -p /tmp/.buildx-build-cache/
 
             echo 'cache_from<<EOF' >> "$GITHUB_OUTPUT"
             echo "$cache_from" >> "$GITHUB_OUTPUT"
@@ -649,7 +630,6 @@ jobs:
           labels: |
             org.opencontainers.image.revision=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.revision'] }}
             org.opencontainers.image.created=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.created'] }}
-          cache-from: ${{ steps.cache_data.outputs.cache_from }}
 
       - name: Sign the images with GitHub OIDC Token
         if: ${{ env.AUTO_PUSH_IMAGES == 'true' }}
@@ -668,9 +648,9 @@ jobs:
             cosign sign --yes ${images}
             echo "::endgroup::"
 
-      - name: Image digest
+      - name: Image metadata
         env:
-          CACHE_FILE_NAME: "base_build_image_metadata.json"
+          CACHE_FILE_NAME: ${{ env.BUILD_CACHE_FILE_NAME }}
           METADATA: ${{ steps.docker_build.outputs.metadata }}
         run: |
             echo "::group::Image metadata"
@@ -682,10 +662,10 @@ jobs:
 
             echo "${METADATA}" > "$CACHE_FILE_NAME"
 
-      - name: Caching SHA256 tag of the image
+      - name: Cache image metadata
         uses: actions/cache@13aacd865c20de90d75de3b17ebe84f7a17d57d2 # v4.0.0
         with:
-          path: "base_build_image_metadata.json"
+          path: ${{ env.BUILD_CACHE_FILE_NAME }}
           key: ${{ matrix.build }}-${{ matrix.os }}-${{ github.run_id }}
 
   build_images:
@@ -702,7 +682,7 @@ jobs:
     permissions:
       contents: read
       id-token: write
-      packages: write
+      packages: read
     steps:
       - name: Block egress traffic
         uses: step-security/harden-runner@63c24ba6bd7ba022e95695ff85de572c04a18142 # v2.7.0
@@ -831,11 +811,13 @@ jobs:
           fetch-depth: 1
 
       - name: Install cosign
+        if: ${{ env.AUTO_PUSH_IMAGES == 'true' }}
         uses: sigstore/cosign-installer@e1523de7571e31dbe865fd2e80c5c7c23ae71eb4
         with:
           cosign-release: 'v2.2.3'
 
       - name: Check cosign version
+        if: ${{ env.AUTO_PUSH_IMAGES == 'true' }}
         run: cosign version
 
       - name: Set up QEMU
@@ -848,21 +830,6 @@ jobs:
         uses: docker/setup-buildx-action@f95db51fddba0c2d1ec667646a06c2ce06100226 # v3.0.0
         with:
           driver-opts: image=moby/buildkit:master
-
-      - name: Login to DockerHub
-        if: ${{ env.AUTO_PUSH_IMAGES == 'true' }}
-        uses: docker/login-action@343f7c4344506bcbf9b4de18042ae17996df046d # v3.0.0
-        with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
-
-      - name: Login to DockerHub
-        if: ${{ env.AUTO_PUSH_IMAGES != 'true' }}
-        uses: docker/login-action@343f7c4344506bcbf9b4de18042ae17996df046d # v3.0.0
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Prepare Platform list
         id: platform
@@ -919,26 +886,26 @@ jobs:
           tags: |
             type=semver,enable=${{ needs.init_build.outputs.current_branch != 'trunk' }},pattern={{version}},prefix=${{ matrix.os }}-
             type=semver,enable=${{ needs.init_build.outputs.current_branch != 'trunk' }},pattern={{version}},suffix=-${{ matrix.os }}
-            type=ref,enable=${{ needs.init_build.outputs.current_branch != 'trunk' }},event=branch,prefix=${{ matrix.os }}-,suffix=-latest
-            type=ref,enable=${{ needs.init_build.outputs.current_branch != 'trunk' }},event=branch,suffix=-${{ matrix.os }}-latest
+            type=ref,enable=${{ needs.init_build.outputs.current_branch != 'trunk' && !contains(fromJSON('["workflow_dispatch"]'), github.event_name) }},event=branch,prefix=${{ matrix.os }}-,suffix=-latest
+            type=ref,enable=${{ needs.init_build.outputs.current_branch != 'trunk' && !contains(fromJSON('["workflow_dispatch"]'), github.event_name) }},event=branch,suffix=-${{ matrix.os }}-latest
             type=raw,enable=${{ (needs.init_build.outputs.current_branch != 'trunk') && (needs.init_build.outputs.is_default_branch == 'true') }},value=${{matrix.os}}-latest
             type=ref,enable=${{ needs.init_build.outputs.current_branch == 'trunk' }},event=branch,prefix=${{ matrix.os }}-
             type=ref,enable=${{ needs.init_build.outputs.current_branch == 'trunk' || contains(fromJSON('["workflow_dispatch"]'), github.event_name) }},event=branch,suffix=-${{ matrix.os }}
           flavor: |
             latest=${{ (matrix.os == 'alpine') && (!contains(fromJSON('["workflow_dispatch"]'), github.event_name)) && ( needs.init_build.outputs.is_default_branch == 'true' ) }}
 
-      - name: Download SHA256 tag of ${{ steps.build_base_image.outputs.build_base }}:${{ matrix.os }}
+      - name: Download metadata of ${{ steps.build_base_image.outputs.build_base }}:${{ matrix.os }}
         uses: actions/cache@13aacd865c20de90d75de3b17ebe84f7a17d57d2 # v4.0.0
         if: ${{ matrix.build != 'snmptraps' }}
         with:
-          path: "base_build_image_metadata.json"
+          path: ${{ env.BUILD_CACHE_FILE_NAME }}
           key: ${{ steps.build_base_image.outputs.build_base }}-${{ matrix.os }}-${{ github.run_id }}
 
-      - name: Retrieve ${{ steps.build_base_image.outputs.build_base }}:${{ matrix.os }} SHA256 tag
+      - name: Process ${{ steps.build_base_image.outputs.build_base }}:${{ matrix.os }} image metadata
         id: base_build
         if: ${{ matrix.build != 'snmptraps' }}
         env:
-          CACHE_FILE_NAME: "base_build_image_metadata.json"
+          CACHE_FILE_NAME: ${{ env.BUILD_CACHE_FILE_NAME }}
         run: |
             echo "::group::Base build image metadata"
             cat "${CACHE_FILE_NAME}"
@@ -954,22 +921,23 @@ jobs:
         env:
          BASE_IMAGE: ${{ steps.base_build.outputs.base_build_image }}
          OIDC_ISSUER: ${{ env.OIDC_ISSUER }}
-         IDENITY_REGEX: ${{ env.IDENITY_REGEX }}
+         IDENTITY_REGEX: ${{ env.IDENTITY_REGEX }}
         run: |
             echo "::group::Image sign data"
-            echo "OIDC issuer=$OIDC_ISSUER"
-            echo "Identity=$IDENITY_REGEX"
-            echo "Image to verify=$BASE_IMAGE"
+            echo "OIDC issuer=${OIDC_ISSUER}"
+            echo "Identity=${IDENTITY_REGEX}"
+            echo "Image to verify=${BASE_IMAGE}"
             echo "::endgroup::"
 
             echo "::group::Verify signature"
             cosign verify \
-                    --certificate-oidc-issuer-regexp "$OIDC_ISSUER" \
-                    --certificate-identity-regexp "$IDENITY_REGEX" \
-                "$BASE_IMAGE"
+                    --certificate-oidc-issuer-regexp "${OIDC_ISSUER}" \
+                    --certificate-identity-regexp "${IDENTITY_REGEX}" \
+                "${BASE_IMAGE}"
             echo "::endgroup::"
 
       - name: Prepare cache data
+        if: ${{ matrix.build != 'snmptraps' }}
         id: cache_data
         env:
           BASE_IMAGE_TAG: ${{ steps.base_build.outputs.base_build_image }}
@@ -977,7 +945,6 @@ jobs:
             cache_from=()
             cache_to=()
 
-            cache_from+=("type=gha,scope=${BASE_IMAGE_TAG}")
             cache_from+=("type=registry,ref=${BASE_IMAGE_TAG}")
 
             echo "::group::Cache from data"
@@ -990,12 +957,19 @@ jobs:
             echo "$cache_from" >> "$GITHUB_OUTPUT"
             echo 'EOF' >> "$GITHUB_OUTPUT"
 
+      - name: Login to DockerHub
+        if: ${{ env.AUTO_PUSH_IMAGES == 'true' }}
+        uses: docker/login-action@343f7c4344506bcbf9b4de18042ae17996df046d # v3.0.0
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
       - name: Build and push image
         id: docker_build
         uses: docker/build-push-action@4a13e500e55cf31b7a5d59a38ab2040ab0f42f56 # v5.1.0
         with:
-          context: ${{ env.DOCKERFILES_DIRECTORY }}/${{ matrix.build }}/${{ matrix.os }}
-          file: ${{ env.DOCKERFILES_DIRECTORY }}/${{ matrix.build }}/${{ matrix.os }}/Dockerfile
+          context: ${{ format('{0}/{1}/{2}', env.DOCKERFILES_DIRECTORY, matrix.build, matrix.os) }}
+          file: ${{ format('{0}/{1}/{2}/Dockerfile', env.DOCKERFILES_DIRECTORY, matrix.build, matrix.os) }}
           platforms: ${{ steps.platform.outputs.list }}
           push: ${{ env.AUTO_PUSH_IMAGES == 'true' }}
           tags: ${{ steps.meta.outputs.tags }}
@@ -1022,6 +996,7 @@ jobs:
             echo "::endgroup::"
 
       - name: Image metadata
+        if: ${{ env.AUTO_PUSH_IMAGES == 'true' }}
         env:
           METADATA: ${{ steps.docker_build.outputs.metadata }}
         run: |
