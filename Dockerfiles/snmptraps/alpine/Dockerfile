@@ -48,8 +48,7 @@ RUN set -eux && \
     touch /var/lib/net-snmp/snmptrapd.conf && \
     chown --quiet -R zabbix:root /etc/snmp/ /var/lib/zabbix/ /var/tmp/ /var/run/ && \
     chgrp -R 0 /etc/snmp/ /var/lib/zabbix/ /var/tmp/ /var/run/ && \
-    chmod -R g=u /etc/snmp/ /var/lib/zabbix/ /var/tmp/ /var/run/ && \
-    rm -rf /var/cache/apk/*
+    chmod -R g=u /etc/snmp/ /var/lib/zabbix/ /var/tmp/ /var/run/
 
 EXPOSE 1162/UDP
 
