@@ -70,8 +70,8 @@ jobs:
             echo "secret_prefix=RHEL_${github_ref//.}"
             echo "::endgroup::"
 
-            #echo "secret_prefix=RHEL_${github_ref//.}" >> $GITHUB_OUTPUT
-            echo "secret_prefix=RHEL_64" >> $GITHUB_OUTPUT
+            echo "zabbix_release=64" >> $GITHUB_OUTPUT
+            echo "secret_prefix=RHEL_${github_ref//.}" >> $GITHUB_OUTPUT
 
       - name: Check ${{ env.MATRIX_FILE }} file
         id: build_exists
@@ -99,7 +99,7 @@ jobs:
       - name: Variables formating
         id: var_format
         env:
-          MATRIX_BUILD: ${{ matrix.build }}
+          MATRIX_BUILD: ${{ matrix.component }}
         run: |
             MATRIX_BUILD=${MATRIX_BUILD^^}
             MATRIX_BUILD=${MATRIX_BUILD//-/_}
@@ -118,7 +118,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install markdown requests
 
-      - name: Update Red Hat project description (zabbix-${{ matrix.component }})
+      - name: Update Red Hat project description (${{ matrix.component }}-${{ steps.branch_info.outputs.zabbix_release }})
         env:
           DESCRIPTION_FILE: ${{ format('{0}/{1}/rhel/README', env.DOCKERFILES_DIRECTORY, matrix.component) }}
           PROJECT_ID: ${{ secrets[format('{0}_{1}_PROJECT',  steps.branch_info.outputs.secret_prefix, steps.var_format.outputs.matrix_build)] }}
