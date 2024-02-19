@@ -391,7 +391,10 @@ jobs:
           DIGEST: ${{ steps.docker_build.outputs.digest }}
           TAGS: ${{ steps.meta.outputs.tags }}
         run: |
-            images=$(printf "%s@${DIGEST}" "${TAGS[@]}")
+            images=""
+            for tag in ${TAGS}; do
+                images+="${tag}@${DIGEST} "
+            done
 
             echo "::group::Images to sign"
             echo "$images"
@@ -637,7 +640,10 @@ jobs:
           DIGEST: ${{ steps.docker_build.outputs.digest }}
           TAGS: ${{ steps.meta.outputs.tags }}
         run: |
-            images=$(printf "%s@${DIGEST}" "${TAGS[@]}")
+            images=""
+            for tag in ${TAGS}; do
+                images+="${tag}@${DIGEST} "
+            done
 
             echo "::group::Images to sign"
             echo "$images"
@@ -984,7 +990,10 @@ jobs:
           DIGEST: ${{ steps.docker_build.outputs.digest }}
           TAGS: ${{ steps.meta.outputs.tags }}
         run: |
-            images=$(printf "%s@${DIGEST}" "${TAGS[@]}")
+            images=""
+            for tag in ${TAGS}; do
+                images+="${tag}@${DIGEST} "
+            done
 
             echo "::group::Images to sign"
             echo "$images"
