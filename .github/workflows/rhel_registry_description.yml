@@ -3,9 +3,10 @@ name: Red Hat Catalog Description
 on:
   push:
     branches:
-      - 'trunk'
+      - '[0-9]+.[0-9]+'
     paths:
       - 'Dockerfiles/*/*/README.html'
+      - 'Dockerfiles/*/*/README.md'
       - '.github/workflows/rhel_registry_description.yml'
   workflow_dispatch:
 
