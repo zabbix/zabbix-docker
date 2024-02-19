@@ -43,6 +43,6 @@ result = requests.patch(os.environ["API_URL"] + os.environ["PROJECT_ID"],
                         data = json.dumps(data))
 
 print("::group::Result")
-print("Response code: " + str(result))
+print("Response code: " + str(result.status_code))
 print("Last update date: " + json.loads(result.content)['last_update_date'])
 print("::endgroup::")
