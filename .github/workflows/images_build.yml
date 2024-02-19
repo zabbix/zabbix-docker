@@ -612,11 +612,11 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: Login to DockerHub
+      - name: Login to ${{ env.DOCKER_REGISTRY_TEST }}
         if: ${{ env.AUTO_PUSH_IMAGES != 'true' }}
         uses: docker/login-action@343f7c4344506bcbf9b4de18042ae17996df046d # v3.0.0
         with:
-          registry: ghcr.io
+          registry: ${{ env.DOCKER_REGISTRY_TEST }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
