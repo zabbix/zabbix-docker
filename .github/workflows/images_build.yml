@@ -206,6 +206,7 @@ jobs:
             iad.mirror.rackspace.com:80
             index.docker.io:443
             lesnet.mm.fcix.net:443
+            mirrorlist.centos.org:80
             mirror-mci.yuki.net.uk:443
             mirror-mci.yuki.net.uk:80
             mirror.arizona.edu:443
@@ -727,6 +728,7 @@ jobs:
             iad.mirror.rackspace.com:443
             index.docker.io:443
             ix-denver.mm.fcix.net:443
+            mirrorlist.centos.org:80
             mirror-mci.yuki.net.uk:443
             mirror.23m.com:80
             mirror.arizona.edu:80
