@@ -68,7 +68,7 @@ RUN --mount=type=cache,target=/var/lib/apt/,sharing=locked \
     mkdir -p /etc/zabbix/web/certs && \
     rm -f /etc/apache2/sites-available/* && \
     rm -f /etc/apache2/sites-enabled/* && \
-    /usr/sbin/a2enmod ssl && \
+    /usr/sbin/a2enmod ssl && /usr/sbin/a2enmod auth_radius \
     sed -ri \
             -e 's!^(\s*CustomLog)\s+\S+!\1 /proc/self/fd/1!g' \
             -e 's!^(\s*ErrorLog)\s+\S+!\1 /proc/self/fd/2!g' \
