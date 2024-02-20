@@ -394,6 +394,8 @@ jobs:
             yum.oracle.com:443
             ziply.mm.fcix.net:443
             ziply.mm.fcix.net:80
+            dl.google.com:443
+            keyserver.ubuntu.com:11371
 
       - name: Checkout repository
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
