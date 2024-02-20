@@ -36,6 +36,7 @@ RUN --mount=type=cache,target=/var/lib/apt/,sharing=locked \
             apache2 \
             curl \
             libapache2-mod-php \
+            libapache2-mod-auth-radius \
             ca-certificates \
             mysql-client \
             locales \
