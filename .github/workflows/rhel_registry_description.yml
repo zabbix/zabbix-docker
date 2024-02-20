@@ -24,23 +24,13 @@ permissions:
 
 jobs:
   init:
-    name: Initialize build
+    name: Initialize workflow
     runs-on: ubuntu-latest
     permissions:
       contents: read
-    strategy:
-      fail-fast: false
-      matrix:
-        component:
-          - agent
-          - agent2
-          - java-gateway
-          - proxy-mysql
-          - proxy-sqlite3
-          - server-mysql
-          - snmptraps
-          - web-nginx-mysql
-          - web-service
+    outputs:
+      components: ${{ steps.components.outputs.list }}
+      zabbix_release: ${{ steps.branch_info.output.zabbix_release }}
     steps:
       - name: Block egress traffic
         uses: step-security/harden-runner@63c24ba6bd7ba022e95695ff85de572c04a18142 # v2.7.0
@@ -48,10 +38,7 @@ jobs:
           disable-sudo: true
           egress-policy: block
           allowed-endpoints: >
-            catalog.redhat.com:443
-            files.pythonhosted.org:443
             github.com:443
-            pypi.org:443
 
       - name: Checkout repository
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
@@ -74,7 +61,6 @@ jobs:
             echo "::endgroup::"
 
             echo "zabbix_release=${github_ref//.}" >> $GITHUB_OUTPUT
-            echo "secret_prefix=RHEL_${github_ref//.}" >> $GITHUB_OUTPUT
 
       - name: Check ${{ env.MATRIX_FILE }} file
         id: build_exists
@@ -99,6 +85,33 @@ jobs:
 
             echo "list=$component_list" >> $GITHUB_OUTPUT
 
+  publish:
+    name: Initialize build
+    runs-on: ubuntu-latest
+    needs: init
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        component: ${{ fromJson(needs.init_build.outputs.components) }}
+    steps:
+      - name: Block egress traffic
+        uses: step-security/harden-runner@63c24ba6bd7ba022e95695ff85de572c04a18142 # v2.7.0
+        with:
+          disable-sudo: true
+          egress-policy: block
+          allowed-endpoints: >
+            catalog.redhat.com:443
+            files.pythonhosted.org:443
+            github.com:443
+            pypi.org:443
+
+      - name: Checkout repository
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+        with:
+          fetch-depth: 1
+
       - name: Variables formating
         id: var_format
         env:
@@ -122,15 +135,14 @@ jobs:
           python -m pip install --upgrade pip
           pip install markdown requests
 
-      - name: Update Red Hat project description (${{ matrix.component }}-${{ steps.branch_info.outputs.zabbix_release }})
+      - name: Update Red Hat project description (${{ matrix.component }}-${{ needs.branch_info.outputs.zabbix_release }})
         env:
           DESCRIPTION_FILE: ${{ format('{0}/{1}/rhel/README', env.DOCKERFILES_DIRECTORY, matrix.component) }}
-          PROJECT_ID: ${{ secrets[format('{0}_{1}_PROJECT',  steps.branch_info.outputs.secret_prefix, steps.var_format.outputs.matrix_build)] }}
+          PROJECT_ID: ${{ secrets[format('RHEL_{0}_{1}_PROJECT',  needs.branch_info.outputs.zabbix_release, needs.var_format.outputs.matrix_build)] }}
           PYXIS_API_TOKEN: ${{ secrets.REDHAT_API_TOKEN }}
           API_URL: ${{ env.API_URL }}
           COMPONENT: ${{ matrix.component }}
-          ZABBIX_RELEASE: ${{ steps.branch_info.outputs.zabbix_release }}
+          ZABBIX_RELEASE: ${{ needs.branch_info.outputs.zabbix_release }}
         run: |
             python ./.github/scripts/rhel_description.py
             echo "https://catalog.redhat.com/software/containers/zabbix/zabbix-${COMPONENT}-${ZABBIX_RELEASE}/${PROJECT_ID}"
-
