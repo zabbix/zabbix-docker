@@ -31,7 +31,8 @@ COPY --from=builder ["/tmp/zabbix-${ZBX_VERSION}/src/zabbix_get/zabbix_get", "/u
 COPY --from=builder ["/tmp/zabbix-${ZBX_VERSION}/src/zabbix_sender/zabbix_sender", "/usr/bin/zabbix_sender"]
 COPY --from=builder ["/tmp/zabbix-${ZBX_VERSION}/conf/zabbix_agentd.conf", "/etc/zabbix/zabbix_agentd.conf"]
 
-RUN set -eux && \
+RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
+    set -eux && \
     REPOLIST="baseos,appstream,epel" && \
     INSTALL_PKGS="bash \
             tini \
@@ -68,9 +69,7 @@ RUN set -eux && \
     chown --quiet -R zabbix:root /etc/zabbix/ /var/lib/zabbix/ && \
     chgrp -R 0 /etc/zabbix/ /var/lib/zabbix/ && \
     chmod -R g=u /etc/zabbix/ /var/lib/zabbix/ && \
-    dnf -y clean all && \
-    rm -rf /var/cache/yum /var/lib/yum/yumdb/* /usr/lib/udev/hwdb.d/* && \
-    rm -rf /var/cache/dnf /etc/udev/hwdb.bin /root/.pki
+    dnf -y clean all
 
 EXPOSE 10050/TCP
 

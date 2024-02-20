@@ -29,7 +29,8 @@ STOPSIGNAL SIGTERM
 COPY --from=builder ["/tmp/zabbix-${ZBX_VERSION}/src/zabbix_java/bin", "/usr/sbin/zabbix_java/bin"]
 COPY --from=builder ["/tmp/zabbix-${ZBX_VERSION}/src/zabbix_java/lib", "/usr/sbin/zabbix_java/lib"]
 
-RUN set -eux && \
+RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
+    set -eux && \
     REPOLIST="baseos,appstream" && \
     INSTALL_PKGS="bash \
             java-1.8.0-openjdk-headless \
@@ -61,9 +62,7 @@ RUN set -eux && \
     chown --quiet -R zabbix:root /etc/zabbix/ /usr/sbin/zabbix_java/ && \
     chgrp -R 0 /etc/zabbix/ /usr/sbin/zabbix_java/ && \
     chmod -R g=u /etc/zabbix/ /usr/sbin/zabbix_java/ && \
-    dnf -y clean all && \
-    rm -rf /var/cache/yum /var/lib/yum/yumdb/* /usr/lib/udev/hwdb.d/* && \
-    rm -rf /var/cache/dnf /etc/udev/hwdb.bin /root/.pki
+    dnf -y clean all
 
 EXPOSE 10052/TCP
 

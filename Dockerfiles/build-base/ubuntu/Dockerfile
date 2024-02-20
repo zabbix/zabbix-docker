@@ -17,7 +17,8 @@ LABEL org.opencontainers.image.authors="Alexey Pustovalov <alexey.pustovalov@zab
       org.opencontainers.image.vendor="Zabbix LLC" \
       org.opencontainers.image.version="${ZBX_VERSION}"
 
-RUN set -eux && \
+RUN --mount=type=cache,target=/var/lib/apt/,sharing=locked \
+    set -eux && \
     INSTALL_PKGS="bash \
             autoconf \
             automake \
@@ -84,5 +85,4 @@ RUN set -eux && \
     tar -C /usr/local -xzf go.tgz && \
     rm go.tgz && \
     apt-get -y autoremove && \
-    apt-get -y clean && \
-    rm -rf /var/lib/apt/lists/*
+    apt-get -y clean

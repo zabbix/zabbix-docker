@@ -19,7 +19,9 @@ LABEL org.opencontainers.image.authors="Alexey Pustovalov <alexey.pustovalov@zab
       org.opencontainers.image.vendor="Zabbix LLC" \
       org.opencontainers.image.version="${ZBX_VERSION}"
 
-RUN set -eux && \
+RUN --mount=type=cache,target=/root/.cache/go-build/ \
+    --mount=type=cache,target=/root/go/ \
+    set -eux && \
     cd /tmp/ && \
     git -c advice.detachedHead=false clone ${ZBX_SOURCES} --branch ${ZBX_VERSION} --depth 1 --single-branch /tmp/zabbix-${ZBX_VERSION} && \
     cd /tmp/zabbix-${ZBX_VERSION} && \
@@ -76,5 +78,4 @@ RUN set -eux && \
     strip /tmp/zabbix-${ZBX_VERSION}/src/zabbix_proxy/zabbix_proxy && \
     strip /tmp/zabbix-${ZBX_VERSION}/src/go/bin/zabbix_agent2 && \
     strip /tmp/zabbix-${ZBX_VERSION}/src/zabbix_get/zabbix_get && \
-    strip /tmp/zabbix-${ZBX_VERSION}/src/zabbix_sender/zabbix_sender && \
-    rm -rf $(go env GOCACHE)
+    strip /tmp/zabbix-${ZBX_VERSION}/src/zabbix_sender/zabbix_sender

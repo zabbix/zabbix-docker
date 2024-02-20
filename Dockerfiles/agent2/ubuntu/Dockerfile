@@ -31,7 +31,8 @@ COPY --from=builder ["/tmp/zabbix-${ZBX_VERSION}/src/zabbix_get/zabbix_get", "/u
 COPY --from=builder ["/tmp/zabbix-${ZBX_VERSION}/src/zabbix_sender/zabbix_sender", "/usr/bin/zabbix_sender"]
 COPY --from=builder ["/tmp/zabbix-${ZBX_VERSION}/src/go/conf/zabbix_agent2.conf", "/etc/zabbix/zabbix_agent2.conf"]
 
-RUN set -eux && \
+RUN --mount=type=cache,target=/var/lib/apt/,sharing=locked \
+    set -eux && \
     echo "#!/bin/sh\nexit 101" > /usr/sbin/policy-rc.d && \
     INSTALL_PKGS="tini \
             tzdata \
@@ -68,8 +69,7 @@ RUN set -eux && \
     chgrp -R 0 /etc/zabbix/ /var/lib/zabbix/ && \
     chmod -R g=u /etc/zabbix/ /var/lib/zabbix/ && \
     apt-get -y autoremove && \
-    apt-get -y clean && \
-    rm -rf /var/lib/apt/lists/*
+    apt-get -y clean
 
 EXPOSE 10050/TCP
 
