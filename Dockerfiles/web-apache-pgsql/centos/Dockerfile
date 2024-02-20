@@ -29,7 +29,8 @@ STOPSIGNAL SIGTERM
 COPY --from=builder ["/tmp/zabbix-${ZBX_VERSION}/ui", "/usr/share/zabbix"]
 COPY ["conf/etc/", "/etc/"]
 
-RUN set -eux && \
+RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
+    set -eux && \
     REPOLIST="baseos,appstream,epel" && \
     INSTALL_PKGS="bash \
             curl \
@@ -55,6 +56,7 @@ RUN set -eux && \
             --enablerepo "${REPOLIST}" \
             --setopt=tsflags=nodocs \
             --setopt=install_weak_deps=False \
+            --setopt=keepcache=0 \
             --best \
         ${INSTALL_PKGS} && \
     groupadd \
@@ -103,9 +105,7 @@ RUN set -eux && \
     dnf -y remove \
         findutils \
         glibc-locale-source && \
-    dnf -y clean all && \
-    rm -rf /var/cache/yum /var/lib/yum/yumdb/* /usr/lib/udev/hwdb.d/* && \
-    rm -rf /var/cache/dnf /etc/udev/hwdb.bin /root/.pki
+    dnf -y clean all
 
 EXPOSE 8080/TCP 8443/TCP
 

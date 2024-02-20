@@ -100,8 +100,7 @@ RUN set -eux && \
     chmod -R g=u /etc/zabbix/ /usr/share/zabbix/include/defines.inc.php /usr/share/zabbix/modules/ && \
     chown --quiet -R zabbix:root /etc/apache2/ /etc/php7/ && \
     chgrp -R 0 /etc/apache2/ /etc/php7/ && \
-    chmod -R g=u /etc/apache2/ /etc/php7/ && \
-    rm -rf /var/cache/apk/*
+    chmod -R g=u /etc/apache2/ /etc/php7/
 
 EXPOSE 8080/TCP 8443/TCP
 

@@ -93,8 +93,7 @@ RUN set -eux && \
     mkdir -p /usr/share/doc/zabbix-server-mysql && \
     chown --quiet -R zabbix:root /etc/zabbix/ /var/lib/zabbix/ && \
     chgrp -R 0 /etc/zabbix/ /var/lib/zabbix/ && \
-    chmod -R g=u /etc/zabbix/ /var/lib/zabbix/ && \
-    rm -rf /var/cache/apk/*
+    chmod -R g=u /etc/zabbix/ /var/lib/zabbix/
 
 EXPOSE 10051/TCP
 
