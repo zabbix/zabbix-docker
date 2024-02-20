@@ -29,7 +29,8 @@ permissions:
    contents: read
 
 env:
-  AUTO_PUSH_IMAGES: ${{ contains(fromJSON('["workflow_dispatch", "push"]'), github.event_name) && 'false' || vars.AUTO_PUSH_IMAGES }}
+  TRUNK_ONLY_EVENT: ${{ contains(fromJSON('["schedule"]'), github.event_name) }}
+  AUTO_PUSH_IMAGES: ${{ ! contains(fromJSON('["workflow_dispatch", "push"]'), github.event_name) && vars.AUTO_PUSH_IMAGES }}
 
   LATEST_BRANCH: ${{ github.event.repository.default_branch }}
   TRUNK_GIT_BRANCH: "refs/heads/trunk"
@@ -164,7 +165,7 @@ jobs:
             echo "secret_prefix=RHEL_${github_ref//.}" >> $GITHUB_OUTPUT
             echo "sha_short=$sha_short" >> $GITHUB_OUTPUT
 
-      - name: Cleanup cache
+      - name: Cleanup existing cache
         shell: bash
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -205,11 +206,13 @@ jobs:
           fetch-depth: 1
 
       - name: Install cosign
+        if: ${{ env.AUTO_PUSH_IMAGES == 'true' }}
         uses: sigstore/cosign-installer@e1523de7571e31dbe865fd2e80c5c7c23ae71eb4
         with:
           cosign-release: 'v2.2.3'
 
       - name: Check cosign version
+        if: ${{ env.AUTO_PUSH_IMAGES == 'true' }}
         run: cosign version
 
       - name: Fix string case
@@ -231,7 +234,7 @@ jobs:
         id: build_image
         uses: redhat-actions/buildah-build@b4dc19b4ba891854660ab1f88a097d45aa158f76 # v2.12
         with:
-          context: ${{ env.DOCKERFILES_DIRECTORY }}/${{ matrix.build }}/rhel
+          context: ${{ format('{0}/{1}/rhel', env.DOCKERFILES_DIRECTORY, matrix.build) }}
           layers: false
           tags: ${{ steps.meta.outputs.tags }}
           containerfiles: |
@@ -240,7 +243,7 @@ jobs:
             --pull
             --iidfile=${{ github.workspace }}/iidfile
 
-      - name: Prepare image metadata
+      - name: Image metadata
         id: image_metadata
         env:
           IMAGE_TAG: ${{ steps.build_image.outputs.image-with-tag }}
@@ -279,7 +282,6 @@ jobs:
           IMAGE_TAG: ${{ steps.image_metadata.outputs.image_tag }}
           IMAGE_TAG_ID: ${{ steps.image_metadata.outputs.image_tag_id }}
           IMAGE_DIR: ${{ env.IMAGE_DIR }}
-          GITHUB_WORKSPACE: ${{ github.workspace }}
         run: |
             echo "::group::Result"
             echo "Image ${IMAGE_TAG} location: \"${IMAGE_DIR}/${IMAGE_TAG_ID}\""
@@ -310,13 +312,14 @@ jobs:
         if: ${{ (cancelled() || failure()) && ( steps.push_image.outcome == 'failure' || steps.push_image.outcome == 'cancelled') }}
         env:
           IMAGE_TAG_ID: ${{ steps.image_metadata.outputs.image_tag_id }}
+          IMAGE_DIR: ${{ env.IMAGE_DIR }}
         run: |
             echo "::group::Removing orphaned image"
             rm -rf "${IMAGE_DIR}/${IMAGE_TAG_ID}"
             echo "::endgroup::"
 
   build_base_database:
-    timeout-minutes: 180
+    timeout-minutes: 90
     needs: [ "build_base", "init_build"]
     name: Build ${{ matrix.build }} base (${{ matrix.arch }})
     strategy:
@@ -348,7 +351,7 @@ jobs:
               ${{ env.BASE_BUILD_NAME }}_${{ matrix.arch }}_tag
           key: ${{ env.BASE_BUILD_NAME }}-${{ matrix.arch }}-${{ github.run_id }}
 
-      - name: Pull ${{ env.BASE_BUILD_NAME }}:${{ matrix.arch }} image
+      - name: Pull ${{ env.BASE_BUILD_NAME }}:${{ matrix.arch }} image from local storage
         id: base_build
         env:
          MATRIX_ARCH: ${{ matrix.arch }}
@@ -389,7 +392,7 @@ jobs:
         id: build_image
         uses: redhat-actions/buildah-build@b4dc19b4ba891854660ab1f88a097d45aa158f76 # v2.12
         with:
-          context: ${{ env.DOCKERFILES_DIRECTORY }}/${{ matrix.build }}/rhel
+          context: ${{ format('{0}/{1}/rhel', env.DOCKERFILES_DIRECTORY, matrix.build) }}
           layers: false
           tags: ${{ steps.meta.outputs.tags }}
           containerfiles: |
@@ -423,7 +426,7 @@ jobs:
             echo "image_tag_id=${TAG_ID}" >> $GITHUB_OUTPUT
             echo "image_tag=${IMAGE_TAG}" >> $GITHUB_OUTPUT
 
-      - name: Cache image digest
+      - name: Cache image metadata
         uses: actions/cache/save@13aacd865c20de90d75de3b17ebe84f7a17d57d2 # v4.0.0
         with:
           path: |
@@ -437,7 +440,6 @@ jobs:
           IMAGE_TAG: ${{ steps.image_metadata.outputs.image_tag }}
           IMAGE_TAG_ID: ${{ steps.image_metadata.outputs.image_tag_id }}
           IMAGE_DIR: ${{ env.IMAGE_DIR }}
-          GITHUB_WORKSPACE: ${{ github.workspace }}
         run: |
             echo "::group::Result"
             echo "podman push \"${IMAGE_TAG}\" dir:\"${IMAGE_DIR}/${IMAGE_TAG_ID}\""
@@ -468,13 +470,14 @@ jobs:
         if: ${{ (cancelled() || failure()) && ( steps.push_image.outcome == 'failure' || steps.push_image.outcome == 'cancelled') }}
         env:
           IMAGE_TAG_ID: ${{ steps.image_metadata.outputs.image_tag_id }}
+          IMAGE_DIR: ${{ env.IMAGE_DIR }}
         run: |
             echo "::group::Removing orphaned image"
             rm -rf "${IMAGE_DIR}/${IMAGE_TAG_ID}"
             echo "::endgroup::"
 
   build_images:
-    timeout-minutes: 90
+    timeout-minutes: 30
     needs: [ "build_base_database", "init_build"]
     name: Build ${{ matrix.build }} image (${{ matrix.arch }})
     strategy:
@@ -580,7 +583,7 @@ jobs:
         id: build_image
         uses: redhat-actions/buildah-build@b4dc19b4ba891854660ab1f88a097d45aa158f76 # v2.12
         with:
-          context: ${{ env.DOCKERFILES_DIRECTORY }}/${{ matrix.build }}/rhel
+          context: ${{ format('{0}/{1}/rhel', env.DOCKERFILES_DIRECTORY, matrix.build) }}
           layers: false
           tags: ${{ steps.meta.outputs.tags }}
           labels: |
@@ -588,6 +591,9 @@ jobs:
             org.opencontainers.image.created=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.created'] }}
           containerfiles: |
             ${{ env.DOCKERFILES_DIRECTORY }}/${{ matrix.build }}/rhel/Dockerfile
+          extra-args: |
+            --pull
+            --iidfile=${{ github.workspace }}/iidfile
           build-args: BUILD_BASE_IMAGE=${{ steps.base_build.outputs.base_build_image }}
 
       - name: Log in to ${{ env.REGISTRY }}
@@ -657,10 +663,23 @@ jobs:
             podman rmi -i -f "$PREFLIGHT_IMAGE"
             echo "::endgroup::"
 
+      - name: Image digest
+        env:
+          GITHUB_WORKSPACE: ${{ github.workspace }}
+        run: |
+            TAG_ID=$(cat $GITHUB_WORKSPACE/iidfile)
+            echo "::group::Image digest"
+            echo "$TAG_ID"
+            echo "::endgroup::"
+
       - name: Post build image
         if: ${{ success() || failure() }}
+        env:
+         GITHUB_WORKSPACE: ${{ github.workspace }}
         run: |
             echo "::group::Result"
+
+            rm -rf "$GITHUB_WORKSPACE/iidfile"
 
             echo "Removing working containers"
             buildah rm -a 2>/dev/null || true
@@ -674,7 +693,7 @@ jobs:
             echo "::endgroup::"
 
   clear_artifacts:
-    timeout-minutes: 90
+    timeout-minutes: 10
     needs: [ "build_images", "init_build"]
     name: Clear ${{ matrix.build }} image cache (${{ matrix.arch }})
     strategy:
