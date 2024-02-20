@@ -33,18 +33,18 @@
     "windows-2022": "ltsc2022"
   },
   "components": {
-    "agent": { "base": "build-mysql", "rhel": true },
-    "agent2": { "base": "build-mysql", "rhel": true },
-    "java-gateway": { "base": "build-mysql", "rhel": true },
-    "proxy-mysql": { "base": "build-mysql", "rhel": true },
-    "proxy-sqlite3": { "base": "build-sqlite3", "rhel": true },
-    "server-mysql": { "base": "build-mysql", "rhel": true },
+    "agent": { "base": "build-mysql", "rhel": true, "rhel_project": "63f30e7a9b0ca19f84ed9bad" },
+    "agent2": { "base": "build-mysql", "rhel": true, "rhel_project": "63f30e0f0483afdd5e26f6f5" },
+    "java-gateway": { "base": "build-mysql", "rhel": true, "rhel_project": "63f30e3c51aac3123e043e54" },
+    "proxy-mysql": { "base": "build-mysql", "rhel": true, "rhel_project": "63f30e4f8f6bfc30cd1440d8" },
+    "proxy-sqlite3": { "base": "build-sqlite3", "rhel": true, "rhel_project": "63f30e273f0b02a2e2cbdad1" },
+    "server-mysql": { "base": "build-mysql", "rhel": true, "rhel_project": "63f30e629b0ca19f84ed9b80" },
     "server-pgsql": { "base": "build-pgsql", "rhel": false },
-    "snmptraps": { "base": "", "rhel": true },
+    "snmptraps": { "base": "", "rhel": true, "rhel_project": "63f30e2d0ef1d13d82d39793" },
     "web-apache-mysql": { "base": "build-mysql", "rhel": false },
     "web-apache-pgsql": { "base": "build-pgsql", "rhel": false },
-    "web-nginx-mysql": { "base": "build-mysql", "rhel": true },
+    "web-nginx-mysql": { "base": "build-mysql", "rhel": true, "rhel_project": "63f30e478857871bae486514" },
     "web-nginx-pgsql": { "base": "build-mysql", "rhel": false },
-    "web-service": { "base": "build-mysql", "rhel": true }
+    "web-service": { "base": "build-mysql", "rhel": true, "rhel_project": "63f30e3a3854c988f07dacbe" }
   }
 }
