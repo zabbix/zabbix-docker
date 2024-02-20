@@ -30,7 +30,7 @@ jobs:
       contents: read
     outputs:
       components: ${{ steps.components.outputs.list }}
-      zabbix_release: ${{ steps.branch_info.output.zabbix_release }}
+      zabbix_release: ${{ steps.branch_info.outputs.zabbix_release }}
     steps:
       - name: Block egress traffic
         uses: step-security/harden-runner@63c24ba6bd7ba022e95695ff85de572c04a18142 # v2.7.0
