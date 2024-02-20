@@ -44,6 +44,17 @@ jobs:
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
         with:
           fetch-depth: 1
+          sparse-checkout: ${{ env.MATRIX_FILE }}
+
+      - name: Check ${{ env.MATRIX_FILE }} file
+        id: build_exists
+        env:
+          MATRIX_FILE: ${{ env.MATRIX_FILE }}
+        run: |
+            if [[ ! -f "$MATRIX_FILE" ]]; then
+                echo "::error::File $MATRIX_FILE is missing"
+                exit 1
+            fi
 
       - name: Get branch info
         id: branch_info
@@ -60,16 +71,6 @@ jobs:
             echo "::endgroup::"
 
             echo "zabbix_release=${github_ref//.}" >> $GITHUB_OUTPUT
-
-      - name: Check ${{ env.MATRIX_FILE }} file
-        id: build_exists
-        env:
-          MATRIX_FILE: ${{ env.MATRIX_FILE }}
-        run: |
-            if [[ ! -f "$MATRIX_FILE" ]]; then
-                echo "::error::File $MATRIX_FILE is missing"
-                exit 1
-            fi
 
       - name: Prepare Zabbix component list
         id: components
@@ -134,14 +135,22 @@ jobs:
           python -m pip install --upgrade pip
           pip install markdown requests
 
-      - name: Update Red Hat project description (${{ matrix.component }}-${{ needs.init.outputs.zabbix_release }})
+      - name: Update Red Hat project description
         env:
           DESCRIPTION_FILE: ${{ format('{0}/{1}/rhel/README', env.DOCKERFILES_DIRECTORY, matrix.component) }}
           PROJECT_ID: ${{ secrets[format('RHEL_{0}_{1}_PROJECT',  needs.init.outputs.zabbix_release, steps.var_format.outputs.matrix_build)] }}
           PYXIS_API_TOKEN: ${{ secrets.REDHAT_API_TOKEN }}
           API_URL: ${{ env.API_URL }}
-          COMPONENT: ${{ matrix.component }}
-          ZABBIX_RELEASE: ${{ needs.init.outputs.zabbix_release }}
         run: |
             python ./.github/scripts/rhel_description.py
-            echo "https://catalog.redhat.com/software/containers/zabbix/zabbix-${COMPONENT}-${ZABBIX_RELEASE}/${PROJECT_ID}"
+
+      - name: Red Hat Gatalog URL
+        env:
+          COMPONENT: ${{ matrix.component }}
+          MATRIX_FILE: ${{ env.MATRIX_FILE }}
+        run: |
+            PROJECT_ID=$(jq -r ".components.\"$COMPONENT\".rhel_project" "$MATRIX_FILE")
+
+            echo "::group::URL"
+            echo "https://catalog.redhat.com/software/containers/${PROJECT_ID}"
+            echo "::endgroup::"
