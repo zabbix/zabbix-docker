@@ -21,7 +21,8 @@ LABEL org.opencontainers.image.authors="Alexey Pustovalov <alexey.pustovalov@zab
 
 STOPSIGNAL SIGTERM
 
-RUN set -eux && \
+RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
+    set -eux && \
     INSTALL_PKGS="bash \
             tzdata \
             net-snmp" && \
@@ -30,6 +31,7 @@ RUN set -eux && \
             --enablerepo="ol8_baseos_latest" \
             --enablerepo="ol8_appstream" \
             --setopt=install_weak_deps=0 \
+            --setopt=keepcache=0 \
             --best \
             --nodocs \
         ${INSTALL_PKGS} && \
@@ -52,9 +54,7 @@ RUN set -eux && \
     chown --quiet -R zabbix:root /etc/snmp/ /var/lib/zabbix/ /var/tmp/ /var/run/ && \
     chgrp -R 0 /etc/snmp/ /var/lib/zabbix/ /var/tmp/ /var/run/ && \
     chmod -R g=u /etc/snmp/ /var/lib/zabbix/ /var/tmp/ /var/run/ && \
-    microdnf -y clean all && \
-    rm -rf /var/cache/yum /var/lib/yum/yumdb/* /usr/lib/udev/hwdb.d/* && \
-    rm -rf /var/cache/dnf /etc/udev/hwdb.bin /root/.pki
+    microdnf -y clean all
 
 EXPOSE 1162/UDP
 

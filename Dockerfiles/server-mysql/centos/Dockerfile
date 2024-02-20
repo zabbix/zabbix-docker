@@ -34,7 +34,8 @@ COPY --from=builder ["/tmp/zabbix-${ZBX_VERSION}/src/zabbix_sender/zabbix_sender
 COPY --from=builder ["/tmp/zabbix-${ZBX_VERSION}/conf/zabbix_server.conf", "/etc/zabbix/zabbix_server.conf"]
 COPY --from=builder ["/tmp/zabbix-${ZBX_VERSION}/database/mysql/create_server.sql.gz", "/usr/share/doc/zabbix-server-mysql/create.sql.gz"]
 
-RUN set -eux && \
+RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
+    set -eux && \
     REPOLIST="baseos,appstream,epel" && \
     INSTALL_PKGS="fping \
             tini \
@@ -101,9 +102,7 @@ RUN set -eux && \
     chown --quiet -R zabbix:root /etc/zabbix/ /var/lib/zabbix/ && \
     chgrp -R 0 /etc/zabbix/ /var/lib/zabbix/ && \
     chmod -R g=u /etc/zabbix/ /var/lib/zabbix/ && \
-    dnf -y clean all && \
-    rm -rf /var/cache/yum /var/lib/yum/yumdb/* /usr/lib/udev/hwdb.d/* && \
-    rm -rf /var/cache/dnf /etc/udev/hwdb.bin /root/.pki
+    dnf -y clean all
 
 EXPOSE 10051/TCP
 

@@ -61,5 +61,4 @@ RUN set -eux && \
     apk add \
             --no-cache \
             --clean-protected \
-        ${INSTALL_PKGS} && \
-    rm -rf /var/cache/apk/*
+        ${INSTALL_PKGS}

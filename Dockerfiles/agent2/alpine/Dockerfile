@@ -71,8 +71,7 @@ RUN set -eux && \
     mkdir -p /var/lib/zabbix/buffer && \
     chown --quiet -R zabbix:root /etc/zabbix/ /var/lib/zabbix/ /usr/sbin/zabbix-agent2-plugin/ && \
     chgrp -R 0 /etc/zabbix/ /var/lib/zabbix/ /usr/sbin/zabbix-agent2-plugin/ && \
-    chmod -R g=u /etc/zabbix/ /var/lib/zabbix/ /usr/sbin/zabbix-agent2-plugin/ && \
-    rm -rf /var/cache/apk/*
+    chmod -R g=u /etc/zabbix/ /var/lib/zabbix/ /usr/sbin/zabbix-agent2-plugin/
 
 EXPOSE 10050/TCP 31999/TCP
 
