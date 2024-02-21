@@ -14,14 +14,12 @@ Zabbix agent 2 is deployed on a monitoring target to actively monitor local reso
 
 # Zabbix agent 2 images
 
-These are the only official Zabbix agent 2 Docker images. They are based on Alpine Linux v3.15, Ubuntu 20.04 (focal), 22.04 (jammy), CentOS Stream 8, Oracle Linux 8, Windows 10 LTSC 2019 and Windows 11 LTSC 2022 images. The available versions of Zabbix agent 2 are:
+These are the only official Zabbix agent 2 Docker images. They are based on Alpine Linux v3.19, Ubuntu 22.04 (jammy), CentOS Stream 9, Oracle Linux 9, Windows 10 LTSC 2019 and Windows 11 LTSC 2022 images. The available versions of Zabbix agent 2 are:
 
     Zabbix agent 2 5.0 (tags: alpine-5.0-latest, ubuntu-5.0-latest, ol-5.0-latest , ltsc2019-5.0-latest, ltsc2022-5.0-latest)
     Zabbix agent 2 5.0.* (tags: alpine-5.0.*, ubuntu-5.0.*, ol-5.0.*, ltsc2019-5.0.*, ltsc2022-5.0.*)
     Zabbix agent 2 6.0 (tags: alpine-6.0-latest, ubuntu-6.0-latest, ol-6.0-latest)
     Zabbix agent 2 6.0.* (tags: alpine-6.0.*, ubuntu-6.0.*, ol-6.0.*, ltsc2019-6.0.*, ltsc2022-6.0.*)
-    Zabbix agent 2 6.2 (tags: alpine-6.2-latest, ubuntu-6.2-latest, ol-6.2-latest)
-    Zabbix agent 2 6.2.* (tags: alpine-6.2.*, ubuntu-6.2.*, ol-6.2.*, ltsc2019-6.2.*, ltsc2022-6.2.*)
     Zabbix agent 2 6.4 (tags: alpine-6.4-latest, ubuntu-6.4-latest, ol-6.4-latest, alpine-latest, ubuntu-latest, ol-latest, ltsc2019-latest, ltsc2022-latest, latest)
     Zabbix agent 2 6.4.* (tags: alpine-6.4.*, ubuntu-6.4.*, ol-6.4.*, ltsc2019-6.4.*, ltsc2022-6.4.*)
     Zabbix agent 2 7.0 (tags: alpine-trunk, ubuntu-trunk, ol-trunk, ltsc2019-trunk, ltsc2022-trunk)
