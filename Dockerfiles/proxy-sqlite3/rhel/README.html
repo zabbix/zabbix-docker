@@ -11,7 +11,7 @@
 <h1 id="how-to-use-this-image">How to use this image</h1>
 <h2 id="start-zabbix-proxy-sqlite3-">Start <code>zabbix-proxy-sqlite3</code></h2>
 <p>Start a Zabbix proxy container as follows:</p>
-<pre><code>podman <span class="hljs-keyword">run</span><span class="bash"> --name some-zabbix-proxy-sqlite3 <span class="hljs-_">-e</span> ZBX_HOSTNAME=some-hostname <span class="hljs-_">-e</span> ZBX_SERVER_HOST=some-zabbix-server --init <span class="hljs-_">-d</span> zabbix/zabbix-proxy-sqlite3:tag</span>
+<pre><code>podman <span class="hljs-keyword">run</span><span class="bash"> --name some-zabbix-proxy-sqlite3 <span class="hljs-_">-e</span> ZBX_HOSTNAME=some-hostname <span class="hljs-_">-e</span> ZBX_SERVER_HOST=some-zabbix-server <span class="hljs-_">-d</span> zabbix/zabbix-proxy-sqlite3:tag</span>
 </code></pre><p>Where <code>some-zabbix-proxy-sqlite3</code> is the name you want to assign to your container, <code>some-hostname</code> is the hostname, it is Hostname parameter in Zabbix proxy configuration file, <code>some-zabbix-server</code> is IP or DNS name of Zabbix server and <code>tag</code> is the tag specifying the version you want.</p>
 <blockquote>
 <p>[!NOTE]
@@ -154,7 +154,7 @@ SNMP traps processing feature could be enabled using shared volume and switched 
 <p>The volume allows to add new MIB files. It does not support subdirectories, all MIBs must be placed to <code>/var/lib/zabbix/mibs</code>.</p>
 <h1 id="user-feedback">User Feedback</h1>
 <h2 id="documentation">Documentation</h2>
-<p>Documentation for this image is stored in the <a href="https://github.com/zabbix/zabbix-docker/tree/trunk/Dockerfiles/proxy-sqlite3"><code>proxy-sqlite3/</code> directory</a> of the <a href="https://github.com/zabbix/zabbix-docker/"><code>zabbix/zabbix-docker</code> GitHub repo</a>. Be sure to familiarize yourself with the <a href="https://github.com/zabbix/zabbix-docker/blob/trunk/README.md">repository&#39;s <code>README.md</code> file</a> before attempting a pull request.</p>
+<p>Documentation for this image is stored in the <a href="https://github.com/zabbix/zabbix-docker/tree/6.4/Dockerfiles/proxy-sqlite3"><code>proxy-sqlite3/</code> directory</a> of the <a href="https://github.com/zabbix/zabbix-docker/"><code>zabbix/zabbix-docker</code> GitHub repo</a>. Be sure to familiarize yourself with the <a href="https://github.com/zabbix/zabbix-docker/blob/6.4/README.md">repository&#39;s <code>README.md</code> file</a> before attempting a pull request.</p>
 <h2 id="issues">Issues</h2>
 <p>If you have any problems with or questions about this image, please contact us through a <a href="https://github.com/zabbix/zabbix-docker/issues">GitHub issue</a>.</p>
 <h3 id="known-issues">Known issues</h3>
