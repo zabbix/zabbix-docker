@@ -19,15 +19,15 @@ if ("PROJECT_ID" not in os.environ or len(os.environ["PROJECT_ID"]) == 0):
     print("RedHat project ID environment variable is not specified")
     sys.exit(1)
 
-if (os.path.isfile(os.environ["DESCRIPTION_FILE"] + '.md')):
+if (os.path.isfile(os.environ["DESCRIPTION_FILE"] + '.html')):
+    file = open(os.environ["DESCRIPTION_FILE"] + '.html', mode='r')
+    repository_description = file.read()
+    file.close()
+elif (os.path.isfile(os.environ["DESCRIPTION_FILE"] + '.md')):
     file = open(os.environ["DESCRIPTION_FILE"] + '.md', mode='r')
     markdown_data = file.read()
     file.close()
     repository_description=markdown.markdown(markdown_data)
-elif (os.path.isfile(os.environ["DESCRIPTION_FILE"] + '.html')):
-    file = open(os.environ["DESCRIPTION_FILE"] + '.html', mode='r')
-    repository_description = file.read()
-    file.close()
 
 if (repository_description is None or len(repository_description) == 0):
     print("::error::No description file found")
