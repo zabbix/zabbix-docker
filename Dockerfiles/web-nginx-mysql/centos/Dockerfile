@@ -5,7 +5,7 @@ ARG BUILD_BASE_IMAGE=zabbix-build-mysql:centos-${ZBX_VERSION}
 
 FROM ${BUILD_BASE_IMAGE} AS builder
 
-FROM quay.io/centos/centos:stream9
+FROM quay.io/centos/centos:stream9-minimal
 
 ARG MAJOR_VERSION
 ARG ZBX_VERSION
@@ -29,8 +29,8 @@ STOPSIGNAL SIGTERM
 COPY --from=builder ["/tmp/zabbix-${ZBX_VERSION}/ui", "/usr/share/zabbix"]
 COPY ["conf/etc/", "/etc/"]
 
-RUN set -eux && \
-    REPOLIST="baseos,appstream,epel" && \
+RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
+    set -eux && \
     INSTALL_PKGS="bash \
             curl-minimal \
             mysql \
@@ -45,15 +45,31 @@ RUN set -eux && \
             php-xml \
             findutils \
             glibc-locale-source \
+            shadow-utils \
             supervisor" && \
-    dnf -y install epel-release && \
-    dnf -y install \
-            --disablerepo "*" \
-            --enablerepo "${REPOLIST}" \
-            --setopt=tsflags=nodocs \
-            --setopt=install_weak_deps=False \
+    microdnf -y install \
+        --disablerepo "*" \
+        --enablerepo "extras-common" \
+        --setopt=install_weak_deps=0 \
+        --setopt=keepcache=0 \
+        --best \
+        --nodocs epel-release && \
+    microdnf -y install \
+        --disablerepo "*" \
+        --enablerepo "baseos" \
+        --enablerepo "appstream" \
+        --enablerepo="epel" \
+        --setopt=install_weak_deps=0 \
+        --setopt=keepcache=0 \
+        --best \
+        --nodocs ${INSTALL_PKGS} && \
+    microdnf -y reinstall \
+            --enablerepo "baseos" \
+            --setopt=install_weak_deps=0 \
+            --setopt=keepcache=0 \
             --best \
-        ${INSTALL_PKGS} && \
+            --setopt=tsflags=nodocs \
+        tzdata && \
     groupadd \
             --system \
             --gid 1995 \
@@ -94,12 +110,10 @@ RUN set -eux && \
     chown --quiet -R zabbix:root /var/lib/php/session/ && \
     chgrp -R 0 /var/lib/php/session/ && \
     chmod -R g=u /var/lib/php/session/ && \
-    dnf -y remove \
+    microdnf -y remove \
             findutils \
             glibc-locale-source && \
-    dnf -y clean all && \
-    rm -rf /var/cache/yum /var/lib/yum/yumdb/* /usr/lib/udev/hwdb.d/* && \
-    rm -rf /var/cache/dnf /etc/udev/hwdb.bin /root/.pki
+    microdnf -y clean all
 
 EXPOSE 8080/TCP 8443/TCP
 

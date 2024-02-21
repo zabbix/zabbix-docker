@@ -14,12 +14,10 @@ Zabbix web service for performing various tasks using headless web browser (for 
 
 # Zabbix web service images
 
-These are the only official Zabbix web service Docker images. They are based on Alpine Linux v3.13, Ubuntu 20.04 (focal), 22.04 (jammy) and Oracle Linux 8 images. The available versions of Zabbix web service are:
+These are the only official Zabbix web service Docker images. They are based on Alpine Linux v3.19, Ubuntu 22.04 (jammy) and Oracle Linux 9 images. The available versions of Zabbix web service are:
 
     Zabbix web service 6.0 (tags: alpine-6.0-latest, ubuntu-6.0-latest, ol-6.0-latest)
     Zabbix web service 6.0.* (tags: alpine-6.0.*, ubuntu-6.0.*, ol-6.0.*)
-    Zabbix web service 6.2 (tags: alpine-6.2-latest, ubuntu-6.2-latest, ol-6.2-latest, alpine-latest, ubuntu-latest, ol-latest, latest)
-    Zabbix web service 6.2.* (tags: alpine-6.2.*, ubuntu-6.2.*, ol-6.2.*)
     Zabbix web service 6.4 (tags: alpine-6.4-latest, ubuntu-6.4-latest, ol-6.4-latest, alpine-latest, ubuntu-latest, ol-latest, latest)
     Zabbix web service 6.4.* (tags: alpine-6.4.*, ubuntu-6.4.*, ol-6.4.*)
     Zabbix web service 7.0 (tags: alpine-trunk, ubuntu-trunk, ol-trunk)
@@ -103,7 +101,7 @@ Please use official documentation for [``zabbix_web_service.conf``](https://www.
 ## Allowed volumes for the Zabbix web service container
 
 ### ``/var/lib/zabbix/enc``
-    
+
 The volume is used to store TLS related files. These file names are specified using ``ZBX_TLSCAFILE``, ``ZBX_TLSCERTFILE`` and ``ZBX_TLSKEY_FILE`` variables.
 
 # The image variants
@@ -138,7 +136,7 @@ Please see [the Docker installation documentation](https://docs.docker.com/insta
 
 ## Documentation
 
-Documentation for this image is stored in the [`web-service/` directory](https://github.com/zabbix/zabbix-docker/tree/5.4/web-service) of the [`zabbix/zabbix-docker` GitHub repo](https://github.com/zabbix/zabbix-docker/). Be sure to familiarize yourself with the [repository's `README.md` file](https://github.com/zabbix/zabbix-docker/blob/master/README.md) before attempting a pull request.
+Documentation for this image is stored in the [`web-service/` directory](https://github.com/zabbix/zabbix-docker/tree/6.4/Dockerfiles/web-service) of the [`zabbix/zabbix-docker` GitHub repo](https://github.com/zabbix/zabbix-docker/). Be sure to familiarize yourself with the [repository's `README.md` file](https://github.com/zabbix/zabbix-docker/blob/6.4/README.md) before attempting a pull request.
 
 ## Issues
 

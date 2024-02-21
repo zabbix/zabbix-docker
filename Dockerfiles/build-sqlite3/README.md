@@ -14,16 +14,12 @@ Zabbix build base (SQLite3) image is used for building Zabbix components. It con
 
 # Zabbix build base (SQLite3) images
 
-These are the only official Zabbix build base (SQLite3) Docker images. They are based on Alpine Linux v3.15, Ubuntu 20.04 (focal), 22.04 (jammy), CentOS Stream 8 and Oracle Linux 8 images. The available versions of the image are:
+These are the only official Zabbix build base (SQLite3) Docker images. They are based on Alpine Linux v3.19, Ubuntu 22.04 (jammy), CentOS Stream 9 and Oracle Linux 9 images. The available versions of the image are:
 
-    Zabbix build base 4.0 (tags: alpine-4.0-latest, ubuntu-4.0-latest, centos-4.0-latest)
-    Zabbix build base 4.0.* (tags: alpine-4.0.*, ubuntu-4.0.*, centos-4.0.*)
     Zabbix build base 5.0 (tags: alpine-5.0-latest, ubuntu-5.0-latest, ol-5.0-latest)
     Zabbix build base 5.0.* (tags: alpine-5.0.*, ubuntu-5.0.*, ol-5.0.*)
     Zabbix build base 6.0 (tags: alpine-6.0-latest, ubuntu-6.0-latest, ol-6.0-latest)
     Zabbix build base 6.0.* (tags: alpine-6.0.*, ubuntu-6.0.*, ol-6.0.*)
-    Zabbix build base 6.2 (tags: alpine-6.2-latest, ubuntu-6.2-latest, ol-6.2-latest)
-    Zabbix build base 6.2.* (tags: alpine-6.2.*, ubuntu-6.2.*, ol-6.2.*)
     Zabbix build base 6.4 (tags: alpine-6.4-latest, ubuntu-6.4-latest, ol-6.4-latest, alpine-latest, ubuntu-latest, ol-latest, latest)
     Zabbix build base 6.4.* (tags: alpine-6.4.*, ubuntu-6.4.*, ol-6.4.*)
     Zabbix build base 7.0 (tags: alpine-trunk, ubuntu-trunk, ol-trunk)
@@ -34,7 +30,7 @@ Images are updated when new releases are published. The image with ``latest`` ta
 
 The image is used to build / compile Zabbix components. Components are prepared for usage in any other images.
 
-The image uses [Zabbix build base](https://github.com/zabbix/zabbix-docker/tree/trunk/Dockerfiles/build-base) image with prepared build environment as base image and build / compile Zabbix components only.
+The image uses [Zabbix build base](https://github.com/zabbix/zabbix-docker/tree/6.4/Dockerfiles/build-base) image with prepared build environment as base image and build / compile Zabbix components only.
 
 It contains limited prepared Zabbix components while MySQL and PostgreSQL build base images contain all possible components:
 * zabbix-agent
@@ -74,7 +70,7 @@ Please see [the Docker installation documentation](https://docs.docker.com/insta
 
 ## Documentation
 
-Documentation for this image is stored in the [`build-base/` directory](https://github.com/zabbix/zabbix-docker/tree/trunk/Dockerfiles/build-base) of the [`zabbix/zabbix-docker` GitHub repo](https://github.com/zabbix/zabbix-docker/). Be sure to familiarize yourself with the [repository's `README.md` file](https://github.com/zabbix/zabbix-docker/blob/master/README.md) before attempting a pull request.
+Documentation for this image is stored in the [`build-base/` directory](https://github.com/zabbix/zabbix-docker/tree/6.4/Dockerfiles/build-base) of the [`zabbix/zabbix-docker` GitHub repo](https://github.com/zabbix/zabbix-docker/). Be sure to familiarize yourself with the [repository's `README.md` file](https://github.com/zabbix/zabbix-docker/blob/6.4/README.md) before attempting a pull request.
 
 ## Issues
 

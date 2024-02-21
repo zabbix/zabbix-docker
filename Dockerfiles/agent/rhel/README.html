@@ -1,0 +1,121 @@
+<p><img src="https://assets.zabbix.com/img/logo/zabbix_logo_500x131.png" alt="logo"></p>
+<h1 id="what-is-zabbix-">What is Zabbix?</h1>
+<p>Zabbix is an enterprise-class open source distributed monitoring solution.</p>
+<p>Zabbix is software that monitors numerous parameters of a network and the health and integrity of servers. Zabbix uses a flexible notification mechanism that allows users to configure e-mail based alerts for virtually any event. This allows a fast reaction to server problems. Zabbix offers excellent reporting and data visualisation features based on the stored data. This makes Zabbix ideal for capacity planning.</p>
+<p>For more information and related downloads for Zabbix components, please visit <a href="https://hub.docker.com/u/zabbix/">https://hub.docker.com/u/zabbix/</a> and <a href="https://zabbix.com">https://zabbix.com</a></p>
+<h1 id="what-is-zabbix-agent-">What is Zabbix agent?</h1>
+<p>Zabbix agent is deployed on a monitoring target to actively monitor local resources and applications (hard drives, memory, processor statistics etc).</p>
+<h1 id="zabbix-agent-images">Zabbix agent images</h1>
+<p>These are the only official Zabbix agent Docker images.</p>
+<h1 id="how-to-use-this-image">How to use this image</h1>
+<h2 id="start-zabbix-agent-">Start <code>zabbix-agent</code></h2>
+<p>Start a Zabbix agent container as follows:</p>
+<pre><code>podman <span class="hljs-keyword">run</span><span class="bash"> --name some-zabbix-agent <span class="hljs-_">-e</span> ZBX_HOSTNAME=<span class="hljs-string">"some-hostname"</span> <span class="hljs-_">-e</span> ZBX_SERVER_HOST=<span class="hljs-string">"some-zabbix-server"</span> <span class="hljs-_">-d</span> zabbix/zabbix-agent:tag</span>
+</code></pre><p>Where <code>some-zabbix-agent</code> is the name you want to assign to your container, <code>some-hostname</code> is the hostname, it is Hostname parameter in Zabbix agent configuration file, <code>some-zabbix-server</code> is IP or DNS name of Zabbix server or proxy and <code>tag</code> is the tag specifying the version you want.</p>
+<h2 id="connects-from-zabbix-server-or-zabbix-proxy-in-other-containers-passive-checks-">Connects from Zabbix server or Zabbix proxy in other containers (Passive checks)</h2>
+<p>This image exposes the standard Zabbix agent port (<code>10050</code>) to perform passive checks, so container linking makes Zabbix agent instance available to Zabbix server and Zabbix proxy containers. Start your application container like this in order to link it to the Zabbix agent container:</p>
+<pre><code class="lang-console"><span class="hljs-comment">$</span> <span class="hljs-comment">podman</span> <span class="hljs-comment">run</span> <span class="hljs-literal">-</span><span class="hljs-literal">-</span><span class="hljs-comment">name</span> <span class="hljs-comment">some</span><span class="hljs-literal">-</span><span class="hljs-comment">zabbix</span><span class="hljs-literal">-</span><span class="hljs-comment">server</span> <span class="hljs-literal">-</span><span class="hljs-literal">-</span><span class="hljs-comment">link</span> <span class="hljs-comment">some</span><span class="hljs-literal">-</span><span class="hljs-comment">zabbix</span><span class="hljs-literal">-</span><span class="hljs-comment">agent:zabbix</span><span class="hljs-literal">-</span><span class="hljs-comment">agent</span> <span class="hljs-literal">-</span><span class="hljs-comment">d</span> <span class="hljs-comment">zabbix/zabbix</span><span class="hljs-literal">-</span><span class="hljs-comment">server:latest</span>
+</code></pre>
+<h2 id="connect-to-zabbix-server-or-zabbix-proxy-containers-active-checks-">Connect to Zabbix server or Zabbix proxy containers (Active checks)</h2>
+<p>This image supports perform active checks, so container linking makes Zabbix server and Zabbix proxy containers available to Zabbix agent instance. Start your application container like this in order to link Zabbix agent to Zabbix server or Zabbix proxy containterns:</p>
+<pre><code class="lang-console"><span class="hljs-comment">$</span> <span class="hljs-comment">podman</span> <span class="hljs-comment">run</span> <span class="hljs-literal">-</span><span class="hljs-literal">-</span><span class="hljs-comment">name</span> <span class="hljs-comment">some</span><span class="hljs-literal">-</span><span class="hljs-comment">zabbix</span><span class="hljs-literal">-</span><span class="hljs-comment">agent</span> <span class="hljs-literal">-</span><span class="hljs-literal">-</span><span class="hljs-comment">link</span> <span class="hljs-comment">some</span><span class="hljs-literal">-</span><span class="hljs-comment">zabbix</span><span class="hljs-literal">-</span><span class="hljs-comment">server:zabbix</span><span class="hljs-literal">-</span><span class="hljs-comment">server</span> <span class="hljs-literal">-</span><span class="hljs-comment">d</span> <span class="hljs-comment">zabbix/zabbix</span><span class="hljs-literal">-</span><span class="hljs-comment">agent:latest</span>
+</code></pre>
+<h2 id="container-shell-access-and-viewing-zabbix-agent-logs">Container shell access and viewing Zabbix agent logs</h2>
+<p>The <code>podman exec</code> command allows you to run commands inside a Podman container. The following command line will give you a bash shell inside your <code>zabbix-agent</code> container:</p>
+<pre><code class="lang-console">$ podman <span class="hljs-built_in">exec</span> -ti some-zabbix-<span class="hljs-built_in">agent</span> /bin/bash
+</code></pre>
+<p>The Zabbix agent log is available through Podman&#39;s container log:</p>
+<pre><code class="lang-console">$ podman logs <span class="hljs-keyword">some</span>-zabbix-agent
+</code></pre>
+<h2 id="privileged-mode">Privileged mode</h2>
+<p>By default, Podman containers are &quot;unprivileged&quot; and do not have access to the most of host resources. Zabbix agent is designed to monitor system resources, to do that Zabbix agent container must be privileged or you may mount some system-wide volumes. For example:</p>
+<pre><code class="lang-console"><span class="hljs-comment">$</span> <span class="hljs-comment">podman</span> <span class="hljs-comment">run</span> <span class="hljs-literal">-</span><span class="hljs-literal">-</span><span class="hljs-comment">name</span> <span class="hljs-comment">some</span><span class="hljs-literal">-</span><span class="hljs-comment">zabbix</span><span class="hljs-literal">-</span><span class="hljs-comment">agent</span> <span class="hljs-literal">-</span><span class="hljs-literal">-</span><span class="hljs-comment">link</span> <span class="hljs-comment">some</span><span class="hljs-literal">-</span><span class="hljs-comment">zabbix</span><span class="hljs-literal">-</span><span class="hljs-comment">server:zabbix</span><span class="hljs-literal">-</span><span class="hljs-comment">server</span> <span class="hljs-literal">-</span><span class="hljs-literal">-</span><span class="hljs-comment">privileged</span> <span class="hljs-literal">-</span><span class="hljs-comment">d</span> <span class="hljs-comment">zabbix/zabbix</span><span class="hljs-literal">-</span><span class="hljs-comment">agent:latest</span>
+</code></pre>
+<pre><code class="lang-console">$ podman run --name some-zabbix-agent --link some-zabbix-<span class="hljs-string">server:</span>zabbix-server -v <span class="hljs-regexp">/dev/</span><span class="hljs-string">sdc:</span><span class="hljs-regexp">/dev/</span>sdc -d zabbix/zabbix-<span class="hljs-string">agent:</span>latest
+</code></pre>
+<h2 id="environment-variables">Environment Variables</h2>
+<p>When you start the <code>zabbix-agent</code> image, you can adjust the configuration of the Zabbix agent by passing one or more environment variables on the <code>podman run</code> command line.</p>
+<h3 id="-zbx_hostname-"><code>ZBX_HOSTNAME</code></h3>
+<p>This variable is unique, case sensitive hostname. By default, value is <code>hostname</code> of the container. It is <code>Hostname</code> parameter in <code>zabbix_agentd.conf</code>.</p>
+<h3 id="-zbx_server_host-"><code>ZBX_SERVER_HOST</code></h3>
+<p>This variable is IP or DNS name of Zabbix server or Zabbix proxy. By default, value is <code>zabbix-server</code>. It is <code>Server</code> parameter in <code>zabbix_agentd.conf</code>. It is allowed to specify Zabbix server or Zabbix proxy port number using <code>ZBX_SERVER_PORT</code> variable. It make sense in case of non-default port for active checks.</p>
+<h3 id="-zbx_passive_allow-"><code>ZBX_PASSIVE_ALLOW</code></h3>
+<p>This variable is boolean (<code>true</code> or <code>false</code>) and enables or disables feature of passive checks. By default, value is <code>true</code>.</p>
+<h3 id="-zbx_passiveservers-"><code>ZBX_PASSIVESERVERS</code></h3>
+<p>The variable is comma separated list of allowed Zabbix server or proxy hosts for connections to Zabbix agent container.</p>
+<h3 id="-zbx_active_allow-"><code>ZBX_ACTIVE_ALLOW</code></h3>
+<p>This variable is boolean (<code>true</code> or <code>false</code>) and enables or disables feature of active checks. By default, value is <code>true</code>.</p>
+<h3 id="-zbx_activeservers-"><code>ZBX_ACTIVESERVERS</code></h3>
+<p>The variable is comma separated list of allowed Zabbix server or proxy hosts for connections to Zabbix agent container. You may specify port of Zabbix server or Zabbix proxy in such syntax: <code>zabbix-server:10061,zabbix-proxy:10072</code>.</p>
+<h3 id="-zbx_loadmodule-"><code>ZBX_LOADMODULE</code></h3>
+<p>The variable is list of comma separated loadable Zabbix modules. It works with  volume <code>/var/lib/zabbix/modules</code>. The syntax of the variable is <code>dummy1.so,dummy2.so</code>.</p>
+<h3 id="-zbx_debuglevel-"><code>ZBX_DEBUGLEVEL</code></h3>
+<p>The variable is used to specify debug level. By default, value is <code>3</code>. It is <code>DebugLevel</code> parameter in <code>zabbix_agentd.conf</code>. Allowed values are listed below:</p>
+<ul>
+<li><code>0</code> - basic information about starting and stopping of Zabbix processes;</li>
+<li><code>1</code> - critical information</li>
+<li><code>2</code> - error information</li>
+<li><code>3</code> - warnings</li>
+<li><code>4</code> - for debugging (produces lots of information)</li>
+<li><code>5</code> - extended debugging (produces even more information)</li>
+</ul>
+<h3 id="-zbx_timeout-"><code>ZBX_TIMEOUT</code></h3>
+<p>The variable is used to specify timeout for processing checks. By default, value is <code>3</code>.</p>
+<h3 id="other-variables">Other variables</h3>
+<p>Additionally the image allows to specify many other environment variables listed below:</p>
+<pre><code><span class="hljs-attr">ZBX_SOURCEIP</span>=
+<span class="hljs-attr">ZBX_ENABLEREMOTECOMMANDS</span>=<span class="hljs-number">0</span> # Deprecated since <span class="hljs-number">5.0</span>.<span class="hljs-number">0</span>
+<span class="hljs-attr">ZBX_LOGREMOTECOMMANDS</span>=<span class="hljs-number">0</span>
+<span class="hljs-attr">ZBX_HEARTBEAT_FREQUENCY</span>=<span class="hljs-number">60</span> # Available since <span class="hljs-number">6.2</span>.<span class="hljs-number">0</span>
+<span class="hljs-attr">ZBX_HOSTINTERFACE</span>= # Available since <span class="hljs-number">4.4</span>.<span class="hljs-number">0</span>
+<span class="hljs-attr">ZBX_HOSTINTERFACEITEM</span>= # Available since <span class="hljs-number">4.4</span>.<span class="hljs-number">0</span>
+<span class="hljs-attr">ZBX_STARTAGENTS</span>=<span class="hljs-number">3</span>
+<span class="hljs-attr">ZBX_HOSTNAMEITEM</span>=system.hostname
+<span class="hljs-attr">ZBX_METADATA</span>=
+<span class="hljs-attr">ZBX_METADATAITEM</span>=
+<span class="hljs-attr">ZBX_REFRESHACTIVECHECKS</span>=<span class="hljs-number">120</span>
+<span class="hljs-attr">ZBX_BUFFERSEND</span>=<span class="hljs-number">5</span>
+<span class="hljs-attr">ZBX_BUFFERSIZE</span>=<span class="hljs-number">100</span>
+<span class="hljs-attr">ZBX_MAXLINESPERSECOND</span>=<span class="hljs-number">20</span>
+<span class="hljs-attr">ZBX_LISTENIP</span>=
+<span class="hljs-attr">ZBX_LISTENPORT</span>=<span class="hljs-number">10050</span>
+<span class="hljs-attr">ZBX_LISTENBACKLOG</span>=
+<span class="hljs-attr">ZBX_UNSAFEUSERPARAMETERS</span>=<span class="hljs-number">0</span>
+<span class="hljs-attr">ZBX_TLSCONNECT</span>=unencrypted
+<span class="hljs-attr">ZBX_TLSACCEPT</span>=unencrypted
+<span class="hljs-attr">ZBX_TLSCAFILE</span>=
+<span class="hljs-attr">ZBX_TLSCRLFILE</span>=
+<span class="hljs-attr">ZBX_TLSSERVERCERTISSUER</span>=
+<span class="hljs-attr">ZBX_TLSSERVERCERTSUBJECT</span>=
+<span class="hljs-attr">ZBX_TLSCERTFILE</span>=
+<span class="hljs-attr">ZBX_TLSKEYFILE</span>=
+<span class="hljs-attr">ZBX_TLSPSKIDENTITY</span>=
+<span class="hljs-attr">ZBX_TLSPSKFILE</span>=
+<span class="hljs-attr">ZBX_TLSCIPHERALL</span>= # Available since <span class="hljs-number">4.4</span>.<span class="hljs-number">7</span>
+<span class="hljs-attr">ZBX_TLSCIPHERALL13</span>= # Available since <span class="hljs-number">4.4</span>.<span class="hljs-number">7</span>
+<span class="hljs-attr">ZBX_TLSCIPHERCERT</span>= # Available since <span class="hljs-number">4.4</span>.<span class="hljs-number">7</span>
+<span class="hljs-attr">ZBX_TLSCIPHERCERT13</span>= # Available since <span class="hljs-number">4.4</span>.<span class="hljs-number">7</span>
+<span class="hljs-attr">ZBX_TLSCIPHERPSK</span>= # Available since <span class="hljs-number">4.4</span>.<span class="hljs-number">7</span>
+<span class="hljs-attr">ZBX_TLSCIPHERPSK13</span>= # Available since <span class="hljs-number">4.4</span>.<span class="hljs-number">7</span>
+<span class="hljs-attr">ZBX_DENYKEY</span>=system.run[*] # Available since <span class="hljs-number">5.0</span>.<span class="hljs-number">0</span>
+<span class="hljs-attr">ZBX_ALLOWKEY</span>= # Available since <span class="hljs-number">5.0</span>.<span class="hljs-number">0</span>
+</code></pre><p>Default values of these variables are specified after equal sign.</p>
+<p>The allowed variables are identical of parameters in official <code>zabbix_agentd.conf</code> configuration file. For example, <code>ZBX_REFRESHACTIVECHECKS</code> = <code>RefreshActiveChecks</code>.</p>
+<p>Please use official documentation for <a href="https://www.zabbix.com/documentation/current/manual/appendix/config/zabbix_agentd"><code>zabbix_agentd.conf</code></a> to get more information about the variables.</p>
+<h2 id="allowed-volumes-for-the-zabbix-agent-container">Allowed volumes for the Zabbix agent container</h2>
+<h3 id="-etc-zabbix-zabbix_agentd-d-"><code>/etc/zabbix/zabbix_agentd.d</code></h3>
+<p>The volume allows include <code>*.conf</code> files and extend Zabbix agent using <code>UserParameter</code> feature.</p>
+<h3 id="-var-lib-zabbix-modules-"><code>/var/lib/zabbix/modules</code></h3>
+<p>The volume allows load additional modules and extend Zabbix agent using <code>LoadModule</code> feature.</p>
+<h3 id="-var-lib-zabbix-enc-"><code>/var/lib/zabbix/enc</code></h3>
+<p>The volume is used to store TLS related files. These file names are specified using <code>ZBX_TLSCAFILE</code>, <code>ZBX_TLSCRLFILE</code>, <code>ZBX_TLSKEY_FILE</code> and <code>ZBX_TLSPSKFILE</code> variables.</p>
+<h1 id="user-feedback">User Feedback</h1>
+<h2 id="documentation">Documentation</h2>
+<p>Documentation for this image is stored in the <a href="https://github.com/zabbix/zabbix-docker/tree/6.4/Dockerfiles/agent"><code>agent/</code> directory</a> of the <a href="https://github.com/zabbix/zabbix-docker/"><code>zabbix/zabbix-docker</code> GitHub repo</a>. Be sure to familiarize yourself with the <a href="https://github.com/zabbix/zabbix-docker/blob/6.4/README.md">repository&#39;s <code>README.md</code> file</a> before attempting a pull request.</p>
+<h2 id="issues">Issues</h2>
+<p>If you have any problems with or questions about this image, please contact us through a <a href="https://github.com/zabbix/zabbix-docker/issues">GitHub issue</a>.</p>
+<h3 id="known-issues">Known issues</h3>
+<p>Currently it is not allowed to specify <code>ZBX_ALIAS</code> environment variable. Please use <code>/etc/zabbix/zabbix_agent.d</code> volume with additional configuration files with <code>Alias</code> options.</p>
+<h2 id="contributing">Contributing</h2>
+<p>You are invited to contribute new features, fixes, or updates, large or small; we are always thrilled to receive pull requests, and do our best to process them as fast as we can.</p>
+<p>Before you start to code, we recommend discussing your plans through a <a href="https://github.com/zabbix/zabbix-docker/issues">GitHub issue</a>, especially for more ambitious contributions. This gives other contributors a chance to point you in the right direction, give you feedback on your design, and help you find out if someone else is working on the same thing.</p>

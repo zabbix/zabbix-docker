@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1
-FROM registry.access.redhat.com/ubi9/ubi-minimal:latest
+FROM registry.access.redhat.com/ubi9/ubi-minimal:9.3
 
 ARG MAJOR_VERSION=6.4
 ARG RELEASE=11
@@ -29,7 +29,8 @@ LABEL description="Prepared environment to build Zabbix components" \
 
 COPY ["licenses", "/licenses"]
 
-RUN set -eux && \
+RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
+    set -eux && \
     INSTALL_PKGS="autoconf \
             automake \
             bash \
@@ -68,9 +69,8 @@ RUN set -eux && \
             --enablerepo "codeready-builder-for-rhel-9-$ARCH_SUFFIX-rpms" \
             --enablerepo "epel" \
             --setopt=install_weak_deps=0 \
+            --setopt=keepcache=0 \
             --best \
             --setopt=tsflags=nodocs \
         ${INSTALL_PKGS} && \
-    microdnf -y clean all && \
-    rm -rf /var/cache/yum /var/lib/yum/yumdb/* /usr/lib/udev/hwdb.d/* && \
-    rm -rf /var/cache/dnf /etc/udev/hwdb.bin /root/.pki
+    microdnf -y clean all

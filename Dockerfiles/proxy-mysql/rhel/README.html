@@ -1,0 +1,194 @@
+<p><img src="https://assets.zabbix.com/img/logo/zabbix_logo_500x131.png" alt="logo"></p>
+<h1 id="what-is-zabbix-">What is Zabbix?</h1>
+<p>Zabbix is an enterprise-class open source distributed monitoring solution.</p>
+<p>Zabbix is software that monitors numerous parameters of a network and the health and integrity of servers. Zabbix uses a flexible notification mechanism that allows users to configure e-mail based alerts for virtually any event. This allows a fast reaction to server problems. Zabbix offers excellent reporting and data visualisation features based on the stored data. This makes Zabbix ideal for capacity planning.</p>
+<p>For more information and related downloads for Zabbix components, please visit <a href="https://hub.docker.com/u/zabbix/">https://hub.docker.com/u/zabbix/</a> and <a href="https://zabbix.com">https://zabbix.com</a></p>
+<h1 id="what-is-zabbix-proxy-">What is Zabbix proxy?</h1>
+<p>Zabbix proxy is a process that may collect monitoring data from one or more monitored devices and send the information to the Zabbix server, essentially working on behalf of the server. All collected data is buffered locally and then transferred to the Zabbix server the proxy belongs to.</p>
+<h1 id="zabbix-proxy-images">Zabbix proxy images</h1>
+<p>These are the only official Zabbix proxy Podman images. Images are updated when new releases are published. The image with <code>latest</code> tag is based on Alpine Linux.</p>
+<p>The image uses MySQL database to store collected data before sending it to Zabbix server. It uses the next procedure to start:</p>
+<ul>
+<li>Checking database availability</li>
+<li>If <code>MYSQL_ROOT_PASSWORD</code> or <code>MYSQL_ALLOW_EMPTY_PASSWORD</code> are specified, the instance tries to create <code>MYSQL_USER</code> user with <code>MYSQL_PASSWORD</code> to use these credentials then for Zabbix server.</li>
+<li>Checking of having <code>MYSQL_DATABASE</code> database. Creating <code>MYSQL_DATABASE</code> database name if it does not exist</li>
+<li>Checking of having <code>dbversion</code> table. Creating Zabbix proxy database schema if no <code>dbversion</code> table</li>
+</ul>
+<h1 id="how-to-use-this-image">How to use this image</h1>
+<h2 id="start-zabbix-proxy-mysql-">Start <code>zabbix-proxy-mysql</code></h2>
+<p>Start a Zabbix proxy container as follows:</p>
+<pre><code>podman <span class="hljs-keyword">run</span><span class="bash"> --name some-zabbix-proxy-mysql <span class="hljs-_">-e</span> DB_SERVER_HOST=<span class="hljs-string">"some-mysql-server"</span> <span class="hljs-_">-e</span> MYSQL_USER=<span class="hljs-string">"some-user"</span> <span class="hljs-_">-e</span> MYSQL_PASSWORD=<span class="hljs-string">"some-password"</span> <span class="hljs-_">-e</span> ZBX_HOSTNAME=some-hostname <span class="hljs-_">-e</span> ZBX_SERVER_HOST=some-zabbix-server <span class="hljs-_">-d</span> zabbix/zabbix-proxy-mysql:tag</span>
+</code></pre><p>Where <code>some-zabbix-proxy-mysql</code> is the name you want to assign to your container, <code>some-mysql-server</code> is IP or DNS name of MySQL server, <code>some-user</code> is user to connect to Zabbix database on MySQL server, <code>some-password</code> is the password to connect to MySQL server, <code>some-hostname</code> is the hostname, it is Hostname parameter in Zabbix proxy configuration file, <code>some-zabbix-server</code> is IP or DNS name of Zabbix server and <code>tag</code> is the tag specifying the version you want.</p>
+<blockquote>
+<p>[!NOTE]
+Zabbix server has possibility to execute <code>fping</code> utility to perform ICMP checks. When containers are running in rootless mode or with specific restrictions environment, you may face errors related to fping:
+<code>fping: Operation not permitted</code>
+or
+lost all packets to all resources
+in this case add <code>--cap-add=net_raw</code> to <code>docker run</code> or <code>podman run</code> commands.
+Additionally fping executing in non-root environments can require sysctl modification:
+<code>net.ipv4.ping_group_range=0 1995</code>
+where 1995 is <code>zabbix</code> GID.</p>
+</blockquote>
+<h2 id="connects-from-zabbix-server-passive-proxy-">Connects from Zabbix server (Passive proxy)</h2>
+<p>This image exposes the standard Zabbix proxy port (10051) and can operate as Passive proxy in case <code>ZBX_PROXYMODE</code> = <code>1</code>. Start Zabbix server container like this in order to link it to the Zabbix proxy container:</p>
+<pre><code class="lang-console"><span class="hljs-comment">$</span> <span class="hljs-comment">podman</span> <span class="hljs-comment">run</span> <span class="hljs-literal">-</span><span class="hljs-literal">-</span><span class="hljs-comment">name</span> <span class="hljs-comment">some</span><span class="hljs-literal">-</span><span class="hljs-comment">zabbix</span><span class="hljs-literal">-</span><span class="hljs-comment">server</span> <span class="hljs-literal">-</span><span class="hljs-literal">-</span><span class="hljs-comment">link</span> <span class="hljs-comment">some</span><span class="hljs-literal">-</span><span class="hljs-comment">zabbix</span><span class="hljs-literal">-</span><span class="hljs-comment">proxy</span><span class="hljs-literal">-</span><span class="hljs-comment">mysql:zabbix</span><span class="hljs-literal">-</span><span class="hljs-comment">proxy</span><span class="hljs-literal">-</span><span class="hljs-comment">mysql</span>  <span class="hljs-literal">-</span><span class="hljs-comment">d</span> <span class="hljs-comment">zabbix/zabbix</span><span class="hljs-literal">-</span><span class="hljs-comment">server:latest</span>
+</code></pre>
+<h2 id="connect-to-zabbix-server-active-proxy-">Connect to Zabbix server (Active proxy)</h2>
+<p>This image can operate as Active proxy (<code>default</code> mode). Start your application container like this in order to link Zabbix proxy to Zabbix server containters:</p>
+<pre><code class="lang-console"><span class="hljs-comment">$</span> <span class="hljs-comment">podman</span> <span class="hljs-comment">run</span> <span class="hljs-literal">-</span><span class="hljs-literal">-</span><span class="hljs-comment">name</span> <span class="hljs-comment">some</span><span class="hljs-literal">-</span><span class="hljs-comment">zabbix</span><span class="hljs-literal">-</span><span class="hljs-comment">proxy</span><span class="hljs-literal">-</span><span class="hljs-comment">mysql</span> <span class="hljs-literal">-</span><span class="hljs-literal">-</span><span class="hljs-comment">link</span> <span class="hljs-comment">some</span><span class="hljs-literal">-</span><span class="hljs-comment">zabbix</span><span class="hljs-literal">-</span><span class="hljs-comment">server:zabbix</span><span class="hljs-literal">-</span><span class="hljs-comment">server</span> <span class="hljs-literal">-</span><span class="hljs-comment">d</span> <span class="hljs-comment">zabbix/zabbix</span><span class="hljs-literal">-</span><span class="hljs-comment">proxy</span><span class="hljs-literal">-</span><span class="hljs-comment">mysql:latest</span>
+</code></pre>
+<h2 id="container-shell-access-and-viewing-zabbix-proxy-logs">Container shell access and viewing Zabbix proxy logs</h2>
+<p>The <code>podman exec</code> command allows you to run commands inside a Podman container. The following command line will give you a bash shell inside your <code>zabbix-proxy-mysql</code> container:</p>
+<pre><code class="lang-console">$ podman exec -ti <span class="hljs-keyword">some</span>-zabbix-proxy-mysql /bin/bash
+</code></pre>
+<p>The Zabbix proxy log is available through Podman&#39;s container log:</p>
+<pre><code class="lang-console">$ podman logs <span class="hljs-keyword">some</span>-zabbix-proxy-mysql
+</code></pre>
+<h2 id="environment-variables">Environment Variables</h2>
+<p>When you start the <code>zabbix-proxy-mysql</code> image, you can adjust the configuration of the Zabbix proxy by passing one or more environment variables on the <code>podman run</code> command line.</p>
+<h3 id="-zbx_proxymode-"><code>ZBX_PROXYMODE</code></h3>
+<p>The variable allows to switch Zabbix proxy mode. Bu default, value is <code>0</code> - active proxy. Allowed values are <code>0</code> - active proxy and <code>1</code> - passive proxy.</p>
+<h3 id="-zbx_hostname-"><code>ZBX_HOSTNAME</code></h3>
+<p>This variable is unique, case sensitive hostname. By default, value is <code>zabbix-proxy-mysql</code> of the container. It is <code>Hostname</code> parameter in <code>zabbix_proxy.conf</code>.</p>
+<h3 id="-zbx_server_host-"><code>ZBX_SERVER_HOST</code></h3>
+<p>This variable is IP or DNS name of Zabbix server or Zabbix proxy. By default, value is <code>zabbix-server</code>. It is <code>Server</code> parameter in <code>zabbix_proxy.conf</code>. It is allowed to specify Zabbix server or Zabbix proxy port number using <code>ZBX_SERVER_PORT</code> variable. It make sense in case of non-default port for active checks.</p>
+<h3 id="-zbx_server_port-"><code>ZBX_SERVER_PORT</code></h3>
+<p>This variable is port Zabbix server listening on. By default, value is <code>10051</code>.</p>
+<p><strong>Note:</strong> This parameter is no longer used in version 6.0 and above. Instead, add a colon <code>:</code> followed by the port number to the end of <code>ZBX_SERVER_HOST</code>.</p>
+<h3 id="-db_server_host-"><code>DB_SERVER_HOST</code></h3>
+<p>This variable is IP or DNS name of MySQL server. By default, value is &#39;mysql-server&#39;</p>
+<h3 id="-db_server_port-"><code>DB_SERVER_PORT</code></h3>
+<p>This variable is port of MySQL server. By default, value is &#39;3306&#39;.</p>
+<h3 id="-mysql_user-mysql_password-mysql_user_file-mysql_password_file-"><code>MYSQL_USER</code>, <code>MYSQL_PASSWORD</code>, <code>MYSQL_USER_FILE</code>, <code>MYSQL_PASSWORD_FILE</code></h3>
+<p>These variables are used by Zabbix proxy to connect to Zabbix database. With the <code>_FILE</code> variables you can instead provide the path to a file which contains the user / the password instead. Without Docker Swarm or Kubernetes you also have to map the files. Those are exclusive so you can just provide one type - either <code>MYSQL_USER</code> or <code>MYSQL_USER_FILE</code>!</p>
+<pre><code class="lang-console">podman run --name some-zabbix-proxy-mysql -e DB_SERVER_HOST=<span class="hljs-string">"some-mysql-server"</span> -v .<span class="hljs-regexp">/.MYSQL_USER:/</span>run<span class="hljs-regexp">/secrets/</span>MYSQL_USER -e MYSQL_USER_FILE=<span class="hljs-regexp">/run/</span>secrets<span class="hljs-regexp">/MYSQL_USER -v ./</span>.<span class="hljs-string">MYSQL_PASSWORD:</span><span class="hljs-regexp">/run/</span>secrets<span class="hljs-regexp">/MYSQL_PASSWORD -e MYSQL_PASSWORD_FILE=/</span>var<span class="hljs-regexp">/run/</span>secrets<span class="hljs-regexp">/MYSQL_PASSWORD -e ZBX_HOSTNAME=some-hostname -e ZBX_SERVER_HOST=some-zabbix-server -d zabbix/</span>zabbix-proxy-<span class="hljs-string">mysql:</span>tag
+</code></pre>
+<p>With Docker Swarm or Kubernetes this works with secrets. That way it is replicated in your cluster!</p>
+<pre><code class="lang-console"><span class="hljs-built_in">printf</span> <span class="hljs-string">"zabbix"</span> | podman secret create MYSQL_USER -
+<span class="hljs-built_in">printf</span> <span class="hljs-string">"zabbix"</span> | podman secret create MYSQL_PASSWORD -
+podman run --name some-zabbix-proxy-mysql <span class="hljs-_">-e</span> DB_SERVER_HOST=<span class="hljs-string">"some-mysql-server"</span> <span class="hljs-_">-e</span> MYSQL_USER_FILE=/run/secrets/MYSQL_USER <span class="hljs-_">-e</span> MYSQL_PASSWORD_FILE=/run/secrets/MYSQL_PASSWORD <span class="hljs-_">-e</span> ZBX_SERVER_HOST=<span class="hljs-string">"some-zabbix-server"</span> <span class="hljs-_">-e</span> ZBX_HOSTNAME=some-hostname <span class="hljs-_">-e</span> ZBX_SERVER_HOST=some-zabbix-server <span class="hljs-_">-d</span> zabbix/zabbix-proxy-mysql:tag
+</code></pre>
+<p>This method is also applicable for <code>MYSQL_ROOT_PASSWORD</code> with <code>MYSQL_ROOT_PASSWORD_FILE</code>.</p>
+<p>By default, values for <code>MYSQL_USER</code> and <code>MYSQL_PASSWORD</code> are <code>zabbix</code>, <code>zabbix</code>.</p>
+<h3 id="-mysql_database-"><code>MYSQL_DATABASE</code></h3>
+<p>The variable is Zabbix database name. By default, value is <code>zabbix_proxy</code>.</p>
+<h3 id="-zbx_loadmodule-"><code>ZBX_LOADMODULE</code></h3>
+<p>The variable is list of comma separated loadable Zabbix modules. It works with  volume <code>/var/lib/zabbix/modules</code>. The syntax of the variable is <code>dummy1.so,dummy2.so</code>.</p>
+<h3 id="-zbx_debuglevel-"><code>ZBX_DEBUGLEVEL</code></h3>
+<p>The variable is used to specify debug level. By default, value is <code>3</code>. It is <code>DebugLevel</code> parameter in <code>zabbix_server.conf</code>. Allowed values are listed below:</p>
+<ul>
+<li><code>0</code> - basic information about starting and stopping of Zabbix processes;</li>
+<li><code>1</code> - critical information</li>
+<li><code>2</code> - error information</li>
+<li><code>3</code> - warnings</li>
+<li><code>4</code> - for debugging (produces lots of information)</li>
+<li><code>5</code> - extended debugging (produces even more information)</li>
+</ul>
+<h3 id="-zbx_timeout-"><code>ZBX_TIMEOUT</code></h3>
+<p>The variable is used to specify timeout for processing checks. By default, value is <code>4</code>.</p>
+<h3 id="-zbx_javagateway_enable-"><code>ZBX_JAVAGATEWAY_ENABLE</code></h3>
+<p>The variable enable communication with Zabbix Java Gateway to collect Java related checks. By default, value is <code>false</code>.</p>
+<h3 id="other-variables">Other variables</h3>
+<p>Additionally the image allows to specify many other environment variables listed below:</p>
+<pre><code><span class="hljs-attr">ZBX_ALLOWUNSUPPORTEDDBVERSIONS</span>=<span class="hljs-number">0</span> # Available since <span class="hljs-number">6.0</span>.<span class="hljs-number">0</span>
+<span class="hljs-attr">ZBX_DBTLSCONNECT</span>= # Available since <span class="hljs-number">5.0</span>.<span class="hljs-number">0</span>
+<span class="hljs-attr">ZBX_DBTLSCAFILE</span>= # Available since <span class="hljs-number">5.0</span>.<span class="hljs-number">0</span>
+<span class="hljs-attr">ZBX_DBTLSCERTFILE</span>= # Available since <span class="hljs-number">5.0</span>.<span class="hljs-number">0</span>
+<span class="hljs-attr">ZBX_DBTLSKEYFILE</span>= # Available since <span class="hljs-number">5.0</span>.<span class="hljs-number">0</span>
+<span class="hljs-attr">ZBX_DBTLSCIPHER</span>= # Available since <span class="hljs-number">5.0</span>.<span class="hljs-number">0</span>
+<span class="hljs-attr">ZBX_DBTLSCIPHER13</span>= # Available since <span class="hljs-number">5.0</span>.<span class="hljs-number">0</span>
+<span class="hljs-attr">ZBX_VAULTDBPATH</span>= # Available since <span class="hljs-number">5.2</span>.<span class="hljs-number">0</span>
+<span class="hljs-attr">ZBX_VAULTURL</span>=https://<span class="hljs-number">127.0</span>.<span class="hljs-number">0.1</span>:<span class="hljs-number">8200</span> # Available since <span class="hljs-number">5.2</span>.<span class="hljs-number">0</span>
+<span class="hljs-attr">VAULT_TOKEN</span>= # Available since <span class="hljs-number">5.2</span>.<span class="hljs-number">0</span>
+<span class="hljs-attr">ZBX_ENABLEREMOTECOMMANDS</span>=<span class="hljs-number">0</span> # Available since <span class="hljs-number">3.4</span>.<span class="hljs-number">0</span>
+<span class="hljs-attr">ZBX_LOGREMOTECOMMANDS</span>=<span class="hljs-number">0</span> # Available since <span class="hljs-number">3.4</span>.<span class="hljs-number">0</span>
+<span class="hljs-attr">ZBX_HOSTNAMEITEM</span>=system.hostname
+<span class="hljs-attr">ZBX_SOURCEIP</span>=
+<span class="hljs-attr">ZBX_PROXYLOCALBUFFER</span>=<span class="hljs-number">0</span>
+<span class="hljs-attr">ZBX_PROXYOFFLINEBUFFER</span>=<span class="hljs-number">1</span>
+<span class="hljs-attr">ZBX_PROXYHEARTBEATFREQUENCY</span>=<span class="hljs-number">60</span> # Deprecated since <span class="hljs-number">6.4</span>.<span class="hljs-number">0</span>
+<span class="hljs-attr">ZBX_CONFIGFREQUENCY</span>=<span class="hljs-number">3600</span> # Deprecated since <span class="hljs-number">6.4</span>.<span class="hljs-number">0</span>
+<span class="hljs-attr">ZBX_PROXYCONFIGFREQUENCY</span>=<span class="hljs-number">10</span> # Available since <span class="hljs-number">6.4</span>.<span class="hljs-number">0</span>
+<span class="hljs-attr">ZBX_DATASENDERFREQUENCY</span>=<span class="hljs-number">1</span>
+<span class="hljs-attr">ZBX_STARTPOLLERS</span>=<span class="hljs-number">5</span>
+<span class="hljs-attr">ZBX_STARTPREPROCESSORS</span>=<span class="hljs-number">3</span> # Available since <span class="hljs-number">4.2</span>.<span class="hljs-number">0</span>
+<span class="hljs-attr">ZBX_IPMIPOLLERS</span>=<span class="hljs-number">0</span>
+<span class="hljs-attr">ZBX_STARTPOLLERSUNREACHABLE</span>=<span class="hljs-number">1</span>
+<span class="hljs-attr">ZBX_STARTTRAPPERS</span>=<span class="hljs-number">5</span>
+<span class="hljs-attr">ZBX_STARTPINGERS</span>=<span class="hljs-number">1</span>
+<span class="hljs-attr">ZBX_STARTDISCOVERERS</span>=<span class="hljs-number">1</span>
+<span class="hljs-attr">ZBX_STARTHISTORYPOLLERS</span>=<span class="hljs-number">1</span> # Available since <span class="hljs-number">5.4</span>.<span class="hljs-number">0</span> till <span class="hljs-number">6.0</span>.<span class="hljs-number">0</span>
+<span class="hljs-attr">ZBX_STARTHTTPPOLLERS</span>=<span class="hljs-number">1</span>
+<span class="hljs-attr">ZBX_STARTODBCPOLLERS</span>=<span class="hljs-number">1</span> # Available since <span class="hljs-number">6.0</span>.<span class="hljs-number">0</span>
+<span class="hljs-attr">ZBX_JAVAGATEWAY</span>=zabbix-java-gateway
+<span class="hljs-attr">ZBX_JAVAGATEWAYPORT</span>=<span class="hljs-number">10052</span>
+<span class="hljs-attr">ZBX_STARTJAVAPOLLERS</span>=<span class="hljs-number">0</span>
+<span class="hljs-attr">ZBX_STATSALLOWEDIP</span>= # Available since <span class="hljs-number">4.0</span>.<span class="hljs-number">5</span>
+<span class="hljs-attr">ZBX_STARTVMWARECOLLECTORS</span>=<span class="hljs-number">0</span>
+<span class="hljs-attr">ZBX_VMWAREFREQUENCY</span>=<span class="hljs-number">60</span>
+<span class="hljs-attr">ZBX_VMWAREPERFFREQUENCY</span>=<span class="hljs-number">60</span>
+<span class="hljs-attr">ZBX_VMWARECACHESIZE</span>=<span class="hljs-number">8</span>M
+<span class="hljs-attr">ZBX_VMWARETIMEOUT</span>=<span class="hljs-number">10</span>
+<span class="hljs-attr">ZBX_ENABLE_SNMP_TRAPS</span>=<span class="hljs-literal">false</span>
+<span class="hljs-attr">ZBX_LISTENIP</span>=
+<span class="hljs-attr">ZBX_LISTENPORT</span>=<span class="hljs-number">10051</span>
+<span class="hljs-attr">ZBX_LISTENBACKLOG</span>=
+<span class="hljs-attr">ZBX_HOUSEKEEPINGFREQUENCY</span>=<span class="hljs-number">1</span>
+<span class="hljs-attr">ZBX_CACHESIZE</span>=<span class="hljs-number">8</span>M
+<span class="hljs-attr">ZBX_STARTDBSYNCERS</span>=<span class="hljs-number">4</span>
+<span class="hljs-attr">ZBX_HISTORYCACHESIZE</span>=<span class="hljs-number">16</span>M
+<span class="hljs-attr">ZBX_HISTORYINDEXCACHESIZE</span>=<span class="hljs-number">4</span>M
+<span class="hljs-attr">ZBX_TRAPPERTIMEOUT</span>=<span class="hljs-number">300</span>
+<span class="hljs-attr">ZBX_UNREACHABLEPERIOD</span>=<span class="hljs-number">45</span>
+<span class="hljs-attr">ZBX_UNAVAILABLEDELAY</span>=<span class="hljs-number">60</span>
+<span class="hljs-attr">ZBX_UNREACHABLEDELAY</span>=<span class="hljs-number">15</span>
+<span class="hljs-attr">ZBX_LOGSLOWQUERIES</span>=<span class="hljs-number">3000</span>
+<span class="hljs-attr">ZBX_TLSCONNECT</span>=unencrypted
+<span class="hljs-attr">ZBX_TLSACCEPT</span>=unencrypted
+<span class="hljs-attr">ZBX_TLSCAFILE</span>=
+<span class="hljs-attr">ZBX_TLSCRLFILE</span>=
+<span class="hljs-attr">ZBX_TLSSERVERCERTISSUER</span>=
+<span class="hljs-attr">ZBX_TLSSERVERCERTSUBJECT</span>=
+<span class="hljs-attr">ZBX_TLSCERTFILE</span>=
+<span class="hljs-attr">ZBX_TLSKEYFILE</span>=
+<span class="hljs-attr">ZBX_TLSPSKIDENTITY</span>=
+<span class="hljs-attr">ZBX_TLSPSKFILE</span>=
+<span class="hljs-attr">ZBX_TLSCIPHERALL</span>= # Available since <span class="hljs-number">4.4</span>.<span class="hljs-number">7</span>
+<span class="hljs-attr">ZBX_TLSCIPHERALL13</span>= # Available since <span class="hljs-number">4.4</span>.<span class="hljs-number">7</span>
+<span class="hljs-attr">ZBX_TLSCIPHERCERT</span>= # Available since <span class="hljs-number">4.4</span>.<span class="hljs-number">7</span>
+<span class="hljs-attr">ZBX_TLSCIPHERCERT13</span>= # Available since <span class="hljs-number">4.4</span>.<span class="hljs-number">7</span>
+<span class="hljs-attr">ZBX_TLSCIPHERPSK</span>= # Available since <span class="hljs-number">4.4</span>.<span class="hljs-number">7</span>
+<span class="hljs-attr">ZBX_TLSCIPHERPSK13</span>= # Available since <span class="hljs-number">4.4</span>.<span class="hljs-number">7</span>
+</code></pre><p>Default values of these variables are specified after equal sign.</p>
+<p>The allowed variables are identical of parameters in official <code>zabbix_proxy.conf</code>. For example, <code>ZBX_LOGSLOWQUERIES</code> = <code>LogSlowQueries</code>.</p>
+<p>Please use official documentation for <a href="https://www.zabbix.com/documentation/current/manual/appendix/config/zabbix_proxy"><code>zabbix_proxy.conf</code></a> to get more information about the variables.</p>
+<h2 id="allowed-volumes-for-the-zabbix-proxy-container">Allowed volumes for the Zabbix proxy container</h2>
+<h3 id="-usr-lib-zabbix-externalscripts-"><code>/usr/lib/zabbix/externalscripts</code></h3>
+<p>The volume is used by External checks (type of items). It is <code>ExternalScripts</code> parameter in <code>zabbix_proxy.conf</code>.</p>
+<h3 id="-var-lib-zabbix-modules-"><code>/var/lib/zabbix/modules</code></h3>
+<p>The volume allows load additional modules and extend Zabbix proxy using <code>LoadModule</code> feature.</p>
+<h3 id="-var-lib-zabbix-enc-"><code>/var/lib/zabbix/enc</code></h3>
+<p>The volume is used to store TLS related files. These file names are specified using <code>ZBX_TLSCAFILE</code>, <code>ZBX_TLSCRLFILE</code>, <code>ZBX_TLSKEY_FILE</code> and <code>ZBX_TLSPSKFILE</code> variables.</p>
+<h3 id="-var-lib-zabbix-ssh_keys-"><code>/var/lib/zabbix/ssh_keys</code></h3>
+<p>The volume is used as location of public and private keys for SSH checks and actions. It is <code>SSHKeyLocation</code> parameter in <code>zabbix_proxy.conf</code>.</p>
+<h3 id="-var-lib-zabbix-ssl-certs-"><code>/var/lib/zabbix/ssl/certs</code></h3>
+<p>The volume is used as location of of SSL client certificate files for client authentication. It is <code>SSLCertLocation</code> parameter in <code>zabbix_proxy.conf</code>.</p>
+<h3 id="-var-lib-zabbix-ssl-keys-"><code>/var/lib/zabbix/ssl/keys</code></h3>
+<p>The volume is used as location of SSL private key files for client authentication. It is <code>SSLKeyLocation</code> parameter in <code>zabbix_proxy.conf</code>.</p>
+<h3 id="-var-lib-zabbix-ssl-ssl_ca-"><code>/var/lib/zabbix/ssl/ssl_ca</code></h3>
+<p>The volume is used as location of certificate authority (CA) files for SSL server certificate verification. It is <code>SSLCALocation</code> parameter in <code>zabbix_proxy.conf</code>.</p>
+<h3 id="-var-lib-zabbix-snmptraps-"><code>/var/lib/zabbix/snmptraps</code></h3>
+<p>The volume is used as location of <code>snmptraps.log</code> file. It could be shared by <code>zabbix-snmptraps</code> container and inherited using <code>volumes_from</code> Podman option while creating new instance of Zabbix proxy.
+SNMP traps processing feature could be enabled using shared volume and switched <code>ZBX_ENABLE_SNMP_TRAPS</code> environment variable to <code>true</code>.</p>
+<h3 id="-var-lib-zabbix-mibs-"><code>/var/lib/zabbix/mibs</code></h3>
+<p>The volume allows to add new MIB files. It does not support subdirectories, all MIBs must be placed to <code>/var/lib/zabbix/mibs</code>.</p>
+<h1 id="user-feedback">User Feedback</h1>
+<h2 id="documentation">Documentation</h2>
+<p>Documentation for this image is stored in the <a href="https://github.com/zabbix/zabbix-docker/tree/Dockerfiles/6.4/proxy-mysql"><code>proxy-mysql/</code> directory</a> of the <a href="https://github.com/zabbix/zabbix-docker/"><code>zabbix/zabbix-docker</code> GitHub repo</a>. Be sure to familiarize yourself with the <a href="https://github.com/zabbix/zabbix-docker/blob/6.4/README.md">repository&#39;s <code>README.md</code> file</a> before attempting a pull request.</p>
+<h2 id="issues">Issues</h2>
+<p>If you have any problems with or questions about this image, please contact us through a <a href="https://github.com/zabbix/zabbix-docker/issues">GitHub issue</a>.</p>
+<h3 id="known-issues">Known issues</h3>
+<h2 id="contributing">Contributing</h2>
+<p>You are invited to contribute new features, fixes, or updates, large or small; we are always thrilled to receive pull requests, and do our best to process them as fast as we can.</p>
+<p>Before you start to code, we recommend discussing your plans through a <a href="https://github.com/zabbix/zabbix-docker/issues">GitHub issue</a>, especially for more ambitious contributions. This gives other contributors a chance to point you in the right direction, give you feedback on your design, and help you find out if someone else is working on the same thing.</p>

@@ -29,7 +29,8 @@ STOPSIGNAL SIGTERM
 COPY --from=builder ["/tmp/zabbix-${ZBX_VERSION}/ui", "/usr/share/zabbix"]
 COPY ["conf/etc/", "/etc/"]
 
-RUN set -eux && \
+RUN --mount=type=cache,target=/var/lib/apt/,sharing=locked \
+    set -eux && \
     echo "#!/bin/sh\nexit 101" > /usr/sbin/policy-rc.d && \
     INSTALL_PKGS="bash \
             apache2 \
@@ -100,11 +101,10 @@ RUN set -eux && \
     chgrp -R 0 /etc/apache2/ /etc/php/8.1/ && \
     chmod -R g=u /etc/apache2/ /etc/php/8.1/ && \
     apt-get -y autoremove && \
-    apt-get -y clean && \
-    rm -rf /var/lib/apt/lists/*
+    apt-get -y clean
 
 EXPOSE 8080/TCP 8443/TCP
-    
+
 WORKDIR /usr/share/zabbix
 
 COPY ["docker-entrypoint.sh", "/usr/bin/"]

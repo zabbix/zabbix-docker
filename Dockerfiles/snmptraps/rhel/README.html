@@ -1,0 +1,45 @@
+<p><img src="https://assets.zabbix.com/img/logo/zabbix_logo_500x131.png" alt="logo"></p>
+<h1 id="what-is-zabbix-">What is Zabbix?</h1>
+<p>Zabbix is an enterprise-class open source distributed monitoring solution.</p>
+<p>Zabbix is software that monitors numerous parameters of a network and the health and integrity of servers. Zabbix uses a flexible notification mechanism that allows users to configure e-mail based alerts for virtually any event. This allows a fast reaction to server problems. Zabbix offers excellent reporting and data visualisation features based on the stored data. This makes Zabbix ideal for capacity planning.</p>
+<p>For more information and related downloads for Zabbix components, please visit <a href="https://hub.docker.com/u/zabbix/">https://hub.docker.com/u/zabbix/</a> and <a href="https://zabbix.com">https://zabbix.com</a></p>
+<h1 id="what-is-the-image-">What is the image?</h1>
+<p>The image is used to receive SNMP traps, store them to a log file and provide access to Zabbix to collected SNMP trap messsages.</p>
+<h1 id="zabbix-snmptraps-images">Zabbix snmptraps images</h1>
+<p>These are the only official Zabbix snmptraps Podman images. Images are updated when new releases are published.</p>
+<h1 id="how-to-use-this-image">How to use this image</h1>
+<h2 id="start-zabbix-snmptraps-">Start <code>zabbix-snmptraps</code></h2>
+<p>Start a Zabbix snmptraps container as follows:</p>
+<pre><code>podman <span class="hljs-keyword">run</span><span class="bash"> --name some-zabbix-snmptraps -p 162:1162/udp <span class="hljs-_">-d</span> zabbix/zabbix-snmptraps:tag</span>
+</code></pre><p>Where <code>some-zabbix-snmptraps</code> is the name you want to assign to your container and <code>tag</code> is the tag specifying the version you want. See the list above for relevant tags, or look at the <a href="https://hub.docker.com/r/zabbix/zabbix-snmptraps/tags/">full list of tags</a>.</p>
+<h2 id="linking-zabbix-server-or-zabbix-proxy-with-the-container">Linking Zabbix server or Zabbix proxy with the container</h2>
+<pre><code><span class="hljs-comment">podman</span> <span class="hljs-comment">run</span> <span class="hljs-literal">-</span><span class="hljs-literal">-</span><span class="hljs-comment">name</span> <span class="hljs-comment">some</span><span class="hljs-literal">-</span><span class="hljs-comment">zabbix</span><span class="hljs-literal">-</span><span class="hljs-comment">server</span> <span class="hljs-literal">-</span><span class="hljs-literal">-</span><span class="hljs-comment">link</span> <span class="hljs-comment">some</span><span class="hljs-literal">-</span><span class="hljs-comment">zabbix</span><span class="hljs-literal">-</span><span class="hljs-comment">snmptraps:zabbix</span><span class="hljs-literal">-</span><span class="hljs-comment">snmptraps</span> <span class="hljs-literal">-</span><span class="hljs-literal">-</span><span class="hljs-comment">volumes</span><span class="hljs-literal">-</span><span class="hljs-comment">from</span> <span class="hljs-comment">some</span><span class="hljs-literal">-</span><span class="hljs-comment">zabbix</span><span class="hljs-literal">-</span><span class="hljs-comment">snmptraps</span> <span class="hljs-literal">-</span><span class="hljs-comment">d</span> <span class="hljs-comment">zabbix/zabbix</span><span class="hljs-literal">-</span><span class="hljs-comment">server:tag</span>
+</code></pre><h2 id="container-shell-access-and-viewing-zabbix-snmptraps-logs">Container shell access and viewing Zabbix snmptraps logs</h2>
+<p>The <code>podman exec</code> command allows you to run commands inside a Podman container. The following command line will give you a bash shell inside your <code>zabbix-snmptraps</code> container:</p>
+<pre><code class="lang-console">$ podman exec -ti <span class="hljs-keyword">some</span>-zabbix-snmptraps /bin/bash
+</code></pre>
+<p>The Zabbix snmptraps log is available through Podman&#39;s container log:</p>
+<pre><code class="lang-console">$ podman logs  <span class="hljs-keyword">some</span>-zabbix-snmptraps
+</code></pre>
+<h2 id="environment-variables">Environment Variables</h2>
+<p>When you start the <code>zabbix-snmptraps</code> image, you can adjust the configuration by passing one or more environment variables on the <code>podman run</code> command line.</p>
+<h3 id="-zbx_snmp_trap_date_format-"><code>ZBX_SNMP_TRAP_DATE_FORMAT</code></h3>
+<p>This variable is represent date and time format in the output <code>snmptraps.log</code> file. By default, value is <code>+%Y-%m-%dT%T%z</code>. Please, refer to <code>date</code> command man for more details about date and time format.</p>
+<h3 id="-zbx_snmp_trap_format-"><code>ZBX_SNMP_TRAP_FORMAT</code></h3>
+<p>This variable is SNMP trap format in the output <code>snmptraps.log</code> file. By default, value is <code>\n</code>, in this case each new variable is placed on new line.</p>
+<h3 id="-zbx_snmp_trap_use_dns-"><code>ZBX_SNMP_TRAP_USE_DNS</code></h3>
+<p>This variable manages source network address representation. It can be IP address or DNS of SNMP trap sender. The variable works only when container command is modified and &quot;-n&quot; command argument is removed from argument list. By default, value is <code>false</code>.</p>
+<h2 id="allowed-volumes-for-the-zabbix-snmptraps-container">Allowed volumes for the Zabbix snmptraps container</h2>
+<h3 id="-var-lib-zabbix-snmptraps-"><code>/var/lib/zabbix/snmptraps</code></h3>
+<p>The volume contains log file <code>snmptraps.log</code> named with received SNMP traps.</p>
+<h3 id="-var-lib-zabbix-mibs-"><code>/var/lib/zabbix/mibs</code></h3>
+<p>The volume allows to add new MIB files. It does not support subdirectories, all MIBs must be placed to <code>/var/lib/zabbix/mibs</code>.</p>
+<h1 id="user-feedback">User Feedback</h1>
+<h2 id="documentation">Documentation</h2>
+<p>Documentation for this image is stored in the <a href="https://github.com/zabbix/zabbix-docker/tree/6.4/Dockerfiles/snmptraps"><code>snmptraps/</code> directory</a> of the <a href="https://github.com/zabbix/zabbix-docker/"><code>zabbix/zabbix-docker</code> GitHub repo</a>. Be sure to familiarize yourself with the <a href="https://github.com/zabbix/zabbix-docker/blob/6.4/README.md">repository&#39;s <code>README.md</code> file</a> before attempting a pull request.</p>
+<h2 id="issues">Issues</h2>
+<p>If you have any problems with or questions about this image, please contact us through a <a href="https://github.com/zabbix/zabbix-docker/issues">GitHub issue</a>.</p>
+<h3 id="known-issues">Known issues</h3>
+<h2 id="contributing">Contributing</h2>
+<p>You are invited to contribute new features, fixes, or updates, large or small; we are always thrilled to receive pull requests, and do our best to process them as fast as we can.</p>
+<p>Before you start to code, we recommend discussing your plans through a <a href="https://github.com/zabbix/zabbix-docker/issues">GitHub issue</a>, especially for more ambitious contributions. This gives other contributors a chance to point you in the right direction, give you feedback on your design, and help you find out if someone else is working on the same thing.</p>

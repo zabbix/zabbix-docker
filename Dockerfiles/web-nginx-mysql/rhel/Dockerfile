@@ -6,7 +6,7 @@ ARG BUILD_BASE_IMAGE=zabbix-build-mysql:rhel-${ZBX_VERSION}
 
 FROM ${BUILD_BASE_IMAGE} AS builder
 
-FROM registry.access.redhat.com/ubi9/ubi-minimal:latest
+FROM registry.access.redhat.com/ubi9/ubi-minimal:9.3
 
 ARG MAJOR_VERSION
 ARG RELEASE
@@ -48,7 +48,8 @@ COPY ["licenses", "/licenses"]
 COPY ["conf/etc/", "/etc/"]
 COPY --from=builder ["/tmp/zabbix-${ZBX_VERSION}/ui", "/usr/share/zabbix"]
 
-RUN set -eux && \
+RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
+    set -eux && \
     INSTALL_PKGS="bash \
             tzdata \
             curl-minimal \
@@ -78,6 +79,7 @@ RUN set -eux && \
             --enablerepo "rhel-9-for-$ARCH_SUFFIX-appstream-rpms" \
             --enablerepo "epel" \
             --setopt=install_weak_deps=0 \
+            --setopt=keepcache=0 \
             --best \
             --setopt=tsflags=nodocs \
         ${INSTALL_PKGS} && \
@@ -86,6 +88,7 @@ RUN set -eux && \
             --setopt=install_weak_deps=0 \
             --best \
             --setopt=tsflags=nodocs \
+            --setopt=keepcache=0 \
         tzdata && \
     groupadd \
             --system \
@@ -131,9 +134,7 @@ RUN set -eux && \
     microdnf -y remove \
             findutils \
             glibc-locale-source && \
-    microdnf -y clean all && \
-    rm -rf /var/cache/yum /var/lib/yum/yumdb/* /usr/lib/udev/hwdb.d/* && \
-    rm -rf /var/cache/dnf /etc/udev/hwdb.bin /root/.pki
+    microdnf -y clean all
 
 EXPOSE 8080/TCP 8443/TCP
 

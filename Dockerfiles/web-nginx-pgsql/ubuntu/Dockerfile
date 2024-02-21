@@ -29,7 +29,8 @@ STOPSIGNAL SIGTERM
 COPY --from=builder ["/tmp/zabbix-${ZBX_VERSION}/ui", "/usr/share/zabbix"]
 COPY ["conf/etc/", "/etc/"]
 
-RUN set -eux && \
+RUN --mount=type=cache,target=/var/lib/apt/,sharing=locked \
+    set -eux && \
     echo "#!/bin/sh\nexit 101" > /usr/sbin/policy-rc.d && \
     INSTALL_PKGS="bash \
             ca-certificates \
@@ -59,7 +60,7 @@ RUN set -eux && \
     curl https://nginx.org/keys/nginx_signing.key | gpg --dearmor > /etc/apt/trusted.gpg.d/nginx.gpg && \
     gpg --dry-run --quiet --import --import-options import-show /etc/apt/trusted.gpg.d/nginx.gpg && \
     DISTRIB_CODENAME=$(/bin/bash -c 'source /etc/lsb-release && echo $DISTRIB_CODENAME') && \
-    echo "deb http://nginx.org/packages/ubuntu $DISTRIB_CODENAME nginx" > /etc/apt/sources.list.d/nginx.list && \
+    echo "deb https://nginx.org/packages/ubuntu $DISTRIB_CODENAME nginx" > /etc/apt/sources.list.d/nginx.list && \
     echo "Package: *\nPin: origin nginx.org\nPin: release o=nginx\nPin-Priority: 900\n" \
         > /etc/apt/preferences.d/99nginx && \
     gpgconf --kill all && \
@@ -121,8 +122,7 @@ RUN set -eux && \
             dirmngr \
             gpg-agent && \
     apt-get -y autoremove && \
-    apt-get -y clean && \
-    rm -rf /var/lib/apt/lists/*
+    apt-get -y clean
 
 EXPOSE 8080/TCP 8443/TCP
 

@@ -22,9 +22,10 @@ LABEL org.opencontainers.image.authors="Alexey Pustovalov <alexey.pustovalov@zab
 ENV MONGODB_PLUGIN_SOURCES=https://git.zabbix.com/scm/ap/mongodb.git MONGODB_PLUGIN_VERSION=${ZBX_VERSION} \
     POSTGRESQL_PLUGIN_SOURCES=https://git.zabbix.com/scm/ap/postgresql.git POSTGRESQL_PLUGIN_VERSION=${ZBX_VERSION}
 
-COPY ["conf/chromedp_no_sandbox.patch", "/tmp/chromedp_no_sandbox.patch"]
-
-RUN set -eux && \
+RUN --mount=type=cache,target=/root/.cache/go-build/ \
+    --mount=type=cache,target=/root/go/ \
+    --mount=type=bind,source=conf/chromedp_no_sandbox.patch,target=/tmp/chromedp_no_sandbox.patch \
+    set -eux && \
     cd /tmp/ && \
     git -c advice.detachedHead=false clone ${ZBX_SOURCES} --branch ${ZBX_VERSION} --depth 1 --single-branch /tmp/zabbix-${ZBX_VERSION} && \
     cd /tmp/zabbix-${ZBX_VERSION} && \
@@ -72,7 +73,7 @@ RUN set -eux && \
     gzip -c database/postgresql/create.sql > database/postgresql/create_proxy.sql.gz && \
     rm -rf database/postgresql/create.sql && \
     mkdir /tmp/fonts/ && \
-    curl --silent -L "https://noto-website.storage.googleapis.com/pkgs/NotoSansCJKjp-hinted.zip" -o /tmp/fonts/NotoSansCJKjp-hinted.zip && \
+    curl --tlsv1.2 -sSf -L "https://noto-website.storage.googleapis.com/pkgs/NotoSansCJKjp-hinted.zip" -o /tmp/fonts/NotoSansCJKjp-hinted.zip && \
     unzip /tmp/fonts/NotoSansCJKjp-hinted.zip -d /tmp/fonts/ && \
     cp /tmp/fonts/NotoSansCJKjp-Regular.otf /tmp/zabbix-${ZBX_VERSION}/ui/assets/fonts/NotoSansCJKjp-Regular.ttf && \
     cp /tmp/fonts/LICENSE_OFL.txt /tmp/zabbix-${ZBX_VERSION}/ui/assets/fonts/ && \
@@ -96,5 +97,4 @@ RUN set -eux && \
     git -c advice.detachedHead=false clone ${POSTGRESQL_PLUGIN_SOURCES} --branch ${POSTGRESQL_PLUGIN_VERSION} --depth 1 --single-branch /tmp/postgresql_plugin && \
     cd /tmp/postgresql_plugin && \
     make && \
-    strip /tmp/postgresql_plugin/zabbix-agent2-plugin-postgresql && \
-    rm -rf $(go env GOCACHE)
+    strip /tmp/postgresql_plugin/zabbix-agent2-plugin-postgresql
