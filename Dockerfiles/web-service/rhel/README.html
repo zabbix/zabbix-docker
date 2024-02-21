@@ -1,0 +1,67 @@
+<p><img src="https://assets.zabbix.com/img/logo/zabbix_logo_500x131.png" alt="logo"></p>
+<h1 id="what-is-zabbix-">What is Zabbix?</h1>
+<p>Zabbix is an enterprise-class open source distributed monitoring solution.</p>
+<p>Zabbix is software that monitors numerous parameters of a network and the health and integrity of servers. Zabbix uses a flexible notification mechanism that allows users to configure e-mail based alerts for virtually any event. This allows a fast reaction to server problems. Zabbix offers excellent reporting and data visualisation features based on the stored data. This makes Zabbix ideal for capacity planning.</p>
+<p>For more information and related downloads for Zabbix components, please visit <a href="https://hub.docker.com/u/zabbix/">https://hub.docker.com/u/zabbix/</a> and <a href="https://zabbix.com">https://zabbix.com</a></p>
+<h1 id="what-is-zabbix-web-service-">What is Zabbix web service?</h1>
+<p>Zabbix web service for performing various tasks using headless web browser (for example, reporting).</p>
+<h1 id="zabbix-web-service-images">Zabbix web service images</h1>
+<p>These are the only official Zabbix web service Podman images. Images are updated when new releases are published.</p>
+<h1 id="how-to-use-this-image">How to use this image</h1>
+<h2 id="start-zabbix-web-service-">Start <code>zabbix-web-service</code></h2>
+<p>Start a Zabbix web service container as follows:</p>
+<pre><code>podman <span class="hljs-keyword">run</span><span class="bash"> --name some-zabbix-web-service <span class="hljs-_">-e</span> ZBX_ALLOWEDIP=<span class="hljs-string">"some-zabbix-server"</span> --cap-add=SYS_ADMIN <span class="hljs-_">-d</span> zabbix/zabbix-web-service:tag</span>
+</code></pre><p>Where <code>some-zabbix-web-service</code> is the name you want to assign to your container, <code>some-zabbix-server</code> is IP or DNS name of Zabbix server and <code>tag</code> is the tag specifying the version you want.</p>
+<h2 id="connects-from-zabbix-server-in-other-containers">Connects from Zabbix server in other containers</h2>
+<p>This image exposes the standard Zabbix web service port (<code>10053</code>) to perform communication, so container linking makes Zabbix web service instance available to Zabbix server containers. Start your application container like this in order to link it to the Zabbix web service container:</p>
+<pre><code class="lang-console">$ podman <span class="hljs-keyword">run</span><span class="bash"> --name some-zabbix-server --link some-zabbix-web-service:zabbix-web-service <span class="hljs-_">-e</span> ZBX_STARTREPORTWRITERS=<span class="hljs-string">"2"</span> <span class="hljs-_">-e</span> ZBX_WEBSERVICEURL=<span class="hljs-string">"http://some-zabbix-web-service:10053/report"</span> <span class="hljs-_">-d</span> zabbix/zabbix-server:latest</span>
+</code></pre>
+<h2 id="container-shell-access-and-viewing-zabbix-web-service-logs">Container shell access and viewing Zabbix web service logs</h2>
+<p>The <code>podman exec</code> command allows you to run commands inside a Podman container. The following command line will give you a bash shell inside your <code>zabbix-web-service</code> container:</p>
+<pre><code class="lang-console">$ podman exec -ti <span class="hljs-keyword">some</span>-zabbix-web-service /bin/bash
+</code></pre>
+<p>The Zabbix web service log is available through Podman&#39;s container log:</p>
+<pre><code class="lang-console">$ podman logs <span class="hljs-keyword">some</span>-zabbix-web-service
+</code></pre>
+<h2 id="environment-variables">Environment Variables</h2>
+<p>When you start the <code>zabbix-web-service</code> image, you can adjust the configuration of the Zabbix web service by passing one or more environment variables on the <code>podman run</code> command line.</p>
+<h3 id="-zbx_allowedip-"><code>ZBX_ALLOWEDIP</code></h3>
+<p>This variable is IP or DNS name or list of IP / DNS names of Zabbix server. By default, value is <code>zabbix-server</code>.</p>
+<h3 id="-zbx_listenport-"><code>ZBX_LISTENPORT</code></h3>
+<p>Listen port for incoming request. By default, value is <code>10053</code>.</p>
+<h3 id="-zbx_debuglevel-"><code>ZBX_DEBUGLEVEL</code></h3>
+<p>The variable is used to specify debug level. By default, value is <code>3</code>. It is <code>DebugLevel</code> parameter in <code>zabbix_web_service.conf</code>. Allowed values are listed below:</p>
+<ul>
+<li><code>0</code> - basic information about starting and stopping of Zabbix processes;</li>
+<li><code>1</code> - critical information</li>
+<li><code>2</code> - error information</li>
+<li><code>3</code> - warnings</li>
+<li><code>4</code> - for debugging (produces lots of information)</li>
+<li><code>5</code> - extended debugging (produces even more information)</li>
+</ul>
+<h3 id="-zbx_timeout-"><code>ZBX_TIMEOUT</code></h3>
+<p>The variable is used to specify timeout for processing requests. By default, value is <code>3</code>.</p>
+<h3 id="other-variables">Other variables</h3>
+<p>Additionally the image allows to specify many other environment variables listed below:</p>
+<pre><code><span class="hljs-attr">ZBX_TLSACCEPT</span>=unencrypted
+<span class="hljs-attr">ZBX_TLSCAFILE</span>=
+<span class="hljs-attr">ZBX_TLSCERTFILE</span>=
+<span class="hljs-attr">ZBX_TLSKEYFILE</span>=
+<span class="hljs-attr">ZBX_IGNOREURLCERTERRORS</span>=<span class="hljs-number">0</span>
+</code></pre><p>Default values of these variables are specified after equal sign.</p>
+<p>Please use official documentation for <a href="https://www.zabbix.com/documentation/current/manual/appendix/config/zabbix_web_service"><code>zabbix_web_service.conf</code></a> to get more information about the variables.</p>
+<h2 id="allowed-volumes-for-the-zabbix-web-service-container">Allowed volumes for the Zabbix web service container</h2>
+<h3 id="-var-lib-zabbix-enc-"><code>/var/lib/zabbix/enc</code></h3>
+<p>The volume is used to store TLS related files. These file names are specified using <code>ZBX_TLSCAFILE</code>, <code>ZBX_TLSCERTFILE</code> and <code>ZBX_TLSKEY_FILE</code> variables.</p>
+<h1 id="user-feedback">User Feedback</h1>
+<h2 id="documentation">Documentation</h2>
+<p>Documentation for this image is stored in the <a href="https://github.com/zabbix/zabbix-docker/tree/6.4/Dockerfiles/web-service"><code>web-service/</code> directory</a> of the <a href="https://github.com/zabbix/zabbix-docker/"><code>zabbix/zabbix-docker</code> GitHub repo</a>. Be sure to familiarize yourself with the <a href="https://github.com/zabbix/zabbix-docker/blob/6.4/README.md">repository&#39;s <code>README.md</code> file</a> before attempting a pull request.</p>
+<h2 id="issues">Issues</h2>
+<p>If you have any problems with or questions about this image, please contact us through a <a href="https://github.com/zabbix/zabbix-docker/issues">GitHub issue</a>.</p>
+<h3 id="known-issues">Known issues</h3>
+<p>Zabbix web services uses Google Chromium with headless mode. Because of restrictions you may see the following error during report generation:</p>
+<pre><code>Failed <span class="hljs-keyword">to</span> move <span class="hljs-keyword">to</span> <span class="hljs-keyword">new</span> <span class="hljs-keyword">namespace</span>: PID namespaces supported, Network <span class="hljs-keyword">namespace</span> supported, but failed: errno = Operation <span class="hljs-keyword">not</span> permitted
+</code></pre><p>To avoid the issue it is required to add <code>SYS_ADMIN</code> capability for Zabbix web service. The capability is redundant and allow too much.</p>
+<h2 id="contributing">Contributing</h2>
+<p>You are invited to contribute new features, fixes, or updates, large or small; we are always thrilled to receive pull requests, and do our best to process them as fast as we can.</p>
+<p>Before you start to code, we recommend discussing your plans through a <a href="https://github.com/zabbix/zabbix-docker/issues">GitHub issue</a>, especially for more ambitious contributions. This gives other contributors a chance to point you in the right direction, give you feedback on your design, and help you find out if someone else is working on the same thing.</p>

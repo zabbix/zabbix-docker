@@ -1,0 +1,143 @@
+<p><img src="https://assets.zabbix.com/img/logo/zabbix_logo_500x131.png" alt="logo"></p>
+<h1 id="what-is-zabbix-">What is Zabbix?</h1>
+<p>Zabbix is an enterprise-class open source distributed monitoring solution.</p>
+<p>Zabbix is software that monitors numerous parameters of a network and the health and integrity of servers. Zabbix uses a flexible notification mechanism that allows users to configure e-mail based alerts for virtually any event. This allows a fast reaction to server problems. Zabbix offers excellent reporting and data visualisation features based on the stored data. This makes Zabbix ideal for capacity planning.</p>
+<p>For more information and related downloads for Zabbix components, please visit <a href="https://hub.docker.com/u/zabbix/">https://hub.docker.com/u/zabbix/</a> and <a href="https://zabbix.com">https://zabbix.com</a></p>
+<h1 id="what-is-zabbix-web-interface-">What is Zabbix web interface?</h1>
+<p>Zabbix web interface is a part of Zabbix software. It is used to manage resources under monitoring and view monitoring statistics.</p>
+<h1 id="zabbix-web-interface-images">Zabbix web interface images</h1>
+<p>These are the only official Zabbix web interface Podman images. Images are updated when new releases are published.</p>
+<p>Zabbix web interface available in four editions, but only one as Red Hat Certified container:</p>
+<ul>
+<li>Zabbix web-interface based on Apache2 web server with MySQL database support</li>
+<li>Zabbix web-interface based on Apache2 web server with PostgreSQL database support</li>
+<li>Zabbix web-interface based on Nginx web server with MySQL database support</li>
+<li>Zabbix web-interface based on Nginx web server with PostgreSQL database support</li>
+</ul>
+<p>The image based on Nginx web server with MySQL database support.</p>
+<h1 id="how-to-use-this-image">How to use this image</h1>
+<h2 id="start-zabbix-web-nginx-mysql-">Start <code>zabbix-web-nginx-mysql</code></h2>
+<p>Start a Zabbix web-interface container as follows:</p>
+<pre><code>podman <span class="hljs-keyword">run</span><span class="bash"> --name some-zabbix-web-nginx-mysql <span class="hljs-_">-e</span> DB_SERVER_HOST=<span class="hljs-string">"some-mysql-server"</span> <span class="hljs-_">-e</span> MYSQL_USER=<span class="hljs-string">"some-user"</span> <span class="hljs-_">-e</span> MYSQL_PASSWORD=<span class="hljs-string">"some-password"</span> <span class="hljs-_">-e</span> ZBX_SERVER_HOST=<span class="hljs-string">"some-zabbix-server"</span> <span class="hljs-_">-e</span> PHP_TZ=<span class="hljs-string">"some-timezone"</span> <span class="hljs-_">-d</span> zabbix/zabbix-web-nginx-mysql:tag</span>
+</code></pre><p>Where <code>some-zabbix-web-nginx-mysql</code> is the name you want to assign to your container, <code>some-mysql-server</code> is IP or DNS name of MySQL server, <code>some-user</code> is user to connect to Zabbix database on MySQL server, <code>some-password</code> is the password to connect to MySQL server, <code>some-zabbix-server</code> is IP or DNS name of Zabbix server or proxy, <code>some-timezone</code> is PHP like timezone name and <code>tag</code> is the tag specifying the version you want.</p>
+<h2 id="linking-the-container-to-zabbix-server">Linking the container to Zabbix server</h2>
+<pre><code>podman <span class="hljs-keyword">run</span><span class="bash"> --name some-zabbix-web-nginx-mysql --link some-zabbix-server:zabbix-server <span class="hljs-_">-e</span> DB_SERVER_HOST=<span class="hljs-string">"some-mysql-server"</span> <span class="hljs-_">-e</span> MYSQL_USER=<span class="hljs-string">"some-user"</span> <span class="hljs-_">-e</span> MYSQL_PASSWORD=<span class="hljs-string">"some-password"</span> <span class="hljs-_">-e</span> ZBX_SERVER_HOST=<span class="hljs-string">"some-zabbix-server"</span> <span class="hljs-_">-e</span> PHP_TZ=<span class="hljs-string">"some-timezone"</span> <span class="hljs-_">-d</span> zabbix/zabbix-web-nginx-mysql:tag</span>
+</code></pre><h2 id="linking-the-container-to-mysql-database">Linking the container to MySQL database</h2>
+<pre><code>podman <span class="hljs-keyword">run</span><span class="bash"> --name some-zabbix-web-nginx-mysql --link some-mysql-server:mysql <span class="hljs-_">-e</span> DB_SERVER_HOST=<span class="hljs-string">"some-mysql-server"</span> <span class="hljs-_">-e</span> MYSQL_USER=<span class="hljs-string">"some-user"</span> <span class="hljs-_">-e</span> MYSQL_PASSWORD=<span class="hljs-string">"some-password"</span> <span class="hljs-_">-e</span> ZBX_SERVER_HOST=<span class="hljs-string">"some-zabbix-server"</span> <span class="hljs-_">-e</span> PHP_TZ=<span class="hljs-string">"some-timezone"</span> <span class="hljs-_">-d</span> zabbix/zabbix-web-nginx-mysql:tag</span>
+</code></pre><h2 id="container-shell-access-and-viewing-zabbix-web-interface-logs">Container shell access and viewing Zabbix web interface logs</h2>
+<p>The <code>podman exec</code> command allows you to run commands inside a Podman container. The following command line will give you a bash shell inside your <code>zabbix-web-nginx-mysql</code> container:</p>
+<pre><code class="lang-console">$ podman exec -ti <span class="hljs-keyword">some</span>-zabbix-web-nginx-mysql /bin/bash
+</code></pre>
+<p>The Zabbix web interface log is available through Podman&#39;s container log:</p>
+<pre><code class="lang-console">$ podman logs  <span class="hljs-keyword">some</span>-zabbix-web-nginx-mysql
+</code></pre>
+<h2 id="environment-variables">Environment Variables</h2>
+<p>When you start the <code>zabbix-web-nginx-mysql</code> image, you can adjust the configuration of the Zabbix web interface by passing one or more environment variables on the <code>podman run</code> command line.</p>
+<h3 id="-zbx_server_host-"><code>ZBX_SERVER_HOST</code></h3>
+<p>This variable is IP or DNS name of Zabbix server. By default, value is <code>zabbix-server</code>.</p>
+<h3 id="-zbx_server_port-"><code>ZBX_SERVER_PORT</code></h3>
+<p>This variable is port Zabbix server listening on. By default, value is <code>10051</code>.</p>
+<h3 id="-db_server_host-"><code>DB_SERVER_HOST</code></h3>
+<p>This variable is IP or DNS name of MySQL server. By default, value is &#39;mysql-server&#39;</p>
+<h3 id="-db_server_port-"><code>DB_SERVER_PORT</code></h3>
+<p>This variable is port of MySQL server. By default, value is &#39;3306&#39;.</p>
+<h3 id="-mysql_user-mysql_password-mysql_user_file-mysql_password_file-"><code>MYSQL_USER</code>, <code>MYSQL_PASSWORD</code>, <code>MYSQL_USER_FILE</code>, <code>MYSQL_PASSWORD_FILE</code></h3>
+<p>These variables are used by Zabbix web-interface to connect to Zabbix database. With the <code>_FILE</code> variables you can instead provide the path to a file which contains the user / the password instead. Without Docker Swarm or Kubernetes you also have to map the files. Those are exclusive so you can just provide one type - either <code>MYSQL_USER</code> or <code>MYSQL_USER_FILE</code>!</p>
+<pre><code class="lang-console">podman run --name some-zabbix-web-nginx-mysql -e DB_SERVER_HOST=<span class="hljs-string">"some-mysql-server"</span> -v .<span class="hljs-regexp">/.MYSQL_USER:/</span>run<span class="hljs-regexp">/secrets/</span>MYSQL_USER -e MYSQL_USER_FILE=<span class="hljs-regexp">/run/</span>secrets<span class="hljs-regexp">/MYSQL_USER -v ./</span>.<span class="hljs-string">MYSQL_PASSWORD:</span><span class="hljs-regexp">/run/</span>secrets<span class="hljs-regexp">/MYSQL_PASSWORD -e MYSQL_PASSWORD_FILE=/</span>var<span class="hljs-regexp">/run/</span>secrets<span class="hljs-regexp">/MYSQL_PASSWORD -e PHP_TZ="some-timezone" -d zabbix/</span>zabbix-web-nginx-<span class="hljs-string">mysql:</span>tag
+</code></pre>
+<p>With Docker Swarm or Kubernetes this works with secrets. That way it is replicated in your cluster!</p>
+<pre><code class="lang-console"><span class="hljs-built_in">printf</span> <span class="hljs-string">"zabbix"</span> | podman secret create MYSQL_USER -
+<span class="hljs-built_in">printf</span> <span class="hljs-string">"zabbix"</span> | podman secret create MYSQL_PASSWORD -
+podman run --name some-zabbix-web-nginx-mysql <span class="hljs-_">-e</span> DB_SERVER_HOST=<span class="hljs-string">"some-mysql-server"</span> <span class="hljs-_">-e</span> MYSQL_USER_FILE=/run/secrets/MYSQL_USER <span class="hljs-_">-e</span> MYSQL_PASSWORD_FILE=/run/secrets/MYSQL_PASSWORD <span class="hljs-_">-e</span> ZBX_SERVER_HOST=<span class="hljs-string">"some-zabbix-server"</span> <span class="hljs-_">-e</span> PHP_TZ=<span class="hljs-string">"some-timezone"</span> <span class="hljs-_">-d</span> zabbix/zabbix-web-nginx-mysql:tag
+</code></pre>
+<p>By default, values for <code>MYSQL_USER</code> and <code>MYSQL_PASSWORD</code> are <code>zabbix</code>, <code>zabbix</code>.</p>
+<h3 id="-mysql_database-"><code>MYSQL_DATABASE</code></h3>
+<p>The variable is Zabbix database name. By default, value is <code>zabbix</code>.</p>
+<h3 id="-zbx_historystorageurl-"><code>ZBX_HISTORYSTORAGEURL</code></h3>
+<p>History storage HTTP[S] URL. This parameter is used for Elasticsearch setup. Available since 3.4.5.</p>
+<h3 id="-zbx_historystoragetypes-"><code>ZBX_HISTORYSTORAGETYPES</code></h3>
+<p>Array of value types to be sent to the history storage. An example: [&#39;uint&#39;, &#39;dbl&#39;]. This parameter is used for Elasticsearch setup. Available since 3.4.5.</p>
+<h3 id="-php_tz-"><code>PHP_TZ</code></h3>
+<p>The variable is timezone in PHP format. Full list of supported timezones are available on <a href="http://php.net/manual/en/timezones.php"><code>php.net</code></a>. By default, value is &#39;Europe/Riga&#39; and system timezone since Zabbix 5.2.0.</p>
+<h3 id="-zbx_server_name-"><code>ZBX_SERVER_NAME</code></h3>
+<p>The variable is visible Zabbix installation name in right or left top corner of the web interface.</p>
+<h3 id="-db_double_ieee754-"><code>DB_DOUBLE_IEEE754</code></h3>
+<p>Use IEEE754 compatible value range for 64-bit Numeric (float) history values. Available since 5.0.0. Enabled by default.</p>
+<h3 id="-enable_web_access_log-"><code>ENABLE_WEB_ACCESS_LOG</code></h3>
+<p>The variable sets the Access Log directive for Web server. By default, value corresponds to standard output.</p>
+<h3 id="-http_index_file-"><code>HTTP_INDEX_FILE</code></h3>
+<p>The variable controls default index page. By default, <code>index.php</code>.</p>
+<h3 id="-expose_web_server_info-"><code>EXPOSE_WEB_SERVER_INFO</code></h3>
+<p>The variable allows to hide Web server and PHP versions. By default, <code>on</code>.</p>
+<h3 id="-zbx_maxexecutiontime-"><code>ZBX_MAXEXECUTIONTIME</code></h3>
+<p>The varable is PHP <code>max_execution_time</code> option. By default, value is <code>300</code>.</p>
+<h3 id="-zbx_memorylimit-"><code>ZBX_MEMORYLIMIT</code></h3>
+<p>The varable is PHP <code>memory_limit</code> option. By default, value is <code>128M</code>.</p>
+<h3 id="-zbx_postmaxsize-"><code>ZBX_POSTMAXSIZE</code></h3>
+<p>The varable is PHP <code>post_max_size</code> option. By default, value is <code>16M</code>.</p>
+<h3 id="-zbx_uploadmaxfilesize-"><code>ZBX_UPLOADMAXFILESIZE</code></h3>
+<p>The varable is PHP <code>upload_max_filesize</code> option. By default, value is <code>2M</code>.</p>
+<h3 id="-zbx_maxinputtime-"><code>ZBX_MAXINPUTTIME</code></h3>
+<p>The varable is PHP <code>max_input_time</code> option. By default, value is <code>300</code>.</p>
+<h3 id="-zbx_session_name-"><code>ZBX_SESSION_NAME</code></h3>
+<p>The variable is Zabbix frontend <a href="https://www.zabbix.com/documentation/current/manual/web_interface/definitions">definition</a>. String used as the name of the Zabbix frontend session cookie. By default, value is <code>zbx_sessionid</code>.</p>
+<h3 id="-zbx_deny_gui_access-"><code>ZBX_DENY_GUI_ACCESS</code></h3>
+<p>Enable (<code>true</code>) maintenance mode for Zabbix web-interface.</p>
+<h3 id="-zbx_gui_access_ip_range-"><code>ZBX_GUI_ACCESS_IP_RANGE</code></h3>
+<p>Array of IP addresses which are allowed for accessing to Zabbix web-interface during maintenance period.</p>
+<h3 id="-zbx_gui_warning_msg-"><code>ZBX_GUI_WARNING_MSG</code></h3>
+<p>Information message about maintenance period for Zabbix web-interface.</p>
+<h3 id="-zbx_db_encryption-"><code>ZBX_DB_ENCRYPTION</code></h3>
+<p>The variable allows to activate encryption for connections to Zabbix database. Even if no other environment variables are specified, connections will be TLS-encrypted if <code>ZBX_DB_ENCRYPTION=true</code> specified. Available since 5.0.0. Disabled by default.</p>
+<h3 id="-zbx_db_key_file-"><code>ZBX_DB_KEY_FILE</code></h3>
+<p>The variable allows to specify the full path to a valid TLS key file. Available since 5.0.0.</p>
+<h3 id="-zbx_db_cert_file-"><code>ZBX_DB_CERT_FILE</code></h3>
+<p>The variable allows to specify the full path to a valid TLS certificate file. Available since 5.0.0.</p>
+<h3 id="-zbx_db_ca_file-"><code>ZBX_DB_CA_FILE</code></h3>
+<p>The variable allows to specify the full path to a valid TLS certificate authority file. Available since 5.0.0.</p>
+<h3 id="-zbx_db_verify_host-"><code>ZBX_DB_VERIFY_HOST</code></h3>
+<p>The variable allows to activate host verification. Available since 5.0.0.</p>
+<h3 id="-zbx_db_cipher_list-"><code>ZBX_DB_CIPHER_LIST</code></h3>
+<p>The variable allows to specify a custom list of valid ciphers. The format of the cipher list must conform to the OpenSSL standard. Available since 5.0.0.</p>
+<h3 id="-zbx_sso_sp_key-"><code>ZBX_SSO_SP_KEY</code></h3>
+<p>The variable allows to specify a custom file path to the Serivce Provider (SP) private key file.</p>
+<h3 id="-zbx_sso_sp_cert-"><code>ZBX_SSO_SP_CERT</code></h3>
+<p>The variable allows to specify a custom file path to the Serivce Provider (SP) cert file.</p>
+<h3 id="-zbx_sso_idp_cert-"><code>ZBX_SSO_IDP_CERT</code></h3>
+<p>The variable allows to specify a custom file path to the SAML Certificate provided by the Identity Provider (ID) file.</p>
+<h2 id="-zbx_sso_settings-"><code>ZBX_SSO_SETTINGS</code></h2>
+<p>The variable allows to specify custom SSO settings in JSON format. Available since 5.0.0.</p>
+<p>Example of YAML Mapping to Sequences</p>
+<pre><code><span class="hljs-code">....
+  environment:
+    ZBX_SSO_SETTINGS: "{'baseurl': 'https://zabbix-docker.mydomain.com', 'use_proxy_headers': true, 'strict': false}"
+    ....
+....</span>
+</code></pre><h3 id="other-variables">Other variables</h3>
+<p>Additionally the image allows to specify many other environment variables listed below:</p>
+<pre><code><span class="hljs-attr">ZBX_VAULTDBPATH=</span> <span class="hljs-comment"># Available since 5.2.0</span>
+<span class="hljs-attr">ZBX_VAULTURL=https://127.0.0.1:8200</span> <span class="hljs-comment"># Available since 5.2.0</span>
+<span class="hljs-attr">VAULT_TOKEN=</span> <span class="hljs-comment"># Available since 5.2.0</span>
+
+Allowed PHP-FPM configuration options:
+<span class="hljs-attr">PHP_FPM_PM=dynamic</span>
+<span class="hljs-attr">PHP_FPM_PM_MAX_CHILDREN=50</span>
+<span class="hljs-attr">PHP_FPM_PM_START_SERVERS=5</span>
+<span class="hljs-attr">PHP_FPM_PM_MIN_SPARE_SERVERS=5</span>
+<span class="hljs-attr">PHP_FPM_PM_MAX_SPARE_SERVERS=35</span>
+<span class="hljs-attr">PHP_FPM_PM_MAX_REQUESTS=0</span>
+</code></pre><h2 id="allowed-volumes-for-the-zabbix-web-interface-container">Allowed volumes for the Zabbix web interface container</h2>
+<h3 id="-etc-ssl-nginx-"><code>/etc/ssl/nginx</code></h3>
+<p>The volume allows to enable HTTPS for the Zabbix web interface. The volume must contains three files <code>ssl.crt</code>, <code>ssl.key</code> and <code>dhparam.pem</code> prepared for Nginx SSL connections.</p>
+<p>Please follow official Nginx <a href="http://nginx.org/en/docs/http/configuring_https_servers.html">documentation</a> to get more details about how to create certificate files.</p>
+<h3 id="-etc-zabbix-web-certs-"><code>/etc/zabbix/web/certs</code></h3>
+<p>The volume allows to use custom certificates for SAML authentification. The volume must contains three files <code>sp.key</code>, <code>sp.crt</code> and <code>idp.crt</code>. Available since 5.0.0.</p>
+<h1 id="user-feedback">User Feedback</h1>
+<h2 id="documentation">Documentation</h2>
+<p>Documentation for this image is stored in the <a href="https://github.com/zabbix/zabbix-docker/tree/6.4/Dockerfiles/web-nginx-mysql"><code>web-nginx-mysql/</code> directory</a> of the <a href="https://github.com/zabbix/zabbix-docker/"><code>zabbix/zabbix-docker</code> GitHub repo</a>. Be sure to familiarize yourself with the <a href="https://github.com/zabbix/zabbix-docker/blob/6.4/README.md">repository&#39;s <code>README.md</code> file</a> before attempting a pull request.</p>
+<h2 id="issues">Issues</h2>
+<p>If you have any problems with or questions about this image, please contact us through a <a href="https://github.com/zabbix/zabbix-docker/issues">GitHub issue</a>.</p>
+<h3 id="known-issues">Known issues</h3>
+<h2 id="contributing">Contributing</h2>
+<p>You are invited to contribute new features, fixes, or updates, large or small; we are always thrilled to receive pull requests, and do our best to process them as fast as we can.</p>
+<p>Before you start to code, we recommend discussing your plans through a <a href="https://github.com/zabbix/zabbix-docker/issues">GitHub issue</a>, especially for more ambitious contributions. This gives other contributors a chance to point you in the right direction, give you feedback on your design, and help you find out if someone else is working on the same thing.</p>

@@ -14,16 +14,12 @@ Zabbix Java Gateway performs native support for monitoring JMX applications. Jav
 
 # Zabbix Java Gateway images
 
-These are the only official Zabbix Java Gateway Docker images. They are based on Alpine Linux v3.12, Ubuntu 20.04 (focal), 22.04 (jammy), CentOS Stream 8 and Oracle Linux 8 images. The available versions of Zabbix Java Gateway are:
+These are the only official Zabbix Java Gateway Docker images. They are based on Alpine Linux v3.19, Ubuntu 22.04 (jammy), CentOS Stream 9 and Oracle Linux 9 images. The available versions of Zabbix Java Gateway are:
 
-    Zabbix Java Gateway 4.0 (tags: alpine-4.0-latest, ubuntu-4.0-latest, centos-4.0-latest)
-    Zabbix Java Gateway 4.0.* (tags: alpine-4.0.*, ubuntu-4.0.*, centos-4.0.*)
     Zabbix Java Gateway 5.0 (tags: alpine-5.0-latest, ubuntu-5.0-latest, ol-5.0-latest)
     Zabbix Java Gateway 5.0.* (tags: alpine-5.0.*, ubuntu-5.0.*, ol-5.0.*)
     Zabbix Java Gateway 6.0 (tags: alpine-6.0-latest, ubuntu-6.0-latest, ol-6.0-latest)
     Zabbix Java Gateway 6.0.* (tags: alpine-6.0.*, ubuntu-6.0.*, ol-6.0.*)
-    Zabbix Java Gateway 6.2 (tags: alpine-6.2-latest, ubuntu-6.2-latest, ol-6.2-latest)
-    Zabbix Java Gateway 6.2.* (tags: alpine-6.2.*, ubuntu-6.2.*, ol-6.2.*)
     Zabbix Java Gateway 6.4 (tags: alpine-6.4-latest, ubuntu-6.4-latest, ol-6.4-latest, alpine-latest, ubuntu-latest, ol-latest, latest)
     Zabbix Java Gateway 6.4.* (tags: alpine-6.4.*, ubuntu-6.4.*, ol-6.4.*)
     Zabbix Java Gateway 7.0 (tags: alpine-trunk, ubuntu-trunk, ol-trunk)
@@ -120,7 +116,7 @@ Please see [the Docker installation documentation](https://docs.docker.com/insta
 
 ## Documentation
 
-Documentation for this image is stored in the [`java-gateway/` directory](https://github.com/zabbix/zabbix-docker/tree/3.0/java-gateway) of the [`zabbix/zabbix-docker` GitHub repo](https://github.com/zabbix/zabbix-docker/). Be sure to familiarize yourself with the [repository's `README.md` file](https://github.com/zabbix/zabbix-docker/blob/master/README.md) before attempting a pull request.
+Documentation for this image is stored in the [`java-gateway/` directory](https://github.com/zabbix/zabbix-docker/tree/6.4/Dockerfiles/java-gateway) of the [`zabbix/zabbix-docker` GitHub repo](https://github.com/zabbix/zabbix-docker/). Be sure to familiarize yourself with the [repository's `README.md` file](https://github.com/zabbix/zabbix-docker/blob/6.4/README.md) before attempting a pull request.
 
 ## Issues
 
