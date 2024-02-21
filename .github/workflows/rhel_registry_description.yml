@@ -5,8 +5,9 @@ on:
     branches:
       - '[0-9]+.[0-9]+'
     paths:
-      - 'Dockerfiles/*/*/README.html'
-      - 'Dockerfiles/*/*/README.md'
+      - 'Dockerfiles/*/rhel/README.html'
+      - 'Dockerfiles/*/README.md'
+      - 'Dockerfiles/*/rhel/README.md'
       - '.github/workflows/rhel_registry_description.yml'
   workflow_dispatch:
 
