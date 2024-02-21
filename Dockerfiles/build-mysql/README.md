@@ -30,7 +30,7 @@ Images are updated when new releases are published. The image with ``latest`` ta
 
 The image is used to build / compile Zabbix components. Components are prepared for usage in any other images.
 
-The image uses [Zabbix build base](https://github.com/zabbix/zabbix-docker/tree/trunk/Dockerfiles/build-base) image with prepared build environment as base image and build / compile Zabbix components only.
+The image uses [Zabbix build base](https://github.com/zabbix/zabbix-docker/tree/6.4/Dockerfiles/build-base) image with prepared build environment as base image and build / compile Zabbix components only.
 
 # The image variants
 
@@ -64,7 +64,7 @@ Please see [the Docker installation documentation](https://docs.docker.com/insta
 
 ## Documentation
 
-Documentation for this image is stored in the [`build-base/` directory](https://github.com/zabbix/zabbix-docker/tree/trunk/Dockerfiles/build-base) of the [`zabbix/zabbix-docker` GitHub repo](https://github.com/zabbix/zabbix-docker/). Be sure to familiarize yourself with the [repository's `README.md` file](https://github.com/zabbix/zabbix-docker/blob/master/README.md) before attempting a pull request.
+Documentation for this image is stored in the [`build-base/` directory](https://github.com/zabbix/zabbix-docker/tree/6.4/Dockerfiles/build-base) of the [`zabbix/zabbix-docker` GitHub repo](https://github.com/zabbix/zabbix-docker/). Be sure to familiarize yourself with the [repository's `README.md` file](https://github.com/zabbix/zabbix-docker/blob/6.4/README.md) before attempting a pull request.
 
 ## Issues
 
