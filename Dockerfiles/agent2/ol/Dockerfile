@@ -45,7 +45,6 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             iputils \
             pcre2 \
             libcurl \
-            libmodbus \
             smartmontools \
             sudo \
             openssl-libs" && \
