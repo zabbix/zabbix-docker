@@ -56,7 +56,7 @@ RUN --mount=type=cache,target=/root/.cache/go-build/ \
             --enable-proxy \
             --with-ldap \
             --with-libcurl \
-#            --with-libmodbus \
+            --with-libmodbus \
             --with-libpcre2 \
             --with-libxml2 \
             --with-net-snmp \

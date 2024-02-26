@@ -29,6 +29,7 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             libcurl-devel \
             libevent-devel \
             libssh-devel \
+            libmodbus-devel \
             libxml2-devel \
             openssl-devel \
             openldap-devel \
