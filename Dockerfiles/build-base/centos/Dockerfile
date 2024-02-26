@@ -19,7 +19,7 @@ LABEL org.opencontainers.image.authors="Alexey Pustovalov <alexey.pustovalov@zab
 
 RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
     set -eux && \
-    REPOLIST="baseos,appstream,powertools" && \
+    REPOLIST="baseos,appstream,powertools,epel" && \
     INSTALL_PKGS="autoconf \
             automake \
             bash \
@@ -29,6 +29,7 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             libcurl-devel \
             libevent-devel \
             libssh-devel \
+            libmodbus-devel \
             libxml2-devel \
             openssl-devel \
             openldap-devel \
@@ -45,6 +46,12 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             go-toolset \
             unixODBC-devel" && \
     dnf -y module enable mysql && \
+    dnf -y install \
+        --disablerepo "*" \
+        --enablerepo "extras" \
+        --setopt=tsflags=nodocs \
+        --setopt=install_weak_deps=False \
+        --best epel-release && \
     dnf -y install \
         --disablerepo "*" \
         --enablerepo "${REPOLIST}" \

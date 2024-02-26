@@ -17,6 +17,8 @@ LABEL org.opencontainers.image.authors="Alexey Pustovalov <alexey.pustovalov@zab
       org.opencontainers.image.vendor="Zabbix LLC" \
       org.opencontainers.image.version="${ZBX_VERSION}"
 
+COPY ["conf/etc/yum.repos.d/oracle-epel-ol8.repo", "/etc/yum.repos.d/oracle-epel-ol8.repo"]
+
 RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
     set -eux && \
     INSTALL_PKGS="autoconf \
@@ -29,6 +31,7 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             libcurl-devel \
             libevent-devel \
             libssh-devel \
+            libmodbus-devel \
             libxml2-devel \
             openssl-devel \
             openldap-devel \
@@ -50,6 +53,7 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
         --enablerepo "ol8_baseos_latest" \
         --enablerepo "ol8_appstream" \
         --enablerepo "ol8_codeready_builder" \
+        --enablerepo="ol8_developer_EPEL" \
         --setopt=install_weak_deps=0 \
         --setopt=keepcache=0 \
         --best \

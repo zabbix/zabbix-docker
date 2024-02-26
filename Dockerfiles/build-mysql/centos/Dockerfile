@@ -50,8 +50,7 @@ RUN --mount=type=cache,target=/root/.cache/go-build/ \
             --enable-webservice \
             --with-ldap \
             --with-libcurl \
-#            Not available for CentOS 8
-#            --with-libmodbus \
+            --with-libmodbus \
             --with-libpcre2 \
             --with-libxml2 \
             --with-mysql \
