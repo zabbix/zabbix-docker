@@ -44,7 +44,6 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             iputils \
             pcre2 \
             libcurl-minimal \
-            libmodbus \
             smartmontools \
             shadow-utils \
             sudo \
