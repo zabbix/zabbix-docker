@@ -41,6 +41,7 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             libcurl-devel \
             libevent-devel \
             libssh-devel \
+            libmodbus-devel \
             libxml2-devel \
             openssl-devel \
             openldap-devel \
@@ -55,6 +56,9 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             git \
             gettext \
             unixODBC-devel" && \
+    curl -sSL -o /tmp/epel-release-latest-8.noarch.rpm https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm && \
+    rpm -ivh /tmp/epel-release-latest-8.noarch.rpm && \
+    rm -rf /tmp/epel-release-latest-8.noarch.rpm && \
     microdnf -y module enable mysql && \
     microdnf -y install \
             --disablerepo "*" \
@@ -63,6 +67,7 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             --enablerepo "rhel-8-for-x86_64-baseos-rpms" \
             --enablerepo "rhel-8-for-x86_64-appstream-rpms" \
             --enablerepo "codeready-builder-for-rhel-8-x86_64-rpms" \
+            --enablerepo "epel" \
             --setopt=install_weak_deps=0 \
             --setopt=keepcache=0 \
             --best \

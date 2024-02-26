@@ -40,6 +40,7 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             iputils \
             pcre2 \
             libcurl \
+            libmodbus \
             openssl-libs \
             zlib" && \
     microdnf -y install \
