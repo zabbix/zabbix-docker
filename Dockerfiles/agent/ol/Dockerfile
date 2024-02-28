@@ -35,7 +35,6 @@ COPY ["conf/etc/yum.repos.d/oracle-epel-ol9.repo", "/etc/yum.repos.d/oracle-epel
 RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
     set -eux && \
     INSTALL_PKGS="bash \
-            tzdata \
             iputils \
             pcre2 \
             libcurl \
