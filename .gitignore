@@ -3,3 +3,4 @@ zbx_env*/
 .*CERT_FILE
 .*KEY_FILE
 .*CA_FILE
+Dockerfiles/*/rhel/secrets/*
