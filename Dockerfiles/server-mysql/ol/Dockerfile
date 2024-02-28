@@ -43,7 +43,6 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             traceroute \
             nmap \
             file-libs \
-            tzdata \
             iputils \
             traceroute \
             libevent \
