@@ -27,7 +27,8 @@ permissions:
 
 env:
   TRUNK_ONLY_EVENT: ${{ contains(fromJSON('["schedule"]'), github.event_name) }}
-  AUTO_PUSH_IMAGES: ${{ ! contains(fromJSON('["workflow_dispatch"]'), github.event_name) && vars.AUTO_PUSH_IMAGES }}
+#  AUTO_PUSH_IMAGES: ${{ ! contains(fromJSON('["workflow_dispatch"]'), github.event_name) && vars.AUTO_PUSH_IMAGES }}
+  AUTO_PUSH_IMAGES: false
 
   DOCKER_REPOSITORY: ${{ vars.DOCKER_REPOSITORY }}
   LATEST_BRANCH: ${{ github.event.repository.default_branch }}
@@ -363,6 +364,12 @@ jobs:
           registry: ${{ env.DOCKER_REGISTRY_TEST }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
+
+     - env:
+        CONTEXT: ${{ format('{0}/{1}/{2}', env.DOCKERFILES_DIRECTORY, env.BASE_BUILD_NAME, matrix.os) }}
+       run: |
+             cp -R /tmp/secrets/ $CONTEXT/
+             ls -lah $CONTEXT/
 
       - name: Build and publish image
         id: docker_build
