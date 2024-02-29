@@ -120,7 +120,7 @@ jobs:
         env:
           MATRIX_FILE: ${{ env.MATRIX_FILE }}
         run: |
-            component_list=$(jq -r '.components | keys | @json' "$MATRIX_FILE")
+            component_list=$(jq -r '.components | map_values(select(.rhel == true)) | keys | @json' "$MATRIX_FILE")
 
             echo "::group::Zabbix Component List"
             echo "$component_list"
@@ -365,7 +365,8 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - env:
+      - name: Copy RedHat subscription
+        env:
           CONTEXT: ${{ format('{0}/{1}/{2}', env.DOCKERFILES_DIRECTORY, env.BASE_BUILD_NAME, matrix.os) }}
         run: |
              cp -R /tmp/secrets/ $CONTEXT/
@@ -379,7 +380,7 @@ jobs:
           platforms: ${{ steps.platform.outputs.list }}
           push: true
           provenance: mode=max
-          sbom: true
+          sbom: ${{ env.AUTO_PUSH_IMAGES == 'true' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: |
             org.opencontainers.image.revision=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.revision'] }}
@@ -691,7 +692,7 @@ jobs:
         build: ${{ fromJson(needs.init_build.outputs.components) }}
         os: ${{ fromJson(needs.init_build.outputs.os) }}
 
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, linux, ubuntu]
     permissions:
       contents: read
       id-token: write
@@ -701,7 +702,7 @@ jobs:
         uses: step-security/harden-runner@63c24ba6bd7ba022e95695ff85de572c04a18142 # v2.7.0
         with:
           disable-sudo: true
-          egress-policy: block
+          egress-policy: audit
           allowed-endpoints: >
             api.github.com:443
             auth.docker.io:443
