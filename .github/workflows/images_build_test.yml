@@ -835,6 +835,7 @@ jobs:
         run: cosign version
 
       - name: Set up QEMU
+        if: ${{ matrix.os != 'rhel' }}
         uses: docker/setup-qemu-action@68827325e0b33c7199eb31dd4e31fbe9023e06e3 # v3.0.0
         with:
           image: tonistiigi/binfmt:latest
