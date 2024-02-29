@@ -437,6 +437,9 @@ jobs:
       matrix:
         build: ${{ fromJson(needs.init_build.outputs.database) }}
         os: ${{ fromJson(needs.init_build.outputs.os) }}
+        exclude:
+          - build: build-pgsql
+            os: rhel
     runs-on: ubuntu-latest
     permissions:
       contents: read
