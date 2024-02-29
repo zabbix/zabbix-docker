@@ -165,7 +165,7 @@ jobs:
       matrix:
         os: ${{ fromJson(needs.init_build.outputs.os) }}
 
-    runs-on: runs-on: [self-hosted, ubuntu]
+    runs-on: [self-hosted, linux, ubuntu]
     permissions:
       contents: read
       id-token: write
