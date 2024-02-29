@@ -369,7 +369,6 @@ jobs:
           CONTEXT: ${{ format('{0}/{1}/{2}', env.DOCKERFILES_DIRECTORY, env.BASE_BUILD_NAME, matrix.os) }}
         run: |
              cp -R /tmp/secrets/ $CONTEXT/
-             ls -lah $CONTEXT/
 
       - name: Build and publish image
         id: docker_build
