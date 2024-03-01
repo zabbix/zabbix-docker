@@ -974,11 +974,12 @@ jobs:
             echo 'EOF' >> "$GITHUB_OUTPUT"
 
       - name: Copy RedHat subscription
-        if: ${{ matrix.os == 'rhel' }}
+        if: ${{ matrix.os == 'rhel' && matrix.build != 'snmptraps' }}
         env:
-          CONTEXT: ${{ format('{0}/{1}/{2}', env.DOCKERFILES_DIRECTORY, env.BASE_BUILD_NAME, matrix.os) }}
+          CONTEXT: ${{ format('{0}/{1}/{2}', env.DOCKERFILES_DIRECTORY, matrix.build, matrix.os) }}
         run: |
-             cp -R /tmp/secrets/ $CONTEXT/
+             cp -R "/tmp/secrets/" "$CONTEXT/"
+             ls -lah "$CONTEXT/"
 
       - name: Login to DockerHub
         if: ${{ env.AUTO_PUSH_IMAGES == 'true' }}
