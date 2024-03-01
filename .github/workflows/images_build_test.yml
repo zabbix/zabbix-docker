@@ -860,6 +860,9 @@ jobs:
             # Chromium on Ubuntu is not available on s390x platform
             elif [ "$MATRIX_OS" == "ubuntu" ] && [ "$MATRIX_BUILD" == "web-service" ]; then
                 platform_list="linux/amd64,linux/arm/v7,linux/arm64"
+            # Chromium on RedHat is not available on ppc64le, s390x platforms
+            elif [ "$MATRIX_OS" == "rhel" ] && [ "$MATRIX_BUILD" == "web-service" ]; then
+                platform_list="linux/amd64,linux/arm64"
             else
                 platform_list=$(jq -r ".[\"os-linux\"].\"$MATRIX_OS\" | join(\",\")" "$MATRIX_FILE")
             fi
@@ -980,6 +983,13 @@ jobs:
         run: |
              cp -R "/tmp/secrets/" "$CONTEXT/"
              ls -lah "$CONTEXT/"
+
+      - name: Remove smartmontools
+        if: ${{ matrix.build == 'agent2' && matrix.os == 'rhel' }}
+        env:
+          DOCKERFILES_DIRECTORY: ${{ env.DOCKERFILES_DIRECTORY }}
+        run: |
+          sed -i '/smartmontools/d' "$DOCKERFILES_DIRECTORY/agent2/rhel/Dockerfile"
 
       - name: Login to DockerHub
         if: ${{ env.AUTO_PUSH_IMAGES == 'true' }}
