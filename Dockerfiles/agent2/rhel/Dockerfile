@@ -56,6 +56,7 @@ COPY --from=builder ["/tmp/mongodb_plugin/zabbix-agent2-plugin-mongodb", "/usr/s
 COPY --from=builder ["/tmp/postgresql_plugin/zabbix-agent2-plugin-postgresql", "/usr/sbin/zabbix-agent2-plugin/zabbix-agent2-plugin-postgresql"]
 
 RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
+    --mount=type=bind,target=/run/secrets/,src=secrets/ \
     set -eux && \
     INSTALL_PKGS="bash \
             iputils \
@@ -64,13 +65,12 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             smartmontools \
             sudo \
             libcurl-minimal" && \
-    curl -sSL -o /tmp/epel-release-latest-9.noarch.rpm https://dl.fedoraproject.org/pub/epel/epel-release-latest-9.noarch.rpm && \
-    rpm -ivh /tmp/epel-release-latest-9.noarch.rpm && \
-    rm -rf /tmp/epel-release-latest-9.noarch.rpm && \
+    ARCH_SUFFIX="$(arch)"; \
     microdnf -y install \
             --disableplugin=subscription-manager \
             --disablerepo "*" \
             --enablerepo "ubi-9-baseos-rpms" \
+            --enablerepo "rhel-9-for-$ARCH_SUFFIX-baseos-beta-rpms" \
             --enablerepo "epel" \
             --setopt=install_weak_deps=0 \
             --setopt=keepcache=0 \

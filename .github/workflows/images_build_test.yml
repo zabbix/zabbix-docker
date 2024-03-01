@@ -973,13 +973,6 @@ jobs:
             echo "$cache_from" >> "$GITHUB_OUTPUT"
             echo 'EOF' >> "$GITHUB_OUTPUT"
 
-      - name: Remove smartmontools
-        if: ${{ matrix.build == 'agent2' && matrix.os == 'rhel' }}
-        env:
-          DOCKERFILES_DIRECTORY: ${{ env.DOCKERFILES_DIRECTORY }}
-        run: |
-          sed -i '/smartmontools/d' "$DOCKERFILES_DIRECTORY/agent2/rhel/Dockerfile"
-
       - name: Copy RedHat subscription
         if: ${{ matrix.os == 'rhel' }}
         env:
