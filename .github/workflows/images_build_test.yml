@@ -366,6 +366,7 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Copy RedHat subscription
+        if: ${{ matrix.os == 'rhel' }}
         env:
           CONTEXT: ${{ format('{0}/{1}/{2}', env.DOCKERFILES_DIRECTORY, env.BASE_BUILD_NAME, matrix.os) }}
         run: |
@@ -978,6 +979,13 @@ jobs:
           DOCKERFILES_DIRECTORY: ${{ env.DOCKERFILES_DIRECTORY }}
         run: |
           sed -i '/smartmontools/d' "$DOCKERFILES_DIRECTORY/agent2/rhel/Dockerfile"
+
+      - name: Copy RedHat subscription
+        if: ${{ matrix.os == 'rhel' }}
+        env:
+          CONTEXT: ${{ format('{0}/{1}/{2}', env.DOCKERFILES_DIRECTORY, env.BASE_BUILD_NAME, matrix.os) }}
+        run: |
+             cp -R /tmp/secrets/ $CONTEXT/
 
       - name: Login to DockerHub
         if: ${{ env.AUTO_PUSH_IMAGES == 'true' }}
