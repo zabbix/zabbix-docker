@@ -58,26 +58,32 @@ COPY --from=builder ["/tmp/postgresql_plugin/zabbix-agent2-plugin-postgresql", "
 RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
     set -eux && \
     INSTALL_PKGS="bash \
-            tzdata \
             iputils \
             shadow-utils \
             pcre2 \
             smartmontools \
             sudo \
             libcurl-minimal" && \
-    curl -sSL -o /tmp/epel-release-latest-9.noarch.rpm https://dl.fedoraproject.org/pub/epel/epel-release-latest-9.noarch.rpm && \
-    rpm -ivh /tmp/epel-release-latest-9.noarch.rpm && \
-    rm -rf /tmp/epel-release-latest-9.noarch.rpm && \
     microdnf -y install \
+            --disableplugin=subscription-manager \
             --disablerepo "*" \
             --enablerepo "ubi-9-baseos-rpms" \
-            --enablerepo "epel" \
             --setopt=install_weak_deps=0 \
             --setopt=keepcache=0 \
             --best \
             --setopt=tsflags=nodocs \
         ${INSTALL_PKGS} && \
+    microdnf -y update \
+            --disableplugin=subscription-manager \
+            --disablerepo "*" \
+            --enablerepo "ubi-9-baseos-rpms" \
+            --setopt=install_weak_deps=0 \
+            --best \
+            --setopt=tsflags=nodocs \
+        tzdata && \
     microdnf -y reinstall \
+            --disableplugin=subscription-manager \
+            --disablerepo "*" \
             --enablerepo "ubi-9-baseos-rpms" \
             --setopt=install_weak_deps=0 \
             --setopt=keepcache=0 \
