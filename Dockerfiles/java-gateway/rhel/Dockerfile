@@ -55,6 +55,7 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             shadow-utils \
             java-17-openjdk-headless" && \
     microdnf -y install \
+            --disableplugin=subscription-manager \
             --disablerepo "*" \
             --enablerepo "ubi-9-baseos-rpms" \
             --enablerepo "ubi-9-appstream-rpms" \

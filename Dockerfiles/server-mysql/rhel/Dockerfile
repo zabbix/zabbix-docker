@@ -54,6 +54,7 @@ COPY --from=builder ["/tmp/zabbix-${ZBX_VERSION}/conf/zabbix_server.conf", "/etc
 COPY --from=builder ["/tmp/zabbix-${ZBX_VERSION}/database/mysql/create_server.sql.gz", "/usr/share/doc/zabbix-server-mysql/create.sql.gz"]
 
 RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
+    --mount=type=bind,target=/run/secrets/,src=secrets/ \
     set -eux && \
     INSTALL_PKGS="bash \
             tini \
@@ -61,7 +62,6 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             nmap \
             fping \
             shadow-utils \
-            tzdata \
             iputils \
             hostname \
             libssh \
@@ -95,7 +95,17 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             --best \
             --setopt=tsflags=nodocs \
         ${INSTALL_PKGS} && \
+    microdnf -y update \
+            --disableplugin=subscription-manager \
+            --disablerepo "*" \
+            --enablerepo "ubi-9-baseos-rpms" \
+            --setopt=install_weak_deps=0 \
+            --best \
+            --setopt=tsflags=nodocs \
+        tzdata && \
     microdnf -y reinstall \
+            --disableplugin=subscription-manager \
+            --disablerepo "*" \
             --enablerepo "ubi-9-baseos-rpms" \
             --setopt=install_weak_deps=0 \
             --setopt=keepcache=0 \
