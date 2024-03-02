@@ -41,7 +41,6 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
     set -eux && \
     INSTALL_PKGS="bash \
             tini \
-            tzdata \
             iputils \
             pcre2 \
             libcurl \

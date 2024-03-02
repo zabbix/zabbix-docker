@@ -30,6 +30,7 @@ LABEL description="Prepared environment to build Zabbix components" \
 COPY ["licenses", "/licenses"]
 
 RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
+    --mount=type=bind,target=/run/secrets/,src=secrets/ \
     set -eux && \
     INSTALL_PKGS="autoconf \
             automake \

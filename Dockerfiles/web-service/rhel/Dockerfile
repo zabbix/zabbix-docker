@@ -50,6 +50,7 @@ COPY --from=builder ["/tmp/zabbix-${ZBX_VERSION}/src/go/bin/zabbix_web_service",
 COPY --from=builder ["/tmp/zabbix-${ZBX_VERSION}/src/go/conf/zabbix_web_service.conf", "/etc/zabbix/zabbix_web_service.conf"]
 
 RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
+    --mount=type=bind,target=/run/secrets/,src=secrets/ \
     set -eux && \
     INSTALL_PKGS="bash \
             shadow-utils \
@@ -62,7 +63,6 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             --disablerepo "*" \
             --enablerepo "ubi-9-baseos-rpms" \
             --enablerepo "ubi-9-appstream-rpms" \
-            --enablerepo "rhel-9-for-$ARCH_SUFFIX-baseos-rpms" \
             --enablerepo "rhel-9-for-$ARCH_SUFFIX-appstream-rpms" \
             --enablerepo "epel" \
             --setopt=install_weak_deps=0 \
@@ -71,6 +71,7 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             --setopt=tsflags=nodocs \
         ${INSTALL_PKGS} && \
     microdnf -y install \
+            --disableplugin=subscription-manager \
             --disablerepo "*" \
             --enablerepo "ubi-9-baseos-rpms" \
             --enablerepo "ubi-9-appstream-rpms" \
