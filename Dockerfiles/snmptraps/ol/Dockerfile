@@ -24,7 +24,6 @@ STOPSIGNAL SIGTERM
 RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
     set -eux && \
     INSTALL_PKGS="bash \
-            tzdata \
             net-snmp" && \
     microdnf -y install \
             --disablerepo="*" \

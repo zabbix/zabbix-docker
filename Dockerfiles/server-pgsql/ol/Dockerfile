@@ -45,7 +45,6 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             traceroute \
             nmap \
             iputils \
-            tzdata \
             traceroute \
             libevent \
             libssh \
