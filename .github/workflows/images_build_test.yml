@@ -1042,8 +1042,7 @@ jobs:
           context: ${{ format('{0}/{1}/{2}', env.DOCKERFILES_DIRECTORY, matrix.build, matrix.os) }}
           file: ${{ format('{0}/{1}/{2}/Dockerfile', env.DOCKERFILES_DIRECTORY, matrix.build, matrix.os) }}
           platforms: ${{ steps.platform.outputs.list }}
-          push: ${{ env.AUTO_PUSH_IMAGES == 'true' }}
-          provenance: mode=max
+          push: ${{ env.AUTO_PUSH_IMAGES != 'true' }}
           sbom: ${{ env.AUTO_PUSH_IMAGES == 'true' }}
           tags: ${{ steps.meta.outputs.tags }}
           build-args: BUILD_BASE_IMAGE=${{ steps.base_build.outputs.base_build_image }}
@@ -1056,10 +1055,11 @@ jobs:
         env:
           PFLT_CERTIFICATION_PROJECT_ID: ${{ secrets[format('{0}_{1}_PROJECT', needs.init_build.outputs.secret_prefix, steps.var_format.outputs.matrix_build)] }}
           PFLT_PYXIS_API_TOKEN: ${{ secrets.REDHAT_API_TOKEN }}
-          PFLT_ARTIFACTS: ${{ env.PFLT_ARTIFACTS }}
+          PFLT_ARTIFACTS: "/tmp/artifacts"
           PFLT_LOGLEVEL: ${{ env.PFLT_LOGLEVEL }}
           IMAGE_TAG: ${{ fromJSON(steps.meta.outputs.json).tags[0] }}
           PREFLIGHT_IMAGE: ${{ env.PREFLIGHT_IMAGE }}
+          PFLT_LOGFILE: "/tmp/artifacts/preflight.log"
         run: |
             mkdir -p $PFLT_ARTIFACTS
             echo "::group::Pull preflight \"$PREFLIGHT_IMAGE\" image"
@@ -1067,20 +1067,8 @@ jobs:
             echo "::endgroup::"
 
             echo "::group::Perform certification tests"
-            docker run \
-              -it \
-              --rm \
-              --security-opt=label=disable \
-              --env PFLT_LOGLEVEL=$PFLT_LOGLEVEL \
-              --env PFLT_ARTIFACTS=/artifacts \
-              --env PFLT_LOGFILE=/artifacts/preflight.log \
-              --env PFLT_CERTIFICATION_PROJECT_ID=$PFLT_CERTIFICATION_PROJECT_ID \
-              --env PFLT_PYXIS_API_TOKEN=$PFLT_PYXIS_API_TOKEN \
-              --env PFLT_DOCKERCONFIG=/temp-authfile.json \
-              -v $PFLT_ARTIFACTS:/artifacts \
-              -v $HOME/.docker/config.json:/temp-authfile.json:ro \
-                "$PREFLIGHT_IMAGE" check container $IMAGE_TAG --submit
-            docker rmi -i -f "$PREFLIGHT_IMAGE"
+            export PFLT_DOCKERCONFIG="$HOME/.docker/config.json"
+            preflight check container $IMAGE_TAG
             echo "::endgroup::"
 
       - name: Sign the images with GitHub OIDC Token
