@@ -1028,7 +1028,7 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Log in to ${{ env.REGISTRY }}
-        uses: redhat-actions/podman-login@9184318aae1ee5034fbfbacc0388acf12669171f # v1.6
+        uses: docker/login-action@343f7c4344506bcbf9b4de18042ae17996df046d # v3.0.0
         if: ${{ env.AUTO_PUSH_IMAGES != 'true' }}
         with:
           username: ${{ format('redhat-isv-containers+{0}-robot', secrets[format('{0}_{1}_PROJECT',  needs.init_build.outputs.secret_prefix, steps.var_format.outputs.matrix_build)]) }}
