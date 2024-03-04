@@ -10,9 +10,9 @@ on:
       - 'trunk'
       - 'trunk_rhel'
     paths:
+      - 'Dockerfiles/*/rhel/*'
       - 'build.json'
       - '!**/README.md'
-      - 'Dockerfiles/*/rhel/*'
       - '.github/workflows/images_build_test.yml'
   schedule:
     - cron:  '50 02 * * *'
@@ -48,6 +48,12 @@ env:
   DOCKER_REGISTRY_TEST: "ghcr.io"
   DOCKER_REPOSITORY_TEST: "zabbix"
 
+  REGISTRY: "quay.io"
+  REGISTRY_NAMESPACE: "redhat-isv-containers"
+  PREFLIGHT_IMAGE: "quay.io/opdev/preflight:stable"
+  PFLT_LOGLEVEL: "warn"
+  PFLT_ARTIFACTS: "/tmp/artifacts"
+
 jobs:
   init_build:
     name: Initialize build
@@ -61,6 +67,7 @@ jobs:
       is_default_branch: ${{ steps.branch_info.outputs.is_default_branch }}
       current_branch: ${{ steps.branch_info.outputs.current_branch }}
       sha_short: ${{ steps.branch_info.outputs.sha_short }}
+      secret_prefix: ${{ steps.branch_info.outputs.secret_prefix }}
     steps:
       - name: Block egress traffic
         uses: step-security/harden-runner@63c24ba6bd7ba022e95695ff85de572c04a18142 # v2.7.0
@@ -155,6 +162,7 @@ jobs:
 
             echo "is_default_branch=$result" >> $GITHUB_OUTPUT
             echo "current_branch=$github_ref" >> $GITHUB_OUTPUT
+            echo "secret_prefix=RHEL_64" >> $GITHUB_OUTPUT
             echo "sha_short=$sha_short" >> $GITHUB_OUTPUT
 
   build_base:
@@ -847,6 +855,19 @@ jobs:
         with:
           driver-opts: image=moby/buildkit:master
 
+      - name: Variables formating
+        id: var_format
+        env:
+          MATRIX_BUILD: ${{ matrix.build }}
+        run: |
+            MATRIX_BUILD=${MATRIX_BUILD^^}
+            MATRIX_BUILD=${MATRIX_BUILD//-/_}
+
+            echo "::group::Result"
+            echo "matrix_build=${MATRIX_BUILD}"
+            echo "::endgroup::"
+            echo "matrix_build=${MATRIX_BUILD}" >> $GITHUB_OUTPUT
+
       - name: Prepare Platform list
         id: platform
         env:
@@ -899,8 +920,9 @@ jobs:
         uses: docker/metadata-action@8e5442c4ef9f78752691e2d8f8d19755c6f78e81 # v5.5.1
         with:
           images:  |
-              ${{ format('{0}/{1}/{2}{3}', env.DOCKER_REGISTRY_TEST, env.DOCKER_REPOSITORY_TEST, env.IMAGES_PREFIX, matrix.build ) }},enable=${{ env.AUTO_PUSH_IMAGES != 'true' }}
+              ${{ format('{0}/{1}/{2}{3}', env.DOCKER_REGISTRY_TEST, env.DOCKER_REPOSITORY_TEST, env.IMAGES_PREFIX, matrix.build ) }},enable=${{ env.AUTO_PUSH_IMAGES == 'true' }}
               ${{ format('{0}/{1}{2}', env.DOCKER_REPOSITORY, env.IMAGES_PREFIX, matrix.build ) }},enable=${{ env.AUTO_PUSH_IMAGES == 'true' }}
+              ${{ env.REGISTRY }}/${{ env.REGISTRY_NAMESPACE }}/${{ secrets[format('{0}_{1}_PROJECT', needs.init_build.outputs.secret_prefix, steps.var_format.outputs.matrix_build)] || matrix.build }}
           context: ${{ env.TRUNK_ONLY_EVENT == 'true' && 'git' || '' }}
           tags: |
             type=semver,enable=${{ needs.init_build.outputs.current_branch != 'trunk' }},pattern={{version}},prefix=${{ matrix.os }}-
@@ -982,7 +1004,6 @@ jobs:
           CONTEXT: ${{ format('{0}/{1}/{2}', env.DOCKERFILES_DIRECTORY, matrix.build, matrix.os) }}
         run: |
              cp -R "/tmp/secrets/" "$CONTEXT/"
-             ls -lah "$CONTEXT/"
 
       - name: Remove smartmontools
         if: ${{ matrix.build == 'agent2' && matrix.os == 'rhel' }}
@@ -999,12 +1020,20 @@ jobs:
           password: ${{ secrets.DOCKER_PASSWORD }}
 
       - name: Login to ${{ env.DOCKER_REGISTRY_TEST }}
-        if: ${{ env.AUTO_PUSH_IMAGES != 'true' }}
+        if: ${{ env.AUTO_PUSH_IMAGES == 'true' }}
         uses: docker/login-action@343f7c4344506bcbf9b4de18042ae17996df046d # v3.0.0
         with:
           registry: ${{ env.DOCKER_REGISTRY_TEST }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Log in to ${{ env.REGISTRY }}
+        uses: redhat-actions/podman-login@9184318aae1ee5034fbfbacc0388acf12669171f # v1.6
+        if: ${{ env.AUTO_PUSH_IMAGES != 'true' }}
+        with:
+          username: ${{ format('redhat-isv-containers+{0}-robot', secrets[format('{0}_{1}_PROJECT',  needs.init_build.outputs.secret_prefix, steps.var_format.outputs.matrix_build)]) }}
+          password: ${{ secrets[format('{0}_{1}_SECRET', needs.init_build.outputs.secret_prefix, steps.var_format.outputs.matrix_build)] }}
+          registry: ${{ env.REGISTRY }}
 
       - name: Build and push image
         id: docker_build
@@ -1021,6 +1050,38 @@ jobs:
           labels: |
             org.opencontainers.image.revision=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.revision'] }}
             org.opencontainers.image.created=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.created'] }}
+
+      - name: Preflight certification
+        if: ${{ env.AUTO_PUSH_IMAGES != 'true' }}
+        env:
+          PFLT_CERTIFICATION_PROJECT_ID: ${{ secrets[format('{0}_{1}_PROJECT', needs.init_build.outputs.secret_prefix, steps.var_format.outputs.matrix_build)] }}
+          PFLT_PYXIS_API_TOKEN: ${{ secrets.REDHAT_API_TOKEN }}
+          PFLT_ARTIFACTS: ${{ env.PFLT_ARTIFACTS }}
+          PFLT_LOGLEVEL: ${{ env.PFLT_LOGLEVEL }}
+          IMAGE_TAG: ${{ fromJSON(steps.meta.outputs.json).tags[0] }}
+          PREFLIGHT_IMAGE: ${{ env.PREFLIGHT_IMAGE }}
+        run: |
+            mkdir -p $PFLT_ARTIFACTS
+            echo "::group::Pull preflight \"$PREFLIGHT_IMAGE\" image"
+            docker pull "$PREFLIGHT_IMAGE"
+            echo "::endgroup::"
+
+            echo "::group::Perform certification tests"
+            docker run \
+              -it \
+              --rm \
+              --security-opt=label=disable \
+              --env PFLT_LOGLEVEL=$PFLT_LOGLEVEL \
+              --env PFLT_ARTIFACTS=/artifacts \
+              --env PFLT_LOGFILE=/artifacts/preflight.log \
+              --env PFLT_CERTIFICATION_PROJECT_ID=$PFLT_CERTIFICATION_PROJECT_ID \
+              --env PFLT_PYXIS_API_TOKEN=$PFLT_PYXIS_API_TOKEN \
+              --env PFLT_DOCKERCONFIG=/temp-authfile.json \
+              -v $PFLT_ARTIFACTS:/artifacts \
+              -v $HOME/.docker/config.json:/temp-authfile.json:ro \
+                "$PREFLIGHT_IMAGE" check container $IMAGE_TAG --submit
+            docker rmi -i -f "$PREFLIGHT_IMAGE"
+            echo "::endgroup::"
 
       - name: Sign the images with GitHub OIDC Token
         if: ${{ env.AUTO_PUSH_IMAGES == 'true' }}
