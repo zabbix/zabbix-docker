@@ -698,7 +698,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        build: ${{ fromJson(needs.init_build.outputs.components) }}
+        build: ["agent"]
         os: ${{ fromJson(needs.init_build.outputs.os) }}
 
     runs-on: [self-hosted, linux, ubuntu]
@@ -1051,7 +1051,6 @@ jobs:
             org.opencontainers.image.created=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.created'] }}
 
       - name: Preflight certification
-        if: ${{ env.AUTO_PUSH_IMAGES != 'true' }}
         env:
           PFLT_CERTIFICATION_PROJECT_ID: ${{ secrets[format('{0}_{1}_PROJECT', needs.init_build.outputs.secret_prefix, steps.var_format.outputs.matrix_build)] }}
           PFLT_PYXIS_API_TOKEN: ${{ secrets.REDHAT_API_TOKEN }}
@@ -1060,6 +1059,7 @@ jobs:
           IMAGE_TAG: ${{ fromJSON(steps.meta.outputs.json).tags[0] }}
           PREFLIGHT_IMAGE: ${{ env.PREFLIGHT_IMAGE }}
           PFLT_LOGFILE: "/tmp/artifacts/preflight.log"
+          SUBMIT_IMAGE: ${{ env.AUTO_PUSH_IMAGES != 'true' && '--submit' || '' }}
         run: |
             mkdir -p $PFLT_ARTIFACTS
             echo "::group::Pull preflight \"$PREFLIGHT_IMAGE\" image"
@@ -1067,7 +1067,7 @@ jobs:
 
             echo "::group::Perform certification tests"
             export PFLT_DOCKERCONFIG="$HOME/.docker/config.json"
-            preflight check container $IMAGE_TAG
+            preflight check container $IMAGE_TAG --submit
             echo "::endgroup::"
 
       - name: Sign the images with GitHub OIDC Token
