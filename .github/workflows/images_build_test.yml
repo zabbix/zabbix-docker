@@ -13,8 +13,8 @@ on:
       - 'build.json'
       - '!**/README.md'
       - '.github/workflows/images_build_test.yml'
-  schedule:
-    - cron:  '50 02 * * *'
+#  schedule:
+#    - cron:  '50 02 * * *'
   workflow_dispatch:
 
 defaults:
