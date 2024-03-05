@@ -1,4 +1,4 @@
-name: Build images (DockerHub, rhel)
+name: Build images (RedHat registry)
 
 on:
   release:
@@ -8,7 +8,6 @@ on:
     branches:
       - '[0-9]+.[0-9]+'
       - 'trunk'
-      - 'trunk_rhel'
     paths:
       - 'Dockerfiles/*/rhel/*'
       - 'build.json'
@@ -27,8 +26,7 @@ permissions:
 
 env:
   TRUNK_ONLY_EVENT: ${{ contains(fromJSON('["schedule"]'), github.event_name) }}
-#  AUTO_PUSH_IMAGES: ${{ ! contains(fromJSON('["workflow_dispatch"]'), github.event_name) && vars.AUTO_PUSH_IMAGES }}
-  AUTO_PUSH_IMAGES: false
+  AUTO_PUSH_IMAGES: ${{ ! contains(fromJSON('["workflow_dispatch"]'), github.event_name) && vars.AUTO_PUSH_IMAGES }}
 
   DOCKER_REPOSITORY: ${{ vars.DOCKER_REPOSITORY }}
   LATEST_BRANCH: ${{ github.event.repository.default_branch }}
@@ -177,99 +175,8 @@ jobs:
     runs-on: [self-hosted, linux, ubuntu]
     permissions:
       contents: read
-      id-token: write
       packages: write
     steps:
-      - name: Block egress traffic
-        uses: step-security/harden-runner@63c24ba6bd7ba022e95695ff85de572c04a18142 # v2.7.0
-        with:
-          disable-sudo: true
-          egress-policy: audit
-          allowed-endpoints: >
-            api.github.com:443
-            archive.ubuntu.com:80
-            atl.mirrors.knownhost.com:443
-            atl.mirrors.knownhost.com:80
-            auth.docker.io:443
-            cdn03.quay.io:443
-            centos-stream-distro.1gservers.com:443
-            centos-stream-distro.1gservers.com:80
-            dfw.mirror.rackspace.com:443
-            dfw.mirror.rackspace.com:80
-            dl-cdn.alpinelinux.org:443
-            download.cf.centos.org:443
-            download.cf.centos.org:80
-            epel.mirror.constant.com:443
-            ftp-nyc.osuosl.org:443
-            ftp-nyc.osuosl.org:80
-            ftp-osl.osuosl.org:443
-            ftp-osl.osuosl.org:80
-            ftp.plusline.net:443
-            ftp.plusline.net:80
-            ftpmirror.your.org:80
-            fulcio.sigstore.dev:443
-            github.com:443
-            ghcr.io:443
-            iad.mirror.rackspace.com:443
-            iad.mirror.rackspace.com:80
-            index.docker.io:443
-            lesnet.mm.fcix.net:443
-            mirror-mci.yuki.net.uk:443
-            mirror-mci.yuki.net.uk:80
-            mirror.arizona.edu:443
-            mirror.arizona.edu:80
-            mirror.dogado.de:443
-            mirror.dogado.de:80
-            mirror.facebook.net:443
-            mirror.facebook.net:80
-            mirror.fcix.net:443
-            mirror.hoobly.com:443
-            mirror.math.princeton.edu:443
-            mirror.netzwerge.de:443
-            mirror.pilotfiber.com:443
-            mirror.pilotfiber.com:80
-            mirror.rackspace.com:443
-            mirror.rackspace.com:80
-            mirror.scaleuptech.com:443
-            mirror.scaleuptech.com:80
-            mirror.servaxnet.com:443
-            mirror.servaxnet.com:80
-            mirror.siena.edu:80
-            mirror.stream.centos.org:443
-            mirror.stream.centos.org:80
-            mirror.team-cymru.com:443
-            mirror.team-cymru.com:80
-            mirror1.hs-esslingen.de:443
-            mirrors.centos.org:443
-            mirrors.fedoraproject.org:443
-            mirrors.fedoraproject.org:80
-            mirrors.iu13.net:80
-            mirrors.mit.edu:443
-            mirrors.ocf.berkeley.edu:443
-            mirrors.ocf.berkeley.edu:80
-            mirrors.sonic.net:443
-            mirrors.wcupa.edu:443
-            mirrors.wcupa.edu:80
-            mirrors.xtom.de:80
-            na.edge.kernel.org:443
-            nocix.mm.fcix.net:443
-            oauth2.sigstore.dev:443
-            objects.githubusercontent.com:443
-            ports.ubuntu.com:80
-            production.cloudflare.docker.com:443
-            quay.io:443
-            registry-1.docker.io:443
-            rekor.sigstore.dev:443
-            repo.ialab.dsu.edu:443
-            repos.eggycrew.com:443
-            repos.eggycrew.com:80
-            security.ubuntu.com:80
-            tuf-repo-cdn.sigstore.dev:443
-            uvermont.mm.fcix.net:443
-            yum.oracle.com:443
-            ziply.mm.fcix.net:443
-            pkg-containers.githubusercontent.com:443
-
       - name: Checkout repository
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
         with:
@@ -277,14 +184,21 @@ jobs:
           fetch-depth: 1
 
       - name: Install cosign
-        if: ${{ env.AUTO_PUSH_IMAGES == 'true' }}
+        if: ${{ env.AUTO_PUSH_IMAGES == 'true' && matrix.os != 'rhel' }}
         uses: sigstore/cosign-installer@e1523de7571e31dbe865fd2e80c5c7c23ae71eb4
         with:
           cosign-release: 'v2.2.3'
 
       - name: Check cosign version
-        if: ${{ env.AUTO_PUSH_IMAGES == 'true' }}
+        if: ${{ env.AUTO_PUSH_IMAGES == 'true' && matrix.os != 'rhel' }}
         run: cosign version
+
+      - name: Set up QEMU
+        if: ${{ matrix.os != 'rhel' }}
+        uses: docker/setup-qemu-action@68827325e0b33c7199eb31dd4e31fbe9023e06e3 # v3.0.0
+        with:
+          image: tonistiigi/binfmt:latest
+          platforms: all
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@f95db51fddba0c2d1ec667646a06c2ce06100226 # v3.0.0
@@ -312,8 +226,8 @@ jobs:
         uses: docker/metadata-action@8e5442c4ef9f78752691e2d8f8d19755c6f78e81 # v5.5.1
         with:
           images: |
-              ${{ format('{0}/{1}/{2}{3}', env.DOCKER_REGISTRY_TEST, env.DOCKER_REPOSITORY_TEST, env.IMAGES_PREFIX, env.BASE_BUILD_NAME ) }},enable=${{ env.AUTO_PUSH_IMAGES != 'true' }}
-              ${{ format('{0}/{1}{2}', env.DOCKER_REPOSITORY, env.IMAGES_PREFIX, env.BASE_BUILD_NAME ) }},enable=${{ env.AUTO_PUSH_IMAGES == 'true' }}
+              ${{ format('{0}/{1}/{2}{3}', env.DOCKER_REGISTRY_TEST, env.DOCKER_REPOSITORY_TEST, env.IMAGES_PREFIX, env.BASE_BUILD_NAME ) }},enable=${{ env.AUTO_PUSH_IMAGES != 'true' || matrix.os == 'rhel' }}
+              ${{ format('{0}/{1}{2}', env.DOCKER_REPOSITORY, env.IMAGES_PREFIX, env.BASE_BUILD_NAME ) }},enable=${{ env.AUTO_PUSH_IMAGES == 'true' && matrix.os != 'rhel' }}
           context: ${{ env.TRUNK_ONLY_EVENT == 'true' && 'git' || '' }}
           tags: |
             type=semver,enable=${{ needs.init_build.outputs.current_branch != 'trunk' }},pattern={{version}},prefix=${{ matrix.os }}-
@@ -359,26 +273,26 @@ jobs:
             echo 'EOF' >> "$GITHUB_OUTPUT"
 
       - name: Login to DockerHub
-        if: ${{ env.AUTO_PUSH_IMAGES == 'true' }}
+        if: ${{ env.AUTO_PUSH_IMAGES == 'true' && matrix.os != 'rhel' }}
         uses: docker/login-action@343f7c4344506bcbf9b4de18042ae17996df046d # v3.0.0
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
       - name: Login to ${{ env.DOCKER_REGISTRY_TEST }}
-        if: ${{ env.AUTO_PUSH_IMAGES != 'true' }}
+        if: ${{ env.AUTO_PUSH_IMAGES != 'true' || matrix.os == 'rhel' }}
         uses: docker/login-action@343f7c4344506bcbf9b4de18042ae17996df046d # v3.0.0
         with:
           registry: ${{ env.DOCKER_REGISTRY_TEST }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Copy RedHat subscription
+      - name: Prepare RedHat subscription
         if: ${{ matrix.os == 'rhel' }}
         env:
           CONTEXT: ${{ format('{0}/{1}/{2}', env.DOCKERFILES_DIRECTORY, env.BASE_BUILD_NAME, matrix.os) }}
         run: |
-             cp -R /tmp/secrets/ $CONTEXT/
+             cp -R "/tmp/secrets/" "$CONTEXT/"
 
       - name: Build and publish image
         id: docker_build
@@ -388,7 +302,7 @@ jobs:
           file: ${{ format('{0}/{1}/{2}/Dockerfile', env.DOCKERFILES_DIRECTORY, env.BASE_BUILD_NAME, matrix.os) }}
           platforms: ${{ steps.platform.outputs.list }}
           push: true
-          provenance: mode=max
+          provenance: ${{ env.AUTO_PUSH_IMAGES == 'true' && 'mode=max' || '' }}
           sbom: ${{ env.AUTO_PUSH_IMAGES == 'true' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: |
@@ -398,7 +312,7 @@ jobs:
           cache-to: ${{ steps.cache_data.outputs.cache_to }}
 
       - name: Sign the images with GitHub OIDC Token
-        if: ${{ env.AUTO_PUSH_IMAGES == 'true' }}
+        if: ${{ env.AUTO_PUSH_IMAGES == 'true' && matrix.os != 'rhel' }}
         env:
           DIGEST: ${{ steps.docker_build.outputs.digest }}
           TAGS: ${{ steps.meta.outputs.tags }}
@@ -491,13 +405,13 @@ jobs:
           fetch-depth: 1
 
       - name: Install cosign
-        if: ${{ env.AUTO_PUSH_IMAGES == 'true' }}
+        if: ${{ env.AUTO_PUSH_IMAGES == 'true' && matrix.os != 'rhel' }}
         uses: sigstore/cosign-installer@e1523de7571e31dbe865fd2e80c5c7c23ae71eb4
         with:
           cosign-release: 'v2.2.3'
 
       - name: Check cosign version
-        if: ${{ env.AUTO_PUSH_IMAGES == 'true' }}
+        if: ${{ env.AUTO_PUSH_IMAGES == 'true' && matrix.os != 'rhel' }}
         run: cosign version
 
       - name: Set up QEMU
@@ -531,15 +445,15 @@ jobs:
         uses: docker/metadata-action@8e5442c4ef9f78752691e2d8f8d19755c6f78e81 # v5.5.1
         with:
           images: |
-              ${{ format('{0}/{1}/{2}{3}', env.DOCKER_REGISTRY_TEST, env.DOCKER_REPOSITORY_TEST, env.IMAGES_PREFIX, matrix.build ) }},enable=${{ env.AUTO_PUSH_IMAGES != 'true' }}
-              ${{ format('{0}/{1}{2}', env.DOCKER_REPOSITORY, env.IMAGES_PREFIX, matrix.build ) }},enable=${{ env.AUTO_PUSH_IMAGES == 'true' }}
+              ${{ format('{0}/{1}/{2}{3}', env.DOCKER_REGISTRY_TEST, env.DOCKER_REPOSITORY_TEST, env.IMAGES_PREFIX, matrix.build ) }},enable=${{ env.AUTO_PUSH_IMAGES != 'true' || matrix.os == 'rhel' }}
+              ${{ format('{0}/{1}{2}', env.DOCKER_REPOSITORY, env.IMAGES_PREFIX, matrix.build ) }},enable=${{ env.AUTO_PUSH_IMAGES == 'true' && matrix.os != 'rhel' }}
           context: ${{ env.TRUNK_ONLY_EVENT == 'true' && 'git' || '' }}
           tags: |
             type=semver,enable=${{ needs.init_build.outputs.current_branch != 'trunk' }},pattern={{version}},prefix=${{ matrix.os }}-
             type=semver,enable=${{ needs.init_build.outputs.current_branch != 'trunk' }},pattern={{version}},suffix=-${{ matrix.os }}
             type=ref,enable=${{ needs.init_build.outputs.current_branch != 'trunk' && (!contains(fromJSON('["workflow_dispatch"]'), github.event_name)) }},event=branch,prefix=${{ matrix.os }}-,suffix=-latest
             type=ref,enable=${{ needs.init_build.outputs.current_branch != 'trunk' && (!contains(fromJSON('["workflow_dispatch"]'), github.event_name)) }},event=branch,suffix=-${{ matrix.os }}-latest
-            type=raw,enable=${{ (needs.init_build.outputs.current_branch != 'trunk') && (needs.init_build.outputs.is_default_branch == 'true') }},value=${{matrix.os}}-latest
+            type=raw,enable=${{ (needs.init_build.outputs.current_branch != 'trunk') && (needs.init_build.outputs.is_default_branch == 'true') && matrix.os != 'rhel' }},value=${{matrix.os}}-latest
             type=ref,enable=${{ needs.init_build.outputs.current_branch == 'trunk' }},event=branch,prefix=${{ matrix.os }}-
             type=ref,enable=${{ needs.init_build.outputs.current_branch == 'trunk' || contains(fromJSON('["workflow_dispatch"]'), github.event_name) }},event=branch,suffix=-${{ matrix.os }}
           flavor: |
@@ -566,7 +480,7 @@ jobs:
             echo "base_build_image=${IMAGE_NAME}@${IMAGE_DIGEST}" >> $GITHUB_OUTPUT
 
       - name: Verify ${{ env.BASE_BUILD_NAME }}:${{ matrix.os }} cosign
-        if: ${{ env.AUTO_PUSH_IMAGES == 'true' }}
+        if: ${{ env.AUTO_PUSH_IMAGES == 'true' && matrix.os != 'rhel' }}
         env:
          BASE_IMAGE: ${{ steps.base_build.outputs.base_build_image }}
          OIDC_ISSUER: ${{ env.OIDC_ISSUER }}
@@ -621,14 +535,14 @@ jobs:
             echo 'EOF' >> "$GITHUB_OUTPUT"
 
       - name: Login to DockerHub
-        if: ${{ env.AUTO_PUSH_IMAGES == 'true' }}
+        if: ${{ env.AUTO_PUSH_IMAGES == 'true' && matrix.os != 'rhel' }}
         uses: docker/login-action@343f7c4344506bcbf9b4de18042ae17996df046d # v3.0.0
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
       - name: Login to ${{ env.DOCKER_REGISTRY_TEST }}
-        if: ${{ env.AUTO_PUSH_IMAGES != 'true' }}
+        if: ${{ env.AUTO_PUSH_IMAGES != 'true' || matrix.os == 'rhel' }}
         uses: docker/login-action@343f7c4344506bcbf9b4de18042ae17996df046d # v3.0.0
         with:
           registry: ${{ env.DOCKER_REGISTRY_TEST }}
@@ -643,8 +557,8 @@ jobs:
           file: ${{ format('{0}/{1}/{2}/Dockerfile', env.DOCKERFILES_DIRECTORY, matrix.build, matrix.os) }}
           platforms: ${{ steps.platform.outputs.list }}
           push: true
-          provenance: mode=max
-          sbom: true
+          provenance: ${{ env.AUTO_PUSH_IMAGES == 'true' && 'mode=max' || '' }}
+          sbom: ${{ env.AUTO_PUSH_IMAGES == 'true' && matrix.os != 'rhel' }}
           tags: ${{ steps.meta.outputs.tags }}
           build-args: BUILD_BASE_IMAGE=${{ steps.base_build.outputs.base_build_image }}
           labels: |
@@ -652,7 +566,7 @@ jobs:
             org.opencontainers.image.created=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.created'] }}
 
       - name: Sign the images with GitHub OIDC Token
-        if: ${{ env.AUTO_PUSH_IMAGES == 'true' }}
+        if: ${{ env.AUTO_PUSH_IMAGES == 'true' && matrix.os != 'rhel' }}
         env:
           DIGEST: ${{ steps.docker_build.outputs.digest }}
           TAGS: ${{ steps.meta.outputs.tags }}
@@ -698,7 +612,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        build: ["agent"]
+        build: ${{ fromJson(needs.init_build.outputs.components) }}
         os: ${{ fromJson(needs.init_build.outputs.os) }}
 
     runs-on: [self-hosted, linux, ubuntu]
@@ -707,126 +621,6 @@ jobs:
       id-token: write
       packages: write
     steps:
-      - name: Block egress traffic
-        uses: step-security/harden-runner@63c24ba6bd7ba022e95695ff85de572c04a18142 # v2.7.0
-        with:
-          disable-sudo: true
-          egress-policy: audit
-          allowed-endpoints: >
-            api.github.com:443
-            auth.docker.io:443
-            dl-cdn.alpinelinux.org:443
-            github.com:443
-            index.docker.io:443
-            production.cloudflare.docker.com:443
-            registry-1.docker.io:443
-            fulcio.sigstore.dev:443
-            objects.githubusercontent.com:443
-            tuf-repo-cdn.sigstore.dev:443
-            rekor.sigstore.dev:443
-            api.github.com:443
-            atl.mirrors.knownhost.com:443
-            atl.mirrors.knownhost.com:80
-            auth.docker.io:443
-            cdn03.quay.io:443
-            centos-stream-distro.1gservers.com:443
-            centos-stream-distro.1gservers.com:80
-            d2lzkl7pfhq30w.cloudfront.net:443
-            epel.mirror.constant.com:80
-            forksystems.mm.fcix.net:80
-            ftp-nyc.osuosl.org:443
-            ftp-nyc.osuosl.org:80
-            ftp-osl.osuosl.org:443
-            ftp-osl.osuosl.org:80
-            ftp.plusline.net:80
-            ftpmirror.your.org:80
-            github.com:443
-            iad.mirror.rackspace.com:443
-            index.docker.io:443
-            ix-denver.mm.fcix.net:443
-            mirror-mci.yuki.net.uk:443
-            mirror.23m.com:80
-            mirror.arizona.edu:80
-            mirror.dal.nexril.net:80
-            mirror.de.leaseweb.net:80
-            mirror.dogado.de:80
-            mirror.facebook.net:80
-            mirror.hoobly.com:80
-            mirror.math.princeton.edu:80
-            mirror.netcologne.de:443
-            mirror.netzwerge.de:443
-            mirror.pilotfiber.com:443
-            mirror.pilotfiber.com:80
-            mirror.rackspace.com:443
-            mirror.rackspace.com:80
-            mirror.scaleuptech.com:443
-            mirror.servaxnet.com:443
-            mirror.servaxnet.com:80
-            mirror.sfo12.us.leaseweb.net:80
-            mirror.siena.edu:80
-            mirror.steadfastnet.com:80
-            mirror.team-cymru.com:443
-            mirror.team-cymru.com:80
-            mirror.umd.edu:443
-            mirror1.hs-esslingen.de:443
-            mirrors.centos.org:443
-            mirrors.fedoraproject.org:443
-            mirrors.iu13.net:443
-            mirrors.iu13.net:80
-            mirrors.ocf.berkeley.edu:443
-            mirrors.sonic.net:80
-            mirrors.syringanetworks.net:80
-            mirrors.vcea.wsu.edu:80
-            mirrors.wcupa.edu:80
-            mirrors.xtom.de:80
-            na.edge.kernel.org:443
-            nnenix.mm.fcix.net:80
-            ohioix.mm.fcix.net:80
-            production.cloudflare.docker.com:443
-            pubmirror1.math.uh.edu:443
-            pubmirror3.math.uh.edu:80
-            quay.io:443
-            ghcr.io:443
-            registry-1.docker.io:443
-            repo.ialab.dsu.edu:80
-            repos.eggycrew.com:80
-            uvermont.mm.fcix.net:80
-            ziply.mm.fcix.net:443
-            fulcio.sigstore.dev:443
-            objects.githubusercontent.com:443
-            tuf-repo-cdn.sigstore.dev:443
-            rekor.sigstore.dev:443
-            oauth2.sigstore.dev:443
-            api.github.com:443
-            auth.docker.io:443
-            github.com:443
-            index.docker.io:443
-            production.cloudflare.docker.com:443
-            registry-1.docker.io:443
-            yum.oracle.com:443
-            fulcio.sigstore.dev:443
-            objects.githubusercontent.com:443
-            tuf-repo-cdn.sigstore.dev:443
-            rekor.sigstore.dev:443
-            api.github.com:443
-            archive.ubuntu.com:80
-            auth.docker.io:443
-            deb.debian.org:80
-            github.com:443
-            index.docker.io:443
-            keyserver.ubuntu.com:11371
-            nginx.org:443
-            nginx.org:80
-            ports.ubuntu.com:80
-            production.cloudflare.docker.com:443
-            registry-1.docker.io:443
-            security.ubuntu.com:80
-            fulcio.sigstore.dev:443
-            objects.githubusercontent.com:443
-            tuf-repo-cdn.sigstore.dev:443
-            rekor.sigstore.dev:443
-            pkg-containers.githubusercontent.com:443
-
       - name: Checkout repository
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
         with:
@@ -834,13 +628,13 @@ jobs:
           fetch-depth: 1
 
       - name: Install cosign
-        if: ${{ env.AUTO_PUSH_IMAGES == 'true' }}
+        if: ${{ env.AUTO_PUSH_IMAGES == 'true' && matrix.os != 'rhel' }}
         uses: sigstore/cosign-installer@e1523de7571e31dbe865fd2e80c5c7c23ae71eb4
         with:
           cosign-release: 'v2.2.3'
 
       - name: Check cosign version
-        if: ${{ env.AUTO_PUSH_IMAGES == 'true' }}
+        if: ${{ env.AUTO_PUSH_IMAGES == 'true' && matrix.os != 'rhel' }}
         run: cosign version
 
       - name: Set up QEMU
@@ -857,6 +651,7 @@ jobs:
 
       - name: Variables formating
         id: var_format
+        if: ${{ matrix.os == 'rhel' }}
         env:
           MATRIX_BUILD: ${{ matrix.build }}
         run: |
@@ -920,9 +715,9 @@ jobs:
         uses: docker/metadata-action@8e5442c4ef9f78752691e2d8f8d19755c6f78e81 # v5.5.1
         with:
           images:  |
-              ${{ format('{0}/{1}/{2}{3}', env.DOCKER_REGISTRY_TEST, env.DOCKER_REPOSITORY_TEST, env.IMAGES_PREFIX, matrix.build ) }},enable=${{ env.AUTO_PUSH_IMAGES == 'true' }}
-              ${{ format('{0}/{1}{2}', env.DOCKER_REPOSITORY, env.IMAGES_PREFIX, matrix.build ) }},enable=${{ env.AUTO_PUSH_IMAGES == 'true' }}
-              ${{ env.REGISTRY }}/${{ env.REGISTRY_NAMESPACE }}/${{ secrets[format('{0}_{1}_PROJECT', needs.init_build.outputs.secret_prefix, steps.var_format.outputs.matrix_build)] || matrix.build }}
+              ${{ format('{0}/{1}/{2}{3}', env.DOCKER_REGISTRY_TEST, env.DOCKER_REPOSITORY_TEST, env.IMAGES_PREFIX, matrix.build ) }},enable=${{ env.AUTO_PUSH_IMAGES == 'true' && matrix.os != 'rhel' }}
+              ${{ format('{0}/{1}{2}', env.DOCKER_REPOSITORY, env.IMAGES_PREFIX, matrix.build ) }},enable=${{ env.AUTO_PUSH_IMAGES == 'true' && matrix.os != 'rhel' }}
+              ${{ env.REGISTRY }}/${{ env.REGISTRY_NAMESPACE }}/${{ secrets[format('{0}_{1}_PROJECT', needs.init_build.outputs.secret_prefix, steps.var_format.outputs.matrix_build)] || matrix.build }},enable=${{ env.AUTO_PUSH_IMAGES == 'true' && matrix.os == 'rhel' }}
           context: ${{ env.TRUNK_ONLY_EVENT == 'true' && 'git' || '' }}
           tags: |
             type=semver,enable=${{ needs.init_build.outputs.current_branch != 'trunk' }},pattern={{version}},prefix=${{ matrix.os }}-
@@ -933,7 +728,7 @@ jobs:
             type=ref,enable=${{ needs.init_build.outputs.current_branch == 'trunk' }},event=branch,prefix=${{ matrix.os }}-
             type=ref,enable=${{ needs.init_build.outputs.current_branch == 'trunk' || contains(fromJSON('["workflow_dispatch"]'), github.event_name) }},event=branch,suffix=-${{ matrix.os }}
           flavor: |
-            latest=${{ (matrix.os == 'alpine') && (!contains(fromJSON('["workflow_dispatch"]'), github.event_name)) && ( needs.init_build.outputs.is_default_branch == 'true' ) }}
+            latest=${{ ((matrix.os == 'alpine' && needs.init_build.outputs.is_default_branch == 'true') || matrix.os == 'rhel') && (!contains(fromJSON('["workflow_dispatch"]'), github.event_name)) }}
 
       - name: Download metadata of ${{ steps.build_base_image.outputs.build_base }}:${{ matrix.os }}
         uses: actions/cache@13aacd865c20de90d75de3b17ebe84f7a17d57d2 # v4.0.0
@@ -958,7 +753,7 @@ jobs:
             echo "base_build_image=${IMAGE_NAME}@${IMAGE_DIGEST}" >> $GITHUB_OUTPUT
 
       - name: Verify ${{ steps.build_base_image.outputs.build_base }}:${{ matrix.os }} cosign
-        if: ${{ matrix.build != 'snmptraps' && env.AUTO_PUSH_IMAGES == 'true' }}
+        if: ${{ matrix.build != 'snmptraps' && env.AUTO_PUSH_IMAGES == 'true' && matrix.os != 'rhel' }}
         env:
          BASE_IMAGE: ${{ steps.base_build.outputs.base_build_image }}
          OIDC_ISSUER: ${{ env.OIDC_ISSUER }}
@@ -1013,14 +808,14 @@ jobs:
           sed -i '/smartmontools/d' "$DOCKERFILES_DIRECTORY/agent2/rhel/Dockerfile"
 
       - name: Login to DockerHub
-        if: ${{ env.AUTO_PUSH_IMAGES == 'true' }}
+        if: ${{ env.AUTO_PUSH_IMAGES == 'true' && matrix.os != 'rhel' }}
         uses: docker/login-action@343f7c4344506bcbf9b4de18042ae17996df046d # v3.0.0
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
       - name: Login to ${{ env.DOCKER_REGISTRY_TEST }}
-        if: ${{ env.AUTO_PUSH_IMAGES != 'true' }}
+        if: ${{ env.AUTO_PUSH_IMAGES != 'true' || matrix.os == 'rhel' }}
         uses: docker/login-action@343f7c4344506bcbf9b4de18042ae17996df046d # v3.0.0
         with:
           registry: ${{ env.DOCKER_REGISTRY_TEST }}
@@ -1029,7 +824,7 @@ jobs:
 
       - name: Log in to ${{ env.REGISTRY }}
         uses: docker/login-action@343f7c4344506bcbf9b4de18042ae17996df046d # v3.0.0
-        if: ${{ env.AUTO_PUSH_IMAGES != 'true' }}
+        if: ${{ env.AUTO_PUSH_IMAGES == 'true' && matrix.os == 'rhel' }}
         with:
           username: ${{ format('redhat-isv-containers+{0}-robot', secrets[format('{0}_{1}_PROJECT',  needs.init_build.outputs.secret_prefix, steps.var_format.outputs.matrix_build)]) }}
           password: ${{ secrets[format('{0}_{1}_SECRET', needs.init_build.outputs.secret_prefix, steps.var_format.outputs.matrix_build)] }}
@@ -1042,8 +837,9 @@ jobs:
           context: ${{ format('{0}/{1}/{2}', env.DOCKERFILES_DIRECTORY, matrix.build, matrix.os) }}
           file: ${{ format('{0}/{1}/{2}/Dockerfile', env.DOCKERFILES_DIRECTORY, matrix.build, matrix.os) }}
           platforms: ${{ steps.platform.outputs.list }}
-          push: ${{ env.AUTO_PUSH_IMAGES != 'true' }}
-          sbom: ${{ env.AUTO_PUSH_IMAGES == 'true' }}
+          provenance: ${{ env.AUTO_PUSH_IMAGES == 'true' && 'mode=max' || '' }}
+          push: ${{ env.AUTO_PUSH_IMAGES != 'true' || matrix.os == 'rhel' }}
+          sbom: ${{ env.AUTO_PUSH_IMAGES == 'true' && matrix.os != 'rhel' }}
           tags: ${{ steps.meta.outputs.tags }}
           build-args: BUILD_BASE_IMAGE=${{ steps.base_build.outputs.base_build_image }}
           labels: |
@@ -1051,6 +847,7 @@ jobs:
             org.opencontainers.image.created=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.created'] }}
 
       - name: Preflight certification
+        if: ${{ matrix.os == 'rhel' }}
         env:
           PFLT_CERTIFICATION_PROJECT_ID: ${{ secrets[format('{0}_{1}_PROJECT', needs.init_build.outputs.secret_prefix, steps.var_format.outputs.matrix_build)] }}
           PFLT_PYXIS_API_TOKEN: ${{ secrets.REDHAT_API_TOKEN }}
@@ -1062,16 +859,13 @@ jobs:
           SUBMIT_IMAGE: ${{ env.AUTO_PUSH_IMAGES != 'true' && '--submit' || '' }}
         run: |
             mkdir -p $PFLT_ARTIFACTS
-            echo "::group::Pull preflight \"$PREFLIGHT_IMAGE\" image"
-            echo "::endgroup::"
-
-            echo "::group::Perform certification tests"
+            echo "::group::Perform certification tests (${SUBMIT_IMAGE})"
             export PFLT_DOCKERCONFIG="$HOME/.docker/config.json"
-            preflight check container $IMAGE_TAG --submit
+            preflight check container "${IMAGE_TAG}" ${SUBMIT_IMAGE}
             echo "::endgroup::"
 
       - name: Sign the images with GitHub OIDC Token
-        if: ${{ env.AUTO_PUSH_IMAGES == 'true' }}
+        if: ${{ env.AUTO_PUSH_IMAGES == 'true' && matrix.os != 'rhel' }}
         env:
           DIGEST: ${{ steps.docker_build.outputs.digest }}
           TAGS: ${{ steps.meta.outputs.tags }}
