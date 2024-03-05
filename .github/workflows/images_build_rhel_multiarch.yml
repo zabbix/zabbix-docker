@@ -12,7 +12,7 @@ on:
       - 'Dockerfiles/*/rhel/*'
       - 'build.json'
       - '!**/README.md'
-      - '.github/workflows/images_build_test.yml'
+      - '.github/workflows/images_build_rhel_multiarch.yml'
 #  schedule:
 #    - cron:  '50 02 * * *'
   workflow_dispatch:
@@ -152,15 +152,16 @@ jobs:
                 result=true
             fi
 
-            echo "::group::Branch data"
+            echo "::group::Branch metadata"
             echo "is_default_branch - $result"
             echo "current_branch - $github_ref"
+            echo "secret_prefix=RHEL_${github_ref//.}"
             echo "sha_short - $sha_short"
             echo "::endgroup::"
 
             echo "is_default_branch=$result" >> $GITHUB_OUTPUT
             echo "current_branch=$github_ref" >> $GITHUB_OUTPUT
-            echo "secret_prefix=RHEL_64" >> $GITHUB_OUTPUT
+            echo "secret_prefix=RHEL_${github_ref//.}" >> $GITHUB_OUTPUT
             echo "sha_short=$sha_short" >> $GITHUB_OUTPUT
 
   build_base:
