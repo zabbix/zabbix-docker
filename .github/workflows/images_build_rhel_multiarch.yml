@@ -1,0 +1,894 @@
+name: Build images (RedHat registry)
+
+on:
+  release:
+    types:
+      - published
+  push:
+    branches:
+      - '[0-9]+.[0-9]+'
+      - 'trunk'
+    paths:
+      - 'Dockerfiles/*/rhel/*'
+      - 'build.json'
+      - '!**/README.md'
+      - '.github/workflows/images_build_test.yml'
+#  schedule:
+#    - cron:  '50 02 * * *'
+  workflow_dispatch:
+
+defaults:
+  run:
+    shell: bash
+
+permissions:
+   contents: read
+
+env:
+  TRUNK_ONLY_EVENT: ${{ contains(fromJSON('["schedule"]'), github.event_name) }}
+  AUTO_PUSH_IMAGES: ${{ ! contains(fromJSON('["workflow_dispatch"]'), github.event_name) && vars.AUTO_PUSH_IMAGES }}
+
+  DOCKER_REPOSITORY: ${{ vars.DOCKER_REPOSITORY }}
+  LATEST_BRANCH: ${{ github.event.repository.default_branch }}
+  TRUNK_GIT_BRANCH: "refs/heads/trunk"
+  IMAGES_PREFIX: "zabbix-"
+
+  BASE_BUILD_NAME: "build-base"
+  BASE_CACHE_FILE_NAME: "base_image_metadata.json"
+  BUILD_CACHE_FILE_NAME: "base_build_image_metadata.json"
+
+  MATRIX_FILE: "build.json"
+  DOCKERFILES_DIRECTORY: "./Dockerfiles"
+
+  OIDC_ISSUER: "https://token.actions.githubusercontent.com"
+  IDENTITY_REGEX: "https://github.com/zabbix/zabbix-docker/.github/"
+
+  DOCKER_REGISTRY_TEST: "ghcr.io"
+  DOCKER_REPOSITORY_TEST: "zabbix"
+
+  REGISTRY: "quay.io"
+  REGISTRY_NAMESPACE: "redhat-isv-containers"
+  PREFLIGHT_IMAGE: "quay.io/opdev/preflight:stable"
+  PFLT_LOGLEVEL: "warn"
+  PFLT_ARTIFACTS: "/tmp/artifacts"
+
+jobs:
+  init_build:
+    name: Initialize build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      os: ${{ steps.os.outputs.list }}
+      database: ${{ steps.database.outputs.list }}
+      components: ${{ steps.components.outputs.list }}
+      is_default_branch: ${{ steps.branch_info.outputs.is_default_branch }}
+      current_branch: ${{ steps.branch_info.outputs.current_branch }}
+      sha_short: ${{ steps.branch_info.outputs.sha_short }}
+      secret_prefix: ${{ steps.branch_info.outputs.secret_prefix }}
+    steps:
+      - name: Block egress traffic
+        uses: step-security/harden-runner@63c24ba6bd7ba022e95695ff85de572c04a18142 # v2.7.0
+        with:
+          disable-sudo: true
+          egress-policy: block
+          allowed-endpoints: >
+            api.github.com:443
+            github.com:443
+            objects.githubusercontent.com:443
+
+      - name: Checkout repository
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+        with:
+          ref: ${{ env.TRUNK_ONLY_EVENT == 'true' && env.TRUNK_GIT_BRANCH || '' }}
+          fetch-depth: 1
+          sparse-checkout: ${{ env.MATRIX_FILE }}
+
+      - name: Check ${{ env.MATRIX_FILE }} file
+        id: build_exists
+        env:
+          MATRIX_FILE: ${{ env.MATRIX_FILE }}
+        run: |
+            if [[ ! -f "$MATRIX_FILE" ]]; then
+                echo "::error::File $MATRIX_FILE is missing"
+                exit 1
+            fi
+
+      - name: Prepare Operating System list
+        id: os
+        env:
+          MATRIX_FILE: ${{ env.MATRIX_FILE }}
+        run: |
+            os_list=$(jq -r '.["os-linux"] |  keys | map(select(. == "rhel")) | [ .[] | tostring ] | @json' "$MATRIX_FILE")
+
+            echo "::group::Operating System List"
+            echo "$os_list"
+            echo "::endgroup::"
+
+            echo "list=$os_list" >> $GITHUB_OUTPUT
+
+      - name: Prepare Database engine list
+        id: database
+        env:
+          MATRIX_FILE: ${{ env.MATRIX_FILE }}
+        run: |
+            database_list=$(jq -r '[.components | values[].base ] | sort | unique | del(.. | select ( . == "" ) ) | @json' "$MATRIX_FILE")
+
+            echo "::group::Database List"
+            echo "$database_list"
+            echo "::endgroup::"
+
+            echo "list=$database_list" >> $GITHUB_OUTPUT
+
+      - name: Prepare Zabbix component list
+        id: components
+        env:
+          MATRIX_FILE: ${{ env.MATRIX_FILE }}
+        run: |
+            component_list=$(jq -r '.components | map_values(select(.rhel == true)) | keys | @json' "$MATRIX_FILE")
+
+            echo "::group::Zabbix Component List"
+            echo "$component_list"
+            echo "::endgroup::"
+
+            echo "list=$component_list" >> $GITHUB_OUTPUT
+
+      - name: Get branch info
+        id: branch_info
+        env:
+          LATEST_BRANCH: ${{ env.LATEST_BRANCH }}
+          github_ref: ${{ env.TRUNK_ONLY_EVENT == 'true' && env.TRUNK_GIT_BRANCH || github.ref }}
+        run: |
+            result=false
+            sha_short=$(git rev-parse --short HEAD)
+
+            if [[ "$github_ref" == "refs/tags/"* ]]; then
+                github_ref=${github_ref%.*}
+            fi
+
+            github_ref=${github_ref##*/}
+
+            if [[ "$github_ref" == "$LATEST_BRANCH" ]]; then
+                result=true
+            fi
+
+            echo "::group::Branch data"
+            echo "is_default_branch - $result"
+            echo "current_branch - $github_ref"
+            echo "sha_short - $sha_short"
+            echo "::endgroup::"
+
+            echo "is_default_branch=$result" >> $GITHUB_OUTPUT
+            echo "current_branch=$github_ref" >> $GITHUB_OUTPUT
+            echo "secret_prefix=RHEL_64" >> $GITHUB_OUTPUT
+            echo "sha_short=$sha_short" >> $GITHUB_OUTPUT
+
+  build_base:
+    timeout-minutes: 30
+    name: Build base on ${{ matrix.os }}
+    needs: init_build
+    strategy:
+      fail-fast: false
+      matrix:
+        os: ${{ fromJson(needs.init_build.outputs.os) }}
+
+    runs-on: [self-hosted, linux, ubuntu]
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+        with:
+          ref: ${{ env.TRUNK_ONLY_EVENT == 'true' && env.TRUNK_GIT_BRANCH || '' }}
+          fetch-depth: 1
+
+      - name: Install cosign
+        if: ${{ env.AUTO_PUSH_IMAGES == 'true' && matrix.os != 'rhel' }}
+        uses: sigstore/cosign-installer@e1523de7571e31dbe865fd2e80c5c7c23ae71eb4
+        with:
+          cosign-release: 'v2.2.3'
+
+      - name: Check cosign version
+        if: ${{ env.AUTO_PUSH_IMAGES == 'true' && matrix.os != 'rhel' }}
+        run: cosign version
+
+      - name: Set up QEMU
+        if: ${{ matrix.os != 'rhel' }}
+        uses: docker/setup-qemu-action@68827325e0b33c7199eb31dd4e31fbe9023e06e3 # v3.0.0
+        with:
+          image: tonistiigi/binfmt:latest
+          platforms: all
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@f95db51fddba0c2d1ec667646a06c2ce06100226 # v3.0.0
+        with:
+          driver-opts: image=moby/buildkit:master
+          install: true
+
+      - name: Prepare Platform list
+        id: platform
+        env:
+          MATRIX_OS: ${{ matrix.os }}
+          MATRIX_FILE: ${{ env.MATRIX_FILE }}
+        run: |
+            platform_list=$(jq -r ".[\"os-linux\"].$MATRIX_OS | join(\",\")" "$MATRIX_FILE")
+            platform_list="${platform_list%,}"
+
+            echo "::group::Platform List"
+            echo "$platform_list"
+            echo "::endgroup::"
+
+            echo "list=$platform_list" >> $GITHUB_OUTPUT
+
+      - name: Generate tags
+        id: meta
+        uses: docker/metadata-action@8e5442c4ef9f78752691e2d8f8d19755c6f78e81 # v5.5.1
+        with:
+          images: |
+              ${{ format('{0}/{1}/{2}{3}', env.DOCKER_REGISTRY_TEST, env.DOCKER_REPOSITORY_TEST, env.IMAGES_PREFIX, env.BASE_BUILD_NAME ) }},enable=${{ env.AUTO_PUSH_IMAGES != 'true' || matrix.os == 'rhel' }}
+              ${{ format('{0}/{1}{2}', env.DOCKER_REPOSITORY, env.IMAGES_PREFIX, env.BASE_BUILD_NAME ) }},enable=${{ env.AUTO_PUSH_IMAGES == 'true' && matrix.os != 'rhel' }}
+          context: ${{ env.TRUNK_ONLY_EVENT == 'true' && 'git' || '' }}
+          tags: |
+            type=semver,enable=${{ needs.init_build.outputs.current_branch != 'trunk' }},pattern={{version}},prefix=${{ matrix.os }}-
+            type=semver,enable=${{ needs.init_build.outputs.current_branch != 'trunk' }},pattern={{version}},suffix=-${{ matrix.os }}
+            type=ref,enable=${{ needs.init_build.outputs.current_branch != 'trunk' && !contains(fromJSON('["workflow_dispatch"]'), github.event_name) }},event=branch,prefix=${{ matrix.os }}-,suffix=-latest
+            type=ref,enable=${{ needs.init_build.outputs.current_branch != 'trunk' && !contains(fromJSON('["workflow_dispatch"]'), github.event_name) }},event=branch,suffix=-${{ matrix.os }}-latest
+            type=raw,enable=${{ (needs.init_build.outputs.current_branch != 'trunk') && (needs.init_build.outputs.is_default_branch == 'true') }},value=${{matrix.os}}-latest
+            type=ref,enable=${{ needs.init_build.outputs.current_branch == 'trunk' }},event=branch,prefix=${{ matrix.os }}-
+            type=ref,enable=${{ needs.init_build.outputs.current_branch == 'trunk' || contains(fromJSON('["workflow_dispatch"]'), github.event_name) }},event=branch,suffix=-${{ matrix.os }}
+          flavor: |
+            latest=${{ (matrix.os == 'alpine') && (!contains(fromJSON('["workflow_dispatch"]'), github.event_name)) && ( needs.init_build.outputs.is_default_branch == 'true' ) }}
+
+      - name: Prepare cache data
+        id: cache_data
+        env:
+          IMAGE_TAG: ${{ fromJSON(steps.meta.outputs.json).tags[0] }}
+          PUBLISH_IMAGES: ${{ env.AUTO_PUSH_IMAGES == 'true' }}
+        run: |
+            cache_from=()
+            cache_to=()
+
+            cache_from+=("type=gha,scope=${IMAGE_TAG}")
+            #cache_from+=("type=registry,ref=${IMAGE_TAG}")
+
+            cache_to+=("type=gha,mode=max,scope=${IMAGE_TAG}")
+
+            echo "::group::Cache from data"
+            echo "${cache_from[*]}"
+            echo "::endgroup::"
+
+            echo "::group::Cache to data"
+            echo "${cache_to[*]}"
+            echo "::endgroup::"
+
+            cache_from=$(printf '%s\n' "${cache_from[@]}")
+            cache_to=$(printf '%s\n' "${cache_to[@]}")
+
+            echo 'cache_from<<EOF' >> "$GITHUB_OUTPUT"
+            echo "$cache_from" >> "$GITHUB_OUTPUT"
+            echo 'EOF' >> "$GITHUB_OUTPUT"
+            echo 'cache_to<<EOF' >> "$GITHUB_OUTPUT"
+            echo "$cache_to" >> "$GITHUB_OUTPUT"
+            echo 'EOF' >> "$GITHUB_OUTPUT"
+
+      - name: Login to DockerHub
+        if: ${{ env.AUTO_PUSH_IMAGES == 'true' && matrix.os != 'rhel' }}
+        uses: docker/login-action@343f7c4344506bcbf9b4de18042ae17996df046d # v3.0.0
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Login to ${{ env.DOCKER_REGISTRY_TEST }}
+        if: ${{ env.AUTO_PUSH_IMAGES != 'true' || matrix.os == 'rhel' }}
+        uses: docker/login-action@343f7c4344506bcbf9b4de18042ae17996df046d # v3.0.0
+        with:
+          registry: ${{ env.DOCKER_REGISTRY_TEST }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Prepare RedHat subscription
+        if: ${{ matrix.os == 'rhel' }}
+        env:
+          CONTEXT: ${{ format('{0}/{1}/{2}', env.DOCKERFILES_DIRECTORY, env.BASE_BUILD_NAME, matrix.os) }}
+        run: |
+             cp -R "/tmp/secrets/" "$CONTEXT/"
+
+      - name: Build and publish image
+        id: docker_build
+        uses: docker/build-push-action@4a13e500e55cf31b7a5d59a38ab2040ab0f42f56 # v5.1.0
+        with:
+          context: ${{ format('{0}/{1}/{2}', env.DOCKERFILES_DIRECTORY, env.BASE_BUILD_NAME, matrix.os) }}
+          file: ${{ format('{0}/{1}/{2}/Dockerfile', env.DOCKERFILES_DIRECTORY, env.BASE_BUILD_NAME, matrix.os) }}
+          platforms: ${{ steps.platform.outputs.list }}
+          push: true
+          provenance: ${{ env.AUTO_PUSH_IMAGES == 'true' && 'mode=max' || '' }}
+          sbom: ${{ env.AUTO_PUSH_IMAGES == 'true' }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: |
+            org.opencontainers.image.revision=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.revision'] }}
+            org.opencontainers.image.created=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.created'] }}
+          cache-from: ${{ steps.cache_data.outputs.cache_from }}
+          cache-to: ${{ steps.cache_data.outputs.cache_to }}
+
+      - name: Sign the images with GitHub OIDC Token
+        if: ${{ env.AUTO_PUSH_IMAGES == 'true' && matrix.os != 'rhel' }}
+        env:
+          DIGEST: ${{ steps.docker_build.outputs.digest }}
+          TAGS: ${{ steps.meta.outputs.tags }}
+        run: |
+            images=""
+            for tag in ${TAGS}; do
+                images+="${tag}@${DIGEST} "
+            done
+
+            echo "::group::Images to sign"
+            echo "$images"
+            echo "::endgroup::"
+
+            echo "::group::Signing"
+            echo "cosign sign --yes $images"
+            cosign sign --yes ${images}
+            echo "::endgroup::"
+
+      - name: Image metadata
+        env:
+          CACHE_FILE_NAME: ${{ env.BASE_CACHE_FILE_NAME }}
+          METADATA: ${{ steps.docker_build.outputs.metadata }}
+        run: |
+            echo "::group::Image metadata"
+            echo "${METADATA}"
+            echo "::endgroup::"
+            echo "::group::Cache file name"
+            echo "${CACHE_FILE_NAME}"
+            echo "::endgroup::"
+
+            echo "${METADATA}" > "$CACHE_FILE_NAME"
+
+      - name: Cache image metadata
+        uses: actions/cache@13aacd865c20de90d75de3b17ebe84f7a17d57d2 # v4.0.0
+        with:
+          path: ${{ env.BASE_CACHE_FILE_NAME }}
+          key: ${{ env.BASE_BUILD_NAME }}-${{ matrix.os }}-${{ github.run_id }}
+
+  build_base_database:
+    timeout-minutes: 180
+    needs: [ "build_base", "init_build"]
+    name: Build ${{ matrix.build }} base on ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        build: ${{ fromJson(needs.init_build.outputs.database) }}
+        os: ${{ fromJson(needs.init_build.outputs.os) }}
+        exclude:
+          - build: build-pgsql
+            os: rhel
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+      packages: write
+    steps:
+      - name: Block egress traffic
+        uses: step-security/harden-runner@63c24ba6bd7ba022e95695ff85de572c04a18142 # v2.7.0
+        with:
+          disable-sudo: true
+          egress-policy: block
+          allowed-endpoints: >
+            api.github.com:443
+            auth.docker.io:443
+            git.zabbix.com:443
+            github.com:443
+            go.googlesource.com:443
+            go.mongodb.org:443
+            golang.org:443
+            google.golang.org:443
+            gopkg.in:443
+            ghcr.io:443
+            index.docker.io:443
+            noto-website.storage.googleapis.com:443
+            production.cloudflare.docker.com:443
+            proxy.golang.org:443
+            registry-1.docker.io:443
+            storage.googleapis.com:443
+            fulcio.sigstore.dev:443
+            oauth2.sigstore.dev:443
+            objects.githubusercontent.com:443
+            tuf-repo-cdn.sigstore.dev:443
+            rekor.sigstore.dev:443
+            pkg-containers.githubusercontent.com:443
+
+      - name: Checkout repository
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+        with:
+          ref: ${{ env.TRUNK_ONLY_EVENT == 'true' && env.TRUNK_GIT_BRANCH || '' }}
+          fetch-depth: 1
+
+      - name: Install cosign
+        if: ${{ env.AUTO_PUSH_IMAGES == 'true' && matrix.os != 'rhel' }}
+        uses: sigstore/cosign-installer@e1523de7571e31dbe865fd2e80c5c7c23ae71eb4
+        with:
+          cosign-release: 'v2.2.3'
+
+      - name: Check cosign version
+        if: ${{ env.AUTO_PUSH_IMAGES == 'true' && matrix.os != 'rhel' }}
+        run: cosign version
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@68827325e0b33c7199eb31dd4e31fbe9023e06e3 # v3.0.0
+        with:
+          image: tonistiigi/binfmt:latest
+          platforms: all
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@f95db51fddba0c2d1ec667646a06c2ce06100226 # v3.0.0
+        with:
+          driver-opts: image=moby/buildkit:master
+
+      - name: Prepare Platform list
+        id: platform
+        env:
+          MATRIX_OS: ${{ matrix.os }}
+          MATRIX_FILE: ${{ env.MATRIX_FILE }}
+        run: |
+            platform_list=$(jq -r ".[\"os-linux\"].$MATRIX_OS | join(\",\")" "$MATRIX_FILE")
+            platform_list="${platform_list%,}"
+
+            echo "::group::Platform List"
+            echo "$platform_list"
+            echo "::endgroup::"
+
+            echo "list=$platform_list" >> $GITHUB_OUTPUT
+
+      - name: Generate tags
+        id: meta
+        uses: docker/metadata-action@8e5442c4ef9f78752691e2d8f8d19755c6f78e81 # v5.5.1
+        with:
+          images: |
+              ${{ format('{0}/{1}/{2}{3}', env.DOCKER_REGISTRY_TEST, env.DOCKER_REPOSITORY_TEST, env.IMAGES_PREFIX, matrix.build ) }},enable=${{ env.AUTO_PUSH_IMAGES != 'true' || matrix.os == 'rhel' }}
+              ${{ format('{0}/{1}{2}', env.DOCKER_REPOSITORY, env.IMAGES_PREFIX, matrix.build ) }},enable=${{ env.AUTO_PUSH_IMAGES == 'true' && matrix.os != 'rhel' }}
+          context: ${{ env.TRUNK_ONLY_EVENT == 'true' && 'git' || '' }}
+          tags: |
+            type=semver,enable=${{ needs.init_build.outputs.current_branch != 'trunk' }},pattern={{version}},prefix=${{ matrix.os }}-
+            type=semver,enable=${{ needs.init_build.outputs.current_branch != 'trunk' }},pattern={{version}},suffix=-${{ matrix.os }}
+            type=ref,enable=${{ needs.init_build.outputs.current_branch != 'trunk' && (!contains(fromJSON('["workflow_dispatch"]'), github.event_name)) }},event=branch,prefix=${{ matrix.os }}-,suffix=-latest
+            type=ref,enable=${{ needs.init_build.outputs.current_branch != 'trunk' && (!contains(fromJSON('["workflow_dispatch"]'), github.event_name)) }},event=branch,suffix=-${{ matrix.os }}-latest
+            type=raw,enable=${{ (needs.init_build.outputs.current_branch != 'trunk') && (needs.init_build.outputs.is_default_branch == 'true') && matrix.os != 'rhel' }},value=${{matrix.os}}-latest
+            type=ref,enable=${{ needs.init_build.outputs.current_branch == 'trunk' }},event=branch,prefix=${{ matrix.os }}-
+            type=ref,enable=${{ needs.init_build.outputs.current_branch == 'trunk' || contains(fromJSON('["workflow_dispatch"]'), github.event_name) }},event=branch,suffix=-${{ matrix.os }}
+          flavor: |
+            latest=${{ (matrix.os == 'alpine') && (!contains(fromJSON('["workflow_dispatch"]'), github.event_name)) && ( needs.init_build.outputs.is_default_branch == 'true' ) }}
+
+      - name: Download metadata of ${{ env.BASE_BUILD_NAME }}:${{ matrix.os }}
+        uses: actions/cache@13aacd865c20de90d75de3b17ebe84f7a17d57d2 # v4.0.0
+        with:
+          path: ${{ env.BASE_CACHE_FILE_NAME }}
+          key: ${{ env.BASE_BUILD_NAME }}-${{ matrix.os }}-${{ github.run_id }}
+
+      - name: Process ${{ env.BASE_BUILD_NAME }}:${{ matrix.os }} image metadata
+        id: base_build
+        env:
+          CACHE_FILE_NAME: ${{ env.BASE_CACHE_FILE_NAME }}
+        run: |
+            echo "::group::Base image metadata"
+            cat "${CACHE_FILE_NAME}"
+            echo "::endgroup::"
+
+            IMAGE_DIGEST=$(jq -r '."containerimage.digest"' "${CACHE_FILE_NAME}")
+            IMAGE_NAME=$(jq -r '."image.name"' "${CACHE_FILE_NAME}" | cut -d: -f1)
+
+            echo "base_build_image=${IMAGE_NAME}@${IMAGE_DIGEST}" >> $GITHUB_OUTPUT
+
+      - name: Verify ${{ env.BASE_BUILD_NAME }}:${{ matrix.os }} cosign
+        if: ${{ env.AUTO_PUSH_IMAGES == 'true' && matrix.os != 'rhel' }}
+        env:
+         BASE_IMAGE: ${{ steps.base_build.outputs.base_build_image }}
+         OIDC_ISSUER: ${{ env.OIDC_ISSUER }}
+         IDENTITY_REGEX: ${{ env.IDENTITY_REGEX }}
+        run: |
+            echo "::group::Image sign data"
+            echo "OIDC issuer=$OIDC_ISSUER"
+            echo "Identity=$IDENTITY_REGEX"
+            echo "Image to verify=$BASE_IMAGE"
+            echo "::endgroup::"
+
+            echo "::group::Verify signature"
+            cosign verify \
+                    --certificate-oidc-issuer-regexp "$OIDC_ISSUER" \
+                    --certificate-identity-regexp "$IDENTITY_REGEX" \
+                "$BASE_IMAGE"
+            echo "::endgroup::"
+
+      - name: Prepare cache data
+        id: cache_data
+        env:
+          BASE_IMAGE_TAG: ${{ steps.base_build.outputs.base_build_image }}
+          IMAGE_TAG: ${{ fromJSON(steps.meta.outputs.json).tags[0] }}
+          PUBLISH_IMAGES: ${{ env.AUTO_PUSH_IMAGES == 'true' }}
+        run: |
+            cache_from=()
+            cache_to=()
+
+            cache_from+=("type=gha,scope=${BASE_IMAGE_TAG}")
+            cache_from+=("type=registry,ref=${BASE_IMAGE_TAG}")
+            cache_from+=("type=gha,scope=${IMAGE_TAG}")
+            cache_from+=("type=registry,ref=${IMAGE_TAG}")
+
+            cache_to+=("type=gha,mode=max,scope=${IMAGE_TAG}")
+
+            echo "::group::Cache from data"
+            echo "${cache_from[*]}"
+            echo "::endgroup::"
+
+            echo "::group::Cache to data"
+            echo "${cache_to[*]}"
+            echo "::endgroup::"
+
+            cache_from=$(printf '%s\n' "${cache_from[@]}")
+            cache_to=$(printf '%s\n' "${cache_to[@]}")
+
+            echo 'cache_from<<EOF' >> "$GITHUB_OUTPUT"
+            echo "$cache_from" >> "$GITHUB_OUTPUT"
+            echo 'EOF' >> "$GITHUB_OUTPUT"
+            echo 'cache_to<<EOF' >> "$GITHUB_OUTPUT"
+            echo "$cache_to" >> "$GITHUB_OUTPUT"
+            echo 'EOF' >> "$GITHUB_OUTPUT"
+
+      - name: Login to DockerHub
+        if: ${{ env.AUTO_PUSH_IMAGES == 'true' && matrix.os != 'rhel' }}
+        uses: docker/login-action@343f7c4344506bcbf9b4de18042ae17996df046d # v3.0.0
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Login to ${{ env.DOCKER_REGISTRY_TEST }}
+        if: ${{ env.AUTO_PUSH_IMAGES != 'true' || matrix.os == 'rhel' }}
+        uses: docker/login-action@343f7c4344506bcbf9b4de18042ae17996df046d # v3.0.0
+        with:
+          registry: ${{ env.DOCKER_REGISTRY_TEST }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build ${{ matrix.build }}/${{ matrix.os }} and push
+        id: docker_build
+        uses: docker/build-push-action@4a13e500e55cf31b7a5d59a38ab2040ab0f42f56 # v5.1.0
+        with:
+          context: ${{ format('{0}/{1}/{2}/', env.DOCKERFILES_DIRECTORY, matrix.build, matrix.os) }}
+          file: ${{ format('{0}/{1}/{2}/Dockerfile', env.DOCKERFILES_DIRECTORY, matrix.build, matrix.os) }}
+          platforms: ${{ steps.platform.outputs.list }}
+          push: true
+          provenance: ${{ env.AUTO_PUSH_IMAGES == 'true' && 'mode=max' || '' }}
+          sbom: ${{ env.AUTO_PUSH_IMAGES == 'true' && matrix.os != 'rhel' }}
+          tags: ${{ steps.meta.outputs.tags }}
+          build-args: BUILD_BASE_IMAGE=${{ steps.base_build.outputs.base_build_image }}
+          labels: |
+            org.opencontainers.image.revision=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.revision'] }}
+            org.opencontainers.image.created=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.created'] }}
+
+      - name: Sign the images with GitHub OIDC Token
+        if: ${{ env.AUTO_PUSH_IMAGES == 'true' && matrix.os != 'rhel' }}
+        env:
+          DIGEST: ${{ steps.docker_build.outputs.digest }}
+          TAGS: ${{ steps.meta.outputs.tags }}
+        run: |
+            images=""
+            for tag in ${TAGS}; do
+                images+="${tag}@${DIGEST} "
+            done
+
+            echo "::group::Images to sign"
+            echo "$images"
+            echo "::endgroup::"
+
+            echo "::group::Signing"
+            echo "cosign sign --yes $images"
+            cosign sign --yes ${images}
+            echo "::endgroup::"
+
+      - name: Image metadata
+        env:
+          CACHE_FILE_NAME: ${{ env.BUILD_CACHE_FILE_NAME }}
+          METADATA: ${{ steps.docker_build.outputs.metadata }}
+        run: |
+            echo "::group::Image metadata"
+            echo "${METADATA}"
+            echo "::endgroup::"
+            echo "::group::Cache file name"
+            echo "${CACHE_FILE_NAME}"
+            echo "::endgroup::"
+
+            echo "${METADATA}" > "$CACHE_FILE_NAME"
+
+      - name: Cache image metadata
+        uses: actions/cache@13aacd865c20de90d75de3b17ebe84f7a17d57d2 # v4.0.0
+        with:
+          path: ${{ env.BUILD_CACHE_FILE_NAME }}
+          key: ${{ matrix.build }}-${{ matrix.os }}-${{ github.run_id }}
+
+  build_images:
+    timeout-minutes: 90
+    needs: [ "build_base_database", "init_build"]
+    name: Build ${{ matrix.build }} on ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        build: ${{ fromJson(needs.init_build.outputs.components) }}
+        os: ${{ fromJson(needs.init_build.outputs.os) }}
+
+    runs-on: [self-hosted, linux, ubuntu]
+    permissions:
+      contents: read
+      id-token: write
+      packages: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+        with:
+          ref: ${{ env.TRUNK_ONLY_EVENT == 'true' && env.TRUNK_GIT_BRANCH || '' }}
+          fetch-depth: 1
+
+      - name: Install cosign
+        if: ${{ env.AUTO_PUSH_IMAGES == 'true' && matrix.os != 'rhel' }}
+        uses: sigstore/cosign-installer@e1523de7571e31dbe865fd2e80c5c7c23ae71eb4
+        with:
+          cosign-release: 'v2.2.3'
+
+      - name: Check cosign version
+        if: ${{ env.AUTO_PUSH_IMAGES == 'true' && matrix.os != 'rhel' }}
+        run: cosign version
+
+      - name: Set up QEMU
+        if: ${{ matrix.os != 'rhel' }}
+        uses: docker/setup-qemu-action@68827325e0b33c7199eb31dd4e31fbe9023e06e3 # v3.0.0
+        with:
+          image: tonistiigi/binfmt:latest
+          platforms: all
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@f95db51fddba0c2d1ec667646a06c2ce06100226 # v3.0.0
+        with:
+          driver-opts: image=moby/buildkit:master
+
+      - name: Variables formating
+        id: var_format
+        if: ${{ matrix.os == 'rhel' }}
+        env:
+          MATRIX_BUILD: ${{ matrix.build }}
+        run: |
+            MATRIX_BUILD=${MATRIX_BUILD^^}
+            MATRIX_BUILD=${MATRIX_BUILD//-/_}
+
+            echo "::group::Result"
+            echo "matrix_build=${MATRIX_BUILD}"
+            echo "::endgroup::"
+            echo "matrix_build=${MATRIX_BUILD}" >> $GITHUB_OUTPUT
+
+      - name: Prepare Platform list
+        id: platform
+        env:
+          MATRIX_OS: ${{ matrix.os }}
+          MATRIX_BUILD: ${{ matrix.build }}
+          MATRIX_FILE: ${{ env.MATRIX_FILE }}
+        run: |
+            # Chromium on Alpine is available only on linux/amd64, linux/arm64 platforms
+            if ([ "$MATRIX_OS" == "alpine" ] || [ "$MATRIX_OS" == "centos" ]) && [ "$MATRIX_BUILD" == "web-service" ]; then
+                platform_list="linux/amd64,linux/arm64"
+            # Chromium on Ubuntu is not available on s390x platform
+            elif [ "$MATRIX_OS" == "ubuntu" ] && [ "$MATRIX_BUILD" == "web-service" ]; then
+                platform_list="linux/amd64,linux/arm/v7,linux/arm64"
+            # Chromium on RedHat is not available on ppc64le, s390x platforms
+            elif [ "$MATRIX_OS" == "rhel" ] && [ "$MATRIX_BUILD" == "web-service" ]; then
+                platform_list="linux/amd64,linux/arm64"
+            else
+                platform_list=$(jq -r ".[\"os-linux\"].\"$MATRIX_OS\" | join(\",\")" "$MATRIX_FILE")
+            fi
+
+            # Build only Agent and Agent2 on 386
+            if [ "$MATRIX_BUILD" != "agent"* ]; then
+                platform_list="${platform_list#linux/386,}"
+            fi
+
+            platform_list="${platform_list%,}"
+
+            echo "::group::Platform List"
+            echo "$platform_list"
+            echo "::endgroup::"
+
+            echo "list=$platform_list" >> $GITHUB_OUTPUT
+
+      - name: Detect Build Base Image
+        id: build_base_image
+        env:
+          MATRIX_BUILD: ${{ matrix.build }}
+          MATRIX_FILE: ${{ env.MATRIX_FILE }}
+        run: |
+            BUILD_BASE=$(jq -r ".components.\"$MATRIX_BUILD\".base" "$MATRIX_FILE")
+
+            echo "::group::Base Build Image"
+            echo "$BUILD_BASE"
+            echo "::endgroup::"
+
+            echo "build_base=${BUILD_BASE}" >> $GITHUB_OUTPUT
+
+      - name: Generate tags
+        id: meta
+        uses: docker/metadata-action@8e5442c4ef9f78752691e2d8f8d19755c6f78e81 # v5.5.1
+        with:
+          images:  |
+              ${{ format('{0}/{1}/{2}{3}', env.DOCKER_REGISTRY_TEST, env.DOCKER_REPOSITORY_TEST, env.IMAGES_PREFIX, matrix.build ) }},enable=${{ env.AUTO_PUSH_IMAGES == 'true' && matrix.os != 'rhel' }}
+              ${{ format('{0}/{1}{2}', env.DOCKER_REPOSITORY, env.IMAGES_PREFIX, matrix.build ) }},enable=${{ env.AUTO_PUSH_IMAGES == 'true' && matrix.os != 'rhel' }}
+              ${{ env.REGISTRY }}/${{ env.REGISTRY_NAMESPACE }}/${{ secrets[format('{0}_{1}_PROJECT', needs.init_build.outputs.secret_prefix, steps.var_format.outputs.matrix_build)] || matrix.build }},enable=${{ env.AUTO_PUSH_IMAGES == 'true' && matrix.os == 'rhel' }}
+          context: ${{ env.TRUNK_ONLY_EVENT == 'true' && 'git' || '' }}
+          tags: |
+            type=semver,enable=${{ needs.init_build.outputs.current_branch != 'trunk' }},pattern={{version}},prefix=${{ matrix.os }}-
+            type=semver,enable=${{ needs.init_build.outputs.current_branch != 'trunk' }},pattern={{version}},suffix=-${{ matrix.os }}
+            type=ref,enable=${{ needs.init_build.outputs.current_branch != 'trunk' && !contains(fromJSON('["workflow_dispatch"]'), github.event_name) }},event=branch,prefix=${{ matrix.os }}-,suffix=-latest
+            type=ref,enable=${{ needs.init_build.outputs.current_branch != 'trunk' && !contains(fromJSON('["workflow_dispatch"]'), github.event_name) }},event=branch,suffix=-${{ matrix.os }}-latest
+            type=raw,enable=${{ (needs.init_build.outputs.current_branch != 'trunk') && (needs.init_build.outputs.is_default_branch == 'true') }},value=${{matrix.os}}-latest
+            type=ref,enable=${{ needs.init_build.outputs.current_branch == 'trunk' }},event=branch,prefix=${{ matrix.os }}-
+            type=ref,enable=${{ needs.init_build.outputs.current_branch == 'trunk' || contains(fromJSON('["workflow_dispatch"]'), github.event_name) }},event=branch,suffix=-${{ matrix.os }}
+          flavor: |
+            latest=${{ ((matrix.os == 'alpine' && needs.init_build.outputs.is_default_branch == 'true') || matrix.os == 'rhel') && (!contains(fromJSON('["workflow_dispatch"]'), github.event_name)) }}
+
+      - name: Download metadata of ${{ steps.build_base_image.outputs.build_base }}:${{ matrix.os }}
+        uses: actions/cache@13aacd865c20de90d75de3b17ebe84f7a17d57d2 # v4.0.0
+        if: ${{ matrix.build != 'snmptraps' }}
+        with:
+          path: ${{ env.BUILD_CACHE_FILE_NAME }}
+          key: ${{ steps.build_base_image.outputs.build_base }}-${{ matrix.os }}-${{ github.run_id }}
+
+      - name: Process ${{ steps.build_base_image.outputs.build_base }}:${{ matrix.os }} image metadata
+        id: base_build
+        if: ${{ matrix.build != 'snmptraps' }}
+        env:
+          CACHE_FILE_NAME: ${{ env.BUILD_CACHE_FILE_NAME }}
+        run: |
+            echo "::group::Base build image metadata"
+            cat "${CACHE_FILE_NAME}"
+            echo "::endgroup::"
+
+            IMAGE_DIGEST=$(jq -r '."containerimage.digest"' "${CACHE_FILE_NAME}")
+            IMAGE_NAME=$(jq -r '."image.name"' "${CACHE_FILE_NAME}" | cut -d: -f1)
+
+            echo "base_build_image=${IMAGE_NAME}@${IMAGE_DIGEST}" >> $GITHUB_OUTPUT
+
+      - name: Verify ${{ steps.build_base_image.outputs.build_base }}:${{ matrix.os }} cosign
+        if: ${{ matrix.build != 'snmptraps' && env.AUTO_PUSH_IMAGES == 'true' && matrix.os != 'rhel' }}
+        env:
+         BASE_IMAGE: ${{ steps.base_build.outputs.base_build_image }}
+         OIDC_ISSUER: ${{ env.OIDC_ISSUER }}
+         IDENTITY_REGEX: ${{ env.IDENTITY_REGEX }}
+        run: |
+            echo "::group::Image sign data"
+            echo "OIDC issuer=${OIDC_ISSUER}"
+            echo "Identity=${IDENTITY_REGEX}"
+            echo "Image to verify=${BASE_IMAGE}"
+            echo "::endgroup::"
+
+            echo "::group::Verify signature"
+            cosign verify \
+                    --certificate-oidc-issuer-regexp "${OIDC_ISSUER}" \
+                    --certificate-identity-regexp "${IDENTITY_REGEX}" \
+                "${BASE_IMAGE}"
+            echo "::endgroup::"
+
+      - name: Prepare cache data
+        if: ${{ matrix.build != 'snmptraps' }}
+        id: cache_data
+        env:
+          BASE_IMAGE_TAG: ${{ steps.base_build.outputs.base_build_image }}
+        run: |
+            cache_from=()
+            cache_to=()
+
+            cache_from+=("type=registry,ref=${BASE_IMAGE_TAG}")
+
+            echo "::group::Cache from data"
+            echo "${cache_from[*]}"
+            echo "::endgroup::"
+
+            cache_from=$(printf '%s\n' "${cache_from[@]}")
+
+            echo 'cache_from<<EOF' >> "$GITHUB_OUTPUT"
+            echo "$cache_from" >> "$GITHUB_OUTPUT"
+            echo 'EOF' >> "$GITHUB_OUTPUT"
+
+      - name: Copy RedHat subscription
+        if: ${{ matrix.os == 'rhel' && matrix.build != 'snmptraps' }}
+        env:
+          CONTEXT: ${{ format('{0}/{1}/{2}', env.DOCKERFILES_DIRECTORY, matrix.build, matrix.os) }}
+        run: |
+             cp -R "/tmp/secrets/" "$CONTEXT/"
+
+      - name: Remove smartmontools
+        if: ${{ matrix.build == 'agent2' && matrix.os == 'rhel' }}
+        env:
+          DOCKERFILES_DIRECTORY: ${{ env.DOCKERFILES_DIRECTORY }}
+        run: |
+          sed -i '/smartmontools/d' "$DOCKERFILES_DIRECTORY/agent2/rhel/Dockerfile"
+
+      - name: Login to DockerHub
+        if: ${{ env.AUTO_PUSH_IMAGES == 'true' && matrix.os != 'rhel' }}
+        uses: docker/login-action@343f7c4344506bcbf9b4de18042ae17996df046d # v3.0.0
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Login to ${{ env.DOCKER_REGISTRY_TEST }}
+        if: ${{ env.AUTO_PUSH_IMAGES != 'true' || matrix.os == 'rhel' }}
+        uses: docker/login-action@343f7c4344506bcbf9b4de18042ae17996df046d # v3.0.0
+        with:
+          registry: ${{ env.DOCKER_REGISTRY_TEST }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Log in to ${{ env.REGISTRY }}
+        uses: docker/login-action@343f7c4344506bcbf9b4de18042ae17996df046d # v3.0.0
+        if: ${{ env.AUTO_PUSH_IMAGES == 'true' && matrix.os == 'rhel' }}
+        with:
+          username: ${{ format('redhat-isv-containers+{0}-robot', secrets[format('{0}_{1}_PROJECT',  needs.init_build.outputs.secret_prefix, steps.var_format.outputs.matrix_build)]) }}
+          password: ${{ secrets[format('{0}_{1}_SECRET', needs.init_build.outputs.secret_prefix, steps.var_format.outputs.matrix_build)] }}
+          registry: ${{ env.REGISTRY }}
+
+      - name: Build and push image
+        id: docker_build
+        uses: docker/build-push-action@4a13e500e55cf31b7a5d59a38ab2040ab0f42f56 # v5.1.0
+        with:
+          context: ${{ format('{0}/{1}/{2}', env.DOCKERFILES_DIRECTORY, matrix.build, matrix.os) }}
+          file: ${{ format('{0}/{1}/{2}/Dockerfile', env.DOCKERFILES_DIRECTORY, matrix.build, matrix.os) }}
+          platforms: ${{ steps.platform.outputs.list }}
+          provenance: ${{ env.AUTO_PUSH_IMAGES == 'true' && 'mode=max' || '' }}
+          push: ${{ env.AUTO_PUSH_IMAGES != 'true' || matrix.os == 'rhel' }}
+          sbom: ${{ env.AUTO_PUSH_IMAGES == 'true' && matrix.os != 'rhel' }}
+          tags: ${{ steps.meta.outputs.tags }}
+          build-args: BUILD_BASE_IMAGE=${{ steps.base_build.outputs.base_build_image }}
+          labels: |
+            org.opencontainers.image.revision=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.revision'] }}
+            org.opencontainers.image.created=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.created'] }}
+
+      - name: Preflight certification
+        if: ${{ matrix.os == 'rhel' }}
+        env:
+          PFLT_CERTIFICATION_PROJECT_ID: ${{ secrets[format('{0}_{1}_PROJECT', needs.init_build.outputs.secret_prefix, steps.var_format.outputs.matrix_build)] }}
+          PFLT_PYXIS_API_TOKEN: ${{ secrets.REDHAT_API_TOKEN }}
+          PFLT_ARTIFACTS: "/tmp/artifacts"
+          PFLT_LOGLEVEL: ${{ env.PFLT_LOGLEVEL }}
+          IMAGE_TAG: ${{ fromJSON(steps.meta.outputs.json).tags[0] }}
+          PREFLIGHT_IMAGE: ${{ env.PREFLIGHT_IMAGE }}
+          PFLT_LOGFILE: "/tmp/artifacts/preflight.log"
+          SUBMIT_IMAGE: ${{ env.AUTO_PUSH_IMAGES != 'true' && '--submit' || '' }}
+        run: |
+            mkdir -p $PFLT_ARTIFACTS
+            echo "::group::Perform certification tests (${SUBMIT_IMAGE})"
+            export PFLT_DOCKERCONFIG="$HOME/.docker/config.json"
+            preflight check container "${IMAGE_TAG}" ${SUBMIT_IMAGE}
+            echo "::endgroup::"
+
+      - name: Sign the images with GitHub OIDC Token
+        if: ${{ env.AUTO_PUSH_IMAGES == 'true' && matrix.os != 'rhel' }}
+        env:
+          DIGEST: ${{ steps.docker_build.outputs.digest }}
+          TAGS: ${{ steps.meta.outputs.tags }}
+        run: |
+            images=""
+            for tag in ${TAGS}; do
+                images+="${tag}@${DIGEST} "
+            done
+
+            echo "::group::Images to sign"
+            echo "$images"
+            echo "::endgroup::"
+
+            echo "::group::Signing"
+            echo "cosign sign --yes $images"
+            cosign sign --yes ${images}
+            echo "::endgroup::"
+
+      - name: Image metadata
+        if: ${{ env.AUTO_PUSH_IMAGES == 'true' }}
+        env:
+          METADATA: ${{ steps.docker_build.outputs.metadata }}
+        run: |
+            echo "::group::Image metadata"
+            echo "${METADATA}"
+            echo "::endgroup::"
