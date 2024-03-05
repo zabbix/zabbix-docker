@@ -18,8 +18,10 @@
       "linux/arm64"
     ],
     "rhel": [
-      "X64",
-      "ARM64"
+      "linux/amd64",
+      "linux/arm64",
+      "linux/ppc64le",
+      "linux/s390x"
     ],
     "ubuntu": [
       "linux/amd64",
