@@ -231,13 +231,14 @@ jobs:
               ${{ format('{0}/{1}{2}', env.DOCKER_REPOSITORY, env.IMAGES_PREFIX, env.BASE_BUILD_NAME ) }},enable=${{ env.AUTO_PUSH_IMAGES == 'true' && matrix.os != 'rhel' }}
           context: ${{ env.TRUNK_ONLY_EVENT == 'true' && 'git' || '' }}
           tags: |
-            type=semver,enable=${{ needs.init_build.outputs.current_branch != 'trunk' }},pattern={{version}},prefix=${{ matrix.os }}-
-            type=semver,enable=${{ needs.init_build.outputs.current_branch != 'trunk' }},pattern={{version}},suffix=-${{ matrix.os }}
-            type=ref,enable=${{ needs.init_build.outputs.current_branch != 'trunk' && !contains(fromJSON('["workflow_dispatch"]'), github.event_name) }},event=branch,prefix=${{ matrix.os }}-,suffix=-latest
-            type=ref,enable=${{ needs.init_build.outputs.current_branch != 'trunk' && !contains(fromJSON('["workflow_dispatch"]'), github.event_name) }},event=branch,suffix=-${{ matrix.os }}-latest
-            type=raw,enable=${{ (needs.init_build.outputs.current_branch != 'trunk') && (needs.init_build.outputs.is_default_branch == 'true') }},value=${{matrix.os}}-latest
-            type=ref,enable=${{ needs.init_build.outputs.current_branch == 'trunk' }},event=branch,prefix=${{ matrix.os }}-
-            type=ref,enable=${{ needs.init_build.outputs.current_branch == 'trunk' || contains(fromJSON('["workflow_dispatch"]'), github.event_name) }},event=branch,suffix=-${{ matrix.os }}
+            type=semver,enable=${{ needs.init_build.outputs.current_branch != 'trunk' && matrix.os != 'rhel' }},pattern={{version}},prefix=${{ matrix.os }}-
+            type=semver,enable=${{ needs.init_build.outputs.current_branch != 'trunk' && matrix.os != 'rhel' }},pattern={{version}},suffix=-${{ matrix.os }}
+            type=ref,enable=${{ needs.init_build.outputs.current_branch != 'trunk' && !contains(fromJSON('["workflow_dispatch"]'), github.event_name) && matrix.os != 'rhel' }},event=branch,prefix=${{ matrix.os }}-,suffix=-latest
+            type=ref,enable=${{ needs.init_build.outputs.current_branch != 'trunk' && !contains(fromJSON('["workflow_dispatch"]'), github.event_name) && matrix.os != 'rhel' }},event=branch,suffix=-${{ matrix.os }}-latest
+            type=raw,enable=${{ needs.init_build.outputs.is_default_branch == 'true' && matrix.os != 'rhel' }},value=${{matrix.os}}-latest
+            type=ref,enable=${{ needs.init_build.outputs.current_branch == 'trunk' && matrix.os != 'rhel' }},event=branch,prefix=${{ matrix.os }}-
+            type=ref,enable=${{ (needs.init_build.outputs.current_branch == 'trunk' || contains(fromJSON('["workflow_dispatch"]'), github.event_name)) && matrix.os != 'rhel' }},event=branch,suffix=-${{ matrix.os }}
+            type=sha,enable=${{ matrix.os == 'rhel' }},suffix=-${{ matrix.os }}
           flavor: |
             latest=${{ (matrix.os == 'alpine') && (!contains(fromJSON('["workflow_dispatch"]'), github.event_name)) && ( needs.init_build.outputs.is_default_branch == 'true' ) }}
 
@@ -450,13 +451,14 @@ jobs:
               ${{ format('{0}/{1}{2}', env.DOCKER_REPOSITORY, env.IMAGES_PREFIX, matrix.build ) }},enable=${{ env.AUTO_PUSH_IMAGES == 'true' && matrix.os != 'rhel' }}
           context: ${{ env.TRUNK_ONLY_EVENT == 'true' && 'git' || '' }}
           tags: |
-            type=semver,enable=${{ needs.init_build.outputs.current_branch != 'trunk' }},pattern={{version}},prefix=${{ matrix.os }}-
-            type=semver,enable=${{ needs.init_build.outputs.current_branch != 'trunk' }},pattern={{version}},suffix=-${{ matrix.os }}
-            type=ref,enable=${{ needs.init_build.outputs.current_branch != 'trunk' && (!contains(fromJSON('["workflow_dispatch"]'), github.event_name)) }},event=branch,prefix=${{ matrix.os }}-,suffix=-latest
-            type=ref,enable=${{ needs.init_build.outputs.current_branch != 'trunk' && (!contains(fromJSON('["workflow_dispatch"]'), github.event_name)) }},event=branch,suffix=-${{ matrix.os }}-latest
-            type=raw,enable=${{ (needs.init_build.outputs.current_branch != 'trunk') && (needs.init_build.outputs.is_default_branch == 'true') && matrix.os != 'rhel' }},value=${{matrix.os}}-latest
-            type=ref,enable=${{ needs.init_build.outputs.current_branch == 'trunk' }},event=branch,prefix=${{ matrix.os }}-
-            type=ref,enable=${{ needs.init_build.outputs.current_branch == 'trunk' || contains(fromJSON('["workflow_dispatch"]'), github.event_name) }},event=branch,suffix=-${{ matrix.os }}
+            type=semver,enable=${{ needs.init_build.outputs.current_branch != 'trunk' && matrix.os != 'rhel' }},pattern={{version}},prefix=${{ matrix.os }}-
+            type=semver,enable=${{ needs.init_build.outputs.current_branch != 'trunk' && matrix.os != 'rhel' }},pattern={{version}},suffix=-${{ matrix.os }}
+            type=ref,enable=${{ needs.init_build.outputs.current_branch != 'trunk' && !contains(fromJSON('["workflow_dispatch"]'), github.event_name) && matrix.os != 'rhel' }},event=branch,prefix=${{ matrix.os }}-,suffix=-latest
+            type=ref,enable=${{ needs.init_build.outputs.current_branch != 'trunk' && !contains(fromJSON('["workflow_dispatch"]'), github.event_name) && matrix.os != 'rhel' }},event=branch,suffix=-${{ matrix.os }}-latest
+            type=raw,enable=${{ needs.init_build.outputs.is_default_branch == 'true' && matrix.os != 'rhel' }},value=${{matrix.os}}-latest
+            type=ref,enable=${{ needs.init_build.outputs.current_branch == 'trunk' && matrix.os != 'rhel' }},event=branch,prefix=${{ matrix.os }}-
+            type=ref,enable=${{ (needs.init_build.outputs.current_branch == 'trunk' || contains(fromJSON('["workflow_dispatch"]'), github.event_name)) && matrix.os != 'rhel' }},event=branch,suffix=-${{ matrix.os }}
+            type=sha,enable=${{ matrix.os == 'rhel' }},suffix=-${{ matrix.os }}
           flavor: |
             latest=${{ (matrix.os == 'alpine') && (!contains(fromJSON('["workflow_dispatch"]'), github.event_name)) && ( needs.init_build.outputs.is_default_branch == 'true' ) }}
 
@@ -721,15 +723,17 @@ jobs:
               ${{ env.REGISTRY }}/${{ env.REGISTRY_NAMESPACE }}/${{ secrets[format('{0}_{1}_PROJECT', needs.init_build.outputs.secret_prefix, steps.var_format.outputs.matrix_build)] || matrix.build }},enable=${{ env.AUTO_PUSH_IMAGES == 'true' && matrix.os == 'rhel' }}
           context: ${{ env.TRUNK_ONLY_EVENT == 'true' && 'git' || '' }}
           tags: |
-            type=semver,enable=${{ needs.init_build.outputs.current_branch != 'trunk' }},pattern={{version}},prefix=${{ matrix.os }}-
-            type=semver,enable=${{ needs.init_build.outputs.current_branch != 'trunk' }},pattern={{version}},suffix=-${{ matrix.os }}
-            type=ref,enable=${{ needs.init_build.outputs.current_branch != 'trunk' && !contains(fromJSON('["workflow_dispatch"]'), github.event_name) }},event=branch,prefix=${{ matrix.os }}-,suffix=-latest
-            type=ref,enable=${{ needs.init_build.outputs.current_branch != 'trunk' && !contains(fromJSON('["workflow_dispatch"]'), github.event_name) }},event=branch,suffix=-${{ matrix.os }}-latest
-            type=raw,enable=${{ (needs.init_build.outputs.current_branch != 'trunk') && (needs.init_build.outputs.is_default_branch == 'true') }},value=${{matrix.os}}-latest
-            type=ref,enable=${{ needs.init_build.outputs.current_branch == 'trunk' }},event=branch,prefix=${{ matrix.os }}-
-            type=ref,enable=${{ needs.init_build.outputs.current_branch == 'trunk' || contains(fromJSON('["workflow_dispatch"]'), github.event_name) }},event=branch,suffix=-${{ matrix.os }}
+            type=semver,enable=${{ needs.init_build.outputs.current_branch != 'trunk' && matrix.os != 'rhel' }},pattern={{version}},prefix=${{ matrix.os }}-
+            type=semver,enable=${{ needs.init_build.outputs.current_branch != 'trunk' && matrix.os != 'rhel' }},pattern={{version}},suffix=-${{ matrix.os }}
+            type=ref,enable=${{ needs.init_build.outputs.current_branch != 'trunk' && !contains(fromJSON('["workflow_dispatch"]'), github.event_name) && matrix.os != 'rhel' }},event=branch,prefix=${{ matrix.os }}-,suffix=-latest
+            type=ref,enable=${{ needs.init_build.outputs.current_branch != 'trunk' && !contains(fromJSON('["workflow_dispatch"]'), github.event_name) && matrix.os != 'rhel' }},event=branch,suffix=-${{ matrix.os }}-latest
+            type=raw,enable=${{ needs.init_build.outputs.is_default_branch == 'true' && matrix.os != 'rhel' }},value=${{matrix.os}}-latest
+            type=ref,enable=${{ needs.init_build.outputs.current_branch == 'trunk' && matrix.os != 'rhel' }},event=branch,prefix=${{ matrix.os }}-
+            type=ref,enable=${{ (needs.init_build.outputs.current_branch == 'trunk' || contains(fromJSON('["workflow_dispatch"]'), github.event_name)) && matrix.os != 'rhel' }},event=branch,suffix=-${{ matrix.os }}
+            type=semver,enable=${{ matrix.os == 'rhel' }},pattern={{version}}
+            type=sha,enable=${{ matrix.os == 'rhel' }}
           flavor: |
-            latest=${{ ((matrix.os == 'alpine' && needs.init_build.outputs.is_default_branch == 'true') || matrix.os == 'rhel') && (!contains(fromJSON('["workflow_dispatch"]'), github.event_name)) }}
+            latest=${{ ((matrix.os == 'alpine' && needs.init_build.outputs.is_default_branch == 'true') || (matrix.os == 'rhel' && github.event_name == 'release')) && (!contains(fromJSON('["workflow_dispatch"]'), github.event_name)) }}
 
       - name: Download metadata of ${{ steps.build_base_image.outputs.build_base }}:${{ matrix.os }}
         uses: actions/cache@13aacd865c20de90d75de3b17ebe84f7a17d57d2 # v4.0.0
