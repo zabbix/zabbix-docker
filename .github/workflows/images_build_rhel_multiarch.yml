@@ -857,7 +857,7 @@ jobs:
           IMAGE_TAG: ${{ fromJSON(steps.meta.outputs.json).tags[0] }}
           PREFLIGHT_IMAGE: ${{ env.PREFLIGHT_IMAGE }}
           PFLT_LOGFILE: "/tmp/artifacts/preflight.log"
-          SUBMIT_IMAGE: ${{ env.AUTO_PUSH_IMAGES != 'true' && '--submit' || '' }}
+          SUBMIT_IMAGE: ${{ env.AUTO_PUSH_IMAGES == 'true' && '--submit' || '' }}
         run: |
             mkdir -p $PFLT_ARTIFACTS
             echo "::group::Perform certification tests (${SUBMIT_IMAGE})"
