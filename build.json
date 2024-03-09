@@ -37,12 +37,12 @@
     "proxy-mysql": { "base": "build-mysql", "rhel": true },
     "proxy-sqlite3": { "base": "build-sqlite3", "rhel": true },
     "server-mysql": { "base": "build-mysql", "rhel": true },
-    "server-pgsql": { "base": "build-pgsql", "rhel": false },
+    "server-pgsql": { "base": "build-pgsql", "rhel": true },
     "snmptraps": { "base": "", "rhel": true },
     "web-apache-mysql": { "base": "build-mysql", "rhel": false },
     "web-apache-pgsql": { "base": "build-pgsql", "rhel": false },
     "web-nginx-mysql": { "base": "build-mysql", "rhel": true },
-    "web-nginx-pgsql": { "base": "build-mysql", "rhel": false },
+    "web-nginx-pgsql": { "base": "build-mysql", "rhel": true },
     "web-service": { "base": "build-mysql", "rhel": true }
   }
 }
