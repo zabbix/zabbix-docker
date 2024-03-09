@@ -207,7 +207,7 @@ RUN Set-Location -Path $env:SystemDrive\.; `
     }; `
     Write-Host 'Installing ...'; `
     Start-Process $env:SystemDrive\setup.exe `
-        -ArgumentList """-qnNdO -a x86_64 -R $env:SystemDrive\cygwin --site http://cygwin.mirror.constant.com -l $env:SystemDrive\cygwin\var\cache\setup --packages perl""" `
+        -ArgumentList """-qnNdO -a x86_64 -R $env:SystemDrive\cygwin -l $env:SystemDrive\cygwin\var\cache\setup --packages perl""" `
         -Wait `
         -NoNewWindow; `
     `
