@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1
-ARG MAJOR_VERSION=7.0
-ARG RELEASE=0
-ARG ZBX_VERSION=${MAJOR_VERSION}
+ARG MAJOR_VERSION=6.4
+ARG RELEASE=12
+ARG ZBX_VERSION=${MAJOR_VERSION}.12
 ARG BUILD_BASE_IMAGE=zabbix-build-pgsql:rhel-${ZBX_VERSION}
 
 FROM ${BUILD_BASE_IMAGE} AS builder
@@ -20,9 +20,9 @@ ENV TERM=xterm \
 
 LABEL description="Zabbix server with PostgreSQL database support" \
       maintainer="alexey.pustovalov@zabbix.com" \
-      name="zabbix/zabbix-server-pgsql-trunk" \
+      name="zabbix/zabbix-server-pgsql-64" \
       release="${RELEASE}" \
-      run="docker run --name zabbix-server --link postgresql:pgsql-server -p 10051:10051 -d registry.connect.redhat.com/zabbix/zabbix-server-pgsql-trunk:${ZBX_VERSION}" \
+      run="docker run --name zabbix-server --link postgresql:pgsql-server -p 10051:10051 -d registry.connect.redhat.com/zabbix/zabbix-server-pgsql-64:${ZBX_VERSION}" \
       summary="Zabbix server (PostgreSQL)" \
       url="https://www.zabbix.com/" \
       vendor="Zabbix LLC" \
@@ -33,7 +33,7 @@ LABEL description="Zabbix server with PostgreSQL database support" \
       io.openshift.tags="zabbix,zabbix-server,pgsql" \
       org.label-schema.build-date="${BUILD_DATE}" \
       org.label-schema.description="Zabbix server with PostgreSQL database support" \
-      org.label-schema.docker.cmd="docker run --name zabbix-server --link postgresql:pgsql-server -p 10051:10051 -d registry.connect.redhat.com/zabbix/zabbix-server-pgsql-trunk:${ZBX_VERSION}" \
+      org.label-schema.docker.cmd="docker run --name zabbix-server --link postgresql:pgsql-server -p 10051:10051 -d registry.connect.redhat.com/zabbix/zabbix-server-pgsql-64:${ZBX_VERSION}" \
       org.label-schema.license="GPL v2.0" \
       org.label-schema.name="zabbix-server-pgsql-rhel" \
       org.label-schema.schema-version="1.0" \

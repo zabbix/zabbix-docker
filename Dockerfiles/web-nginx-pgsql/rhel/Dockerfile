@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1
-ARG MAJOR_VERSION=7.0
-ARG RELEASE=0
-ARG ZBX_VERSION=${MAJOR_VERSION}
+ARG MAJOR_VERSION=6.4
+ARG RELEASE=12
+ARG ZBX_VERSION=${MAJOR_VERSION}.12
 ARG BUILD_BASE_IMAGE=zabbix-build-pgsql:rhel-${ZBX_VERSION}
 
 FROM ${BUILD_BASE_IMAGE} AS builder
@@ -20,7 +20,7 @@ LABEL description="Zabbix web-interface based on Nginx web server with PostgreSQ
       maintainer="alexey.pustovalov@zabbix.com" \
       name="zabbix/zabbix-web-pgsql" \
       release="${RELEASE}" \
-      run="docker run --name zabbix-web-nginx --link postgresql:pgsql-server --link zabbix-server:zabbix-server -p 80:80 -d registry.connect.redhat.com/zabbix/zabbix-web-pgsql-trunk:${ZBX_VERSION}" \
+      run="docker run --name zabbix-web-nginx --link postgresql:pgsql-server --link zabbix-server:zabbix-server -p 80:80 -d registry.connect.redhat.com/zabbix/zabbix-web-pgsql-64:${ZBX_VERSION}" \
       summary="Zabbix web-interface based on Nginx web server with PostgreSQL database support" \
       url="https://www.zabbix.com/" \
       vendor="Zabbix LLC" \
@@ -31,7 +31,7 @@ LABEL description="Zabbix web-interface based on Nginx web server with PostgreSQ
       io.openshift.tags="zabbix,zabbix-web,pgsql,nginx" \
       org.label-schema.build-date="${BUILD_DATE}" \
       org.label-schema.description="Zabbix web-interface based on Nginx web server with PostgreSQL database support" \
-      org.label-schema.docker.cmd="docker run --name zabbix-web-nginx --link postgresql:pgsql-server --link zabbix-server:zabbix-server -p 80:80 -d registry.connect.redhat.com/zabbix/zabbix-web-pgsql-trunk:${ZBX_VERSION}" \
+      org.label-schema.docker.cmd="docker run --name zabbix-web-nginx --link postgresql:pgsql-server --link zabbix-server:zabbix-server -p 80:80 -d registry.connect.redhat.com/zabbix/zabbix-web-pgsql-64:${ZBX_VERSION}" \
       org.label-schema.license="GPL v2.0" \
       org.label-schema.name="zabbix-web-pgsql-rhel" \
       org.label-schema.schema-version="1.0" \
