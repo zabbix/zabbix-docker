@@ -276,14 +276,14 @@ jobs:
 
       - name: Login to DockerHub
         if: ${{ env.AUTO_PUSH_IMAGES == 'true' && matrix.os != 'rhel' }}
-        uses: docker/login-action@343f7c4344506bcbf9b4de18042ae17996df046d # v3.0.0
+        uses: docker/login-action@e92390c5fb421da1463c202d546fed0ec5c39f20 # v3.1.0
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
       - name: Login to ${{ env.DOCKER_REGISTRY_TEST }}
         if: ${{ env.AUTO_PUSH_IMAGES != 'true' || matrix.os == 'rhel' }}
-        uses: docker/login-action@343f7c4344506bcbf9b4de18042ae17996df046d # v3.0.0
+        uses: docker/login-action@e92390c5fb421da1463c202d546fed0ec5c39f20 # v3.1.0
         with:
           registry: ${{ env.DOCKER_REGISTRY_TEST }}
           username: ${{ github.actor }}
@@ -539,14 +539,14 @@ jobs:
 
       - name: Login to DockerHub
         if: ${{ env.AUTO_PUSH_IMAGES == 'true' && matrix.os != 'rhel' }}
-        uses: docker/login-action@343f7c4344506bcbf9b4de18042ae17996df046d # v3.0.0
+        uses: docker/login-action@e92390c5fb421da1463c202d546fed0ec5c39f20 # v3.1.0
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
       - name: Login to ${{ env.DOCKER_REGISTRY_TEST }}
         if: ${{ env.AUTO_PUSH_IMAGES != 'true' || matrix.os == 'rhel' }}
-        uses: docker/login-action@343f7c4344506bcbf9b4de18042ae17996df046d # v3.0.0
+        uses: docker/login-action@e92390c5fb421da1463c202d546fed0ec5c39f20 # v3.1.0
         with:
           registry: ${{ env.DOCKER_REGISTRY_TEST }}
           username: ${{ github.actor }}
@@ -814,21 +814,21 @@ jobs:
 
       - name: Login to DockerHub
         if: ${{ env.AUTO_PUSH_IMAGES == 'true' && matrix.os != 'rhel' }}
-        uses: docker/login-action@343f7c4344506bcbf9b4de18042ae17996df046d # v3.0.0
+        uses: docker/login-action@e92390c5fb421da1463c202d546fed0ec5c39f20 # v3.1.0
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
       - name: Login to ${{ env.DOCKER_REGISTRY_TEST }}
         if: ${{ env.AUTO_PUSH_IMAGES != 'true' || matrix.os == 'rhel' }}
-        uses: docker/login-action@343f7c4344506bcbf9b4de18042ae17996df046d # v3.0.0
+        uses: docker/login-action@e92390c5fb421da1463c202d546fed0ec5c39f20 # v3.1.0
         with:
           registry: ${{ env.DOCKER_REGISTRY_TEST }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Log in to ${{ env.REGISTRY }}
-        uses: docker/login-action@343f7c4344506bcbf9b4de18042ae17996df046d # v3.0.0
+        uses: docker/login-action@e92390c5fb421da1463c202d546fed0ec5c39f20 # v3.1.0
         if: ${{ env.AUTO_PUSH_IMAGES == 'true' && matrix.os == 'rhel' }}
         with:
           username: ${{ format('redhat-isv-containers+{0}-robot', secrets[format('{0}_{1}_PROJECT',  needs.init_build.outputs.secret_prefix, steps.var_format.outputs.matrix_build)]) }}
