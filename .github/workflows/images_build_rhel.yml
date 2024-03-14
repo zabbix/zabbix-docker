@@ -30,7 +30,8 @@ permissions:
 
 env:
   TRUNK_ONLY_EVENT: ${{ contains(fromJSON('["schedule"]'), github.event_name) }}
-  AUTO_PUSH_IMAGES: ${{ ! contains(fromJSON('["workflow_dispatch", "push"]'), github.event_name) && vars.AUTO_PUSH_IMAGES }}
+#  AUTO_PUSH_IMAGES: ${{ ! contains(fromJSON('["workflow_dispatch", "push"]'), github.event_name) && vars.AUTO_PUSH_IMAGES }}
+  AUTO_PUSH_IMAGES: ${{ vars.AUTO_PUSH_IMAGES }}
 
   LATEST_BRANCH: ${{ github.event.repository.default_branch }}
   TRUNK_GIT_BRANCH: "refs/heads/trunk"
