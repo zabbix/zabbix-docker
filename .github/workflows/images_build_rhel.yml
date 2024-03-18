@@ -598,7 +598,7 @@ jobs:
           build-args: BUILD_BASE_IMAGE=${{ steps.base_build.outputs.base_build_image }}
 
       - name: Log in to ${{ env.REGISTRY }}
-        uses: redhat-actions/podman-login@9184318aae1ee5034fbfbacc0388acf12669171f # v1.6
+        uses: redhat-actions/podman-login@4934294ad0449894bcd1e9f191899d7292469603 # v1.7
         if: ${{ env.AUTO_PUSH_IMAGES == 'true' }}
         with:
           username: ${{ format('redhat-isv-containers+{0}-robot', secrets[format('{0}_{1}_PROJECT',  needs.init_build.outputs.secret_prefix, steps.var_format.outputs.matrix_build)]) }}
