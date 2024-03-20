@@ -348,7 +348,7 @@ jobs:
             echo "${METADATA}" > "$CACHE_FILE_NAME"
 
       - name: Cache image metadata
-        uses: actions/cache@13aacd865c20de90d75de3b17ebe84f7a17d57d2 # v4.0.0
+        uses: actions/cache@0c45773b623bea8c8e75f6c82b208c3cf94ea4f9 # v4.0.2
         with:
           path: ${{ env.BASE_CACHE_FILE_NAME }}
           key: ${{ env.BASE_BUILD_NAME }}-${{ matrix.os }}-${{ github.run_id }}
@@ -463,7 +463,7 @@ jobs:
             latest=${{ (matrix.os == 'alpine') && (!contains(fromJSON('["workflow_dispatch"]'), github.event_name)) && ( needs.init_build.outputs.is_default_branch == 'true' ) }}
 
       - name: Download metadata of ${{ env.BASE_BUILD_NAME }}:${{ matrix.os }}
-        uses: actions/cache@13aacd865c20de90d75de3b17ebe84f7a17d57d2 # v4.0.0
+        uses: actions/cache@0c45773b623bea8c8e75f6c82b208c3cf94ea4f9 # v4.0.2
         with:
           path: ${{ env.BASE_CACHE_FILE_NAME }}
           key: ${{ env.BASE_BUILD_NAME }}-${{ matrix.os }}-${{ github.run_id }}
@@ -603,7 +603,7 @@ jobs:
             echo "${METADATA}" > "$CACHE_FILE_NAME"
 
       - name: Cache image metadata
-        uses: actions/cache@13aacd865c20de90d75de3b17ebe84f7a17d57d2 # v4.0.0
+        uses: actions/cache@0c45773b623bea8c8e75f6c82b208c3cf94ea4f9 # v4.0.2
         with:
           path: ${{ env.BUILD_CACHE_FILE_NAME }}
           key: ${{ matrix.build }}-${{ matrix.os }}-${{ github.run_id }}
@@ -736,7 +736,7 @@ jobs:
             latest=${{ ((matrix.os == 'alpine' && needs.init_build.outputs.is_default_branch == 'true') || (matrix.os == 'rhel' && github.event_name == 'release')) && (!contains(fromJSON('["workflow_dispatch"]'), github.event_name)) }}
 
       - name: Download metadata of ${{ steps.build_base_image.outputs.build_base }}:${{ matrix.os }}
-        uses: actions/cache@13aacd865c20de90d75de3b17ebe84f7a17d57d2 # v4.0.0
+        uses: actions/cache@0c45773b623bea8c8e75f6c82b208c3cf94ea4f9 # v4.0.2
         if: ${{ matrix.build != 'snmptraps' }}
         with:
           path: ${{ env.BUILD_CACHE_FILE_NAME }}

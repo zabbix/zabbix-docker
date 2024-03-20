@@ -324,7 +324,7 @@ jobs:
             $Env:DIGEST | Set-Content -Path $Env:CACHE_FILE_NAME
 
       - name: Cache image digest
-        uses: actions/cache@13aacd865c20de90d75de3b17ebe84f7a17d57d2 # v4.0.0
+        uses: actions/cache@0c45773b623bea8c8e75f6c82b208c3cf94ea4f9 # v4.0.2
         with:
           path: ${{ env.BASE_IMAGE_NAME }}_${{ matrix.os }}_${{ matrix.component }}
           key: ${{ env.BASE_IMAGE_NAME }}-${{ matrix.os }}-${{ github.run_id }}
@@ -395,7 +395,7 @@ jobs:
             latest=false
 
       - name: Download SHA256 tag of ${{ env.BASE_IMAGE_NAME }}:${{ matrix.os }}
-        uses: actions/cache@13aacd865c20de90d75de3b17ebe84f7a17d57d2 # v4.0.0
+        uses: actions/cache@0c45773b623bea8c8e75f6c82b208c3cf94ea4f9 # v4.0.2
         with:
           path: ${{ env.BASE_IMAGE_NAME }}_${{ matrix.os }}_${{ matrix.component }}
           key: ${{ env.BASE_IMAGE_NAME }}-${{ matrix.os }}-${{ github.run_id }}
@@ -551,7 +551,7 @@ jobs:
             $Env:DIGEST | Set-Content -Path $Env:CACHE_FILE_NAME
 
       - name: Cache image digest
-        uses: actions/cache@13aacd865c20de90d75de3b17ebe84f7a17d57d2 # v4.0.0
+        uses: actions/cache@0c45773b623bea8c8e75f6c82b208c3cf94ea4f9 # v4.0.2
         with:
           path: ${{ env.BASE_BUILD_IMAGE_NAME }}_${{ matrix.os }}_${{ matrix.component }}
           key: ${{ env.BASE_BUILD_IMAGE_NAME }}-${{ matrix.os }}-${{ github.run_id }}
@@ -622,7 +622,7 @@ jobs:
             latest=false
 
       - name: Download SHA256 tag of ${{ env.BASE_BUILD_IMAGE_NAME }}:${{ matrix.os }}
-        uses: actions/cache@13aacd865c20de90d75de3b17ebe84f7a17d57d2 # v4.0.0
+        uses: actions/cache@0c45773b623bea8c8e75f6c82b208c3cf94ea4f9 # v4.0.2
         with:
           path: ${{ env.BASE_BUILD_IMAGE_NAME }}_${{ matrix.os }}_${{ matrix.component }}
           key: ${{ env.BASE_BUILD_IMAGE_NAME }}-${{ matrix.os }}-${{ github.run_id }}
