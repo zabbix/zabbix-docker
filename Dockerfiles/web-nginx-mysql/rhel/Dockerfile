@@ -51,7 +51,6 @@ COPY --from=builder ["/tmp/zabbix-${ZBX_VERSION}/ui", "/usr/share/zabbix"]
 RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
     set -eux && \
     INSTALL_PKGS="bash \
-            tzdata \
             curl \
             supervisor \
             shadow-utils \
@@ -84,12 +83,22 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             --best \
             --setopt=tsflags=nodocs \
         ${INSTALL_PKGS} && \
-    microdnf -y reinstall \
+    microdnf -y update \
+            --disableplugin=subscription-manager \
+            --disablerepo "*" \
             --enablerepo "ubi-8-baseos-rpms" \
             --setopt=install_weak_deps=0 \
             --best \
             --setopt=tsflags=nodocs \
+        tzdata && \
+    microdnf -y reinstall \
+            --disableplugin=subscription-manager \
+            --disablerepo "*" \
+            --enablerepo "ubi-8-baseos-rpms" \
+            --setopt=install_weak_deps=0 \
             --setopt=keepcache=0 \
+            --best \
+            --setopt=tsflags=nodocs \
         tzdata && \
     groupadd \
             --system \

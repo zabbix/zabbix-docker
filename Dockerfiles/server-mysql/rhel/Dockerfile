@@ -61,7 +61,6 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             nmap \
             fping \
             shadow-utils \
-            tzdata \
             iputils \
             hostname \
             libcurl \
@@ -92,7 +91,17 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             --best \
             --setopt=tsflags=nodocs \
         ${INSTALL_PKGS} && \
+    microdnf -y update \
+            --disableplugin=subscription-manager \
+            --disablerepo "*" \
+            --enablerepo "ubi-8-baseos-rpms" \
+            --setopt=install_weak_deps=0 \
+            --best \
+            --setopt=tsflags=nodocs \
+        tzdata && \
     microdnf -y reinstall \
+            --disableplugin=subscription-manager \
+            --disablerepo "*" \
             --enablerepo "ubi-8-baseos-rpms" \
             --setopt=install_weak_deps=0 \
             --setopt=keepcache=0 \

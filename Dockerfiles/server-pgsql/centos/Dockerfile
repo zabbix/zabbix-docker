@@ -44,7 +44,6 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             traceroute \
             nmap \
             iputils \
-            tzdata \
             traceroute \
             libevent \
             libssh \
@@ -67,6 +66,13 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             --setopt=install_weak_deps=False \
             --best \
         ${INSTALL_PKGS} && \
+    dnf -y reinstall \
+            --disablerepo "*" \
+            --enablerepo "baseos" \
+            --setopt=tsflags=nodocs \
+            --setopt=install_weak_deps=False \
+            --best \
+        tzdata && \
     groupadd \
             --system \
             --gid 1995 \

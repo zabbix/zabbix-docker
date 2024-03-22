@@ -36,7 +36,6 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
     REPOLIST="baseos,appstream,epel" && \
     INSTALL_PKGS="bash \
             tini \
-            tzdata \
             iputils \
             pcre2 \
             libcurl-minimal \
@@ -51,6 +50,13 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             --setopt=install_weak_deps=False \
             --best \
         ${INSTALL_PKGS} && \
+    dnf -y reinstall \
+            --disablerepo "*" \
+            --enablerepo "baseos" \
+            --setopt=tsflags=nodocs \
+            --setopt=install_weak_deps=False \
+            --best \
+        tzdata && \
     groupadd \
             --system \
             --gid 1995 \

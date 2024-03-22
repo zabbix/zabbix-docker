@@ -25,7 +25,6 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
     set -eux && \
     REPOLIST="baseos,appstream" && \
     INSTALL_PKGS="bash \
-            tzdata \
             net-snmp" && \
     dnf -y install \
             --disablerepo "*" \
@@ -34,6 +33,13 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             --setopt=install_weak_deps=False \
             --best \
         ${INSTALL_PKGS} && \
+    dnf -y reinstall \
+            --disablerepo "*" \
+            --enablerepo "baseos" \
+            --setopt=tsflags=nodocs \
+            --setopt=install_weak_deps=False \
+            --best \
+        tzdata && \
     groupadd \
             --system \
             --gid 1995 \
