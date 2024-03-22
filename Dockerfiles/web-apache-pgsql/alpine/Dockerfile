@@ -31,6 +31,7 @@ COPY ["conf/etc/", "/etc/"]
 
 RUN set -eux && \
     INSTALL_PKGS="bash \
+            tzdata \
             apache2 \
             curl \
             php81-apache2 \

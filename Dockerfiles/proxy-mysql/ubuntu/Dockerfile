@@ -40,6 +40,7 @@ RUN --mount=type=cache,target=/var/lib/apt/,sharing=locked \
     echo "#!/bin/sh\nexit 101" > /usr/sbin/policy-rc.d && \
     INSTALL_PKGS="bash \
             tini \
+            tzdata \
             traceroute \
             nmap \
             ca-certificates \
