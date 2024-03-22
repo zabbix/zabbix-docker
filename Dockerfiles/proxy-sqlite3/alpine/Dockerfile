@@ -35,6 +35,7 @@ COPY --from=builder ["/tmp/zabbix-${ZBX_VERSION}/conf/zabbix_proxy.conf", "/etc/
 
 RUN set -eux && \
     INSTALL_PKGS="bash \
+            tzdata \
             traceroute \
             nmap \
             fping \
