@@ -39,7 +39,6 @@ COPY --from=builder ["/tmp/zabbix-${ZBX_VERSION}/database/postgresql/timescaledb
 
 RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
     set -eux && \
-    REPOLIST="baseos,appstream,epel" && \
     INSTALL_PKGS="fping \
             file-libs \
             tini \
