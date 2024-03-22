@@ -41,7 +41,6 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             traceroute \
             nmap \
             file-libs \
-            tzdata \
             iputils \
             traceroute \
             libpsl \
@@ -79,6 +78,13 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
         --setopt=keepcache=0 \
         --best \
         --nodocs ${INSTALL_PKGS} && \
+    microdnf -y reinstall \
+            --enablerepo "baseos" \
+            --setopt=install_weak_deps=0 \
+            --setopt=keepcache=0 \
+            --best \
+            --setopt=tsflags=nodocs \
+        tzdata && \
     microdnf download libcurl && \
     rpm -Uvh --nodeps --replacefiles "*curl*$( uname -i ).rpm" && \
     microdnf remove -y libcurl-minimal && \

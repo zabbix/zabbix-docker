@@ -38,6 +38,7 @@ COPY --from=builder ["/tmp/postgresql_plugin/zabbix-agent2-plugin-postgresql", "
 
 RUN set -eux && \
     INSTALL_PKGS="tini \
+            bash \
             tzdata \
             bash \
             pcre2 \

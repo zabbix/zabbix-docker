@@ -35,7 +35,6 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
     set -eux && \
     INSTALL_PKGS="bash \
             tini \
-            tzdata \
             iputils \
             pcre2 \
             libcurl-minimal \
@@ -59,6 +58,13 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
         --setopt=keepcache=0 \
         --best \
         --nodocs ${INSTALL_PKGS} && \
+    microdnf -y reinstall \
+            --enablerepo "baseos" \
+            --setopt=install_weak_deps=0 \
+            --setopt=keepcache=0 \
+            --best \
+            --setopt=tsflags=nodocs \
+        tzdata && \
     groupadd \
             --system \
             --gid 1995 \
