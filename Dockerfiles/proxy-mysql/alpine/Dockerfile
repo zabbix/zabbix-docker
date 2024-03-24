@@ -37,6 +37,7 @@ COPY --from=builder ["/tmp/zabbix-${ZBX_VERSION}/database/mysql/create_proxy.sql
 RUN set -eux && \
     INSTALL_PKGS="bash \
             tini \
+            tzdata \
             traceroute \
             nmap \
             iputils \

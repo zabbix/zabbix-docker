@@ -37,9 +37,9 @@ COPY --from=builder ["/tmp/mongodb_plugin/zabbix-agent2-plugin-mongodb", "/usr/s
 COPY --from=builder ["/tmp/postgresql_plugin/zabbix-agent2-plugin-postgresql", "/usr/sbin/zabbix-agent2-plugin/zabbix-agent2-plugin-postgresql"]
 
 RUN set -eux && \
-    INSTALL_PKGS="tini \
+    INSTALL_PKGS="bash \
+            tini \
             tzdata \
-            bash \
             pcre2 \
             coreutils \
             smartmontools \

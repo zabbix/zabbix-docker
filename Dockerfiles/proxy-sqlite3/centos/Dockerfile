@@ -36,8 +36,9 @@ COPY --from=builder ["/tmp/zabbix-${ZBX_VERSION}/conf/zabbix_proxy.conf", "/etc/
 RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
     set -eux && \
     REPOLIST="baseos,appstream,epel" && \
-    INSTALL_PKGS="libevent \
+    INSTALL_PKGS="bash \
             tini \
+            libevent \
             traceroute \
             nmap \
             libssh \
@@ -59,6 +60,13 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             --setopt=install_weak_deps=False \
             --best \
         ${INSTALL_PKGS} && \
+    dnf -y reinstall \
+            --disablerepo "*" \
+            --enablerepo "baseos" \
+            --setopt=tsflags=nodocs \
+            --setopt=install_weak_deps=False \
+            --best \
+        tzdata && \
     groupadd \
             --system \
             --gid 1995 \
