@@ -41,7 +41,8 @@ RUN --mount=type=cache,target=/var/lib/apt/,sharing=locked \
             libcurl4 \
             libmodbus5 \
             libpcre2-8-0 \
-            libldap-2.4" && \
+            libldap-2.4 \
+            zlib1g" && \
     apt-get -y update && \
     DEBIAN_FRONTEND=noninteractive apt-get -y \
             --no-install-recommends install \

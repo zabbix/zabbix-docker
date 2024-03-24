@@ -45,7 +45,8 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             java-17-openjdk-devel \
             git \
             gettext \
-            unixODBC-devel" && \
+            unixODBC-devel \
+            zlib-devel" && \
     microdnf -y install \
         --disablerepo "*" \
         --enablerepo "ol9_baseos_latest" \

@@ -79,7 +79,8 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             postgresql \
             postgresql-libs \
             gzip \
-            unixODBC" && \
+            unixODBC \
+            zlib1g" && \
     curl --tlsv1.2 -sSf -L https://dl.fedoraproject.org/pub/epel/epel-release-latest-9.noarch.rpm -o /tmp/epel-release-latest-9.noarch.rpm && \
     rpm -ivh /tmp/epel-release-latest-9.noarch.rpm && \
     rm -rf /tmp/epel-release-latest-9.noarch.rpm && \
