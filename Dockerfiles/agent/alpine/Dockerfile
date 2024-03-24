@@ -41,7 +41,8 @@ RUN set -eux && \
             libgcc \
             libcurl \
             libmodbus \
-            libldap" && \
+            libldap \
+            zlib" && \
     apk add \
             --no-cache \
             --clean-protected \
