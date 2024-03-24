@@ -56,7 +56,8 @@ RUN set -eux && \
             postgresql-client \
             postgresql-libs \
             gzip \
-            unixodbc" && \
+            unixodbc \
+            zlib" && \
     apk add \
             --no-cache \
             --clean-protected \
