@@ -44,7 +44,8 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             git \
             gettext \
             go-toolset \
-            unixODBC-devel" && \
+            unixODBC-devel \
+            zlib-devel" && \
     dnf -y module enable mysql && \
     dnf -y install \
         --disablerepo "*" \

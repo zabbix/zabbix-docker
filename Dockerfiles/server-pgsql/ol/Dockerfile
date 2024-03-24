@@ -58,7 +58,7 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             postgresql-libs \
             zlib \
             unixODBC" && \
-    microdnf module enable postgresql:13 && \
+    microdnf module enable postgresql:15 && \
     microdnf -y install \
             --disablerepo="*" \
             --enablerepo="ol8_baseos_latest" \

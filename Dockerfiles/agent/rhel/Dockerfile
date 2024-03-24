@@ -58,7 +58,8 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             shadow-utils \
             pcre2 \
             libmodbus \
-            libcurl" && \
+            libcurl \
+            zlib" && \
     curl --tlsv1.2 -sSf -L https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm -o /tmp/epel-release-latest-8.noarch.rpm && \
     rpm -ivh /tmp/epel-release-latest-8.noarch.rpm && \
     rm -rf /tmp/epel-release-latest-8.noarch.rpm && \

@@ -45,9 +45,10 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             java-17-openjdk-devel \
             git \
             gettext \
-            unixODBC-devel" && \
+            unixODBC-devel \
+            zlib-devel" && \
     microdnf -y module enable mysql && \
-    microdnf module enable postgresql:13 && \
+    microdnf module enable postgresql:15 && \
     microdnf -y install \
         --disablerepo "*" \
         --enablerepo "ol8_baseos_latest" \

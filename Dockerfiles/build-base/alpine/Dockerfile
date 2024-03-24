@@ -57,7 +57,8 @@ RUN set -eux && \
             go \
             make \
             $openjdk_packages \
-            unixodbc-dev" && \
+            unixodbc-dev \
+            zlib-dev" && \
     apk add \
             --no-cache \
             --clean-protected \
