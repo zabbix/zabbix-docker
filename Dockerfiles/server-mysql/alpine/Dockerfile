@@ -54,7 +54,8 @@ RUN set -eux && \
             openipmi-libs \
             pcre2 \
             gzip \
-            unixodbc" && \
+            unixodbc \
+            zlib" && \
     apk add \
             --no-cache \
             --clean-protected \

@@ -54,7 +54,8 @@ RUN set -eux && \
             pcre2 \
             unixodbc \
             gzip \
-            fping" && \
+            fping \
+            zlib" && \
     apk add \
             --no-cache \
             --clean-protected \

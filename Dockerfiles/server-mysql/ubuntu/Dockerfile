@@ -59,7 +59,8 @@ RUN --mount=type=cache,target=/var/lib/apt/,sharing=locked \
             mysql-client \
             snmp-mibs-downloader \
             gzip \
-            unixodbc" && \
+            unixodbc \
+            zlib1g" && \
     apt-get -y update && \
     DEBIAN_FRONTEND=noninteractive apt-get -y \
             --no-install-recommends install \

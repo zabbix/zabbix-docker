@@ -44,7 +44,8 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             git \
             gettext \
             go-toolset \
-            unixODBC-devel" && \
+            unixODBC-devel \
+            zlib-devel" && \
     microdnf -y install \
         --disablerepo "*" \
         --enablerepo "extras-common" \
