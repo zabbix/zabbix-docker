@@ -58,7 +58,7 @@ RUN --mount=type=cache,target=/var/lib/apt/,sharing=locked \
             --no-install-recommends install \
         ${INSTALL_TEMP_PKGS} && \
     GNUPGHOME="$(mktemp -d)"; export GNUPGHOME && \
-    curl https://nginx.org/keys/nginx_signing.key | gpg --dearmor > /etc/apt/trusted.gpg.d/nginx.gpg && \
+    curl --tlsv1.2 -sSf -L https://nginx.org/keys/nginx_signing.key | gpg --dearmor > /etc/apt/trusted.gpg.d/nginx.gpg && \
     gpg --dry-run --quiet --import --import-options import-show /etc/apt/trusted.gpg.d/nginx.gpg && \
     DISTRIB_CODENAME=$(/bin/bash -c 'source /etc/lsb-release && echo $DISTRIB_CODENAME') && \
     echo "deb https://nginx.org/packages/ubuntu $DISTRIB_CODENAME nginx" > /etc/apt/sources.list.d/nginx.list && \
