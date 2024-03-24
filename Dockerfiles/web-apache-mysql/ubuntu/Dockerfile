@@ -33,6 +33,7 @@ RUN --mount=type=cache,target=/var/lib/apt/,sharing=locked \
     set -eux && \
     echo "#!/bin/sh\nexit 101" > /usr/sbin/policy-rc.d && \
     INSTALL_PKGS="bash \
+            tzdata \
             apache2 \
             curl \
             libapache2-mod-php \
