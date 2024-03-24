@@ -75,7 +75,7 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             pcre2 \
             gzip \
             unixODBC" && \
-    curl -sSL -o /tmp/epel-release-latest-9.noarch.rpm https://dl.fedoraproject.org/pub/epel/epel-release-latest-9.noarch.rpm && \
+    curl --tlsv1.2 -sSf -L https://dl.fedoraproject.org/pub/epel/epel-release-latest-9.noarch.rpm -o /tmp/epel-release-latest-9.noarch.rpm && \
     rpm -ivh /tmp/epel-release-latest-9.noarch.rpm && \
     rm -rf /tmp/epel-release-latest-9.noarch.rpm && \
     ARCH_SUFFIX="$(arch)"; \
