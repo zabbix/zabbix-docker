@@ -53,7 +53,8 @@ RUN --mount=type=cache,target=/var/lib/apt/,sharing=locked \
             libssl3 \
             libxml2 \
             snmp-mibs-downloader \
-            unixodbc" && \
+            unixodbc \
+            zlib1g" && \
     apt-get -y update && \
     DEBIAN_FRONTEND=noninteractive apt-get -y \
             --no-install-recommends install \

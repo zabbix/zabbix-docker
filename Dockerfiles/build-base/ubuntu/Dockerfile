@@ -46,7 +46,8 @@ RUN --mount=type=cache,target=/var/lib/apt/,sharing=locked \
             git \
             golang-1.21 \
             unzip \
-            unixodbc-dev" && \
+            unixodbc-dev \
+            zlib1g-dev" && \
     apt-get -y update && \
     DEBIAN_FRONTEND=noninteractive apt-get -y \
             --no-install-recommends install \
