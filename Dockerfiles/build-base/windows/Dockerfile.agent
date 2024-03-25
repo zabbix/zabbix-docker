@@ -1,10 +1,10 @@
 # syntax=docker/dockerfile:1
 # escape=`
 ARG BUILD_BASE_IMAGE=mcr.microsoft.com/windows/servercore:ltsc2022
-FROM $BUILD_BASE_IMAGE
+FROM $BUILD_BASE_IMAGE as builder_base
 
-ARG PCRE2_VERSION=10.42
-ARG OPENSSL_VERSION=3.1.4
+ARG PCRE2_VERSION=10.43
+ARG OPENSSL_VERSION=3.2.1
 ARG LIBMODBUS_VERSION=v3.1.10
 ARG BUILD_ARCH=x64
 ARG CPU_MODEL=AMD64
@@ -13,9 +13,9 @@ ARG MAJOR_VERSION=7.0
 ARG ZBX_VERSION=${MAJOR_VERSION}
 
 ARG VS_BUILDTOOLS_URL=https://aka.ms/vs/16/release/vs_buildtools.exe
-ARG NASM_URL=https://www.nasm.us/pub/nasm/releasebuilds/2.15.05/win64/nasm-2.15.05-installer-x64.exe
-ARG PERL_URL=https://strawberryperl.com/download/5.32.1.1/strawberry-perl-5.32.1.1-64bit.msi
-ARG GIT_URL=https://github.com/git-for-windows/git/releases/download/v2.33.0.windows.2/MinGit-2.33.0.2-busybox-64-bit.zip
+ARG NASM_URL=https://www.nasm.us/pub/nasm/releasebuilds/2.16.01/win64/nasm-2.16.01-installer-x64.exe
+ARG PERL_URL=https://github.com/StrawberryPerl/Perl-Dist-Strawberry/releases/download/SP_53822_64bit/strawberry-perl-5.38.2.2-64bit-portable.zip
+ARG GIT_URL=https://github.com/git-for-windows/git/releases/download/v2.44.0.windows.1/MinGit-2.44.0-busybox-64-bit.zip
 ARG PCRE2_URL=https://github.com/PhilipHazel/pcre2/releases/download/pcre2-$PCRE2_VERSION/pcre2-$PCRE2_VERSION.zip
 ARG OPENSSL_URL=https://www.openssl.org/source/openssl-$OPENSSL_VERSION.tar.gz
 ARG LIBMODBUS_URL=https://github.com/stephane/libmodbus.git
@@ -42,7 +42,7 @@ RUN Set-Location -Path $env:SystemDrive\.; `
     [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; `
     Invoke-WebRequest -OutFile $env:SystemDrive\git.zip -Uri $env:GIT_URL; `
     `
-    $sha256 = '273f55e881094d00877d64f56570b0c997c4da5dedcb26738d56481033c1eba1'; `
+    $sha256 = 'a2377f6e4214f16afa1a5a23d9a291d09a2234bcac67c5aeb36d9cce4b7b4d5b'; `
     Write-Host ('Verifying SHA256 ({0}) ...' -f $sha256); `
     if ((Get-FileHash $env:SystemDrive\git.zip -Algorithm sha256).Hash -ne $sha256) { `
         Write-Host 'Checksum GIT for Windows failed!'; `
@@ -64,7 +64,7 @@ RUN Set-Location -Path $env:SystemDrive\.; `
     Write-Host ('Downloading {0} ...' -f $env:NASM_URL); `
     [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; `
     Invoke-WebRequest -OutFile $env:SystemDrive\nasm_installer.exe -Uri $env:NASM_URL; `
-    $sha256 = 'a02325b9fe54f917f5d6a3036637b38dbb6addf6f7ba9d344d9b943a143fe7d0'; `
+    $sha256 = '08dba33ce8425b92461ef4161f24379bd55b08b18e11cf2b75ebb2422f4b0248'; `
     Write-Host ('Verifying SHA256 ({0}) ...' -f $sha256); `
     if ((Get-FileHash $env:SystemDrive\nasm_installer.exe -Algorithm sha256).Hash -ne $sha256) { `
         Write-Host 'Checksum NASM failed!'; `
@@ -87,7 +87,7 @@ RUN Set-Location -Path $env:SystemDrive\.; `
     [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; `
     Invoke-WebRequest -OutFile $env:SystemDrive\perl_installer.msi -Uri $env:PERL_URL; `
     `
-    $sha256 = '241a881670164feb0b91bb69d39fbbf84c981bec0d9f8c19959f8f48fd177768'; `
+    $sha256 = 'ea451686065d6338d7e4d4a04c9af49f17951d15aa4c2e19ab8cb56fa2373440'; `
     Write-Host ('Verifying SHA256 ({0}) ...' -f $sha256); `
     if ((Get-FileHash $env:SystemDrive\perl_installer.msi -Algorithm sha256).Hash -ne $sha256) { `
         Write-Host 'Checksum Strawberry Perl failed!'; `
@@ -148,7 +148,7 @@ RUN Set-Location -Path $env:SystemDrive\.; `
     [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; `
 	Invoke-WebRequest -OutFile $env:SystemDrive\pcre2.zip -Uri $env:PCRE2_URL; `
     `
-    $sha256 = '0f2a1403733d1a409e9305996bf8e5ea7f69ed38f38d2bc1e0c0b041ad7a01a9'; `
+    $sha256 = 'f2816e84dd7a402068797501bf69e24eca18d882adb2143de9f831f39b850257'; `
     Write-Host ('Verifying SHA256 ({0}) ...' -f $sha256); `
     if ((Get-FileHash $env:SystemDrive\pcre2.zip -Algorithm sha256).Hash -ne $sha256) { `
         Write-Host 'Checksum PCRE2 library failed!'; `
@@ -186,7 +186,7 @@ RUN Set-Location -Path $env:SystemDrive\.; `
     [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; `
     Invoke-WebRequest -OutFile $env:SystemDrive\openssl.tar.gz -Uri $env:OPENSSL_URL; `
     `
-    $sha256 = '840af5366ab9b522bde525826be3ef0fb0af81c6a9ebd84caa600fea1731eee3'; `
+    $sha256 = '83c7329fe52c850677d75e5d0b0ca245309b97e8ecbcfdc1dfdc4ab9fac35b39'; `
     Write-Host ('Verifying SHA256 ({0}) ...' -f $sha256); `
     if ((Get-FileHash $env:SystemDrive\openssl.tar.gz -Algorithm sha256).Hash -ne $sha256) { `
         Write-Host 'Checksum OpenSSL library failed!'; `
