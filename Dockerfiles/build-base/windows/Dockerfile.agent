@@ -14,7 +14,7 @@ ARG ZBX_VERSION=${MAJOR_VERSION}
 
 ARG VS_BUILDTOOLS_URL=https://aka.ms/vs/16/release/vs_buildtools.exe
 ARG NASM_URL=https://www.nasm.us/pub/nasm/releasebuilds/2.16.01/win64/nasm-2.16.01-installer-x64.exe
-ARG PERL_URL=https://github.com/StrawberryPerl/Perl-Dist-Strawberry/releases/download/SP_53822_64bit/strawberry-perl-5.38.2.2-64bit-portable.zip
+ARG PERL_URL=https://github.com/StrawberryPerl/Perl-Dist-Strawberry/releases/download/SP_53822_64bit/strawberry-perl-5.38.2.2-64bit.msi
 ARG GIT_URL=https://github.com/git-for-windows/git/releases/download/v2.44.0.windows.1/MinGit-2.44.0-busybox-64-bit.zip
 ARG PCRE2_URL=https://github.com/PhilipHazel/pcre2/releases/download/pcre2-$PCRE2_VERSION/pcre2-$PCRE2_VERSION.zip
 ARG OPENSSL_URL=https://www.openssl.org/source/openssl-$OPENSSL_VERSION.tar.gz
@@ -87,7 +87,7 @@ RUN Set-Location -Path $env:SystemDrive\.; `
     [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; `
     Invoke-WebRequest -OutFile $env:SystemDrive\perl_installer.msi -Uri $env:PERL_URL; `
     `
-    $sha256 = 'ea451686065d6338d7e4d4a04c9af49f17951d15aa4c2e19ab8cb56fa2373440'; `
+    $sha256 = '45737aea8b2f93c50f06ee7303ec12eaa9632763a79883ab8a8eeae8ae96c75c'; `
     Write-Host ('Verifying SHA256 ({0}) ...' -f $sha256); `
     if ((Get-FileHash $env:SystemDrive\perl_installer.msi -Algorithm sha256).Hash -ne $sha256) { `
         Write-Host 'Checksum Strawberry Perl failed!'; `

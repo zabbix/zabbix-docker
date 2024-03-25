@@ -66,7 +66,7 @@ RUN Set-Location -Path $env:SystemDrive\.; `
     Write-Host ('Downloading {0} ...' -f $env:GOLANG_URL); `
     [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; `
     Invoke-WebRequest -OutFile $env:SystemDrive\go-amd64.msi -Uri $env:GOLANG_URL; `
-    $sha256 = 'cf9c66a208a106402a527f5b956269ca506cfe535fc388e828d249ea88ed28ba'; `
+    $sha256 = '21b0441bfb951349243e4a36e6b9d9aa7041f3b3c9521ac9190271889cd90d87'; `
     `
     Write-Host ('Verifying SHA256 ({0}) ...' -f $sha256); `
     if ((Get-FileHash $env:SystemDrive\go-amd64.msi -Algorithm sha256).Hash -ne $sha256) { `
