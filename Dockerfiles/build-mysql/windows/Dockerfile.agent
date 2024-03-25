@@ -45,7 +45,7 @@ RUN Set-Location -Path $env:SystemDrive\.; `
         PCRE2INCDIR=$env:SystemDrive\pcre2_build\build `
         PCRE2LIBDIR=$env:SystemDrive\pcre2_build\build\Release TLS=openssl `
         RFLAGS="""/D ZABBIX_VERSION_REVISION=$ZbxRevision /D ZABBIX_VERSION_RC_NUM=$env:ZABBIX_VERSION_RC_NUM""" `
-        LIBS="Crypt32.lib" `
+#        LIBS="Crypt32.lib" `
         TLSINCDIR=$env:SystemDrive\openssl_output\include `
         TLSLIBDIR=$env:SystemDrive\openssl_output\lib `
         MODBINCDIR=$env:SystemDrive\libmodbus\src `
