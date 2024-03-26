@@ -16,8 +16,8 @@
       "linux/arm64"
     ],
     "rhel": [
-      "X64",
-      "ARM64"
+      "linux/amd64",
+      "linux/arm64"
     ],
     "ubuntu": [
       "linux/amd64",
