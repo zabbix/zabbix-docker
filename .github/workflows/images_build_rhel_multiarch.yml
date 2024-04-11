@@ -186,7 +186,7 @@ jobs:
 
       - name: Install cosign
         if: ${{ env.AUTO_PUSH_IMAGES == 'true' && matrix.os != 'rhel' }}
-        uses: sigstore/cosign-installer@e1523de7571e31dbe865fd2e80c5c7c23ae71eb4
+        uses: sigstore/cosign-installer@59acb6260d9c0ba8f4a2f9d9b48431a222b68e20
         with:
           cosign-release: 'v2.2.3'
 
@@ -408,7 +408,7 @@ jobs:
 
       - name: Install cosign
         if: ${{ env.AUTO_PUSH_IMAGES == 'true' && matrix.os != 'rhel' }}
-        uses: sigstore/cosign-installer@e1523de7571e31dbe865fd2e80c5c7c23ae71eb4
+        uses: sigstore/cosign-installer@59acb6260d9c0ba8f4a2f9d9b48431a222b68e20
         with:
           cosign-release: 'v2.2.3'
 
@@ -632,7 +632,7 @@ jobs:
 
       - name: Install cosign
         if: ${{ env.AUTO_PUSH_IMAGES == 'true' && matrix.os != 'rhel' }}
-        uses: sigstore/cosign-installer@e1523de7571e31dbe865fd2e80c5c7c23ae71eb4
+        uses: sigstore/cosign-installer@59acb6260d9c0ba8f4a2f9d9b48431a222b68e20
         with:
           cosign-release: 'v2.2.3'
 
