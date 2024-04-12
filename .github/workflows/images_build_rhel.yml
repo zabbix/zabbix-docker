@@ -609,7 +609,7 @@ jobs:
       - name: Push to RedHat certification procedure (1st)
         id: push_to_registry
         if: ${{ env.AUTO_PUSH_IMAGES == 'true' }}
-        uses: redhat-actions/push-to-registry@9986a6552bc4571882a4a67e016b17361412b4df # v2.7.1
+        uses: redhat-actions/push-to-registry@5ed88d269cf581ea9ef6dd6806d01562096bee9c # v2.8
         with:
           tags: ${{ steps.meta.outputs.tags }}
 
@@ -649,7 +649,7 @@ jobs:
       - name: Push to RedHat certification procedure (all tags)
         id: push_to_registry_all_tags
         if: ${{ env.AUTO_PUSH_IMAGES == 'true' }}
-        uses: redhat-actions/push-to-registry@9986a6552bc4571882a4a67e016b17361412b4df # v2.7.1
+        uses: redhat-actions/push-to-registry@5ed88d269cf581ea9ef6dd6806d01562096bee9c # v2.8
         with:
           tags: ${{ steps.meta.outputs.tags }}
 
