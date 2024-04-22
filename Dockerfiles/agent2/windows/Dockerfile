@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1
 # escape=`
 ARG MAJOR_VERSION=6.4
-ARG ZBX_VERSION=${MAJOR_VERSION}.13
+ARG ZBX_VERSION=${MAJOR_VERSION}.14
 ARG BUILD_BASE_IMAGE=zabbix-build-agent:ltsc2022-agent2-${ZBX_VERSION}
 
 ARG BASE_IMAGE=mcr.microsoft.com/powershell:lts-nanoserver-ltsc2022

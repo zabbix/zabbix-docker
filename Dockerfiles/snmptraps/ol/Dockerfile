@@ -1,7 +1,7 @@
 FROM oraclelinux:9-slim
 
 ARG MAJOR_VERSION=6.4
-ARG ZBX_VERSION=${MAJOR_VERSION}.13
+ARG ZBX_VERSION=${MAJOR_VERSION}.14
 ARG ZBX_SOURCES=https://git.zabbix.com/scm/zbx/zabbix.git
 
 ENV TERM=xterm \
