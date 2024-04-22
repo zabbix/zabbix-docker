@@ -1,7 +1,7 @@
 FROM alpine:3.16
 
 ARG MAJOR_VERSION=6.0
-ARG ZBX_VERSION=${MAJOR_VERSION}.28
+ARG ZBX_VERSION=${MAJOR_VERSION}.29
 ARG ZBX_SOURCES=https://git.zabbix.com/scm/zbx/zabbix.git
 
 ENV TERM=xterm \

@@ -1,8 +1,8 @@
 FROM registry.access.redhat.com/ubi8/ubi-minimal
 
 ARG MAJOR_VERSION=6.0
-ARG RELEASE=28
-ARG ZBX_VERSION=${MAJOR_VERSION}.28
+ARG RELEASE=29
+ARG ZBX_VERSION=${MAJOR_VERSION}.29
 
 ARG ZBX_SOURCES=https://git.zabbix.com/scm/zbx/zabbix.git
 
