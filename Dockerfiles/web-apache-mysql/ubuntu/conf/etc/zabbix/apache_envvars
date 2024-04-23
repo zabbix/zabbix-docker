@@ -1,0 +1,4 @@
+export APACHE_RUN_USER=zabbix
+export APACHE_RUN_GROUP=zabbix
+export APACHE_PID_FILE=/tmp/apache2.pid
+export APACHE_RUN_DIR=/tmp

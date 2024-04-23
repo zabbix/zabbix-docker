@@ -122,6 +122,8 @@ check_db_connect() {
 prepare_web_server() {
     APACHE_SITES_DIR="/etc/apache2/sites-enabled"
 
+    ln -sfT "$ZABBIX_ETC_DIR/apache_envvars" "/etc/apache2/envvars"
+
     echo "** Adding Zabbix virtual host (HTTP)"
     if [ -f "$ZABBIX_ETC_DIR/apache.conf" ]; then
         ln -sfT "$ZABBIX_ETC_DIR/apache.conf" "$APACHE_SITES_DIR/zabbix.conf"

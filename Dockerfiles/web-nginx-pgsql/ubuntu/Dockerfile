@@ -5,7 +5,7 @@ ARG BUILD_BASE_IMAGE=zabbix-build-pgsql:ubuntu-${ZBX_VERSION}
 
 FROM ${BUILD_BASE_IMAGE} AS builder
 
-FROM ubuntu:jammy
+FROM ubuntu:noble
 
 ARG MAJOR_VERSION
 ARG ZBX_VERSION
@@ -39,33 +39,15 @@ RUN --mount=type=cache,target=/var/lib/apt/,sharing=locked \
             nginx \
             locales \
             libldap-common \
-            php8.1-bcmath \
-            php8.1-fpm \
-            php8.1-gd \
-            php8.1-ldap \
-            php8.1-mbstring \
-            php8.1-xml \
-            php8.1-pgsql \
+            php8.3-bcmath \
+            php8.3-fpm \
+            php8.3-gd \
+            php8.3-ldap \
+            php8.3-mbstring \
+            php8.3-xml \
+            php8.3-pgsql \
             postgresql-client \
             supervisor" && \
-    INSTALL_TEMP_PKGS="gpg \
-            ca-certificates \
-            dirmngr \
-            curl \
-            gpg-agent" && \
-    apt-get -y update && \
-    DEBIAN_FRONTEND=noninteractive apt-get -y \
-            --no-install-recommends install \
-        ${INSTALL_TEMP_PKGS} && \
-    GNUPGHOME="$(mktemp -d)"; export GNUPGHOME && \
-    curl --tlsv1.2 -sSf -L https://nginx.org/keys/nginx_signing.key | gpg --dearmor > /etc/apt/trusted.gpg.d/nginx.gpg && \
-    gpg --dry-run --quiet --import --import-options import-show /etc/apt/trusted.gpg.d/nginx.gpg && \
-    DISTRIB_CODENAME=$(/bin/bash -c 'source /etc/lsb-release && echo $DISTRIB_CODENAME') && \
-    echo "deb https://nginx.org/packages/ubuntu $DISTRIB_CODENAME nginx" > /etc/apt/sources.list.d/nginx.list && \
-    echo "Package: *\nPin: origin nginx.org\nPin: release o=nginx\nPin-Priority: 900\n" \
-        > /etc/apt/preferences.d/99nginx && \
-    gpgconf --kill all && \
-    rm -rf "$GNUPGHOME" && \
     apt-get -y update && \
     DEBIAN_FRONTEND=noninteractive apt-get -y \
             -o Dpkg::Options::="--force-confdef" \
@@ -90,8 +72,8 @@ RUN --mount=type=cache,target=/var/lib/apt/,sharing=locked \
     mkdir -p /var/lib/php/session && \
     rm -f /etc/nginx/conf.d/*.conf && \
     rm -rf /var/cache/nginx/ && \
-    rm -f /etc/php/8.1/fpm/pool.d/www.conf && \
-    rm -f /etc/php/8.1/fpm/php-fpm.conf.dpkg-dist && \
+    rm -f /etc/php/8.3/fpm/pool.d/www.conf && \
+    rm -f /etc/php/8.3/fpm/php-fpm.conf.dpkg-dist && \
     ln -sf /dev/stdout /var/log/nginx/access.log && \
     ln -sf /dev/stderr /var/log/nginx/error.log && \
     cd /usr/share/zabbix/ && \
@@ -111,9 +93,9 @@ RUN --mount=type=cache,target=/var/lib/apt/,sharing=locked \
     chown --quiet -R zabbix:root /etc/zabbix/ /usr/share/zabbix/include/defines.inc.php /usr/share/zabbix/modules/ && \
     chgrp -R 0 /etc/zabbix/ /usr/share/zabbix/include/defines.inc.php /usr/share/zabbix/modules/ && \
     chmod -R g=u /etc/zabbix/ /usr/share/zabbix/include/defines.inc.php /usr/share/zabbix/modules/ && \
-    chown --quiet -R zabbix:root /etc/nginx/ /etc/php/8.1/fpm/php-fpm.conf /etc/php/8.1/fpm/pool.d/ && \
-    chgrp -R 0 /etc/nginx/ /etc/php/8.1/fpm/php-fpm.conf /etc/php/8.1/fpm/pool.d/ && \
-    chmod -R g=u /etc/nginx/ /etc/php/8.1/fpm/php-fpm.conf /etc/php/8.1/fpm/pool.d/ && \
+    chown --quiet -R zabbix:root /etc/nginx/ /etc/php/8.3/fpm/php-fpm.conf /etc/php/8.3/fpm/pool.d/ && \
+    chgrp -R 0 /etc/nginx/ /etc/php/8.3/fpm/php-fpm.conf /etc/php/8.3/fpm/pool.d/ && \
+    chmod -R g=u /etc/nginx/ /etc/php/8.3/fpm/php-fpm.conf /etc/php/8.3/fpm/pool.d/ && \
     chown --quiet -R zabbix:root /var/lib/php/session/ && \
     chgrp -R 0 /var/lib/php/session/ && \
     chmod -R g=u /var/lib/php/session/ && \

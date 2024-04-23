@@ -5,7 +5,7 @@ ARG BUILD_BASE_IMAGE=zabbix-build-mysql:ubuntu-${ZBX_VERSION}
 
 FROM ${BUILD_BASE_IMAGE} AS builder
 
-FROM ubuntu:jammy
+FROM ubuntu:noble
 
 ARG MAJOR_VERSION
 ARG ZBX_VERSION
@@ -41,12 +41,12 @@ RUN --mount=type=cache,target=/var/lib/apt/,sharing=locked \
             mysql-client \
             locales \
             libldap-common \
-            php8.1-bcmath \
-            php8.1-gd \
-            php8.1-ldap \
-            php8.1-mbstring \
-            php8.1-mysql \
-            php8.1-xml" && \
+            php8.3-bcmath \
+            php8.3-gd \
+            php8.3-ldap \
+            php8.3-mbstring \
+            php8.3-mysql \
+            php8.3-xml" && \
     apt-get -y update && \
     DEBIAN_FRONTEND=noninteractive apt-get -y \
             --no-install-recommends install \
@@ -98,9 +98,9 @@ RUN --mount=type=cache,target=/var/lib/apt/,sharing=locked \
     chown --quiet -R zabbix:root /etc/zabbix/ /usr/share/zabbix/include/defines.inc.php /usr/share/zabbix/modules/ && \
     chgrp -R 0 /etc/zabbix/ /usr/share/zabbix/include/defines.inc.php /usr/share/zabbix/modules/ && \
     chmod -R g=u /etc/zabbix/ /usr/share/zabbix/include/defines.inc.php /usr/share/zabbix/modules/ && \
-    chown --quiet -R zabbix:root /etc/apache2/ /etc/php/8.1/ && \
-    chgrp -R 0 /etc/apache2/ /etc/php/8.1/ && \
-    chmod -R g=u /etc/apache2/ /etc/php/8.1/ && \
+    chown --quiet -R zabbix:root /etc/apache2/ /etc/php/8.3/ && \
+    chgrp -R 0 /etc/apache2/ /etc/php/8.3/ && \
+    chmod -R g=u /etc/apache2/ /etc/php/8.3/ && \
     apt-get -y autoremove && \
     apt-get -y clean
 

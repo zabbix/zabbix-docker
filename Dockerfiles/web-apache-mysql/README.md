@@ -14,7 +14,7 @@ Zabbix web interface is a part of Zabbix software. It is used to manage resource
 
 # Zabbix web interface images
 
-These are the only official Zabbix web interface Docker images. They are based on Alpine Linux v3.19, Ubuntu 22.04 (jammy), CentOS Stream 9 and Oracle Linux 9 images. The available versions of Zabbix web interface are:
+These are the only official Zabbix web interface Docker images. They are based on Alpine Linux v3.19, Ubuntu 24.04 (noble), CentOS Stream 9 and Oracle Linux 9 images. The available versions of Zabbix web interface are:
 
     Zabbix web interface 5.0 (tags: alpine-5.0-latest, ubuntu-5.0-latest, ol-5.0-latest)
     Zabbix web interface 5.0.* (tags: alpine-5.0.*, ubuntu-5.0.*, ol-5.0.*)

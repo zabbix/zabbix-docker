@@ -14,7 +14,7 @@ Zabbix build base (MySQL) image is used for building Zabbix components. It conta
 
 # Zabbix build base (MySQL) images
 
-These are the only official Zabbix build base (MySQL) Docker images. They are based on Alpine Linux v3.19, Ubuntu 22.04 (jammy), CentOS Stream 9 and Oracle Linux 9 images. The available versions of the image are:
+These are the only official Zabbix build base (MySQL) Docker images. They are based on Alpine Linux v3.19, Ubuntu 24.04 (noble), CentOS Stream 9 and Oracle Linux 9 images. The available versions of the image are:
 
     Zabbix build base 5.0 (tags: alpine-5.0-latest, ubuntu-5.0-latest, ol-5.0-latest)
     Zabbix build base 5.0.* (tags: alpine-5.0.*, ubuntu-5.0.*, ol-5.0.*)
