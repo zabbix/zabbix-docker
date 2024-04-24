@@ -43,8 +43,8 @@ RUN --mount=type=cache,target=/var/lib/apt/,sharing=locked \
             ca-certificates \
             smartmontools \
             sudo \
-            libssl3 \
-            libcurl4 \
+            libssl3t64 \
+            libcurl4t64 \
             libpcre2-8-0 \
             libldap-2.4" && \
     apt-get -y update && \

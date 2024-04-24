@@ -44,15 +44,15 @@ RUN --mount=type=cache,target=/var/lib/apt/,sharing=locked \
             nmap \
             ca-certificates \
             fping \
-            libcurl4 \
+            libcurl4t64 \
             libevent-2.1 \
             libevent-pthreads-2.1 \
             libmysqlclient21 \
-            libopenipmi0 \
+            libopenipmi0t64 \
             libpcre2-8-0 \
-            libsnmp40 \
+            libsnmp40t64 \
             libssh-4 \
-            libssl3 \
+            libssl3t64 \
             libxml2 \
             mysql-client \
             snmp-mibs-downloader \

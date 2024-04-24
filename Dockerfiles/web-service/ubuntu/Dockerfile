@@ -42,10 +42,10 @@ RUN --mount=type=cache,target=/var/lib/apt/,sharing=locked \
     DEBIAN_FRONTEND=noninteractive apt-get -y \
             --no-install-recommends install \
         ${INSTALL_TEMP_PKGS} && \
-    apt-key --keyring /etc/apt/trusted.gpg.d/debian-archive-bullseye-automatic.gpg adv --keyserver keyserver.ubuntu.com --recv-keys 0E98404D386FA1D9 && \
-    apt-key --keyring /etc/apt/trusted.gpg.d/debian-archive-bullseye-security-automatic.gpg adv --keyserver keyserver.ubuntu.com --recv-keys A48449044AAD5C5D && \
-    echo "deb http://deb.debian.org/debian bullseye main" > /etc/apt/sources.list.d/debian.list && \
-    echo "deb http://deb.debian.org/debian bullseye-updates main" >> /etc/apt/sources.list.d/debian.list && \
+    gpg --keyserver keyserver.ubuntu.com --recv-keys 0E98404D386FA1D9 && \
+    gpg -o /etc/apt/keyrings/debian.gpg --export 0E98404D386FA1D9 && \
+    echo "deb [signed-by=/etc/apt/keyrings/debian.gpg] http://deb.debian.org/debian bullseye main" > /etc/apt/sources.list.d/debian.list && \
+    echo "deb [signed-by=/etc/apt/keyrings/debian.gpg] http://deb.debian.org/debian bullseye-updates main" >> /etc/apt/sources.list.d/debian.list && \
     apt-get -y update && \
     DEBIAN_FRONTEND=noninteractive apt-get -y \
             --no-install-recommends install \
@@ -71,6 +71,7 @@ RUN --mount=type=cache,target=/var/lib/apt/,sharing=locked \
     DEBIAN_FRONTEND=noninteractive apt-get -y \
             purge \
         ${INSTALL_TEMP_PKGS} && \
+    rm -rf ~/.gnupg && \
     apt-get -y autoremove && \
     apt-get -y clean
 

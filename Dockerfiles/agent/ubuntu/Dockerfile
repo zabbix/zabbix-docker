@@ -37,8 +37,8 @@ RUN --mount=type=cache,target=/var/lib/apt/,sharing=locked \
     INSTALL_PKGS="bash \
             tzdata \
             ca-certificates \
-            libssl3 \
-            libcurl4 \
+            libssl3t64 \
+            libcurl4t64 \
             libmodbus5 \
             libpcre2-8-0 \
             libldap-2.4 \
