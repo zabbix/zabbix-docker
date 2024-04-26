@@ -719,6 +719,8 @@ jobs:
             cdn03.quay.io:443
             centos-stream-distro.1gservers.com:443
             centos-stream-distro.1gservers.com:80
+            download.cf.centos.org:443
+            download.cf.centos.org:80
             d2lzkl7pfhq30w.cloudfront.net:443
             epel.mirror.constant.com:80
             forksystems.mm.fcix.net:80
