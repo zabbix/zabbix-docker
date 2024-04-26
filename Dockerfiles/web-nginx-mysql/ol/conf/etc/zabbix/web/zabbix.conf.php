@@ -33,7 +33,7 @@ $DB['VAULT_DB_PATH']            = getenv('ZBX_VAULTDBPATH');
 $DB['VAULT_TOKEN']              = getenv('VAULT_TOKEN');
 
 if (file_exists('/etc/zabbix/web/certs/vault.crt')) {
-   $DB['VAULT_CERT_FILE'] = file_exists('/etc/zabbix/web/certs/vault.crt');
+   $DB['VAULT_CERT_FILE'] = '/etc/zabbix/web/certs/vault.crt';
 }
 elseif (file_exists(getenv('ZBX_VAULTCERTFILE'))) {
    $DB['VAULT_CERT_FILE'] = getenv('ZBX_VAULTCERTFILE');
