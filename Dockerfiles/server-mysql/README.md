@@ -149,6 +149,7 @@ ZBX_WEBSERVICEURL=http://zabbix-web-service:10053/report # Available since 5.4.0
 ZBX_SERVICEMANAGERSYNCFREQUENCY=60 # Available since 6.0.0
 ZBX_HISTORYSTORAGEURL= # Available since 3.4.0
 ZBX_HISTORYSTORAGETYPES=uint,dbl,str,log,text # Available since 3.4.0
+ZBX_ENABLEGLOBALSCRIPTS=0 # Available since 7.0.0
 ZBX_STARTPOLLERS=5
 ZBX_IPMIPOLLERS=0
 ZBX_STARTPREPROCESSORS=3 # Available since 3.4.0
