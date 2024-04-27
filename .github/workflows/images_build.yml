@@ -456,6 +456,7 @@ jobs:
             go.mongodb.org:443
             golang.org:443
             google.golang.org:443
+            golang.zabbix.com:443
             gopkg.in:443
             ghcr.io:443
             index.docker.io:443
