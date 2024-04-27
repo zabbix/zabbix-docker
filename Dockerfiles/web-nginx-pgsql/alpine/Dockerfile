@@ -36,6 +36,7 @@ RUN set -eux && \
             nginx \
             php83-bcmath \
             php83-ctype \
+            php83-curl \
             php83-fpm \
             php83-gd \
             php83-gettext \

@@ -60,6 +60,7 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             nginx \
             postgresql \
             php-bcmath \
+            php-curl \
             php-fpm \
             php-gd \
             php-json \

@@ -227,6 +227,10 @@ Example of YAML Mapping to Sequences
 ....
 ```
 
+## `ZBX_ALLOW_HTTP_AUTH`
+
+The variable allows to disable user HTTP authentication.
+
 ### Other variables
 
 Additionally the image allows to specify many other environment variables listed below:

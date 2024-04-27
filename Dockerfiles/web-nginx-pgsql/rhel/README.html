@@ -113,6 +113,8 @@ podman run --name some-zabbix-web-nginx-pgsql <span class="hljs-_">-e</span> DB_
     ZBX_SSO_SETTINGS: "{'baseurl': 'https://zabbix-docker.mydomain.com', 'use_proxy_headers': true, 'strict': false}"
     ....
 ....</span>
+<h3 id="-zbx_allow_http_auth-"><code>ZBX_ALLOW_HTTP_AUTH</code></h3>
+<p>The variable allows to disable user HTTP authentication.</p>
 </code></pre><h3 id="other-variables">Other variables</h3>
 <p>Additionally the image allows to specify many other environment variables listed below:</p>
 <pre><code><span class="hljs-attr">ZBX_VAULTDBPATH=</span> <span class="hljs-comment"># Available since 5.2.0</span>

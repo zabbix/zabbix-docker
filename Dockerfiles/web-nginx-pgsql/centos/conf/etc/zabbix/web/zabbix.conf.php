@@ -103,3 +103,5 @@ else {
 
 $sso_settings = str_replace("'","\"",getenv('ZBX_SSO_SETTINGS'));
 $SSO['SETTINGS'] = (json_decode($sso_settings)) ? json_decode($sso_settings, true) : array();
+
+$ALLOW_HTTP_AUTH = getenv('ZBX_ALLOW_HTTP_AUTH') == 'true' ? true: false;

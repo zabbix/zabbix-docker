@@ -208,6 +208,9 @@ prepare_zbx_web_config() {
     export ZBX_SSO_SP_CERT=${ZBX_SSO_SP_CERT}
     export ZBX_SSO_IDP_CERT=${ZBX_SSO_IDP_CERT}
 
+    : ${ZBX_ALLOW_HTTP_AUTH:="true"}
+    export ZBX_ALLOW_HTTP_AUTH=${ZBX_ALLOW_HTTP_AUTH}
+
     if [ -n "${ZBX_SESSION_NAME}" ]; then
         cp "$ZABBIX_WWW_ROOT/include/defines.inc.php" "/tmp/defines.inc.php_tmp"
         sed "/ZBX_SESSION_NAME/s/'[^']*'/'${ZBX_SESSION_NAME}'/2" "/tmp/defines.inc.php_tmp" > "$ZABBIX_WWW_ROOT/include/defines.inc.php"

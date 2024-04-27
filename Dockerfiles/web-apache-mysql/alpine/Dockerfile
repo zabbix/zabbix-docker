@@ -39,6 +39,7 @@ RUN set -eux && \
             php83-apache2 \
             php83-bcmath \
             php83-ctype \
+            php83-curl \
             php83-gd \
             php83-gettext \
             php83-json \

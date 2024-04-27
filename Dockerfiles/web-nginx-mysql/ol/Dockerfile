@@ -37,6 +37,7 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             mysql \
             nginx \
             php-bcmath \
+            php-curl \
             php-fpm \
             php-gd \
             php-ldap \
