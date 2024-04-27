@@ -37,6 +37,7 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             glibc-locale-source \
             nginx \
             php-bcmath \
+            php-curl \
             php-fpm \
             php-gd \
             php-json \

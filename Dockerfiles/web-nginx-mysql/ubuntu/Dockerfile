@@ -41,6 +41,7 @@ RUN --mount=type=cache,target=/var/lib/apt/,sharing=locked \
             locales \
             libldap-common \
             php8.3-bcmath \
+            php8.3-curl \
             php8.3-fpm \
             php8.3-gd \
             php8.3-ldap \

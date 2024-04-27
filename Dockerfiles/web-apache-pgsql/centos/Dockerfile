@@ -36,6 +36,7 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             httpd \
             mod_ssl \
             php \
+            php-curl \
             php-fpm \
             php-bcmath \
             php-gd \
