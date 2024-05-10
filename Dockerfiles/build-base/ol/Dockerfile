@@ -41,12 +41,19 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             OpenIPMI-devel \
             openldap-devel \
             sqlite-devel \
+            postgresql-private-devel \
             postgresql-server-devel \
             java-17-openjdk-devel \
             git \
             gettext \
             unixODBC-devel \
             zlib-devel" && \
+    microdnf -y module enable \
+        --disablerepo "*" \
+        --enablerepo "ol9_appstream" \
+        --setopt=install_weak_deps=0 \
+        --setopt=keepcache=0 \
+        postgresql:16 && \
     microdnf -y install \
         --disablerepo "*" \
         --enablerepo "ol9_baseos_latest" \

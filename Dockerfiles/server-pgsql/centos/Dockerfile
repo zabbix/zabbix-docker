@@ -57,7 +57,7 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             openssl-libs \
             pcre2 \
             postgresql \
-            postgresql-libs \
+            postgresql-private-libs \
             shadow-utils \
             zlib \
             gzip \
@@ -69,6 +69,12 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
         --setopt=keepcache=0 \
         --best \
         --nodocs epel-release && \
+    microdnf -y module enable \
+        --disablerepo "*" \
+        --enablerepo "appstream" \
+        --setopt=install_weak_deps=0 \
+        --setopt=keepcache=0 \
+        postgresql:16 && \
     microdnf -y install \
         --disablerepo "*" \
         --enablerepo "baseos" \

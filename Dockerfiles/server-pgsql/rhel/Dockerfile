@@ -77,7 +77,7 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             OpenIPMI-libs \
             pcre2 \
             postgresql \
-            postgresql-libs \
+            postgresql-private-libs \
             gzip \
             unixODBC \
             zlib" && \
@@ -85,6 +85,12 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
     rpm -ivh /tmp/epel-release-latest-9.noarch.rpm && \
     rm -rf /tmp/epel-release-latest-9.noarch.rpm && \
     ARCH_SUFFIX="$(arch)"; \
+    microdnf -y module enable \
+        --disablerepo "*" \
+        --enablerepo "rhel-9-for-$ARCH_SUFFIX-appstream-rpms" \
+        --setopt=install_weak_deps=0 \
+        --setopt=keepcache=0 \
+        postgresql:16 && \
     microdnf -y install \
             --disablerepo "*" \
             --enablerepo "ubi-9-baseos-rpms" \
