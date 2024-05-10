@@ -55,10 +55,17 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             openssl-libs \
             pcre2 \
             postgresql \
-            postgresql-libs \
+            postgresql-private-libs \
             zlib \
             gzip \
             unixODBC" && \
+    microdnf -y module enable \
+        --disablerepo "*" \
+        --enablerepo "ol9_baseos_latest" \
+        --enablerepo "ol9_appstream" \
+        --setopt=install_weak_deps=0 \
+        --setopt=keepcache=0 \
+        postgresql:16 && \
     microdnf -y install \
             --disablerepo="*" \
             --enablerepo="ol9_baseos_latest" \
