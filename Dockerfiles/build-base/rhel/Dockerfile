@@ -51,7 +51,8 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             OpenIPMI-devel \
             openldap-devel \
             sqlite-devel \
-            postgresql-devel \
+            postgresql-private-devel \
+            postgresql-server-devel \
             java-17-openjdk-devel \
             git \
             gettext \
@@ -60,7 +61,12 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
     curl --tlsv1.2 -sSf -L https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm -o /tmp/epel-release-latest-8.noarch.rpm && \
     rpm -ivh /tmp/epel-release-latest-8.noarch.rpm && \
     rm -rf /tmp/epel-release-latest-8.noarch.rpm && \
-    microdnf -y module enable mysql && \
+    microdnf -y module enable \
+        --disablerepo "*" \
+        --enablerepo "rhel-8-for-x86_64-baseos-rpms" \
+        --setopt=install_weak_deps=0 \
+        --setopt=keepcache=0 \
+        postgresql:16 mysql && \
     microdnf -y install \
             --disablerepo "*" \
             --enablerepo "ubi-8-baseos-rpms" \

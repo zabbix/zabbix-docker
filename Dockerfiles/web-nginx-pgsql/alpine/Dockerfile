@@ -50,7 +50,7 @@ RUN set -eux && \
             php83-xmlreader \
             php83-xmlwriter \
             php83-openssl \
-            postgresql-client \
+            postgresql16-client \
             supervisor" && \
     apk add \
             --no-cache \

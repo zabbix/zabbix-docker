@@ -41,14 +41,19 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             OpenIPMI-devel \
             openldap-devel \
             sqlite-devel \
-            postgresql-devel \
+            postgresql-private-devel \
+            postgresql-server-devel \
             java-17-openjdk-devel \
             git \
             gettext \
             unixODBC-devel \
             zlib-devel" && \
-    microdnf -y module enable mysql && \
-    microdnf module enable postgresql:15 && \
+    microdnf -y module enable \
+        --disablerepo "*" \
+        --enablerepo "ol8_appstream" \
+        --setopt=install_weak_deps=0 \
+        --setopt=keepcache=0 \
+        postgresql:16 mysql && \
     microdnf -y install \
         --disablerepo "*" \
         --enablerepo "ol8_baseos_latest" \

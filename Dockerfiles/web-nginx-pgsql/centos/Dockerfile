@@ -47,15 +47,34 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             php-xml \
             postgresql \
             supervisor" && \
-    dnf -y install epel-release && \
-    dnf -y module enable php:8.2 nginx:1.24 && \
     dnf -y install \
+        --disablerepo "*" \
+        --enablerepo "extras" \
+        --setopt=tsflags=nodocs \
+        --setopt=install_weak_deps=False \
+        --setopt=keepcache=False \
+        --best epel-release && \
+    dnf -y module enable \
+        --disablerepo "*" \
+        --enablerepo "appstream" \
+        --setopt=tsflags=nodocs \
+        --setopt=install_weak_deps=False \
+        --setopt=keepcache=False \
+        postgresql:16 php:8.2 nginx:1.24 && \
+    dnf -y install \
+        --disablerepo "*" \
+        --enablerepo "${REPOLIST}" \
+        --setopt=tsflags=nodocs \ 
+        --setopt=install_weak_deps=False \
+        --setopt=keepcache=0 \
+        --best ${INSTALL_PKGS} && \
+    dnf -y reinstall \
             --disablerepo "*" \
-            --enablerepo "${REPOLIST}" \
+            --enablerepo "baseos" \
             --setopt=tsflags=nodocs \
             --setopt=install_weak_deps=False \
             --best \
-        ${INSTALL_PKGS} && \
+        tzdata && \
     groupadd \
             --system \
             --gid 1995 \

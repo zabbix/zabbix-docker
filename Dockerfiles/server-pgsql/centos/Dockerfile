@@ -54,18 +54,31 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             openssl-libs \
             pcre2 \
             postgresql \
-            postgresql-libs \
+            postgresql-private-libs \
             zlib \
             gzip \
             unixODBC" && \
-    dnf -y install epel-release && \
     dnf -y install \
-            --disablerepo "*" \
-            --enablerepo "${REPOLIST}" \
-            --setopt=tsflags=nodocs \
-            --setopt=install_weak_deps=False \
-            --best \
-        ${INSTALL_PKGS} && \
+        --disablerepo "*" \
+        --enablerepo "extras" \
+        --setopt=tsflags=nodocs \
+        --setopt=install_weak_deps=False \
+        --setopt=keepcache=False \
+        --best epel-release && \
+    dnf -y module enable \
+        --disablerepo "*" \
+        --enablerepo "appstream" \
+        --setopt=tsflags=nodocs \ 
+        --setopt=install_weak_deps=0 \
+        --setopt=keepcache=0 \
+        postgresql:16 && \
+    dnf -y install \
+        --disablerepo "*" \
+        --enablerepo "${REPOLIST}" \
+        --setopt=tsflags=nodocs \ 
+        --setopt=install_weak_deps=False \
+        --setopt=keepcache=False \
+        --best ${INSTALL_PKGS} && \
     dnf -y reinstall \
             --disablerepo "*" \
             --enablerepo "baseos" \

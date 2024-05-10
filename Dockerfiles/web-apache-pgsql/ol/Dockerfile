@@ -49,8 +49,13 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             findutils \
             glibc-locale-source \
             supervisor" && \
-    microdnf -y module enable php:8.0 && \
-    microdnf module enable postgresql:15 && \
+    microdnf -y module enable \
+        --disablerepo "*" \
+        --enablerepo "ol8_baseos_latest" \
+        --enablerepo "ol8_appstream" \
+        --setopt=install_weak_deps=0 \
+        --setopt=keepcache=0 \
+        postgresql:16 php:8.2 && \
     microdnf -y install \
             --disablerepo="*" \
             --enablerepo="ol8_baseos_latest" \

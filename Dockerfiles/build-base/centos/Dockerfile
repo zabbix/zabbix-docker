@@ -39,20 +39,27 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             OpenIPMI-devel \
             openldap-devel \
             sqlite-devel \
-            postgresql-devel \
+            postgresql-private-devel \
+            postgresql-server-devel \
             java-17-openjdk-devel \
             git \
             gettext \
             go-toolset \
             unixODBC-devel \
             zlib-devel" && \
-    dnf -y module enable mysql && \
     dnf -y install \
         --disablerepo "*" \
         --enablerepo "extras" \
         --setopt=tsflags=nodocs \
         --setopt=install_weak_deps=False \
+        --setopt=keepcache=False \
         --best epel-release && \
+    dnf -y module enable \
+        --disablerepo "*" \
+        --enablerepo "appstream" \
+        --setopt=install_weak_deps=False \
+        --setopt=keepcache=False \
+        postgresql:16 mysql && \
     dnf -y install \
         --disablerepo "*" \
         --enablerepo "${REPOLIST}" \
