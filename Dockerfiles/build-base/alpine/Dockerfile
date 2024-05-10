@@ -44,7 +44,7 @@ RUN set -eux && \
             openssl-dev \
             patch \
             pcre2-dev \
-            postgresql-dev \
+            libpq-dev \
             gettext \
             git \
             g++ \

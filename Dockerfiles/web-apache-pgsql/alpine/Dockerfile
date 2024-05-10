@@ -51,7 +51,7 @@ RUN set -eux && \
             php83-xmlreader \
             php83-xmlwriter \
             php83-openssl \
-            postgresql-client" && \
+            postgresql16-client" && \
     apk add \
             --no-cache \
             --clean-protected \
