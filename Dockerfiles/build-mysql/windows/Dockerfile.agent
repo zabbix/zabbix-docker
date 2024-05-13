@@ -31,7 +31,7 @@ RUN Set-Location -Path $env:SystemDrive\.; `
     Enter-VsDevShell -VsInstallPath ('{0}\Microsoft Visual Studio\2019\BuildTools' -f ${env:ProgramFiles(x86)}) -DevCmdArguments """-arch=$env:BUILD_ARCH"""; `
     `
     Write-Host ('Checkout GIT {0} (master) repository ...' -f $env:ZBX_SOURCES); `
-    git -c advice.detachedHead=false clone $env:ZBX_SOURCES --branch $env:GIT_BRANCH --depth 1 --single-branch $env:SystemDrive\zabbix-$env:ZBX_VERSION; `
+    git -c advice.detachedHead=false clone $env:ZBX_SOURCES --branch $env:GIT_BRANCH ?? $env:ZBX_VERSION --depth 1 --single-branch $env:SystemDrive\zabbix-$env:ZBX_VERSION; `
     `
     Write-Host ('Building Zabbix {0} version ...' -f $env:ZBX_VERSION); `
     Set-Location -Path $env:SystemDrive\zabbix-$env:ZBX_VERSION; `
