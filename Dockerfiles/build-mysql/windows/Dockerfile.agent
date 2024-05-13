@@ -27,7 +27,7 @@ SHELL ["powershell", "-Command", "$ErrorActionPreference = 'Stop'; $ProgressPref
 
 RUN Set-Location -Path $env:SystemDrive\.; `
     `
-    $GIT_BRANCH = $env:GIT_BRANCH ?? $env:ZBX_VERSION `
+    $GIT_BRANCH = if { $env:GIT_BRANCH } { $env:GIT_BRANCH } { $env:ZBX_VERSION } `
     `
     Import-Module ('{0}\Microsoft Visual Studio\2019\BuildTools\Common7\Tools\Microsoft.VisualStudio.DevShell.dll' -f ${env:ProgramFiles(x86)} ); `
     Enter-VsDevShell -VsInstallPath ('{0}\Microsoft Visual Studio\2019\BuildTools' -f ${env:ProgramFiles(x86)}) -DevCmdArguments """-arch=$env:BUILD_ARCH"""; `

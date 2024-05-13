@@ -30,9 +30,9 @@ LABEL org.opencontainers.image.title="Zabbix agent 2 build (Windows)" `
 
 RUN Set-Location -Path $env:SystemDrive\.; `
     `
-    $GIT_BRANCH = $env:GIT_BRANCH ?? $env:ZBX_VERSION `
-    $MONGODB_PLUGIN_VERSION = $env:MONGODB_PLUGIN_VERSION ?? $env:ZBX_VERSION `
-    $POSTGRESQL_PLUGIN_VERSION = $env:POSTGRESQL_PLUGIN_VERSION ?? $env:ZBX_VERSION `
+    $GIT_BRANCH = if { $env:GIT_BRANCH } { $env:GIT_BRANCH } { $env:ZBX_VERSION } `
+    $MONGODB_PLUGIN_VERSION = if { $env:MONGODB_PLUGIN_VERSION } { $env:MONGODB_PLUGIN_VERSION } { $env:ZBX_VERSION } `
+    $POSTGRESQL_PLUGIN_VERSION = if { $env:POSTGRESQL_PLUGIN_VERSION } { $env:POSTGRESQL_PLUGIN_VERSION } { $env:ZBX_VERSION } `
     `
     Import-Module ('{0}\Microsoft Visual Studio\2019\BuildTools\Common7\Tools\Microsoft.VisualStudio.DevShell.dll' -f ${env:ProgramFiles(x86)} ); `
     Enter-VsDevShell -VsInstallPath ('{0}\Microsoft Visual Studio\2019\BuildTools' -f ${env:ProgramFiles(x86)}) -DevCmdArguments """-arch=$env:BUILD_ARCH"""; `
