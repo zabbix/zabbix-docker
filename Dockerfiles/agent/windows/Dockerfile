@@ -16,10 +16,10 @@ ARG ZBX_SOURCES=https://git.zabbix.com/scm/zbx/zabbix.git
 
 LABEL org.opencontainers.image.title="Zabbix agent" `
       org.opencontainers.image.authors="Alexey Pustovalov <alexey.pustovalov@zabbix.com>" `
-      org.opencontainers.image.vendor="Zabbix LLC" `
+      org.opencontainers.image.vendor="Zabbix SIA" `
       org.opencontainers.image.url="https://zabbix.com/" `
       org.opencontainers.image.description="Zabbix agent is deployed on a monitoring target to actively monitor local resources and applications" `
-      org.opencontainers.image.licenses="GPL v2.0" `
+      org.opencontainers.image.licenses="AGPL v3.0" `
       org.opencontainers.image.documentation="https://www.zabbix.com/documentation/${MAJOR_VERSION}/manual/installation/containers" `
       org.opencontainers.image.version="${ZBX_VERSION}" `
       org.opencontainers.image.source="${ZBX_SOURCES}"
@@ -46,7 +46,7 @@ RUN Set-Location -Path $env:SystemDrive\.; `
     New-Item -ItemType directory -Path $env:ZBX_HOME\modules | Out-Null; `
     New-Item -ItemType directory -Path $env:ZBX_HOME\buffer | Out-Null; `
     `
-	net accounts /MaxPWAge:unlimited; `
+    net accounts /MaxPWAge:unlimited; `
     net user /add zabbix /expire:never /passwordreq:no; `
     $acl = Get-Acl -Path $env:ZBX_HOME; `
     $ace = New-Object Security.AccessControl.FileSystemAccessRule ('zabbix', 'Modify', 'ContainerInherit, ObjectInherit', 'InheritOnly', 'Allow'); `

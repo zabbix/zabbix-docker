@@ -24,7 +24,7 @@ LABEL description="Zabbix web service for performing various tasks using headles
       run="docker run --name zabbix-web-service --link zabbix-server:zabbix-server -p 10053:10053 -d registry.connect.redhat.com/zabbix/zabbix-web-service-trunk:${ZBX_VERSION}" \
       summary="Zabbix web service" \
       url="https://www.zabbix.com/" \
-      vendor="Zabbix LLC" \
+      vendor="Zabbix SIA" \
       version="${MAJOR_VERSION}" \
       io.k8s.description="Zabbix web service for performing various tasks using headless web browser" \
       io.k8s.display-name="Zabbix web service" \
@@ -33,14 +33,14 @@ LABEL description="Zabbix web service for performing various tasks using headles
       org.label-schema.build-date="${BUILD_DATE}" \
       org.label-schema.description="Zabbix web service for performing various tasks using headless web browser" \
       org.label-schema.docker.cmd="docker run --name zabbix-web-service --link zabbix-server:zabbix-server -p 10053:10053 -d registry.connect.redhat.com/zabbix/zabbix-web-service-trunk:${ZBX_VERSION}" \
-      org.label-schema.license="GPL v2.0" \
+      org.label-schema.license="AGPL v3.0" \
       org.label-schema.name="zabbix-web-service-rhel" \
       org.label-schema.schema-version="1.0" \
       org.label-schema.url="https://zabbix.com/" \
       org.label-schema.usage="https://www.zabbix.com/documentation/${MAJOR_VERSION}/manual/installation/containers" \
       org.label-schema.vcs-ref="${VCS_REF}" \
       org.label-schema.vcs-url="${ZBX_SOURCES}" \
-      org.label-schema.vendor="Zabbix LLC" \
+      org.label-schema.vendor="Zabbix SIA" \
       org.label-schema.version="${ZBX_VERSION}"
 
 STOPSIGNAL SIGTERM
