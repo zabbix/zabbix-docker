@@ -336,7 +336,6 @@ create_db_schema_mysql() {
 
         exec_sql_file "/usr/share/doc/zabbix-server-mysql/create.sql.gz"
 
-        apply_db_scripts "/usr/lib/zabbix/dbscripts/*.sql"
         apply_db_scripts "/var/lib/zabbix/dbscripts/*.sql"
     fi
 }
