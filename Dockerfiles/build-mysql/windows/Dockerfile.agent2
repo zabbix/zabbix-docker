@@ -30,11 +30,15 @@ LABEL org.opencontainers.image.title="Zabbix agent 2 build (Windows)" `
 
 RUN Set-Location -Path $env:SystemDrive\.; `
     `
+    $GIT_BRANCH = $env:GIT_BRANCH ?? $env:ZBX_VERSION `
+    $MONGODB_PLUGIN_VERSION = $env:MONGODB_PLUGIN_VERSION ?? $env:ZBX_VERSION `
+    $POSTGRESQL_PLUGIN_VERSION = $env:POSTGRESQL_PLUGIN_VERSION ?? $env:ZBX_VERSION `
+    `
     Import-Module ('{0}\Microsoft Visual Studio\2019\BuildTools\Common7\Tools\Microsoft.VisualStudio.DevShell.dll' -f ${env:ProgramFiles(x86)} ); `
     Enter-VsDevShell -VsInstallPath ('{0}\Microsoft Visual Studio\2019\BuildTools' -f ${env:ProgramFiles(x86)}) -DevCmdArguments """-arch=$env:BUILD_ARCH"""; `
     `
-    Write-Host ('Checkout GIT {0} ({1}) repository ...' -f $env:ZBX_SOURCES, $env:GIT_BRANCH ?? $env:ZBX_VERSION); `
-    git -c advice.detachedHead=false clone $env:ZBX_SOURCES --branch $env:GIT_BRANCH ?? $env:ZBX_VERSION --depth 1 --single-branch $env:SystemDrive\zabbix-$env:ZBX_VERSION; `
+    Write-Host ('Checkout GIT {0} ({1}) repository ...' -f $env:ZBX_SOURCES, $GIT_BRANCH); `
+    git -c advice.detachedHead=false clone $env:ZBX_SOURCES --branch $GIT_BRANCH --depth 1 --single-branch $env:SystemDrive\zabbix-$env:ZBX_VERSION; `
     `
     Write-Host ('Building Zabbix {0} version ...' -f $env:ZBX_VERSION); `
     Set-Location -Path $env:SystemDrive\zabbix-$env:ZBX_VERSION; `
@@ -60,7 +64,7 @@ RUN Set-Location -Path $env:SystemDrive\.; `
     `
     Set-Location -Path $env:SystemDrive; `
     Write-Host ('Building Zabbix MongoDB plugin {0} version ...' -f $env:MONGODB_PLUGIN_VERSION); `
-    git -c advice.detachedHead=false clone $env:MONGODB_PLUGIN_SOURCES --branch $env:MONGODB_PLUGIN_VERSION ?? $env:ZBX_VERSION --depth 1 --single-branch $env:SystemDrive\mongodb_plugin; `
+    git -c advice.detachedHead=false clone $env:MONGODB_PLUGIN_SOURCES --branch $MONGODB_PLUGIN_VERSION --depth 1 --single-branch $env:SystemDrive\mongodb_plugin; `
     Set-Location -Path $env:SystemDrive\mongodb_plugin; `
     mingw32-make; `
     mv $env:SystemDrive\mongodb_plugin\zabbix-agent2-plugin-mongodb.exe $env:SystemDrive\mongodb_plugin\zabbix-agent2-plugin-mongodb.exe; `
@@ -69,7 +73,7 @@ RUN Set-Location -Path $env:SystemDrive\.; `
     `
     Set-Location -Path $env:SystemDrive; `
     Write-Host ('Building Zabbix PostgreSQL plugin {0} version ...' -f $env:POSTGRESQL_PLUGIN_VERSION); `
-    git -c advice.detachedHead=false clone $env:POSTGRESQL_PLUGIN_SOURCES --branch $env:POSTGRESQL_PLUGIN_VERSION ?? $env:ZBX_VERSION --depth 1 --single-branch $env:SystemDrive\postgresql_plugin; `
+    git -c advice.detachedHead=false clone $env:POSTGRESQL_PLUGIN_SOURCES --branch $POSTGRESQL_PLUGIN_VERSION --depth 1 --single-branch $env:SystemDrive\postgresql_plugin; `
     Set-Location -Path $env:SystemDrive\postgresql_plugin; `
     mingw32-make; `
     mv $env:SystemDrive\postgresql_plugin\zabbix-agent2-plugin-postgresql.exe $env:SystemDrive\postgresql_plugin\zabbix-agent2-plugin-postgresql.exe; `
