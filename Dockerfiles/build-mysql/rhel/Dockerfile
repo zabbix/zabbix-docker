@@ -10,6 +10,7 @@ ARG MAJOR_VERSION
 ARG RELEASE
 ARG ZBX_VERSION
 ARG ZBX_SOURCES=https://git.zabbix.com/scm/zbx/zabbix.git
+ARG GIT_BRANCH
 
 LABEL description="Zabbix build base for MySQL based images" \
       maintainer="alexey.pustovalov@zabbix.com" \
@@ -29,15 +30,15 @@ LABEL description="Zabbix build base for MySQL based images" \
       org.label-schema.vcs-ref="${VCS_REF}" \
       org.label-schema.vendor="Zabbix SIA"
 
-ENV MONGODB_PLUGIN_SOURCES=https://git.zabbix.com/scm/ap/mongodb.git MONGODB_PLUGIN_VERSION=${ZBX_VERSION} \
-    POSTGRESQL_PLUGIN_SOURCES=https://git.zabbix.com/scm/ap/postgresql.git POSTGRESQL_PLUGIN_VERSION=${ZBX_VERSION}
+ENV MONGODB_PLUGIN_SOURCES=https://git.zabbix.com/scm/ap/mongodb.git MONGODB_PLUGIN_VERSION=${GIT_BRANCH:-$ZBX_VERSION} \
+    POSTGRESQL_PLUGIN_SOURCES=https://git.zabbix.com/scm/ap/postgresql.git POSTGRESQL_PLUGIN_VERSION=${GIT_BRANCH:-$ZBX_VERSION}
 
 RUN --mount=type=cache,target=/root/.cache/go-build/ \
     --mount=type=cache,target=/root/go/ \
     --mount=type=bind,source=conf/chromedp_no_sandbox.patch,target=/tmp/chromedp_no_sandbox.patch \
     set -eux && \
     cd /tmp/ && \
-    git -c advice.detachedHead=false clone ${ZBX_SOURCES} --branch ${ZBX_VERSION} --depth 1 --single-branch /tmp/zabbix-${ZBX_VERSION} && \
+    git -c advice.detachedHead=false clone ${ZBX_SOURCES} --branch ${GIT_BRANCH:-$ZBX_VERSION} --depth 1 --single-branch /tmp/zabbix-${ZBX_VERSION} && \
     cd /tmp/zabbix-${ZBX_VERSION} && \
     patch -p1 < /tmp/chromedp_no_sandbox.patch && \
     zabbix_revision=`git rev-parse --short HEAD` && \
