@@ -37,6 +37,7 @@ RUN set -eux && \
             sqlite-dev \
             libmodbus-dev \
             libxml2-dev \
+            linux-headers \
             mysql-dev \
             net-snmp-dev \
             openipmi-dev \
