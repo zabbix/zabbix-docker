@@ -20,10 +20,10 @@ ENV ZBX_SOURCES=$ZBX_SOURCES MAJOR_VERSION=$MAJOR_VERSION ZBX_VERSION=$ZBX_VERSI
 
 LABEL org.opencontainers.image.title="Zabbix agent 2 build (Windows)" `
       org.opencontainers.image.authors="Alexey Pustovalov <alexey.pustovalov@zabbix.com>" `
-      org.opencontainers.image.vendor="Zabbix LLC" `
+      org.opencontainers.image.vendor="Zabbix SIA" `
       org.opencontainers.image.url="https://zabbix.com/" `
       org.opencontainers.image.description="Zabbix build for agent 2 images based on Windows" `
-      org.opencontainers.image.licenses="GPL v2.0" `
+      org.opencontainers.image.licenses="AGPL v3.0" `
       org.opencontainers.image.documentation="https://www.zabbix.com/documentation/${MAJOR_VERSION}/manual/installation/containers" `
       org.opencontainers.image.version="${ZBX_VERSION}" `
       org.opencontainers.image.source="${ZBX_SOURCES}"

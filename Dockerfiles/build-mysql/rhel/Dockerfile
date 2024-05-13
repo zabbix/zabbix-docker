@@ -18,17 +18,18 @@ LABEL description="Zabbix build base for MySQL based images" \
       release="${RELEASE}" \
       summary="Zabbix build base (MySQL)" \
       url="https://www.zabbix.com/" \
-      vendor="Zabbix LLC" \
+      vendor="Zabbix SIA" \
       version="${MAJOR_VERSION}" \
       io.k8s.description="Zabbix build base for MySQL based images" \
       io.k8s.display-name="Zabbix build base (MySQL)" \
       io.openshift.expose-services="" \
       io.openshift.tags="zabbix,build,mysql" \
       org.label-schema.description="Zabbix build base for MySQL based images" \
+      org.label-schema.license="AGPL v3.0" \
       org.label-schema.name="zabbix-build-mysql-rhel" \
       org.label-schema.url="https://zabbix.com/" \
       org.label-schema.vcs-ref="${VCS_REF}" \
-      org.label-schema.vendor="Zabbix LLC"
+      org.label-schema.vendor="Zabbix SIA"
 
 ENV MONGODB_PLUGIN_SOURCES=https://git.zabbix.com/scm/ap/mongodb.git MONGODB_PLUGIN_VERSION=${GIT_BRANCH:-$ZBX_VERSION} \
     POSTGRESQL_PLUGIN_SOURCES=https://git.zabbix.com/scm/ap/postgresql.git POSTGRESQL_PLUGIN_VERSION=${GIT_BRANCH:-$ZBX_VERSION}

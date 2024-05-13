@@ -25,7 +25,7 @@ LABEL description="Zabbix server with PostgreSQL database support" \
       run="docker run --name zabbix-server --link postgresql:pgsql-server -p 10051:10051 -d registry.connect.redhat.com/zabbix/zabbix-server-pgsql-trunk:${ZBX_VERSION}" \
       summary="Zabbix server (PostgreSQL)" \
       url="https://www.zabbix.com/" \
-      vendor="Zabbix LLC" \
+      vendor="Zabbix SIA" \
       version="${MAJOR_VERSION}" \
       io.k8s.description="Zabbix server with PostgreSQL database support" \
       io.k8s.display-name="Zabbix server (PostgreSQL)" \
@@ -34,14 +34,14 @@ LABEL description="Zabbix server with PostgreSQL database support" \
       org.label-schema.build-date="${BUILD_DATE}" \
       org.label-schema.description="Zabbix server with PostgreSQL database support" \
       org.label-schema.docker.cmd="docker run --name zabbix-server --link postgresql:pgsql-server -p 10051:10051 -d registry.connect.redhat.com/zabbix/zabbix-server-pgsql-trunk:${ZBX_VERSION}" \
-      org.label-schema.license="GPL v2.0" \
+      org.label-schema.license="AGPL v3.0" \
       org.label-schema.name="zabbix-server-pgsql-rhel" \
       org.label-schema.schema-version="1.0" \
       org.label-schema.url="https://zabbix.com/" \
       org.label-schema.usage="https://www.zabbix.com/documentation/${MAJOR_VERSION}/manual/installation/containers" \
       org.label-schema.vcs-ref="${VCS_REF}" \
       org.label-schema.vcs-url="${ZBX_SOURCES}" \
-      org.label-schema.vendor="Zabbix LLC" \
+      org.label-schema.vendor="Zabbix SIA" \
       org.label-schema.version="${ZBX_VERSION}"
 
 STOPSIGNAL SIGTERM
@@ -144,7 +144,6 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
     mkdir -p /var/lib/zabbix && \
     mkdir -p /usr/lib/zabbix/alertscripts && \
     mkdir -p /usr/lib/zabbix/dbscripts && \
-    mkdir -p /var/lib/zabbix/dbscripts && \
     mkdir -p /var/lib/zabbix/enc && \
     mkdir -p /var/lib/zabbix/export && \
     mkdir -p /usr/lib/zabbix/externalscripts && \

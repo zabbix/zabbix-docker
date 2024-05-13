@@ -23,7 +23,7 @@ LABEL description="Zabbix agent is deployed on a monitoring target to actively m
       run="podman run --name zabbix-agent -p 10050:10050 -d registry.connect.redhat.com/zabbix/zabbix-agent-trunk:${ZBX_VERSION}" \
       summary="Zabbix agent" \
       url="https://www.zabbix.com/" \
-      vendor="Zabbix LLC" \
+      vendor="Zabbix SIA" \
       version="${MAJOR_VERSION}" \
       io.k8s.description="Zabbix agent is deployed on a monitoring target to actively monitor local resources and applications" \
       io.k8s.display-name="Zabbix Agent" \
@@ -32,14 +32,14 @@ LABEL description="Zabbix agent is deployed on a monitoring target to actively m
       org.label-schema.build-date="${BUILD_DATE}" \
       org.label-schema.description="Zabbix agent is deployed on a monitoring target to actively monitor local resources and applications" \
       org.label-schema.docker.cmd="podman run --name zabbix-agent -p 10050:10050 -d registry.connect.redhat.com/zabbix/zabbix-agent-trunk:${ZBX_VERSION}" \
-      org.label-schema.license="GPL v2.0" \
+      org.label-schema.license="AGPL v3.0" \
       org.label-schema.name="zabbix-agent-rhel" \
       org.label-schema.schema-version="1.0" \
       org.label-schema.url="https://zabbix.com/" \
       org.label-schema.usage="https://www.zabbix.com/documentation/${MAJOR_VERSION}/manual/installation/containers" \
       org.label-schema.vcs-ref="${VCS_REF}" \
       org.label-schema.vcs-url="${ZBX_SOURCES}" \
-      org.label-schema.vendor="Zabbix LLC" \
+      org.label-schema.vendor="Zabbix SIA" \
       org.label-schema.version="${ZBX_VERSION}"
 
 STOPSIGNAL SIGTERM
