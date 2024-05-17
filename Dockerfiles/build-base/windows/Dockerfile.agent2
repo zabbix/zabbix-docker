@@ -20,7 +20,7 @@ ARG MSYS2_URL=https://repo.msys2.org/distrib/x86_64/msys2-base-x86_64-20240507.s
 ARG PCRE2_URL=https://github.com/PhilipHazel/pcre2/releases/download/pcre2-$PCRE2_VERSION/pcre2-$PCRE2_VERSION.zip
 ARG OPENSSL_URL=https://www.openssl.org/source/openssl-$OPENSSL_VERSION.tar.gz
 ARG SEVEN_ZIP_URL=https://www.7-zip.org/a/7z$SEVEN_ZIP_VERSION-$BUILD_ARCH.msi
-ARG MINGW_URL=https://github.com/niXman/mingw-builds-binaries/releases/download/13.2.0-rt_v11-rev1/x86_64-13.2.0-release-win32-seh-msvcrt-rt_v11-rev1.7z
+ARG MINGW_URL=https://github.com/niXman/mingw-builds-binaries/releases/download/13.2.0-rt_v11-rev1/x86_64-13.2.0-release-win32-seh-ucrt-rt_v11-rev1.7z
 
 ENV ZBX_VERSION=$ZBX_VERSION `
     BUILD_ARCH=$BUILD_ARCH CPU_MODEL=$CPU_MODEL `
@@ -45,7 +45,7 @@ RUN Set-Location -Path $env:SystemDrive\.; `
     [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; `
 	`
     $env:PATH = [string]::Format('{0}\mingw64\bin;{0}\go\bin;{0}\git\cmd;{0}\git\mingw64\bin;{0}\git\usr\bin;{1}\7-Zip;', $env:SystemDrive, ${env:ProgramFiles}) + $env:PATH; `
-	$env:PATH = $env:PATH + [string]::Format(';{0}\msys64\usr\bin;{0}\msys64\mingw64\bin', $env:SystemDrive); `
+	$env:PATH = $env:PATH + [string]::Format(';{0}\msys64\usr\bin;{0}\msys64\ucrt64\bin', $env:SystemDrive); `
     [Environment]::SetEnvironmentVariable('PATH', $env:PATH, [EnvironmentVariableTarget]::Machine); `
 	`
     $env:BUILD_OUTPUT = [string]::Format('{0}\build_output', $env:SystemDrive); `
@@ -75,6 +75,7 @@ RUN Set-Location -Path $env:SystemDrive\.; `
     `
     Write-Host ('Downloading {0} ...' -f $env:GOLANG_URL); `
     Invoke-WebRequest -OutFile $env:TEMP\go-amd64.zip -Uri $env:GOLANG_URL; `
+	`
     $sha256 = 'cab2af6951a6e2115824263f6df13ff069c47270f5788714fa1d776f7f60cb39'; `
     `
     Write-Host ('Verifying SHA256 ({0}) ...' -f $sha256); `
@@ -86,11 +87,11 @@ RUN Set-Location -Path $env:SystemDrive\.; `
 	Write-Host ('Downloading {0} ...' -f $env:MINGW_URL); `
 	Invoke-WebRequest -OutFile $env:TEMP\mingw.7z -Uri $env:MINGW_URL; `
     `
-    $sha256 = 'e8c65ddc655534b0330f66f7b480565621e8617cda9937d76ba141a22bf3b2fa'; `
+    $sha256 = '74ca64c55220edd3196681782fbff653c2b9cb4f427f9e532ab6e9a0823dc997'; `
     Write-Host ('Verifying SHA256 ({0}) ...' -f $sha256); `
     if ((Get-FileHash $env:TEMP\mingw.7z -Algorithm sha256).Hash -ne $sha256) { `
         Write-Host 'Checksum Mingw-w64 failed!'; `
-#        exit 1; `
+        exit 1; `
     }; `
     `
     Write-Host ('Downloading {0} ...' -f $env:VS_BUILDTOOLS_URL); `
@@ -129,6 +130,7 @@ RUN Set-Location -Path $env:SystemDrive\.; `
 	`
 	Write-Host 'Installing Mingw-w64...'; `
     7z x $env:TEMP\mingw.7z; `
+	compact /c /i /s:$env:SystemDrive\mingw64 | Out-Null; `
     `
     Write-Host 'Verifying install ("gcc -v") ...'; `
     gcc -v; `
@@ -137,7 +139,7 @@ RUN Set-Location -Path $env:SystemDrive\.; `
 	& $env:TEMP\msys2.sfx.exe -y -o"""$env:SystemDrive\""" | Out-Null; `
 	sh.exe --login -c 'pacman -Syuu --needed --noconfirm --ask=20'; `
 	sh.exe --login -c 'pacman -Syu --noconfirm'; `
-	sh.exe --login -c 'pacman --sync --quiet --noconfirm mingw-w64-x86_64-cmake'; `
+	sh.exe --login -c 'pacman --sync --quiet --noconfirm mingw-w64-ucrt-x86_64-cmake'; `
 	compact /c /i /s:$env:SystemDrive\msys64 | Out-Null; `
     `
     Write-Host 'Verifying install ("sh --version") ...'; `
