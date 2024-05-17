@@ -28,7 +28,7 @@ SHELL ["pwsh", "-Command", "$ErrorActionPreference = 'Stop';"]
 
 WORKDIR C:\zabbix\
 
-COPY --from=builder ["C:\\zabbix2", "C:\\zabbix"]
+COPY --from=builder ["C:\\zabbix_output", "C:\\zabbix"]
 COPY --from=builder ["C:\\mongodb_plugin\\zabbix-agent2-plugin-mongodb.exe", "C:\\zabbix\\zabbix-agent2-plugin\\zabbix-agent2-plugin-mongodb.exe"]
 COPY --from=builder ["C:\\mongodb_plugin\\mongodb.conf", "C:\\zabbix\\conf\\zabbix_agentd.d\\mongodb.conf"]
 COPY --from=builder ["C:\\postgresql_plugin\\zabbix-agent2-plugin-postgresql.exe", "C:\\zabbix\\zabbix-agent2-plugin\\zabbix-agent2-plugin-postgresql.exe"]
@@ -41,7 +41,10 @@ RUN $env:PATH = [string]::Format('{0}\zabbix\sbin;{0}\zabbix\bin;', $env:SystemD
     [Environment]::SetEnvironmentVariable('PATH', $env:PATH, [EnvironmentVariableTarget]::Machine); `
     `
     $env:ZBX_HOME = [string]::Format('{0}\zabbix', $env:SystemDrive); `
-    [Environment]::SetEnvironmentVariable('ZBX_HOME', $env:ZBX_HOME, [EnvironmentVariableTarget]::Machine);
+    [Environment]::SetEnvironmentVariable('ZBX_HOME', $env:ZBX_HOME, [EnvironmentVariableTarget]::Machine); `
+	`
+	Write-Host ('Verifying Zabbix agent 2 {0} ...' -f $env:ZBX_VERSION); `
+	zabbix_agent2.exe -V;
 
 RUN Set-Location -Path $env:SystemDrive\.; `
     `

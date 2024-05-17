@@ -93,12 +93,6 @@ RUN Set-Location -Path $env:SystemDrive\.; `
     Write-Host 'Verifying install ("git version") ...'; `
     git version; `
 	`
-    Write-Host 'Installing 7z...'; `
-    Start-Process `
-        -FilePath $env:TEMP\7z.msi `
-        -Wait `
-        -ArgumentList '/qn /norestart'; `
-	`
     Write-Host 'Installing Go Lang...'; `
     Expand-Archive -Path $env:TEMP\go-amd64.zip -DestinationPath $env:SystemDrive\; `
     `
