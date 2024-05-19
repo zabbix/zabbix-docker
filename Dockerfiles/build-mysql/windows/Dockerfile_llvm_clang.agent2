@@ -52,7 +52,7 @@ RUN Set-Location -Path $env:SystemDrive\.; `
     (Get-Content src\go\pkg\version\version.go).replace('{ZABBIX_REVISION}', $ZbxRevision) | Set-Content src\go\pkg\version\version.go; `
     Set-Location -Path $env:SystemDrive\zabbix_src\zabbix-$env:ZBX_VERSION\build\mingw; `
     mingw32-make -j"""$env:NUMBER_OF_PROCESSORS""" `
-        CGO_LDFLAGS="""-lcrypt32 -L$env:BUILD_OUTPUT\openssl\lib -L$env:BUILD_OUTPUT\pcre2\lib""" `
+        CGO_LDFLAGS="""-l:libiconv.a -lcrypt32 -L$env:BUILD_OUTPUT\openssl\lib -L$env:BUILD_OUTPUT\pcre2\lib""" `
         PCRE2=$env:BUILD_OUTPUT\pcre2 `
         OPENSSL=$env:BUILD_OUTPUT\openssl `
         RFLAGS="""-DZABBIX_VERSION_RC_NUM=$env:ZABBIX_VERSION_RC_NUM"""; `

@@ -17,7 +17,7 @@ ARG ZBX_VERSION=${MAJOR_VERSION}
 ARG GIT_URL=https://github.com/git-for-windows/git/releases/download/v2.33.0.windows.2/MinGit-2.33.0.2-busybox-64-bit.zip
 ARG SEVEN_ZIP_URL=https://www.7-zip.org/a/7z$SEVEN_ZIP_VERSION-$BUILD_ARCH.msi
 
-ARG MINGW_URL=https://github.com/niXman/mingw-builds-binaries/releases/download/13.2.0-rt_v11-rev1/x86_64-13.2.0-release-win32-seh-ucrt-rt_v11-rev1.7z
+ARG MINGW_URL=https://github.com/niXman/mingw-builds-binaries/releases/download/13.2.0-rt_v11-rev1/x86_64-13.2.0-release-win32-seh-msvcrt-rt_v11-rev1.7z
 ARG VS_BUILDTOOLS_URL=https://aka.ms/vs/17/release/vs_buildtools.exe
 ARG GOLANG_URL=https://go.dev/dl/go$GOLANG_VERSION.windows-amd64.zip
 ARG MSYS2_URL=https://repo.msys2.org/distrib/x86_64/msys2-base-x86_64-20240507.sfx.exe
@@ -91,7 +91,7 @@ RUN Set-Location -Path $env:SystemDrive\.; `
     Write-Host ('Downloading {0} ...' -f $env:MINGW_URL); `
     Invoke-WebRequest -OutFile $env:TEMP\mingw.7z -Uri $env:MINGW_URL; `
     `
-    $sha256 = '74ca64c55220edd3196681782fbff653c2b9cb4f427f9e532ab6e9a0823dc997'; `
+    $sha256 = '15B914F38F2F2E2D6F7B9B8425FF22B7E406878B01920190B09CE0DD8259C6AA'; `
     $d_sha256 = (Get-FileHash $env:TEMP\mingw.7z -Algorithm sha256).Hash; `
     Write-Host ('Verifying SHA256 ({0}) ...' -f $sha256); `
     if ($d_sha256 -ne $sha256) { `
@@ -148,7 +148,7 @@ RUN Set-Location -Path $env:SystemDrive\.; `
     & $env:TEMP\msys2.sfx.exe -y -o"""$env:SystemDrive\""" | Out-Null; `
     sh --login -c 'pacman -Syuu --needed --noconfirm --ask=20'; `
     sh --login -c 'pacman -Syu --noconfirm'; `
-    sh --login -c 'pacman --sync --quiet --noconfirm mingw-w64-ucrt-x86_64-cmake'; `
+    sh --login -c 'pacman --sync --quiet --noconfirm mingw-w64-x86_64-cmake'; `
     compact /c /i /s:$env:SystemDrive\msys64 | Out-Null; `
     `
     Write-Host 'Verifying install ("sh --version") ...'; `
@@ -177,11 +177,10 @@ RUN Set-Location -Path $env:SystemDrive\.; `
     `
     Write-Host 'Visual Studio components installation cleanup'; `
     Get-ChildItem -Path """${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer""" -Directory -Recurse | Remove-Item -Force -Recurse; `
-    `
     Write-Host 'Removing downloaded...'; `
     Remove-Item -Force -Recurse $env:TEMP\*; `
     Write-Host 'Build environment is ready...'; `
-    `
+    Set-Location -Path $env:SystemDrive\.; `
     [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls13; `
     `
     New-Item -ItemType directory -Path $env:BUILD_OUTPUT -Force | Out-Null; `
@@ -227,6 +226,7 @@ RUN Set-Location -Path $env:SystemDrive\.; `
     `
     Write-Host 'Building PCRE2 library ...'; `
     Set-Location -Path $env:BUILD_SRC\pcre2; `
+    New-Item -ItemType directory -Path "$env:BUILD_SRC\pcre2\build" | Out-Null; `
     cmake --log-level=ERROR `
         -G 'MinGW Makefiles' `
         -DBUILD_SHARED_LIBS=OFF `

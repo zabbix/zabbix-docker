@@ -11,7 +11,9 @@ ARG ZBX_VERSION
 ARG ZBX_SOURCES=https://git.zabbix.com/scm/zbx/zabbix.git
 ARG GIT_BRANCH=master
 ARG ZABBIX_VERSION_RC_NUM=2400
-ENV ZBX_SOURCES=$ZBX_SOURCES MAJOR_VERSION=$MAJOR_VERSION ZBX_VERSION=$ZBX_VERSION ZABBIX_VERSION_RC_NUM=$ZABBIX_VERSION_RC_NUM
+
+ENV ZBX_SOURCES=$ZBX_SOURCES MAJOR_VERSION=$MAJOR_VERSION ZBX_VERSION=$ZBX_VERSION GIT_BRANCH=${GIT_BRANCH:-$ZBX_VERSION} `
+	ZABBIX_VERSION_RC_NUM=$ZABBIX_VERSION_RC_NUM
 
 LABEL org.opencontainers.image.title="Zabbix agent build (Windows)" `
       org.opencontainers.image.authors="Alexey Pustovalov <alexey.pustovalov@zabbix.com>" `
@@ -27,13 +29,11 @@ SHELL ["powershell", "-Command", "$ErrorActionPreference = 'Stop'; $ProgressPref
 
 RUN Set-Location -Path $env:SystemDrive\.; `
     `
-    $GIT_BRANCH = if ( $env:GIT_BRANCH ) { $env:GIT_BRANCH } else { $env:ZBX_VERSION }; `
+	Import-Module (Get-ChildItem $env:VS_PATH -Recurse -File -Filter Microsoft.VisualStudio.DevShell.dll).FullName; `
+    Enter-VsDevShell -VsInstallPath $env:VS_PATH -SkipAutomaticLocation -DevCmdArguments """-arch=$env:BUILD_ARCH"""; `
     `
-    Import-Module ('{0}\Microsoft Visual Studio\2019\BuildTools\Common7\Tools\Microsoft.VisualStudio.DevShell.dll' -f ${env:ProgramFiles(x86)} ); `
-    Enter-VsDevShell -VsInstallPath ('{0}\Microsoft Visual Studio\2019\BuildTools' -f ${env:ProgramFiles(x86)}) -DevCmdArguments """-arch=$env:BUILD_ARCH"""; `
-    `
-    Write-Host ('Checkout GIT {0} ({1}) repository ...' -f $env:ZBX_SOURCES, $GIT_BRANCH); `
-    git -c advice.detachedHead=false clone $env:ZBX_SOURCES --branch $GIT_BRANCH --depth 1 --single-branch $env:SystemDrive\zabbix-$env:ZBX_VERSION; `
+    Write-Host ('Checkout GIT {0} ({1}) repository ...' -f $env:ZBX_SOURCES, $env:GIT_BRANCH); `
+    git -c advice.detachedHead=false clone $env:ZBX_SOURCES --branch $env:GIT_BRANCH --depth 1 --single-branch $env:SystemDrive\zabbix-$env:ZBX_VERSION; `
     `
     Write-Host ('Building Zabbix {0} version ...' -f $env:ZBX_VERSION); `
     Set-Location -Path $env:SystemDrive\zabbix-$env:ZBX_VERSION; `
@@ -43,15 +43,15 @@ RUN Set-Location -Path $env:SystemDrive\.; `
     set CL=/MP; `
     nmake /S -f Makefile `
         CPU=$env:CPU_MODEL `
-        CFLAGS="""/D ZABBIX_VERSION_REVISION=$ZbxRevision /D HAVE_LIBMODBUS_STATIC""" `
-        PCRE2INCDIR=$env:SystemDrive\pcre2_build\build `
-        PCRE2LIBDIR=$env:SystemDrive\pcre2_build\build\Release TLS=openssl `
+        CFLAGS="""/D CURL_STATICLIB /D HAVE_LIBCURL /I "$env:BUILD_OUTPUT\curl\include" /D ZABBIX_VERSION_REVISION=$ZbxRevision /D HAVE_LIBMODBUS_STATIC /D DEFAULT_CONFIG_FILE=$env:SystemDrive\zabbix\conf\zabbix_agentd.win.conf""" `
+        PCRE2INCDIR=$env:SystemDrive\build_output\pcre2\include `
+        PCRE2LIBDIR=$env:SystemDrive\build_output\pcre2\lib TLS=openssl `
         RFLAGS="""/D ZABBIX_VERSION_REVISION=$ZbxRevision /D ZABBIX_VERSION_RC_NUM=$env:ZABBIX_VERSION_RC_NUM""" `
-#        LIBS="Crypt32.lib" `
-        TLSINCDIR=$env:SystemDrive\openssl_output\include `
-        TLSLIBDIR=$env:SystemDrive\openssl_output\lib `
-        MODBINCDIR=$env:SystemDrive\libmodbus\src `
-        MODBLIBDIR=$env:SystemDrive\libmodbus\src\win32\$env:BUILD_ARCH\Release `
+        TLSINCDIR=$env:BUILD_OUTPUT\openssl\include `
+        TLSLIBDIR=$env:BUILD_OUTPUT\openssl\lib `
+        MODBINCDIR=$env:BUILD_OUTPUT\libmodbus\include `
+        MODBLIBDIR=$env:BUILD_OUTPUT\libmodbus\lib `
+		LIBS="""$env:LIBS Crypt32.lib $env:BUILD_OUTPUT\curl\lib\libcurl_a.lib $env:BUILD_OUTPUT\zlib\lib\zlib.lib""" `
         all; `
     `
     Write-Host 'Verifying build ("zabbix_agentd.exe -V") ...'; `
