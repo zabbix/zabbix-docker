@@ -111,7 +111,7 @@ function Update-Config-Multiple-Var {
 function Prepare-Zbx-Agent-Config {
     Write-Host "** Preparing Zabbix agent configuration file"
 
-    $ZbxAgentConfig="$ZabbixConfigDir\zabbix_agent2.win.conf"
+    $ZbxAgentConfig="$ZabbixConfigDir\zabbix_agent2.conf"
 
     if ([string]::IsNullOrWhitespace($env:ZBX_PASSIVESERVERS)) {
         $env:ZBX_PASSIVESERVERS=""
