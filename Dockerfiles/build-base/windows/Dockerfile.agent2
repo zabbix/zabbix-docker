@@ -43,26 +43,6 @@ LABEL org.opencontainers.image.title="Zabbix agent 2 build base for Windows" `
 
 SHELL ["powershell", "-Command", "$ErrorActionPreference = 'Stop'; $ProgressPreference = 'SilentlyContinue';"]
 
-RUN [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; `
-    Write-Host ('Downloading {0} ...' -f $env:MSYS2_URL); `
-    Invoke-WebRequest -OutFile $env:TEMP\msys2.sfx.exe -Uri $env:MSYS2_URL; `
-    `
-    $sha256 = 'D96C53ECBFA4B9D81F6C58077965BB2E31472A8BDA4D4446EF8F45F9C601B11D'; `
-    $d_sha256 = (Get-FileHash $env:TEMP\msys2.sfx.exe -Algorithm sha256).Hash; `
-    Write-Host ('Verifying SHA256 ({0}) ...' -f $sha256); `
-    if ($d_sha256 -ne $sha256) { `
-        Write-Host ('Checksum MSYS2 ({0}) failed!' -f $d_sha256); `
-#        exit 1; `
-    }; `
-    & $env:TEMP\msys2.sfx.exe -y -o"""$env:SystemDrive\""" | Out-Null; `
-    function msys() { C:\msys64\usr\bin\bash.exe @('-lc') + @Args; } `
-    msys ' '; `
-    msys 'pacman --noconfirm -Syuu'; `
-    msys 'pacman --noconfirm -Syuu'; `
-    msys 'pacman --sync --quiet --noconfirm mingw-w64-ucrt-x86_64-cmake'; `
-    msys 'pacman --noconfirm -Scc'; `
-    Remove-Item -Force -Recurse $env:TEMP\*;
-
 RUN Set-Location -Path $env:SystemDrive\.; `
     [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; `
     `
@@ -163,6 +143,14 @@ RUN Set-Location -Path $env:SystemDrive\.; `
     `
     Write-Host 'Verifying install ("gcc -v") ...'; `
     gcc -v; `
+    `
+    Write-Host 'Installing MSYS2...'; `
+    & $env:TEMP\msys2.sfx.exe -y -o"""$env:SystemDrive\""" | Out-Null; `
+    bash -lc 'pacman --noconfirm -Syuu'; `
+    bash -lc 'pacman --noconfirm -Syuu'; `
+    bash -lc 'pacman --sync --quiet --noconfirm mingw-w64-ucrt-x86_64-cmake'; `
+    bash -lc 'pacman --noconfirm -Scc'; `
+    compact /c /i /s:$env:SystemDrive\msys64 | Out-Null; `
     `
     Write-Host 'Verifying install ("sh --version") ...'; `
     sh.exe --version; `
