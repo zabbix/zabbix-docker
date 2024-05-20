@@ -155,30 +155,6 @@ RUN Set-Location -Path $env:SystemDrive\.; `
     Write-Host 'Verifying install ("bash --version") ...'; `
     bash --version; `
     `
-    Write-Host ('{0} - Visual Studio components installing...' -f $(Get-Date -format 'u')); `
-    cmd /C start /w $env:TEMP\vs_buildtools.exe `
-        --quiet `
-        --wait `
-        --norestart `
-        --nocache `
-        --installPath """${env:ProgramFiles(x86)}\Microsoft Visual Studio\2022\BuildTools""" `
-        --channelUri https://aka.ms/vs/17/release/channel `
-        --installChannelUri https://aka.ms/vs/17/release/channel `
-        --channelId VisualStudio.17.Release `
-        # https://docs.microsoft.com/en-us/visualstudio/install/workload-component-id-vs-build-tools?view=vs-2022
-        --add Microsoft.VisualStudio.Component.VC.Tools.x86.x64; `
-    if ($err = dir $Env:TEMP -Filter dd_setup_*_errors.log | where Length -gt 0 | Get-Content) { `
-        throw $err; `
-    }; `
-    Wait-Process -name msiexec; `
-    Write-Host ('{0} - Visual Studio components installed' -f $(Get-Date -format 'u')); `
-    `
-    $env:VS_PATH = &(Join-Path ${env:ProgramFiles(x86)} """\Microsoft Visual Studio\Installer\vswhere.exe""") -latest -products Microsoft.VisualStudio.Product.BuildTools -property installationPath; `
-    [Environment]::SetEnvironmentVariable('VS_PATH', $env:VS_PATH, [EnvironmentVariableTarget]::Machine); `
-    `
-    Write-Host 'Visual Studio components installation cleanup'; `
-    Get-ChildItem -Path """${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer""" -Directory -Recurse | Remove-Item -Force -Recurse; `
-    `
     Write-Host 'Removing downloaded...'; `
     Remove-Item -Force -Recurse $env:TEMP\*; `
     tasklist; `
