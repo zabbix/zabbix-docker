@@ -39,7 +39,7 @@ RUN $env:PATH = [string]::Format('{0}\zabbix\sbin;{0}\zabbix\bin;', $env:SystemD
     $env:ZBX_HOME = [string]::Format('{0}\zabbix', $env:SystemDrive); `
     [Environment]::SetEnvironmentVariable('ZBX_HOME', $env:ZBX_HOME, [EnvironmentVariableTarget]::Machine); `
     `
-    Write-Host ('Verifying Zabbix agent 2 {0} ...' -f $env:ZBX_VERSION); `
+    Write-Host ('Verifying Zabbix agent {0} ...' -f $env:ZBX_VERSION); `
     zabbix_agentd.exe -V;
 
 RUN Set-Location -Path $env:SystemDrive\.; `
