@@ -147,7 +147,7 @@ RUN Set-Location -Path $env:SystemDrive\.; `
     & $env:TEMP\msys2.sfx.exe -y -o"""$env:SystemDrive\""" | Out-Null; `
     bash -lc 'pacman -Syuu --needed --noconfirm --ask=20'; `
     bash -lc 'pacman -Syu --noconfirm'; `
-    bash -lc 'pacman --sync --quiet --noconfirm mingw-w64-ucrt-x86_64-cmake'; `
+#    bash -lc 'pacman --sync --quiet --noconfirm mingw-w64-ucrt-x86_64-cmake'; `
     `
     Write-Host 'Verifying install ("bash --version") ...'; `
     bash --version; `
