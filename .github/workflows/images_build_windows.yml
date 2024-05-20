@@ -144,7 +144,7 @@ jobs:
     name: Build ${{ matrix.component }} base on ${{ matrix.os }}
     needs: init_build
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 90
+    timeout-minutes: 120
     permissions:
       contents: read
       id-token: write
