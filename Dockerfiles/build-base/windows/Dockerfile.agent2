@@ -149,7 +149,7 @@ RUN Set-Location -Path $env:SystemDrive\.; `
 #    bash -lc 'pacman -Syu --noconfirm'; `
     bash -lc 'pacman --noconfirm -Syuu'; `
     bash -lc 'pacman --noconfirm -Syuu'; `
-    bash -lc 'pacman --sync --quiet --noconfirm mingw-w64-ucrt-x86_64-cmake'; `
+#    bash -lc 'pacman --sync --quiet --noconfirm mingw-w64-ucrt-x86_64-cmake'; `
     bash -lc 'pacman --noconfirm -Scc'; `
     `
     Write-Host 'Verifying install ("bash --version") ...'; `
