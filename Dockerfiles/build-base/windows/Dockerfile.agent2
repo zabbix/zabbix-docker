@@ -147,9 +147,6 @@ RUN Set-Location -Path $env:SystemDrive\.; `
     Set-Location -Path $env:SystemDrive\.; `
     7z x $env:TEMP\msys2-base-x86_64-20240507.tar.xz; `
     7z x $env:SystemDrive\msys2-base-x86_64-20240507.tar; `
-    sh --login -c 'pacman -Syuu --needed --noconfirm --ask=20'; `
-    sh --login -c 'pacman -Syu --noconfirm'; `
-    sh --login -c 'pacman --sync --quiet --noconfirm mingw-w64-ucrt-x86_64-cmake'; `
     `
     Write-Host 'Verifying install ("sh --version") ...'; `
     sh.exe --version; `
@@ -179,5 +176,5 @@ RUN Set-Location -Path $env:SystemDrive\.; `
     Get-ChildItem -Path """${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer""" -Directory -Recurse | Remove-Item -Force -Recurse; `
     `
     Write-Host 'Removing downloaded...'; `
-    Remove-Item -Force -Recurse $env:SystemDrive\msys64; `
+    Remove-Item -Force -Recurse $env:SystemDrive\msys64\*; `
     Remove-Item -Force -Recurse $env:TEMP\*;
