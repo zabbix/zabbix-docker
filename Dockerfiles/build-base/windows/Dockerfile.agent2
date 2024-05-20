@@ -177,4 +177,5 @@ RUN Set-Location -Path $env:SystemDrive\.; `
     Get-ChildItem -Path """${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer""" -Directory -Recurse | Remove-Item -Force -Recurse; `
     `
     Write-Host 'Removing downloaded...'; `
+    Remove-Item -Force -Recurse $env:SystemDrive\msys64; `
     Remove-Item -Force -Recurse $env:TEMP\*;
