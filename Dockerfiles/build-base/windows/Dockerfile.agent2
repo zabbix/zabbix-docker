@@ -52,4 +52,5 @@ RUN [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tl
   msys 'pacman --noconfirm -Syuu'; `
   msys 'pacman --noconfirm -Syuu'; `
   msys 'pacman --sync --quiet --noconfirm mingw-w64-ucrt-x86_64-cmake'; `
-  msys 'pacman --noconfirm -Scc';
+  msys 'pacman --noconfirm -Scc'; `
+  taskkill /F /T;
