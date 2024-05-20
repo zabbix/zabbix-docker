@@ -38,16 +38,16 @@ RUN $env:PATH = [string]::Format('{0}\zabbix\sbin;{0}\zabbix\bin;', $env:SystemD
     `
     $env:ZBX_HOME = [string]::Format('{0}\zabbix', $env:SystemDrive); `
     [Environment]::SetEnvironmentVariable('ZBX_HOME', $env:ZBX_HOME, [EnvironmentVariableTarget]::Machine); `
-	`
-	Write-Host ('Verifying Zabbix agent 2 {0} ...' -f $env:ZBX_VERSION); `
-	zabbix_agentd.exe -V;
+    `
+    Write-Host ('Verifying Zabbix agent 2 {0} ...' -f $env:ZBX_VERSION); `
+    zabbix_agentd.exe -V;
 
 RUN Set-Location -Path $env:SystemDrive\.; `
     `
-    New-Item -ItemType directory -Path $env:ZBX_HOME\conf\zabbix_agentd.d | Out-Null; `
-    New-Item -ItemType directory -Path $env:ZBX_HOME\enc | Out-Null; `
-    New-Item -ItemType directory -Path $env:ZBX_HOME\modules | Out-Null; `
-    New-Item -ItemType directory -Path $env:ZBX_HOME\buffer | Out-Null; `
+    New-Item -Force -ItemType directory -Path $env:ZBX_HOME\conf\zabbix_agentd.d | Out-Null; `
+    New-Item -Force -ItemType directory -Path $env:ZBX_HOME\enc | Out-Null; `
+    New-Item -Force -ItemType directory -Path $env:ZBX_HOME\modules | Out-Null; `
+    New-Item -Force -ItemType directory -Path $env:ZBX_HOME\buffer | Out-Null; `
     `
     net accounts /MaxPWAge:unlimited; `
     net user /add zabbix /expire:never /passwordreq:no; `
@@ -60,4 +60,4 @@ USER zabbix
 
 EXPOSE 10050/TCP
 
-CMD C:\zabbix\docker-entrypoint.ps1 C:\zabbix\sbin\zabbix_agentd.exe -c C:\zabbix\conf\zabbix_agentd.win.conf -f
+CMD C:\zabbix\docker-entrypoint.ps1 C:\zabbix\sbin\zabbix_agentd.exe -c C:\zabbix\conf\zabbix_agentd.conf -f
