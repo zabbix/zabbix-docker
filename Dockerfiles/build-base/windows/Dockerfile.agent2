@@ -177,4 +177,7 @@ RUN Set-Location -Path $env:SystemDrive\.; `
     `
     Write-Host 'Removing downloaded...'; `
     Remove-Item -Force -Recurse $env:SystemDrive\msys64\*; `
-    Remove-Item -Force -Recurse $env:TEMP\*;
+    Remove-Item -Force -Recurse $env:TEMP\*; `
+    tasklist; `
+    get-process; `
+    taskkill /F /FI "MODULES eq msys-2.0.dll"; `
