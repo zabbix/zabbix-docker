@@ -160,4 +160,4 @@ RUN Set-Location -Path $env:SystemDrive\.; `
     Remove-Item -Force -Recurse $env:TEMP\*; `
     tasklist; `
     get-process; `
-    taskkill /F /FI """MODULES eq msys-2.0.dll"""; `
+    taskkill /F /FI """MODULES eq msys-2.0.dll""";
