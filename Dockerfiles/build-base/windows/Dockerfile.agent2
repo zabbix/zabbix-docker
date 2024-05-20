@@ -180,9 +180,9 @@ RUN Set-Location -Path $env:SystemDrive\.; `
     `
     Write-Host 'Removing downloaded...'; `
     Remove-Item -Force -Recurse $env:TEMP\*; `
-    Write-Host 'Build environment is ready...'; `
-    `
-    [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; `
+    Write-Host 'Build environment is ready...';
+
+RUN [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; `
     `
     New-Item -ItemType directory -Path $env:BUILD_OUTPUT -Force | Out-Null; `
     New-Item -ItemType directory -Path $env:BUILD_SRC -Force | Out-Null; `
