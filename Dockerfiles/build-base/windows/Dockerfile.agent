@@ -112,6 +112,7 @@ RUN Set-Location -Path $env:SystemDrive\.; `
     `
     Write-Host 'Installing Perl...'; `
     Expand-Archive -Path $env:TEMP\perl.zip -DestinationPath $env:SystemDrive\perl\; `
+    Remove-Item -Force -Recurse $env:SystemDrive\perl\c\; `
     `
     Write-Host 'Verifying install ("perl -V") ...'; `
     perl -V; `
