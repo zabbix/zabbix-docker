@@ -142,6 +142,7 @@ RUN Set-Location -Path $env:SystemDrive\.; `
     `
     Write-Host 'Verifying install ("gcc -v") ...'; `
     gcc -v; `
+    tasklist; `
     `
     [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; `
     Invoke-WebRequest -UseBasicParsing -uri "https://github.com/msys2/msys2-installer/releases/download/nightly-x86_64/msys2-base-x86_64-latest.sfx.exe" -OutFile $env:SystemDrive\msys2.exe; `
@@ -151,6 +152,7 @@ RUN Set-Location -Path $env:SystemDrive\.; `
     msys ' '; `
     msys 'pacman --noconfirm -Syuu'; `
     msys 'pacman --noconfirm -Syuu'; `
+    bash -lc 'pacman --sync --quiet --noconfirm mingw-w64-ucrt-x86_64-cmake'; `
     msys 'pacman --noconfirm -Scc'; `
     `
     Write-Host 'Verifying install ("bash --version") ...'; `
