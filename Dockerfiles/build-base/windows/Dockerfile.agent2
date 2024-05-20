@@ -100,14 +100,14 @@ RUN Set-Location -Path $env:SystemDrive\.; `
     }; `
     `
     Write-Host ('Downloading {0} ...' -f $env:MSYS2_URL); `
-    Invoke-WebRequest -OutFile $env:TEMP\msys2-base-x86_64-20240507.tar.xz -Uri https://repo.msys2.org/distrib/x86_64/msys2-base-x86_64-20240507.tar.xz; `
+    Invoke-WebRequest -OutFile $env:TEMP\msys2.sfx.exe -Uri $env:MSYS2_URL; `
     `
     $sha256 = 'D96C53ECBFA4B9D81F6C58077965BB2E31472A8BDA4D4446EF8F45F9C601B11D'; `
-    $d_sha256 = (Get-FileHash $env:TEMP\msys2-base-x86_64-20240507.tar.xz -Algorithm sha256).Hash; `
+    $d_sha256 = (Get-FileHash $env:TEMP\msys2.sfx.exe -Algorithm sha256).Hash; `
     Write-Host ('Verifying SHA256 ({0}) ...' -f $sha256); `
     if ($d_sha256 -ne $sha256) { `
         Write-Host ('Checksum MSYS2 ({0}) failed!' -f $d_sha256); `
-#        exit 1; `
+        exit 1; `
     }; `
     `
     Write-Host ('Downloading {0} ...' -f $env:VS_BUILDTOOLS_URL); `
@@ -139,14 +139,17 @@ RUN Set-Location -Path $env:SystemDrive\.; `
     `
     Write-Host 'Installing Mingw-w64...'; `
     7z x $env:TEMP\mingw.7z; `
+    compact /c /i /s:$env:SystemDrive\mingw64 | Out-Null; `
     `
     Write-Host 'Verifying install ("gcc -v") ...'; `
     gcc -v; `
     `
     Write-Host 'Installing MSYS2...'; `
-    Set-Location -Path $env:SystemDrive\.; `
-    7z x $env:TEMP\msys2-base-x86_64-20240507.tar.xz; `
-    7z x $env:SystemDrive\msys2-base-x86_64-20240507.tar; `
+    & $env:TEMP\msys2.sfx.exe -y -o"""$env:SystemDrive\""" | Out-Null; `
+    sh --login -c 'pacman -Syuu --needed --noconfirm --ask=20'; `
+    sh --login -c 'pacman -Syu --noconfirm'; `
+    sh --login -c 'pacman --sync --quiet --noconfirm mingw-w64-ucrt-x86_64-cmake'; `
+    compact /c /i /s:$env:SystemDrive\msys64 | Out-Null; `
     `
     Write-Host 'Verifying install ("sh --version") ...'; `
     sh.exe --version; `
@@ -176,8 +179,7 @@ RUN Set-Location -Path $env:SystemDrive\.; `
     Get-ChildItem -Path """${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer""" -Directory -Recurse | Remove-Item -Force -Recurse; `
     `
     Write-Host 'Removing downloaded...'; `
-    Remove-Item -Force -Recurse $env:SystemDrive\msys64\*; `
     Remove-Item -Force -Recurse $env:TEMP\*; `
     tasklist; `
     get-process; `
-    taskkill /F /FI "MODULES eq msys-2.0.dll"; `
+    taskkill /F /FI """MODULES eq msys-2.0.dll"""; `
