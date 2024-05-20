@@ -63,11 +63,11 @@ RUN Set-Location -Path $env:SystemDrive\.; `
         all; `
     `
     Write-Host 'Verifying build ("zabbix_agentd.exe -V") ...'; `
-    & $env:SystemDrive\zabbix-$env:ZBX_VERSION\bin\win64\zabbix_agentd.exe -V; `
-    dumpbin /dependents $env:SystemDrive\zabbix-$env:ZBX_VERSION\bin\win64\zabbix_agentd.exe; `
+    & $env:SystemDrive\zabbix_src\zabbix-$env:ZBX_VERSION\bin\win64\zabbix_agentd.exe -V; `
+    dumpbin /dependents $env:SystemDrive\zabbix_src\zabbix-$env:ZBX_VERSION\bin\win64\zabbix_agentd.exe; `
     `
-    Copy-Item -Path $env:SystemDrive\zabbix-$env:ZBX_VERSION\bin\win64\zabbix_agentd.exe $env:SystemDrive\zabbix_output\sbin; `
-    Copy-Item -Path $env:SystemDrive\zabbix-$env:ZBX_VERSION\bin\win64\zabbix_get.exe $env:SystemDrive\zabbix_output\bin; `
-    Copy-Item -Path $env:SystemDrive\zabbix-$env:ZBX_VERSION\bin\win64\zabbix_sender.exe $env:SystemDrive\zabbix_output\bin; `
-    Copy-Item -Path $env:SystemDrive\zabbix-$env:ZBX_VERSION\conf\zabbix_agentd.win.conf $env:SystemDrive\zabbix_output\conf\zabbix_agentd.conf; `
+    Copy-Item -Path $env:SystemDrive\zabbix_src\zabbix-$env:ZBX_VERSION\bin\win64\zabbix_agentd.exe $env:SystemDrive\zabbix_output\sbin; `
+    Copy-Item -Path $env:SystemDrive\zabbix_src\zabbix-$env:ZBX_VERSION\bin\win64\zabbix_get.exe $env:SystemDrive\zabbix_output\bin; `
+    Copy-Item -Path $env:SystemDrive\zabbix_src\zabbix-$env:ZBX_VERSION\bin\win64\zabbix_sender.exe $env:SystemDrive\zabbix_output\bin; `
+    Copy-Item -Path $env:SystemDrive\zabbix_src\zabbix-$env:ZBX_VERSION\conf\zabbix_agentd.win.conf $env:SystemDrive\zabbix_output\conf\zabbix_agentd.conf; `
     Write-Host 'Zabbix binaries are compiled...';
