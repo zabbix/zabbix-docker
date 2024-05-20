@@ -145,9 +145,12 @@ RUN Set-Location -Path $env:SystemDrive\.; `
     `
     Write-Host 'Installing MSYS2...'; `
     & $env:TEMP\msys2.sfx.exe -y -o"""$env:SystemDrive\""" | Out-Null; `
-    bash -lc 'pacman -Syuu --needed --noconfirm --ask=20'; `
-    bash -lc 'pacman -Syu --noconfirm'; `
+#    bash -lc 'pacman -Syuu --needed --noconfirm --ask=20'; `
+#    bash -lc 'pacman -Syu --noconfirm'; `
+    bash -lc 'pacman --noconfirm -Syuu'; `
+    bash -lc 'pacman --noconfirm -Syuu'; `
     bash -lc 'pacman --sync --quiet --noconfirm mingw-w64-ucrt-x86_64-cmake'; `
+    bash -lc 'pacman --noconfirm -Scc'; `
     `
     Write-Host 'Verifying install ("bash --version") ...'; `
     bash --version; `
@@ -178,7 +181,6 @@ RUN Set-Location -Path $env:SystemDrive\.; `
     `
     Write-Host 'Removing downloaded...'; `
     Remove-Item -Force -Recurse $env:TEMP\*; `
-    Remove-Item -Force -Recurse $env:SystemDrive\msys64\*; `
     tasklist; `
     get-process; `
     taskkill /F /FI """MODULES eq msys-2.0.dll"""; `
