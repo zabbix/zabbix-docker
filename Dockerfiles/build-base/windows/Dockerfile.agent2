@@ -139,7 +139,6 @@ RUN Set-Location -Path $env:SystemDrive\.; `
     `
     Write-Host 'Installing Mingw-w64...'; `
     7z x $env:TEMP\mingw.7z; `
-    compact /c /i /s:$env:SystemDrive\mingw64 | Out-Null; `
     `
     Write-Host 'Verifying install ("gcc -v") ...'; `
     gcc -v; `
@@ -149,7 +148,6 @@ RUN Set-Location -Path $env:SystemDrive\.; `
     bash -lc 'pacman -Syuu --needed --noconfirm --ask=20'; `
     bash -lc 'pacman -Syu --noconfirm'; `
     bash -lc 'pacman --sync --quiet --noconfirm mingw-w64-ucrt-x86_64-cmake'; `
-    compact /c /i /s:$env:SystemDrive\msys64 | Out-Null; `
     `
     Write-Host 'Verifying install ("bash --version") ...'; `
     bash --version; `
