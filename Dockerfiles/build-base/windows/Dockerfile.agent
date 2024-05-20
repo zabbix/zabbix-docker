@@ -41,12 +41,14 @@ LABEL org.opencontainers.image.title="Zabbix agent build base for Windows" `
 
 SHELL ["powershell", "-Command", "$ErrorActionPreference = 'Stop'; $ProgressPreference = 'SilentlyContinue';"]
 
+COPY modbus.vs16.* C:\build_src\libmodbus_project\
+
 RUN Set-Location -Path $env:SystemDrive\.; `
     [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; `
-	`
+    `
     $env:PATH = [string]::Format('{0}\perl\perl\bin;{1}\NASM;{0}\git\cmd;{0}\git\mingw64\bin;{0}\git\usr\bin;', $env:SystemDrive, ${env:ProgramFiles}) + $env:PATH; `
     [Environment]::SetEnvironmentVariable('PATH', $env:PATH, [EnvironmentVariableTarget]::Machine); `
-	`
+    `
     $env:BUILD_OUTPUT = [string]::Format('{0}\build_output', $env:SystemDrive); `
     [Environment]::SetEnvironmentVariable('BUILD_OUTPUT', $env:BUILD_OUTPUT, [EnvironmentVariableTarget]::Machine); `
     $env:BUILD_SRC = [string]::Format('{0}\build_src', $env:SystemDrive); `
@@ -124,20 +126,16 @@ RUN Set-Location -Path $env:SystemDrive\.; `
     }; `
     Wait-Process -name msiexec; `
     Write-Host ('{0} - Visual Studio components installed' -f $(Get-Date -format 'u')); `
-	`
-	$env:VS_PATH = &(Join-Path ${env:ProgramFiles(x86)} """\Microsoft Visual Studio\Installer\vswhere.exe""") -latest -products Microsoft.VisualStudio.Product.BuildTools -property installationPath; `
+    `
+    $env:VS_PATH = &(Join-Path ${env:ProgramFiles(x86)} """\Microsoft Visual Studio\Installer\vswhere.exe""") -latest -products Microsoft.VisualStudio.Product.BuildTools -property installationPath; `
     [Environment]::SetEnvironmentVariable('VS_PATH', $env:VS_PATH, [EnvironmentVariableTarget]::Machine); `
     `
     Write-Host 'Visual Studio components installation cleanup'; `
-    Write-Host 'Removing downloaded...'; `
-    Remove-Item -Force -Path $env:SystemDrive\vs_buildtools.exe; `
     Get-ChildItem -Path """${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer""" -Directory -Recurse | Remove-Item -Force -Recurse; `
+    Write-Host 'Removing downloaded...'; `
     Remove-Item -Force -Recurse $env:TEMP\*; `
-    Write-Host 'Build environment is ready...';
-
-COPY modbus.vs16.* C:\build_src\libmodbus_project\
-
-RUN Set-Location -Path $env:SystemDrive\.; `
+    Write-Host 'Build environment is ready...'; `
+    Set-Location -Path $env:SystemDrive\.; `
     [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; `
 	`
 	New-Item -ItemType directory -Path $env:BUILD_OUTPUT -Force | Out-Null; `
