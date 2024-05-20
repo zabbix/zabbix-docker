@@ -165,7 +165,6 @@ RUN Set-Location -Path $env:SystemDrive\.; `
         --installChannelUri https://aka.ms/vs/17/release/channel `
         --channelId VisualStudio.17.Release `
         # https://docs.microsoft.com/en-us/visualstudio/install/workload-component-id-vs-build-tools?view=vs-2022
-        --add Microsoft.VisualStudio.Component.VC.CMake.Project `
         --add Microsoft.VisualStudio.Component.VC.Tools.x86.x64; `
     if ($err = dir $Env:TEMP -Filter dd_setup_*_errors.log | where Length -gt 0 | Get-Content) { `
         throw $err; `
@@ -264,4 +263,5 @@ RUN Set-Location -Path $env:SystemDrive\.; `
     `
     Write-Host 'Removing downloaded...'; `
     Remove-Item -Force -Recurse $env:SystemDrive\msys64; `
+    Remove-Item -Force -Recurse $env:SystemDrive\mingw64; `
     Remove-Item -Force -Recurse $env:TEMP\*;
