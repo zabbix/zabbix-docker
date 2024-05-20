@@ -137,6 +137,21 @@ RUN Set-Location -Path $env:SystemDrive\.; `
     Write-Host 'Verifying install ("go version") ...'; `
     go version; `
     `
+    Write-Host 'Installing Mingw-w64...'; `
+    7z x $env:TEMP\mingw.7z; `
+    `
+    Write-Host 'Verifying install ("gcc -v") ...'; `
+    gcc -v; `
+    `
+    Write-Host 'Installing MSYS2...'; `
+    & $env:TEMP\msys2.sfx.exe -y -o"""$env:SystemDrive\""" | Out-Null; `
+    sh --login -c 'pacman -Syuu --needed --noconfirm --ask=20'; `
+    sh --login -c 'pacman -Syu --noconfirm'; `
+    sh --login -c 'pacman --sync --quiet --noconfirm mingw-w64-ucrt-x86_64-cmake'; `
+    `
+    Write-Host 'Verifying install ("sh --version") ...'; `
+    sh.exe --version; `
+    `
     Write-Host ('{0} - Visual Studio components installing...' -f $(Get-Date -format 'u')); `
     cmd /C start /w $env:TEMP\vs_buildtools.exe `
         --quiet `
@@ -162,5 +177,4 @@ RUN Set-Location -Path $env:SystemDrive\.; `
     Get-ChildItem -Path """${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer""" -Directory -Recurse | Remove-Item -Force -Recurse; `
     `
     Write-Host 'Removing downloaded...'; `
-    Remove-Item -Force -Recurse $env:TEMP\*; `
-    Write-Host 'Build environment is ready...';
+    Remove-Item -Force -Recurse $env:TEMP\*;
