@@ -146,9 +146,9 @@ RUN Set-Location -Path $env:SystemDrive\.; `
     `
     Write-Host 'Installing MSYS2...'; `
     & $env:TEMP\msys2.sfx.exe -y -o"""$env:SystemDrive\""" | Out-Null; `
-    sh --login -c 'pacman -Syuu --needed --noconfirm --ask=20'; `
-    sh --login -c 'pacman -Syu --noconfirm'; `
-    sh --login -c 'pacman --sync --quiet --noconfirm mingw-w64-ucrt-x86_64-cmake'; `
+#    sh --login -c 'pacman -Syuu --needed --noconfirm --ask=20'; `
+#    sh --login -c 'pacman -Syu --noconfirm'; `
+#    sh --login -c 'pacman --sync --quiet --noconfirm mingw-w64-ucrt-x86_64-cmake'; `
     compact /c /i /s:$env:SystemDrive\msys64 | Out-Null; `
     `
     Write-Host 'Verifying install ("sh --version") ...'; `
