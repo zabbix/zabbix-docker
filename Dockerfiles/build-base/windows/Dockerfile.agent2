@@ -137,13 +137,6 @@ RUN Set-Location -Path $env:SystemDrive\.; `
     Write-Host 'Verifying install ("go version") ...'; `
     go version; `
     `
-    Write-Host 'Installing Mingw-w64...'; `
-    7z x $env:TEMP\mingw.7z; `
-    compact /c /i /s:$env:SystemDrive\mingw64 | Out-Null; `
-    `
-    Write-Host 'Verifying install ("gcc -v") ...'; `
-    gcc -v; `
-    `
     Write-Host ('{0} - Visual Studio components installing...' -f $(Get-Date -format 'u')); `
     cmd /C start /w $env:TEMP\vs_buildtools.exe `
         --quiet `
