@@ -145,12 +145,13 @@ RUN Set-Location -Path $env:SystemDrive\.; `
     `
     Write-Host 'Installing MSYS2...'; `
     & $env:TEMP\msys2.sfx.exe -y -o"""$env:SystemDrive\""" | Out-Null; `
-#    bash -lc 'pacman -Syuu --needed --noconfirm --ask=20'; `
-#    bash -lc 'pacman -Syu --noconfirm'; `
     bash -lc 'pacman --noconfirm -Syuu'; `
     bash -lc 'pacman --noconfirm -Syuu'; `
-#    bash -lc 'pacman --sync --quiet --noconfirm mingw-w64-ucrt-x86_64-cmake'; `
+    bash -lc 'pacman --sync --quiet --noconfirm mingw-w64-ucrt-x86_64-cmake'; `
     bash -lc 'pacman --noconfirm -Scc'; `
+    bash -lc 'rm -rf /usr/share/info/ /usr/share/zoneinfo/ /usr/share/locale/ /usr/share/man/ /usr/lib/terminfo/'; `
+    bash -lc 'rm -rf /usr/share/doc/ /ucrt64/share/doc /ucrt64/share/man /ucrt64/share/info /ucrt64/share/oneinfo /ucrt64/share/zoneinfo  /ucrt64/share/locale'; `
+    bash -lc 'rm -rf /usr/share/bash-completion/ /usr/share/terminfo/
     `
     Write-Host 'Verifying install ("bash --version") ...'; `
     bash --version; `
