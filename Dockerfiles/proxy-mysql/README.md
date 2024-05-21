@@ -171,6 +171,7 @@ ZBX_DBTLSKEYFILE= # Available since 5.0.0
 ZBX_DBTLSCIPHER= # Available since 5.0.0
 ZBX_DBTLSCIPHER13= # Available since 5.0.0
 ZBX_VAULTDBPATH= # Available since 5.2.0
+ZBX_VAULTPREFIX= # Available since 7.0.0
 ZBX_VAULTURL=https://127.0.0.1:8200 # Available since 5.2.0
 VAULT_TOKEN= # Available since 5.2.0
 ZBX_ENABLEREMOTECOMMANDS=0 # Available since 3.4.0
@@ -232,6 +233,9 @@ ZBX_TLSCIPHERCERT= # Available since 4.4.7
 ZBX_TLSCIPHERCERT13= # Available since 4.4.7
 ZBX_TLSCIPHERPSK= # Available since 4.4.7
 ZBX_TLSCIPHERPSK13= # Available since 4.4.7
+ZBX_WEBDRIVERURL= # Available since 7.0.0
+ZBX_STARTBROWSERPOLLERS=1 # Available since 7.0.0
+
 ```
 
 Default values of these variables are specified after equal sign.
