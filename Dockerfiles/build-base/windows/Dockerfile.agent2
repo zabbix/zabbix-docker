@@ -8,6 +8,8 @@ ARG OPENSSL_VERSION=3.3.0
 ARG GOLANG_VERSION=1.22.3
 ARG SEVEN_ZIP_VERSION=2405
 
+ARG MSYSTEM=UCRT64
+
 ARG BUILD_ARCH=x64
 ARG CPU_MODEL=AMD64
 
@@ -30,7 +32,8 @@ ENV ZBX_VERSION=$ZBX_VERSION `
     GIT_URL=$GIT_URL SEVEN_ZIP_VERSION=$SEVEN_ZIP_VERSION `
     MINGW_URL=$MINGW_URL VS_BUILDTOOLS_URL=$VS_BUILDTOOLS_URL GOLANG_VERSION=$GOLANG_VERSION MSYS2_URL=$MSYS2_URL `
     PCRE2_VERSION=$PCRE2_VERSION OPENSSL_VERSION=$OPENSSL_VERSION `
-    PCRE2_URL=$PCRE2_URL OPENSSL_URL=$OPENSSL_URL
+    PCRE2_URL=$PCRE2_URL OPENSSL_URL=$OPENSSL_URL `
+    CHERE_INVOKING=yes MSYSTEM=$MSYSTEM
 
 LABEL org.opencontainers.image.title="Zabbix agent 2 build base for Windows" `
       org.opencontainers.image.authors="Alexey Pustovalov <alexey.pustovalov@zabbix.com>" `
@@ -47,7 +50,7 @@ RUN Set-Location -Path $env:SystemDrive\.; `
     [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; `
     `
     $env:PATH = [string]::Format('{0}\mingw64\bin;{0}\go\bin;{0}\git\cmd;{0}\git\mingw64\bin;{0}\git\usr\bin;{1}\7-Zip;', $env:SystemDrive, ${env:ProgramFiles}) + $env:PATH; `
-    $env:PATH = $env:PATH + [string]::Format(';{0}\msys64\usr\bin;{0}\msys64\ucrt64\bin;{0}\msys64\mingw64\bin', $env:SystemDrive); `
+    $env:PATH = $env:PATH + [string]::Format(';{0}\msys64\usr\bin;{0}\msys64\{1}\bin', $env:SystemDrive, $env:MSYSTEM.ToLower()); `
     [Environment]::SetEnvironmentVariable('PATH', $env:PATH, [EnvironmentVariableTarget]::Machine); `
     `
     $env:BUILD_OUTPUT = [string]::Format('{0}\build_output', $env:SystemDrive); `
@@ -100,7 +103,7 @@ RUN Set-Location -Path $env:SystemDrive\.; `
     }; `
     `
     Write-Host ('Downloading {0} ...' -f $env:MSYS2_URL); `
-    Invoke-WebRequest -OutFile $env:TEMP\msys2.sfx.exe -Uri -Uri $(Invoke-RestMethod -UseBasicParsing $env:MSYS2_URL | `
+    Invoke-WebRequest -OutFile $env:TEMP\msys2.sfx.exe -Uri $(Invoke-RestMethod -UseBasicParsing $env:MSYS2_URL | `
             Select -ExpandProperty "assets" | `
             Select -ExpandProperty "browser_download_url" | `
             Select-String -Pattern '.sfx.exe$').ToString(); `
@@ -157,10 +160,11 @@ RUN Set-Location -Path $env:SystemDrive\.; `
     bash -lc 'rm -rf /usr/share/doc/ /ucrt64/share/doc /ucrt64/share/man /ucrt64/share/info /ucrt64/share/oneinfo /ucrt64/share/zoneinfo  /ucrt64/share/locale'; `
     bash -lc 'rm -rf /usr/share/bash-completion/ /usr/share/terminfo/'; `
     bash -lc 'rm -rf /var/cache/pacman/pkg/*'; `
+    taskkill /F /FI "MODULES eq msys-2.0.dll" | Out-Null; `
     compact /c /i /s:$env:SystemDrive\msys64 | Out-Null; `
     `
-    Write-Host 'Verifying install ("sh --version") ...'; `
-    sh.exe --version; `
+    Write-Host 'Verifying install ("bash --version") ...'; `
+    bash --version; `
     `
     Write-Host ('{0} - Visual Studio components installing...' -f $(Get-Date -format 'u')); `
     cmd /C start /w $env:TEMP\vs_buildtools.exe `
