@@ -11,3 +11,4 @@ services:
    zbx_tools_frontend:
     aliases:
      - webdriver
+     - selenium
