@@ -28,7 +28,7 @@ SHELL ["pwsh", "-Command", "$ErrorActionPreference = 'Stop';"]
 
 WORKDIR C:\zabbix\
 
-COPY --from=builder ["C:\\zabbix2", "C:\\zabbix"]
+COPY --from=builder ["C:\\zabbix_output", "C:\\zabbix"]
 COPY [".\\docker-entrypoint.ps1", "C:\\zabbix"]
 
 USER ContainerAdministrator
@@ -37,7 +37,10 @@ RUN $env:PATH = [string]::Format('{0}\zabbix\sbin;{0}\zabbix\bin;', $env:SystemD
     [Environment]::SetEnvironmentVariable('PATH', $env:PATH, [EnvironmentVariableTarget]::Machine); `
     `
     $env:ZBX_HOME = [string]::Format('{0}\zabbix', $env:SystemDrive); `
-    [Environment]::SetEnvironmentVariable('ZBX_HOME', $env:ZBX_HOME, [EnvironmentVariableTarget]::Machine);
+    [Environment]::SetEnvironmentVariable('ZBX_HOME', $env:ZBX_HOME, [EnvironmentVariableTarget]::Machine); `
+    `
+    Write-Host ('Verifying Zabbix agent 2 {0} ...' -f $env:ZBX_VERSION); `
+    zabbix_agent2.exe -V;
 
 RUN Set-Location -Path $env:SystemDrive\.; `
     `
@@ -57,4 +60,4 @@ USER zabbix
 
 EXPOSE 10050/TCP 31999/TCP
 
-CMD C:\zabbix\docker-entrypoint.ps1 C:\zabbix\sbin\zabbix_agent2.exe -c C:\zabbix\conf\zabbix_agent2.win.conf -f
+CMD C:\zabbix\docker-entrypoint.ps1 C:\zabbix\sbin\zabbix_agent2.exe -c C:\zabbix\conf\zabbix_agent2.conf -f

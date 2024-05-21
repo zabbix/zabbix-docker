@@ -6,32 +6,38 @@ FROM $BUILD_BASE_IMAGE as builder_base
 ARG PCRE_VERSION=8.45
 ARG OPENSSL_VERSION=1.1.1s
 ARG GOLANG_VERSION=1.18.8
-ARG SEVEN_ZIP_VERSION=2107
+ARG SEVEN_ZIP_VERSION=2405
+
+ARG MSYSTEM=UCRT64
+
 ARG BUILD_ARCH=x64
 ARG CPU_MODEL=AMD64
 
 ARG MAJOR_VERSION=5.0
 ARG ZBX_VERSION=${MAJOR_VERSION}.42
 
-ARG VS_BUILDTOOLS_URL=https://aka.ms/vs/16/release/vs_buildtools.exe
 ARG GIT_URL=https://github.com/git-for-windows/git/releases/download/v2.33.0.windows.2/MinGit-2.33.0.2-busybox-64-bit.zip
-ARG MINGW_URL=https://sourceforge.net/projects/mingw-w64/files/Toolchains%20targetting%20Win64/Personal%20Builds/mingw-builds/8.1.0/threads-win32/sjlj/x86_64-8.1.0-release-win32-sjlj-rt_v6-rev0.7z
-ARG GOLANG_URL=https://golang.org/dl/go$GOLANG_VERSION.windows-amd64.msi
-ARG CYGWIN_URL=https://cygwin.com/setup-x86_64.exe
+ARG SEVEN_ZIP_URL=https://www.7-zip.org/a/7z$SEVEN_ZIP_VERSION-$BUILD_ARCH.msi
+
+ARG MINGW_URL=https://github.com/niXman/mingw-builds-binaries/releases/download/13.2.0-rt_v11-rev1/x86_64-13.2.0-release-win32-seh-ucrt-rt_v11-rev1.7z
+ARG VS_BUILDTOOLS_URL=https://aka.ms/vs/17/release/vs_buildtools.exe
+ARG GOLANG_URL=https://go.dev/dl/go$GOLANG_VERSION.windows-amd64.zip
+ARG MSYS2_URL=https://api.github.com/repos/msys2/msys2-installer/releases/latest
+
 ARG PCRE_URL=https://sourceforge.net/projects/pcre/files/pcre/$PCRE_VERSION/pcre-$PCRE_VERSION.zip
 ARG OPENSSL_URL=https://www.openssl.org/source/openssl-$OPENSSL_VERSION.tar.gz
-ARG SEVEN_ZIP_URL=https://www.7-zip.org/a/7z$SEVEN_ZIP_VERSION-$BUILD_ARCH.msi
 
 ENV ZBX_VERSION=$ZBX_VERSION `
     BUILD_ARCH=$BUILD_ARCH CPU_MODEL=$CPU_MODEL `
+    GIT_URL=$GIT_URL SEVEN_ZIP_VERSION=$SEVEN_ZIP_VERSION `
+    MINGW_URL=$MINGW_URL VS_BUILDTOOLS_URL=$VS_BUILDTOOLS_URL GOLANG_VERSION=$GOLANG_VERSION MSYS2_URL=$MSYS2_URL `
     PCRE_VERSION=$PCRE_VERSION OPENSSL_VERSION=$OPENSSL_VERSION `
-    GOLANG_VERSION=$GOLANG_VERSION SEVEN_ZIP_VERSION=$SEVEN_ZIP_VERSION `
-    GIT_URL=$GIT_URL MINGW_URL=$MINGW_URL CYGWIN_URL=$CYGWIN_URL GOLANG_URL=$GOLANG_URL SEVEN_ZIP_URL=$SEVEN_ZIP_URL `
-    PCRE_URL=$PCRE_URL OPENSSL_URL=$OPENSSL_URL
+    PCRE_URL=$PCRE_URL OPENSSL_URL=$OPENSSL_URL `
+    CHERE_INVOKING=yes MSYSTEM=$MSYSTEM
 
 LABEL org.opencontainers.image.title="Zabbix agent 2 build base for Windows" `
       org.opencontainers.image.authors="Alexey Pustovalov <alexey.pustovalov@zabbix.com>" `
-      org.opencontainers.image.vendor="Zabbix LLC" `
+      org.opencontainers.image.vendor="Zabbix SIA" `
       org.opencontainers.image.url="https://zabbix.com/" `
       org.opencontainers.image.description="Zabbix build base image contains all required packages to build Zabbix agent 2 images" `
       org.opencontainers.image.licenses="GPL v2.0" `
@@ -41,211 +47,232 @@ LABEL org.opencontainers.image.title="Zabbix agent 2 build base for Windows" `
 SHELL ["powershell", "-Command", "$ErrorActionPreference = 'Stop'; $ProgressPreference = 'SilentlyContinue';"]
 
 RUN Set-Location -Path $env:SystemDrive\.; `
+    [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; `
+    `
+    $env:PATH = [string]::Format('{0}\mingw64\bin;{0}\go\bin;{0}\git\cmd;{0}\git\mingw64\bin;{0}\git\usr\bin;{1}\7-Zip;', $env:SystemDrive, ${env:ProgramFiles}) + $env:PATH; `
+    $env:PATH = $env:PATH + [string]::Format(';{0}\msys64\usr\bin;{0}\msys64\{1}\bin', $env:SystemDrive, $env:MSYSTEM.ToLower()); `
+    [Environment]::SetEnvironmentVariable('PATH', $env:PATH, [EnvironmentVariableTarget]::Machine); `
+    `
+    $env:BUILD_OUTPUT = [string]::Format('{0}\build_output', $env:SystemDrive); `
+    [Environment]::SetEnvironmentVariable('BUILD_OUTPUT', $env:BUILD_OUTPUT, [EnvironmentVariableTarget]::Machine); `
+    $env:BUILD_SRC = [string]::Format('{0}\build_src', $env:SystemDrive); `
+    [Environment]::SetEnvironmentVariable('BUILD_SRC', $env:BUILD_SRC, [EnvironmentVariableTarget]::Machine); `
     `
     Write-Host ('Downloading {0} ...' -f $env:GIT_URL); `
-    [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; `
-    Invoke-WebRequest -OutFile $env:SystemDrive\git.zip -Uri $env:GIT_URL; `
+    Invoke-WebRequest -OutFile $env:TEMP\git.zip -Uri $env:GIT_URL; `
     `
     $sha256 = '273f55e881094d00877d64f56570b0c997c4da5dedcb26738d56481033c1eba1'; `
+    $d_sha256 = (Get-FileHash $env:TEMP\git.zip -Algorithm sha256).Hash; `
     Write-Host ('Verifying SHA256 ({0}) ...' -f $sha256); `
-    if ((Get-FileHash $env:SystemDrive\git.zip -Algorithm sha256).Hash -ne $sha256) { `
-        Write-Host 'Checksum GIT for Windows failed!'; `
+    if ($d_sha256 -ne $sha256) { `
+        Write-Host ('Checksum GIT for Windows ({0}) failed!' -f $d_sha256); `
         exit 1; `
     }; `
     `
-    Write-Host 'Installing ...'; `
-    Expand-Archive -Path git.zip -DestinationPath $env:SystemDrive\git\.; `
+    Write-Host ('Downloading {0} ...' -f $env:SEVEN_ZIP_URL); `
+    Invoke-WebRequest -OutFile $env:TEMP\7z.msi -Uri $env:SEVEN_ZIP_URL; `
+    `
+    $sha256 = '0F6AA6596D418B1694F62C8583DE05D24589B8D7FFACCE5A7DAB52AE71F832B6'; `
+    $d_sha256 = (Get-FileHash $env:TEMP\7z.msi -Algorithm sha256).Hash; `
+    Write-Host ('Verifying SHA256 ({0}) ...' -f $sha256); `
+    if ($d_sha256 -ne $sha256) { `
+        Write-Host ('Checksum 7-zip ({0}) failed!' -f $d_sha256); `
+        exit 1; `
+    }; `
+    `
+    Write-Host ('Downloading {0} ...' -f $env:GOLANG_URL); `
+    Invoke-WebRequest -OutFile $env:TEMP\go_lang.zip -Uri $env:GOLANG_URL; `
+    `
+    $sha256 = '980788761e75ed33ffc4f2a7a3ff07cd90949bd023eb1a8d855ef0b5de9cbcba'; `
+    $d_sha256 = (Get-FileHash $env:TEMP\go_lang.zip -Algorithm sha256).Hash; `
+    Write-Host ('Verifying SHA256 ({0}) ...' -f $sha256); `
+    if ($d_sha256 -ne $sha256) { `
+        Write-Host ('Checksum Go Lang ({0}) failed!' -f $d_sha256); `
+        exit 1; `
+    }; `
+    `
+    Write-Host ('Downloading {0} ...' -f $env:MINGW_URL); `
+    Invoke-WebRequest -OutFile $env:TEMP\mingw.7z -Uri $env:MINGW_URL; `
+    `
+    $sha256 = '74ca64c55220edd3196681782fbff653c2b9cb4f427f9e532ab6e9a0823dc997'; `
+    $d_sha256 = (Get-FileHash $env:TEMP\mingw.7z -Algorithm sha256).Hash; `
+    Write-Host ('Verifying SHA256 ({0}) ...' -f $sha256); `
+    if ($d_sha256 -ne $sha256) { `
+        Write-Host ('Checksum Mingw-w64 ({0}) failed!' -f $d_sha256); `
+        exit 1; `
+    }; `
+    `
+    Write-Host ('Downloading {0} ...' -f $env:MSYS2_URL); `
+    Invoke-WebRequest -OutFile $env:TEMP\msys2.sfx.exe -Uri $(Invoke-RestMethod -UseBasicParsing $env:MSYS2_URL | `
+            Select -ExpandProperty "assets" | `
+            Select -ExpandProperty "browser_download_url" | `
+            Select-String -Pattern '.sfx.exe$').ToString(); `
+    `
+    $sha256 = 'D96C53ECBFA4B9D81F6C58077965BB2E31472A8BDA4D4446EF8F45F9C601B11D'; `
+    $d_sha256 = (Get-FileHash $env:TEMP\msys2.sfx.exe -Algorithm sha256).Hash; `
+    Write-Host ('Verifying SHA256 ({0}) ...' -f $sha256); `
+    if ($d_sha256 -ne $sha256) { `
+        Write-Host ('Checksum MSYS2 ({0}) failed!' -f $d_sha256); `
+#        exit 1; `
+    }; `
+    `
+    Write-Host ('Downloading {0} ...' -f $env:VS_BUILDTOOLS_URL); `
+    Invoke-WebRequest -OutFile $env:TEMP\vs_buildtools.exe $env:VS_BUILDTOOLS_URL; `
+    `
+    Write-Host 'Installing GIT...'; `
+    Expand-Archive `
+        -Path $env:TEMP\git.zip `
+        -DestinationPath $env:SystemDrive\git\.; `
     Write-Host 'Removing downloaded...'; `
-    Remove-Item -Force -Path $env:SystemDrive\git.zip; `
-    $env:PATH = [string]::Format('{0}\git\cmd;{0}\git\mingw64\bin;{0}\git\usr\bin;', $env:SystemDrive) + $env:PATH; `
-    [Environment]::SetEnvironmentVariable('PATH', $env:PATH, [EnvironmentVariableTarget]::Machine); `
     `
     Write-Host 'Verifying install ("git version") ...'; `
     git version; `
     `
-    Write-Host ('Downloading {0} ...' -f $env:GOLANG_URL); `
-    [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; `
-    Invoke-WebRequest -OutFile $env:SystemDrive\go-amd64.msi -Uri $env:GOLANG_URL; `
-    $sha256 = '6d38668862bf9772c0c1c1e0f26aa5dedea9825b33f763b81ccc4aa63df2cef9'; `
-    `
-    Write-Host ('Verifying SHA256 ({0}) ...' -f $sha256); `
-    if ((Get-FileHash $env:SystemDrive\go-amd64.msi -Algorithm sha256).Hash -ne $sha256) { `
-        Write-Host 'Checksum Go Lang failed!'; `
-        exit 1; `
-    }; `
-    Write-Host 'Installing ...'; `
+    Write-Host 'Installing 7z...'; `
     Start-Process `
-        -FilePath $env:SystemDrive\go-amd64.msi `
+        -FilePath $env:TEMP\7z.msi `
         -Wait `
         -ArgumentList '/qn /norestart'; `
-    Write-Host 'Removing downloaded...'; `
-    Remove-Item -Force -Path $env:SystemDrive\go-amd64.msi; `
-    `
-    $env:PATH = [string]::Format('{0}\Go\bin;', ${env:ProgramFiles}) + $env:PATH; `
-    [Environment]::SetEnvironmentVariable('PATH', $env:PATH, [EnvironmentVariableTarget]::Machine); `
-    Write-Host 'Verifying install ("go version") ...'; `
-    go version; `
-    `
-    Write-Host ('Downloading {0} ...' -f $env:SEVEN_ZIP_URL); `
-    [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; `
-    Invoke-WebRequest -OutFile $env:SystemDrive\7z.msi -Uri $env:SEVEN_ZIP_URL; `
-    `
-    $sha256 = '5447C9AC39C48F1BC7C88359B0520396A8C9707B307C107236A93A68E6FD3EB6'; `
-    Write-Host ('Verifying SHA256 ({0}) ...' -f $sha256); `
-    if ((Get-FileHash $env:SystemDrive\7z.msi -Algorithm sha256).Hash -ne $sha256) { `
-        Write-Host 'Checksum 7-zip failed!'; `
-        exit 1; `
-    }; `
-    `
-    Write-Host 'Installing ...'; `
-    Start-Process `
-        -FilePath $env:SystemDrive\7z.msi `
-        -Wait `
-        -ArgumentList '/qn /norestart'; `
-    Write-Host 'Removing downloaded...'; `
-    Remove-Item -Force -Path $env:SystemDrive\7z.msi; `
-    $env:PATH = [string]::Format('{0}\7-Zip;', ${env:ProgramFiles}) + $env:PATH; `
-    [Environment]::SetEnvironmentVariable('PATH', $env:PATH, [EnvironmentVariableTarget]::Machine); `
     `
     Write-Host 'Verifying install ("7z -h") ...'; `
     7z -h | Select -first 2; `
     `
-    Write-Host ('Downloading {0} ...' -f $env:MINGW_URL); `
-    [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; `
-    (new-object System.Net.WebClient).DownloadFile("""$env:MINGW_URL""","""$env:SystemDrive\mingw.7z"""); `
+    Write-Host 'Installing Go Lang...'; `
+    Expand-Archive -Path $env:TEMP\go_lang.zip -DestinationPath $env:SystemDrive\; `
     `
-    $sha256 = 'e8c65ddc655534b0330f66f7b480565621e8617cda9937d76ba141a22bf3b2fa'; `
-    Write-Host ('Verifying SHA256 ({0}) ...' -f $sha256); `
-    if ((Get-FileHash $env:SystemDrive\mingw.7z -Algorithm sha256).Hash -ne $sha256) { `
-        Write-Host 'Checksum Mingw-w64 failed!'; `
-        exit 1; `
-    }; `
+    Write-Host 'Verifying install ("go version") ...'; `
+    go version; `
     `
-    Write-Host 'Installing ...'; `
-    7z x $env:SystemDrive\mingw.7z; `
-    Write-Host 'Removing downloaded...'; `
-    Remove-Item -Force -Path $env:SystemDrive\mingw.7z; `
-    $env:PATH = [string]::Format('{0}\mingw64\bin;', $env:SystemDrive) + $env:PATH; `
-    [Environment]::SetEnvironmentVariable('PATH', $env:PATH, [EnvironmentVariableTarget]::Machine); `
+    Write-Host 'Installing Mingw-w64...'; `
+    7z x $env:TEMP\mingw.7z; `
+    compact /c /i /s:$env:SystemDrive\mingw64 | Out-Null; `
     `
-    Write-Host 'Verifying install ("mingw32-make -v") ...'; `
-    mingw32-make -v; `
+    Write-Host 'Verifying install ("gcc -v") ...'; `
+    gcc -v; `
     `
-    Write-Host ('Downloading {0} ...' -f $env:VS_BUILDTOOLS_URL); `
-    [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; `
-    Invoke-WebRequest -OutFile $env:SystemDrive\vs_buildtools.exe $env:VS_BUILDTOOLS_URL; `
+    Write-Host 'Installing MSYS2...'; `
+    & $env:TEMP\msys2.sfx.exe -y -o"""$env:SystemDrive\""" | Out-Null; `
+    bash -lc 'pacman --noprogressbar --noconfirm -Syuu'; `
+    bash -lc 'pacman --noprogressbar --noconfirm -Syuu'; `
+    bash -lc 'pacman --noprogressbar --sync --quiet --noconfirm mingw-w64-ucrt-x86_64-cmake'; `
+    bash -lc 'pacman --noprogressbar --noconfirm -Scc'; `
+    bash -lc 'rm -rf /usr/share/man/* /usr/share/doc/* /usr/share/locale/*'; `
+    bash -lc 'rm -rf /$MSYSTEM/usr/share/man/* /$MSYSTEM/usr/share/doc/* /$MSYSTEM/usr/share/locale/*'; `
+    bash -lc 'rm -rf /$MSYSTEM/share/man/* /$MSYSTEM/share/doc/* /$MSYSTEM/share/locale/*'; `
+    bash -lc 'rm -rf /var/cache/pacman/pkg/*'; `
+    taskkill /F /FI 'MODULES eq msys-2.0.dll' | Out-Null; `
+    compact /c /i /s:$env:SystemDrive\msys64 | Out-Null; `
+    `
+    Write-Host 'Verifying install ("bash --version") ...'; `
+    bash --version; `
     `
     Write-Host ('{0} - Visual Studio components installing...' -f $(Get-Date -format 'u')); `
-    cmd /C start /w $env:SystemDrive\vs_buildtools.exe `
+    cmd /C start /w $env:TEMP\vs_buildtools.exe `
         --quiet `
         --wait `
         --norestart `
         --nocache `
-        --installPath """${env:ProgramFiles(x86)}\Microsoft Visual Studio\2019\BuildTools""" `
-        --channelUri https://aka.ms/vs/16/release/channel `
-        --installChannelUri https://aka.ms/vs/16/release/channel `
-        --channelId VisualStudio.16.Release `
-        # https://docs.microsoft.com/en-us/visualstudio/install/workload-component-id-vs-build-tools?view=vs-2019
-        --add Microsoft.VisualStudio.Component.VC.CMake.Project; `
+        --installPath """${env:ProgramFiles(x86)}\Microsoft Visual Studio\2022\BuildTools""" `
+        --channelUri https://aka.ms/vs/17/release/channel `
+        --installChannelUri https://aka.ms/vs/17/release/channel `
+        --channelId VisualStudio.17.Release `
+        # https://docs.microsoft.com/en-us/visualstudio/install/workload-component-id-vs-build-tools?view=vs-2022
+        --add Microsoft.VisualStudio.Component.VC.Tools.x86.x64; `
     if ($err = dir $Env:TEMP -Filter dd_setup_*_errors.log | where Length -gt 0 | Get-Content) { `
         throw $err; `
     }; `
     Wait-Process -name msiexec; `
     Write-Host ('{0} - Visual Studio components installed' -f $(Get-Date -format 'u')); `
     `
-    Write-Host 'Visual Studio components installation cleanup'; `
-    Write-Host 'Removing downloaded...'; `
-    Remove-Item -Force -Path $env:SystemDrive\vs_buildtools.exe; `
-    Get-ChildItem -Path """${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer""" -Directory -Recurse | Remove-Item -Force -Recurse; `
-    Remove-Item -Force -Recurse $env:TEMP\*; `
-    Write-Host 'Build environment is ready...';
-
-RUN Set-Location -Path $env:SystemDrive\.; `
+    $env:VS_PATH = &(Join-Path ${env:ProgramFiles(x86)} """\Microsoft Visual Studio\Installer\vswhere.exe""") -latest -products Microsoft.VisualStudio.Product.BuildTools -property installationPath; `
+    [Environment]::SetEnvironmentVariable('VS_PATH', $env:VS_PATH, [EnvironmentVariableTarget]::Machine); `
     `
-    Import-Module ('{0}\Microsoft Visual Studio\2019\BuildTools\Common7\Tools\Microsoft.VisualStudio.DevShell.dll' -f ${env:ProgramFiles(x86)} ); `
-    Enter-VsDevShell -VsInstallPath ('{0}\Microsoft Visual Studio\2019\BuildTools' -f ${env:ProgramFiles(x86)}) -DevCmdArguments """-arch=$env:BUILD_ARCH"""; `
+    Write-Host 'Visual Studio components installation cleanup'; `
+    Get-ChildItem -Path """${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer""" -Directory -Recurse | Remove-Item -Force -Recurse; `
+    `
+    Write-Host 'Removing downloaded...'; `
+    Remove-Item -Force -Recurse $env:TEMP\*; `
+    Write-Host 'Build environment is ready...'; `
+    `
+    [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; `
+    `
+    New-Item -ItemType directory -Path $env:BUILD_OUTPUT -Force | Out-Null; `
+    New-Item -ItemType directory -Path $env:BUILD_SRC -Force | Out-Null; `
+    Set-Location -Path $env:BUILD_SRC; `
     `
     Write-Host ('Downloading {0} ...' -f $env:PCRE_URL); `
-    [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; `
-    (new-object System.Net.WebClient).DownloadFile("""$env:PCRE_URL""","""$env:SystemDrive\pcre.zip"""); `
+    Invoke-WebRequest -OutFile $env:TEMP\pcre.zip -Uri $env:PCRE_URL; `
     `
-    Write-Host ('Verifying SHA256 ({0}) ...' -f $sha256); `
     $sha256 = '5b709aa45ea3b8bb73052947200ad187f651a2049158fb5bbfed329e4322a977'; `
-    if ((Get-FileHash $env:SystemDrive\pcre.zip -Algorithm sha256).Hash -ne $sha256) { `
-        Write-Host 'Checksum PCRE library failed!'; `
+    $d_sha256 = (Get-FileHash $env:TEMP\pcre.zip -Algorithm sha256).Hash; `
+    Write-Host ('Verifying SHA256 ({0}) ...' -f $sha256); `
+    if ($d_sha256 -ne $sha256) { `
+        Write-Host ('Checksum PCRE library ({0}) failed!' -f $d_sha256); `
         exit 1; `
     }; `
-    Write-Host 'Extracting archive ...'; `
-    Expand-Archive -Path $env:SystemDrive\pcre.zip -DestinationPath $env:SystemDrive; `
-    Write-Host 'Removing downloaded...'; `
-    Remove-Item -Force -Path $env:SystemDrive\pcre.zip; `
-    Rename-Item -Path $env:SystemDrive\pcre-$env:PCRE_VERSION -NewName $env:SystemDrive\pcre_build; `
     `
-    Set-Location -Path $env:SystemDrive\pcre_build; `
+    Write-Host ('Downloading {0} ...' -f $env:OPENSSL_URL); `
+    Invoke-WebRequest -OutFile $env:TEMP\openssl.tar.gz -Uri $env:OPENSSL_URL; `
+    `
+    $sha256 = '6ae015467dabf0469b139ada93319327be24b98251ffaeceda0221848dc09262'; `
+    $d_sha256 = (Get-FileHash $env:TEMP\openssl.tar.gz -Algorithm sha256).Hash; `
+    Write-Host ('Verifying SHA256 ({0}) ...' -f $sha256); `
+    if ($d_sha256 -ne $sha256) { `
+        Write-Host ('Checksum OpenSSL library ({0}) failed!' -f $d_sha256); `
+        exit 1; `
+    }; `
+    `
+    Write-Host 'Extracting PCRE archive ...'; `
+    Expand-Archive -Path $env:TEMP\pcre.zip -DestinationPath $env:BUILD_SRC; `
+    `
+    Write-Host 'Removing downloaded ...'; `
+    Remove-Item -Force -Path $env:TEMP\pcre.zip; `
+    Rename-Item -Path $env:BUILD_SRC\pcre-$env:PCRE_VERSION -NewName $env:BUILD_SRC\pcre; `
+    `
+    Write-Host 'Extracting OpenSSL archive ...'; `
+    $env:SystemDirectory = [Environment]::SystemDirectory; `
+    tar -zxf "$env:TEMP\openssl.tar.gz"; `
+    `
+    Write-Host 'Removing downloaded...'; `
+    Remove-Item -Force -Path $env:TEMP\openssl.tar.gz; `
+    Rename-Item -Path $env:BUILD_SRC\openssl-$env:OPENSSL_VERSION -NewName $env:BUILD_SRC\openssl; `
+    `
     Write-Host 'Building PCRE library ...'; `
+    Set-Location -Path $env:BUILD_SRC\pcre; `
     cmake --log-level=ERROR `
         -G 'MinGW Makefiles' `
         -DBUILD_SHARED_LIBS=OFF `
+        -DBUILD_STATIC_LIBS=ON `
+        -DPCRE_DEBUG=OFF `
+        -DPCRE_BUILD_TESTS=OFF `
+        -DINSTALL_MSVC_PDB=OFF `
         -DCMAKE_C_COMPILER=gcc `
         -DCMAKE_C_FLAGS='-O2 -g' `
-        -DCMAKE_CXX_FLAGS='-O2 -g' `
-        -DCMAKE_INSTALL_PREFIX="""$env:SystemDrive\pcre_output""" . ; `
+        -DCMAKE_INSTALL_PREFIX="""$env:BUILD_OUTPUT\pcre""" . ; `
     mingw32-make -s -j"""$env:NUMBER_OF_PROCESSORS"""; `
     mingw32-make -s -j"""$env:NUMBER_OF_PROCESSORS""" install; `
-    Write-Host 'PCRE is ready...';
-
-RUN Set-Location -Path $env:SystemDrive\.; `
-    `
-    Write-Host ('Downloading {0} ...' -f $env:CYGWIN_URL); `
-    [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; `
-    (New-Object Net.WebClient).DownloadFile("""$env:CYGWIN_URL""", """$env:SystemDrive\setup.exe"""); `
-    `
-    $sha256 = '3d9e0143268f52aecaff76f81553c880ec9a353eb5a6e22bd6d34bad8251710c'; `
-    Write-Host ('Verifying SHA256 ({0}) ...' -f $sha256); `
-    if ((Get-FileHash $env:SystemDrive\setup.exe -Algorithm sha256).Hash -ne $sha256) { `
-        Write-Host 'Checksum Cygwin failed!'; `
-        exit 1; `
-    }; `
-    Write-Host 'Installing ...'; `
-    Start-Process $env:SystemDrive\setup.exe `
-        -ArgumentList """-qnNdO -a x86_64 -R $env:SystemDrive\cygwin --site http://cygwin.mirror.constant.com -l $env:SystemDrive\cygwin\var\cache\setup --packages perl""" `
-        -Wait `
-        -NoNewWindow; `
-    `
-    Write-Host 'Removing downloaded...'; `
-    Remove-Item -Force -Path $env:SystemDrive\setup.exe; `
-    Write-Host ('Downloading {0} ...' -f $env:OPENSSL_URL); `
-    [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; `
-    Invoke-WebRequest -OutFile $env:SystemDrive\openssl.tar.gz -Uri $env:OPENSSL_URL; `
-    `
-    $sha256 = 'c5ac01e760ee6ff0dab61d6b2bbd30146724d063eb322180c6f18a6f74e4b6aa'; `
-    Write-Host ('Verifying SHA256 ({0}) ...' -f $sha256); `
-    if ((Get-FileHash $env:SystemDrive\openssl.tar.gz -Algorithm sha256).Hash -ne $sha256) { `
-        Write-Host 'Checksum OpenSSL library failed!'; `
-        exit 1; `
-    }; `
-    `
-    Write-Host 'Extracting archive ...'; `
-    tar -zxf $env:SystemDrive\openssl.tar.gz; `
-    Write-Host 'Removing downloaded...'; `
-    Remove-Item -Force -Path $env:SystemDrive\openssl.tar.gz; `
-    Rename-Item -Path $env:SystemDrive\openssl-$env:OPENSSL_VERSION -NewName $env:SystemDrive\openssl_build; `
+    mingw32-make -s clean | Out-Null; `
+    Remove-Item -Path $env:BUILD_OUTPUT\pcre\man -Force -Recurse; `
+    Remove-Item -Path $env:BUILD_OUTPUT\pcre\share -Force -Recurse; `
+    Write-Host 'PCRE is ready...'; `
     `
     Write-Host 'Building OpenSSL library...'; `
-    Set-Location -Path $env:SystemDrive\openssl_build; `
-    $env:PATH+=""";$env:SystemDrive\cygwin\bin"""; `
+    Set-Location -Path $env:BUILD_SRC\openssl; `
     perl Configure `
         mingw64 `
         no-shared `
         no-ui-console `
         no-tests `
-#        enable-capieng `
+        no-unit-test `
         no-capieng `
         --api=1.1.0 `
-        --prefix=$env:SystemDrive\openssl_output `
-        --openssldir=$env:SystemDrive\openssl_output_ssl; `
-    mingw32-make -s -j"""$env:NUMBER_OF_PROCESSORS"""; `
-    mingw32-make -s -j"""$env:NUMBER_OF_PROCESSORS""" install_sw; `
+        --libdir=lib `
+        --prefix=$env:BUILD_OUTPUT/openssl `
+        --openssldir=$env:BUILD_OUTPUT/openssl_ssl; `
+    mingw32-make -s -j"""$env:NUMBER_OF_PROCESSORS""" build_sw; `
+    mingw32-make -s -j"""$env:NUMBER_OF_PROCESSORS""" install_dev; `
+    mingw32-make -s clean | Out-Null; `
     Write-Host 'OpenSSL is ready...'; `
-    Write-Host 'Removing cygwin...'; `
-    Remove-Item -Recurse -Force -Path $env:SystemDrive\cygwin;
+    `
+    Write-Host 'Removing downloaded...'; `
+    Remove-Item -Force -Recurse $env:TEMP\*;
