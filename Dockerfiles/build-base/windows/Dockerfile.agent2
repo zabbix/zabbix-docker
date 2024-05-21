@@ -20,7 +20,7 @@ ARG SEVEN_ZIP_URL=https://www.7-zip.org/a/7z$SEVEN_ZIP_VERSION-$BUILD_ARCH.msi
 ARG MINGW_URL=https://github.com/niXman/mingw-builds-binaries/releases/download/13.2.0-rt_v11-rev1/x86_64-13.2.0-release-win32-seh-ucrt-rt_v11-rev1.7z
 ARG VS_BUILDTOOLS_URL=https://aka.ms/vs/17/release/vs_buildtools.exe
 ARG GOLANG_URL=https://go.dev/dl/go$GOLANG_VERSION.windows-amd64.zip
-ARG MSYS2_URL=https://github.com/msys2/msys2-installer/releases/download/nightly-x86_64/msys2-base-x86_64-latest.sfx.exe
+ARG MSYS2_URL=https://github.com/msys2/msys2-installer/releases/download/2024-05-07/msys2-base-x86_64-20240507.sfx.exe
 
 ARG PCRE2_URL=https://github.com/PhilipHazel/pcre2/releases/download/pcre2-$PCRE2_VERSION/pcre2-$PCRE2_VERSION.zip
 ARG OPENSSL_URL=https://www.openssl.org/source/openssl-$OPENSSL_VERSION.tar.gz
@@ -150,6 +150,9 @@ RUN Set-Location -Path $env:SystemDrive\.; `
     bash -lc 'pacman --noconfirm -Syuu'; `
     bash -lc 'pacman --sync --quiet --noconfirm mingw-w64-ucrt-x86_64-cmake'; `
     bash -lc 'pacman --noconfirm -Scc'; `
+    bash -lc 'rm -rf /usr/share/info/ /usr/share/zoneinfo/ /usr/share/locale/ /usr/share/man/ /usr/lib/terminfo/'; `
+    bash -lc 'rm -rf /usr/share/doc/ /ucrt64/share/doc /ucrt64/share/man /ucrt64/share/info /ucrt64/share/oneinfo /ucrt64/share/zoneinfo  /ucrt64/share/locale'; `
+    bash -lc 'rm -rf /usr/share/bash-completion/ /usr/share/terminfo/'; `
     compact /c /i /s:$env:SystemDrive\msys64 | Out-Null; `
     `
     Write-Host 'Verifying install ("sh --version") ...'; `
