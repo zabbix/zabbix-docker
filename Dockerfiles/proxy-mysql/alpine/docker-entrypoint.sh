@@ -385,6 +385,7 @@ update_zbx_config() {
         update_config_var $ZBX_CONFIG "VaultDBPath" "${ZBX_VAULTDBPATH}"
         update_config_var $ZBX_CONFIG "VaultTLSCertFile" "${ZBX_VAULTTLSCERTFILE}"
         update_config_var $ZBX_CONFIG "VaultTLSKeyFile" "${ZBX_VAULTTLSKEYFILE}"
+        update_config_var $ZBX_CONFIG "VaultPrefix" "${ZBX_VAULTPREFIX}"
         update_config_var $ZBX_CONFIG "VaultURL" "${ZBX_VAULTURL}"
         update_config_var $ZBX_CONFIG "DBUser"
         update_config_var $ZBX_CONFIG "DBPassword"
@@ -393,6 +394,7 @@ update_zbx_config() {
         update_config_var $ZBX_CONFIG "VaultDBPath"
         update_config_var $ZBX_CONFIG "VaultTLSCertFile"
         update_config_var $ZBX_CONFIG "VaultTLSKeyFile"
+        update_config_var $ZBX_CONFIG "VaultPrefix"
         update_config_var $ZBX_CONFIG "VaultURL"
         update_config_var $ZBX_CONFIG "DBUser" "${DB_SERVER_ZBX_USER}"
         update_config_var $ZBX_CONFIG "DBPassword" "${DB_SERVER_ZBX_PASS}"
@@ -506,6 +508,9 @@ update_zbx_config() {
     else
         update_config_var $ZBX_CONFIG "AllowRoot" "1"
     fi
+
+    update_config_var $ZBX_CONFIG "WebDriverURL" "${ZBX_WEBDRIVERURL}"
+    update_config_var $ZBX_CONFIG "StartBrowserPollers" "${ZBX_STARTBROWSERPOLLERS}"
 }
 
 prepare_db() {
