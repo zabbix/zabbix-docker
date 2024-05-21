@@ -17,7 +17,7 @@ LABEL description="Zabbix build base for PostgreSQL based images" \
       release="${RELEASE}" \
       summary="Zabbix build base (PostgreSQL)" \
       url="https://www.zabbix.com/" \
-      vendor="Zabbix LLC" \
+      vendor="Zabbix SIA" \
       version="${MAJOR_VERSION}" \
       io.k8s.description="Zabbix build base for PostgreSQL based images" \
       io.k8s.display-name="Zabbix build base (PostgreSQL)" \
@@ -27,7 +27,7 @@ LABEL description="Zabbix build base for PostgreSQL based images" \
       org.label-schema.name="zabbix-build-pgsql-rhel" \
       org.label-schema.url="https://zabbix.com/" \
       org.label-schema.vcs-ref="${VCS_REF}" \
-      org.label-schema.vendor="Zabbix LLC"
+      org.label-schema.vendor="Zabbix SIA"
 
 ENV MONGODB_PLUGIN_SOURCES=https://git.zabbix.com/scm/ap/mongodb.git MONGODB_PLUGIN_VERSION=${ZBX_VERSION} \
     POSTGRESQL_PLUGIN_SOURCES=https://git.zabbix.com/scm/ap/postgresql.git POSTGRESQL_PLUGIN_VERSION=${ZBX_VERSION}
