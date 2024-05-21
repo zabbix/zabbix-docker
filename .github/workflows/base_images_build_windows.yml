@@ -323,5 +323,5 @@ jobs:
       - name: Cache image digest
         uses: actions/cache@13aacd865c20de90d75de3b17ebe84f7a17d57d2 # v4.0.0
         with:
-          path: ${{ env.BASE_IMAGE_NAME }}_${{ matrix.os }}_${{ matrix.component }}_${{ needs.init_build.outputs.current_branch }}
-          key: ${{ env.BASE_IMAGE_NAME }}-${{ matrix.os }}
+          path: ${{ env.BASE_IMAGE_NAME }}_${{ matrix.os }}_${{ matrix.component }}
+          key: ${{ env.BASE_IMAGE_NAME }}-${{ matrix.os }}-${{ needs.init_build.outputs.current_branch }}
