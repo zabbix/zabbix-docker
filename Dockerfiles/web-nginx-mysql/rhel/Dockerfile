@@ -23,7 +23,7 @@ LABEL description="Zabbix web-interface based on Nginx web server with MySQL dat
       run="docker run --name zabbix-web-nginx --link mysql-server:mysql --link zabbix-server:zabbix-server -p 80:80 -d registry.connect.redhat.com/zabbix/zabbix-web-nginx-60:${ZBX_VERSION}" \
       summary="Zabbix web-interface based on Nginx web server with MySQL database support" \
       url="https://www.zabbix.com/" \
-      vendor="Zabbix LLC" \
+      vendor="Zabbix SIA" \
       version="${MAJOR_VERSION}" \
       io.k8s.description="Zabbix web-interface based on Nginx web server with MySQL database support" \
       io.k8s.display-name="Zabbix Frontend (Nginx)" \
@@ -39,7 +39,7 @@ LABEL description="Zabbix web-interface based on Nginx web server with MySQL dat
       org.label-schema.usage="https://www.zabbix.com/documentation/${MAJOR_VERSION}/manual/installation/containers" \
       org.label-schema.vcs-ref="${VCS_REF}" \
       org.label-schema.vcs-url="${ZBX_SOURCES}" \
-      org.label-schema.vendor="Zabbix LLC" \
+      org.label-schema.vendor="Zabbix SIA" \
       org.label-schema.version="${ZBX_VERSION}"
 
 STOPSIGNAL SIGTERM

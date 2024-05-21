@@ -25,7 +25,7 @@ LABEL description="Zabbix server with MySQL database support" \
       run="docker run --name zabbix-server --link mysql-server:mysql-server -p 10051:10051 -d registry.connect.redhat.com/zabbix/zabbix-server-mysql-60:${ZBX_VERSION}" \
       summary="Zabbix server (MySQL)" \
       url="https://www.zabbix.com/" \
-      vendor="Zabbix LLC" \
+      vendor="Zabbix SIA" \
       version="${MAJOR_VERSION}" \
       io.k8s.description="Zabbix server with MySQL database support" \
       io.k8s.display-name="Zabbix server (MySQL)" \
@@ -41,7 +41,7 @@ LABEL description="Zabbix server with MySQL database support" \
       org.label-schema.usage="https://www.zabbix.com/documentation/${MAJOR_VERSION}/manual/installation/containers" \
       org.label-schema.vcs-ref="${VCS_REF}" \
       org.label-schema.vcs-url="${ZBX_SOURCES}" \
-      org.label-schema.vendor="Zabbix LLC" \
+      org.label-schema.vendor="Zabbix SIA" \
       org.label-schema.version="${ZBX_VERSION}"
 
 STOPSIGNAL SIGTERM
