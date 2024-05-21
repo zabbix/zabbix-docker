@@ -20,6 +20,9 @@ on:
         required: true
         default: false
         type: boolean
+      trunk_version:
+        description: 'Specify trunk major version'
+        type: string
 
 defaults:
   run:
@@ -30,9 +33,7 @@ permissions:
 
 env:
   TRUNK_ONLY_EVENT: ${{ contains(fromJSON('["schedule"]'), github.event_name) }}
-#  AUTO_PUSH_IMAGES: ${{ ! contains(fromJSON('["workflow_dispatch", "push"]'), github.event_name) && vars.AUTO_PUSH_IMAGES }}
-  AUTO_PUSH_IMAGES: ${{ vars.AUTO_PUSH_IMAGES }}
-
+  AUTO_PUSH_IMAGES: ${{ (! contains(fromJSON('["push"]'), github.event_name) && vars.AUTO_PUSH_IMAGES) || (contains(fromJSON('["workflow_dispatch"]'), github.event_name) && inputs.publish_images == 'true' ) }}
   LATEST_BRANCH: ${{ github.event.repository.default_branch }}
   TRUNK_GIT_BRANCH: "refs/heads/trunk"
   IMAGES_PREFIX: "zabbix-"
@@ -140,6 +141,7 @@ jobs:
         env:
           LATEST_BRANCH: ${{ env.LATEST_BRANCH }}
           github_ref: ${{ github.ref }}
+          TRUNK_MAJOR_VERSION: ${{ inputs.trunk_version }}
         run: |
             result=false
             sha_short=$(git rev-parse --short HEAD)
@@ -157,13 +159,21 @@ jobs:
             echo "::group::Branch metadata"
             echo "is_default_branch - $result"
             echo "current_branch - $github_ref"
-            echo "secret_prefix=RHEL_${github_ref//.}"
+            if [ "${github_ref//.}" == "trunk" ] && [ ! -z "$TRUNK_MAJOR_VERSION" ]; then
+                echo "secret_prefix=RHEL_${TRUNK_MAJOR_VERSION//.}"
+            else
+                echo "secret_prefix=RHEL_${github_ref//.}"
+            fi
             echo "sha_short - $sha_short"
             echo "::endgroup::"
 
             echo "is_default_branch=$result" >> $GITHUB_OUTPUT
             echo "current_branch=$github_ref" >> $GITHUB_OUTPUT
-            echo "secret_prefix=RHEL_${github_ref//.}" >> $GITHUB_OUTPUT
+            if [ "${github_ref//.}" == "trunk" ] && [ ! -z "$TRUNK_MAJOR_VERSION" ]; then
+                echo "secret_prefix=RHEL_${TRUNK_MAJOR_VERSION//.}" >> $GITHUB_OUTPUT
+            else
+                echo "secret_prefix=RHEL_${github_ref//.}" >> $GITHUB_OUTPUT
+            fi
             echo "sha_short=$sha_short" >> $GITHUB_OUTPUT
 
       - name: Cleanup existing cache

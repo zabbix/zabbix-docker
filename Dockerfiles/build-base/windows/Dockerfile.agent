@@ -37,7 +37,7 @@ ENV ZBX_VERSION=$ZBX_VERSION `
 
 LABEL org.opencontainers.image.title="Zabbix agent build base for Windows" `
       org.opencontainers.image.authors="Alexey Pustovalov <alexey.pustovalov@zabbix.com>" `
-      org.opencontainers.image.vendor="Zabbix LLC" `
+      org.opencontainers.image.vendor="Zabbix SIA" `
       org.opencontainers.image.url="https://zabbix.com/" `
       org.opencontainers.image.description="Zabbix build base image contains all required packages to build Zabbix agent images" `
       org.opencontainers.image.licenses="GPL v2.0" `

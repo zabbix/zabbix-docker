@@ -15,7 +15,7 @@ LABEL description="Prepared environment to build Zabbix components" \
       release="${RELEASE}" \
       summary="Zabbix build base" \
       url="https://www.zabbix.com/" \
-      vendor="Zabbix LLC" \
+      vendor="Zabbix SIA" \
       version="${MAJOR_VERSION}" \
       io.k8s.description="Prepared environment to build Zabbix components" \
       io.k8s.display-name="Zabbix build base" \
@@ -25,7 +25,7 @@ LABEL description="Prepared environment to build Zabbix components" \
       org.label-schema.name="zabbix-build-base-rhel" \
       org.label-schema.url="https://zabbix.com/" \
       org.label-schema.vcs-ref="${VCS_REF}" \
-      org.label-schema.vendor="Zabbix LLC"
+      org.label-schema.vendor="Zabbix SIA"
 
 COPY ["licenses", "/licenses"]
 
