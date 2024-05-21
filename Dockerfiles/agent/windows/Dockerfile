@@ -16,7 +16,7 @@ ARG ZBX_SOURCES=https://git.zabbix.com/scm/zbx/zabbix.git
 
 LABEL org.opencontainers.image.title="Zabbix agent" `
       org.opencontainers.image.authors="Alexey Pustovalov <alexey.pustovalov@zabbix.com>" `
-      org.opencontainers.image.vendor="Zabbix LLC" `
+      org.opencontainers.image.vendor="Zabbix SIA" `
       org.opencontainers.image.url="https://zabbix.com/" `
       org.opencontainers.image.description="Zabbix agent is deployed on a monitoring target to actively monitor local resources and applications" `
       org.opencontainers.image.licenses="GPL v2.0" `
@@ -28,7 +28,7 @@ SHELL ["pwsh", "-Command", "$ErrorActionPreference = 'Stop';"]
 
 WORKDIR C:\zabbix\
 
-COPY --from=builder ["C:\\zabbix", "C:\\zabbix"]
+COPY --from=builder ["C:\\zabbix_output", "C:\\zabbix"]
 COPY [".\\docker-entrypoint.ps1", "C:\\zabbix"]
 
 USER ContainerAdministrator
@@ -37,16 +37,19 @@ RUN $env:PATH = [string]::Format('{0}\zabbix\sbin;{0}\zabbix\bin;', $env:SystemD
     [Environment]::SetEnvironmentVariable('PATH', $env:PATH, [EnvironmentVariableTarget]::Machine); `
     `
     $env:ZBX_HOME = [string]::Format('{0}\zabbix', $env:SystemDrive); `
-    [Environment]::SetEnvironmentVariable('ZBX_HOME', $env:ZBX_HOME, [EnvironmentVariableTarget]::Machine);
+    [Environment]::SetEnvironmentVariable('ZBX_HOME', $env:ZBX_HOME, [EnvironmentVariableTarget]::Machine); `
+    `
+    Write-Host ('Verifying Zabbix agent {0} ...' -f $env:ZBX_VERSION); `
+    zabbix_agentd.exe -V;
 
 RUN Set-Location -Path $env:SystemDrive\.; `
     `
-    New-Item -ItemType directory -Path $env:ZBX_HOME\conf\zabbix_agentd.d | Out-Null; `
-    New-Item -ItemType directory -Path $env:ZBX_HOME\enc | Out-Null; `
-    New-Item -ItemType directory -Path $env:ZBX_HOME\modules | Out-Null; `
-    New-Item -ItemType directory -Path $env:ZBX_HOME\buffer | Out-Null; `
+    New-Item -Force -ItemType directory -Path $env:ZBX_HOME\conf\zabbix_agentd.d | Out-Null; `
+    New-Item -Force -ItemType directory -Path $env:ZBX_HOME\enc | Out-Null; `
+    New-Item -Force -ItemType directory -Path $env:ZBX_HOME\modules | Out-Null; `
+    New-Item -Force -ItemType directory -Path $env:ZBX_HOME\buffer | Out-Null; `
     `
-	net accounts /MaxPWAge:unlimited; `
+    net accounts /MaxPWAge:unlimited; `
     net user /add zabbix /expire:never /passwordreq:no; `
     $acl = Get-Acl -Path $env:ZBX_HOME; `
     $ace = New-Object Security.AccessControl.FileSystemAccessRule ('zabbix', 'Modify', 'ContainerInherit, ObjectInherit', 'InheritOnly', 'Allow'); `
@@ -57,4 +60,4 @@ USER zabbix
 
 EXPOSE 10050/TCP
 
-CMD C:\zabbix\docker-entrypoint.ps1 C:\zabbix\sbin\zabbix_agentd.exe -c C:\zabbix\conf\zabbix_agentd.win.conf -f
+CMD C:\zabbix\docker-entrypoint.ps1 C:\zabbix\sbin\zabbix_agentd.exe -c C:\zabbix\conf\zabbix_agentd.conf -f
