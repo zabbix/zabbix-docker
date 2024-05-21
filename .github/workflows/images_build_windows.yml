@@ -67,7 +67,7 @@ jobs:
             github.com:443
 
       - name: Checkout repository
-        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+        uses: actions/checkout@a5ac7e51b41094c92402da3b24376905380afc29 # v4.1.6
         with:
           ref: ${{ env.TRUNK_ONLY_EVENT == 'true' && env.TRUNK_GIT_BRANCH || '' }}
           fetch-depth: 1
@@ -155,7 +155,7 @@ jobs:
         component: ${{ fromJson(needs.init_build.outputs.components) }}
     steps:
       - name: Checkout repository
-        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+        uses: actions/checkout@a5ac7e51b41094c92402da3b24376905380afc29 # v4.1.6
         with:
           ref: ${{ env.TRUNK_ONLY_EVENT == 'true' && env.TRUNK_GIT_BRANCH || '' }}
           fetch-depth: 1
@@ -344,7 +344,7 @@ jobs:
         component: ${{ fromJson(needs.init_build.outputs.components) }}
     steps:
       - name: Checkout repository
-        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+        uses: actions/checkout@a5ac7e51b41094c92402da3b24376905380afc29 # v4.1.6
         with:
           ref: ${{ env.TRUNK_ONLY_EVENT == 'true' && env.TRUNK_GIT_BRANCH || '' }}
           fetch-depth: 1
@@ -571,7 +571,7 @@ jobs:
         component: ${{ fromJson(needs.init_build.outputs.components) }}
     steps:
       - name: Checkout repository
-        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+        uses: actions/checkout@a5ac7e51b41094c92402da3b24376905380afc29 # v4.1.6
         with:
           ref: ${{ env.TRUNK_ONLY_EVENT == 'true' && env.TRUNK_GIT_BRANCH || '' }}
           fetch-depth: 1
