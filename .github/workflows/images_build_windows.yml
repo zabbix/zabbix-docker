@@ -210,8 +210,8 @@ jobs:
         with:
           path: |
               ${{ env.BASE_IMAGE_NAME }}_${{ matrix.os }}_${{ matrix.component }}_${{ needs.init_build.outputs.sha_short }}
-              ${{ env.BASE_IMAGE_NAME }}_${{ matrix.os }}_${{ matrix.component }}_${{ needs.init_build.outputs.current_branch }}
-          key: ${{ env.BASE_IMAGE_NAME }}-${{ matrix.os }}
+              ${{ env.BASE_IMAGE_NAME }}_${{ matrix.os }}_${{ matrix.component }}
+          key: ${{ env.BASE_IMAGE_NAME }}-${{ matrix.os }}-${{ needs.init_build.outputs.current_branch }}
           fail-on-cache-miss: true
 
       - name: Retrieve ${{ env.BASE_IMAGE_NAME }}:${{ matrix.os }} SHA256 tag
