@@ -1,0 +1,13 @@
+version: '3.8'
+services:
+ selenium:
+  image: "${WEBDRIVER_IMAGE}:${WEBDRIVER_IMAGE_TAG}"
+  restart: "${RESTART_POLICY}"
+  profiles:
+   - full
+   - all
+  shm_size: "2gb"
+  networks:
+   zbx_tools_frontend:
+    aliases:
+     - webdriver

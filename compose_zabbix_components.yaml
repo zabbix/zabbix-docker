@@ -40,6 +40,7 @@ services:
      aliases:
       - zabbix-server
    zbx_net_frontend:
+   zbx_tools_frontend:
 #  devices:
 #   - "/dev/ttyUSB0:/dev/ttyUSB0"
   stop_grace_period: 30s
@@ -128,6 +129,7 @@ services:
   networks:
    zbx_net_backend:
    zbx_net_frontend:
+   zbx_tools_frontend:
   stop_grace_period: 30s
 #  cap_add:
 #    - "NET_RAW"

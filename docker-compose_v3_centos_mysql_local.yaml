@@ -205,6 +205,11 @@ services:
 #   file: compose_databases.yaml
 #   service: elasticsearch
 
+# selenium:
+#  extends:
+#   file: compose_additional_components.yaml
+#   service: selenium
+
 networks:
   zbx_net_frontend:
     driver: bridge
@@ -230,6 +235,14 @@ networks:
     internal: true
     ipam:
       driver: "${DATABASE_NETWORK_DRIVER}"
+  zbx_tools_frontend:
+    driver: bridge
+    driver_opts:
+      com.docker.network.enable_ipv6: "${ADD_TOOLS_ENABLE_IPV6}"
+    ipam:
+      driver: "${ADD_TOOLS_NETWORK_DRIVER}"
+      config:
+      - subnet: "${ADD_TOOLS_SUBNET}"
 
 volumes:
   snmptraps:
