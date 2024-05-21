@@ -1,4 +1,4 @@
-name: Build images (DockerHub, Windows)
+name: Build base images (DockerHub, Windows)
 
 on:
   push:
