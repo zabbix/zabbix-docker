@@ -140,6 +140,10 @@ jobs:
             echo "current_branch=$github_ref" >> $GITHUB_OUTPUT
             echo "sha_short=$sha_short" >> $GITHUB_OUTPUT
 
+  build_base:
+    uses: ./.github/workflows/base_images_build_windows.yml
+    if: ${{ github.event_name == 'release' }}
+
   build_components:
     name: Build ${{ matrix.component }} sources on ${{ matrix.os }}
     needs: [ "init_build" ]
