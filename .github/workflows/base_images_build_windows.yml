@@ -12,6 +12,7 @@ on:
   schedule:
     - cron:  '0 10 * * 2,5'
   workflow_dispatch:
+  workflow_call:
 
 defaults:
   run:
