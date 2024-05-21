@@ -16,7 +16,7 @@ ARG ZBX_SOURCES=https://git.zabbix.com/scm/zbx/zabbix.git
 
 LABEL org.opencontainers.image.title="Zabbix agent 2" `
       org.opencontainers.image.authors="Alexey Pustovalov <alexey.pustovalov@zabbix.com>" `
-      org.opencontainers.image.vendor="Zabbix LLC" `
+      org.opencontainers.image.vendor="Zabbix SIA" `
       org.opencontainers.image.url="https://zabbix.com/" `
       org.opencontainers.image.description="Zabbix agent 2 is deployed on a monitoring target to actively monitor local resources and applications" `
       org.opencontainers.image.licenses="GPL v2.0" `
