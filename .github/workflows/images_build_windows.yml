@@ -143,6 +143,9 @@ jobs:
   build_base:
     uses: ./.github/workflows/base_images_build_windows.yml
     if: ${{ github.event_name == 'release' }}
+    permissions:
+      contents: read
+      id-token: write
 
   build_components:
     name: Build ${{ matrix.component }} sources on ${{ matrix.os }}
