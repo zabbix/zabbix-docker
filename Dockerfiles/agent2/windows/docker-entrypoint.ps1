@@ -109,9 +109,9 @@ function Update-Config-Multiple-Var {
 }
 
 function Prepare-Zbx-Agent-Config {
-    Write-Host "** Preparing Zabbix agent configuration file"
+    Write-Host "** Preparing Zabbix agent 2 configuration file"
 
-    $ZbxAgentConfig="$ZabbixConfigDir\zabbix_agent2.win.conf"
+    $ZbxAgentConfig="$ZabbixConfigDir\zabbix_agent2.conf"
 
     if ([string]::IsNullOrWhitespace($env:ZBX_PASSIVESERVERS)) {
         $env:ZBX_PASSIVESERVERS=""
@@ -226,9 +226,19 @@ function Prepare-Zbx-Agent-Config {
 
 }
 
+function Prepare-Zbx-Agent-Plugins-Config {
+    Write-Host "** Preparing Zabbix agent 2 (plugins) configuration file"
+
+    $ZbxAgentConfig="$ZabbixConfigDir\zabbix_agent2.conf"
+
+#    Update-Config-Var $ZbxAgentConfig "Plugins.MongoDB.System.Path" "$ZabbixUserHomeDir\zabbix-agent2-plugin\zabbix-agent2-plugin-mongodb.exe"
+#    Update-Config-Var $ZbxAgentConfig "Plugins.PostgreSQL.System.Path" "$ZabbixUserHomeDir\zabbix-agent2-plugin\zabbix-agent2-plugin-postgresql.exe"
+}
+
 function PrepareAgent {
-    Write-Host "** Preparing Zabbix agent"
+    Write-Host "** Preparing Zabbix agent 2"
     Prepare-Zbx-Agent-Config
+    Prepare-Zbx-Agent-Plugins-Config
 }
 
 $commandArgs=$args

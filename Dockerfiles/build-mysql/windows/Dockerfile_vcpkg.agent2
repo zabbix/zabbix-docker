@@ -16,10 +16,9 @@ ARG MONGODB_PLUGIN_SOURCES=https://git.zabbix.com/scm/ap/mongodb.git
 ARG POSTGRESQL_PLUGIN_SOURCES=https://git.zabbix.com/scm/ap/postgresql.git
 ARG GIT_BRANCH
 
-ENV ZBX_SOURCES=$ZBX_SOURCES MAJOR_VERSION=$MAJOR_VERSION ZBX_VERSION=$ZBX_VERSION GIT_BRANCH=${GIT_BRANCH:-$ZBX_VERSION} `
+ENV ZBX_SOURCES=$ZBX_SOURCES MAJOR_VERSION=$MAJOR_VERSION GIT_BRANCH=${GIT_BRANCH:-$ZBX_VERSION} `
     MONGODB_PLUGIN_SOURCES=$MONGODB_PLUGIN_SOURCES MONGODB_PLUGIN_VERSION=${GIT_BRANCH:-$ZBX_VERSION} `
-    POSTGRESQL_PLUGIN_SOURCES=$POSTGRESQL_PLUGIN_SOURCES POSTGRESQL_PLUGIN_VERSION=${GIT_BRANCH:-$ZBX_VERSION} `
-    ZABBIX_VERSION_RC_NUM=$ZABBIX_VERSION_RC_NUM
+    POSTGRESQL_PLUGIN_SOURCES=$POSTGRESQL_PLUGIN_SOURCES POSTGRESQL_PLUGIN_VERSION=${GIT_BRANCH:-$ZBX_VERSION}
 
 LABEL org.opencontainers.image.title="Zabbix agent 2 build (Windows)" `
       org.opencontainers.image.authors="Alexey Pustovalov <alexey.pustovalov@zabbix.com>" `
@@ -53,9 +52,10 @@ RUN Set-Location -Path $env:SystemDrive\.; `
     (Get-Content src\go\pkg\version\version.go).replace('{ZABBIX_REVISION}', $ZbxRevision) | Set-Content src\go\pkg\version\version.go; `
     Set-Location -Path $env:SystemDrive\zabbix_src\zabbix-$env:ZBX_VERSION\build\mingw; `
     mingw32-make -j"""$env:NUMBER_OF_PROCESSORS""" `
-        CGO_LDFLAGS="""-lcrypt32 -L$env:BUILD_OUTPUT\openssl\lib -L$env:BUILD_OUTPUT\pcre2\lib""" `
-        PCRE2=$env:BUILD_OUTPUT\pcre2 `
-        OPENSSL=$env:BUILD_OUTPUT\openssl `
+        GOFLAGS="""-buildvcs=false""" `
+        CGO_LDFLAGS="""-lcrypt32 -L$env:SystemDrive\vcpkg\installed\x64-mingw-static-release\lib""" `
+        PCRE2=$env:SystemDrive\vcpkg\installed\x64-mingw-static-release `
+        OPENSSL=$env:SystemDrive\vcpkg\installed\x64-mingw-static-release `
         RFLAGS="""-DZABBIX_VERSION_RC_NUM=$env:ZABBIX_VERSION_RC_NUM"""; `
     `
     Write-Host 'Verifying build ("zabbix_agent2.exe -V") ...'; `
