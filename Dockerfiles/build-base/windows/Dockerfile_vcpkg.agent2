@@ -1,0 +1,141 @@
+# syntax=docker/dockerfile:1
+# escape=`
+ARG BUILD_BASE_IMAGE=mcr.microsoft.com/windows/servercore:ltsc2022
+FROM $BUILD_BASE_IMAGE as builder_base
+
+ARG GOLANG_VERSION=1.22.3
+
+ARG BUILD_ARCH=x64
+ARG CPU_MODEL=AMD64
+
+ARG MAJOR_VERSION=7.0
+ARG ZBX_VERSION=${MAJOR_VERSION}
+
+ARG GIT_URL=https://github.com/git-for-windows/git/releases/download/v2.33.0.windows.2/MinGit-2.33.0.2-busybox-64-bit.zip
+
+ARG VS_BUILDTOOLS_URL=https://aka.ms/vs/17/release/vs_buildtools.exe
+ARG GOLANG_URL=https://go.dev/dl/go$GOLANG_VERSION.windows-amd64.zip
+ARG LLVM_MINGW=https://github.com/mstorsjo/llvm-mingw/releases/download/20240502/llvm-mingw-20240502-ucrt-x86_64.zip
+ARG VCPKG_GIT=https://github.com/microsoft/vcpkg
+
+ENV ZBX_VERSION=$ZBX_VERSION `
+    BUILD_ARCH=$BUILD_ARCH CPU_MODEL=$CPU_MODEL `
+    GIT_URL=$GIT_URL `
+    GOLANG_VERSION=$GOLANG_VERSION LLVM_MINGW=$LLVM_MINGW VCPKG_GIT=$VCPKG_GIT `
+    VCPKG_BINARY_SOURCES=clear VCPKG_DEFAULT_TRIPLET=$BUILD_ARCH-mingw-static-release
+
+LABEL org.opencontainers.image.title="Zabbix agent 2 build base for Windows" `
+      org.opencontainers.image.authors="Alexey Pustovalov <alexey.pustovalov@zabbix.com>" `
+      org.opencontainers.image.vendor="Zabbix SIA" `
+      org.opencontainers.image.url="https://zabbix.com/" `
+      org.opencontainers.image.description="Zabbix build base image contains all required packages to build Zabbix agent 2 images" `
+      org.opencontainers.image.licenses="AGPL v3.0" `
+      org.opencontainers.image.documentation="https://www.zabbix.com/documentation/${MAJOR_VERSION}/manual/installation/containers" `
+      org.opencontainers.image.version="${ZBX_VERSION}"
+
+SHELL ["powershell", "-Command", "$ErrorActionPreference = 'Stop'; $ProgressPreference = 'SilentlyContinue';"]
+
+RUN Set-Location -Path $env:SystemDrive\.; `
+    [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; `
+    `
+    $env:PATH = [string]::Format('{0}\vcpkg;{0}\llvm_mingw\bin;{0}\go\bin;{0}\git\cmd;{0}\git\mingw64\bin;{0}\git\usr\bin;', $env:SystemDrive, ${env:ProgramFiles}) + $env:PATH; `
+    [Environment]::SetEnvironmentVariable('PATH', $env:PATH, [EnvironmentVariableTarget]::Machine); `
+    `
+    $env:BUILD_OUTPUT = [string]::Format('{0}\build_output', $env:SystemDrive); `
+    [Environment]::SetEnvironmentVariable('BUILD_OUTPUT', $env:BUILD_OUTPUT, [EnvironmentVariableTarget]::Machine); `
+    $env:BUILD_SRC = [string]::Format('{0}\build_src', $env:SystemDrive); `
+    [Environment]::SetEnvironmentVariable('BUILD_SRC', $env:BUILD_SRC, [EnvironmentVariableTarget]::Machine); `
+    `
+    Write-Host ('Downloading {0} ...' -f $env:GIT_URL); `
+    Invoke-WebRequest -OutFile $env:TEMP\git.zip -Uri $env:GIT_URL; `
+    `
+    $sha256 = '273f55e881094d00877d64f56570b0c997c4da5dedcb26738d56481033c1eba1'; `
+    $d_sha256 = (Get-FileHash $env:TEMP\git.zip -Algorithm sha256).Hash; `
+    Write-Host ('Verifying SHA256 ({0}) ...' -f $sha256); `
+    if ($d_sha256 -ne $sha256) { `
+        Write-Host ('Checksum GIT for Windows ({0}) failed!' -f $d_sha256); `
+        exit 1; `
+    }; `
+    `
+    Write-Host ('Downloading {0} ...' -f $env:GOLANG_URL); `
+    Invoke-WebRequest -OutFile $env:TEMP\go_lang.zip -Uri $env:GOLANG_URL; `
+    `
+    $sha256 = 'cab2af6951a6e2115824263f6df13ff069c47270f5788714fa1d776f7f60cb39'; `
+    $d_sha256 = (Get-FileHash $env:TEMP\go_lang.zip -Algorithm sha256).Hash; `
+    Write-Host ('Verifying SHA256 ({0}) ...' -f $sha256); `
+    if ($d_sha256 -ne $sha256) { `
+        Write-Host ('Checksum Go Lang ({0}) failed!' -f $d_sha256); `
+        exit 1; `
+    }; `
+    `
+    Write-Host ('Downloading {0} ...' -f $env:LLVM_MINGW); `
+    Invoke-WebRequest -OutFile $env:TEMP\llvm_mingw.zip -Uri $env:LLVM_MINGW; `
+    `
+    $sha256 = '2487683A7341FFA4D0C1D107268D22DC722A43EA2E7C7F46DA0648E34F4F4C8B'; `
+    $d_sha256 = (Get-FileHash $env:TEMP\llvm_mingw.zip -Algorithm sha256).Hash; `
+    Write-Host ('Verifying SHA256 ({0}) ...' -f $sha256); `
+    if ((Get-FileHash $env:TEMP\llvm_mingw.zip -Algorithm sha256).Hash -ne $sha256) { `
+        Write-Host ('Checksum LLVM MinGW ({0}) failed!' -f $d_sha256); `
+        exit 1; `
+    }; `
+    `
+    Write-Host ('Downloading {0} ...' -f $env:VS_BUILDTOOLS_URL); `
+    Invoke-WebRequest -OutFile $env:TEMP\vs_buildtools.exe $env:VS_BUILDTOOLS_URL; `
+    `
+    Write-Host 'Installing GIT...'; `
+    Expand-Archive `
+        -Path $env:TEMP\git.zip `
+        -DestinationPath $env:SystemDrive\git\.; `
+    Write-Host 'Removing downloaded...'; `
+    `
+    Write-Host 'Verifying install ("git version") ...'; `
+    git version; `
+    `
+    Write-Host 'Installing Go Lang...'; `
+    Expand-Archive -Path $env:TEMP\go_lang.zip -DestinationPath $env:SystemDrive\; `
+    Write-Host 'Verifying install ("go version") ...'; `
+    go version; `
+    `
+    Write-Host 'Installing LLVM MinGW ...'; `
+    Expand-Archive -Path $env:TEMP\llvm_mingw.zip -DestinationPath $env:SystemDrive\; `
+    Move-Item -Path $env:SystemDrive\llvm-mingw-20240502-ucrt-x86_64\ -Destination $env:SystemDrive\llvm_mingw; `
+    `
+    Write-Host 'Verifying install ("git version") ...'; `
+    gcc -v; `
+    `
+    Write-Host ('{0} - Visual Studio components installing...' -f $(Get-Date -format 'u')); `
+    cmd /C start /w $env:TEMP\vs_buildtools.exe `
+        --quiet `
+        --wait `
+        --norestart `
+        --nocache `
+        --installPath """${env:ProgramFiles(x86)}\Microsoft Visual Studio\2022\BuildTools""" `
+        --channelUri https://aka.ms/vs/17/release/channel `
+        --installChannelUri https://aka.ms/vs/17/release/channel `
+        --channelId VisualStudio.17.Release `
+        # https://docs.microsoft.com/en-us/visualstudio/install/workload-component-id-vs-build-tools?view=vs-2022
+        --add Microsoft.VisualStudio.Component.VC.Tools.x86.x64; `
+    if ($err = dir $Env:TEMP -Filter dd_setup_*_errors.log | where Length -gt 0 | Get-Content) { `
+        throw $err; `
+    }; `
+    Wait-Process -name msiexec; `
+    Write-Host ('{0} - Visual Studio components installed' -f $(Get-Date -format 'u')); `
+    `
+    $env:VS_PATH = &(Join-Path ${env:ProgramFiles(x86)} """\Microsoft Visual Studio\Installer\vswhere.exe""") -latest -products Microsoft.VisualStudio.Product.BuildTools -property installationPath; `
+    [Environment]::SetEnvironmentVariable('VS_PATH', $env:VS_PATH, [EnvironmentVariableTarget]::Machine); `
+    `
+    Write-Host 'Visual Studio components installation cleanup'; `
+    Get-ChildItem -Path """${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer""" -Directory -Recurse | Remove-Item -Force -Recurse; `
+    `
+    Write-Host 'Installing Vcpkg ...'; `
+    $env:VCPKG_DEFAULT_BINARY_CACHE = $env:TEMP; `
+    git clone $env:VCPKG_GIT $env:SystemDrive\vcpkg; `
+    & $env:SystemDrive\vcpkg\bootstrap-vcpkg.bat -disableMetrics; `
+    Copy-Item $env:SystemDrive\vcpkg\triplets\community\$env:BUILD_ARCH-mingw-static.cmake -Destination $env:SystemDrive\vcpkg\triplets\community\$env:VCPKG_DEFAULT_TRIPLET.cmake; `
+    Add-Content -Path $env:SystemDrive\vcpkg\triplets\community\$env:VCPKG_DEFAULT_TRIPLET.cmake -Value """set(VCPKG_BUILD_TYPE release)"""; `
+    Write-Host 'Installing dependencies ...'; `
+    vcpkg install libiconv pcre2 openssl; `
+    `
+    Write-Host 'Removing downloaded ...'; `
+    Remove-Item -Force -Recurse $env:TEMP\*; `
+    Write-Host 'Build environment is ready...';
