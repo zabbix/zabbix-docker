@@ -269,7 +269,7 @@ RUN Set-Location -Path $env:SystemDrive\.; `
         --libdir=lib `
         --prefix=$env:BUILD_OUTPUT/openssl `
         --openssldir=$env:BUILD_OUTPUT/openssl_ssl; `
-    mingw32-make -s -j"""$env:NUMBER_OF_PROCESSORS""" build_sw; `
+    mingw32-make -s -j"""$env:NUMBER_OF_PROCESSORS""" build_libs; `
     mingw32-make -s -j"""$env:NUMBER_OF_PROCESSORS""" install_dev; `
     mingw32-make -s clean | Out-Null; `
     Write-Host 'OpenSSL is ready...'; `

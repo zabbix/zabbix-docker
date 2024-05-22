@@ -57,7 +57,7 @@ RUN Set-Location -Path $env:SystemDrive\.; `
         RFLAGS="""/D ZABBIX_VERSION_REVISION=$ZbxRevision /D ZABBIX_VERSION_RC_NUM=$env:ZABBIX_VERSION_RC_NUM""" `
         TLSINCDIR=$env:BUILD_OUTPUT\openssl\include `
         TLSLIBDIR=$env:BUILD_OUTPUT\openssl\lib `
-	LIBS="""$env:LIBS $env:BUILD_OUTPUT\curl\lib\libcurl_a.lib $env:BUILD_OUTPUT\zlib\lib\zlib.lib""" `
+	LIBS="""$env:LIBS Crypt32.lib $env:BUILD_OUTPUT\curl\lib\libcurl_a.lib $env:BUILD_OUTPUT\zlib\lib\zlib.lib""" `
         all; `
     `
     Write-Host 'Verifying build ("zabbix_agentd.exe -V") ...'; `

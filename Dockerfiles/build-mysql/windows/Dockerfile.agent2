@@ -13,7 +13,7 @@ ARG ZBX_VERSION=${MAJOR_VERSION}.42
 ARG ZABBIX_VERSION_RC_NUM=2400
 ARG ZBX_SOURCES=https://git.zabbix.com/scm/zbx/zabbix.git
 
-ENV ZBX_SOURCES=$ZBX_SOURCES MAJOR_VERSION=$MAJOR_VERSION ZBX_VERSION=$ZBX_VERSION GIT_BRANCH=${GIT_BRANCH:-$ZBX_VERSION}
+ENV ZBX_SOURCES=$ZBX_SOURCES MAJOR_VERSION=$MAJOR_VERSION ZBX_VERSION=$ZBX_VERSION GIT_BRANCH=${GIT_BRANCH:-$ZBX_VERSION} `
     ZABBIX_VERSION_RC_NUM=$ZABBIX_VERSION_RC_NUM
 
 LABEL org.opencontainers.image.title="Zabbix agent 2 build (Windows)" `
@@ -48,7 +48,6 @@ RUN Set-Location -Path $env:SystemDrive\.; `
     (Get-Content src\go\pkg\version\version.go).replace('{ZABBIX_REVISION}', $ZbxRevision) | Set-Content src\go\pkg\version\version.go; `
     Set-Location -Path $env:SystemDrive\zabbix_src\zabbix-$env:ZBX_VERSION\build\mingw; `
     mingw32-make -j"""$env:NUMBER_OF_PROCESSORS""" `
-#        CGO_LDFLAGS="""-lcrypt32 -L$env:BUILD_OUTPUT\openssl\lib -L$env:BUILD_OUTPUT\pcre\lib""" `
         PCRE=$env:BUILD_OUTPUT\pcre `
         OPENSSL=$env:BUILD_OUTPUT\openssl `
         RFLAGS="""-DZABBIX_VERSION_RC_NUM=$env:ZABBIX_VERSION_RC_NUM"""; `

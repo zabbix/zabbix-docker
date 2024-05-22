@@ -242,7 +242,7 @@ RUN Set-Location -Path $env:SystemDrive\.; `
         --prefix=$env:BUILD_OUTPUT\openssl `
         --openssldir=$env:BUILD_OUTPUT\openssl_ssl; `
     set CL=/MP; `
-    nmake /S build_sw; `
+    nmake /S build_libs; `
     nmake /S install_dev; `
     nmake /S clean | Out-Null; `
     Write-Host 'OpenSSL is ready...'; `
