@@ -150,9 +150,9 @@ RUN Set-Location -Path $env:SystemDrive\.; `
     Set-Location -Path $env:BUILD_SRC; `
     `
     Write-Host ('Downloading {0} ...' -f $env:PCRE_URL); `
-    Invoke-WebRequest -OutFile $env:TEMP\pcre.zip -Uri $env:PCRE_URL; `
+    (new-object System.Net.WebClient).DownloadFile("""$env:PCRE_URL""","""$env:TEMP\pcre.zip"""); `
     `
-    $sha256 = '57581B00D85F3500D94CE28F7533B49403E249BC9C0CAB17F81D727F60361064'; `
+    $sha256 = '5B709AA45EA3B8BB73052947200AD187F651A2049158FB5BBFED329E4322A977'; `
     $d_sha256 = (Get-FileHash $env:TEMP\pcre.zip -Algorithm sha256).Hash; `
     Write-Host ('Verifying SHA256 ({0}) ...' -f $sha256); `
     if ($d_sha256 -ne $sha256) { `
