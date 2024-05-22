@@ -1,31 +1,41 @@
 # syntax=docker/dockerfile:1
 # escape=`
 ARG BUILD_BASE_IMAGE=mcr.microsoft.com/windows/servercore:ltsc2022
-FROM $BUILD_BASE_IMAGE
+FROM $BUILD_BASE_IMAGE as builder_base
 
 ARG PCRE_VERSION=8.45
 ARG OPENSSL_VERSION=1.1.1s
+ARG ZLIB_VERSION=1.3.1
+ARG CURL_VERSION=8.7.1
+
 ARG BUILD_ARCH=x64
 ARG CPU_MODEL=AMD64
 
 ARG MAJOR_VERSION=5.0
 ARG ZBX_VERSION=${MAJOR_VERSION}.42
 
-ARG VS_BUILDTOOLS_URL=https://aka.ms/vs/16/release/vs_buildtools.exe
-ARG NASM_URL=https://www.nasm.us/pub/nasm/releasebuilds/2.15.05/win64/nasm-2.15.05-installer-x64.exe
-ARG PERL_URL=https://strawberryperl.com/download/5.32.1.1/strawberry-perl-5.32.1.1-64bit.msi
 ARG GIT_URL=https://github.com/git-for-windows/git/releases/download/v2.33.0.windows.2/MinGit-2.33.0.2-busybox-64-bit.zip
+ARG PERL_URL=https://github.com/StrawberryPerl/Perl-Dist-Strawberry/releases/download/SP_53822_64bit/strawberry-perl-5.38.2.2-64bit-portable.zip
+
+ARG VS_BUILDTOOLS_URL=https://aka.ms/vs/17/release/vs_buildtools.exe
+ARG NASM_URL=https://www.nasm.us/pub/nasm/releasebuilds/2.16.03/win64/nasm-2.16.03-installer-x64.exe
+
 ARG PCRE_URL=https://sourceforge.net/projects/pcre/files/pcre/$PCRE_VERSION/pcre-$PCRE_VERSION.zip
 ARG OPENSSL_URL=https://www.openssl.org/source/openssl-$OPENSSL_VERSION.tar.gz
+ARG ZLIB_URL=https://zlib.net/zlib-$ZLIB_VERSION.tar.gz
+ARG CURL_URL=https://curl.se/download/curl-$CURL_VERSION.tar.gz
 
 ENV ZBX_VERSION=$ZBX_VERSION `
     BUILD_ARCH=$BUILD_ARCH CPU_MODEL=$CPU_MODEL `
+    GIT_URL=$GIT_URL PERL_URL=$PERL_URL NASM_URL=$NASM_URL `
+    VS_BUILDTOOLS_URL=$VS_BUILDTOOLS_URL `
     PCRE_VERSION=$PCRE_VERSION OPENSSL_VERSION=$OPENSSL_VERSION `
-    GIT_URL=$GIT_URL NASM_URL=$NASM_URL PERL_URL=$PERL_URL PCRE_URL=$PCRE_URL OPENSSL_URL=$OPENSSL_URL
+    PCRE_URL=$PCRE_URL OPENSSL_URL=$OPENSSL_URL `
+    ZLIB_URL=$ZLIB_URL CURL_URL=$CURL_URL
 
 LABEL org.opencontainers.image.title="Zabbix agent build base for Windows" `
       org.opencontainers.image.authors="Alexey Pustovalov <alexey.pustovalov@zabbix.com>" `
-      org.opencontainers.image.vendor="Zabbix LLC" `
+      org.opencontainers.image.vendor="Zabbix SIA" `
       org.opencontainers.image.url="https://zabbix.com/" `
       org.opencontainers.image.description="Zabbix build base image contains all required packages to build Zabbix agent images" `
       org.opencontainers.image.licenses="GPL v2.0" `
@@ -35,94 +45,86 @@ LABEL org.opencontainers.image.title="Zabbix agent build base for Windows" `
 SHELL ["powershell", "-Command", "$ErrorActionPreference = 'Stop'; $ProgressPreference = 'SilentlyContinue';"]
 
 RUN Set-Location -Path $env:SystemDrive\.; `
+    [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; `
+    `
+    $env:PATH = [string]::Format('{0}\perl\perl\bin;{1}\NASM;{0}\git\cmd;{0}\git\mingw64\bin;{0}\git\usr\bin;', $env:SystemDrive, ${env:ProgramFiles}) + $env:PATH; `
+    [Environment]::SetEnvironmentVariable('PATH', $env:PATH, [EnvironmentVariableTarget]::Machine); `
+    `
+    $env:BUILD_OUTPUT = [string]::Format('{0}\build_output', $env:SystemDrive); `
+    [Environment]::SetEnvironmentVariable('BUILD_OUTPUT', $env:BUILD_OUTPUT, [EnvironmentVariableTarget]::Machine); `
+    $env:BUILD_SRC = [string]::Format('{0}\build_src', $env:SystemDrive); `
+    [Environment]::SetEnvironmentVariable('BUILD_SRC', $env:BUILD_SRC, [EnvironmentVariableTarget]::Machine); `
     `
     Write-Host ('Downloading {0} ...' -f $env:GIT_URL); `
-    [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; `
-    Invoke-WebRequest -OutFile $env:SystemDrive\git.zip -Uri $env:GIT_URL; `
+    Invoke-WebRequest -OutFile $env:TEMP\git.zip -Uri $env:GIT_URL; `
     `
     $sha256 = '273f55e881094d00877d64f56570b0c997c4da5dedcb26738d56481033c1eba1'; `
+    $d_sha256 = (Get-FileHash $env:TEMP\git.zip -Algorithm sha256).Hash; `
     Write-Host ('Verifying SHA256 ({0}) ...' -f $sha256); `
-    if ((Get-FileHash $env:SystemDrive\git.zip -Algorithm sha256).Hash -ne $sha256) { `
-        Write-Host 'Checksum GIT for Windows failed!'; `
+    if ($d_sha256 -ne $sha256) { `
+        Write-Host ('Checksum GIT for Windows ({0}) failed!' -f $d_sha256); `
         exit 1; `
     }; `
     `
-    Write-Host 'Installing ...'; `
+    Write-Host ('Downloading {0} ...' -f $env:NASM_URL); `
+    Invoke-WebRequest -OutFile $env:TEMP\nasm_installer.exe -Uri $env:NASM_URL; `
+    `
+    $sha256 = '657E1252676CFB26A008835C20A760F731C8E0414469A4ED0F83F0FB059CDD35'; `
+    $d_sha256 = (Get-FileHash $env:TEMP\nasm_installer.exe -Algorithm sha256).Hash; `
+    Write-Host ('Verifying SHA256 ({0}) ...' -f $sha256); `
+    if ((Get-FileHash $env:TEMP\nasm_installer.exe -Algorithm sha256).Hash -ne $sha256) { `
+        Write-Host ('Checksum NASM ({0}) failed!' -f $d_sha256); `
+        exit 1; `
+    }; `
+    `
+    Write-Host ('Downloading {0} ...' -f $env:PERL_URL); `
+    Invoke-WebRequest -OutFile $env:TEMP\perl.zip -Uri $env:PERL_URL; `
+    `
+    $sha256 = 'EA451686065D6338D7E4D4A04C9AF49F17951D15AA4C2E19AB8CB56FA2373440'; `
+    $d_sha256 = (Get-FileHash $env:TEMP\perl.zip -Algorithm sha256).Hash; `
+    Write-Host ('Verifying SHA256 ({0}) ...' -f $sha256); `
+    if ($d_sha256 -ne $sha256) { `
+        Write-Host ('Checksum Strawberry Perl ({0}) failed!' -f $d_sha256); `
+        exit 1; `
+    }; `
+    `
+    Write-Host ('Downloading {0} ...' -f $env:VS_BUILDTOOLS_URL); `
+    Invoke-WebRequest -OutFile $env:TEMP\vs_buildtools.exe $env:VS_BUILDTOOLS_URL; `
+    `
+    Write-Host 'Installing GIT...'; `
     Expand-Archive `
-        -Path git.zip `
+        -Path $env:TEMP\git.zip `
         -DestinationPath $env:SystemDrive\git\.; `
-    Write-Host 'Removing downloaded...'; `
-    Remove-Item -Force -Path $env:SystemDrive\git.zip; `
-    $env:PATH = [string]::Format('{0}\git\cmd;{0}\git\mingw64\bin;{0}\git\usr\bin;', $env:SystemDrive) + $env:PATH; `
-    [Environment]::SetEnvironmentVariable('PATH', $env:PATH, [EnvironmentVariableTarget]::Machine); `
     `
     Write-Host 'Verifying install ("git version") ...'; `
     git version; `
-    `
-    Write-Host ('Downloading {0} ...' -f $env:NASM_URL); `
-    [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; `
-    Invoke-WebRequest -OutFile $env:SystemDrive\nasm_installer.exe -Uri $env:NASM_URL; `
-    $sha256 = 'a02325b9fe54f917f5d6a3036637b38dbb6addf6f7ba9d344d9b943a143fe7d0'; `
-    Write-Host ('Verifying SHA256 ({0}) ...' -f $sha256); `
-    if ((Get-FileHash $env:SystemDrive\nasm_installer.exe -Algorithm sha256).Hash -ne $sha256) { `
-        Write-Host 'Checksum NASM failed!'; `
-        exit 1; `
-    }; `
-    Write-Host 'Installing ...'; `
+    Write-Host 'Installing NASM...'; `
     Start-Process `
-        -FilePath $env:SystemDrive\nasm_installer.exe `
+        -FilePath $env:TEMP\nasm_installer.exe `
         -ArgumentList '/S' -Wait; `
-    Write-Host 'Removing downloaded...'; `
-    Remove-Item -Force -Path $env:SystemDrive\nasm_installer.exe; `
-    `
-    $env:PATH = [string]::Format('{0}\NASM;', ${env:ProgramFiles}) + $env:PATH; `
-    [Environment]::SetEnvironmentVariable('PATH', $env:PATH, [EnvironmentVariableTarget]::Machine); `
     `
     Write-Host 'Verifying install ("nasm -v") ...'; `
     nasm -v; `
     `
-    Write-Host ('Downloading {0} ...' -f $env:PERL_URL); `
-    [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; `
-    Invoke-WebRequest -OutFile $env:SystemDrive\perl_installer.msi -Uri $env:PERL_URL; `
-    `
-    $sha256 = '241a881670164feb0b91bb69d39fbbf84c981bec0d9f8c19959f8f48fd177768'; `
-    Write-Host ('Verifying SHA256 ({0}) ...' -f $sha256); `
-    if ((Get-FileHash $env:SystemDrive\perl_installer.msi -Algorithm sha256).Hash -ne $sha256) { `
-        Write-Host 'Checksum Strawberry Perl failed!'; `
-        exit 1; `
-    }; `
-    Write-Host 'Installing ...'; `
-    Start-Process `
-        -FilePath 'msiexec.exe' `
-        -ArgumentList """/i $env:SystemDrive\perl_installer.msi /qn /norestart INSTALLDIR=$env:SystemDrive\Strawberry""" `
-        -Wait; `
-    Write-Host 'Removing downloaded...'; `
-    Remove-Item -Force -Path  $env:SystemDrive\perl_installer.msi; `
-    $env:PATH = [string]::Format('{0}\Strawberry\perl\bin;', $env:SystemDrive) + $env:PATH; `
-    [Environment]::SetEnvironmentVariable('PATH', $env:PATH, [EnvironmentVariableTarget]::Machine); `
+    Write-Host 'Installing Perl...'; `
+    Expand-Archive -Path $env:TEMP\perl.zip -DestinationPath $env:SystemDrive\perl\; `
+    Remove-Item -Force -Recurse $env:SystemDrive\perl\c\; `
     `
     Write-Host 'Verifying install ("perl -V") ...'; `
     perl -V; `
     `
-    Write-Host 'Installing Text::Template...'; `
-    cpan Text::Template; `
-    `
-    Write-Host ('Downloading {0} ...' -f $env:VS_BUILDTOOLS_URL); `
-    [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; `
-    Invoke-WebRequest -OutFile $env:SystemDrive\vs_buildtools.exe $env:VS_BUILDTOOLS_URL; `
-    `
     Write-Host ('{0} - Visual Studio components installing...' -f $(Get-Date -format 'u')); `
-    cmd /C start /w $env:SystemDrive\vs_buildtools.exe `
+    cmd /C start /w $env:TEMP\vs_buildtools.exe `
         --quiet `
         --wait `
         --norestart `
         --nocache `
-        --installPath """${env:ProgramFiles(x86)}\Microsoft Visual Studio\2019\BuildTools""" `
-        --channelUri https://aka.ms/vs/16/release/channel `
-        --installChannelUri https://aka.ms/vs/16/release/channel `
-        --channelId VisualStudio.16.Release `
-        # https://docs.microsoft.com/en-us/visualstudio/install/workload-component-id-vs-build-tools?view=vs-2019
-        --add Microsoft.VisualStudio.Component.Windows10SDK.19041 `
+        --installPath """${env:ProgramFiles(x86)}\Microsoft Visual Studio\2022\BuildTools""" `
+        --channelUri https://aka.ms/vs/17/release/channel `
+        --installChannelUri https://aka.ms/vs/17/release/channel `
+        --channelId VisualStudio.17.Release `
+        # https://docs.microsoft.com/en-us/visualstudio/install/workload-component-id-vs-build-tools?view=vs-2022
+        --add Microsoft.VisualStudio.Component.Windows11SDK.22621 `
         --add Microsoft.VisualStudio.Component.VC.CMake.Project; `
     if ($err = dir $Env:TEMP -Filter dd_setup_*_errors.log | where Length -gt 0 | Get-Content) { `
         throw $err; `
@@ -130,40 +132,127 @@ RUN Set-Location -Path $env:SystemDrive\.; `
     Wait-Process -name msiexec; `
     Write-Host ('{0} - Visual Studio components installed' -f $(Get-Date -format 'u')); `
     `
-    Write-Host 'Visual Studio components installation cleanup'; `
-    Write-Host 'Removing downloaded...'; `
-    Remove-Item -Force -Path $env:SystemDrive\vs_buildtools.exe; `
-    Get-ChildItem -Path """${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer""" -Directory -Recurse | Remove-Item -Force -Recurse; `
-    Remove-Item -Force -Recurse $env:TEMP\*; `
-    Write-Host 'Build environment is ready...';
-
-RUN Set-Location -Path $env:SystemDrive\.; `
+    $env:VS_PATH = &(Join-Path ${env:ProgramFiles(x86)} """\Microsoft Visual Studio\Installer\vswhere.exe""") -latest -products Microsoft.VisualStudio.Product.BuildTools -property installationPath; `
+    [Environment]::SetEnvironmentVariable('VS_PATH', $env:VS_PATH, [EnvironmentVariableTarget]::Machine); `
     `
-    Import-Module ('{0}\Microsoft Visual Studio\2019\BuildTools\Common7\Tools\Microsoft.VisualStudio.DevShell.dll' -f ${env:ProgramFiles(x86)} ); `
-    Enter-VsDevShell -VsInstallPath ('{0}\Microsoft Visual Studio\2019\BuildTools' -f ${env:ProgramFiles(x86)}) -DevCmdArguments """-arch=$env:BUILD_ARCH"""; `
+    Write-Host 'Visual Studio components installation cleanup'; `
+    Get-ChildItem -Path """${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer""" -Directory -Recurse | Remove-Item -Force -Recurse; `
+    `
+    Write-Host 'Removing downloaded...'; `
+    Remove-Item -Force -Recurse $env:TEMP\*; `
+    Write-Host 'Build environment is ready...'; `
+    `
+    Set-Location -Path $env:SystemDrive\.; `
+    [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; `
+    `
+    New-Item -ItemType directory -Path $env:BUILD_OUTPUT -Force | Out-Null; `
+    New-Item -ItemType directory -Path $env:BUILD_SRC -Force | Out-Null; `
+    Set-Location -Path $env:BUILD_SRC; `
     `
     Write-Host ('Downloading {0} ...' -f $env:PCRE_URL); `
-    [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; `
-    (new-object System.Net.WebClient).DownloadFile("""$env:PCRE_URL""","""$env:SystemDrive\pcre.zip"""); `
+    Invoke-WebRequest -OutFile $env:TEMP\pcre.zip -Uri $env:PCRE_URL; `
     `
     $sha256 = '5b709aa45ea3b8bb73052947200ad187f651a2049158fb5bbfed329e4322a977'; `
+    $d_sha256 = (Get-FileHash $env:TEMP\pcre.zip -Algorithm sha256).Hash; `
     Write-Host ('Verifying SHA256 ({0}) ...' -f $sha256); `
-    if ((Get-FileHash $env:SystemDrive\pcre.zip -Algorithm sha256).Hash -ne $sha256) { `
-        Write-Host 'Checksum PCRE library failed!'; `
+    if ($d_sha256 -ne $sha256) { `
+        Write-Host ('Checksum PCRE library ({0}) failed!' -f $d_sha256); `
         exit 1; `
     }; `
-    Write-Host 'Extracting archive ...'; `
-    Expand-Archive -Path $env:SystemDrive\pcre.zip -DestinationPath $env:SystemDrive; `
-    Write-Host 'Removing downloaded...'; `
-    Remove-Item -Force -Path $env:SystemDrive\pcre.zip; `
-    Rename-Item -Path $env:SystemDrive\pcre-$env:PCRE_VERSION -NewName $env:SystemDrive\pcre_build; `
-    New-Item -ItemType directory -Path "$env:SystemDrive\pcre_build\build" | Out-Null; `
     `
-    Set-Location -Path $env:SystemDrive\pcre_build\build; `
+    Write-Host ('Downloading {0} ...' -f $env:OPENSSL_URL); `
+    Invoke-WebRequest -OutFile $env:TEMP\openssl.tar.gz -Uri $env:OPENSSL_URL; `
+    `
+    $sha256 = '6ae015467dabf0469b139ada93319327be24b98251ffaeceda0221848dc09262'; `
+    $d_sha256 = (Get-FileHash $env:TEMP\openssl.tar.gz -Algorithm sha256).Hash; `
+    Write-Host ('Verifying SHA256 ({0}) ...' -f $sha256); `
+    if ($d_sha256 -ne $sha256) { `
+        Write-Host ('Checksum OpenSSL library ({0}) failed!' -f $d_sha256); `
+        exit 1; `
+    }; `
+    `
+    `
+    Write-Host ('Downloading {0} ...' -f $env:ZLIB_URL); `
+    Invoke-WebRequest -OutFile $env:TEMP\zlib.tar.gz -Uri $env:ZLIB_URL; `
+    `
+    $sha256 = '9A93B2B7DFDAC77CEBA5A558A580E74667DD6FEDE4585B91EEFB60F03B72DF23'; `
+    $d_sha256 = (Get-FileHash $env:TEMP\zlib.tar.gz -Algorithm sha256).Hash; `
+    Write-Host ('Verifying SHA256 ({0}) ...' -f $sha256); `
+    if ($d_sha256 -ne $sha256) { `
+        Write-Host ('Checksum Zlib library ({0}) failed!' -f $d_sha256); `
+        exit 1; `
+    }; `
+    `
+    Write-Host ('Downloading {0} ...' -f $env:CURL_URL); `
+    Invoke-WebRequest -OutFile $env:TEMP\curl.tar.gz -Uri $env:CURL_URL; `
+    `
+    $sha256 = 'F91249C87F68EA00CF27C44FDFA5A78423E41E71B7D408E5901A9896D905C495'; `
+    $d_sha256 = (Get-FileHash $env:TEMP\curl.tar.gz -Algorithm sha256).Hash; `
+    Write-Host ('Verifying SHA256 ({0}) ...' -f $sha256); `
+    if ($d_sha256 -ne $sha256) { `
+        Write-Host ('Checksum Curl library ({0}) failed!' -f $d_sha256); `
+        exit 1; `
+    }; `
+    `
+    Write-Host 'Extracting PCRE archive ...'; `
+    Expand-Archive -Path $env:TEMP\pcre.zip -DestinationPath $env:BUILD_SRC; `
+    Rename-Item -Path $env:BUILD_SRC\pcre-$env:PCRE_VERSION -NewName $env:BUILD_SRC\pcre; `
+    New-Item -ItemType directory -Path "$env:BUILD_SRC\pcre\build" | Out-Null; `
+    `
+    Write-Host 'Extracting OpenSSL archive ...'; `
+    tar -zxf $env:TEMP\openssl.tar.gz; `
+    Rename-Item -Path $env:BUILD_SRC\openssl-$env:OPENSSL_VERSION -NewName $env:BUILD_SRC\openssl; `
+    `
+    Write-Host 'Extracting Zlib archive ...'; `
+    tar -zxf $env:TEMP\zlib.tar.gz; `
+    Move-Item -Path $env:BUILD_SRC\zlib-$env:ZLIB_VERSION\ -Destination $env:BUILD_SRC\zlib; `
+    `
+    Write-Host 'Extracting CURL archive ...'; `
+    tar -zxf $env:TEMP\curl.tar.gz; `
+    Move-Item -Path $env:BUILD_SRC\curl-$env:CURL_VERSION\ -Destination $env:BUILD_SRC\curl; `
+    `
+    Set-Location -Path $env:SystemDrive\.; `
+    `
+    Import-Module (Get-ChildItem $env:VS_PATH -Recurse -File -Filter Microsoft.VisualStudio.DevShell.dll).FullName; `
+    Enter-VsDevShell -VsInstallPath $env:VS_PATH -SkipAutomaticLocation -DevCmdArguments """-arch=$env:BUILD_ARCH"""; `
+    `
+    Write-Host 'Building Zlib library...'; `
+    Set-Location -Path $env:BUILD_SRC\zlib; `
+    (Get-Content .\win32\Makefile.msc).replace('-MD', '-MT') | Set-Content .\win32\Makefile.msc; `
+    set CL=/MP; `
+    nmake /S -f .\win32\Makefile.msc; `
+    New-Item -ItemType directory -Path $env:BUILD_OUTPUT\zlib | Out-Null; `
+    New-Item -ItemType directory -Path $env:BUILD_OUTPUT\zlib\include | Out-Null; `
+    New-Item -ItemType directory -Path $env:BUILD_OUTPUT\zlib\lib | Out-Null; `
+    Copy-Item $env:BUILD_SRC\zlib\*.h -Destination $env:BUILD_OUTPUT\zlib\include; `
+    Copy-Item $env:BUILD_SRC\zlib\zlib.lib -Destination $env:BUILD_OUTPUT\zlib\lib; `
+    Copy-Item $env:BUILD_SRC\zlib\zlib.pdb -Destination $env:BUILD_OUTPUT\zlib\lib; `
+    nmake /S -f .\win32\Makefile.msc clean | Out-Null; `
+    Write-Host 'Zlib is ready...'; `
+    `
+    Write-Host 'Building OpenSSL library...'; `
+    Set-Location -Path $env:BUILD_SRC\openssl; `
+    perl $env:BUILD_SRC\openssl\Configure `
+        VC-WIN64A `
+        no-shared `
+        no-ui-console `
+        no-tests `
+        no-unit-test `
+        no-capieng `
+        --api=1.1.0 `
+        --prefix=$env:BUILD_OUTPUT\openssl `
+        --openssldir=$env:BUILD_OUTPUT\openssl_ssl; `
+    set CL=/MP; `
+    nmake /S build_sw; `
+    nmake /S install_dev; `
+    nmake /S clean | Out-Null; `
+    Write-Host 'OpenSSL is ready...'; `
+    `
     Write-Host 'Building PCRE library ...'; `
+    Set-Location -Path $env:BUILD_SRC\pcre\build; `
     cmake --log-level=ERROR `
-        -G 'Visual Studio 16 2019' `
-	-A $env:BUILD_ARCH `
+        -G 'Visual Studio 17 2022' `
+        -A $env:BUILD_ARCH `
         -DPCRE_SUPPORT_UNICODE_PROPERTIES=ON `
         -DPCRE_SUPPORT_UTF=ON `
         -DCMAKE_C_FLAGS_RELEASE:string="""/MT""" ..; `
@@ -175,42 +264,38 @@ RUN Set-Location -Path $env:SystemDrive\.; `
         /target:pcre; `
     `
     Write-Host 'PCRE is ready...';
-
-RUN Set-Location -Path $env:SystemDrive\.; `
+    New-Item -ItemType directory -Path $env:BUILD_OUTPUT\pcre | Out-Null; `
+    New-Item -ItemType directory -Path $env:BUILD_OUTPUT\pcre\include | Out-Null; `
+    New-Item -ItemType directory -Path $env:BUILD_OUTPUT\pcre\lib | Out-Null; `
+    Copy-Item $env:BUILD_SRC\pcre\build\*.h -Destination $env:BUILD_OUTPUT\pcre\include; `
+    Copy-Item $env:BUILD_SRC\pcre\build\Release\* -Destination $env:BUILD_OUTPUT\pcre\lib; `
+    Remove-Item -Path $env:BUILD_SRC\pcre\build\* -Force -Recurse; `
+    Write-Host 'PCRE is ready...'; `
     `
-    Import-Module ('{0}\Microsoft Visual Studio\2019\BuildTools\Common7\Tools\Microsoft.VisualStudio.DevShell.dll' -f ${env:ProgramFiles(x86)} ); `
-    Enter-VsDevShell -VsInstallPath ('{0}\Microsoft Visual Studio\2019\BuildTools' -f ${env:ProgramFiles(x86)}) -DevCmdArguments """-arch=$env:BUILD_ARCH"""; `
     `
-    Write-Host ('Downloading {0} ...' -f $env:OPENSSL_URL); `
-    [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; `
-    Invoke-WebRequest -OutFile $env:SystemDrive\openssl.tar.gz -Uri $env:OPENSSL_URL; `
-    `
-    $sha256 = 'c5ac01e760ee6ff0dab61d6b2bbd30146724d063eb322180c6f18a6f74e4b6aa'; `
-    Write-Host ('Verifying SHA256 ({0}) ...' -f $sha256); `
-    if ((Get-FileHash $env:SystemDrive\openssl.tar.gz -Algorithm sha256).Hash -ne $sha256) { `
-        Write-Host 'Checksum OpenSSL library failed!'; `
-        exit 1; `
-    }; `
-    `
-    Write-Host 'Extracting archive ...'; `
-    tar -zxf $env:SystemDrive\openssl.tar.gz; `
-    Write-Host 'Removing downloaded...'; `
-    Remove-Item -Force -Path $env:SystemDrive\openssl.tar.gz; `
-    Rename-Item -Path $env:SystemDrive\openssl-$env:OPENSSL_VERSION -NewName $env:SystemDrive\openssl_build; `
-    `
-    Write-Host 'Building OpenSSL library...'; `
-    Set-Location -Path $env:SystemDrive\openssl_build; `
-    perl $env:SystemDrive\openssl_build\Configure `
-        VC-WIN64A `
-        no-shared `
-        no-ui-console `
-        no-tests `
-#        enable-capieng `
-        no-capieng `
-        --api=1.1.0 `
-        --prefix=$env:SystemDrive\openssl_output `
-        --openssldir=$env:SystemDrive\openssl_output_ssl; `
+    Write-Host 'Building Curl library...'; `
+    Set-Location -Path $env:BUILD_SRC\curl\winbuild; `
+    (Get-Content MakefileBuild.vc).replace(' wldap32.lib', '') | Set-Content MakefileBuild.vc; `
     set CL=/MP; `
-    nmake /S; `
-    nmake /S install_sw; `
-    Write-Host 'OpenSSL is ready...';
+    nmake /S -f Makefile.vc `
+        mode=static `
+        VC=17 `
+        DEBUG=no `
+        CC="""cl.exe /DCURL_DISABLE_LDAP /DCURL_DISABLE_LDAPS""" `
+        MACHINE=$env:BUILD_ARCH `
+        USE_IPV6=yes `
+        ENABLE_UNICODE=yes `
+        USE_IDN=no `
+        GEN_PDB=no `
+        WITH_SSL=static `
+        SSL_PATH=$env:BUILD_OUTPUT\openssl `
+        WITH_ZLIB=static `
+        ZLIB_PATH=$env:BUILD_OUTPUT\zlib `
+	RTLIBCFG=static; `
+    `
+    Move-Item -Path $env:BUILD_SRC\curl\builds\libcurl-vc17-$env:BUILD_ARCH-release-static-ssl-static-zlib-static-sspi\ -Destination $env:BUILD_OUTPUT\curl; `
+    Remove-Item -Path $env:BUILD_SRC\curl\builds\* -Force -Recurse; `
+    Write-Host 'Curl is ready...'; `
+    `
+    Write-Host 'Removing downloaded...'; `
+    Remove-Item -Force -Recurse $env:TEMP\*;

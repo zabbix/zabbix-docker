@@ -17,7 +17,7 @@ LABEL description="Zabbix build base for SQLite3 based images" \
       release="${RELEASE}" \
       summary="Zabbix build base (SQLite3)" \
       url="https://www.zabbix.com/" \
-      vendor="Zabbix LLC" \
+      vendor="Zabbix SIA" \
       version="${MAJOR_VERSION}" \
       io.k8s.description="Zabbix build base for SQLite3 based images" \
       io.k8s.display-name="Zabbix build base (SQLite3)" \
@@ -27,7 +27,7 @@ LABEL description="Zabbix build base for SQLite3 based images" \
       org.label-schema.name="zabbix-build-sqlite3-rhel" \
       org.label-schema.url="https://zabbix.com/" \
       org.label-schema.vcs-ref="${VCS_REF}" \
-      org.label-schema.vendor="Zabbix LLC"
+      org.label-schema.vendor="Zabbix SIA"
 
 RUN --mount=type=cache,target=/root/.cache/go-build/ \
     --mount=type=cache,target=/root/go/ \

@@ -17,7 +17,7 @@ LABEL description="Zabbix build base for MySQL based images" \
       release="${RELEASE}" \
       summary="Zabbix build base (MySQL)" \
       url="https://www.zabbix.com/" \
-      vendor="Zabbix LLC" \
+      vendor="Zabbix SIA" \
       version="${MAJOR_VERSION}" \
       io.k8s.description="Zabbix build base for MySQL based images" \
       io.k8s.display-name="Zabbix build base (MySQL)" \
@@ -27,7 +27,7 @@ LABEL description="Zabbix build base for MySQL based images" \
       org.label-schema.name="zabbix-build-mysql-rhel" \
       org.label-schema.url="https://zabbix.com/" \
       org.label-schema.vcs-ref="${VCS_REF}" \
-      org.label-schema.vendor="Zabbix LLC"
+      org.label-schema.vendor="Zabbix SIA"
 
 RUN --mount=type=cache,target=/root/.cache/go-build/ \
     --mount=type=cache,target=/root/go/ \
