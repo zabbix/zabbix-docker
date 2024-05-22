@@ -154,7 +154,7 @@ RUN Set-Location -Path $env:SystemDrive\.; `
     & $env:TEMP\msys2.sfx.exe -y -o"""$env:SystemDrive\""" | Out-Null; `
     bash -lc 'pacman --noprogressbar --noconfirm -Syuu'; `
     bash -lc 'pacman --noprogressbar --noconfirm -Syuu'; `
-    bash -lc 'pacman --noprogressbar --sync --quiet --noconfirm mingw-w64-ucrt-x86_64-cmake'; `
+    bash -lc 'pacman --noprogressbar --sync --quiet --noconfirm mingw-w64-x86_64-cmake'; `
     bash -lc 'pacman --noprogressbar --noconfirm -Scc'; `
     bash -lc 'rm -rf /usr/share/man/* /usr/share/doc/* /usr/share/locale/*'; `
     bash -lc 'rm -rf /$MSYSTEM/usr/share/man/* /$MSYSTEM/usr/share/doc/* /$MSYSTEM/usr/share/locale/*'; `
