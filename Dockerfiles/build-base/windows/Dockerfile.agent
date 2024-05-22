@@ -13,7 +13,7 @@ ARG BUILD_ARCH=x64
 ARG CPU_MODEL=AMD64
 
 ARG MAJOR_VERSION=6.4
-ARG ZBX_VERSION=${MAJOR_VERSION}.14
+ARG ZBX_VERSION=${MAJOR_VERSION}.15
 
 ARG GIT_URL=https://github.com/git-for-windows/git/releases/download/v2.33.0.windows.2/MinGit-2.33.0.2-busybox-64-bit.zip
 ARG PERL_URL=https://github.com/StrawberryPerl/Perl-Dist-Strawberry/releases/download/SP_53822_64bit/strawberry-perl-5.38.2.2-64bit-portable.zip
@@ -37,7 +37,7 @@ ENV ZBX_VERSION=$ZBX_VERSION `
 
 LABEL org.opencontainers.image.title="Zabbix agent build base for Windows" `
       org.opencontainers.image.authors="Alexey Pustovalov <alexey.pustovalov@zabbix.com>" `
-      org.opencontainers.image.vendor="Zabbix LLC" `
+      org.opencontainers.image.vendor="Zabbix SIA" `
       org.opencontainers.image.url="https://zabbix.com/" `
       org.opencontainers.image.description="Zabbix build base image contains all required packages to build Zabbix agent images" `
       org.opencontainers.image.licenses="GPL v2.0" `

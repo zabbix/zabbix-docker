@@ -2,8 +2,8 @@
 FROM registry.access.redhat.com/ubi9/ubi-minimal:9.4
 
 ARG MAJOR_VERSION=6.4
-ARG RELEASE=14
-ARG ZBX_VERSION=${MAJOR_VERSION}.14
+ARG RELEASE=15
+ARG ZBX_VERSION=${MAJOR_VERSION}.15
 
 ENV TERM=xterm \
     ZBX_VERSION=${ZBX_VERSION} \
@@ -15,7 +15,7 @@ LABEL description="Prepared environment to build Zabbix components" \
       release="${RELEASE}" \
       summary="Zabbix build base" \
       url="https://www.zabbix.com/" \
-      vendor="Zabbix LLC" \
+      vendor="Zabbix SIA" \
       version="${MAJOR_VERSION}" \
       io.k8s.description="Prepared environment to build Zabbix components" \
       io.k8s.display-name="Zabbix build base" \
@@ -25,7 +25,7 @@ LABEL description="Prepared environment to build Zabbix components" \
       org.label-schema.name="zabbix-build-base-rhel" \
       org.label-schema.url="https://zabbix.com/" \
       org.label-schema.vcs-ref="${VCS_REF}" \
-      org.label-schema.vendor="Zabbix LLC"
+      org.label-schema.vendor="Zabbix SIA"
 
 COPY ["licenses", "/licenses"]
 

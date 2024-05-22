@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1
 ARG MAJOR_VERSION=6.4
-ARG RELEASE=14
-ARG ZBX_VERSION=${MAJOR_VERSION}.14
+ARG RELEASE=15
+ARG ZBX_VERSION=${MAJOR_VERSION}.15
 ARG BUILD_BASE_IMAGE=zabbix-build-base:rhel-${ZBX_VERSION}
 
 FROM ${BUILD_BASE_IMAGE} AS builder
@@ -17,7 +17,7 @@ LABEL description="Zabbix build base for SQLite3 based images" \
       release="${RELEASE}" \
       summary="Zabbix build base (SQLite3)" \
       url="https://www.zabbix.com/" \
-      vendor="Zabbix LLC" \
+      vendor="Zabbix SIA" \
       version="${MAJOR_VERSION}" \
       io.k8s.description="Zabbix build base for SQLite3 based images" \
       io.k8s.display-name="Zabbix build base (SQLite3)" \
@@ -27,7 +27,7 @@ LABEL description="Zabbix build base for SQLite3 based images" \
       org.label-schema.name="zabbix-build-sqlite3-rhel" \
       org.label-schema.url="https://zabbix.com/" \
       org.label-schema.vcs-ref="${VCS_REF}" \
-      org.label-schema.vendor="Zabbix LLC"
+      org.label-schema.vendor="Zabbix SIA"
 
 ENV MONGODB_PLUGIN_SOURCES=https://git.zabbix.com/scm/ap/mongodb.git MONGODB_PLUGIN_VERSION=${ZBX_VERSION} \
     POSTGRESQL_PLUGIN_SOURCES=https://git.zabbix.com/scm/ap/postgresql.git POSTGRESQL_PLUGIN_VERSION=${ZBX_VERSION}

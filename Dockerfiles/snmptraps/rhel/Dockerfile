@@ -1,8 +1,8 @@
 FROM registry.access.redhat.com/ubi9/ubi-minimal:9.4
 
 ARG MAJOR_VERSION=6.4
-ARG RELEASE=14
-ARG ZBX_VERSION=${MAJOR_VERSION}.14
+ARG RELEASE=15
+ARG ZBX_VERSION=${MAJOR_VERSION}.15
 
 ARG ZBX_SOURCES=https://git.zabbix.com/scm/zbx/zabbix.git
 
@@ -19,7 +19,7 @@ LABEL description="Zabbix SNMP traps receiver" \
       run="docker run --name zabbix-snmptraps --link zabbix-server:zabbix-server -p 162:1162/udp -d registry.connect.redhat.com/zabbix/zabbix-snmptraps-64:${ZBX_VERSION}" \
       summary="Zabbix SNMP traps receiver" \
       url="https://www.zabbix.com/" \
-      vendor="Zabbix LLC" \
+      vendor="Zabbix SIA" \
       version="${MAJOR_VERSION}" \
       io.k8s.description="Zabbix SNMP traps receiver" \
       io.k8s.display-name="Zabbix SNMP traps receiver" \
@@ -35,7 +35,7 @@ LABEL description="Zabbix SNMP traps receiver" \
       org.label-schema.usage="https://www.zabbix.com/documentation/${MAJOR_VERSION}/manual/installation/containers" \
       org.label-schema.vcs-ref="${VCS_REF}" \
       org.label-schema.vcs-url="${ZBX_SOURCES}" \
-      org.label-schema.vendor="Zabbix LLC" \
+      org.label-schema.vendor="Zabbix SIA" \
       org.label-schema.version="${ZBX_VERSION}"
 
 STOPSIGNAL SIGTERM

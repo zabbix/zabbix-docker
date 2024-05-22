@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1
 ARG MAJOR_VERSION=6.4
-ARG ZBX_VERSION=${MAJOR_VERSION}.14
+ARG ZBX_VERSION=${MAJOR_VERSION}.15
 ARG BUILD_BASE_IMAGE=zabbix-build-pgsql:ol-${ZBX_VERSION}
 
 FROM ${BUILD_BASE_IMAGE} AS builder
@@ -18,7 +18,7 @@ ENV TERM=xterm \
 
 LABEL org.opencontainers.image.title="Zabbix server (PostgreSQL)" \
       org.opencontainers.image.authors="Alexey Pustovalov <alexey.pustovalov@zabbix.com>" \
-      org.opencontainers.image.vendor="Zabbix LLC" \
+      org.opencontainers.image.vendor="Zabbix SIA" \
       org.opencontainers.image.url="https://zabbix.com/" \
       org.opencontainers.image.description="Zabbix server with PostgreSQL database support" \
       org.opencontainers.image.licenses="GPL v2.0" \

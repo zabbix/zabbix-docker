@@ -2,7 +2,7 @@
 FROM alpine:3.19
 
 ARG MAJOR_VERSION=6.4
-ARG ZBX_VERSION=${MAJOR_VERSION}.14
+ARG ZBX_VERSION=${MAJOR_VERSION}.15
 
 ENV TERM=xterm \
     ZBX_VERSION=${ZBX_VERSION} \
@@ -15,7 +15,7 @@ LABEL org.opencontainers.image.authors="Alexey Pustovalov <alexey.pustovalov@zab
       org.opencontainers.image.licenses="GPL v2.0" \
       org.opencontainers.image.title="Zabbix build base" \
       org.opencontainers.image.url="https://zabbix.com/" \
-      org.opencontainers.image.vendor="Zabbix LLC" \
+      org.opencontainers.image.vendor="Zabbix SIA" \
       org.opencontainers.image.version="${ZBX_VERSION}"
 
 RUN set -eux && \

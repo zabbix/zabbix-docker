@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1
 # escape=`
 ARG MAJOR_VERSION=6.4
-ARG ZBX_VERSION=${MAJOR_VERSION}.14
+ARG ZBX_VERSION=${MAJOR_VERSION}.15
 ARG BUILD_BASE_IMAGE=zabbix-build-agent:ltsc2022-agent-${ZBX_VERSION}
 
 ARG BASE_IMAGE=mcr.microsoft.com/powershell:lts-nanoserver-ltsc2022
@@ -16,7 +16,7 @@ ARG ZBX_SOURCES=https://git.zabbix.com/scm/zbx/zabbix.git
 
 LABEL org.opencontainers.image.title="Zabbix agent" `
       org.opencontainers.image.authors="Alexey Pustovalov <alexey.pustovalov@zabbix.com>" `
-      org.opencontainers.image.vendor="Zabbix LLC" `
+      org.opencontainers.image.vendor="Zabbix SIA" `
       org.opencontainers.image.url="https://zabbix.com/" `
       org.opencontainers.image.description="Zabbix agent is deployed on a monitoring target to actively monitor local resources and applications" `
       org.opencontainers.image.licenses="GPL v2.0" `

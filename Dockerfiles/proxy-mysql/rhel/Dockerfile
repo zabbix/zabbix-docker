@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1
 ARG MAJOR_VERSION=6.4
-ARG RELEASE=14
-ARG ZBX_VERSION=${MAJOR_VERSION}.14
+ARG RELEASE=15
+ARG ZBX_VERSION=${MAJOR_VERSION}.15
 ARG BUILD_BASE_IMAGE=zabbix-build-mysql:rhel-${ZBX_VERSION}
 
 FROM ${BUILD_BASE_IMAGE} AS builder
@@ -25,7 +25,7 @@ LABEL description="Zabbix proxy with MySQL database support" \
       run="docker run --name zabbix-proxy --link mysql-server:mysql-server -p 10051:10051 -d registry.connect.redhat.com/zabbix/zabbix-proxy-mysql-64:${ZBX_VERSION}" \
       summary="Zabbix proxy (MySQL)" \
       url="https://www.zabbix.com/" \
-      vendor="Zabbix LLC" \
+      vendor="Zabbix SIA" \
       version="${MAJOR_VERSION}" \
       io.k8s.description="Zabbix proxy with MySQL database support" \
       io.k8s.display-name="Zabbix proxy (MySQL)" \
@@ -41,7 +41,7 @@ LABEL description="Zabbix proxy with MySQL database support" \
       org.label-schema.usage="https://www.zabbix.com/documentation/${MAJOR_VERSION}/manual/installation/containers" \
       org.label-schema.vcs-ref="${VCS_REF}" \
       org.label-schema.vcs-url="${ZBX_SOURCES}" \
-      org.label-schema.vendor="Zabbix LLC" \
+      org.label-schema.vendor="Zabbix SIA" \
       org.label-schema.version="${ZBX_VERSION}"
 
 STOPSIGNAL SIGTERM
