@@ -203,7 +203,7 @@ RUN Set-Location -Path $env:SystemDrive\.; `
     Write-Host ('Downloading {0} ...' -f $env:PCRE_URL); `
     Invoke-WebRequest -OutFile $env:TEMP\pcre.zip -Uri $env:PCRE_URL; `
     `
-    $sha256 = '1C2A4F75D934F60AC7DF937BA76FA4F26A93BB0A2FBF8AE22525D68E18EBEAE1'; `
+    $sha256 = '57581B00D85F3500D94CE28F7533B49403E249BC9C0CAB17F81D727F60361064'; `
     $d_sha256 = (Get-FileHash $env:TEMP\pcre.zip -Algorithm sha256).Hash; `
     Write-Host ('Verifying SHA256 ({0}) ...' -f $sha256); `
     if ($d_sha256 -ne $sha256) { `
