@@ -171,7 +171,6 @@ RUN Set-Location -Path $env:SystemDrive\.; `
         exit 1; `
     }; `
     `
-    `
     Write-Host ('Downloading {0} ...' -f $env:ZLIB_URL); `
     Invoke-WebRequest -OutFile $env:TEMP\zlib.tar.gz -Uri $env:ZLIB_URL; `
     `
@@ -263,7 +262,6 @@ RUN Set-Location -Path $env:SystemDrive\.; `
         /property:Platform=$env:BUILD_ARCH `
         /target:pcre; `
     `
-    Write-Host 'PCRE is ready...';
     New-Item -ItemType directory -Path $env:BUILD_OUTPUT\pcre | Out-Null; `
     New-Item -ItemType directory -Path $env:BUILD_OUTPUT\pcre\include | Out-Null; `
     New-Item -ItemType directory -Path $env:BUILD_OUTPUT\pcre\lib | Out-Null; `
@@ -271,7 +269,6 @@ RUN Set-Location -Path $env:SystemDrive\.; `
     Copy-Item $env:BUILD_SRC\pcre\build\Release\* -Destination $env:BUILD_OUTPUT\pcre\lib; `
     Remove-Item -Path $env:BUILD_SRC\pcre\build\* -Force -Recurse; `
     Write-Host 'PCRE is ready...'; `
-    `
     `
     Write-Host 'Building Curl library...'; `
     Set-Location -Path $env:BUILD_SRC\curl\winbuild; `
