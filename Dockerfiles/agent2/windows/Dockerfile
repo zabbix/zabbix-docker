@@ -6,7 +6,7 @@ ARG BUILD_BASE_IMAGE=zabbix-build-agent:ltsc2022-agent2-${ZBX_VERSION}
 
 ARG BASE_IMAGE=mcr.microsoft.com/powershell:lts-nanoserver-ltsc2022
 
-FROM ${BUILD_BASE_IMAGE} as builder
+FROM ${BUILD_BASE_IMAGE} AS builder
 
 FROM $BASE_IMAGE
 
@@ -44,12 +44,12 @@ RUN $env:PATH = [string]::Format('{0}\zabbix\sbin;{0}\zabbix\bin;', $env:SystemD
 
 RUN Set-Location -Path $env:SystemDrive\.; `
     `
-    New-Item -ItemType directory -Path $env:ZBX_HOME\conf\zabbix_agentd.d | Out-Null; `
-    New-Item -ItemType directory -Path $env:ZBX_HOME\enc | Out-Null; `
-    New-Item -ItemType directory -Path $env:ZBX_HOME\modules | Out-Null; `
-    New-Item -ItemType directory -Path $env:ZBX_HOME\buffer | Out-Null; `
+    New-Item -Force -ItemType directory -Path $env:ZBX_HOME\conf\zabbix_agentd.d | Out-Null; `
+    New-Item -Force -ItemType directory -Path $env:ZBX_HOME\enc | Out-Null; `
+    New-Item -Force -ItemType directory -Path $env:ZBX_HOME\modules | Out-Null; `
+    New-Item -Force -ItemType directory -Path $env:ZBX_HOME\buffer | Out-Null; `
     `
-	net accounts /MaxPWAge:unlimited; `
+    net accounts /MaxPWAge:unlimited; `
     net user /add zabbix /expire:never /passwordreq:no; `
     $acl = Get-Acl -Path $env:ZBX_HOME; `
     $ace = New-Object Security.AccessControl.FileSystemAccessRule ('zabbix', 'Modify', 'ContainerInherit, ObjectInherit', 'InheritOnly', 'Allow'); `
