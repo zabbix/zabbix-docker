@@ -163,7 +163,7 @@ RUN Set-Location -Path $env:SystemDrive\.; `
     Write-Host ('Downloading {0} ...' -f $env:OPENSSL_URL); `
     Invoke-WebRequest -OutFile $env:TEMP\openssl.tar.gz -Uri $env:OPENSSL_URL; `
     `
-    $sha256 = '6ae015467dabf0469b139ada93319327be24b98251ffaeceda0221848dc09262'; `
+    $sha256 = 'C5AC01E760EE6FF0DAB61D6B2BBD30146724D063EB322180C6F18A6F74E4B6AA'; `
     $d_sha256 = (Get-FileHash $env:TEMP\openssl.tar.gz -Algorithm sha256).Hash; `
     Write-Host ('Verifying SHA256 ({0}) ...' -f $sha256); `
     if ($d_sha256 -ne $sha256) { `
