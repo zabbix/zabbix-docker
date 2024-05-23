@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1
-FROM alpine:3.19
+FROM alpine:3.20
 
 ARG MAJOR_VERSION=6.4
 ARG ZBX_VERSION=${MAJOR_VERSION}.15
