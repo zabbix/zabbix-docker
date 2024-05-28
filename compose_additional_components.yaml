@@ -1,14 +1,18 @@
-version: '3.8'
 services:
  selenium:
   image: "${WEBDRIVER_IMAGE}:${WEBDRIVER_IMAGE_TAG}"
   restart: "${RESTART_POLICY}"
+  attach: false
+  scale: 4
   profiles:
    - full
    - all
   shm_size: "2gb"
+  env_file:
+   - path: ${ENV_VARS_DIRECTORY}/.env_selenium
+     required: false
   networks:
-   zbx_tools_frontend:
+   tools_frontend:
     aliases:
      - webdriver
      - selenium
