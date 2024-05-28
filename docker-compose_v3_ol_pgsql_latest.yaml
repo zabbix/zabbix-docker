@@ -1,4 +1,5 @@
-version: '3.8'
+name: zbx${ZABBIX_IMAGE_TAG_POSTFIX}
+
 services:
  zabbix-server:
   extends:
@@ -110,7 +111,7 @@ services:
 #   service: elasticsearch
 
 networks:
-  zbx_net_frontend:
+  frontend:
     driver: bridge
     driver_opts:
       com.docker.network.enable_ipv6: "${FRONTEND_ENABLE_IPV6}"
@@ -118,7 +119,7 @@ networks:
       driver: "${FRONTEND_NETWORK_DRIVER}"
       config:
       - subnet: "${FRONTEND_SUBNET}"
-  zbx_net_backend:
+  backend:
     driver: bridge
     driver_opts:
       com.docker.network.enable_ipv6: "${BACKEND_ENABLE_IPV6}"
@@ -127,7 +128,7 @@ networks:
       driver: "${BACKEND_NETWORK_DRIVER}"
       config:
       - subnet: "${BACKEND_SUBNET}"
-  zbx_net_database:
+  database:
     driver: bridge
     driver_opts:
       com.docker.network.enable_ipv6: "${DATABASE_NETWORK_ENABLE_IPV6}"

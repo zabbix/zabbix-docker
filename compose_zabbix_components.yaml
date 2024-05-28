@@ -1,9 +1,9 @@
-version: '3.8'
 services:
  server:
   ports:
    - "${ZABBIX_SERVER_PORT}:10051"
   restart: "${RESTART_POLICY}"
+  attach: true
   volumes:
    - /etc/localtime:/etc/localtime:ro
    - ${DATA_DIRECTORY}/usr/lib/zabbix/alertscripts:/usr/lib/zabbix/alertscripts:ro
@@ -31,14 +31,17 @@ services:
       memory: 512M
   env_file:
    - ${ENV_VARS_DIRECTORY}/.env_srv
+   - path: ${ENV_VARS_DIRECTORY}/.env_srv_override
+     required: false
   networks:
-   zbx_net_database:
+   database:
      aliases:
       - zabbix-server
-   zbx_net_backend:
+   backend:
      aliases:
       - zabbix-server
-   zbx_net_frontend:
+   frontend:
+   tools_frontend:
 #  devices:
 #   - "/dev/ttyUSB0:/dev/ttyUSB0"
   stop_grace_period: 30s
@@ -68,7 +71,7 @@ services:
 #   - client-cert.pem
 #   - root-ca.pem
   networks:
-   zbx_net_backend:
+   backend:
      aliases:
       - zabbix-server-mysql
   labels:
@@ -88,7 +91,7 @@ services:
    - POSTGRES_USER
    - POSTGRES_PASSWORD
   networks:
-   zbx_net_backend:
+   backend:
      aliases:
       - zabbix-server-pgsql
   labels:
@@ -99,6 +102,7 @@ services:
   profiles:
    - all
   restart: "${RESTART_POLICY}"
+  attach: false
   volumes:
    - /etc/localtime:/etc/localtime:ro
    - ${DATA_DIRECTORY}/usr/lib/zabbix/externalscripts:/usr/lib/zabbix/externalscripts:ro
@@ -124,8 +128,8 @@ services:
   env_file:
    - ${ENV_VARS_DIRECTORY}/.env_prx
   networks:
-   zbx_net_backend:
-   zbx_net_frontend:
+   backend:
+   frontend:
   stop_grace_period: 30s
 #  cap_add:
 #    - "NET_RAW"
@@ -146,8 +150,10 @@ services:
    - "${ZABBIX_PROXY_SQLITE3_PORT}:10051"
   env_file:
    - ${ENV_VARS_DIRECTORY}/.env_prx_sqlite3
+   - path: ${ENV_VARS_DIRECTORY}/.env_prx_sqlite3_override
+     required: false
   networks:
-   zbx_net_backend:
+   backend:
     aliases:
      - zabbix-proxy-sqlite3
   labels:
@@ -164,6 +170,8 @@ services:
   env_file:
    - ${ENV_VARS_DIRECTORY}/.env_db_mysql_proxy
    - ${ENV_VARS_DIRECTORY}/.env_prx_mysql
+   - path: ${ENV_VARS_DIRECTORY}/.env_prx_mysql_override
+     required: false
   secrets:
    - MYSQL_USER
    - MYSQL_PASSWORD
@@ -171,10 +179,10 @@ services:
 #   - client-cert.pem
 #   - root-ca.pem
   networks:
-   zbx_net_database:
+   database:
      aliases:
       - zabbix-proxy-mysql
-   zbx_net_backend:
+   backend:
     aliases:
      - zabbix-proxy-mysql
   labels:
@@ -188,6 +196,7 @@ services:
    - "${ZABBIX_WEB_APACHE_HTTP_PORT}:8080"
    - "${ZABBIX_WEB_APACHE_HTTPS_PORT}:8443"
   restart: "${RESTART_POLICY}"
+  attach: false
   volumes:
    - /etc/localtime:/etc/localtime:ro
    - ${DATA_DIRECTORY}/etc/ssl/apache2:/etc/ssl/apache2:ro
@@ -203,6 +212,8 @@ services:
       memory: 256M
   env_file:
    - ${ENV_VARS_DIRECTORY}/.env_web
+   - path: ${ENV_VARS_DIRECTORY}/.env_web_override
+     required: false
   healthcheck:
    test: ["CMD", "curl", "-f", "http://localhost:8080/"]
    interval: 10s
@@ -210,9 +221,9 @@ services:
    retries: 3
    start_period: 30s
   networks:
-   zbx_net_database:
-   zbx_net_backend:
-   zbx_net_frontend:
+   database:
+   backend:
+   frontend:
   stop_grace_period: 10s
   sysctls:
    - net.core.somaxconn=65535
@@ -251,7 +262,7 @@ services:
    - POSTGRES_USER
    - POSTGRES_PASSWORD
   networks:
-   zbx_net_backend:
+   backend:
     aliases:
      - zabbix-web-apache-pgsql
   labels:
@@ -263,6 +274,7 @@ services:
    - "${ZABBIX_WEB_NGINX_HTTP_PORT}:8080"
    - "${ZABBIX_WEB_NGINX_HTTPS_PORT}:8443"
   restart: "${RESTART_POLICY}"
+  attach: false
   volumes:
    - /etc/localtime:/etc/localtime:ro
    - ${DATA_DIRECTORY}/etc/ssl/nginx:/etc/ssl/nginx:ro
@@ -278,6 +290,8 @@ services:
       memory: 256M
   env_file:
    - ${ENV_VARS_DIRECTORY}/.env_web
+   - path: ${ENV_VARS_DIRECTORY}/.env_web_override
+     required: false
   healthcheck:
    test: ["CMD", "curl", "-f", "http://localhost:8080/ping"]
    interval: 10s
@@ -285,9 +299,9 @@ services:
    retries: 3
    start_period: 30s
   networks:
-   zbx_net_database:
-   zbx_net_backend:
-   zbx_net_frontend:
+   database:
+   backend:
+   frontend:
   stop_grace_period: 10s
   sysctls:
    - net.core.somaxconn=65535
@@ -310,7 +324,7 @@ services:
 #   - client-cert.pem
 #   - root-ca.pem
   networks:
-   zbx_net_backend:
+   backend:
     aliases:
      - zabbix-web-nginx-mysql
   labels:
@@ -330,7 +344,7 @@ services:
    - POSTGRES_USER
    - POSTGRES_PASSWORD
   networks:
-   zbx_net_backend:
+   backend:
     aliases:
      - zabbix-web-nginx-pgsql
   labels:
@@ -344,6 +358,7 @@ services:
   ports:
    - "${ZABBIX_AGENT_PORT}:10050"
   restart: "${RESTART_POLICY}"
+  attach: false
   volumes:
    - /etc/localtime:/etc/localtime:ro
    - ${DATA_DIRECTORY}/etc/zabbix/zabbix_agentd.d:/etc/zabbix/zabbix_agentd.d:ro
@@ -362,10 +377,12 @@ services:
    mode: global
   env_file:
    - ${ENV_VARS_DIRECTORY}/.env_agent
+   - path: ${ENV_VARS_DIRECTORY}/.env_agent_override
+     required: false
   privileged: true
   pid: "host"
   networks:
-   zbx_net_backend:
+   backend:
     aliases:
      - zabbix-agent
      - zabbix-agent-passive
@@ -382,6 +399,7 @@ services:
   ports:
    - "${ZABBIX_AGENT2_PORT}:10050"
   restart: "${RESTART_POLICY}"
+  attach: false
   volumes:
    - /etc/localtime:/etc/localtime:ro
    - ${DATA_DIRECTORY}/etc/zabbix/zabbix_agentd.d:/etc/zabbix/zabbix_agentd.d:ro
@@ -400,10 +418,12 @@ services:
    mode: global
   env_file:
    - ${ENV_VARS_DIRECTORY}/.env_agent
+   - path: ${ENV_VARS_DIRECTORY}/.env_agent_override
+     required: false
   privileged: true
   pid: "host"
   networks:
-   zbx_net_backend:
+   backend:
     aliases:
      - zabbix-agent
      - zabbix-agent-passive
@@ -420,6 +440,7 @@ services:
   ports:
    - "${ZABBIX_JAVA_GATEWAY_PORT}:10052"
   restart: "${RESTART_POLICY}"
+  attach: false
   deploy:
    resources:
     limits:
@@ -430,10 +451,13 @@ services:
       memory: 256M
   env_file:
    - ${ENV_VARS_DIRECTORY}/.env_java
+   - path: ${ENV_VARS_DIRECTORY}/.env_java_override
+     required: false
   networks:
-   zbx_net_backend:
+   backend:
     aliases:
      - zabbix-java-gateway
+   frontend:
   stop_grace_period: 5s
   labels:
    com.zabbix.description: "Zabbix Java Gateway"
@@ -450,6 +474,8 @@ services:
   ports:
    - "${ZABBIX_SNMPTRAPS_PORT}:1162/udp"
   restart: "${RESTART_POLICY}"
+  attach: false
+  read_only: true
   volumes:
    - snmptraps:/var/lib/zabbix/snmptraps:rw
   tmpfs: /tmp
@@ -463,11 +489,13 @@ services:
       memory: 128M
   env_file:
    - ${ENV_VARS_DIRECTORY}/.env_snmptraps
+   - path: ${ENV_VARS_DIRECTORY}/.env_snmptraps_override
+     required: false
   networks:
-   zbx_net_frontend:
+   frontend:
     aliases:
      - zabbix-snmptraps
-   zbx_net_backend:
+   backend:
   stop_grace_period: 5s
   labels:
    com.zabbix.description: "Zabbix snmptraps"

@@ -1,4 +1,5 @@
-version: '3.8'
+name: zbx${ZABBIX_IMAGE_TAG_POSTFIX}
+
 services:
  zabbix-build-base:
   build:
@@ -6,6 +7,7 @@ services:
    cache_from:
     - "${OL_CACHE_FROM}"
   image: ${BUILD_BASE_IMAGE}:${ZABBIX_OL_IMAGE_TAG}${ZABBIX_LOCAL_IMAGE_TAG_POSTFIX}
+  attach: false
 
  zabbix-build-pgsql:
   build:
@@ -15,6 +17,7 @@ services:
    args:
     BUILD_BASE_IMAGE: ${BUILD_BASE_IMAGE}:${ZABBIX_OL_IMAGE_TAG}${ZABBIX_LOCAL_IMAGE_TAG_POSTFIX}
   image: ${BUILD_BASE_PGSQL_IMAGE}:${ZABBIX_OL_IMAGE_TAG}${ZABBIX_LOCAL_IMAGE_TAG_POSTFIX}
+  attach: false
   depends_on:
    - zabbix-build-base
 
@@ -26,6 +29,7 @@ services:
    args:
     BUILD_BASE_IMAGE: ${BUILD_BASE_IMAGE}:${ZABBIX_OL_IMAGE_TAG}${ZABBIX_LOCAL_IMAGE_TAG_POSTFIX}
   image: ${BUILD_BASE_MYSQL_IMAGE}:${ZABBIX_OL_IMAGE_TAG}${ZABBIX_LOCAL_IMAGE_TAG_POSTFIX}
+  attach: false
   profiles:
    - all
   depends_on:
@@ -39,6 +43,7 @@ services:
    args:
     BUILD_BASE_IMAGE: ${BUILD_BASE_IMAGE}:${ZABBIX_OL_IMAGE_TAG}${ZABBIX_LOCAL_IMAGE_TAG_POSTFIX}
   image: ${BUILD_BASE_SQLITE3_IMAGE}:${ZABBIX_OL_IMAGE_TAG}${ZABBIX_LOCAL_IMAGE_TAG_POSTFIX}
+  attach: false
   profiles:
    - all
   depends_on:
@@ -212,7 +217,7 @@ services:
 #   service: elasticsearch
 
 networks:
-  zbx_net_frontend:
+  frontend:
     driver: bridge
     driver_opts:
       com.docker.network.enable_ipv6: "${FRONTEND_ENABLE_IPV6}"
@@ -220,7 +225,7 @@ networks:
       driver: "${FRONTEND_NETWORK_DRIVER}"
       config:
       - subnet: "${FRONTEND_SUBNET}"
-  zbx_net_backend:
+  backend:
     driver: bridge
     driver_opts:
       com.docker.network.enable_ipv6: "${BACKEND_ENABLE_IPV6}"
@@ -229,7 +234,7 @@ networks:
       driver: "${BACKEND_NETWORK_DRIVER}"
       config:
       - subnet: "${BACKEND_SUBNET}"
-  zbx_net_database:
+  database:
     driver: bridge
     driver_opts:
       com.docker.network.enable_ipv6: "${DATABASE_NETWORK_ENABLE_IPV6}"

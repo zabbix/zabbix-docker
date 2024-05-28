@@ -1,9 +1,9 @@
-version: '3.8'
 services:
  mysql-server:
   image: "${MYSQL_IMAGE}:${MYSQL_IMAGE_TAG}"
   command:
    - mysqld
+   - --skip-mysqlx
    - --character-set-server=utf8
    - --collation-server=utf8_bin
    - --default-authentication-plugin=mysql_native_password
@@ -13,12 +13,15 @@ services:
 #   - --ssl-cert=/run/secrets/server-cert.pem
 #   - --ssl-key=/run/secrets/server-key.pem
   restart: "${RESTART_POLICY}"
+  attach: false
   volumes:
    - ${DATA_DIRECTORY}/var/lib/mysql:/var/lib/mysql:rw
    - ${ENV_VARS_DIRECTORY}/mysql_init/init_proxy_db.sql:/docker-entrypoint-initdb.d/mysql_init_proxy.sql:ro
 #   - dbsocket:/var/run/mysqld/
   env_file:
    - ${ENV_VARS_DIRECTORY}/.env_db_mysql
+   - path: ${ENV_VARS_DIRECTORY}/.env_db_mysql_override
+     required: false
   environment:
    - MYSQL_ROOT_PASSWORD_FILE=/run/secrets/MYSQL_ROOT_PASSWORD
   secrets:
@@ -30,7 +33,7 @@ services:
 #   - root-ca.pem
   stop_grace_period: 1m
   networks:
-   zbx_net_database:
+   database:
     aliases:
      - mysql-server
 
@@ -38,6 +41,7 @@ services:
   image: "${POSTGRESQL_IMAGE}:${POSTGRESQL_IMAGE_TAG}"
 #  command: -c ssl=on -c ssl_cert_file=/run/secrets/server-cert.pem -c ssl_key_file=/run/secrets/server-key.pem -c ssl_ca_file=/run/secrets/root-ca.pem
   restart: "${RESTART_POLICY}"
+  attach: false
   volumes:
    - ${DATA_DIRECTORY}/var/lib/postgresql/data:/var/lib/postgresql/data:rw
    - ${ENV_VARS_DIRECTORY}/.ZBX_DB_CA_FILE:/run/secrets/root-ca.pem:ro
@@ -45,12 +49,14 @@ services:
    - ${ENV_VARS_DIRECTORY}/.ZBX_DB_KEY_FILE:/run/secrets/server-key.pem:ro
   env_file:
    - ${ENV_VARS_DIRECTORY}/.env_db_pgsql
+   - path: ${ENV_VARS_DIRECTORY}/.env_db_pgsql_override
+     required: false
   secrets:
    - POSTGRES_USER
    - POSTGRES_PASSWORD
   stop_grace_period: 1m
   networks:
-   zbx_net_database:
+   database:
     aliases:
      - postgres-server
 
@@ -61,12 +67,14 @@ services:
 
  db-data-pgsql:
   image: busybox
+  attach: false
   volumes:
    - ${DATA_DIRECTORY}/var/lib/postgresql/data:/var/lib/postgresql/data:rw
 
  elasticsearch:
   image: "${ELASTICSEARCH_IMAGE}:${ELASTICSEARCH_IMAGE_TAG}"
   restart: "${RESTART_POLICY}"
+  attach: false
   profiles:
    - full
    - all
@@ -74,6 +82,6 @@ services:
    - transport.host=0.0.0.0
    - discovery.zen.minimum_master_nodes=1
   networks:
-   zbx_net_database:
+   database:
     aliases:
      - elasticsearch
