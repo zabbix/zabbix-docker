@@ -41,7 +41,6 @@ services:
      aliases:
       - zabbix-server
    frontend:
-   tools_frontend:
 #  devices:
 #   - "/dev/ttyUSB0:/dev/ttyUSB0"
   stop_grace_period: 30s
