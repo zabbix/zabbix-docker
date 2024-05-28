@@ -1,5 +1,3 @@
-name: zbx${ZABBIX_IMAGE_TAG_POSTFIX}
-
 services:
  zabbix-build-base:
   build:
