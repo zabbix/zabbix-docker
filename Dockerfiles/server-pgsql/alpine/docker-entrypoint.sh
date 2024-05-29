@@ -534,6 +534,8 @@ update_zbx_config() {
 
     update_config_var $ZBX_CONFIG "ServiceManagerSyncFrequency" "${ZBX_SERVICEMANAGERSYNCFREQUENCY}"
 
+    update_config_var $ZBX_CONFIG "SMSDevices" "${ZBX_SMSDEVICES}"
+
     if [ "${ZBX_AUTOHANODENAME}" == 'fqdn' ] && [ ! -n "${ZBX_HANODENAME}" ]; then
         update_config_var $ZBX_CONFIG "HANodeName" "$(hostname -f)"
     elif [ "${ZBX_AUTOHANODENAME}" == 'hostname' ] && [ ! -n "${ZBX_HANODENAME}" ]; then
