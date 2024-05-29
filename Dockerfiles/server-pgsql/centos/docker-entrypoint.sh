@@ -505,6 +505,8 @@ update_zbx_config() {
     update_config_var $ZBX_CONFIG "TLSPSKIdentity" "${ZBX_TLSPSKIDENTITY}"
     update_config_var $ZBX_CONFIG "TLSPSKFile" "${ZBX_TLSPSKFILE}"
 
+    update_config_var $ZBX_CONFIG "SMSDevices" "${ZBX_SMSDEVICES}"
+
     if [ "$(id -u)" != '0' ]; then
         update_config_var $ZBX_CONFIG "User" "$(whoami)"
     else
