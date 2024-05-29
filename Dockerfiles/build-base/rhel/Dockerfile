@@ -51,8 +51,6 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             OpenIPMI-devel \
             openldap-devel \
             sqlite-devel \
-            postgresql-private-devel \
-            postgresql-server-devel \
             java-17-openjdk-devel \
             git \
             gettext \
@@ -63,10 +61,10 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
     rm -rf /tmp/epel-release-latest-8.noarch.rpm && \
     microdnf -y module enable \
         --disablerepo "*" \
-        --enablerepo "rhel-8-for-x86_64-baseos-rpms" \
+        --enablerepo "rhel-8-for-x86_64-appstream-rpms" \
         --setopt=install_weak_deps=0 \
         --setopt=keepcache=0 \
-        postgresql:16 mysql && \
+        mysql && \
     microdnf -y install \
             --disablerepo "*" \
             --enablerepo "ubi-8-baseos-rpms" \
