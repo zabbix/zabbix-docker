@@ -49,7 +49,7 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             supervisor" && \
     dnf -y install epel-release && \
     dnf -y module enable mysql && \
-    dnf -y module enable php:8.0 nginx:1.22 && \
+    dnf -y module enable php:8.2 nginx:1.24 && \
     dnf -y install \
             --disablerepo "*" \
             --enablerepo "${REPOLIST}" \

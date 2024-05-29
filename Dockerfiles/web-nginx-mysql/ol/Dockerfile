@@ -48,7 +48,7 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             glibc-locale-source \
             supervisor" && \
     microdnf -y module enable mysql && \
-    microdnf -y module enable php:8.0 nginx:1.22 && \
+    microdnf -y module enable php:8.2 nginx:1.24 && \
     microdnf -y install \
             --disablerepo="*" \
             --enablerepo="ol8_baseos_latest" \

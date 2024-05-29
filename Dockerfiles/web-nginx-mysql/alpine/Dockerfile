@@ -5,7 +5,7 @@ ARG BUILD_BASE_IMAGE=zabbix-build-mysql:alpine-${ZBX_VERSION}
 
 FROM ${BUILD_BASE_IMAGE} as builder
 
-FROM alpine:3.16
+FROM alpine:3.19
 
 ARG MAJOR_VERSION
 ARG ZBX_VERSION
@@ -36,22 +36,22 @@ RUN set -eux && \
             mariadb-client \
             mariadb-connector-c \
             nginx \
-            php8-bcmath \
-            php8-ctype \
-            php8-fpm \
-            php8-gd \
-            php8-gettext \
-            php8-json \
-            php8-ldap \
-            php8-mbstring \
-            php8-mysqli \
-            php8-session \
-            php8-simplexml \
-            php8-sockets \
-            php8-fileinfo \
-            php8-xmlreader \
-            php8-xmlwriter \
-            php8-openssl \
+            php83-bcmath \
+            php83-ctype \
+            php83-fpm \
+            php83-gd \
+            php83-gettext \
+            php83-json \
+            php83-ldap \
+            php83-mbstring \
+            php83-mysqli \
+            php83-session \
+            php83-simplexml \
+            php83-sockets \
+            php83-fileinfo \
+            php83-xmlreader \
+            php83-xmlwriter \
+            php83-openssl \
             supervisor" && \
     apk add \
             --no-cache \
@@ -79,7 +79,7 @@ RUN set -eux && \
     mkdir -p /etc/zabbix/web && \
     mkdir -p /etc/zabbix/web/certs && \
     mkdir -p /var/lib/php/session && \
-    rm -rf /etc/php8/php-fpm.d/www.conf && \
+    rm -rf /etc/php83/php-fpm.d/www.conf && \
     rm -f /etc/nginx/http.d/*.conf && \
     ln -sf /dev/stdout /var/log/nginx/access.log && \
     ln -sf /dev/stderr /var/log/nginx/error.log && \
@@ -94,9 +94,9 @@ RUN set -eux && \
     chown --quiet -R zabbix:root /etc/zabbix/ /usr/share/zabbix/include/defines.inc.php /usr/share/zabbix/modules/ && \
     chgrp -R 0 /etc/zabbix/ /usr/share/zabbix/include/defines.inc.php /usr/share/zabbix/modules/ && \
     chmod -R g=u /etc/zabbix/ /usr/share/zabbix/include/defines.inc.php /usr/share/zabbix/modules/ && \
-    chown --quiet -R zabbix:root /etc/nginx/ /etc/php8/php-fpm.d/ /etc/php8/php-fpm.conf && \
-    chgrp -R 0 /etc/nginx/ /etc/php8/php-fpm.d/ /etc/php8/php-fpm.conf && \
-    chmod -R g=u /etc/nginx/ /etc/php8/php-fpm.d/ /etc/php8/php-fpm.conf && \
+    chown --quiet -R zabbix:root /etc/nginx/ /etc/php83/php-fpm.d/ /etc/php83/php-fpm.conf && \
+    chgrp -R 0 /etc/nginx/ /etc/php83/php-fpm.d/ /etc/php83/php-fpm.conf && \
+    chmod -R g=u /etc/nginx/ /etc/php83/php-fpm.d/ /etc/php83/php-fpm.conf && \
     chown --quiet -R zabbix:root /var/lib/php/session/ /var/lib/nginx/ && \
     chgrp -R 0 /var/lib/php/session/ /var/lib/nginx/ && \
     chmod -R g=u /var/lib/php/session/ /var/lib/nginx/

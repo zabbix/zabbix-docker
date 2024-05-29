@@ -5,7 +5,7 @@ ARG BUILD_BASE_IMAGE=zabbix-build-sqlite3:alpine-${ZBX_VERSION}
 
 FROM ${BUILD_BASE_IMAGE} as builder
 
-FROM alpine:3.16
+FROM alpine:3.19
 
 ARG MAJOR_VERSION
 ARG ZBX_VERSION

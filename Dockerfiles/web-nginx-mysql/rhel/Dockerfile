@@ -70,7 +70,7 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
     rpm -ivh /tmp/epel-release-latest-8.noarch.rpm && \
     rm -rf /tmp/epel-release-latest-8.noarch.rpm && \
     microdnf -y module enable mysql && \
-    microdnf -y module enable php:8.0 nginx:1.20 && \
+    microdnf -y module enable php:8.2 nginx:1.24 && \
     microdnf -y install \
             --disablerepo "*" \
             --enablerepo "ubi-8-baseos-rpms" \

@@ -5,7 +5,7 @@ ARG BUILD_BASE_IMAGE=zabbix-build-pgsql:alpine-${ZBX_VERSION}
 
 FROM ${BUILD_BASE_IMAGE} as builder
 
-FROM alpine:3.16
+FROM alpine:3.19
 
 ARG MAJOR_VERSION
 ARG ZBX_VERSION
@@ -34,22 +34,22 @@ RUN set -eux && \
             tzdata \
             apache2 \
             curl \
-            php8-apache2 \
-            php8-bcmath \
-            php8-ctype \
-            php8-gd \
-            php8-gettext \
-            php8-json \
-            php8-ldap \
-            php8-pgsql \
-            php8-mbstring \
-            php8-session \
-            php8-simplexml \
-            php8-sockets \
-            php8-fileinfo \
-            php8-xmlreader \
-            php8-xmlwriter \
-            php8-openssl \
+            php83-apache2 \
+            php83-bcmath \
+            php83-ctype \
+            php83-gd \
+            php83-gettext \
+            php83-json \
+            php83-ldap \
+            php83-pgsql \
+            php83-mbstring \
+            php83-session \
+            php83-simplexml \
+            php83-sockets \
+            php83-fileinfo \
+            php83-xmlreader \
+            php83-xmlwriter \
+            php83-openssl \
             postgresql-client" && \
     apk add \
             --no-cache \
@@ -98,9 +98,9 @@ RUN set -eux && \
     chown --quiet -R zabbix:root /etc/zabbix/ /usr/share/zabbix/include/defines.inc.php /usr/share/zabbix/modules/ && \
     chgrp -R 0 /etc/zabbix/ /usr/share/zabbix/include/defines.inc.php /usr/share/zabbix/modules/ && \
     chmod -R g=u /etc/zabbix/ /usr/share/zabbix/include/defines.inc.php /usr/share/zabbix/modules/ && \
-    chown --quiet -R zabbix:root /etc/apache2/ /etc/php8/ && \
-    chgrp -R 0 /etc/apache2/ /etc/php8/ && \
-    chmod -R g=u /etc/apache2/ /etc/php8/
+    chown --quiet -R zabbix:root /etc/apache2/ /etc/php83/ && \
+    chgrp -R 0 /etc/apache2/ /etc/php83/ && \
+    chmod -R g=u /etc/apache2/ /etc/php83/
 
 EXPOSE 8080/TCP 8443/TCP
 

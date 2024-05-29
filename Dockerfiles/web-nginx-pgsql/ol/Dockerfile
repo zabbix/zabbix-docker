@@ -47,7 +47,7 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             php-xml \
             postgresql \
             supervisor" && \
-    microdnf -y module enable php:8.0 nginx:1.22 && \
+    microdnf -y module enable php:8.2 nginx:1.24 && \
     microdnf module enable postgresql:15 && \
     microdnf -y install \
             --disablerepo="*" \
