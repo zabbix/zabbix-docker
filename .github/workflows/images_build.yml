@@ -551,6 +551,7 @@ jobs:
          BASE_IMAGE: ${{ steps.base_build.outputs.base_build_image }}
          REPOSITORY: ${{ github.repository }}
          DOCKER_REGISTRY: ${{ env.DOCKER_REGISTRY }}
+         GH_TOKEN: ${{ github.token }}
         run: |
             echo "::group::Image sign data"
             echo "Image to verify=$BASE_IMAGE"
