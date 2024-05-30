@@ -18,7 +18,7 @@
 <h1 id="how-to-use-this-image">How to use this image</h1>
 <h2 id="start-zabbix-server-mysql-">Start <code>zabbix-server-mysql</code></h2>
 <p>Start a Zabbix server container as follows:</p>
-<pre><code>podman <span class="hljs-keyword">run</span><span class="bash"> --name some-zabbix-server-mysql <span class="hljs-_">-e</span> DB_SERVER_HOST=<span class="hljs-string">"some-mysql-server"</span> <span class="hljs-_">-e</span> MYSQL_USER=<span class="hljs-string">"some-user"</span> <span class="hljs-_">-e</span> MYSQL_PASSWORD=<span class="hljs-string">"some-password"</span> --init <span class="hljs-_">-d</span> zabbix/zabbix-server-mysql-trunk:tag</span>
+<pre><code>podman <span class="hljs-keyword">run</span><span class="bash"> --name some-zabbix-server-mysql <span class="hljs-_">-e</span> DB_SERVER_HOST=<span class="hljs-string">"some-mysql-server"</span> <span class="hljs-_">-e</span> MYSQL_USER=<span class="hljs-string">"some-user"</span> <span class="hljs-_">-e</span> MYSQL_PASSWORD=<span class="hljs-string">"some-password"</span> --init <span class="hljs-_">-d</span> zabbix/zabbix-server-mysql-60:tag</span>
 </code></pre><p>Where <code>some-zabbix-server-mysql</code> is the name you want to assign to your container, <code>some-mysql-server</code> is IP or DNS name of MySQL server, <code>some-user</code> is user to connect to Zabbix database on MySQL server, <code>some-password</code> is the password to connect to MySQL server and <code>tag</code> is the tag specifying the version you want.</p>
 <blockquote>
 <p>[!NOTE]
@@ -187,7 +187,7 @@ SNMP traps processing feature could be enabled using shared volume and switched 
 <p>Directory for real-time export of events, history and trends in newline-delimited JSON format. Could be enabled using <code>ZBX_EXPORTFILESIZE</code> environment variable.</p>
 <h1 id="user-feedback">User Feedback</h1>
 <h2 id="documentation">Documentation</h2>
-<p>Documentation for this image is stored in the <a href="https://github.com/zabbix/zabbix-docker/tree/trunk/Dockerfiles/server-mysql/rhel/"><code>server-mysql/</code> directory</a> of the <a href="https://github.com/zabbix/zabbix-docker/"><code>zabbix/zabbix-docker</code> GitHub repo</a>. Be sure to familiarize yourself with the <a href="https://github.com/zabbix/zabbix-docker/blob/trunk/README.md">repository&#39;s <code>README.md</code> file</a> before attempting a pull request.</p>
+<p>Documentation for this image is stored in the <a href="https://github.com/zabbix/zabbix-docker/tree/6.0/Dockerfiles/server-mysql/rhel/"><code>server-mysql/</code> directory</a> of the <a href="https://github.com/zabbix/zabbix-docker/"><code>zabbix/zabbix-docker</code> GitHub repo</a>. Be sure to familiarize yourself with the <a href="https://github.com/zabbix/zabbix-docker/blob/6.0/README.md">repository&#39;s <code>README.md</code> file</a> before attempting a pull request.</p>
 <h2 id="issues">Issues</h2>
 <p>If you have any problems with or questions about this image, please contact us through a <a href="https://github.com/zabbix/zabbix-docker/issues">GitHub issue</a>.</p>
 <h3 id="known-issues">Known issues</h3>
