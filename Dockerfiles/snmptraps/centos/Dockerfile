@@ -27,19 +27,19 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
     INSTALL_PKGS="bash \
             net-snmp" && \
     dnf -y install \
-            --disablerepo "*" \
-            --enablerepo "${REPOLIST}" \
-            --setopt=tsflags=nodocs \
-            --setopt=install_weak_deps=False \
-            --best \
-        ${INSTALL_PKGS} && \
+        --disablerepo "*" \
+        --enablerepo "${REPOLIST}" \
+        --setopt=tsflags=nodocs \
+        --setopt=install_weak_deps=False \
+        --setopt=keepcache=False \
+        --best ${INSTALL_PKGS} && \
     dnf -y reinstall \
-            --disablerepo "*" \
-            --enablerepo "baseos" \
-            --setopt=tsflags=nodocs \
-            --setopt=install_weak_deps=False \
-            --best \
-        tzdata && \
+        --disablerepo "*" \
+        --enablerepo "baseos" \
+        --setopt=tsflags=nodocs \
+        --setopt=install_weak_deps=False \
+        --setopt=keepcache=False \
+        --best tzdata && \
     groupadd \
             --system \
             --gid 1995 \

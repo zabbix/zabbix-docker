@@ -3,7 +3,7 @@ ARG MAJOR_VERSION=6.0
 ARG ZBX_VERSION=${MAJOR_VERSION}.30
 ARG BUILD_BASE_IMAGE=zabbix-build-mysql:ol-${ZBX_VERSION}
 
-FROM ${BUILD_BASE_IMAGE} as builder
+FROM ${BUILD_BASE_IMAGE} AS builder
 
 FROM oraclelinux:8-slim
 
@@ -58,7 +58,13 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             pcre2 \
             zlib \
             unixODBC" && \
-    microdnf -y module enable mysql && \
+    microdnf -y module enable \
+            --disablerepo "*" \
+            --enablerepo "ol8_appstream" \
+            --setopt=install_weak_deps=0 \
+            --setopt=keepcache=0 \
+            --best \
+            --nodocs mysql && \
     microdnf -y install \
             --disablerepo="*" \
             --enablerepo="ol8_baseos_latest" \

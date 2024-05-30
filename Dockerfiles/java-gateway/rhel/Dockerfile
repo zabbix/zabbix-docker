@@ -4,7 +4,7 @@ ARG RELEASE=30
 ARG ZBX_VERSION=${MAJOR_VERSION}.30
 ARG BUILD_BASE_IMAGE=zabbix-build-mysql:rhel-${ZBX_VERSION}
 
-FROM ${BUILD_BASE_IMAGE} as builder
+FROM ${BUILD_BASE_IMAGE} AS builder
 
 FROM registry.access.redhat.com/ubi8/ubi-minimal:8.10
 
@@ -55,6 +55,7 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             shadow-utils \
             java-17-openjdk-headless" && \
     microdnf -y install \
+            --disableplugin=subscription-manager \
             --disablerepo "*" \
             --enablerepo "ubi-8-baseos-rpms" \
             --enablerepo "ubi-8-appstream-rpms" \

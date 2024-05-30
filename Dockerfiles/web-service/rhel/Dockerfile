@@ -4,7 +4,7 @@ ARG RELEASE=30
 ARG ZBX_VERSION=${MAJOR_VERSION}.30
 ARG BUILD_BASE_IMAGE=zabbix-build-mysql:rhel-${ZBX_VERSION}
 
-FROM ${BUILD_BASE_IMAGE} as builder
+FROM ${BUILD_BASE_IMAGE} AS builder
 
 FROM registry.access.redhat.com/ubi8/ubi-minimal:8.10
 
@@ -50,6 +50,7 @@ COPY --from=builder ["/tmp/zabbix-${ZBX_VERSION}/src/go/bin/zabbix_web_service",
 COPY --from=builder ["/tmp/zabbix-${ZBX_VERSION}/src/go/conf/zabbix_web_service.conf", "/etc/zabbix/zabbix_web_service.conf"]
 
 RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
+    --mount=type=bind,target=/run/secrets/,src=secrets/ \
     set -eux && \
     INSTALL_PKGS="bash \
             shadow-utils \
@@ -70,6 +71,7 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             --setopt=tsflags=nodocs \
         ${INSTALL_PKGS} && \
     microdnf -y install \
+            --disableplugin=subscription-manager \
             --disablerepo "*" \
             --enablerepo "ubi-8-baseos-rpms" \
             --enablerepo "ubi-8-appstream-rpms" \

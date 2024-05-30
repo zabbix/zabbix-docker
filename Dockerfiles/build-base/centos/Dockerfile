@@ -65,6 +65,6 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
         --enablerepo "${REPOLIST}" \
         --setopt=tsflags=nodocs \
         --setopt=install_weak_deps=False \
-        --best \
-        ${INSTALL_PKGS} && \
+        --setopt=keepcache=False \
+        --best ${INSTALL_PKGS} && \
     dnf -y clean all

@@ -3,7 +3,7 @@ ARG MAJOR_VERSION=6.0
 ARG ZBX_VERSION=${MAJOR_VERSION}.30
 ARG BUILD_BASE_IMAGE=zabbix-build-sqlite3:centos-${ZBX_VERSION}
 
-FROM ${BUILD_BASE_IMAGE} as builder
+FROM ${BUILD_BASE_IMAGE} AS builder
 
 FROM quay.io/centos/centos:stream8
 
@@ -52,21 +52,27 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             pcre2 \
             zlib \
             unixODBC" && \
-    dnf -y install epel-release && \
     dnf -y install \
-            --disablerepo "*" \
-            --enablerepo "${REPOLIST}" \
-            --setopt=tsflags=nodocs \
-            --setopt=install_weak_deps=False \
-            --best \
-        ${INSTALL_PKGS} && \
+        --disablerepo "*" \
+        --enablerepo "extras" \
+        --setopt=tsflags=nodocs \
+        --setopt=install_weak_deps=False \
+        --setopt=keepcache=False \
+        --best epel-release && \
+    dnf -y install \
+        --disablerepo "*" \
+        --enablerepo "${REPOLIST}" \
+        --setopt=tsflags=nodocs \
+        --setopt=install_weak_deps=False \
+        --setopt=keepcache=False \
+        --best ${INSTALL_PKGS} && \
     dnf -y reinstall \
-            --disablerepo "*" \
-            --enablerepo "baseos" \
-            --setopt=tsflags=nodocs \
-            --setopt=install_weak_deps=False \
-            --best \
-        tzdata && \
+        --disablerepo "*" \
+        --enablerepo "baseos" \
+        --setopt=tsflags=nodocs \
+        --setopt=install_weak_deps=False \
+        --setopt=keepcache=False \
+        --best tzdata && \
     groupadd \
             --system \
             --gid 1995 \

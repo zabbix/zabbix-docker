@@ -4,7 +4,7 @@ ARG RELEASE=30
 ARG ZBX_VERSION=${MAJOR_VERSION}.30
 ARG BUILD_BASE_IMAGE=zabbix-build-sqlite3:rhel-${ZBX_VERSION}
 
-FROM ${BUILD_BASE_IMAGE} as builder
+FROM ${BUILD_BASE_IMAGE} AS builder
 
 FROM registry.access.redhat.com/ubi8/ubi-minimal:8.10
 
@@ -53,6 +53,7 @@ COPY --from=builder ["/tmp/zabbix-${ZBX_VERSION}/src/zabbix_sender/zabbix_sender
 COPY --from=builder ["/tmp/zabbix-${ZBX_VERSION}/conf/zabbix_proxy.conf", "/etc/zabbix/zabbix_proxy.conf"]
 
 RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
+    --mount=type=bind,target=/run/secrets/,src=secrets/ \
     set -eux && \
     INSTALL_PKGS="bash \
             tini \
@@ -87,6 +88,7 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             --setopt=tsflags=nodocs \
         ${INSTALL_PKGS} && \
     microdnf -y reinstall \
+            --disableplugin=subscription-manager \
             --enablerepo "ubi-8-baseos-rpms" \
             --setopt=install_weak_deps=0 \
             --setopt=keepcache=0 \

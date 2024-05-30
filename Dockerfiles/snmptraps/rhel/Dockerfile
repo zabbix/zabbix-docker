@@ -48,6 +48,7 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             shadow-utils \
             net-snmp" && \
     microdnf -y install \
+            --disableplugin=subscription-manager \
             --disablerepo="*" \
             --enablerepo "ubi-8-baseos-rpms" \
             --enablerepo "ubi-8-appstream-rpms" \

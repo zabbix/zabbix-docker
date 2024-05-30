@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1
 # escape=`
 ARG BUILD_BASE_IMAGE=mcr.microsoft.com/windows/servercore:ltsc2022
-FROM $BUILD_BASE_IMAGE as builder_base
+FROM $BUILD_BASE_IMAGE AS builder_base
 
 ARG PCRE2_VERSION=10.43
 ARG OPENSSL_VERSION=3.1.5
