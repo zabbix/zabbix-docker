@@ -12,6 +12,7 @@ on:
       - 'Dockerfiles/*/rhel/*'
       - 'build.json'
       - '!**/README.md'
+      - '!**/README.html'
       - '.github/workflows/images_build_rhel.yml'
   workflow_dispatch:
     inputs:
