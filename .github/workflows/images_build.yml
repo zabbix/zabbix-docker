@@ -270,6 +270,22 @@ jobs:
           ref: ${{ env.TRUNK_ONLY_EVENT == 'true' && env.TRUNK_GIT_BRANCH || '' }}
           fetch-depth: 1
 
+      - name: Install cosign
+        if: ${{ env.AUTO_PUSH_IMAGES == 'true' }}
+        uses: sigstore/cosign-installer@e1523de7571e31dbe865fd2e80c5c7c23ae71eb4
+        with:
+          cosign-release: 'v2.2.3'
+
+      - name: Check cosign version
+        if: ${{ env.AUTO_PUSH_IMAGES == 'true' }}
+        run: cosign version
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@68827325e0b33c7199eb31dd4e31fbe9023e06e3 # v3.0.0
+        with:
+          image: tonistiigi/binfmt:latest
+          platforms: all
+
       - name: Set up QEMU
         uses: docker/setup-qemu-action@68827325e0b33c7199eb31dd4e31fbe9023e06e3 # v3.0.0
         with:
@@ -378,6 +394,26 @@ jobs:
             org.opencontainers.image.created=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.created'] }}
           cache-from: ${{ steps.cache_data.outputs.cache_from }}
           cache-to: ${{ steps.cache_data.outputs.cache_to }}
+
+      - name: Sign the images with GitHub OIDC Token
+        if: ${{ env.AUTO_PUSH_IMAGES == 'true' }}
+        env:
+          DIGEST: ${{ steps.docker_build.outputs.digest }}
+          TAGS: ${{ steps.meta.outputs.tags }}
+        run: |
+            images=""
+            for tag in ${TAGS}; do
+                images+="${tag}@${DIGEST} "
+            done
+
+            echo "::group::Images to sign"
+            echo "$images"
+            echo "::endgroup::"
+
+            echo "::group::Signing"
+            echo "cosign sign --yes $images"
+            cosign sign --yes ${images}
+            echo "::endgroup::"
 
       - name: Attest images
         if: ${{ env.AUTO_PUSH_IMAGES == 'true' }}
