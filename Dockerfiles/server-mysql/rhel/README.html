@@ -160,7 +160,7 @@ podman run --name some-zabbix-server-mysql <span class="hljs-_">-e</span> DB_SER
 <span class="hljs-attr">ZBX_TLSCIPHERPSK13</span>= # Available since <span class="hljs-number">4.4</span>.<span class="hljs-number">7</span>
 </code></pre><p>Default values of these variables are specified after equal sign.</p>
 <p>The allowed variables are identical of parameters in official <code>zabbix_server.conf</code>. For example, <code>ZBX_LOGSLOWQUERIES</code> = <code>LogSlowQueries</code>.</p>
-<p>Please use official documentation for <a href="https://www.zabbix.com/documentation/current/manual/appendix/config/zabbix_server"><code>zabbix_server.conf</code></a> to get more information about the variables.</p>
+<p>Please use official documentation for <a href="https://www.zabbix.com/documentation/6.0/manual/appendix/config/zabbix_server"><code>zabbix_server.conf</code></a> to get more information about the variables.</p>
 <h2 id="allowed-volumes-for-the-zabbix-server-container">Allowed volumes for the Zabbix server container</h2>
 <h3 id="-usr-lib-zabbix-alertscripts-"><code>/usr/lib/zabbix/alertscripts</code></h3>
 <p>The volume is used for custom alert scripts. It is <code>AlertScriptsPath</code> parameter in <code>zabbix_server.conf</code>.</p>
