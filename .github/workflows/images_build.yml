@@ -30,6 +30,7 @@ env:
   TRUNK_ONLY_EVENT: ${{ contains(fromJSON('["schedule"]'), github.event_name) }}
   AUTO_PUSH_IMAGES: ${{ ! contains(fromJSON('["workflow_dispatch"]'), github.event_name) && vars.AUTO_PUSH_IMAGES }}
 
+  DOCKER_REGISTRY: ${{ vars.DOCKER_REGISTRY }}
   DOCKER_REPOSITORY: ${{ vars.DOCKER_REPOSITORY }}
   LATEST_BRANCH: ${{ github.event.repository.default_branch }}
   TRUNK_GIT_BRANCH: "refs/heads/trunk"
@@ -171,6 +172,7 @@ jobs:
       contents: read
       id-token: write
       packages: write
+      attestations: write
     steps:
       - name: Block egress traffic
         uses: step-security/harden-runner@63c24ba6bd7ba022e95695ff85de572c04a18142 # v2.7.0
@@ -310,7 +312,7 @@ jobs:
         with:
           images: |
               ${{ format('{0}/{1}/{2}{3}', env.DOCKER_REGISTRY_TEST, env.DOCKER_REPOSITORY_TEST, env.IMAGES_PREFIX, env.BASE_BUILD_NAME ) }},enable=${{ env.AUTO_PUSH_IMAGES != 'true' }}
-              ${{ format('{0}/{1}{2}', env.DOCKER_REPOSITORY, env.IMAGES_PREFIX, env.BASE_BUILD_NAME ) }},enable=${{ env.AUTO_PUSH_IMAGES == 'true' }}
+              ${{ format('{0}/{1}/{2}{3}', env.DOCKER_REGISTRY, env.DOCKER_REPOSITORY, env.IMAGES_PREFIX, env.BASE_BUILD_NAME ) }},enable=${{ env.AUTO_PUSH_IMAGES == 'true' }}
           context: ${{ env.TRUNK_ONLY_EVENT == 'true' && 'git' || '' }}
           tags: |
             type=semver,enable=${{ needs.init_build.outputs.current_branch != 'trunk' }},pattern={{version}},prefix=${{ matrix.os }}-
@@ -387,25 +389,13 @@ jobs:
           cache-from: ${{ steps.cache_data.outputs.cache_from }}
           cache-to: ${{ steps.cache_data.outputs.cache_to }}
 
-      - name: Sign the images with GitHub OIDC Token
+      - name: Attest images
         if: ${{ env.AUTO_PUSH_IMAGES == 'true' }}
-        env:
-          DIGEST: ${{ steps.docker_build.outputs.digest }}
-          TAGS: ${{ steps.meta.outputs.tags }}
-        run: |
-            images=""
-            for tag in ${TAGS}; do
-                images+="${tag}@${DIGEST} "
-            done
-
-            echo "::group::Images to sign"
-            echo "$images"
-            echo "::endgroup::"
-
-            echo "::group::Signing"
-            echo "cosign sign --yes $images"
-            cosign sign --yes ${images}
-            echo "::endgroup::"
+        id: attest
+        with:
+          subject-name: ${{ format('{0}/{1}/{2}{3}', env.DOCKER_REGISTRY, env.DOCKER_REPOSITORY, env.IMAGES_PREFIX, env.BASE_BUILD_NAME ) }}
+          subject-digest: ${{ steps.docker_build.outputs.digest }}
+          push-to-registry: true
 
       - name: Image metadata
         env:
@@ -441,6 +431,7 @@ jobs:
       contents: read
       id-token: write
       packages: write
+      attestations: write
     steps:
       - name: Block egress traffic
         uses: step-security/harden-runner@63c24ba6bd7ba022e95695ff85de572c04a18142 # v2.7.0
@@ -520,7 +511,7 @@ jobs:
         with:
           images: |
               ${{ format('{0}/{1}/{2}{3}', env.DOCKER_REGISTRY_TEST, env.DOCKER_REPOSITORY_TEST, env.IMAGES_PREFIX, matrix.build ) }},enable=${{ env.AUTO_PUSH_IMAGES != 'true' }}
-              ${{ format('{0}/{1}{2}', env.DOCKER_REPOSITORY, env.IMAGES_PREFIX, matrix.build ) }},enable=${{ env.AUTO_PUSH_IMAGES == 'true' }}
+              ${{ format('{0}/{1}/{2}{3}', env.DOCKER_REGISTRY, env.DOCKER_REPOSITORY, env.IMAGES_PREFIX, matrix.build ) }},enable=${{ env.AUTO_PUSH_IMAGES == 'true' }}
           context: ${{ env.TRUNK_ONLY_EVENT == 'true' && 'git' || '' }}
           tags: |
             type=semver,enable=${{ needs.init_build.outputs.current_branch != 'trunk' }},pattern={{version}},prefix=${{ matrix.os }}-
@@ -557,20 +548,15 @@ jobs:
         if: ${{ env.AUTO_PUSH_IMAGES == 'true' }}
         env:
          BASE_IMAGE: ${{ steps.base_build.outputs.base_build_image }}
-         OIDC_ISSUER: ${{ env.OIDC_ISSUER }}
-         IDENTITY_REGEX: ${{ env.IDENTITY_REGEX }}
+         REPOSITORY: ${{ github.repository }}
+         DOCKER_REGISTRY: ${{ env.DOCKER_REGISTRY }}
         run: |
             echo "::group::Image sign data"
-            echo "OIDC issuer=$OIDC_ISSUER"
-            echo "Identity=$IDENTITY_REGEX"
             echo "Image to verify=$BASE_IMAGE"
             echo "::endgroup::"
 
             echo "::group::Verify signature"
-            cosign verify \
-                    --certificate-oidc-issuer-regexp "$OIDC_ISSUER" \
-                    --certificate-identity-regexp "$IDENTITY_REGEX" \
-                "$BASE_IMAGE"
+            gh attestation verify oci://$DOCKER_REGISTRY/$BASE_IMAGE -R $REPOSITORY
             echo "::endgroup::"
 
       - name: Prepare cache data
@@ -639,25 +625,13 @@ jobs:
             org.opencontainers.image.revision=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.revision'] }}
             org.opencontainers.image.created=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.created'] }}
 
-      - name: Sign the images with GitHub OIDC Token
+      - name: Attest images
         if: ${{ env.AUTO_PUSH_IMAGES == 'true' }}
-        env:
-          DIGEST: ${{ steps.docker_build.outputs.digest }}
-          TAGS: ${{ steps.meta.outputs.tags }}
-        run: |
-            images=""
-            for tag in ${TAGS}; do
-                images+="${tag}@${DIGEST} "
-            done
-
-            echo "::group::Images to sign"
-            echo "$images"
-            echo "::endgroup::"
-
-            echo "::group::Signing"
-            echo "cosign sign --yes $images"
-            cosign sign --yes ${images}
-            echo "::endgroup::"
+        id: attest
+        with:
+          subject-name: ${{ format('{0}/{1}/{2}{3}', env.DOCKER_REGISTRY, env.DOCKER_REPOSITORY, env.IMAGES_PREFIX, matrix.build ) }}
+          subject-digest: ${{ steps.docker_build.outputs.digest }}
+          push-to-registry: true
 
       - name: Image metadata
         env:
@@ -694,6 +668,7 @@ jobs:
       contents: read
       id-token: write
       packages: write
+      attestations: write
     steps:
       - name: Block egress traffic
         uses: step-security/harden-runner@63c24ba6bd7ba022e95695ff85de572c04a18142 # v2.7.0
@@ -894,7 +869,7 @@ jobs:
         with:
           images:  |
               ${{ format('{0}/{1}/{2}{3}', env.DOCKER_REGISTRY_TEST, env.DOCKER_REPOSITORY_TEST, env.IMAGES_PREFIX, matrix.build ) }},enable=${{ env.AUTO_PUSH_IMAGES != 'true' }}
-              ${{ format('{0}/{1}{2}', env.DOCKER_REPOSITORY, env.IMAGES_PREFIX, matrix.build ) }},enable=${{ env.AUTO_PUSH_IMAGES == 'true' }}
+              ${{ format('{0}/{1}/{2}{3}', env.DOCKER_REGISTRY, env.DOCKER_REPOSITORY, env.IMAGES_PREFIX, matrix.build ) }},enable=${{ env.AUTO_PUSH_IMAGES == 'true' }}
           context: ${{ env.TRUNK_ONLY_EVENT == 'true' && 'git' || '' }}
           tags: |
             type=semver,enable=${{ needs.init_build.outputs.current_branch != 'trunk' }},pattern={{version}},prefix=${{ matrix.os }}-
@@ -993,25 +968,13 @@ jobs:
             org.opencontainers.image.revision=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.revision'] }}
             org.opencontainers.image.created=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.created'] }}
 
-      - name: Sign the images with GitHub OIDC Token
+      - name: Attest images
         if: ${{ env.AUTO_PUSH_IMAGES == 'true' }}
-        env:
-          DIGEST: ${{ steps.docker_build.outputs.digest }}
-          TAGS: ${{ steps.meta.outputs.tags }}
-        run: |
-            images=""
-            for tag in ${TAGS}; do
-                images+="${tag}@${DIGEST} "
-            done
-
-            echo "::group::Images to sign"
-            echo "$images"
-            echo "::endgroup::"
-
-            echo "::group::Signing"
-            echo "cosign sign --yes $images"
-            cosign sign --yes ${images}
-            echo "::endgroup::"
+        id: attest
+        with:
+          subject-name:  ${{ format('{0}/{1}/{2}{3}', env.DOCKER_REGISTRY, env.DOCKER_REPOSITORY, env.IMAGES_PREFIX, matrix.build ) }}
+          subject-digest: ${{ steps.docker_build.outputs.digest }}
+          push-to-registry: true
 
       - name: Image metadata
         if: ${{ env.AUTO_PUSH_IMAGES == 'true' }}
