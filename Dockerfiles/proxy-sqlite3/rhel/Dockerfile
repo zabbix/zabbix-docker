@@ -6,7 +6,7 @@ ARG BUILD_BASE_IMAGE=zabbix-build-sqlite3:rhel-${ZBX_VERSION}
 
 FROM ${BUILD_BASE_IMAGE} as builder
 
-FROM registry.access.redhat.com/ubi8/ubi-minimal
+FROM registry.access.redhat.com/ubi8/ubi-minimal:8.10
 
 ARG MAJOR_VERSION
 ARG RELEASE
