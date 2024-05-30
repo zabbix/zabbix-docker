@@ -27,6 +27,7 @@ env:
   TRUNK_ONLY_EVENT: ${{ contains(fromJSON('["schedule"]'), github.event_name) }}
   AUTO_PUSH_IMAGES: ${{ vars.AUTO_PUSH_IMAGES }}
 
+  DOCKER_REGISTRY: ${{ vars.DOCKER_REGISTRY }}
   DOCKER_REPOSITORY: ${{ vars.DOCKER_REPOSITORY }}
   LATEST_BRANCH: ${{ github.event.repository.default_branch }}
   TRUNK_GIT_BRANCH: "refs/heads/trunk"
@@ -148,6 +149,7 @@ jobs:
     permissions:
       contents: read
       id-token: write
+      attestations: write
     strategy:
       fail-fast: false
       matrix:
@@ -192,7 +194,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@8e5442c4ef9f78752691e2d8f8d19755c6f78e81 # v5.5.1
         with:
-          images: ${{ env.DOCKER_REPOSITORY }}/${{ env.IMAGES_PREFIX }}${{ env.BASE_IMAGE_NAME }}
+          images: ${{ env.DOCKER_REGISTRY }}/${{ env.DOCKER_REPOSITORY }}/${{ env.IMAGES_PREFIX }}${{ env.BASE_IMAGE_NAME }}
           context: ${{ env.TRUNK_ONLY_EVENT == 'true' && 'git' || '' }}
           tags: |
             type=semver,enable=${{ needs.init_build.outputs.current_branch != 'trunk' }},pattern={{version}},prefix=${{ matrix.component }}-${{ steps.base_os_tag.outputs.os_tag }}-
@@ -307,6 +309,15 @@ jobs:
             cosign sign --yes $tag_list
             echo "::endgroup::"
 
+      - name: Attest images
+        if: ${{ env.AUTO_PUSH_IMAGES == 'true' }}
+        id: attest
+        uses: actions/attest-build-provenance@v1
+        with:
+          subject-name: ${{ env.DOCKER_REGISTRY }}/${{ env.DOCKER_REPOSITORY }}/${{ env.IMAGES_PREFIX }}${{ env.BASE_IMAGE_NAME }}
+          subject-digest: ${{ steps.docker_build.outputs.digest }}
+          push-to-registry: true
+
       - name: Image digest
         if: ${{ env.AUTO_PUSH_IMAGES }}
         env:
@@ -337,6 +348,7 @@ jobs:
     permissions:
       contents: read
       id-token: write
+      attestations: write
     strategy:
       fail-fast: false
       matrix:
@@ -381,7 +393,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@8e5442c4ef9f78752691e2d8f8d19755c6f78e81 # v5.5.1
         with:
-          images: ${{ env.DOCKER_REPOSITORY }}/${{ env.IMAGES_PREFIX }}${{ env.BASE_BUILD_IMAGE_NAME }}
+          images: ${{ env.DOCKER_REGISTRY }}/${{ env.DOCKER_REPOSITORY }}/${{ env.IMAGES_PREFIX }}${{ env.BASE_BUILD_IMAGE_NAME }}
           context: ${{ env.TRUNK_ONLY_EVENT == 'true' && 'git' || '' }}
           tags: |
             type=semver,enable=${{ needs.init_build.outputs.current_branch != 'trunk' }},pattern={{version}},prefix=${{ matrix.component }}-${{ steps.base_os_tag.outputs.os_tag }}-
@@ -430,7 +442,7 @@ jobs:
             cosign verify `
                 --certificate-oidc-issuer-regexp "$Env:OIDC_ISSUER" `
                 --certificate-identity-regexp "$Env:IDENITY_REGEX" `
-                "$Env:BASE_IMAGE"
+                "$Env:BASE_IMAGE" | jq
 
       - name: Build and push image
         id: docker_build
@@ -534,6 +546,15 @@ jobs:
             cosign sign --yes $tag_list
             echo "::endgroup::"
 
+      - name: Attest images
+        if: ${{ env.AUTO_PUSH_IMAGES == 'true' }}
+        id: attest
+        uses: actions/attest-build-provenance@v1
+        with:
+          subject-name: ${{ env.DOCKER_REGISTRY }}/${{ env.DOCKER_REPOSITORY }}/${{ env.IMAGES_PREFIX }}${{ env.BASE_BUILD_IMAGE_NAME }}
+          subject-digest: ${{ steps.docker_build.outputs.digest }}
+          push-to-registry: true
+
       - name: Image digest
         if: ${{ env.AUTO_PUSH_IMAGES }}
         env:
@@ -564,6 +585,7 @@ jobs:
     permissions:
       contents: read
       id-token: write
+      attestations: write
     strategy:
       fail-fast: false
       matrix:
@@ -608,7 +630,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@8e5442c4ef9f78752691e2d8f8d19755c6f78e81 # v5.5.1
         with:
-          images: ${{ env.DOCKER_REPOSITORY }}/${{ env.IMAGES_PREFIX }}${{ matrix.component }}
+          images: ${{ env.DOCKER_REGISTRY }}/${{ env.DOCKER_REPOSITORY }}/${{ env.IMAGES_PREFIX }}${{ matrix.component }}
           context: ${{ env.TRUNK_ONLY_EVENT == 'true' && 'git' || '' }}
           tags: |
             type=semver,enable=${{ needs.init_build.outputs.current_branch != 'trunk' }},pattern={{version}},prefix=${{ steps.base_os_tag.outputs.os_tag }}-
@@ -657,7 +679,7 @@ jobs:
             cosign verify `
                 --certificate-oidc-issuer-regexp "$Env:OIDC_ISSUER" `
                 --certificate-identity-regexp "$Env:IDENITY_REGEX" `
-                "$Env:BASE_IMAGE"
+                "$Env:BASE_IMAGE" | jq
 
       - name: Build and push image
         id: docker_build
@@ -773,6 +795,15 @@ jobs:
             echo "cosign sign --yes $tag_list"
             cosign sign --yes $tag_list
             echo "::endgroup::"
+
+      - name: Attest images
+        if: ${{ env.AUTO_PUSH_IMAGES == 'true' }}
+        id: attest
+        uses: actions/attest-build-provenance@v1
+        with:
+          subject-name: ${{ env.DOCKER_REGISTRY }}/${{ env.DOCKER_REPOSITORY }}/${{ env.IMAGES_PREFIX }}${{ matrix.component }}
+          subject-digest: ${{ steps.docker_build.outputs.digest }}
+          push-to-registry: true
 
       - name: Image digest
         if: ${{ env.AUTO_PUSH_IMAGES }}
