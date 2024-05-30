@@ -525,6 +525,22 @@ jobs:
 
             echo "base_build_image=${IMAGE_NAME}@${IMAGE_DIGEST}" >> $GITHUB_OUTPUT
 
+      - name: Verify ${{ env.BASE_BUILD_NAME }}:${{ matrix.os }} attestation
+        if: ${{ env.AUTO_PUSH_IMAGES == 'true' }}
+        env:
+         BASE_IMAGE: ${{ steps.base_build.outputs.base_build_image }}
+         REPOSITORY: ${{ github.repository }}
+         DOCKER_REGISTRY: ${{ env.DOCKER_REGISTRY }}
+         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+            echo "::group::Image sign data"
+            echo "Image to verify=$BASE_IMAGE"
+            echo "::endgroup::"
+
+            echo "::group::Verify signature"
+            gh attestation verify oci://$DOCKER_REGISTRY/$BASE_IMAGE -R $REPOSITORY
+            echo "::endgroup::"
+
       - name: Prepare cache data
         id: cache_data
         env:
