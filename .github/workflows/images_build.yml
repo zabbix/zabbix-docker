@@ -270,16 +270,6 @@ jobs:
           ref: ${{ env.TRUNK_ONLY_EVENT == 'true' && env.TRUNK_GIT_BRANCH || '' }}
           fetch-depth: 1
 
-      - name: Install cosign
-        if: ${{ env.AUTO_PUSH_IMAGES == 'true' }}
-        uses: sigstore/cosign-installer@e1523de7571e31dbe865fd2e80c5c7c23ae71eb4
-        with:
-          cosign-release: 'v2.2.3'
-
-      - name: Check cosign version
-        if: ${{ env.AUTO_PUSH_IMAGES == 'true' }}
-        run: cosign version
-
       - name: Set up QEMU
         uses: docker/setup-qemu-action@68827325e0b33c7199eb31dd4e31fbe9023e06e3 # v3.0.0
         with:
@@ -470,16 +460,6 @@ jobs:
           ref: ${{ env.TRUNK_ONLY_EVENT == 'true' && env.TRUNK_GIT_BRANCH || '' }}
           fetch-depth: 1
 
-      - name: Install cosign
-        if: ${{ env.AUTO_PUSH_IMAGES == 'true' }}
-        uses: sigstore/cosign-installer@e1523de7571e31dbe865fd2e80c5c7c23ae71eb4
-        with:
-          cosign-release: 'v2.2.3'
-
-      - name: Check cosign version
-        if: ${{ env.AUTO_PUSH_IMAGES == 'true' }}
-        run: cosign version
-
       - name: Set up QEMU
         uses: docker/setup-qemu-action@68827325e0b33c7199eb31dd4e31fbe9023e06e3 # v3.0.0
         with:
@@ -544,22 +524,6 @@ jobs:
             IMAGE_NAME=$(jq -r '."image.name"' "${CACHE_FILE_NAME}" | cut -d: -f1)
 
             echo "base_build_image=${IMAGE_NAME}@${IMAGE_DIGEST}" >> $GITHUB_OUTPUT
-
-      - name: Verify ${{ env.BASE_BUILD_NAME }}:${{ matrix.os }} cosign
-        if: ${{ env.AUTO_PUSH_IMAGES == 'true' }}
-        env:
-         BASE_IMAGE: ${{ steps.base_build.outputs.base_build_image }}
-         REPOSITORY: ${{ github.repository }}
-         DOCKER_REGISTRY: ${{ env.DOCKER_REGISTRY }}
-         GH_TOKEN: ${{ github.token }}
-        run: |
-            echo "::group::Image sign data"
-            echo "Image to verify=$BASE_IMAGE"
-            echo "::endgroup::"
-
-            echo "::group::Verify signature"
-            gh attestation verify oci://$DOCKER_REGISTRY/$BASE_IMAGE -R $REPOSITORY
-            echo "::endgroup::"
 
       - name: Prepare cache data
         id: cache_data
@@ -801,22 +765,6 @@ jobs:
           ref: ${{ env.TRUNK_ONLY_EVENT == 'true' && env.TRUNK_GIT_BRANCH || '' }}
           fetch-depth: 1
 
-      - name: Install cosign
-        if: ${{ env.AUTO_PUSH_IMAGES == 'true' }}
-        uses: sigstore/cosign-installer@e1523de7571e31dbe865fd2e80c5c7c23ae71eb4
-        with:
-          cosign-release: 'v2.2.3'
-
-      - name: Check cosign version
-        if: ${{ env.AUTO_PUSH_IMAGES == 'true' }}
-        run: cosign version
-
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@68827325e0b33c7199eb31dd4e31fbe9023e06e3 # v3.0.0
-        with:
-          image: tonistiigi/binfmt:latest
-          platforms: all
-
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@f95db51fddba0c2d1ec667646a06c2ce06100226 # v3.0.0
         with:
@@ -906,26 +854,6 @@ jobs:
             IMAGE_NAME=$(jq -r '."image.name"' "${CACHE_FILE_NAME}" | cut -d: -f1)
 
             echo "base_build_image=${IMAGE_NAME}@${IMAGE_DIGEST}" >> $GITHUB_OUTPUT
-
-      - name: Verify ${{ steps.build_base_image.outputs.build_base }}:${{ matrix.os }} cosign
-        if: ${{ matrix.build != 'snmptraps' && env.AUTO_PUSH_IMAGES == 'true' }}
-        env:
-         BASE_IMAGE: ${{ steps.base_build.outputs.base_build_image }}
-         OIDC_ISSUER: ${{ env.OIDC_ISSUER }}
-         IDENTITY_REGEX: ${{ env.IDENTITY_REGEX }}
-        run: |
-            echo "::group::Image sign data"
-            echo "OIDC issuer=${OIDC_ISSUER}"
-            echo "Identity=${IDENTITY_REGEX}"
-            echo "Image to verify=${BASE_IMAGE}"
-            echo "::endgroup::"
-
-            echo "::group::Verify signature"
-            cosign verify \
-                    --certificate-oidc-issuer-regexp "${OIDC_ISSUER}" \
-                    --certificate-identity-regexp "${IDENTITY_REGEX}" \
-                "${BASE_IMAGE}"
-            echo "::endgroup::"
 
       - name: Prepare cache data
         if: ${{ matrix.build != 'snmptraps' }}
