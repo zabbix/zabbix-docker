@@ -171,7 +171,7 @@ jobs:
     permissions:
       contents: read
       id-token: write
-      packages: ${{ env.AUTO_PUSH_IMAGES != 'true' && 'write' || 'none' }}
+      packages: write
       attestations: write
     steps:
       - name: Block egress traffic
@@ -421,7 +421,7 @@ jobs:
     permissions:
       contents: read
       id-token: write
-      packages: ${{ env.AUTO_PUSH_IMAGES != 'true' && 'write' || 'none' }}
+      packages: write
       attestations: write
     steps:
       - name: Block egress traffic
@@ -664,7 +664,7 @@ jobs:
     permissions:
       contents: read
       id-token: write
-      packages: ${{ env.AUTO_PUSH_IMAGES != 'true' && 'write' || 'none' }}
+      packages: write
       attestations: write
     steps:
       - name: Block egress traffic
