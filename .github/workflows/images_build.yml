@@ -392,6 +392,7 @@ jobs:
       - name: Attest images
         if: ${{ env.AUTO_PUSH_IMAGES == 'true' }}
         id: attest
+        uses: actions/attest-build-provenance@v1
         with:
           subject-name: ${{ format('{0}/{1}/{2}{3}', env.DOCKER_REGISTRY, env.DOCKER_REPOSITORY, env.IMAGES_PREFIX, env.BASE_BUILD_NAME ) }}
           subject-digest: ${{ steps.docker_build.outputs.digest }}
@@ -628,6 +629,7 @@ jobs:
       - name: Attest images
         if: ${{ env.AUTO_PUSH_IMAGES == 'true' }}
         id: attest
+        uses: actions/attest-build-provenance@v1
         with:
           subject-name: ${{ format('{0}/{1}/{2}{3}', env.DOCKER_REGISTRY, env.DOCKER_REPOSITORY, env.IMAGES_PREFIX, matrix.build ) }}
           subject-digest: ${{ steps.docker_build.outputs.digest }}
@@ -971,6 +973,7 @@ jobs:
       - name: Attest images
         if: ${{ env.AUTO_PUSH_IMAGES == 'true' }}
         id: attest
+        uses: actions/attest-build-provenance@v1
         with:
           subject-name:  ${{ format('{0}/{1}/{2}{3}', env.DOCKER_REGISTRY, env.DOCKER_REPOSITORY, env.IMAGES_PREFIX, matrix.build ) }}
           subject-digest: ${{ steps.docker_build.outputs.digest }}
