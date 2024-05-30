@@ -93,7 +93,7 @@
 <span class="hljs-attr">ZBX_ALLOWKEY</span>= # Available since <span class="hljs-number">5.0</span>.<span class="hljs-number">0</span>
 </code></pre><p>Default values of these variables are specified after equal sign.</p>
 <p>The allowed variables are identical of parameters in official <code>zabbix_agent2.conf</code> configuration file. For example, <code>ZBX_REFRESHACTIVECHECKS</code> = <code>RefreshActiveChecks</code>.</p>
-<p>Please use official documentation for <a href="https://www.zabbix.com/documentation/current/manual/appendix/config/zabbix_agent2"><code>zabbix_agent2.conf</code></a> to get more information about the variables.</p>
+<p>Please use official documentation for <a href="https://www.zabbix.com/documentation/5.0/manual/appendix/config/zabbix_agent2"><code>zabbix_agent2.conf</code></a> to get more information about the variables.</p>
 <h2 id="allowed-volumes-for-the-zabbix-agent-2-container">Allowed volumes for the Zabbix agent 2 container</h2>
 <h3 id="-etc-zabbix-zabbix_agentd-d-"><code>/etc/zabbix/zabbix_agentd.d</code></h3>
 <p>The volume allows include <code>*.conf</code> files and extend Zabbix agent 2 using <code>UserParameter</code> feature.</p>
@@ -103,7 +103,7 @@
 <p>The volume is used to store the file, where Zabbix Agent2 should keep SQLite database. To enable the feature specify <code>ZBX_ENABLEPERSISTENTBUFFER=true</code>. Available since 5.0.0.</p>
 <h1 id="user-feedback">User Feedback</h1>
 <h2 id="documentation">Documentation</h2>
-<p>Documentation for this image is stored in the <a href="https://github.com/zabbix/zabbix-docker/tree/trunk/Dockerfiles/agent2"><code>agent2/</code> directory</a> of the <a href="https://github.com/zabbix/zabbix-docker/"><code>zabbix/zabbix-docker</code> GitHub repo</a>. Be sure to familiarize yourself with the <a href="https://github.com/zabbix/zabbix-docker/blob/trunk/README.md">repository&#39;s <code>README.md</code> file</a> before attempting a pull request.</p>
+<p>Documentation for this image is stored in the <a href="https://github.com/zabbix/zabbix-docker/tree/5.0/Dockerfiles/agent2"><code>agent2/</code> directory</a> of the <a href="https://github.com/zabbix/zabbix-docker/"><code>zabbix/zabbix-docker</code> GitHub repo</a>. Be sure to familiarize yourself with the <a href="https://github.com/zabbix/zabbix-docker/blob/5.0/README.md">repository&#39;s <code>README.md</code> file</a> before attempting a pull request.</p>
 <h2 id="issues">Issues</h2>
 <p>If you have any problems with or questions about this image, please contact us through a <a href="https://github.com/zabbix/zabbix-docker/issues">GitHub issue</a>.</p>
 <h3 id="known-issues">Known issues</h3>

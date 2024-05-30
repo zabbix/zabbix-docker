@@ -28,7 +28,7 @@ Images are updated when new releases are published. The image with ``latest`` ta
 
 # How to use this image
 
-The image is required to build Zabbix components. It is base image for [MySQL](https://github.com/zabbix/zabbix-docker/tree/trunk/Dockerfiles/build-mysql), [PostgreSQL](https://github.com/zabbix/zabbix-docker/tree/trunk/Dockerfiles/build-pgsql) and [SQLite3](https://github.com/zabbix/zabbix-docker/tree/trunk/Dockerfiles/build-sqlite3) base images. While the image contains only required packages, MySQL, PostgreSQL and SQLite3 base images compile Zabbix component and prepare them for usage.
+The image is required to build Zabbix components. It is base image for [MySQL](https://github.com/zabbix/zabbix-docker/tree/5.0/Dockerfiles/build-mysql), [PostgreSQL](https://github.com/zabbix/zabbix-docker/tree/5.0/Dockerfiles/build-pgsql) and [SQLite3](https://github.com/zabbix/zabbix-docker/tree/5.0/Dockerfiles/build-sqlite3) base images. While the image contains only required packages, MySQL, PostgreSQL and SQLite3 base images compile Zabbix component and prepare them for usage.
 
 # The image variants
 
@@ -62,7 +62,7 @@ Please see [the Docker installation documentation](https://docs.docker.com/insta
 
 ## Documentation
 
-Documentation for this image is stored in the [`build-base/` directory](https://github.com/zabbix/zabbix-docker/tree/trunk/Dockerfiles/build-base) of the [`zabbix/zabbix-docker` GitHub repo](https://github.com/zabbix/zabbix-docker/). Be sure to familiarize yourself with the [repository's `README.md` file](https://github.com/zabbix/zabbix-docker/blob/master/README.md) before attempting a pull request.
+Documentation for this image is stored in the [`build-base/` directory](https://github.com/zabbix/zabbix-docker/tree/5.0/Dockerfiles/build-base) of the [`zabbix/zabbix-docker` GitHub repo](https://github.com/zabbix/zabbix-docker/). Be sure to familiarize yourself with the [repository's `README.md` file](https://github.com/zabbix/zabbix-docker/blob/master/README.md) before attempting a pull request.
 
 ## Issues
 

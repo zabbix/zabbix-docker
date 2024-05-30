@@ -170,7 +170,7 @@ Default values of these variables are specified after equal sign.
 
 The allowed variables are identical of parameters in official ``zabbix_agentd.conf`` configuration file. For example, ``ZBX_REFRESHACTIVECHECKS`` = ``RefreshActiveChecks``.
 
-Please use official documentation for [``zabbix_agentd.conf``](https://www.zabbix.com/documentation/current/manual/appendix/config/zabbix_agentd) to get more information about the variables.
+Please use official documentation for [``zabbix_agentd.conf``](https://www.zabbix.com/documentation/5.0/manual/appendix/config/zabbix_agentd) to get more information about the variables.
 
 ## Allowed volumes for the Zabbix agent container
 
@@ -218,7 +218,7 @@ Please see [the Docker installation documentation](https://docs.docker.com/insta
 
 ## Documentation
 
-Documentation for this image is stored in the [`agent/` directory](https://github.com/zabbix/zabbix-docker/tree/trunk/Dockerfiles/agent) of the [`zabbix/zabbix-docker` GitHub repo](https://github.com/zabbix/zabbix-docker/). Be sure to familiarize yourself with the [repository's `README.md` file](https://github.com/zabbix/zabbix-docker/blob/trunk/README.md) before attempting a pull request.
+Documentation for this image is stored in the [`agent/` directory](https://github.com/zabbix/zabbix-docker/tree/5.0/Dockerfiles/agent) of the [`zabbix/zabbix-docker` GitHub repo](https://github.com/zabbix/zabbix-docker/). Be sure to familiarize yourself with the [repository's `README.md` file](https://github.com/zabbix/zabbix-docker/blob/5.0/README.md) before attempting a pull request.
 
 ## Issues
 

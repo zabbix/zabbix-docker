@@ -162,7 +162,7 @@ podman run --name some-zabbix-proxy-mysql <span class="hljs-_">-e</span> DB_SERV
 <span class="hljs-attr">ZBX_TLSCIPHERPSK13</span>= # Available since <span class="hljs-number">4.4</span>.<span class="hljs-number">7</span>
 </code></pre><p>Default values of these variables are specified after equal sign.</p>
 <p>The allowed variables are identical of parameters in official <code>zabbix_proxy.conf</code>. For example, <code>ZBX_LOGSLOWQUERIES</code> = <code>LogSlowQueries</code>.</p>
-<p>Please use official documentation for <a href="https://www.zabbix.com/documentation/current/manual/appendix/config/zabbix_proxy"><code>zabbix_proxy.conf</code></a> to get more information about the variables.</p>
+<p>Please use official documentation for <a href="https://www.zabbix.com/documentation/5.0/manual/appendix/config/zabbix_proxy"><code>zabbix_proxy.conf</code></a> to get more information about the variables.</p>
 <h2 id="allowed-volumes-for-the-zabbix-proxy-container">Allowed volumes for the Zabbix proxy container</h2>
 <h3 id="-usr-lib-zabbix-externalscripts-"><code>/usr/lib/zabbix/externalscripts</code></h3>
 <p>The volume is used by External checks (type of items). It is <code>ExternalScripts</code> parameter in <code>zabbix_proxy.conf</code>.</p>
@@ -185,7 +185,7 @@ SNMP traps processing feature could be enabled using shared volume and switched 
 <p>The volume allows to add new MIB files. It does not support subdirectories, all MIBs must be placed to <code>/var/lib/zabbix/mibs</code>.</p>
 <h1 id="user-feedback">User Feedback</h1>
 <h2 id="documentation">Documentation</h2>
-<p>Documentation for this image is stored in the <a href="https://github.com/zabbix/zabbix-docker/tree/Dockerfiles/trunk/proxy-mysql"><code>proxy-mysql/</code> directory</a> of the <a href="https://github.com/zabbix/zabbix-docker/"><code>zabbix/zabbix-docker</code> GitHub repo</a>. Be sure to familiarize yourself with the <a href="https://github.com/zabbix/zabbix-docker/blob/trunk/README.md">repository&#39;s <code>README.md</code> file</a> before attempting a pull request.</p>
+<p>Documentation for this image is stored in the <a href="https://github.com/zabbix/zabbix-docker/tree/Dockerfiles/trunk/proxy-mysql"><code>proxy-mysql/</code> directory</a> of the <a href="https://github.com/zabbix/zabbix-docker/"><code>zabbix/zabbix-docker</code> GitHub repo</a>. Be sure to familiarize yourself with the <a href="https://github.com/zabbix/zabbix-docker/blob/5.0/README.md">repository&#39;s <code>README.md</code> file</a> before attempting a pull request.</p>
 <h2 id="issues">Issues</h2>
 <p>If you have any problems with or questions about this image, please contact us through a <a href="https://github.com/zabbix/zabbix-docker/issues">GitHub issue</a>.</p>
 <h3 id="known-issues">Known issues</h3>

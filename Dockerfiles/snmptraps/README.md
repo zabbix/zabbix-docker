@@ -113,7 +113,7 @@ Please see [the Docker installation documentation](https://docs.docker.com/insta
 
 ## Documentation
 
-Documentation for this image is stored in the [`snmptraps/` directory](https://github.com/zabbix/zabbix-docker/tree/trunk/Dockerfiles/snmptraps) of the [`zabbix/zabbix-docker` GitHub repo](https://github.com/zabbix/zabbix-docker/). Be sure to familiarize yourself with the [repository's `README.md` file](https://github.com/zabbix/zabbix-docker/blob/trunk/README.md) before attempting a pull request.
+Documentation for this image is stored in the [`snmptraps/` directory](https://github.com/zabbix/zabbix-docker/tree/5.0/Dockerfiles/snmptraps) of the [`zabbix/zabbix-docker` GitHub repo](https://github.com/zabbix/zabbix-docker/). Be sure to familiarize yourself with the [repository's `README.md` file](https://github.com/zabbix/zabbix-docker/blob/5.0/README.md) before attempting a pull request.
 
 ## Issues
 
