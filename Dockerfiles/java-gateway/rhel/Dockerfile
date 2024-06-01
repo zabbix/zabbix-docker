@@ -44,9 +44,7 @@ LABEL description="Zabbix Java Gateway performs native support for monitoring JM
 
 STOPSIGNAL SIGTERM
 
-COPY ["licenses", "/licenses"]
-COPY --from=builder ["/tmp/zabbix-${ZBX_VERSION}/src/zabbix_java/bin", "/usr/sbin/zabbix_java/bin"]
-COPY --from=builder ["/tmp/zabbix-${ZBX_VERSION}/src/zabbix_java/lib", "/usr/sbin/zabbix_java/lib"]
+COPY --from=builder ["/tmp/zabbix-${ZBX_VERSION}-output/java_gateway/sbin/", "/usr/sbin/zabbix_java/"]
 
 RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
     set -eux && \

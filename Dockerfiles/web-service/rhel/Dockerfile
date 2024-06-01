@@ -46,8 +46,8 @@ LABEL description="Zabbix web service for performing various tasks using headles
 STOPSIGNAL SIGTERM
 
 COPY ["licenses", "/licenses"]
-COPY --from=builder ["/tmp/zabbix-${ZBX_VERSION}/src/go/bin/zabbix_web_service", "/usr/sbin/zabbix_web_service"]
-COPY --from=builder ["/tmp/zabbix-${ZBX_VERSION}/src/go/conf/zabbix_web_service.conf", "/etc/zabbix/zabbix_web_service.conf"]
+COPY --from=builder ["/tmp/zabbix-${ZBX_VERSION}-output/web_service/sbin/zabbix_web_service", "/usr/sbin/zabbix_web_service"]
+COPY --from=builder ["/tmp/zabbix-${ZBX_VERSION}-output/web_service/conf/", "/etc/zabbix/"]
 
 RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
     --mount=type=bind,target=/run/secrets/,src=secrets/ \

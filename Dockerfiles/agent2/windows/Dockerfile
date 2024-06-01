@@ -28,7 +28,7 @@ SHELL ["pwsh", "-Command", "$ErrorActionPreference = 'Stop';"]
 
 WORKDIR C:\zabbix\
 
-COPY --from=builder ["C:\\zabbix_output", "C:\\zabbix"]
+COPY --from=builder ["C:\\zabbix-${ZBX_VERSION}-output", "C:\\zabbix"]
 COPY [".\\docker-entrypoint.ps1", "C:\\zabbix"]
 
 USER ContainerAdministrator
