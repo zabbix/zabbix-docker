@@ -15,7 +15,7 @@ ARG ZBX_SOURCES=https://git.zabbix.com/scm/zbx/zabbix.git
 ARG MONGODB_PLUGIN_SOURCES=https://git.zabbix.com/scm/ap/mongodb.git
 ARG POSTGRESQL_PLUGIN_SOURCES=https://git.zabbix.com/scm/ap/postgresql.git
 ARG MSSQL_PLUGIN_SOURCES=https://git.zabbix.com/scm/ap/mssql.git
-ARG EMBER_PLUS_PLUGIN_SOURCES=ttps://git.zabbix.com/scm/ap/ember-plus.git
+ARG EMBER_PLUS_PLUGIN_SOURCES=https://git.zabbix.com/scm/ap/ember-plus.git
 ARG GIT_BRANCH
 
 ENV ZBX_SOURCES=$ZBX_SOURCES MAJOR_VERSION=$MAJOR_VERSION ZBX_VERSION=$ZBX_VERSION GIT_BRANCH=${GIT_BRANCH:-$ZBX_VERSION} `
