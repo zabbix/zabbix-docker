@@ -149,7 +149,6 @@ jobs:
     permissions:
       contents: read
       id-token: write
-      attestations: write
     strategy:
       fail-fast: false
       matrix:
@@ -309,15 +308,6 @@ jobs:
             cosign sign --yes $tag_list
             echo "::endgroup::"
 
-      - name: Attest images
-        if: ${{ env.AUTO_PUSH_IMAGES == 'true' }}
-        id: attest
-        uses: actions/attest-build-provenance@v1
-        with:
-          subject-name: ${{ env.DOCKER_REGISTRY }}/${{ env.DOCKER_REPOSITORY }}/${{ env.IMAGES_PREFIX }}${{ env.BASE_IMAGE_NAME }}
-          subject-digest: ${{ steps.docker_build.outputs.digest }}
-          push-to-registry: true
-
       - name: Image digest
         if: ${{ env.AUTO_PUSH_IMAGES }}
         env:
@@ -348,7 +338,6 @@ jobs:
     permissions:
       contents: read
       id-token: write
-      attestations: write
     strategy:
       fail-fast: false
       matrix:
@@ -546,15 +535,6 @@ jobs:
             cosign sign --yes $tag_list
             echo "::endgroup::"
 
-      - name: Attest images
-        if: ${{ env.AUTO_PUSH_IMAGES == 'true' }}
-        id: attest
-        uses: actions/attest-build-provenance@v1
-        with:
-          subject-name: ${{ env.DOCKER_REGISTRY }}/${{ env.DOCKER_REPOSITORY }}/${{ env.IMAGES_PREFIX }}${{ env.BASE_BUILD_IMAGE_NAME }}
-          subject-digest: ${{ steps.docker_build.outputs.digest }}
-          push-to-registry: true
-
       - name: Image digest
         if: ${{ env.AUTO_PUSH_IMAGES }}
         env:
@@ -585,7 +565,6 @@ jobs:
     permissions:
       contents: read
       id-token: write
-      attestations: write
     strategy:
       fail-fast: false
       matrix:
@@ -795,15 +774,6 @@ jobs:
             echo "cosign sign --yes $tag_list"
             cosign sign --yes $tag_list
             echo "::endgroup::"
-
-      - name: Attest images
-        if: ${{ env.AUTO_PUSH_IMAGES == 'true' }}
-        id: attest
-        uses: actions/attest-build-provenance@v1
-        with:
-          subject-name: ${{ env.DOCKER_REGISTRY }}/${{ env.DOCKER_REPOSITORY }}/${{ env.IMAGES_PREFIX }}${{ matrix.component }}
-          subject-digest: ${{ steps.docker_build.outputs.digest }}
-          push-to-registry: true
 
       - name: Image digest
         if: ${{ env.AUTO_PUSH_IMAGES }}
