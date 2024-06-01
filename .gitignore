@@ -1,3 +1,4 @@
+**.DS_Store
 zbx_env/
 zbx_env*/
 .*CERT_FILE
