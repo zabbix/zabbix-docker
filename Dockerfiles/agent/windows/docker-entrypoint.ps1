@@ -74,6 +74,17 @@ function Update-Config-Var {
 
         Write-Host updated
     }
+    elseif ((Get-Content $ConfigPath | select-string -pattern "^[#;] $VarName=").length -gt 1) {
+        (Get-Content $ConfigPath) |
+            Foreach-Object {
+                $_
+                if ($_ -match "^[#;] $VarName=$") {
+                    "$VarName=$VarValue"
+                }
+            } | Set-Content $ConfigPath
+
+        Write-Host "added first occurrence"
+    }
     elseif ((Get-Content $ConfigPath | select-string -pattern "^[#;] $VarName=").length -gt 0) {
         (Get-Content $ConfigPath) |
             Foreach-Object {
