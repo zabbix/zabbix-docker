@@ -24,8 +24,7 @@ ENV ZBX_SOURCES_DIR=/tmp/zabbix-${ZBX_VERSION} ZBX_OUTPUT_DIR=/tmp/zabbix-${ZBX_
     DB_TYPE=mysql \
     MONGODB_PLUGIN_SOURCES=https://git.zabbix.com/scm/ap/mongodb.git MONGODB_PLUGIN_VERSION=${GIT_BRANCH:-$ZBX_VERSION} \
     POSTGRESQL_PLUGIN_SOURCES=https://git.zabbix.com/scm/ap/postgresql.git POSTGRESQL_PLUGIN_VERSION=${GIT_BRANCH:-$ZBX_VERSION} \
-    MSSQL_PLUGIN_SOURCES=https://git.zabbix.com/scm/ap/mssql.git MSSQL_PLUGIN_VERSION=${GIT_BRANCH:-$ZBX_VERSION} \
-    EMBER_PLUS_PLUGIN_SOURCES=https://git.zabbix.com/scm/ap/ember-plus.git EMBER_PLUS_PLUGIN_VERSION=${GIT_BRANCH:-$ZBX_VERSION}
+    MSSQL_PLUGIN_SOURCES=https://git.zabbix.com/scm/ap/mssql.git MSSQL_PLUGIN_VERSION=${GIT_BRANCH:-$ZBX_VERSION}
 
 RUN --mount=type=cache,target=/root/.cache/go-build/ \
     --mount=type=cache,target=/root/go/ \
@@ -147,11 +146,4 @@ RUN --mount=type=cache,target=/root/.cache/go-build/ \
     make && \
     strip /tmp/mssql-plugin-${MSSQL_PLUGIN_VERSION}/zabbix-agent2-plugin-mssql && \
     cp /tmp/mssql-plugin-${MSSQL_PLUGIN_VERSION}/zabbix-agent2-plugin-mssql ${ZBX_OUTPUT_DIR}/agent2/sbin/zabbix-agent2-plugin/mssql && \
-    cp /tmp/mssql-plugin-${MSSQL_PLUGIN_VERSION}/mssql.conf ${ZBX_OUTPUT_DIR}/agent2/conf/zabbix_agent2.d/plugins.d/ && \
-    cd /tmp/ && \
-    git -c advice.detachedHead=false clone ${EMBER_PLUS_PLUGIN_SOURCES} --branch ${EMBER_PLUS_PLUGIN_VERSION} --depth 1 --single-branch /tmp/ember-plugin-${EMBER_PLUS_PLUGIN_VERSION} && \
-    cd /tmp/ember-plugin-${EMBER_PLUS_PLUGIN_VERSION} && \
-    make && \
-    strip /tmp/ember-plugin-${EMBER_PLUS_PLUGIN_VERSION}/zabbix-agent2-plugin-ember-plus && \
-    cp /tmp/ember-plugin-${EMBER_PLUS_PLUGIN_VERSION}/zabbix-agent2-plugin-ember-plus ${ZBX_OUTPUT_DIR}/agent2/sbin/zabbix-agent2-plugin/ember-plus && \
-    cp /tmp/ember-plugin-${EMBER_PLUS_PLUGIN_VERSION}/ember.conf ${ZBX_OUTPUT_DIR}/agent2/conf/zabbix_agent2.d/plugins.d/
+    cp /tmp/mssql-plugin-${MSSQL_PLUGIN_VERSION}/mssql.conf ${ZBX_OUTPUT_DIR}/agent2/conf/zabbix_agent2.d/plugins.d/

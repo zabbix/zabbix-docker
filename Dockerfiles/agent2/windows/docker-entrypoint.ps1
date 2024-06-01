@@ -244,7 +244,6 @@ function Prepare-Zbx-Agent-Plugins-Config {
     Update-Config-Var "$ZabbixConfigDir\zabbix_agent2.d\plugins.d\mongodb.conf" "Plugins.MongoDB.System.Path" "$ZabbixUserHomeDir\zabbix-agent2-plugin\mongodb.exe"
     Update-Config-Var "$ZabbixConfigDir\zabbix_agent2.d\plugins.d\postgresql.conf" "Plugins.PostgreSQL.System.Path" "$ZabbixUserHomeDir\zabbix-agent2-plugin\postgresql.exe"
     Update-Config-Var "$ZabbixConfigDir\zabbix_agent2.d\plugins.d\mssql.conf" "Plugins.MSSQL.System.Path" "$ZabbixUserHomeDir\zabbix-agent2-plugin\mssql.exe"
-    Update-Config-Var "$ZabbixConfigDir\zabbix_agent2.d\plugins.d\ember.conf" "Plugins.EmberPlus.System.Path" "$ZabbixUserHomeDir\zabbix-agent2-plugin\ember-plus.exe"
 }
 
 function PrepareAgent {

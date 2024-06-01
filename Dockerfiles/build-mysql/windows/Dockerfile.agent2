@@ -15,14 +15,12 @@ ARG ZBX_SOURCES=https://git.zabbix.com/scm/zbx/zabbix.git
 ARG MONGODB_PLUGIN_SOURCES=https://git.zabbix.com/scm/ap/mongodb.git
 ARG POSTGRESQL_PLUGIN_SOURCES=https://git.zabbix.com/scm/ap/postgresql.git
 ARG MSSQL_PLUGIN_SOURCES=https://git.zabbix.com/scm/ap/mssql.git
-ARG EMBER_PLUS_PLUGIN_SOURCES=https://git.zabbix.com/scm/ap/ember-plus.git
 ARG GIT_BRANCH
 
 ENV ZBX_SOURCES=$ZBX_SOURCES MAJOR_VERSION=$MAJOR_VERSION ZBX_VERSION=$ZBX_VERSION GIT_BRANCH=${GIT_BRANCH:-$ZBX_VERSION} `
     MONGODB_PLUGIN_SOURCES=$MONGODB_PLUGIN_SOURCES MONGODB_PLUGIN_VERSION=${GIT_BRANCH:-$ZBX_VERSION} `
     POSTGRESQL_PLUGIN_SOURCES=$POSTGRESQL_PLUGIN_SOURCES POSTGRESQL_PLUGIN_VERSION=${GIT_BRANCH:-$ZBX_VERSION} `
     MSSQL_PLUGIN_SOURCES=$MSSQL_PLUGIN_SOURCES MSSQL_PLUGIN_VERSION=${GIT_BRANCH:-$ZBX_VERSION} `
-    EMBER_PLUS_PLUGIN_SOURCES=$EMBER_PLUS_PLUGIN_SOURCES EMBER_PLUS_PLUGIN_VERSION=${GIT_BRANCH:-$ZBX_VERSION} `
     ZABBIX_VERSION_RC_NUM=$ZABBIX_VERSION_RC_NUM `
     ZBX_SOURCES_DIR=C:\\zabbix-${ZBX_VERSION} ZBX_OUTPUT_DIR=C:\\zabbix-${ZBX_VERSION}-output
 
@@ -107,16 +105,4 @@ RUN Set-Location -Path $env:SystemDrive\.; `
     Copy-Item -Path $env:SystemDrive\mssql-plugin-$env:MSSQL_PLUGIN_VERSION\mssql.conf $env:ZBX_OUTPUT_DIR\conf\zabbix_agent2.d\plugins.d; `
     mingw32-make -s clean; `
     `
-
-    Write-Host ('Building Zabbix Ember+ plugin {0} version ...' -f $env:EMBER_PLUS_PLUGIN_VERSION); `
-    git -c advice.detachedHead=false clone $env:EMBER_PLUS_PLUGIN_SOURCES --branch $env:EMBER_PLUS_PLUGIN_VERSION --depth 1 --single-branch $env:SystemDrive\ember-plus-plugin-$env:EMBER_PLUS_PLUGIN_VERSION; `
-    Set-Location -Path $env:SystemDrive\ember-plus-plugin-$env:EMBER_PLUS_PLUGIN_VERSION; `
-    mingw32-make; `
-    `
-    Write-Host 'Verifying Ember+ plugin ("zabbix-agent2-plugin-ember-plus.exe -V") ...'; `
-    & $env:SystemDrive\ember-plus-plugin-$env:EMBER_PLUS_PLUGIN_VERSION\zabbix-agent2-plugin-ember-plus.exe -V; `
-    `
-    Copy-Item -Path $env:SystemDrive\ember-plus-plugin-$env:EMBER_PLUS_PLUGIN_VERSION\zabbix-agent2-plugin-ember-plus.exe $env:ZBX_OUTPUT_DIR\zabbix-agent2-plugin\ember-plus.exe; `
-    Copy-Item -Path $env:SystemDrive\ember-plus-plugin-$env:EMBER_PLUS_PLUGIN_VERSION\ember.conf $env:ZBX_OUTPUT_DIR\conf\zabbix_agent2.d\plugins.d; `
-    mingw32-make -s clean; `
     Write-Host 'Zabbix binaries are compiled...';
