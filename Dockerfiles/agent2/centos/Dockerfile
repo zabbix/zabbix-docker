@@ -26,7 +26,7 @@ LABEL org.opencontainers.image.authors="Alexey Pustovalov <alexey.pustovalov@zab
 
 STOPSIGNAL SIGTERM
 
-COPY --from=builder ["/tmp/zabbix-${ZBX_VERSION}-output/agent2/sbin/zabbix_agent2", "/usr/sbin/zabbix_agent2"]
+COPY --from=builder ["/tmp/zabbix-${ZBX_VERSION}-output/agent2/sbin/", "/usr/sbin/"]
 COPY --from=builder ["/tmp/zabbix-${ZBX_VERSION}-output/general/bin/*", "/usr/bin/"]
 COPY --from=builder ["/tmp/zabbix-${ZBX_VERSION}-output/agent2/conf/", "/etc/zabbix/"]
 
