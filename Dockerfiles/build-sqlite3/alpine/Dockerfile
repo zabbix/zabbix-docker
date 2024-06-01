@@ -20,15 +20,30 @@ LABEL org.opencontainers.image.authors="Alexey Pustovalov <alexey.pustovalov@zab
       org.opencontainers.image.vendor="Zabbix SIA" \
       org.opencontainers.image.version="${ZBX_VERSION}"
 
-ENV MONGODB_PLUGIN_SOURCES=https://git.zabbix.com/scm/ap/mongodb.git MONGODB_PLUGIN_VERSION=${GIT_BRANCH:-$ZBX_VERSION} \
-    POSTGRESQL_PLUGIN_SOURCES=https://git.zabbix.com/scm/ap/postgresql.git POSTGRESQL_PLUGIN_VERSION=${GIT_BRANCH:-$ZBX_VERSION}
+ENV ZBX_SOURCES_DIR=/tmp/zabbix-${ZBX_VERSION} ZBX_OUTPUT_DIR=/tmp/zabbix-${ZBX_VERSION}-output \
+    DB_TYPE=sqlite3 \
+    MONGODB_PLUGIN_SOURCES=https://git.zabbix.com/scm/ap/mongodb.git MONGODB_PLUGIN_VERSION=${GIT_BRANCH:-$ZBX_VERSION} \
+    POSTGRESQL_PLUGIN_SOURCES=https://git.zabbix.com/scm/ap/postgresql.git POSTGRESQL_PLUGIN_VERSION=${GIT_BRANCH:-$ZBX_VERSION} \
+    MSSQL_PLUGIN_SOURCES=https://git.zabbix.com/scm/ap/mssql.git MSSQL_PLUGIN_VERSION=${GIT_BRANCH:-$ZBX_VERSION} \
+    EMBER_PLUS_PLUGIN_SOURCES=https://git.zabbix.com/scm/ap/ember-plus.git EMBER_PLUS_PLUGIN_VERSION=${GIT_BRANCH:-$ZBX_VERSION}
 
 RUN --mount=type=cache,target=/root/.cache/go-build/ \
     --mount=type=cache,target=/root/go/ \
     set -eux && \
     cd /tmp/ && \
-    git -c advice.detachedHead=false clone ${ZBX_SOURCES} --branch ${GIT_BRANCH:-$ZBX_VERSION} --depth 1 --single-branch /tmp/zabbix-${ZBX_VERSION} && \
-    cd /tmp/zabbix-${ZBX_VERSION} && \
+    mkdir -p ${ZBX_OUTPUT_DIR}/agent/sbin/ && \
+    mkdir -p ${ZBX_OUTPUT_DIR}/agent/conf/ && \
+    mkdir -p ${ZBX_OUTPUT_DIR}/agent2/sbin/ && \
+    mkdir -p ${ZBX_OUTPUT_DIR}/agent2/conf/ && \
+    mkdir -p ${ZBX_OUTPUT_DIR}/agent2/conf/zabbix_agent2.d/plugins.d/ && \
+    mkdir -p ${ZBX_OUTPUT_DIR}/proxy/sbin/ && \
+    mkdir -p ${ZBX_OUTPUT_DIR}/proxy/conf/ && \
+    mkdir -p ${ZBX_OUTPUT_DIR}/java_gateway/sbin/ && \
+    mkdir -p ${ZBX_OUTPUT_DIR}/general/sbin/ && \
+    mkdir -p ${ZBX_OUTPUT_DIR}/general/bin/ && \
+    mkdir -p ${ZBX_OUTPUT_DIR}/general/conf/ && \
+    git -c advice.detachedHead=false clone ${ZBX_SOURCES} --branch ${GIT_BRANCH:-$ZBX_VERSION} --depth 1 --single-branch ${ZBX_SOURCES_DIR} && \
+    cd ${ZBX_SOURCES_DIR} && \
     zabbix_revision=`git rev-parse --short HEAD` && \
     sed -i "s/{ZABBIX_REVISION}/$zabbix_revision/g" include/version.h && \
     sed -i "s/{ZABBIX_REVISION}/$zabbix_revision/g" src/go/pkg/version/version.go && \
@@ -63,24 +78,57 @@ RUN --mount=type=cache,target=/root/.cache/go-build/ \
     mkdir /tmp/fonts/ && \
     curl --tlsv1.2 -sSf -L "https://noto-website.storage.googleapis.com/pkgs/NotoSansCJKjp-hinted.zip" -o /tmp/fonts/NotoSansCJKjp-hinted.zip && \
     unzip /tmp/fonts/NotoSansCJKjp-hinted.zip -d /tmp/fonts/ && \
-    cp /tmp/fonts/NotoSansCJKjp-Regular.otf /tmp/zabbix-${ZBX_VERSION}/ui/assets/fonts/NotoSansCJKjp-Regular.ttf && \
-    cp /tmp/fonts/LICENSE_OFL.txt /tmp/zabbix-${ZBX_VERSION}/ui/assets/fonts/ && \
-    rm -f /tmp/zabbix-${ZBX_VERSION}/ui/assets/fonts/DejaVuSans.ttf && \
-    sed -i -r "s/(define\(.*_FONT_NAME.*)DejaVuSans/\1NotoSansCJKjp-Regular/" /tmp/zabbix-${ZBX_VERSION}/ui/include/defines.inc.php && \
+    cp /tmp/fonts/NotoSansCJKjp-Regular.otf ${ZBX_SOURCES_DIR}/ui/assets/fonts/NotoSansCJKjp-Regular.ttf && \
+    cp /tmp/fonts/LICENSE_OFL.txt ${ZBX_SOURCES_DIR}/ui/assets/fonts/ && \
+    rm -f ${ZBX_SOURCES_DIR}/ui/assets/fonts/DejaVuSans.ttf && \
+    sed -i -r "s/(define\(.*_FONT_NAME.*)DejaVuSans/\1NotoSansCJKjp-Regular/" ${ZBX_SOURCES_DIR}/ui/include/defines.inc.php && \
     rm -rf /tmp/fonts/ && \
-    chmod o+r /tmp/zabbix-${ZBX_VERSION}/ui/assets/fonts/* && \
-    strip /tmp/zabbix-${ZBX_VERSION}/src/zabbix_agent/zabbix_agentd && \
-    strip /tmp/zabbix-${ZBX_VERSION}/src/zabbix_proxy/zabbix_proxy && \
-    strip /tmp/zabbix-${ZBX_VERSION}/src/go/bin/zabbix_agent2 && \
-    strip /tmp/zabbix-${ZBX_VERSION}/src/zabbix_get/zabbix_get && \
-    strip /tmp/zabbix-${ZBX_VERSION}/src/zabbix_sender/zabbix_sender && \
+    chmod o+r ${ZBX_SOURCES_DIR}/ui/assets/fonts/* && \
+    strip ${ZBX_SOURCES_DIR}/src/zabbix_agent/zabbix_agentd && \
+    strip ${ZBX_SOURCES_DIR}/src/zabbix_proxy/zabbix_proxy && \
+    strip ${ZBX_SOURCES_DIR}/src/go/bin/zabbix_agent2 && \
+    strip ${ZBX_SOURCES_DIR}/src/zabbix_get/zabbix_get && \
+    strip ${ZBX_SOURCES_DIR}/src/zabbix_sender/zabbix_sender && \
+    cp ${ZBX_SOURCES_DIR}/src/zabbix_agent/zabbix_agentd ${ZBX_OUTPUT_DIR}/agent/sbin/ && \
+    cp ${ZBX_SOURCES_DIR}/conf/zabbix_agentd.conf ${ZBX_OUTPUT_DIR}/agent/conf/ && \
+    cp -R ${ZBX_SOURCES_DIR}/conf/zabbix_agentd/ ${ZBX_OUTPUT_DIR}/agent/conf/ && \
+    cp ${ZBX_SOURCES_DIR}/src/go/bin/zabbix_agent2 ${ZBX_OUTPUT_DIR}/agent2/sbin/ && \
+    cp ${ZBX_SOURCES_DIR}/src/go/conf/zabbix_agent2.conf ${ZBX_OUTPUT_DIR}/agent2/conf/ && \
+    cp -R ${ZBX_SOURCES_DIR}/src/go/conf/zabbix_agent2.d/ ${ZBX_OUTPUT_DIR}/agent2/conf/ && \
+    cp ${ZBX_SOURCES_DIR}/src/zabbix_proxy/zabbix_proxy ${ZBX_OUTPUT_DIR}/proxy/sbin/ && \
+    cp ${ZBX_SOURCES_DIR}/conf/zabbix_proxy.conf ${ZBX_OUTPUT_DIR}/proxy/conf/ && \
+    cp -R ${ZBX_SOURCES_DIR}/src/zabbix_java/bin/ ${ZBX_OUTPUT_DIR}/java_gateway/sbin/ && \
+    cp -R ${ZBX_SOURCES_DIR}/src/zabbix_java/lib/ ${ZBX_OUTPUT_DIR}/java_gateway/sbin/ && \
+    cp ${ZBX_SOURCES_DIR}/src/zabbix_get/zabbix_get ${ZBX_OUTPUT_DIR}/general/bin/ && \
+    cp ${ZBX_SOURCES_DIR}/src/zabbix_sender/zabbix_sender ${ZBX_OUTPUT_DIR}/general/bin/ && \
+    make -s distclean && \
     cd /tmp/ && \
-    git -c advice.detachedHead=false clone ${MONGODB_PLUGIN_SOURCES} --branch ${MONGODB_PLUGIN_VERSION} --depth 1 --single-branch /tmp/mongodb_plugin && \
-    cd /tmp/mongodb_plugin && \
+    mkdir -p ${ZBX_OUTPUT_DIR}/agent2/sbin/zabbix-agent2-plugin/ && \
+    mkdir -p ${ZBX_OUTPUT_DIR}/agent2/conf/zabbix_agent2.d/plugins.d/ && \
+    git -c advice.detachedHead=false clone ${MONGODB_PLUGIN_SOURCES} --branch ${MONGODB_PLUGIN_VERSION} --depth 1 --single-branch /tmp/mongodb-plugin-${MONGODB_PLUGIN_VERSION} && \
+    cd /tmp/mongodb-plugin-${MONGODB_PLUGIN_VERSION} && \
     make && \
-    strip /tmp/mongodb_plugin/zabbix-agent2-plugin-mongodb && \
+    strip /tmp/mongodb-plugin-${MONGODB_PLUGIN_VERSION}/zabbix-agent2-plugin-mongodb && \
+    cp /tmp/mongodb-plugin-${MONGODB_PLUGIN_VERSION}/zabbix-agent2-plugin-mongodb ${ZBX_OUTPUT_DIR}/agent2/sbin/zabbix-agent2-plugin/mongodb && \
+    cp /tmp/mongodb-plugin-${MONGODB_PLUGIN_VERSION}/mongodb.conf ${ZBX_OUTPUT_DIR}/agent2/conf/zabbix_agent2.d/plugins.d/ && \
     cd /tmp/ && \
-    git -c advice.detachedHead=false clone ${POSTGRESQL_PLUGIN_SOURCES} --branch ${POSTGRESQL_PLUGIN_VERSION} --depth 1 --single-branch /tmp/postgresql_plugin && \
-    cd /tmp/postgresql_plugin && \
+    git -c advice.detachedHead=false clone ${POSTGRESQL_PLUGIN_SOURCES} --branch ${POSTGRESQL_PLUGIN_VERSION} --depth 1 --single-branch /tmp/postgresql-plugin-${POSTGRESQL_PLUGIN_VERSION} && \
+    cd /tmp/postgresql-plugin-${POSTGRESQL_PLUGIN_VERSION} && \
     make && \
-    strip /tmp/postgresql_plugin/zabbix-agent2-plugin-postgresql
+    strip /tmp/postgresql-plugin-${POSTGRESQL_PLUGIN_VERSION}/zabbix-agent2-plugin-postgresql && \
+    cp /tmp/postgresql-plugin-${POSTGRESQL_PLUGIN_VERSION}/zabbix-agent2-plugin-postgresql ${ZBX_OUTPUT_DIR}/agent2/sbin/zabbix-agent2-plugin/postgresql && \
+    cp /tmp/postgresql-plugin-${POSTGRESQL_PLUGIN_VERSION}/postgresql.conf ${ZBX_OUTPUT_DIR}/agent2/conf/zabbix_agent2.d/plugins.d/ && \
+    cd /tmp/ && \
+    git -c advice.detachedHead=false clone ${MSSQL_PLUGIN_SOURCES} --branch ${MSSQL_PLUGIN_VERSION} --depth 1 --single-branch /tmp/mssql-plugin-${MSSQL_PLUGIN_VERSION} && \
+    cd /tmp/mssql-plugin-${MSSQL_PLUGIN_VERSION} && \
+    make && \
+    strip /tmp/mssql-plugin-${MSSQL_PLUGIN_VERSION}/zabbix-agent2-plugin-mssql && \
+    cp /tmp/mssql-plugin-${MSSQL_PLUGIN_VERSION}/zabbix-agent2-plugin-mssql ${ZBX_OUTPUT_DIR}/agent2/sbin/zabbix-agent2-plugin/mssql && \
+    cp /tmp/mssql-plugin-${MSSQL_PLUGIN_VERSION}/mssql.conf ${ZBX_OUTPUT_DIR}/agent2/conf/zabbix_agent2.d/plugins.d/ && \
+    cd /tmp/ && \
+    git -c advice.detachedHead=false clone ${EMBER_PLUS_PLUGIN_SOURCES} --branch ${EMBER_PLUS_PLUGIN_VERSION} --depth 1 --single-branch /tmp/ember-plugin-${EMBER_PLUS_PLUGIN_VERSION} && \
+    cd /tmp/ember-plugin-${EMBER_PLUS_PLUGIN_VERSION} && \
+    make && \
+    strip /tmp/ember-plugin-${EMBER_PLUS_PLUGIN_VERSION}/zabbix-agent2-plugin-ember-plus && \
+    cp /tmp/ember-plugin-${EMBER_PLUS_PLUGIN_VERSION}/zabbix-agent2-plugin-ember-plus ${ZBX_OUTPUT_DIR}/agent2/sbin/zabbix-agent2-plugin/ember-plus && \
+    cp /tmp/ember-plugin-${EMBER_PLUS_PLUGIN_VERSION}/ember.conf ${ZBX_OUTPUT_DIR}/agent2/conf/zabbix_agent2.d/plugins.d/
