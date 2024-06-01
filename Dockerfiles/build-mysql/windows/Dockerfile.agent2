@@ -14,12 +14,17 @@ ARG ZABBIX_VERSION_RC_NUM=2400
 ARG ZBX_SOURCES=https://git.zabbix.com/scm/zbx/zabbix.git
 ARG MONGODB_PLUGIN_SOURCES=https://git.zabbix.com/scm/ap/mongodb.git
 ARG POSTGRESQL_PLUGIN_SOURCES=https://git.zabbix.com/scm/ap/postgresql.git
+ARG MSSQL_PLUGIN_SOURCES=https://git.zabbix.com/scm/ap/mssql.git
+ARG EMBER_PLUS_PLUGIN_SOURCES=ttps://git.zabbix.com/scm/ap/ember-plus.git
 ARG GIT_BRANCH
 
 ENV ZBX_SOURCES=$ZBX_SOURCES MAJOR_VERSION=$MAJOR_VERSION ZBX_VERSION=$ZBX_VERSION GIT_BRANCH=${GIT_BRANCH:-$ZBX_VERSION} `
     MONGODB_PLUGIN_SOURCES=$MONGODB_PLUGIN_SOURCES MONGODB_PLUGIN_VERSION=${GIT_BRANCH:-$ZBX_VERSION} `
     POSTGRESQL_PLUGIN_SOURCES=$POSTGRESQL_PLUGIN_SOURCES POSTGRESQL_PLUGIN_VERSION=${GIT_BRANCH:-$ZBX_VERSION} `
-    ZABBIX_VERSION_RC_NUM=$ZABBIX_VERSION_RC_NUM
+    MSSQL_PLUGIN_SOURCES=$MSSQL_PLUGIN_SOURCES MSSQL_PLUGIN_VERSION=${GIT_BRANCH:-$ZBX_VERSION} `
+    EMBER_PLUS_PLUGIN_SOURCES=$EMBER_PLUS_PLUGIN_SOURCES EMBER_PLUS_PLUGIN_VERSION=${GIT_BRANCH:-$ZBX_VERSION} `
+    ZABBIX_VERSION_RC_NUM=$ZABBIX_VERSION_RC_NUM `
+    ZBX_SOURCES_DIR=C:\\zabbix-${ZBX_VERSION} ZBX_OUTPUT_DIR=C:\\zabbix-${ZBX_VERSION}-output
 
 LABEL org.opencontainers.image.title="Zabbix agent 2 build (Windows)" `
       org.opencontainers.image.authors="Alexey Pustovalov <alexey.pustovalov@zabbix.com>" `
@@ -33,59 +38,84 @@ LABEL org.opencontainers.image.title="Zabbix agent 2 build (Windows)" `
 
 RUN Set-Location -Path $env:SystemDrive\.; `
     `
-    New-Item -ItemType directory -Path $env:SystemDrive\zabbix_src | Out-Null; `
-    New-Item -ItemType directory -Path $env:SystemDrive\zabbix_output | Out-Null; `
-    New-Item -ItemType directory -Path $env:SystemDrive\zabbix_output\sbin | Out-Null; `
-    New-Item -ItemType directory -Path $env:SystemDrive\zabbix_output\conf | Out-Null; `
-    New-Item -ItemType directory -Path $env:SystemDrive\zabbix_output\conf\zabbix_agentd.d | Out-Null; `
-    New-Item -ItemType directory -Path $env:SystemDrive\zabbix_output\zabbix-agent2-plugin | Out-Null; `
+    New-Item -ItemType directory -Path $env:ZBX_SOURCES_DIR | Out-Null; `
+    New-Item -ItemType directory -Path $env:ZBX_OUTPUT_DIR | Out-Null; `
+    New-Item -ItemType directory -Path $env:ZBX_OUTPUT_DIR\sbin | Out-Null; `
+    New-Item -ItemType directory -Path $env:ZBX_OUTPUT_DIR\conf | Out-Null; `
+    New-Item -ItemType directory -Path $env:ZBX_OUTPUT_DIR\conf\zabbix_agentd.d | Out-Null; `
+    New-Item -ItemType directory -Path $env:ZBX_OUTPUT_DIR\zabbix-agent2-plugin | Out-Null; `
     `
     Import-Module (Get-ChildItem $env:VS_PATH -Recurse -File -Filter Microsoft.VisualStudio.DevShell.dll).FullName; `
     Enter-VsDevShell -VsInstallPath $env:VS_PATH -SkipAutomaticLocation -DevCmdArguments """-arch=$env:BUILD_ARCH"""; `
     `
     Write-Host ('Checkout GIT {0} ({1}) repository ...' -f $env:ZBX_SOURCES, $env:GIT_BRANCH); `
-    git -c advice.detachedHead=false clone $env:ZBX_SOURCES --branch $env:GIT_BRANCH --depth 1 --single-branch $env:SystemDrive\zabbix_src\zabbix-$env:ZBX_VERSION; `
+    git -c advice.detachedHead=false clone $env:ZBX_SOURCES --branch $env:GIT_BRANCH --depth 1 --single-branch $env:ZBX_SOURCES_DIR; `
     `
     Write-Host ('Building Zabbix {0} version ...' -f $env:ZBX_VERSION); `
-    Set-Location -Path $env:SystemDrive\zabbix_src\zabbix-$env:ZBX_VERSION; `
+    Set-Location -Path $env:ZBX_SOURCES_DIR; `
     $ZbxRevision=(git rev-parse --short HEAD); `
     (Get-Content include\version.h).replace('{ZABBIX_REVISION}', $ZbxRevision) | Set-Content include\version.h; `
     (Get-Content src\go\pkg\version\version.go).replace('{ZABBIX_REVISION}', $ZbxRevision) | Set-Content src\go\pkg\version\version.go; `
-    Set-Location -Path $env:SystemDrive\zabbix_src\zabbix-$env:ZBX_VERSION\build\mingw; `
+    Set-Location -Path $env:ZBX_SOURCES_DIR\build\mingw; `
     mingw32-make -j"""$env:NUMBER_OF_PROCESSORS""" `
         PCRE2=$env:BUILD_OUTPUT\pcre2 `
         OPENSSL=$env:BUILD_OUTPUT\openssl `
         RFLAGS="""-DZABBIX_VERSION_RC_NUM=$env:ZABBIX_VERSION_RC_NUM"""; `
     `
     Write-Host 'Verifying build ("zabbix_agent2.exe -V") ...'; `
-    & $env:SystemDrive\zabbix_src\zabbix-$env:ZBX_VERSION\bin\win64\zabbix_agent2.exe -V; `
-    dumpbin /dependents $env:SystemDrive\zabbix_src\zabbix-$env:ZBX_VERSION\bin\win64\zabbix_agent2.exe; `
+    & $env:ZBX_SOURCES_DIR\bin\win64\zabbix_agent2.exe -V; `
+    dumpbin /dependents $env:ZBX_SOURCES_DIR\bin\win64\zabbix_agent2.exe; `
     `
-    Copy-Item -Path $env:SystemDrive\zabbix_src\zabbix-$env:ZBX_VERSION\bin\win64\zabbix_agent2.exe $env:SystemDrive\zabbix_output\sbin; `
-    Copy-Item -Path $env:SystemDrive\zabbix_src\zabbix-$env:ZBX_VERSION\src\go\conf\zabbix_agent2.win.conf $env:SystemDrive\zabbix_output\conf\zabbix_agent2.conf; `
+    Copy-Item -Path $env:ZBX_SOURCES_DIR\bin\win64\zabbix_agent2.exe $env:ZBX_OUTPUT_DIR\sbin; `
+    Copy-Item -Path $env:ZBX_SOURCES_DIR\src\go\conf\zabbix_agent2.win.conf $env:ZBX_OUTPUT_DIR\conf\zabbix_agent2.conf; `
     mingw32-make -s clean; `
     `
     Write-Host ('Building Zabbix MongoDB plugin {0} version ...' -f $env:MONGODB_PLUGIN_VERSION); `
-    git -c advice.detachedHead=false clone $env:MONGODB_PLUGIN_SOURCES --branch $env:MONGODB_PLUGIN_VERSION --depth 1 --single-branch $env:SystemDrive\zabbix_src\mongodb_plugin; `
-    Set-Location -Path $env:SystemDrive\zabbix_src\mongodb_plugin; `
+    git -c advice.detachedHead=false clone $env:MONGODB_PLUGIN_SOURCES --branch $env:MONGODB_PLUGIN_VERSION --depth 1 --single-branch $env:SystemDrive\mongodb-plugin-$env:MONGODB_PLUGIN_VERSION; `
+    Set-Location -Path $env:SystemDrive\mongodb-plugin-$env:MONGODB_PLUGIN_VERSION; `
     mingw32-make; `
     `
     Write-Host 'Verifying MongoDB plugin ("zabbix-agent2-plugin-mongodb.exe -V") ...'; `
-    & $env:SystemDrive\zabbix_src\mongodb_plugin\zabbix-agent2-plugin-mongodb.exe -V; `
+    & $env:SystemDrive\mongodb-plugin-$env:MONGODB_PLUGIN_VERSION\zabbix-agent2-plugin-mongodb.exe -V; `
     `
-    Copy-Item -Path $env:SystemDrive\zabbix_src\mongodb_plugin\zabbix-agent2-plugin-mongodb.exe $env:SystemDrive\zabbix_output\zabbix-agent2-plugin; `
-    Copy-Item -Path $env:SystemDrive\zabbix_src\mongodb_plugin\mongodb.conf $env:SystemDrive\zabbix_output\conf\zabbix_agentd.d; `
+    Copy-Item -Path $env:SystemDrive\mongodb-plugin-$env:MONGODB_PLUGIN_VERSION\zabbix-agent2-plugin-mongodb.exe $env:ZBX_OUTPUT_DIR\zabbix-agent2-plugin\mongodb.exe; `
+    Copy-Item -Path $env:SystemDrive\mongodb-plugin-$env:MONGODB_PLUGIN_VERSION\mongodb.conf $env:ZBX_OUTPUT_DIR\conf\zabbix_agentd.d; `
     mingw32-make -s clean; `
     `
     Write-Host ('Building Zabbix PostgreSQL plugin {0} version ...' -f $env:POSTGRESQL_PLUGIN_VERSION); `
-    git -c advice.detachedHead=false clone $env:POSTGRESQL_PLUGIN_SOURCES --branch $env:POSTGRESQL_PLUGIN_VERSION --depth 1 --single-branch $env:SystemDrive\zabbix_src\postgresql_plugin; `
-    Set-Location -Path $env:SystemDrive\zabbix_src\postgresql_plugin; `
+    git -c advice.detachedHead=false clone $env:POSTGRESQL_PLUGIN_SOURCES --branch $env:POSTGRESQL_PLUGIN_VERSION --depth 1 --single-branch $env:SystemDrive\postgresql-plugin-$env:POSTGRESQL_PLUGIN_VERSION; `
+    Set-Location -Path $env:SystemDrive\postgresql-plugin-$env:POSTGRESQL_PLUGIN_VERSION; `
     mingw32-make; `
     `
     Write-Host 'Verifying build ("zabbix-agent2-plugin-postgresql.exe -V") ...'; `
-    & $env:SystemDrive\zabbix_src\postgresql_plugin\zabbix-agent2-plugin-postgresql.exe -V; `
+    & $env:SystemDrive\postgresql-plugin-$env:POSTGRESQL_PLUGIN_VERSION\zabbix-agent2-plugin-postgresql.exe -V; `
     `
-    Copy-Item -Path $env:SystemDrive\zabbix_src\postgresql_plugin\zabbix-agent2-plugin-postgresql.exe $env:SystemDrive\zabbix_output\zabbix-agent2-plugin; `
-    Copy-Item -Path $env:SystemDrive\zabbix_src\postgresql_plugin\postgresql.conf $env:SystemDrive\zabbix_output\conf\zabbix_agentd.d; `
+    Copy-Item -Path $env:SystemDrive\postgresql-plugin-$env:POSTGRESQL_PLUGIN_VERSION\zabbix-agent2-plugin-postgresql.exe $env:ZBX_OUTPUT_DIR\zabbix-agent2-plugin\postgresql.exe; `
+    Copy-Item -Path $env:SystemDrive\postgresql-plugin-$env:POSTGRESQL_PLUGIN_VERSION\postgresql.conf $env:ZBX_OUTPUT_DIR\conf\zabbix_agentd.d; `
+    mingw32-make -s clean; `
+    `
+    Write-Host ('Building Zabbix MSSQL plugin {0} version ...' -f $env:MSSQL_PLUGIN_VERSION); `
+    git -c advice.detachedHead=false clone $env:MSSQL_PLUGIN_SOURCES --branch $env:MSSQL_PLUGIN_VERSION --depth 1 --single-branch $env:SystemDrive\mssql-plugin-$env:MSSQL_PLUGIN_VERSION; `
+    Set-Location -Path $env:SystemDrive\mssql-plugin-$env:MSSQL_PLUGIN_VERSION; `
+    mingw32-make; `
+    `
+    Write-Host 'Verifying MSSQL plugin ("zabbix-agent2-plugin-mssql.exe -V") ...'; `
+    & $env:SystemDrive\mssql-plugin-$env:MSSQL_PLUGIN_VERSION\zabbix-agent2-plugin-mssql.exe -V; `
+    `
+    Copy-Item -Path $env:SystemDrive\mssql-plugin-$env:MSSQL_PLUGIN_VERSION\zabbix-agent2-plugin-mssql.exe $env:ZBX_OUTPUT_DIR\zabbix-agent2-plugin\mssql.exe; `
+    Copy-Item -Path $env:SystemDrive\mssql-plugin-$env:MSSQL_PLUGIN_VERSION\mssql.conf $env:ZBX_OUTPUT_DIR\conf\zabbix_agentd.d; `
+    mingw32-make -s clean; `
+    `
+
+    Write-Host ('Building Zabbix Ember+ plugin {0} version ...' -f $env:EMBER_PLUS_PLUGIN_VERSION); `
+    git -c advice.detachedHead=false clone $env:EMBER_PLUS_PLUGIN_SOURCES --branch $env:EMBER_PLUS_PLUGIN_VERSION --depth 1 --single-branch $env:SystemDrive\ember-plus-plugin-$env:EMBER_PLUS_PLUGIN_VERSION; `
+    Set-Location -Path $env:SystemDrive\ember-plus-plugin-$env:EMBER_PLUS_PLUGIN_VERSION; `
+    mingw32-make; `
+    `
+    Write-Host 'Verifying Ember+ plugin ("zabbix-agent2-plugin-ember-plus.exe -V") ...'; `
+    & $env:SystemDrive\ember-plus-plugin-$env:EMBER_PLUS_PLUGIN_VERSION\zabbix-agent2-plugin-ember-plus.exe -V; `
+    `
+    Copy-Item -Path $env:SystemDrive\ember-plus-plugin-$env:EMBER_PLUS_PLUGIN_VERSION\zabbix-agent2-plugin-ember-plus.exe $env:ZBX_OUTPUT_DIR\zabbix-agent2-plugin\ember-plus.exe; `
+    Copy-Item -Path $env:SystemDrive\ember-plus-plugin-$env:EMBER_PLUS_PLUGIN_VERSION\ember.conf $env:ZBX_OUTPUT_DIR\conf\zabbix_agentd.d; `
     mingw32-make -s clean; `
     Write-Host 'Zabbix binaries are compiled...';
