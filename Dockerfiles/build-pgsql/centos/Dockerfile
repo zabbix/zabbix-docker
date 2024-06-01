@@ -40,8 +40,8 @@ RUN --mount=type=cache,target=/root/.cache/go-build/ \
     mkdir -p ${ZBX_OUTPUT_DIR}/proxy/sbin/ && \
     mkdir -p ${ZBX_OUTPUT_DIR}/proxy/conf/ && \
     mkdir -p ${ZBX_OUTPUT_DIR}/proxy/database/${DB_TYPE}/ && \
-    mkdir -p ${ZBX_OUTPUT_DIR}/server/database/${DB_TYPE}/option-patches/with-compression/ && \
-    mkdir -p ${ZBX_OUTPUT_DIR}/server/database/${DB_TYPE}/option-patches/without-compression/ && \
+    mkdir -p ${ZBX_OUTPUT_DIR}/server/database/${DB_TYPE}/with-compression/ && \
+    mkdir -p ${ZBX_OUTPUT_DIR}/server/database/${DB_TYPE}/without-compression/ && \
     mkdir -p ${ZBX_OUTPUT_DIR}/server/sbin/ && \
     mkdir -p ${ZBX_OUTPUT_DIR}/server/conf/ && \
     mkdir -p ${ZBX_OUTPUT_DIR}/server/database/${DB_TYPE}/ && \
@@ -94,9 +94,9 @@ RUN --mount=type=cache,target=/root/.cache/go-build/ \
     cat database/${DB_TYPE}/data.sql >> database/${DB_TYPE}/create.sql && \
     gzip -c database/${DB_TYPE}/create.sql > ${ZBX_OUTPUT_DIR}/server/database/${DB_TYPE}/create.sql.gz && \
     rm -rf database/${DB_TYPE}/create.sql && \
-    cp -R ${ZBX_SOURCES_DIR}/database/postgresql/timescaledb/schema.sql ${ZBX_OUTPUT_DIR}/server/database/${DB_TYPE}/timescaledb.sql && \
-    cp -R ${ZBX_SOURCES_DIR}/database/postgresql/timescaledb/option-patches/with-compression/*.sql ${ZBX_OUTPUT_DIR}/server/database/${DB_TYPE}/option-patches/with-compression/ && \
-    cp -R ${ZBX_SOURCES_DIR}/database/postgresql/timescaledb/option-patches/without-compression/*.sql ${ZBX_OUTPUT_DIR}/server/database/${DB_TYPE}/option-patches/without-compression/ && \
+    cp -R ${ZBX_SOURCES_DIR}/database/postgresql/timescaledb.sql ${ZBX_OUTPUT_DIR}/server/database/${DB_TYPE}/timescaledb.sql && \
+    cp -R ${ZBX_SOURCES_DIR}/database/postgresql/tsdb_history_pk_upgrade_no_compression/*.sql ${ZBX_OUTPUT_DIR}/server/database/${DB_TYPE}/with-compression/ && \
+    cp -R ${ZBX_SOURCES_DIR}/database/postgresql/tsdb_history_pk_upgrade_with_compression/*.sql ${ZBX_OUTPUT_DIR}/server/database/${DB_TYPE}/without-compression/ && \
     mkdir /tmp/fonts/ && \
     curl --tlsv1.2 -sSf -L "https://noto-website.storage.googleapis.com/pkgs/NotoSansCJKjp-hinted.zip" -o /tmp/fonts/NotoSansCJKjp-hinted.zip && \
     unzip /tmp/fonts/NotoSansCJKjp-hinted.zip -d /tmp/fonts/ && \
