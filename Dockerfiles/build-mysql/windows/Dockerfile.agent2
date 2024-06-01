@@ -35,7 +35,6 @@ RUN Set-Location -Path $env:SystemDrive\.; `
     New-Item -ItemType directory -Path $env:ZBX_OUTPUT_DIR\sbin | Out-Null; `
     New-Item -ItemType directory -Path $env:ZBX_OUTPUT_DIR\conf | Out-Null; `
     New-Item -ItemType directory -Path $env:ZBX_OUTPUT_DIR\conf\zabbix_agentd.d | Out-Null; `
-    New-Item -ItemType directory -Path $env:ZBX_OUTPUT_DIR\zabbix-agent2-plugin | Out-Null; `
     `
     Import-Module (Get-ChildItem $env:VS_PATH -Recurse -File -Filter Microsoft.VisualStudio.DevShell.dll).FullName; `
     Enter-VsDevShell -VsInstallPath $env:VS_PATH -SkipAutomaticLocation -DevCmdArguments """-arch=$env:BUILD_ARCH"""; `

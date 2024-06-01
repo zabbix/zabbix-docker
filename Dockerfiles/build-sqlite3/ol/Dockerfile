@@ -31,7 +31,6 @@ RUN --mount=type=cache,target=/root/.cache/go-build/ \
     mkdir -p ${ZBX_OUTPUT_DIR}/agent/conf/ && \
     mkdir -p ${ZBX_OUTPUT_DIR}/agent2/sbin/ && \
     mkdir -p ${ZBX_OUTPUT_DIR}/agent2/conf/ && \
-    mkdir -p ${ZBX_OUTPUT_DIR}/agent2/conf/zabbix_agent2.d/plugins.d/ && \
     mkdir -p ${ZBX_OUTPUT_DIR}/proxy/sbin/ && \
     mkdir -p ${ZBX_OUTPUT_DIR}/proxy/conf/ && \
     mkdir -p ${ZBX_OUTPUT_DIR}/java_gateway/sbin/ && \
