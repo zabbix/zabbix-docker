@@ -74,6 +74,17 @@ function Update-Config-Var {
 
         Write-Host updated
     }
+    elseif ((Get-Content $ConfigPath | select-string -pattern "^[#;] $VarName=").length -gt 1) {
+        (Get-Content $ConfigPath) |
+            Foreach-Object {
+                $_
+                if ($_ -match "^[#;] $VarName=$") {
+                    "$VarName=$VarValue"
+                }
+            } | Set-Content $ConfigPath
+
+        Write-Host "added first occurrence"
+    }
     elseif ((Get-Content $ConfigPath | select-string -pattern "^[#;] $VarName=").length -gt 0) {
         (Get-Content $ConfigPath) |
             Foreach-Object {
@@ -86,7 +97,7 @@ function Update-Config-Var {
         Write-Host "added"
     }
     else {
-	Add-Content -Path $ConfigPath -Value "$VarName=$VarValue"
+    Add-Content -Path $ConfigPath -Value "$VarName=$VarValue"
         Write-Host "added at the end"
     }
 }
@@ -201,7 +212,8 @@ function Prepare-Zbx-Agent-Config {
     # Please use include to enable Perfcounter feature
 #    update_config_multiple_var $ZBX_AGENT_CONFIG "PerfCounter" $env:ZBX_PERFCOUNTER
     Update-Config-Var $ZbxAgentConfig "Timeout" "$env:ZBX_TIMEOUT"
-    Update-Config-Var $ZbxAgentConfig "Include" "$ZabbixConfigDir\zabbix_agentd.d\*.conf"
+    Update-Config-Var $ZbxAgentConfig "Include" ".\zabbix_agent2.d\plugins.d\*.conf"
+    Update-Config-Var $ZbxAgentConfig "Include" ".\zabbix_agentd.d\*.conf" $true
     Update-Config-Var $ZbxAgentConfig "UnsafeUserParameters" "$env:ZBX_UNSAFEUSERPARAMETERS"
     Update-Config-Var $ZbxAgentConfig "UserParameterDir" "$ZabbixUserHomeDir\user_scripts\"
     Update-Config-Var $ZbxAgentConfig "TLSConnect" "$env:ZBX_TLSCONNECT"
@@ -229,10 +241,10 @@ function Prepare-Zbx-Agent-Config {
 function Prepare-Zbx-Agent-Plugins-Config {
     Write-Host "** Preparing Zabbix agent 2 (plugins) configuration files"
 
-    Update-Config-Var "$ZabbixConfigDir/mongodb.conf" "Plugins.MongoDB.System.Path" "$ZabbixUserHomeDir\zabbix-agent2-plugin\mongodb.exe"
-    Update-Config-Var "$ZabbixConfigDir/postgresql.conf" "Plugins.PostgreSQL.System.Path" "$ZabbixUserHomeDir\zabbix-agent2-plugin\postgresql.exe"
-    Update-Config-Var "$ZabbixConfigDir/mssql.conf" "Plugins.MSSQL.System.Path" "$ZabbixUserHomeDir\zabbix-agent2-plugin\mssql.exe"
-    Update-Config-Var "$ZabbixConfigDir/ember.conf" "Plugins.EmberPlus.System.Path" "$ZabbixUserHomeDir\zabbix-agent2-plugin\ember-plus.exe"
+    Update-Config-Var "$ZabbixConfigDir\zabbix_agent2.d\plugins.d\mongodb.conf" "Plugins.MongoDB.System.Path" "$ZabbixUserHomeDir\zabbix-agent2-plugin\mongodb.exe"
+    Update-Config-Var "$ZabbixConfigDir\zabbix_agent2.d\plugins.d\postgresql.conf" "Plugins.PostgreSQL.System.Path" "$ZabbixUserHomeDir\zabbix-agent2-plugin\postgresql.exe"
+    Update-Config-Var "$ZabbixConfigDir\zabbix_agent2.d\plugins.d\mssql.conf" "Plugins.MSSQL.System.Path" "$ZabbixUserHomeDir\zabbix-agent2-plugin\mssql.exe"
+    Update-Config-Var "$ZabbixConfigDir\zabbix_agent2.d\plugins.d\ember.conf" "Plugins.EmberPlus.System.Path" "$ZabbixUserHomeDir\zabbix-agent2-plugin\ember-plus.exe"
 }
 
 function PrepareAgent {
