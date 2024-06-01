@@ -27,8 +27,7 @@ LABEL org.opencontainers.image.authors="Alexey Pustovalov <alexey.pustovalov@zab
 
 STOPSIGNAL SIGTERM
 
-COPY --from=builder ["/tmp/zabbix-${ZBX_VERSION}/src/zabbix_java/bin", "/usr/sbin/zabbix_java/bin"]
-COPY --from=builder ["/tmp/zabbix-${ZBX_VERSION}/src/zabbix_java/lib", "/usr/sbin/zabbix_java/lib"]
+COPY --from=builder ["/tmp/zabbix-${ZBX_VERSION}-output/java_gateway/sbin/", "/usr/sbin/zabbix_java/"]
 
 RUN set -eux && \
     INSTALL_PKGS="bash \
@@ -51,7 +50,6 @@ RUN set -eux && \
             --home /var/lib/zabbix/ \
         zabbix && \
     mkdir -p /etc/zabbix/ && \
-    mkdir -p /usr/sbin/zabbix_java/ && \
     mkdir -p /usr/sbin/zabbix_java/ext_lib/ && \
     rm -rf /usr/sbin/zabbix_java/lib/logback.xml && \
     mv /usr/sbin/zabbix_java/lib/logback-console.xml /etc/zabbix/zabbix_java_gateway_logback.xml && \

@@ -45,10 +45,9 @@ LABEL description="Zabbix agent 2 is deployed on a monitoring target to actively
 STOPSIGNAL SIGTERM
 
 COPY ["licenses", "/licenses"]
-COPY --from=builder ["/tmp/zabbix-${ZBX_VERSION}/src/go/bin/zabbix_agent2", "/usr/sbin/zabbix_agent2"]
-COPY --from=builder ["/tmp/zabbix-${ZBX_VERSION}/src/zabbix_get/zabbix_get", "/usr/bin/zabbix_get"]
-COPY --from=builder ["/tmp/zabbix-${ZBX_VERSION}/src/zabbix_sender/zabbix_sender", "/usr/bin/zabbix_sender"]
-COPY --from=builder ["/tmp/zabbix-${ZBX_VERSION}/src/go/conf/zabbix_agent2.conf", "/etc/zabbix/zabbix_agent2.conf"]
+COPY --from=builder ["/tmp/zabbix-${ZBX_VERSION}-output/agent2/sbin/zabbix_agent2", "/usr/sbin/zabbix_agent2"]
+COPY --from=builder ["/tmp/zabbix-${ZBX_VERSION}-output/general/bin/*", "/usr/bin/"]
+COPY --from=builder ["/tmp/zabbix-${ZBX_VERSION}-output/agent2/conf/", "/etc/zabbix/"]
 
 RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
     set -eux && \

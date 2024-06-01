@@ -15,7 +15,8 @@ ARG GIT_BRANCH
 ARG ZABBIX_VERSION_RC_NUM=2400
 
 ENV ZBX_SOURCES=$ZBX_SOURCES MAJOR_VERSION=$MAJOR_VERSION ZBX_VERSION=$ZBX_VERSION GIT_BRANCH=${GIT_BRANCH:-$ZBX_VERSION} `
-    ZABBIX_VERSION_RC_NUM=$ZABBIX_VERSION_RC_NUM
+    ZABBIX_VERSION_RC_NUM=$ZABBIX_VERSION_RC_NUM `
+    ZBX_SOURCES_DIR=C:\\zabbix-${ZBX_VERSION} ZBX_OUTPUT_DIR=C:\\zabbix-${ZBX_VERSION}-output
 
 LABEL org.opencontainers.image.title="Zabbix agent build (Windows)" `
       org.opencontainers.image.authors="Alexey Pustovalov <alexey.pustovalov@zabbix.com>" `
@@ -32,22 +33,22 @@ SHELL ["powershell", "-Command", "$ErrorActionPreference = 'Stop'; $ProgressPref
 RUN Set-Location -Path $env:SystemDrive\.; `
     `
     New-Item -ItemType directory -Path $env:SystemDrive\zabbix_src | Out-Null; `
-    New-Item -ItemType directory -Path $env:SystemDrive\zabbix_output | Out-Null; `
-    New-Item -ItemType directory -Path $env:SystemDrive\zabbix_output\sbin | Out-Null; `
-    New-Item -ItemType directory -Path $env:SystemDrive\zabbix_output\bin | Out-Null; `
-    New-Item -ItemType directory -Path $env:SystemDrive\zabbix_output\conf | Out-Null; `
+    New-Item -ItemType directory -Path $env:ZBX_OUTPUT_DIR | Out-Null; `
+    New-Item -ItemType directory -Path $env:ZBX_OUTPUT_DIR\sbin | Out-Null; `
+    New-Item -ItemType directory -Path $env:ZBX_OUTPUT_DIRt\bin | Out-Null; `
+    New-Item -ItemType directory -Path $env:ZBX_OUTPUT_DIR\conf | Out-Null; `
     `
     Import-Module (Get-ChildItem $env:VS_PATH -Recurse -File -Filter Microsoft.VisualStudio.DevShell.dll).FullName; `
     Enter-VsDevShell -VsInstallPath $env:VS_PATH -SkipAutomaticLocation -DevCmdArguments """-arch=$env:BUILD_ARCH"""; `
     `
     Write-Host ('Checkout GIT {0} ({1}) repository ...' -f $env:ZBX_SOURCES, $env:GIT_BRANCH); `
-    git -c advice.detachedHead=false clone $env:ZBX_SOURCES --branch $env:GIT_BRANCH --depth 1 --single-branch $env:SystemDrive\zabbix_src\zabbix-$env:ZBX_VERSION; `
+    git -c advice.detachedHead=false clone $env:ZBX_SOURCES --branch $env:GIT_BRANCH --depth 1 --single-branch $env:ZBX_SOURCES_DIR; `
     `
     Write-Host ('Building Zabbix {0} version ...' -f $env:ZBX_VERSION); `
-    Set-Location -Path $env:SystemDrive\zabbix_src\zabbix-$env:ZBX_VERSION; `
+    Set-Location -Path $env:ZBX_SOURCES_DIR; `
     $ZbxRevision=(git rev-parse --short HEAD); `
     (Get-Content include/version.h).replace('{ZABBIX_REVISION}', $ZbxRevision) | Set-Content include/version.h; `
-    Set-Location -Path $env:SystemDrive\zabbix_src\zabbix-$env:ZBX_VERSION\build\win32\project; `
+    Set-Location -Path $env:ZBX_SOURCES_DIR\build\win32\project; `
     set CL=/MP; `
     nmake /S -f Makefile `
         CPU=$env:CPU_MODEL `
@@ -61,11 +62,11 @@ RUN Set-Location -Path $env:SystemDrive\.; `
         all; `
     `
     Write-Host 'Verifying build ("zabbix_agentd.exe -V") ...'; `
-    & $env:SystemDrive\zabbix_src\zabbix-$env:ZBX_VERSION\bin\win64\zabbix_agentd.exe -V; `
-    dumpbin /dependents $env:SystemDrive\zabbix_src\zabbix-$env:ZBX_VERSION\bin\win64\zabbix_agentd.exe; `
+    & $env:ZBX_SOURCES_DIR\bin\win64\zabbix_agentd.exe -V; `
+    dumpbin /dependents $env:ZBX_SOURCES_DIR\bin\win64\zabbix_agentd.exe; `
     `
-    Copy-Item -Path $env:SystemDrive\zabbix_src\zabbix-$env:ZBX_VERSION\bin\win64\zabbix_agentd.exe $env:SystemDrive\zabbix_output\sbin; `
-    Copy-Item -Path $env:SystemDrive\zabbix_src\zabbix-$env:ZBX_VERSION\bin\win64\zabbix_get.exe $env:SystemDrive\zabbix_output\bin; `
-    Copy-Item -Path $env:SystemDrive\zabbix_src\zabbix-$env:ZBX_VERSION\bin\win64\zabbix_sender.exe $env:SystemDrive\zabbix_output\bin; `
-    Copy-Item -Path $env:SystemDrive\zabbix_src\zabbix-$env:ZBX_VERSION\conf\zabbix_agentd.win.conf $env:SystemDrive\zabbix_output\conf\zabbix_agentd.conf; `
+    Copy-Item -Path $env:ZBX_SOURCES_DIR\bin\win64\zabbix_agentd.exe $env:ZBX_OUTPUT_DIR\sbin; `
+    Copy-Item -Path $env:ZBX_SOURCES_DIR\bin\win64\zabbix_get.exe $env:ZBX_OUTPUT_DIR\bin; `
+    Copy-Item -Path $env:ZBX_SOURCES_DIR\bin\win64\zabbix_sender.exe $env:ZBX_OUTPUT_DIR\bin; `
+    Copy-Item -Path $env:ZBX_SOURCES_DIR\conf\zabbix_agentd.win.conf $env:ZBX_OUTPUT_DIR\conf\zabbix_agentd.conf; `
     Write-Host 'Zabbix binaries are compiled...';
