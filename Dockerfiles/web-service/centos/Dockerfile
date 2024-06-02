@@ -45,7 +45,7 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
     dnf -y install \
         --disablerepo "*" \
         --enablerepo "${REPOLIST}" \
-        --setopt=tsflags=nodocs \.
+        --setopt=tsflags=nodocs \
         --setopt=install_weak_deps=False \
         --setopt=keepcache=False \
         --best ${INSTALL_PKGS} && \
