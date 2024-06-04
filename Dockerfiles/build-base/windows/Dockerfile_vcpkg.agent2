@@ -8,7 +8,7 @@ ARG GOLANG_VERSION=1.22.3
 ARG BUILD_ARCH=x64
 ARG CPU_MODEL=AMD64
 
-ARG MAJOR_VERSION=7.0
+ARG MAJOR_VERSION=7.2
 ARG ZBX_VERSION=${MAJOR_VERSION}
 
 ARG GIT_URL=https://github.com/git-for-windows/git/releases/download/v2.33.0.windows.2/MinGit-2.33.0.2-busybox-64-bit.zip
