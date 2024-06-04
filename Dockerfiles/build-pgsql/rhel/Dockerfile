@@ -10,11 +10,11 @@ ARG MAJOR_VERSION
 ARG RELEASE
 ARG ZBX_VERSION
 ARG ZBX_SOURCES=https://git.zabbix.com/scm/zbx/zabbix.git
-ARG GIT_BRANCH=master
+ARG GIT_BRANCH
 
 LABEL description="Zabbix build base for PostgreSQL based images" \
       maintainer="alexey.pustovalov@zabbix.com" \
-      name="zabbix/zabbix-build-pgsql-trunk" \
+      name="zabbix/zabbix-build-pgsql-70" \
       release="${RELEASE}" \
       summary="Zabbix build base (PostgreSQL)" \
       url="https://www.zabbix.com/" \

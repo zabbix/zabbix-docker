@@ -31,18 +31,18 @@
     "windows-2022": "ltsc2022"
   },
   "components": {
-    "agent": { "base": "build-mysql", "rhel": true },
-    "agent2": { "base": "build-mysql", "rhel": true },
-    "java-gateway": { "base": "build-mysql", "rhel": true },
-    "proxy-mysql": { "base": "build-mysql", "rhel": true },
-    "proxy-sqlite3": { "base": "build-sqlite3", "rhel": true },
-    "server-mysql": { "base": "build-mysql", "rhel": true },
-    "server-pgsql": { "base": "build-pgsql", "rhel": true },
-    "snmptraps": { "base": "", "rhel": true },
-    "web-apache-mysql": { "base": "build-mysql", "rhel": false },
-    "web-apache-pgsql": { "base": "build-pgsql", "rhel": false },
-    "web-nginx-mysql": { "base": "build-mysql", "rhel": true },
-    "web-nginx-pgsql": { "base": "build-mysql", "rhel": true },
-    "web-service": { "base": "build-mysql", "rhel": true }
+    "agent": { "base": "build-mysql", "rhel": true, "rhel_project": "664254aaff927b6e9cd8af93" },
+    "agent2": { "base": "build-mysql", "rhel": true, "rhel_project": "66425489c3f1cbe661cf6135" },
+    "java-gateway": { "base": "build-mysql", "rhel": true, "rhel_project": "66425456fc1b23180a424e19" },
+    "proxy-mysql": { "base": "build-mysql", "rhel": true, "rhel_project": "6642544aa84deaf9b8e1e987" },
+    "proxy-sqlite3": { "base": "build-sqlite3", "rhel": true, "rhel_project": "6642544aff927b6e9cd8ac61" },
+    "server-mysql": { "base": "build-mysql", "rhel": true, "rhel_project": "66425419fc1b23180a424c56" },
+    "server-pgsql": { "base": "build-pgsql", "rhel": true, "rhel_project": "6642543965a1ed1a86f32682" },
+    "snmptraps": { "base": "", "rhel": true, "rhel_project": "664254bc08b6cb1b593897e4" },
+    "web-apache-mysql": { "base": "build-mysql", "rhel": false, "rhel_project": "" },
+    "web-apache-pgsql": { "base": "build-pgsql", "rhel": false, "rhel_project": "" },
+    "web-nginx-mysql": { "base": "build-mysql", "rhel": true, "rhel_project": "63f30e478857871bae486514" },
+    "web-nginx-pgsql": { "base": "build-mysql", "rhel": true, "rhel_project": "6642547fdda1f56ae53a02c0" },
+    "web-service": { "base": "build-mysql", "rhel": true, "rhel_project": "6642545cee5752ff64eaeea5" }
   }
 }
