@@ -1,7 +1,7 @@
 FROM quay.io/centos/centos:stream9-minimal
 
 ARG MAJOR_VERSION=7.0
-ARG ZBX_VERSION=${MAJOR_VERSION}
+ARG ZBX_VERSION=${MAJOR_VERSION}.0
 ARG ZBX_SOURCES=https://git.zabbix.com/scm/zbx/zabbix.git
 
 ENV TERM=xterm \
