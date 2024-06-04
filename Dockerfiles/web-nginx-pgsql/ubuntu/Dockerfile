@@ -100,11 +100,6 @@ RUN --mount=type=cache,target=/var/lib/apt/,sharing=locked \
     chown --quiet -R zabbix:root /var/lib/php/session/ && \
     chgrp -R 0 /var/lib/php/session/ && \
     chmod -R g=u /var/lib/php/session/ && \
-    DEBIAN_FRONTEND=noninteractive apt-get -y \
-        purge \
-            gpg \
-            dirmngr \
-            gpg-agent && \
     apt-get -y autoremove && \
     apt-get -y clean
 
