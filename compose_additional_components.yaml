@@ -1,18 +1,55 @@
 services:
  selenium:
   image: "${WEBDRIVER_IMAGE}:${WEBDRIVER_IMAGE_TAG}"
-  restart: "${RESTART_POLICY}"
-  attach: false
-  scale: 4
   profiles:
-   - full
-   - all
-  shm_size: "2gb"
-  env_file:
-   - path: ${ENV_VARS_DIRECTORY}/.env_selenium
-     required: false
+   - selenium
+   - selenium-chrome
+   - selenium-firefox
   networks:
    tools_frontend:
     aliases:
      - webdriver
+     - selenium-hub
      - selenium
+
+ selenium-chrome:
+  image: "${WEBDRIVER_CHROME_IMAGE}:${WEBDRIVER_CHROME_IMAGE_TAG}"
+  restart: "${RESTART_POLICY}"
+  attach: false
+  scale: 2
+  depends_on:
+    - selenium
+  profiles:
+   - selenium
+   - selenium-chrome
+  shm_size: "2gb"
+  env_file:
+   - path: ${ENV_VARS_DIRECTORY}/.env_selenium_chrome
+     required: false
+  environment:
+   - SE_EVENT_BUS_HOST=selenium
+   - SE_EVENT_BUS_PUBLISH_PORT=4442
+   - SE_EVENT_BUS_SUBSCRIBE_PORT=4443
+  networks:
+   tools_frontend:
+
+ selenium-firefox:
+  image: "${WEBDRIVER_FIREFOX_IMAGE}:${WEBDRIVER_FIREFOX_IMAGE_TAG}"
+  restart: "${RESTART_POLICY}"
+  attach: false
+  scale: 2
+  depends_on:
+    - selenium
+  profiles:
+   - selenium
+   - selenium-firefox
+  shm_size: "2gb"
+  env_file:
+   - path: ${ENV_VARS_DIRECTORY}/.env_selenium_firefox
+     required: false
+  environment:
+   - SE_EVENT_BUS_HOST=selenium
+   - SE_EVENT_BUS_PUBLISH_PORT=4442
+   - SE_EVENT_BUS_SUBSCRIBE_PORT=4443
+  networks:
+   tools_frontend:
