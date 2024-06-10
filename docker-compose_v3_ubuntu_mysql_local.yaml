@@ -190,15 +190,26 @@ services:
    file: compose_databases.yaml
    service: db-data-mysql
 
-# elasticsearch:
-#  extends:
-#   file: compose_databases.yaml
-#   service: elasticsearch
+ elasticsearch:
+  extends:
+   file: compose_databases.yaml
+   service: elasticsearch
 
-# selenium:
-#  extends:
-#   file: compose_additional_components.yaml
-#   service: selenium
+ selenium:
+  extends:
+   file: compose_additional_components.yaml
+   service: selenium
+
+ selenium-chrome:
+  platform: linux/amd64
+  extends:
+   file: compose_additional_components.yaml
+   service: selenium-chrome
+
+ selenium-firefox:
+  extends:
+   file: compose_additional_components.yaml
+   service: selenium-firefox
 
 networks:
   frontend:

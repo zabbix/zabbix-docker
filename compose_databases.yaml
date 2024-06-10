@@ -77,8 +77,7 @@ services:
   restart: "${RESTART_POLICY}"
   attach: false
   profiles:
-   - full
-   - all
+   - elasticsearch
   environment:
    - transport.host=0.0.0.0
    - discovery.zen.minimum_master_nodes=1
