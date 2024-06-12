@@ -190,6 +190,8 @@ services:
    com.zabbix.os: "${CENTOS_OS_TAG}"
 
  mysql-server:
+  profiles:
+   - all
   extends:
    file: compose_databases.yaml
    service: mysql-server
@@ -200,6 +202,8 @@ services:
    service: postgres-server
 
  db-data-mysql:
+  profiles:
+   - all
   extends:
    file: compose_databases.yaml
    service: db-data-mysql
