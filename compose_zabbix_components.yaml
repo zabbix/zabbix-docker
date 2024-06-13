@@ -466,7 +466,7 @@ services:
  snmptraps:
 # Override snmptrapd command arguments to receive SNMP traps by DNS
 # It must be done with ZBX_SNMP_TRAP_USE_DNS=true environment variable
-#  command: /usr/sbin/snmptrapd -C -c /etc/snmp/snmptrapd.conf -Lo -A
+#  command: /usr/sbin/snmptrapd -t -X -C -c /etc/snmp/snmptrapd.conf -Lo -A --doNotFork=yes --agentuser=zabbix --agentgroup=zabbix
   profiles:
    - full
    - all
