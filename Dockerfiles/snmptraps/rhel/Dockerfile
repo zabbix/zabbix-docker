@@ -107,4 +107,4 @@ COPY ["conf/usr/sbin/zabbix_trap_handler.sh", "/usr/sbin/"]
 
 USER 1997
 
-CMD ["/usr/sbin/snmptrapd", "-n", "-C", "-c", "/etc/snmp/snmptrapd.conf", "-Lo", "-A"]
+CMD ["/usr/sbin/snmptrapd", "-n", "-t", "-X", "-C", "-c", "/etc/snmp/snmptrapd.conf", "-Lo", "-A", "--doNotFork=yes", "--agentuser=zabbix", "--agentgroup=zabbix"]
