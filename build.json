@@ -6,11 +6,6 @@
       "linux/arm64",
       "linux/s390x"
     ],
-    "centos": [
-      "linux/amd64",
-      "linux/arm64",
-      "linux/ppc64le"
-    ],
     "ol": [
       "linux/amd64",
       "linux/arm64"
