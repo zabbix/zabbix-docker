@@ -20,6 +20,9 @@ fi
 # Default timezone for web interface
 : ${PHP_TZ:="Europe/Riga"}
 
+# Default user
+: ${DAEMON_USER:="nginx"}
+
 # Default directories
 # Configuration files directory
 ZABBIX_ETC_DIR="/etc/zabbix"
@@ -175,10 +178,12 @@ prepare_zbx_web_config() {
     export PHP_FPM_PM_MAX_REQUESTS=${PHP_FPM_PM_MAX_REQUESTS:-"0"}
 
     if [ "$(id -u)" == '0' ]; then
-        echo "user = zabbix" >> "$PHP_CONFIG_FILE"
-        echo "group = zabbix" >> "$PHP_CONFIG_FILE"
-        echo "listen.owner = nginx" >> "$PHP_CONFIG_FILE"
-        echo "listen.group = nginx" >> "$PHP_CONFIG_FILE"
+        sed -i -e "/^[#;] user/s/.*/&\nuser ${DAEMON_USER};/" "$NGINX_CONF_FILE"
+
+        echo "user = ${DAEMON_USER}" >> "$PHP_CONFIG_FILE"
+        echo "group = ${DAEMON_USER}" >> "$PHP_CONFIG_FILE"
+        echo "listen.owner = ${DAEMON_USER}" >> "$PHP_CONFIG_FILE"
+        echo "listen.group = ${DAEMON_USER}" >> "$PHP_CONFIG_FILE"
     fi
 
     : ${ZBX_DENY_GUI_ACCESS:="false"}
