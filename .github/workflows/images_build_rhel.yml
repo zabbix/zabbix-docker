@@ -12,6 +12,7 @@ on:
       - 'Dockerfiles/*/rhel/*'
       - 'build.json'
       - '!**/README.md'
+      - '!**/README.html'
       - '.github/workflows/images_build_rhel.yml'
   workflow_dispatch:
     inputs:
@@ -34,7 +35,6 @@ permissions:
 env:
   TRUNK_ONLY_EVENT: ${{ contains(fromJSON('["schedule"]'), github.event_name) }}
   AUTO_PUSH_IMAGES: ${{ (! contains(fromJSON('["push"]'), github.event_name) && vars.AUTO_PUSH_IMAGES) || (contains(fromJSON('["workflow_dispatch"]'), github.event_name) && inputs.publish_images == 'true' ) }}
-
   LATEST_BRANCH: ${{ github.event.repository.default_branch }}
   TRUNK_GIT_BRANCH: "refs/heads/trunk"
   IMAGES_PREFIX: "zabbix-"
@@ -72,7 +72,7 @@ jobs:
       secret_prefix: ${{ steps.branch_info.outputs.secret_prefix }}
     steps:
       - name: Block egress traffic
-        uses: step-security/harden-runner@63c24ba6bd7ba022e95695ff85de572c04a18142 # v2.7.0
+        uses: step-security/harden-runner@17d0e2bd7d51742c71671bd19fa12bdc9d40a3d6 # v2.8.1
         with:
           disable-sudo: true
           egress-policy: block
@@ -82,7 +82,7 @@ jobs:
             objects.githubusercontent.com:443
 
       - name: Checkout repository
-        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
         with:
           fetch-depth: 1
           sparse-checkout: ${{ env.MATRIX_FILE }}
@@ -213,7 +213,7 @@ jobs:
       contents: read
     steps:
       - name: Checkout repository
-        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
         with:
           fetch-depth: 1
 
@@ -244,7 +244,7 @@ jobs:
 
       - name: Build image
         id: build_image
-        uses: redhat-actions/buildah-build@b4dc19b4ba891854660ab1f88a097d45aa158f76 # v2.12
+        uses: redhat-actions/buildah-build@v2.13
         with:
           context: ${{ format('{0}/{1}/rhel', env.DOCKERFILES_DIRECTORY, matrix.build) }}
           layers: false
@@ -344,7 +344,7 @@ jobs:
       contents: read
     steps:
       - name: Checkout repository
-        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
         with:
           fetch-depth: 1
 
@@ -402,7 +402,7 @@ jobs:
 
       - name: Build image
         id: build_image
-        uses: redhat-actions/buildah-build@b4dc19b4ba891854660ab1f88a097d45aa158f76 # v2.12
+        uses: redhat-actions/buildah-build@v2.13
         with:
           context: ${{ format('{0}/{1}/rhel', env.DOCKERFILES_DIRECTORY, matrix.build) }}
           layers: false
@@ -502,7 +502,7 @@ jobs:
       contents: read
     steps:
       - name: Checkout repository
-        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
         with:
           fetch-depth: 1
 
@@ -593,7 +593,7 @@ jobs:
 
       - name: Build image
         id: build_image
-        uses: redhat-actions/buildah-build@b4dc19b4ba891854660ab1f88a097d45aa158f76 # v2.12
+        uses: redhat-actions/buildah-build@v2.13
         with:
           context: ${{ format('{0}/{1}/rhel', env.DOCKERFILES_DIRECTORY, matrix.build) }}
           layers: false
