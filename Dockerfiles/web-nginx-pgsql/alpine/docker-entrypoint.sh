@@ -163,7 +163,7 @@ prepare_zbx_web_config() {
     export PHP_FPM_PM_MAX_REQUESTS=${PHP_FPM_PM_MAX_REQUESTS:-"0"}
 
     if [ "$(id -u)" == '0' ]; then
-        sed -i -e "/^[#;] user/s/.*/&\nuser ${DAEMON_USER};/" "$NGINX_CONF_FILE"
+        sed -i -e "/^[#;] user/s/.*/user ${DAEMON_USER};/" "$NGINX_CONF_FILE"
 
         echo "user = ${DAEMON_USER}" >> "$PHP_CONFIG_FILE"
         echo "group = ${DAEMON_USER}" >> "$PHP_CONFIG_FILE"
