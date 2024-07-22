@@ -391,10 +391,16 @@ update_zbx_config() {
     update_config_var $ZBX_CONFIG "DBPort" "${DB_SERVER_PORT}"
 
     if [ -n "${VAULT_TOKEN}" ] && [ -n "${ZBX_VAULTURL}" ]; then
-        update_config_var $ZBX_CONFIG "VaultDBPath" "${ZBX_VAULTDBPATH}"
         update_config_var $ZBX_CONFIG "VaultURL" "${ZBX_VAULTURL}"
-        update_config_var $ZBX_CONFIG "DBUser"
-        update_config_var $ZBX_CONFIG "DBPassword"
+        update_config_var $ZBX_CONFIG "VaultDBPath" "${ZBX_VAULTDBPATH}"
+
+        if [ -n "${ZBX_VAULTDBPATH}" ]; then
+            update_config_var $ZBX_CONFIG "DBUser"
+            update_config_var $ZBX_CONFIG "DBPassword"
+        else
+            update_config_var $ZBX_CONFIG "DBUser" "${DB_SERVER_ZBX_USER}"
+            update_config_var $ZBX_CONFIG "DBPassword" "${DB_SERVER_ZBX_PASS}"
+        fi
     else
         update_config_var $ZBX_CONFIG "VaultDBPath"
         update_config_var $ZBX_CONFIG "VaultURL"
