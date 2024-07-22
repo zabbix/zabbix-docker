@@ -390,22 +390,29 @@ update_zbx_config() {
     update_config_var $ZBX_CONFIG "DBSchema" "${DB_SERVER_SCHEMA}"
     update_config_var $ZBX_CONFIG "DBPort" "${DB_SERVER_PORT}"
 
-    if [ -n "${ZBX_VAULTDBPATH}" ] && [ -n "${ZBX_VAULTURL}" ]; then
+    if [ -n "${ZBX_VAULT}" ] && [ -n "${ZBX_VAULTURL}" ]; then
         update_config_var $ZBX_CONFIG "Vault" "${ZBX_VAULT}"
-        update_config_var $ZBX_CONFIG "VaultDBPath" "${ZBX_VAULTDBPATH}"
         update_config_var $ZBX_CONFIG "VaultTLSCertFile" "${ZBX_VAULTTLSCERTFILE}"
         update_config_var $ZBX_CONFIG "VaultTLSKeyFile" "${ZBX_VAULTTLSKEYFILE}"
         update_config_var $ZBX_CONFIG "VaultPrefix" "${ZBX_VAULTPREFIX}"
         update_config_var $ZBX_CONFIG "VaultURL" "${ZBX_VAULTURL}"
-        update_config_var $ZBX_CONFIG "DBUser"
-        update_config_var $ZBX_CONFIG "DBPassword"
+        update_config_var $ZBX_CONFIG "VaultDBPath" "${ZBX_VAULTDBPATH}"
+
+        if [ -n "${ZBX_VAULTDBPATH}" ]; then
+            update_config_var $ZBX_CONFIG "DBUser"
+            update_config_var $ZBX_CONFIG "DBPassword"
+        else
+            update_config_var $ZBX_CONFIG "DBUser" "${DB_SERVER_ZBX_USER}"
+            update_config_var $ZBX_CONFIG "DBPassword" "${DB_SERVER_ZBX_PASS}"
+        fi
     else
         update_config_var $ZBX_CONFIG "Vault"
-        update_config_var $ZBX_CONFIG "VaultDBPath"
         update_config_var $ZBX_CONFIG "VaultTLSCertFile"
         update_config_var $ZBX_CONFIG "VaultTLSKeyFile"
         update_config_var $ZBX_CONFIG "VaultPrefix"
         update_config_var $ZBX_CONFIG "VaultURL"
+        update_config_var $ZBX_CONFIG "VaultDBPath"
+
         update_config_var $ZBX_CONFIG "DBUser" "${DB_SERVER_ZBX_USER}"
         update_config_var $ZBX_CONFIG "DBPassword" "${DB_SERVER_ZBX_PASS}"
     fi
