@@ -39,6 +39,7 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
     INSTALL_PKGS="fping \
             file-libs \
             tini \
+            hostname \
             traceroute \
             nmap \
             iputils \
