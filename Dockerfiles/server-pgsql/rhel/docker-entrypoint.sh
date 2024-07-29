@@ -431,7 +431,7 @@ update_zbx_config() {
     update_config_var $ZBX_CONFIG "StatsAllowedIP" "${ZBX_STATSALLOWEDIP}"
 
     update_config_var $ZBX_CONFIG "StartPollers" "${ZBX_STARTPOLLERS}"
-    update_config_var $ZBX_CONFIG "StartIPMIPollers" "${ZBX_IPMIPOLLERS}"
+    update_config_var $ZBX_CONFIG "StartIPMIPollers" "${ZBX_STARTIPMIPOLLERS}"
     update_config_var $ZBX_CONFIG "StartPollersUnreachable" "${ZBX_STARTPOLLERSUNREACHABLE}"
     update_config_var $ZBX_CONFIG "StartTrappers" "${ZBX_STARTTRAPPERS}"
     update_config_var $ZBX_CONFIG "StartPingers" "${ZBX_STARTPINGERS}"
