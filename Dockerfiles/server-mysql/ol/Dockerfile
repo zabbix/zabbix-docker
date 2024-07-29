@@ -40,6 +40,7 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             fping \
             traceroute \
             nmap \
+            hostname \
             file-libs \
             iputils \
             traceroute \

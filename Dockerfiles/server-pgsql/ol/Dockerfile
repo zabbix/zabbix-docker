@@ -38,6 +38,7 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
     set -eux && \
     INSTALL_PKGS="fping \
             file-libs \
+            hostname \
             traceroute \
             nmap \
             iputils \
