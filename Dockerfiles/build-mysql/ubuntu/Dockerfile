@@ -11,7 +11,6 @@ ARG ZBX_SOURCES=https://git.zabbix.com/scm/zbx/zabbix.git
 ARG GIT_BRANCH
 
 ARG ZBX_PLUGINS_VERSION=${GIT_BRANCH:-$ZBX_VERSION}
-ARG ZBX_PLUGINS_VERSION
 
 LABEL org.opencontainers.image.authors="Alexey Pustovalov <alexey.pustovalov@zabbix.com>" \
       org.opencontainers.image.description="Zabbix build base for MySQL based images" \

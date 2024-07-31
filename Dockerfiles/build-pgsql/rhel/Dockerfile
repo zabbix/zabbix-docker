@@ -13,7 +13,6 @@ ARG ZBX_SOURCES=https://git.zabbix.com/scm/zbx/zabbix.git
 ARG GIT_BRANCH
 
 ARG ZBX_PLUGINS_VERSION=${GIT_BRANCH:-$ZBX_VERSION}
-ARG ZBX_PLUGINS_VERSION
 
 LABEL description="Zabbix build base for PostgreSQL based images" \
       maintainer="alexey.pustovalov@zabbix.com" \
