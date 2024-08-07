@@ -9,7 +9,7 @@ FROM ${BUILD_BASE_IMAGE} AS builder
 ARG MAJOR_VERSION
 ARG RELEASE
 ARG ZBX_VERSION
-ARG ZBX_SOURCES=https://git.zabbix.com/scm/zbx/zabbix.git#${GIT_BRANCH:-$ZBX_VERSION}
+ARG ZBX_SOURCES=https://git.zabbix.com/scm/zbx/zabbix.git
 ARG GIT_BRANCH
 
 ARG ZBX_PLUGINS_VERSION=${GIT_BRANCH:-$ZBX_VERSION}
@@ -40,11 +40,12 @@ ENV ZBX_SOURCES_DIR=/tmp/zabbix-${ZBX_VERSION} ZBX_OUTPUT_DIR=/tmp/zabbix-${ZBX_
     MSSQL_PLUGIN_SOURCES=https://git.zabbix.com/scm/ap/mssql.git MSSQL_PLUGIN_VERSION=${ZBX_PLUGINS_VERSION} \
     EMBER_PLUS_PLUGIN_SOURCES=https://git.zabbix.com/scm/ap/ember-plus.git EMBER_PLUS_PLUGIN_VERSION=${ZBX_PLUGINS_VERSION}
 
-ADD --keep-git-dir=true ${ZBX_SOURCES} ${ZBX_SOURCES_DIR}
+COPY . .
 
 RUN --mount=type=cache,target=/root/.cache/go-build/ \
     --mount=type=cache,target=/root/go/ \
     set -eux && \
+    if [ -d ${ZBX_SOURCES} ]; then mv ${ZBX_SOURCES} ${ZBX_SOURCES_DIR}; else git -c advice.detachedHead=false clone ${ZBX_SOURCES} --branch ${GIT_BRANCH:-$ZBX_VERSION} --depth 1 --single-branch ${ZBX_SOURCES_DIR}; fi && \
     cd /tmp/ && \
     mkdir -p ${ZBX_OUTPUT_DIR}/agent/sbin/ && \
     mkdir -p ${ZBX_OUTPUT_DIR}/agent/conf/ && \
