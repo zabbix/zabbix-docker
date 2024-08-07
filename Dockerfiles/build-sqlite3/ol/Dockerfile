@@ -29,12 +29,12 @@ ENV ZBX_SOURCES_DIR=/tmp/zabbix-${ZBX_VERSION} ZBX_OUTPUT_DIR=/tmp/zabbix-${ZBX_
     MSSQL_PLUGIN_SOURCES=https://git.zabbix.com/scm/ap/mssql.git MSSQL_PLUGIN_VERSION=${ZBX_PLUGINS_VERSION} \
     EMBER_PLUS_PLUGIN_SOURCES=https://git.zabbix.com/scm/ap/ember-plus.git EMBER_PLUS_PLUGIN_VERSION=${ZBX_PLUGINS_VERSION}
 
-COPY . .
+COPY src src
 
 RUN --mount=type=cache,target=/root/.cache/go-build/ \
     --mount=type=cache,target=/root/go/ \
     set -eux && \
-    if [ -d ${ZBX_SOURCES} ]; then mv ${ZBX_SOURCES} ${ZBX_SOURCES_DIR}; else git -c advice.detachedHead=false clone ${ZBX_SOURCES} --branch ${GIT_BRANCH:-$ZBX_VERSION} --depth 1 --single-branch ${ZBX_SOURCES_DIR}; fi && \
+    if [ -f src/bootstrap.sh ]; then mv src ${ZBX_SOURCES_DIR}; else git -c advice.detachedHead=false clone ${ZBX_SOURCES} --branch ${GIT_BRANCH:-$ZBX_VERSION} --depth 1 --single-branch ${ZBX_SOURCES_DIR}; fi && \
     cd /tmp/ && \
     mkdir -p ${ZBX_OUTPUT_DIR}/agent/sbin/ && \
     mkdir -p ${ZBX_OUTPUT_DIR}/agent/conf/ && \
