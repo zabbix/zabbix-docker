@@ -31,6 +31,7 @@ ENV ZBX_SOURCES_DIR=/tmp/zabbix-${ZBX_VERSION} ZBX_OUTPUT_DIR=/tmp/zabbix-${ZBX_
 
 RUN --mount=type=cache,target=/root/.cache/go-build/ \
     --mount=type=cache,target=/root/go/ \
+    --mount=type=bind,source=src/,target=/tmp/src \
     --mount=type=bind,source=conf/chromedp_no_sandbox.patch,target=/tmp/chromedp_no_sandbox.patch \
     set -eux && \
     cd /tmp/ && \
@@ -51,7 +52,11 @@ RUN --mount=type=cache,target=/root/.cache/go-build/ \
     mkdir -p ${ZBX_OUTPUT_DIR}/general/sbin/ && \
     mkdir -p ${ZBX_OUTPUT_DIR}/general/bin/ && \
     mkdir -p ${ZBX_OUTPUT_DIR}/general/conf/ && \
-    git -c advice.detachedHead=false clone ${ZBX_SOURCES} --branch ${GIT_BRANCH:-$ZBX_VERSION} --depth 1 --single-branch ${ZBX_SOURCES_DIR} && \
+    if [ -f "/tmp/src/bootstrap.sh" ]; then \
+        cp -R /tmp/src ${ZBX_SOURCES_DIR}; \
+    else \
+        git -c advice.detachedHead=false clone ${ZBX_SOURCES} --branch ${GIT_BRANCH:-$ZBX_VERSION} --depth 1 --single-branch ${ZBX_SOURCES_DIR}; \
+    fi && \
     cd ${ZBX_SOURCES_DIR} && \
     patch -p1 < /tmp/chromedp_no_sandbox.patch && \
     zabbix_revision=`git rev-parse --short HEAD` && \
