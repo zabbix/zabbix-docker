@@ -398,6 +398,8 @@ jobs:
             ziply.mm.fcix.net:80
             dl.google.com:443
             keyserver.ubuntu.com:11371
+            pkg-containers.githubusercontent.com:443
+            raw.githubusercontent.com:443
 
       - name: Checkout repository
         uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
@@ -618,6 +620,7 @@ jobs:
             tuf-repo-cdn.sigstore.dev:443
             rekor.sigstore.dev:443
             pkg-containers.githubusercontent.com:443
+            raw.githubusercontent.com:443
 
       - name: Checkout repository
         uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
@@ -1082,6 +1085,8 @@ jobs:
             keyserver.ubuntu.com:80
             p80.pool.sks-keyservers.net:80
             pgp.mit.edu:11371
+            pkg-containers.githubusercontent.com:443
+            raw.githubusercontent.com:443
 
       - name: Checkout repository
         uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
