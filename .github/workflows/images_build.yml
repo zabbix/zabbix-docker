@@ -263,6 +263,7 @@ jobs:
             yum.oracle.com:443
             ziply.mm.fcix.net:443
             pkg-containers.githubusercontent.com:443
+            raw.githubusercontent.com:443
 
       - name: Checkout repository
         uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
@@ -483,6 +484,7 @@ jobs:
             tuf-repo-cdn.sigstore.dev:443
             rekor.sigstore.dev:443
             pkg-containers.githubusercontent.com:443
+            raw.githubusercontent.com:443
 
       - name: Checkout repository
         uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
@@ -838,6 +840,7 @@ jobs:
             tuf-repo-cdn.sigstore.dev:443
             rekor.sigstore.dev:443
             pkg-containers.githubusercontent.com:443
+            raw.githubusercontent.com:443
 
       - name: Checkout repository
         uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
