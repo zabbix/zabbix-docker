@@ -6,7 +6,7 @@ ARG ZBX_VERSION=${MAJOR_VERSION}.33
 
 ENV TERM=xterm \
     ZBX_VERSION=${ZBX_VERSION} \
-    PATH=/usr/lib/go-1.21/bin:$PATH
+    PATH=/usr/lib/go-1.22/bin:$PATH
 
 LABEL org.opencontainers.image.authors="Alexey Pustovalov <alexey.pustovalov@zabbix.com>" \
       org.opencontainers.image.description="Zabbix build base image contains all required packages to build Zabbix images" \
@@ -44,7 +44,7 @@ RUN --mount=type=cache,target=/var/lib/apt/,sharing=locked \
             pkg-config \
             gettext \
             git \
-            golang-1.21 \
+            golang-1.22 \
             unzip \
             unixodbc-dev \
             zlib1g-dev" && \
