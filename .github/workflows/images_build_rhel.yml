@@ -221,7 +221,7 @@ jobs:
         if: ${{ env.AUTO_PUSH_IMAGES == 'true' }}
         uses: sigstore/cosign-installer@4959ce089c160fddf62f7b42464195ba1a56d382
         with:
-          cosign-release: 'v2.2.3'
+          cosign-release: 'v2.4.0'
 
       - name: Check cosign version
         if: ${{ env.AUTO_PUSH_IMAGES == 'true' }}
