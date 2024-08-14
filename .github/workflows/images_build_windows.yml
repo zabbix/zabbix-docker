@@ -163,7 +163,7 @@ jobs:
           fetch-depth: 1
 
       - name: Install cosign
-        uses: sigstore/cosign-installer@e1523de7571e31dbe865fd2e80c5c7c23ae71eb4
+        uses: sigstore/cosign-installer@4959ce089c160fddf62f7b42464195ba1a56d382
         with:
           cosign-release: 'v2.2.3'
 
@@ -353,7 +353,7 @@ jobs:
           fetch-depth: 1
 
       - name: Install cosign
-        uses: sigstore/cosign-installer@e1523de7571e31dbe865fd2e80c5c7c23ae71eb4
+        uses: sigstore/cosign-installer@4959ce089c160fddf62f7b42464195ba1a56d382
         with:
           cosign-release: 'v2.2.3'
 
@@ -581,7 +581,7 @@ jobs:
           fetch-depth: 1
 
       - name: Install cosign
-        uses: sigstore/cosign-installer@e1523de7571e31dbe865fd2e80c5c7c23ae71eb4
+        uses: sigstore/cosign-installer@4959ce089c160fddf62f7b42464195ba1a56d382
         with:
           cosign-release: 'v2.2.3'
 
