@@ -1,4 +1,4 @@
-![logo](https://assets.zabbix.com/img/logo/zabbix_logo_500x131.png)
+![Zabbix Logo](https://assets.zabbix.com/img/logo/zabbix_logo_500x131.png)
 
 
 [![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/zabbix/zabbix-docker/badge)](https://securityscorecards.dev/viewer/?uri=github.com/zabbix/zabbix-docker)
