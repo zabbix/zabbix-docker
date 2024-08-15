@@ -11,6 +11,7 @@ ARG ZBX_SOURCES=https://git.zabbix.com/scm/zbx/zabbix.git
 ARG GIT_BRANCH=master
 
 ARG ZBX_PLUGINS_VERSION=${GIT_BRANCH:-$ZBX_VERSION}
+ARG CFLAGS
 
 LABEL org.opencontainers.image.authors="Alexey Pustovalov <alexey.pustovalov@zabbix.com>" \
       org.opencontainers.image.description="Zabbix build base for SQLite3 based images" \
@@ -24,6 +25,7 @@ LABEL org.opencontainers.image.authors="Alexey Pustovalov <alexey.pustovalov@zab
 
 ENV ZBX_SOURCES_DIR=/tmp/zabbix-${ZBX_VERSION} ZBX_OUTPUT_DIR=/tmp/zabbix-${ZBX_VERSION}-output \
     DB_TYPE=sqlite3 \
+    CFLAGS=${CFLAGS:-"-fPIC -pie -Wl,-z,relro,-z,now,-z,defs -D_FORTIFY_SOURCE=2 -fexceptions -O2 -pipe"} \
     MONGODB_PLUGIN_SOURCES=https://git.zabbix.com/scm/ap/mongodb.git MONGODB_PLUGIN_VERSION=${ZBX_PLUGINS_VERSION} \
     POSTGRESQL_PLUGIN_SOURCES=https://git.zabbix.com/scm/ap/postgresql.git POSTGRESQL_PLUGIN_VERSION=${ZBX_PLUGINS_VERSION} \
     MSSQL_PLUGIN_SOURCES=https://git.zabbix.com/scm/ap/mssql.git MSSQL_PLUGIN_VERSION=${ZBX_PLUGINS_VERSION} \
@@ -56,16 +58,14 @@ RUN --mount=type=cache,target=/root/.cache/go-build/ \
     sed -i "s/{ZABBIX_REVISION}/$zabbix_revision/g" src/go/pkg/version/version.go && \
     sed -i "s/{ZABBIX_REVISION}/$zabbix_revision/g" src/zabbix_java/src/com/zabbix/gateway/GeneralInformation.java && \
     ./bootstrap.sh && \
-    export CFLAGS="-fPIC -pie -Wl,-z,relro,-z,now,-z,defs" && \
-    export CFLAGS="$CFLAGS -D_FORTIFY_SOURCE=2 -fexceptions -O2 -pipe" && \
     ./configure \
             --datadir=/usr/lib \
             --libdir=/usr/lib/zabbix \
             --prefix=/usr \
             --sysconfdir=/etc/zabbix \
+            --enable-ipv6 \
             --enable-agent \
             --enable-agent2 \
-            --enable-ipv6 \
             --enable-java \
             --enable-proxy \
             --with-ldap \
@@ -73,10 +73,10 @@ RUN --mount=type=cache,target=/root/.cache/go-build/ \
             --with-libmodbus \
             --with-libpcre2 \
             --with-libxml2 \
+            --with-${DB_TYPE} \
             --with-net-snmp \
             --with-openipmi \
             --with-openssl \
-            --with-sqlite3 \
             --with-ssh \
             --with-unixodbc \
             --silent && \
