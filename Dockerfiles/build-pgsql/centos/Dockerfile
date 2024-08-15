@@ -10,6 +10,8 @@ ARG ZBX_VERSION
 ARG ZBX_SOURCES=https://git.zabbix.com/scm/zbx/zabbix.git
 ARG GIT_BRANCH
 
+ARG CFLAGS
+
 LABEL org.opencontainers.image.authors="Alexey Pustovalov <alexey.pustovalov@zabbix.com>" \
       org.opencontainers.image.description="Zabbix build base for PostgreSQL based images" \
       org.opencontainers.image.documentation="https://www.zabbix.com/documentation/${MAJOR_VERSION}/manual/installation/containers" \
@@ -21,7 +23,8 @@ LABEL org.opencontainers.image.authors="Alexey Pustovalov <alexey.pustovalov@zab
       org.opencontainers.image.version="${ZBX_VERSION}"
 
 ENV ZBX_SOURCES_DIR=/tmp/zabbix-${ZBX_VERSION} ZBX_OUTPUT_DIR=/tmp/zabbix-${ZBX_VERSION}-output \
-    DB_TYPE=postgresql
+    DB_TYPE=postgresql \
+    CFLAGS=${CFLAGS:-"-fPIC -pie -Wl,-z,relro,-z,now,-z,defs -D_FORTIFY_SOURCE=2 -fexceptions -O2 -pipe"}
 
 RUN --mount=type=cache,target=/root/.cache/go-build/ \
     --mount=type=cache,target=/root/go/ \
@@ -66,8 +69,6 @@ RUN --mount=type=cache,target=/root/.cache/go-build/ \
     sed -i "s/{ZABBIX_REVISION}/$zabbix_revision/g" src/go/pkg/version/version.go && \
     sed -i "s/{ZABBIX_REVISION}/$zabbix_revision/g" src/zabbix_java/src/com/zabbix/gateway/GeneralInformation.java && \
     ./bootstrap.sh && \
-    export CFLAGS="-fPIC -pie -Wl,-z,relro,-z,now,-z,defs" && \
-    export CFLAGS="$CFLAGS -D_FORTIFY_SOURCE=2 -fexceptions -O2 -pipe" && \
     ./configure \
             --datadir=/usr/lib \
             --libdir=/usr/lib/zabbix \
@@ -81,10 +82,10 @@ RUN --mount=type=cache,target=/root/.cache/go-build/ \
             --with-ldap \
             --with-libcurl \
             --with-libxml2 \
+            --with-${DB_TYPE} \
             --with-net-snmp \
             --with-openipmi \
             --with-openssl \
-            --with-${DB_TYPE} \
             --with-ssh \
             --with-unixodbc \
             $additional_components \

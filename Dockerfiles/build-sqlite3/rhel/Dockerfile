@@ -12,6 +12,8 @@ ARG ZBX_VERSION
 ARG ZBX_SOURCES=https://git.zabbix.com/scm/zbx/zabbix.git
 ARG GIT_BRANCH
 
+ARG CFLAGS
+
 LABEL description="Zabbix build base for SQLite3 based images" \
       maintainer="alexey.pustovalov@zabbix.com" \
       name="zabbix/zabbix-build-sqlite3-50" \
@@ -31,7 +33,8 @@ LABEL description="Zabbix build base for SQLite3 based images" \
       org.label-schema.vendor="Zabbix SIA"
 
 ENV ZBX_SOURCES_DIR=/tmp/zabbix-${ZBX_VERSION} ZBX_OUTPUT_DIR=/tmp/zabbix-${ZBX_VERSION}-output \
-    DB_TYPE=sqlite3
+    DB_TYPE=sqlite3 \
+    CFLAGS=${CFLAGS:-"-fPIC -pie -Wl,-z,relro,-z,now,-z,defs -D_FORTIFY_SOURCE=2 -fexceptions -O2 -pipe"}
 
 RUN --mount=type=cache,target=/root/.cache/go-build/ \
     --mount=type=cache,target=/root/go/ \
@@ -72,24 +75,22 @@ RUN --mount=type=cache,target=/root/.cache/go-build/ \
     sed -i "s/{ZABBIX_REVISION}/$zabbix_revision/g" src/go/pkg/version/version.go && \
     sed -i "s/{ZABBIX_REVISION}/$zabbix_revision/g" src/zabbix_java/src/com/zabbix/gateway/GeneralInformation.java && \
     ./bootstrap.sh && \
-    export CFLAGS="-fPIC -pie -Wl,-z,relro,-z,now,-z,defs" && \
-    export CFLAGS="$CFLAGS -D_FORTIFY_SOURCE=2 -fexceptions -O2 -pipe" && \
     ./configure \
             --datadir=/usr/lib \
             --libdir=/usr/lib/zabbix \
             --prefix=/usr \
             --sysconfdir=/etc/zabbix \
+            --enable-ipv6 \
             --enable-agent \
             --enable-agent2 \
-            --enable-ipv6 \
             --enable-proxy \
             --with-ldap \
             --with-libcurl \
             --with-libxml2 \
+            --with-${DB_TYPE} \
             --with-net-snmp \
             --with-openipmi \
             --with-openssl \
-            --with-sqlite3 \
             --with-ssh \
             --with-unixodbc \
             $additional_components \
