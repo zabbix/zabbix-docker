@@ -109,9 +109,18 @@ prepare_zbx_web_service_config() {
     update_config_var $ZBX_CONFIG "IgnoreURLCertErrors" "${ZBX_IGNOREURLCERTERRORS}"
 }
 
+clear_zbx_env() {
+    [[ "${ZBX_CLEAR_ENV}" == "false" ]] && return
+
+    for env_var in $(env | grep -E "^ZBX_"); do
+        unset "${env_var%%=*}"
+    done
+}
+
 prepare_web_service() {
     echo "** Preparing Zabbix web service"
     prepare_zbx_web_service_config
+    clear_zbx_env
 }
 
 #################################################
