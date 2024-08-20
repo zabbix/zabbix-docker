@@ -560,6 +560,14 @@ update_zbx_config() {
     update_config_var $ZBX_CONFIG "StartBrowserPollers" "${ZBX_STARTBROWSERPOLLERS}"
 }
 
+clear_zbx_env() {
+    [[ "${ZBX_CLEAR_ENV}" == "false" ]] && return
+
+    for env_var in $(env | grep -E "^(ZBX|DB|MYSQL)_"); do
+        unset "${env_var%%=*}"
+    done
+}
+
 prepare_db() {
     echo "** Preparing database"
 
@@ -575,6 +583,7 @@ prepare_server() {
 
     prepare_db
     update_zbx_config
+    clear_zbx_env
 }
 
 #################################################
