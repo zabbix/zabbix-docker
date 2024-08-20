@@ -567,6 +567,14 @@ update_zbx_config() {
     fi
 }
 
+clear_zbx_env() {
+    [[ "${ZBX_CLEAR_ENV}" == "false" ]] && return
+
+    for env_var in $(env | grep -E "^(ZBX|DB|POSTGRES)_"); do
+        unset "${env_var%%=*}"
+    done
+}
+
 prepare_db() {
     echo "** Preparing database"
 
@@ -581,6 +589,7 @@ prepare_server() {
 
     prepare_db
     update_zbx_config
+    clear_zbx_env
 }
 
 #################################################

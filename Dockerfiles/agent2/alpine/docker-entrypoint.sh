@@ -206,10 +206,19 @@ prepare_zbx_agent_plugin_config() {
     update_config_var "/etc/zabbix/zabbix_agent2.d/plugins.d/mssql.conf" "Plugins.MSSQL.System.Path" "/usr/sbin/zabbix-agent2-plugin/mssql"
 }
 
+clear_zbx_env() {
+    [[ "${ZBX_CLEAR_ENV}" == "false" ]] && return
+
+    for env_var in $(env | grep -E "^ZBX_"); do
+        unset "${env_var%%=*}"
+    done
+}
+
 prepare_agent() {
     echo "** Preparing Zabbix agent"
     prepare_zbx_agent_config
     prepare_zbx_agent_plugin_config
+    clear_zbx_env
 }
 
 #################################################
