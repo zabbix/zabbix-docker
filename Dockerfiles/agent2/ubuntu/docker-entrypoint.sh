@@ -195,9 +195,18 @@ prepare_zbx_agent_config() {
     update_config_multiple_var $ZBX_AGENT_CONFIG "AllowKey" "${ZBX_ALLOWKEY}"
 }
 
+clear_zbx_env() {
+    [[ "${ZBX_CLEAR_ENV}" == "false" ]] && return
+
+    for env_var in $(env | grep -E "^ZBX_"); do
+        unset "${env_var%%=*}"
+    done
+}
+
 prepare_agent() {
     echo "** Preparing Zabbix agent"
     prepare_zbx_agent_config
+    clear_zbx_env
 }
 
 #################################################
