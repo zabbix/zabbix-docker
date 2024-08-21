@@ -80,6 +80,7 @@ RUN --mount=type=cache,target=/var/lib/apt/,sharing=locked \
     mkdir -p /etc/zabbix && \
     mkdir -p /var/lib/zabbix && \
     mkdir -p /var/lib/zabbix/enc && \
+    mkdir -p /var/lib/zabbix/enc_internal && \
     mkdir -p /usr/lib/zabbix/externalscripts && \
     mkdir -p /var/lib/zabbix/mibs && \
     mkdir -p /var/lib/zabbix/modules && \

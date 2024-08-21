@@ -63,6 +63,7 @@ RUN set -eux && \
     mkdir -p /etc/zabbix/zabbix_agentd.d && \
     mkdir -p /var/lib/zabbix && \
     mkdir -p /var/lib/zabbix/enc && \
+    mkdir -p /var/lib/zabbix/enc_internal && \
     mkdir -p /var/lib/zabbix/modules && \
     chown --quiet -R zabbix:root /etc/zabbix/ /var/lib/zabbix/ && \
     chgrp -R 0 /etc/zabbix/ /var/lib/zabbix/ && \
