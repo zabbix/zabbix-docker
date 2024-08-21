@@ -210,9 +210,13 @@ ZBX_STARTPROXYPOLLERS=1
 ZBX_PROXYCONFIGFREQUENCY=10
 ZBX_PROXYDATAFREQUENCY=1
 ZBX_TLSCAFILE=
+ZBX_TLSCA=
 ZBX_TLSCRLFILE=
+ZBX_TLSCRL=
 ZBX_TLSCERTFILE=
+ZBX_TLSCERT=
 ZBX_TLSKEYFILE=
+ZBX_TLSKEY=
 ZBX_TLSCIPHERALL= # Available since 4.4.7
 ZBX_TLSCIPHERALL13= # Available since 4.4.7
 ZBX_TLSCIPHERCERT= # Available since 4.4.7
@@ -245,7 +249,7 @@ The volume allows load additional modules and extend Zabbix server using ``LoadM
 
 ### ``/var/lib/zabbix/enc``
 
-The volume is used to store TLS related files. These file names are specified using ``ZBX_TLSCAFILE``, ``ZBX_TLSCRLFILE``, ``ZBX_TLSKEY_FILE`` and ``ZBX_TLSPSKFILE`` variables.
+The volume is used to store TLS related files. These file names are specified using ``ZBX_TLSCAFILE``, ``ZBX_TLSCRLFILE``, ``ZBX_TLSCERTFILE`` and ``ZBX_TLSKEYFILE`` variables. Additionally it is possible to use environment variables ``ZBX_TLSCA``, ``ZBX_TLSCRL``, ``ZBX_TLSCERT`` and ``ZBX_TLSKEY`` with plaintext values.
 
 ### ``/var/lib/zabbix/ssh_keys``
 

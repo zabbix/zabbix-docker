@@ -17,6 +17,8 @@ fi
 ZABBIX_USER_HOME_DIR="/var/lib/zabbix"
 # Configuration files directory
 ZABBIX_ETC_DIR="/etc/zabbix"
+# Internal directory for TLS related files, used when TLS*File specified as plain text values
+ZABBIX_INTERNAL_ENC_DIR="${ZABBIX_USER_HOME_DIR}/enc_internal"
 
 # usage: file_env VAR [DEFAULT]
 # as example: file_env 'MYSQL_PASSWORD' 'zabbix'
@@ -135,6 +137,19 @@ update_config_multiple_var() {
     for value in "${OPT_LIST[@]}"; do
         update_config_var $config_path $var_name $value true
     done
+}
+
+file_process_from_env() {
+    local config_path=$1
+    local var_name=$2
+    local file_name=$3
+    local var_value=$4
+
+    if [ ! -z "$var_value" ]; then
+        echo -n "$var_value" > "${ZABBIX_INTERNAL_ENC_DIR}/$var_name"
+        file_name="${ZABBIX_INTERNAL_ENC_DIR}/${var_name}"
+    fi
+    update_config_var $config_path "$var_name" "$file_name"
 }
 
 # Check prerequisites for PostgreSQL database
@@ -533,20 +548,17 @@ update_zbx_config() {
     update_config_var $ZBX_CONFIG "LoadModulePath" "$ZABBIX_USER_HOME_DIR/modules/"
     update_config_multiple_var $ZBX_CONFIG "LoadModule" "${ZBX_LOADMODULE}"
 
-    update_config_var $ZBX_CONFIG "TLSCAFile" "${ZBX_TLSCAFILE}"
-    update_config_var $ZBX_CONFIG "TLSCRLFile" "${ZBX_TLSCRLFILE}"
+    file_process_from_env $ZBX_CONFIG "TLSCAFile" "${ZBX_TLSCAFILE}" "${ZBX_TLSCA}"
+    file_process_from_env $ZBX_CONFIG "TLSCRLFile" "${ZBX_TLSCRLFILE}" "${ZBX_TLSCRL}"
 
-    update_config_var $ZBX_CONFIG "TLSCertFile" "${ZBX_TLSCERTFILE}"
+    file_process_from_env $ZBX_CONFIG "TLSCertFile" "${ZBX_TLSCERTFILE}" "${ZBX_TLSCERT}"
     update_config_var $ZBX_CONFIG "TLSCipherAll" "${ZBX_TLSCIPHERALL}"
     update_config_var $ZBX_CONFIG "TLSCipherAll13" "${ZBX_TLSCIPHERALL13}"
     update_config_var $ZBX_CONFIG "TLSCipherCert" "${ZBX_TLSCIPHERCERT}"
     update_config_var $ZBX_CONFIG "TLSCipherCert13" "${ZBX_TLSCIPHERCERT13}"
     update_config_var $ZBX_CONFIG "TLSCipherPSK" "${ZBX_TLSCIPHERPSK}"
     update_config_var $ZBX_CONFIG "TLSCipherPSK13" "${ZBX_TLSCIPHERPSK13}"
-    update_config_var $ZBX_CONFIG "TLSKeyFile" "${ZBX_TLSKEYFILE}"
-
-    update_config_var $ZBX_CONFIG "TLSPSKIdentity" "${ZBX_TLSPSKIDENTITY}"
-    update_config_var $ZBX_CONFIG "TLSPSKFile" "${ZBX_TLSPSKFILE}"
+    file_process_from_env $ZBX_CONFIG "TLSKeyFile" "${ZBX_TLSKEYFILE}" "${ZBX_TLSKEY}"
 
     update_config_var $ZBX_CONFIG "ServiceManagerSyncFrequency" "${ZBX_SERVICEMANAGERSYNCFREQUENCY}"
     update_config_var $ZBX_CONFIG "AllowSoftwareUpdateCheck" "${ZBX_ALLOWSOFTWAREUPDATECHECK}"

@@ -79,6 +79,7 @@ RUN set -eux && \
     mkdir -p /usr/lib/zabbix/alertscripts && \
     mkdir -p /var/lib/zabbix/dbscripts && \
     mkdir -p /var/lib/zabbix/enc && \
+    mkdir -p /var/lib/zabbix/enc_internal && \
     mkdir -p /var/lib/zabbix/export && \
     mkdir -p /usr/lib/zabbix/externalscripts && \
     mkdir -p /var/lib/zabbix/mibs && \
