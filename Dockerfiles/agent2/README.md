@@ -147,13 +147,18 @@ ZBX_UNSAFEUSERPARAMETERS=0
 ZBX_TLSCONNECT=unencrypted
 ZBX_TLSACCEPT=unencrypted
 ZBX_TLSCAFILE=
+ZBX_TLSCA=
 ZBX_TLSCRLFILE=
+ZBX_TLSCRL=
 ZBX_TLSSERVERCERTISSUER=
 ZBX_TLSSERVERCERTSUBJECT=
 ZBX_TLSCERTFILE=
+ZBX_TLSCERT=
 ZBX_TLSKEYFILE=
+ZBX_TLSKEY=
 ZBX_TLSPSKIDENTITY=
 ZBX_TLSPSKFILE=
+ZBX_TLSPSK=
 ZBX_DENYKEY=system.run[*] # Available since 5.0.0
 ZBX_ALLOWKEY= # Available since 5.0.0
 ```
@@ -172,7 +177,7 @@ The volume allows include ``*.conf`` files and extend Zabbix agent 2 using ``Use
 
 ### ``/var/lib/zabbix/enc``
 
-The volume is used to store TLS related files. These file names are specified using ``ZBX_TLSCAFILE``, ``ZBX_TLSCRLFILE``, ``ZBX_TLSKEY_FILE`` and ``ZBX_TLSPSKFILE`` variables.
+The volume is used to store TLS related files. These file names are specified using ``ZBX_TLSCAFILE``, ``ZBX_TLSCRLFILE``, ``ZBX_TLSCERTFILE``, ``ZBX_TLSKEYFILE`` and ``ZBX_TLSPSKFILE`` variables. Additionally it is possible to use environment variables ``ZBX_TLSCA``, ``ZBX_TLSCRL``, ``ZBX_TLSCERT``, ``ZBX_TLSKEY`` and ``ZBX_TLSPSK`` with plaintext values.
 
 ### ``/var/lib/zabbix/buffer``
 

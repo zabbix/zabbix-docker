@@ -91,8 +91,11 @@ Additionally the image allows to specify many other environment variables listed
 ```
 ZBX_TLSACCEPT=unencrypted
 ZBX_TLSCAFILE=
+ZBX_TLSCA=
 ZBX_TLSCERTFILE=
+ZBX_TLSCERT=
 ZBX_TLSKEYFILE=
+ZBX_TLSKEY=
 ZBX_IGNOREURLCERTERRORS=0
 ```
 
@@ -104,7 +107,7 @@ Please use official documentation for [``zabbix_web_service.conf``](https://www.
 
 ### ``/var/lib/zabbix/enc``
 
-The volume is used to store TLS related files. These file names are specified using ``ZBX_TLSCAFILE``, ``ZBX_TLSCERTFILE`` and ``ZBX_TLSKEY_FILE`` variables.
+The volume is used to store TLS related files. These file names are specified using ``ZBX_TLSCAFILE``, ``ZBX_TLSCERTFILE`` and ``ZBX_TLSKEYFILE`` variables. Additionally it is possible to use environment variables ``ZBX_TLSCA``, ``ZBX_TLSCERT`` and ``ZBX_TLSKEY`` with plaintext values.
 
 # The image variants
 
