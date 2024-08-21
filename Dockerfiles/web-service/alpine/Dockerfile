@@ -51,6 +51,8 @@ RUN set -eux && \
         zabbix && \
     mkdir -p /etc/zabbix && \
     mkdir -p /var/lib/zabbix && \
+    mkdir -p /var/lib/zabbix/enc && \
+    mkdir -p /var/lib/zabbix/enc_internal && \
     chown --quiet -R zabbix:root /etc/zabbix/ /var/lib/zabbix/ && \
     chgrp -R 0 /etc/zabbix/ /var/lib/zabbix/ && \
     chmod -R g=u /etc/zabbix/ /var/lib/zabbix/

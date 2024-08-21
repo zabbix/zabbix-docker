@@ -74,6 +74,7 @@ RUN set -eux && \
     mkdir -p /var/lib/zabbix && \
     mkdir -p /var/lib/zabbix/db_data && \
     mkdir -p /var/lib/zabbix/enc && \
+    mkdir -p /var/lib/zabbix/enc_internal && \
     mkdir -p /usr/lib/zabbix/externalscripts && \
     mkdir -p /var/lib/zabbix/mibs && \
     mkdir -p /var/lib/zabbix/modules && \
