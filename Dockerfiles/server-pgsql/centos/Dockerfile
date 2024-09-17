@@ -39,6 +39,7 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             file-libs \
             tini \
             traceroute \
+            hostname \
             nmap \
             iputils \
             traceroute \
