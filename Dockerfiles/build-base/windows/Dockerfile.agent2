@@ -14,7 +14,7 @@ ARG BUILD_ARCH=x64
 ARG CPU_MODEL=AMD64
 
 ARG MAJOR_VERSION=5.0
-ARG ZBX_VERSION=${MAJOR_VERSION}.43
+ARG ZBX_VERSION=${MAJOR_VERSION}.44
 
 ARG GIT_URL=https://github.com/git-for-windows/git/releases/download/v2.33.0.windows.2/MinGit-2.33.0.2-busybox-64-bit.zip
 ARG SEVEN_ZIP_URL=https://www.7-zip.org/a/7z$SEVEN_ZIP_VERSION-$BUILD_ARCH.msi
