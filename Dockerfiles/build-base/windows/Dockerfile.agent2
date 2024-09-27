@@ -4,7 +4,7 @@ ARG BUILD_BASE_IMAGE=mcr.microsoft.com/windows/servercore:ltsc2022
 FROM $BUILD_BASE_IMAGE as builder_base
 
 ARG PCRE2_VERSION=10.43
-ARG OPENSSL_VERSION=3.3.0
+ARG OPENSSL_VERSION=3.3.2
 ARG GOLANG_VERSION=1.22.3
 ARG SEVEN_ZIP_VERSION=2405
 
@@ -25,7 +25,7 @@ ARG GOLANG_URL=https://go.dev/dl/go$GOLANG_VERSION.windows-amd64.zip
 ARG MSYS2_URL=https://api.github.com/repos/msys2/msys2-installer/releases/latest
 
 ARG PCRE2_URL=https://github.com/PhilipHazel/pcre2/releases/download/pcre2-$PCRE2_VERSION/pcre2-$PCRE2_VERSION.zip
-ARG OPENSSL_URL=https://www.openssl.org/source/openssl-$OPENSSL_VERSION.tar.gz
+ARG OPENSSL_URL=https://github.com/openssl/openssl/releases/download/openssl-$OPENSSL_VERSION/openssl-$OPENSSL_VERSION.tar.gz
 
 ENV ZBX_VERSION=$ZBX_VERSION `
     BUILD_ARCH=$BUILD_ARCH CPU_MODEL=$CPU_MODEL `
@@ -214,7 +214,7 @@ RUN Set-Location -Path $env:SystemDrive\.; `
     Write-Host ('Downloading {0} ...' -f $env:OPENSSL_URL); `
     Invoke-WebRequest -OutFile $env:TEMP\openssl.tar.gz -Uri $env:OPENSSL_URL; `
     `
-    $sha256 = '53E66B043322A606ABF0087E7699A0E033A37FA13FEB9742DF35C3A33B18FB02'; `
+    $sha256 = '2e8a40b01979afe8be0bbfb3de5dc1c6709fedb46d6c89c10da114ab5fc3d281'; `
     $d_sha256 = (Get-FileHash $env:TEMP\openssl.tar.gz -Algorithm sha256).Hash; `
     Write-Host ('Verifying SHA256 ({0}) ...' -f $sha256); `
     if ($d_sha256 -ne $sha256) { `
