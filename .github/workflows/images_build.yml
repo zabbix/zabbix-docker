@@ -434,7 +434,7 @@ jobs:
             echo "${METADATA}" > "$CACHE_FILE_NAME"
 
       - name: Cache image metadata
-        uses: actions/cache@13aacd865c20de90d75de3b17ebe84f7a17d57d2 # v4.0.0
+        uses: actions/cache@3624ceb22c1c5a301c8db4169662070a689d9ea8 # v4.1.1
         with:
           path: ${{ env.BASE_CACHE_FILE_NAME }}
           key: ${{ env.BASE_BUILD_NAME }}-${{ matrix.os }}-${{ github.run_id }}
@@ -548,7 +548,7 @@ jobs:
             latest=${{ (matrix.os == 'alpine') && (!contains(fromJSON('["workflow_dispatch"]'), github.event_name)) && ( needs.init_build.outputs.is_default_branch == 'true' ) }}
 
       - name: Download metadata of ${{ env.BASE_BUILD_NAME }}:${{ matrix.os }}
-        uses: actions/cache@13aacd865c20de90d75de3b17ebe84f7a17d57d2 # v4.0.0
+        uses: actions/cache@3624ceb22c1c5a301c8db4169662070a689d9ea8 # v4.1.1
         with:
           path: ${{ env.BASE_CACHE_FILE_NAME }}
           key: ${{ env.BASE_BUILD_NAME }}-${{ matrix.os }}-${{ github.run_id }}
@@ -697,7 +697,7 @@ jobs:
             echo "${METADATA}" > "$CACHE_FILE_NAME"
 
       - name: Cache image metadata
-        uses: actions/cache@13aacd865c20de90d75de3b17ebe84f7a17d57d2 # v4.0.0
+        uses: actions/cache@3624ceb22c1c5a301c8db4169662070a689d9ea8 # v4.1.1
         with:
           path: ${{ env.BUILD_CACHE_FILE_NAME }}
           key: ${{ matrix.build }}-${{ matrix.os }}-${{ github.run_id }}
@@ -933,7 +933,7 @@ jobs:
             latest=${{ (matrix.os == 'alpine') && (!contains(fromJSON('["workflow_dispatch"]'), github.event_name)) && ( needs.init_build.outputs.is_default_branch == 'true' ) }}
 
       - name: Download metadata of ${{ steps.build_base_image.outputs.build_base }}:${{ matrix.os }}
-        uses: actions/cache@13aacd865c20de90d75de3b17ebe84f7a17d57d2 # v4.0.0
+        uses: actions/cache@3624ceb22c1c5a301c8db4169662070a689d9ea8 # v4.1.1
         if: ${{ matrix.build != 'snmptraps' }}
         with:
           path: ${{ env.BUILD_CACHE_FILE_NAME }}
