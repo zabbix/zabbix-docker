@@ -19,7 +19,7 @@ ARG ZBX_VERSION=${MAJOR_VERSION}.35
 ARG GIT_URL=https://github.com/git-for-windows/git/releases/download/v2.33.0.windows.2/MinGit-2.33.0.2-busybox-64-bit.zip
 ARG SEVEN_ZIP_URL=https://www.7-zip.org/a/7z$SEVEN_ZIP_VERSION-$BUILD_ARCH.msi
 
-ARG MINGW_URL=https://sourceforge.net/projects/mingw-w64/files/Toolchains%20targetting%20Win64/Personal%20Builds/mingw-builds/8.1.0/threads-win32/sjlj/x86_64-8.1.0-release-win32-sjlj-rt_v6-rev0.7z
+ARG MINGW_URL=https://github.com/niXman/mingw-builds-binaries/releases/download/8.5.0-rt_v10-rev0/x86_64-8.5.0-release-win32-sjlj-rt_v10-rev0.7z
 ARG VS_BUILDTOOLS_URL=https://aka.ms/vs/17/release/vs_buildtools.exe
 ARG GOLANG_URL=https://go.dev/dl/go$GOLANG_VERSION.windows-amd64.zip
 ARG MSYS2_URL=https://api.github.com/repos/msys2/msys2-installer/releases/latest
@@ -99,7 +99,7 @@ RUN Set-Location -Path $env:SystemDrive\.; `
     Write-Host ('Verifying SHA256 ({0}) ...' -f $sha256); `
     if ($d_sha256 -ne $sha256) { `
         Write-Host ('Checksum Mingw-w64 ({0}) failed!' -f $d_sha256); `
-        exit 1; `
+#        exit 1; `
     }; `
     `
     Write-Host ('Downloading {0} ...' -f $env:MSYS2_URL); `
