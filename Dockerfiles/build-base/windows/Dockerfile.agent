@@ -7,7 +7,7 @@ ARG PCRE2_VERSION=10.43
 ARG OPENSSL_VERSION=3.1.5
 ARG LIBMODBUS_VERSION=3.1.10
 ARG ZLIB_VERSION=1.3.1
-ARG CURL_VERSION=8.7.1
+ARG CURL_VERSION=8.10.1
 
 ARG BUILD_ARCH=x64
 ARG CPU_MODEL=AMD64
@@ -200,7 +200,7 @@ RUN Set-Location -Path $env:SystemDrive\.; `
     Write-Host ('Downloading {0} ...' -f $env:CURL_URL); `
     Invoke-WebRequest -OutFile $env:TEMP\curl.tar.gz -Uri $env:CURL_URL; `
     `
-    $sha256 = 'F91249C87F68EA00CF27C44FDFA5A78423E41E71B7D408E5901A9896D905C495'; `
+    $sha256 = 'd15ebab765d793e2e96db090f0e172d127859d78ca6f6391d7eafecfd894bbc0'; `
     $d_sha256 = (Get-FileHash $env:TEMP\curl.tar.gz -Algorithm sha256).Hash; `
     Write-Host ('Verifying SHA256 ({0}) ...' -f $sha256); `
     if ($d_sha256 -ne $sha256) { `
