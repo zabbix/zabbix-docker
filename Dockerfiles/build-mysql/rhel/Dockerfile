@@ -148,6 +148,7 @@ RUN --mount=type=cache,target=/root/.cache/go-build/ \
     mkdir -p ${ZBX_OUTPUT_DIR}/agent2/conf/zabbix_agent2.d/plugins.d/ && \
     git -c advice.detachedHead=false clone ${MONGODB_PLUGIN_SOURCES} --branch ${MONGODB_PLUGIN_VERSION} --depth 1 --single-branch /tmp/mongodb-plugin-${MONGODB_PLUGIN_VERSION} && \
     cd /tmp/mongodb-plugin-${MONGODB_PLUGIN_VERSION} && \
+    sed -i 's/go 1.2[0-9]/go 1.21/g' go.mod && \
     make && \
     strip /tmp/mongodb-plugin-${MONGODB_PLUGIN_VERSION}/zabbix-agent2-plugin-mongodb && \
     cp /tmp/mongodb-plugin-${MONGODB_PLUGIN_VERSION}/zabbix-agent2-plugin-mongodb ${ZBX_OUTPUT_DIR}/agent2/sbin/zabbix-agent2-plugin/mongodb && \
@@ -155,6 +156,7 @@ RUN --mount=type=cache,target=/root/.cache/go-build/ \
     cd /tmp/ && \
     git -c advice.detachedHead=false clone ${POSTGRESQL_PLUGIN_SOURCES} --branch ${POSTGRESQL_PLUGIN_VERSION} --depth 1 --single-branch /tmp/postgresql-plugin-${POSTGRESQL_PLUGIN_VERSION} && \
     cd /tmp/postgresql-plugin-${POSTGRESQL_PLUGIN_VERSION} && \
+    sed -i 's/go 1.2[0-9]/go 1.21/g' go.mod && \
     make && \
     strip /tmp/postgresql-plugin-${POSTGRESQL_PLUGIN_VERSION}/zabbix-agent2-plugin-postgresql && \
     cp /tmp/postgresql-plugin-${POSTGRESQL_PLUGIN_VERSION}/zabbix-agent2-plugin-postgresql ${ZBX_OUTPUT_DIR}/agent2/sbin/zabbix-agent2-plugin/postgresql && \
@@ -162,6 +164,7 @@ RUN --mount=type=cache,target=/root/.cache/go-build/ \
     cd /tmp/ && \
     git -c advice.detachedHead=false clone ${MSSQL_PLUGIN_SOURCES} --branch ${MSSQL_PLUGIN_VERSION} --depth 1 --single-branch /tmp/mssql-plugin-${MSSQL_PLUGIN_VERSION} && \
     cd /tmp/mssql-plugin-${MSSQL_PLUGIN_VERSION} && \
+    sed -i 's/go 1.2[0-9]/go 1.21/g' go.mod && \
     make && \
     strip /tmp/mssql-plugin-${MSSQL_PLUGIN_VERSION}/zabbix-agent2-plugin-mssql && \
     cp /tmp/mssql-plugin-${MSSQL_PLUGIN_VERSION}/zabbix-agent2-plugin-mssql ${ZBX_OUTPUT_DIR}/agent2/sbin/zabbix-agent2-plugin/mssql && \
@@ -169,6 +172,7 @@ RUN --mount=type=cache,target=/root/.cache/go-build/ \
     cd /tmp/ && \
     git -c advice.detachedHead=false clone ${EMBER_PLUS_PLUGIN_SOURCES} --branch ${EMBER_PLUS_PLUGIN_VERSION} --depth 1 --single-branch /tmp/ember-plugin-${EMBER_PLUS_PLUGIN_VERSION} && \
     cd /tmp/ember-plugin-${EMBER_PLUS_PLUGIN_VERSION} && \
+    sed -i 's/go 1.2[0-9]/go 1.21/g' go.mod && \
     make && \
     strip /tmp/ember-plugin-${EMBER_PLUS_PLUGIN_VERSION}/zabbix-agent2-plugin-ember-plus && \
     cp /tmp/ember-plugin-${EMBER_PLUS_PLUGIN_VERSION}/zabbix-agent2-plugin-ember-plus ${ZBX_OUTPUT_DIR}/agent2/sbin/zabbix-agent2-plugin/ember-plus && \
