@@ -92,7 +92,7 @@ RUN Set-Location -Path $env:SystemDrive\.; `
     }; `
     `
     Write-Host ('Downloading {0} ...' -f $env:MINGW_URL); `
-    (new-object System.Net.WebClient).DownloadFile("""$env:MINGW_URL""","""$env:TEMP\mingw.7z"""); `
+    Invoke-WebRequest -UserAgent 'Wget' -Uri $env:MINGW_URL -OutFile $env:TEMP\mingw.7z; `
     `
     $sha256 = 'e8c65ddc655534b0330f66f7b480565621e8617cda9937d76ba141a22bf3b2fa'; `
     $d_sha256 = (Get-FileHash $env:TEMP\mingw.7z -Algorithm sha256).Hash; `
