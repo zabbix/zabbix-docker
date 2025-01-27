@@ -13,7 +13,7 @@ ARG MSYSTEM=MINGW64
 ARG BUILD_ARCH=x64
 
 ARG MAJOR_VERSION=5.0
-ARG ZBX_VERSION=${MAJOR_VERSION}.45
+ARG ZBX_VERSION=${MAJOR_VERSION}.46
 
 ARG MINGW_URL=https://github.com/niXman/mingw-builds-binaries/releases/download/8.5.0-rt_v10-rev0/x86_64-8.5.0-release-win32-sjlj-rt_v10-rev0.7z
 ARG VS_BUILDTOOLS_URL=https://aka.ms/vs/$VS_BUILDTOOLS_VERSION/release/vs_buildtools.exe
