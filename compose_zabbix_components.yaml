@@ -70,10 +70,9 @@ services:
    - /etc/localtime:/etc/localtime:ro
    - ${DATA_DIRECTORY}/var/lib/zabbix/dbscripts:/var/lib/zabbix/dbscripts:ro
    - ${DATA_DIRECTORY}/var/lib/zabbix/enc:/var/lib/zabbix/enc:ro
+#   - mysql_socket:/var/run/mysqld/
   command: init_db_only
   tmpfs: /tmp
-#  volumes:
-#   - dbsocket:/var/run/mysqld/
   env_file:
    - path: ${ENV_VARS_DIRECTORY}/.env_db_mysql
      required: true
@@ -238,10 +237,9 @@ services:
   volumes:
    - /etc/localtime:/etc/localtime:ro
    - ${DATA_DIRECTORY}/var/lib/zabbix/enc:/var/lib/zabbix/enc:ro
+#   - mysql_socket:/var/run/mysqld/
   command: init_db_only
   tmpfs: /tmp
-#  volumes:
-#   - dbsocket:/var/run/mysqld/
   env_file:
    - path: ${ENV_VARS_DIRECTORY}/.env_db_mysql_proxy
      required: true
