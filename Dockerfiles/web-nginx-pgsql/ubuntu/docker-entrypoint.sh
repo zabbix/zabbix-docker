@@ -330,6 +330,14 @@ prepare_zbx_php_config() {
     "$NGINX_CONF_FILE"
 }
 
+prepare_zbx_config() {
+    if [ -n "${ZBX_SESSION_NAME}" ]; then
+        cp "$ZABBIX_WWW_ROOT/include/defines.inc.php" "/tmp/defines.inc.php_tmp"
+        sed "/ZBX_SESSION_NAME/s/'[^']*'/'${ZBX_SESSION_NAME}'/2" "/tmp/defines.inc.php_tmp" > "$ZABBIX_WWW_ROOT/include/defines.inc.php"
+        rm -f "/tmp/defines.inc.php_tmp"
+    fi
+}
+
 #################################################
 
 echo "** Deploying Zabbix web-interface (Nginx) with PostgreSQL database"
