@@ -73,5 +73,8 @@ RUN Set-Location -Path $env:SystemDrive\.; `
     Copy-Item -Path $env:ZBX_SOURCES_DIR\bin\win64\zabbix_sender.exe $env:ZBX_OUTPUT_DIR\bin; `
     Copy-Item -Path $env:ZBX_SOURCES_DIR\conf\zabbix_agentd.win.conf $env:ZBX_OUTPUT_DIR\conf\zabbix_agentd.conf_template; `
     Copy-Item -Recurse -Path $env:SystemDrive\config_templates\agent\* $env:ZBX_OUTPUT_DIR\conf\; `
-    nmake /S -f Makefile clean; `
+    nmake /S -f Makefile `
+        PCRE2INCDIR=$env:SystemDrive\build_output\pcre2\include `
+        PCRE2LIBDIR=$env:SystemDrive\build_output\pcre2\lib `
+        clean; `
     Write-Host 'Zabbix binaries are compiled...';
