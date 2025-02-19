@@ -8,7 +8,7 @@ ARG NASM_VERSION=2.16.03
 ARG VS_BUILDTOOLS_VERSION=17
 
 ARG PCRE2_VERSION=10.44
-ARG OPENSSL_VERSION=3.3.2
+ARG OPENSSL_VERSION=3.4.1
 ARG LIBMODBUS_VERSION=3.1.11
 ARG ZLIB_VERSION=1.3.1
 ARG CURL_VERSION=8.11.1
@@ -48,7 +48,7 @@ LABEL org.opencontainers.image.title="Zabbix agent build base for Windows" `
       org.opencontainers.image.version="${ZBX_VERSION}"
 
 ADD --checksum=sha256:21c6f0523abfd37a2f5cc85879d0ff32723ab496347f0d20793df888ecec3957 $PCRE2_URL C:\pcre2.zip
-ADD --checksum=sha256:2e8a40b01979afe8be0bbfb3de5dc1c6709fedb46d6c89c10da114ab5fc3d281 $OPENSSL_URL C:\openssl.tar.gz
+ADD --checksum=sha256:002a2d6b30b58bf4bea46c43bdd96365aaf8daa6c428782aa4feee06da197df3 $OPENSSL_URL C:\openssl.tar.gz
 ADD --checksum=sha256:15b4b2e0f68122c2da9b195de5c330489a9c97d40b4a95d2822378dc14d780e7 $LIBMODBUS_URL C:\libmodbus.tar.gz
 ADD --checksum=sha256:9A93B2B7DFDAC77CEBA5A558A580E74667DD6FEDE4585B91EEFB60F03B72DF23 $ZLIB_URL C:\zlib.tar.gz
 ADD --checksum=sha256:a889ac9dbba3644271bd9d1302b5c22a088893719b72be3487bc3d401e5c4e80 $CURL_URL C:\curl.tar.gz
