@@ -225,6 +225,8 @@ ZBX_TLSCIPHERPSK= # Available since 4.4.7
 ZBX_TLSCIPHERPSK13= # Available since 4.4.7
 ZBX_WEBDRIVERURL= # Available since 7.0.0
 ZBX_STARTBROWSERPOLLERS=1 # Available since 7.0.0
+ZBX_STARTSNMPPOLLERS=1 # Available since 7.0.0
+
 ```
 
 Default values of these variables are specified after equal sign.
