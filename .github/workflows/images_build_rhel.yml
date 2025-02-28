@@ -281,7 +281,7 @@ jobs:
             echo "image_tag=${IMAGE_TAG}" >> $GITHUB_OUTPUT
 
       - name: Cache image metadata
-        uses: actions/cache/save@1bd1e32a3bdc45362d1e726936510720a7c30a57 # v4.2.0
+        uses: actions/cache/save@d4323d4df104b026a6aa633fdb11d772146be0bf # v4.2.2
         with:
           path: |
               ${{ env.BASE_BUILD_NAME }}_${{ matrix.arch }}_tag_id
@@ -356,7 +356,7 @@ jobs:
           echo "arch=${ARCH,,}" >> $GITHUB_OUTPUT
 
       - name: Download metadata of ${{ env.BASE_BUILD_NAME }}:${{ matrix.arch }}
-        uses: actions/cache/restore@1bd1e32a3bdc45362d1e726936510720a7c30a57 # v4.2.0
+        uses: actions/cache/restore@d4323d4df104b026a6aa633fdb11d772146be0bf # v4.2.2
         with:
           path: |
               ${{ env.BASE_BUILD_NAME }}_${{ matrix.arch }}_tag_id
@@ -441,7 +441,7 @@ jobs:
             echo "image_tag=${IMAGE_TAG}" >> $GITHUB_OUTPUT
 
       - name: Cache image metadata
-        uses: actions/cache/save@1bd1e32a3bdc45362d1e726936510720a7c30a57 # v4.2.0
+        uses: actions/cache/save@d4323d4df104b026a6aa633fdb11d772146be0bf # v4.2.2
         with:
           path: |
               ${{ matrix.build }}_${{ matrix.arch }}_tag_id
@@ -538,7 +538,7 @@ jobs:
 
       - name: Download metadata of ${{ steps.build_base_image.outputs.build_base }}:${{ matrix.arch }}
         if: ${{ matrix.build != 'snmptraps' }}
-        uses: actions/cache/restore@1bd1e32a3bdc45362d1e726936510720a7c30a57 # v4.2.0
+        uses: actions/cache/restore@d4323d4df104b026a6aa633fdb11d772146be0bf # v4.2.2
         with:
           path: |
               ${{ steps.build_base_image.outputs.build_base }}_${{ matrix.arch }}_tag_id
@@ -720,7 +720,7 @@ jobs:
     permissions: {}
     steps:
       - name: Download metadata of ${{ matrix.build }}:${{ matrix.arch }}
-        uses: actions/cache/restore@1bd1e32a3bdc45362d1e726936510720a7c30a57 # v4.2.0
+        uses: actions/cache/restore@d4323d4df104b026a6aa633fdb11d772146be0bf # v4.2.2
         with:
           path: |
               ${{ matrix.build }}_${{ matrix.arch }}_tag_id
@@ -741,7 +741,7 @@ jobs:
             echo "::endgroup::"
 
       - name: Download metadata of ${{ env.BASE_BUILD_NAME }}:${{ matrix.arch }}
-        uses: actions/cache/restore@1bd1e32a3bdc45362d1e726936510720a7c30a57 # v4.2.0
+        uses: actions/cache/restore@d4323d4df104b026a6aa633fdb11d772146be0bf # v4.2.2
         with:
           path: |
               ${{ env.BASE_BUILD_NAME }}_${{ matrix.arch }}_tag_id
