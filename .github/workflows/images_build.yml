@@ -1124,6 +1124,9 @@ jobs:
             # Chromium on Ubuntu is not available on s390x and armhf platform
             elif [ "$MATRIX_OS" == "ubuntu" ] && [ "$MATRIX_BUILD" == "web-service" ]; then
                 platform_list="linux/amd64,linux/arm64"
+            # Chromium on Oracle Linux is available only on amd64 platform
+            elif [ "$MATRIX_OS" == "ol" ] && [ "$MATRIX_BUILD" == "web-service" ]; then
+                platform_list="linux/amd64"
             else
                 platform_list=$(jq -r ".[\"os-linux\"].\"$MATRIX_OS\" | join(\",\")" "$MATRIX_FILE")
             fi
