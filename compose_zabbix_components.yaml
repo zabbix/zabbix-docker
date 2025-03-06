@@ -598,6 +598,8 @@ services:
      protocol: tcp
   restart: "${RESTART_POLICY}"
   attach: false
+  volumes:
+   - ${DATA_DIRECTORY}/usr/sbin/zabbix_java/ext_lib:/usr/sbin/zabbix_java/ext_lib:ro
   deploy:
    resources:
     limits:
