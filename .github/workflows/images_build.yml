@@ -646,7 +646,6 @@ jobs:
           context: ${{ format('{0}/{1}/{2}/', env.DOCKERFILES_DIRECTORY, matrix.build, matrix.os) }}
           build-contexts: |
             sources=./sources/
-            config_templates=./config_templates/
           file: ${{ format('{0}/{1}/{2}/Dockerfile', env.DOCKERFILES_DIRECTORY, matrix.build, matrix.os) }}
           platforms: ${{ steps.platform.outputs.list }}
           push: true
