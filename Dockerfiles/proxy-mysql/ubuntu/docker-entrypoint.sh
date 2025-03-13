@@ -351,8 +351,17 @@ update_zbx_config() {
     export ZBX_DB_SOCKET="${DB_SERVER_SOCKET}"
 
     export ZBX_DB_NAME="${DB_SERVER_DBNAME}"
-    export ZBX_DB_USER="${DB_SERVER_ZBX_USER}"
-    export ZBX_DB_PASSWORD="${DB_SERVER_ZBX_PASS}"
+
+    if [ -n "${ZBX_VAULT}" ] && [ -n "${ZBX_VAULTURL}" ] && [ ! -n "${ZBX_VAULTDBPATH}" ]; then
+        export ZBX_DB_USER="${DB_SERVER_ZBX_USER}"
+        export ZBX_DB_PASSWORD="${DB_SERVER_ZBX_PASS}"
+    elif [ ! -n "${ZBX_VAULT}" ] && [ ! -n "${ZBX_VAULTURL}" ]; then
+        export ZBX_DB_USER="${DB_SERVER_ZBX_USER}"
+        export ZBX_DB_PASSWORD="${DB_SERVER_ZBX_PASS}"
+    else
+        unset ZBX_DB_USER
+        unset ZBX_DB_PASSWORD
+    fi
 
     export ZBX_SERVER_HOST="${ZBX_SERVER_HOST:="zabbix-server"}"
 

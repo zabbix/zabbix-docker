@@ -394,8 +394,17 @@ update_zbx_config() {
 
     export ZBX_DB_NAME="${DB_SERVER_DBNAME}"
     export ZBX_DB_SCHEMA="${DB_SERVER_SCHEMA}"
-    export ZBX_DB_USER="${DB_SERVER_ZBX_USER}"
-    export ZBX_DB_PASSWORD="${DB_SERVER_ZBX_PASS}"
+
+    if [ -n "${ZBX_VAULT}" ] && [ -n "${ZBX_VAULTURL}" ] && [ ! -n "${ZBX_VAULTDBPATH}" ]; then
+        export ZBX_DB_USER="${DB_SERVER_ZBX_USER}"
+        export ZBX_DB_PASSWORD="${DB_SERVER_ZBX_PASS}"
+    elif [ ! -n "${ZBX_VAULT}" ] && [ ! -n "${ZBX_VAULTURL}" ]; then
+        export ZBX_DB_USER="${DB_SERVER_ZBX_USER}"
+        export ZBX_DB_PASSWORD="${DB_SERVER_ZBX_PASS}"
+    else
+        unset ZBX_DB_USER
+        unset ZBX_DB_PASSWORD
+    fi
 
     : ${ZBX_ENABLE_SNMP_TRAPS:="false"}
     [[ "${ZBX_ENABLE_SNMP_TRAPS,,}" == "true" ]] && export ZBX_STARTSNMPTRAPPER=1
