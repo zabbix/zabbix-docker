@@ -64,6 +64,7 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             tini \
             traceroute \
             nmap \
+            krb5-workstation \
             fping \
             shadow-utils \
             iputils \

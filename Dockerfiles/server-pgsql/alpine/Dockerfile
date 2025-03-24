@@ -42,6 +42,7 @@ RUN set -eux && \
             tini \
             traceroute \
             nmap \
+            krb5 \
             fping \
             tzdata \
             iputils \

@@ -43,6 +43,7 @@ RUN set -eux && \
             tzdata \
             traceroute \
             nmap \
+            krb5 \
             iputils \
             openssl \
             libcap \

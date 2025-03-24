@@ -46,6 +46,7 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             tini \
             traceroute \
             nmap \
+            krb5-workstation \
             hostname \
             file-libs \
             tzdata \

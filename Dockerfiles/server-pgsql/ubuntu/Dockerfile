@@ -45,6 +45,7 @@ RUN --mount=type=cache,target=/var/cache/apt/,sharing=locked \
             tini \
             traceroute \
             nmap \
+            krb5-user \
             tzdata \
             ca-certificates \
             iputils-ping \
