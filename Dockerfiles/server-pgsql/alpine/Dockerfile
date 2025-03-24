@@ -49,6 +49,7 @@ RUN set -eux && \
     INSTALL_PKGS="bash \
             traceroute \
             nmap \
+            krb5 \
             fping \
             tzdata \
             iputils \
