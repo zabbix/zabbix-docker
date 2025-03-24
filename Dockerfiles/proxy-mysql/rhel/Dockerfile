@@ -71,6 +71,7 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
     INSTALL_PKGS="bash \
             traceroute \
             nmap \
+            krb5-workstation \
             shadow-utils \
             fping \
             iputils \
