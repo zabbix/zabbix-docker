@@ -47,6 +47,7 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             hostname \
             traceroute \
             nmap \
+            krb5-workstation \
             iputils \
             traceroute \
             libevent \

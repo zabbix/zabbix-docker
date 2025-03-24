@@ -43,6 +43,7 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             libevent \
             traceroute \
             nmap \
+            krb5-workstation \
             libssh \
             fping \
             file-libs \

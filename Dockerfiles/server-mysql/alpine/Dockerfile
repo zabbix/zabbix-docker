@@ -42,6 +42,7 @@ RUN set -eux && \
             fping \
             traceroute \
             nmap \
+            krb5 \
             tzdata \
             iputils \
             openssl \
