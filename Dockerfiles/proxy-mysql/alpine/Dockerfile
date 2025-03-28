@@ -79,7 +79,8 @@ RUN set -eux && \
         zabbix && \
     chgrp zabbix /usr/bin/nmap && \
     setcap cap_net_raw+eip /usr/bin/nmap && \
-    mkdir -p ${ZABBIX_CONF_DIR} && \
+    chmod u+s /usr/sbin/fping && \
+    mkdir -p ${ZABBIX_CONF_DIR}/ && \
     mkdir -p ${ZABBIX_USER_HOME_DIR} && \
     mkdir -p ${ZABBIX_USER_HOME_DIR}/enc && \
     mkdir -p ${ZABBIX_USER_HOME_DIR}/enc_internal && \
