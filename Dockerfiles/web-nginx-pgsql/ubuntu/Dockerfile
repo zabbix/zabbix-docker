@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1
 ARG OS_BASE_IMAGE=ubuntu:noble
 ARG MAJOR_VERSION=6.0
-ARG ZBX_VERSION=${MAJOR_VERSION}.39
+ARG ZBX_VERSION=${MAJOR_VERSION}.40
 ARG BUILD_BASE_IMAGE=zabbix-build-pgsql:ubuntu-${ZBX_VERSION}
 
 FROM ${BUILD_BASE_IMAGE} AS builder
