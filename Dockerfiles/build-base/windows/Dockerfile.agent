@@ -16,7 +16,7 @@ ARG CURL_VERSION=8.11.1
 ARG BUILD_ARCH=x64
 
 ARG MAJOR_VERSION=7.0
-ARG ZBX_VERSION=${MAJOR_VERSION}.11
+ARG ZBX_VERSION=${MAJOR_VERSION}.12
 
 ARG GIT_URL=https://github.com/git-for-windows/git/releases/download/v$GIT_VERSION.windows.1/MinGit-$GIT_VERSION-64-bit.zip
 ARG PERL_URL=https://github.com/StrawberryPerl/Perl-Dist-Strawberry/releases/download/SP_54001_64bit_UCRT/strawberry-perl-5.40.0.1-64bit-portable.zip
