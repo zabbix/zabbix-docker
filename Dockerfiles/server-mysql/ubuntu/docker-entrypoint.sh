@@ -359,11 +359,10 @@ create_db_schema_mysql() {
 }
 
 update_zbx_config() {
-    export ZBX_DB_HOST="${DB_SERVER_HOST}"
-    export ZBX_DB_PORT="${DB_SERVER_PORT}"
-    if [ -n "${DB_SERVER_SOCKET}" ]; then
-        export ZBX_DB_SOCKET="${DB_SERVER_SOCKET}"
-    fi
+    test -z "${DB_SERVER_SOCKET}" || export ZBX_DB_SOCKET="${DB_SERVER_SOCKET}"
+    test -z "${DB_SERVER_HOST}" || export ZBX_DB_HOST="${DB_SERVER_HOST}"
+    test -z "${DB_SERVER_PORT}" || export ZBX_DB_PORT="${DB_SERVER_PORT}"
+
     export ZBX_DB_NAME="${DB_SERVER_DBNAME}"
 
     if [ -n "${ZBX_VAULT}" ] && [ -n "${ZBX_VAULTURL}" ] && [ ! -n "${ZBX_VAULTDBPATH}" ]; then

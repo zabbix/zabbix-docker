@@ -122,7 +122,7 @@ RUN --mount=type=cache,target=/var/cache/apt/,sharing=locked \
 EXPOSE 10051/TCP
 
 WORKDIR ${ZABBIX_USER_HOME_DIR}
-    
+
 VOLUME ["${ZABBIX_USER_HOME_DIR}/snmptraps", "${ZABBIX_USER_HOME_DIR}/export"]
 
 COPY ["docker-entrypoint.sh", "/usr/bin/"]
