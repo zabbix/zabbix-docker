@@ -159,9 +159,12 @@ file_process_from_env() {
 
 # Check prerequisites for MySQL database
 check_variables_mysql() {
-    if [ ! -n "${DB_SERVER_SOCKET}" ]; then
+    if [ -n "${DB_SERVER_SOCKET}" ]; then
+        mysql_connect_args="-S ${DB_SERVER_SOCKET}"
+    else
         : ${DB_SERVER_HOST:="mysql-server"}
         : ${DB_SERVER_PORT:="3306"}
+        mysql_connect_args="-h ${DB_SERVER_HOST} -P ${DB_SERVER_PORT}"
     fi
 
     USE_DB_ROOT_USER=false
@@ -199,11 +202,6 @@ check_variables_mysql() {
 
     DB_SERVER_DBNAME=${MYSQL_DATABASE:-"zabbix"}
 
-    if [ ! -n "${DB_SERVER_SOCKET}" ]; then
-        mysql_connect_args="-h ${DB_SERVER_HOST} -P ${DB_SERVER_PORT}"
-    else
-        mysql_connect_args="-S ${DB_SERVER_SOCKET}"
-    fi
 }
 
 db_tls_params() {
