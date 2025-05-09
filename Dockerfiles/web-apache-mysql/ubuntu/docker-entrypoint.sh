@@ -87,12 +87,14 @@ file_process_from_env() {
 
 # Check prerequisites for MySQL database
 check_variables() {
-    if [ ! -n "${DB_SERVER_SOCKET}" ]; then
-        : ${DB_SERVER_HOST:="mysql-server"}
-    else
-        DB_SERVER_HOST="localhost"
-    fi
     : ${DB_SERVER_PORT:="3306"}
+    if [ -n "${DB_SERVER_SOCKET}" ]; then
+        mysql_connect_args="-S ${DB_SERVER_SOCKET}"
+        DB_SERVER_HOST="localhost"
+    else
+        : ${DB_SERVER_HOST:="mysql-server"}
+        mysql_connect_args="-h ${DB_SERVER_HOST} -P ${DB_SERVER_PORT}"
+    fi
 
     file_env MYSQL_USER
     file_env MYSQL_PASSWORD
@@ -102,11 +104,6 @@ check_variables() {
 
     DB_SERVER_DBNAME=${MYSQL_DATABASE:-"zabbix"}
 
-    if [ ! -n "${DB_SERVER_SOCKET}" ]; then
-        mysql_connect_args="-h ${DB_SERVER_HOST} -P ${DB_SERVER_PORT}"
-    else
-        mysql_connect_args="-S ${DB_SERVER_SOCKET}"
-    fi
 }
 
 db_tls_params() {
