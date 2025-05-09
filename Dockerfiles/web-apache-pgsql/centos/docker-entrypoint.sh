@@ -24,7 +24,7 @@ fi
 
 # DefaultRuntimeDir configuration option value
 export APACHE_RUN_DIR="/tmp/httpd"
-    
+
 # Default directories
 # Apache main configuration file
 HTTPD_CONF_FILE="/etc/httpd/conf/httpd.conf"
