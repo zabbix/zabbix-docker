@@ -87,12 +87,12 @@ file_process_from_env() {
 
 # Check prerequisites for MySQL database
 check_variables() {
-    : ${DB_SERVER_PORT:="3306"}
     if [ -n "${DB_SERVER_SOCKET}" ]; then
         mysql_connect_args="-S ${DB_SERVER_SOCKET}"
         DB_SERVER_HOST="localhost"
     else
         : ${DB_SERVER_HOST:="mysql-server"}
+        : ${DB_SERVER_PORT:="3306"}
         mysql_connect_args="-h ${DB_SERVER_HOST} -P ${DB_SERVER_PORT}"
     fi
 
@@ -237,8 +237,9 @@ prepare_zbx_php_config() {
     export PHP_TZ=${PHP_TZ}
 
     export DB_SERVER_TYPE="MYSQL"
-    export DB_SERVER_HOST=${DB_SERVER_HOST}
-    export DB_SERVER_PORT=${DB_SERVER_PORT}
+    test -z "${DB_SERVER_HOST}" || export DB_SERVER_HOST
+    test -z "${DB_SERVER_PORT}" || export DB_SERVER_PORT
+    test -z "${DB_SERVER_SOCKET}" || export DB_SERVER_SOCKET
     export DB_SERVER_DBNAME=${DB_SERVER_DBNAME}
     export DB_SERVER_SCHEMA=${DB_SERVER_SCHEMA}
     export DB_SERVER_USER=${DB_SERVER_ZBX_USER}
