@@ -169,7 +169,7 @@ RUN Set-Location -Path $env:SystemDrive\.; `
         -G 'MinGW Makefiles' `
         -DBUILD_SHARED_LIBS=OFF `
         -DBUILD_STATIC_LIBS=ON `
-        -DCMAKE_POLICY_VERSION_MINIMUM=3.5 `
+        -DCMAKE_POLICY_VERSION_MINIMUM='3.5' `
         -DPCRE_DEBUG=OFF `
         -DPCRE_BUILD_TESTS=OFF `
         -DINSTALL_MSVC_PDB=OFF `
