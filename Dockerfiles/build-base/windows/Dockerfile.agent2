@@ -4,7 +4,7 @@ ARG OS_BASE_IMAGE=mcr.microsoft.com/windows/servercore:ltsc2022
 FROM ${OS_BASE_IMAGE}
 
 ARG PCRE2_VERSION=10.45
-ARG OPENSSL_VERSION=3.4.1
+ARG OPENSSL_VERSION=3.1.5
 ARG GOLANG_VERSION=1.24.3
 ARG VS_BUILDTOOLS_VERSION=17
 ARG PWSH_VERSION=7.5.1
@@ -43,7 +43,7 @@ LABEL org.opencontainers.image.title="Zabbix agent 2 build base for Windows" `
       org.opencontainers.image.version="${ZBX_VERSION}"
 
 ADD --checksum=sha256:0e138387df7835d7403b8351e2226c1377da804e0737db0e071b48f07c9d12ee $PCRE2_URL C:\pcre2.zip
-ADD --checksum=sha256:002a2d6b30b58bf4bea46c43bdd96365aaf8daa6c428782aa4feee06da197df3 $OPENSSL_URL C:\openssl.tar.gz
+ADD --checksum=sha256:6ae015467dabf0469b139ada93319327be24b98251ffaeceda0221848dc09262 $OPENSSL_URL C:\openssl.tar.gz
 
 SHELL ["powershell", "-Command", "$ErrorActionPreference = 'Stop'; $ProgressPreference = 'SilentlyContinue';"]
 
