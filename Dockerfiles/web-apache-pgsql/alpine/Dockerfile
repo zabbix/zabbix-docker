@@ -37,23 +37,23 @@ RUN set -eux && \
             tzdata \
             curl \
             apache2-proxy \
-            php83-bcmath \
-            php83-ctype \
-            php83-curl \
-            php83-fpm \
-            php83-gd \
-            php83-gettext \
-            php83-json \
-            php83-ldap \
-            php83-pgsql \
-            php83-mbstring \
-            php83-session \
-            php83-simplexml \
-            php83-sockets \
-            php83-fileinfo \
-            php83-xmlreader \
-            php83-xmlwriter \
-            php83-openssl \
+            php84-bcmath \
+            php84-ctype \
+            php84-curl \
+            php84-fpm \
+            php84-gd \
+            php84-gettext \
+            php84-json \
+            php84-ldap \
+            php84-pgsql \
+            php84-mbstring \
+            php84-session \
+            php84-simplexml \
+            php84-sockets \
+            php84-fileinfo \
+            php84-xmlreader \
+            php84-xmlwriter \
+            php84-openssl \
             postgresql17-client \
             supervisor" && \
     apk add \
@@ -89,7 +89,7 @@ RUN set -eux && \
     rm -f "/etc/apache2/conf.d/languages.conf" && \
     rm -f "/etc/apache2/conf.d/userdir.conf" && \
     mkdir -p /var/lib/php/session && \
-    rm -rf /etc/php83/php-fpm.d/www.conf && \
+    rm -rf /etc/php84/php-fpm.d/www.conf && \
     rm -rf "/var/run/apache2/" && \
     cd ${ZABBIX_WWW_ROOT}/ && \
     rm -f conf/zabbix.conf.php conf/maintenance.inc.php conf/zabbix.conf.php.example && \
@@ -102,9 +102,9 @@ RUN set -eux && \
     chown --quiet -R zabbix:root ${ZABBIX_CONF_DIR}/ ${ZABBIX_WWW_ROOT}/include/defines.inc.php ${ZABBIX_WWW_ROOT}/modules/ && \
     chgrp -R 0 ${ZABBIX_CONF_DIR}/ ${ZABBIX_WWW_ROOT}/include/defines.inc.php ${ZABBIX_WWW_ROOT}/modules/ && \
     chmod -R g=u ${ZABBIX_CONF_DIR}/ ${ZABBIX_WWW_ROOT}/include/defines.inc.php ${ZABBIX_WWW_ROOT}/modules/ && \
-    chown --quiet -R zabbix:root /etc/apache2/ /etc/php83/php-fpm.d/ /etc/php83/php-fpm.conf && \
-    chgrp -R 0 /etc/apache2/ /etc/php83/php-fpm.d/ /etc/php83/php-fpm.conf && \
-    chmod -R g=u /etc/apache2/ /etc/php83/php-fpm.d/ /etc/php83/php-fpm.conf && \
+    chown --quiet -R zabbix:root /etc/apache2/ /etc/php84/php-fpm.d/ /etc/php84/php-fpm.conf && \
+    chgrp -R 0 /etc/apache2/ /etc/php84/php-fpm.d/ /etc/php84/php-fpm.conf && \
+    chmod -R g=u /etc/apache2/ /etc/php84/php-fpm.d/ /etc/php84/php-fpm.conf && \
     chown --quiet -R zabbix:root /var/lib/php/session/ && \
     chgrp -R 0 /var/lib/php/session/ && \
     chmod -R g=u /var/lib/php/session/
