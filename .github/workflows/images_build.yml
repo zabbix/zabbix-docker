@@ -442,7 +442,7 @@ jobs:
           key: ${{ env.BASE_BUILD_NAME }}-${{ matrix.os }}-${{ github.run_id }}
 
   build_base_database:
-    timeout-minutes: 180
+    timeout-minutes: 1240
     needs: [ "build_base", "init_build"]
     name: Build ${{ matrix.build }} base on ${{ matrix.os }}
     strategy:
