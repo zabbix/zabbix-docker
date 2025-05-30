@@ -57,6 +57,7 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             libssh \
             file-libs \
             fping \
+            iputils \
             libxml2 \
             mysql \
             mysql-libs \

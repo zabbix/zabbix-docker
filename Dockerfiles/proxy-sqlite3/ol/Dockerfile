@@ -54,6 +54,7 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             krb5-workstation \
             libssh \
             fping \
+            iputils \
             file-libs \
             libxml2 \
             net-snmp-libs \
