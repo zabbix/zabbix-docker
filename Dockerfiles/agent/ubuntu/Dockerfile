@@ -40,6 +40,7 @@ RUN --mount=type=cache,target=/var/cache/apt/,sharing=locked \
     INSTALL_PKGS="bash \
             tini \
             tzdata \
+            iputils-ping \
             ca-certificates \
             libssl3t64 \
             libcurl4t64 \
