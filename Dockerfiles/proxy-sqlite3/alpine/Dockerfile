@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1
-ARG OS_BASE_IMAGE=alpine:3.21
+ARG OS_BASE_IMAGE=alpine:3.22
 ARG MAJOR_VERSION=7.2
 ARG ZBX_VERSION=${MAJOR_VERSION}.7
 ARG BUILD_BASE_IMAGE=zabbix-build-sqlite3:alpine-${ZBX_VERSION}
