@@ -30,7 +30,7 @@ NGINX_CONFD_DIR="/etc/nginx/http.d"
 # Directory with SSL certificate files for Nginx
 NGINX_SSL_CONFIG_DIR="/etc/ssl/nginx"
 # PHP-FPM configuration file
-PHP_CONFIG_FILE="/etc/php83/php-fpm.d/zabbix.conf"
+PHP_CONFIG_FILE="/etc/php84/php-fpm.d/zabbix.conf"
 
 # usage: file_env VAR [DEFAULT]
 # as example: file_env 'MYSQL_PASSWORD' 'zabbix'
