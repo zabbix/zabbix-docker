@@ -31,7 +31,7 @@ LABEL org.opencontainers.image.title="Zabbix agent 2" `
       org.opencontainers.image.source="${ZBX_SOURCES}"
 
 COPY --from=builder ["C:\\zabbix-${ZBX_VERSION}-output", "C:\\zabbix"]
-COPY --from=builder ["C:\\pwsh", "C:\\Program Files\\PowerShell"]
+COPY --from=builder ["C:\\build_deps\\pwsh", "C:\\Program Files\\PowerShell"]
 COPY [".\\docker-entrypoint.ps1", "C:\\zabbix"]
 
 WORKDIR C:\zabbix\
