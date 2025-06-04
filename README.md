@@ -25,22 +25,14 @@ This repository contains **Dockerfile** of [Zabbix](https://zabbix.com/) for [Do
 
 * [alpine](https://hub.docker.com/_/alpine/)
 * [centos](https://quay.io/repository/centos/centos?tab=info)
-* [oracle linux](https://hub.docker.com/_/oraclelinux/) from Zabbix 5.0
+* [oracle linux](https://hub.docker.com/_/oraclelinux/)
 * [ubuntu](https://hub.docker.com/_/ubuntu/)
-
-> [!IMPORTANT]
-> All Zabbix images based on CentOS 8 image can not be updated anymore because CentOS 8 base image is outdated on Docker Hub (base image is not updated for half year). CentOS Stream 8 and CentOS Stream 9 from quay.io is used currently.**
 
 ### Usage
 
 There is some documentation and examples in the [official Zabbix Documentation](https://www.zabbix.com/documentation/current/manual/installation/containers)!
 
 Please also follow usage instructions of each Zabbix component image:
-
-* [zabbix-appliance](https://hub.docker.com/r/zabbix/zabbix-appliance/) - Zabbix appliance with built-in MySQL server, Zabbix server, Zabbix Java Gateway and Zabbix frontend based on Nginx web-server
-
-> [!IMPORTANT]
-> Zabbix Docker Appliance has been decommissioned and will not be available for 3.0.31, 4.0.19, 4.4.7, 5.0.0 and newer releases. Please use a separate Docker images for each component instead of the all-in-one solution.**
 
 * [zabbix-agent](https://hub.docker.com/r/zabbix/zabbix-agent/) - Zabbix agent
 * [zabbix-agent2](https://hub.docker.com/r/zabbix/zabbix-agent2/) - Zabbix agent 2
