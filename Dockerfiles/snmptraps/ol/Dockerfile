@@ -3,7 +3,7 @@ ARG OS_BASE_IMAGE=oraclelinux:9-slim
 FROM ${OS_BASE_IMAGE}
 
 ARG MAJOR_VERSION=7.0
-ARG ZBX_VERSION=${MAJOR_VERSION}.13
+ARG ZBX_VERSION=${MAJOR_VERSION}.14
 ARG ZBX_SOURCES=https://git.zabbix.com/scm/zbx/zabbix.git
 
 ENV TERM=xterm \
