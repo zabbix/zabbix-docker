@@ -141,28 +141,6 @@ check_db_connect() {
 }
 
 prepare_web_server() {
-    APACHE_SITES_DIR=/etc/httpd/conf.d
-
-    echo "** Adding Zabbix virtual host (HTTP)"
-    if [ -f "$ZABBIX_CONF_DIR/apache.conf" ]; then
-        ln -sfT "$ZABBIX_CONF_DIR/apache.conf" "$APACHE_SITES_DIR/zabbix.conf"
-    else
-        echo "**** Impossible to enable HTTP virtual host"
-    fi
-
-    if [ -f "/etc/ssl/apache2/ssl.crt" ] && [ -f "/etc/ssl/apache2/ssl.key" ]; then
-        echo "** Adding Zabbix virtual host (HTTPS)"
-        if [ -f "$ZABBIX_CONF_DIR/apache_ssl.conf" ]; then
-            ln -sfT "$ZABBIX_CONF_DIR/apache_ssl.conf" "$APACHE_SITES_DIR/zabbix_ssl.conf"
-        else
-            echo "**** Impossible to enable HTTPS virtual host"
-        fi
-    else
-        echo "**** Impossible to enable SSL support for Apache2. Certificates are missed."
-    fi
-}
-
-prepare_web_server() {
     if [ "$(id -u)" == '0' ]; then
         export APACHE_RUN_USER=${DAEMON_USER}
     else
