@@ -29,8 +29,8 @@
     ]
   },
   "os-windows": {
-    "windows-2019": "ltsc2019",
-    "windows-2022": "ltsc2022"
+    "windows-2022": "ltsc2022",
+    "windows-2025": "ltsc2025"
   },
   "components": {
     "agent": { "base": "build-mysql", "rhel": true },
