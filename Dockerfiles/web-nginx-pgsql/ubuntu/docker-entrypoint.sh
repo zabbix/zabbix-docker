@@ -32,6 +32,15 @@ NGINX_SSL_CONFIG_DIR="/etc/ssl/nginx"
 # PHP-FPM configuration file
 PHP_CONFIG_FILE="/etc/php/8.3/fpm/pool.d/zabbix.conf"
 
+escape_spec_char() {
+    local var_value=$1
+
+    var_value="${var_value//\\/\\\\}"
+    var_value="${var_value//./\\.}"
+
+    echo "$var_value"
+}
+
 # usage: file_env VAR [DEFAULT]
 # as example: file_env 'MYSQL_PASSWORD' 'zabbix'
 #    (will allow for "$MYSQL_PASSWORD_FILE" to fill in the value of "$MYSQL_PASSWORD" from a file)
@@ -209,8 +218,6 @@ prepare_web_server() {
     sed -i \
         -e "s/{EXPOSE_WEB_SERVER_INFO}/${EXPOSE_WEB_SERVER_INFO}/g" \
     "$NGINX_CONF_FILE"
-<<<<<<< HEAD
-=======
 
     [ ! -z "${WEB_REAL_IP_FROM}" ] && WEB_REAL_IP_FROM="set_real_ip_from ${WEB_REAL_IP_FROM};"
     WEB_REAL_IP_FROM=$(escape_spec_char "$WEB_REAL_IP_FROM")
@@ -232,7 +239,6 @@ prepare_web_server() {
     sed -i \
         -e "s/{WEB_REAL_IP_HEADER}/${WEB_REAL_IP_HEADER}/g" \
     "$ZABBIX_CONF_DIR/nginx_ssl.conf"
->>>>>>> 8a11aefbb (Merge pull request #1778 from petrkle/7.4)
 }
 
 prepare_zbx_php_config() {
