@@ -201,6 +201,11 @@ prepare_web_server() {
         export APACHE_SERVER_SIGNATURE="Off"
     fi
 
+    [ -z "${WEB_REAL_IP_FROM}" ] && sed -i '/WEB_REAL_IP_FROM/d' "$ZABBIX_CONF_DIR/apache.conf"
+    [ -z "${WEB_REAL_IP_FROM}" ] && sed -i '/WEB_REAL_IP_FROM/d' "$ZABBIX_CONF_DIR/apache_ssl.conf"
+    [ -z "${WEB_REAL_IP_HEADER}" ] && sed -i '/WEB_REAL_IP_HEADER/d' "$ZABBIX_CONF_DIR/apache.conf"
+    [ -z "${WEB_REAL_IP_HEADER}" ] && sed -i '/WEB_REAL_IP_HEADER/d' "$ZABBIX_CONF_DIR/apache_ssl.conf"
+
     mkdir -p "${APACHE_RUN_DIR}"
 }
 

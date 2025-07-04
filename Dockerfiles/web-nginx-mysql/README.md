@@ -259,6 +259,10 @@ PHP_FPM_PM_START_SERVERS=5
 PHP_FPM_PM_MIN_SPARE_SERVERS=5
 PHP_FPM_PM_MAX_SPARE_SERVERS=35
 PHP_FPM_PM_MAX_REQUESTS=0
+
+Allowed Nginx configuration options:
+WEB_REAL_IP_FROM=
+WEB_REAL_IP_HEADER=
 ```
 
 ## Allowed volumes for the Zabbix web interface container
