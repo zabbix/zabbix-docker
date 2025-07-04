@@ -88,7 +88,7 @@ RUN --mount=type=cache,target=/root/.cache/go-build/ \
             --enable-webservice \
             --with-ldap \
             --with-libcurl \
-            --with-libmodbus \
+#            --with-libmodbus \
             --with-libpcre2 \
             --with-libxml2 \
             --with-${DB_TYPE} \

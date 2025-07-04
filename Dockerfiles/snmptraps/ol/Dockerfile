@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1
-ARG OS_BASE_IMAGE=oraclelinux:9-slim
+ARG OS_BASE_IMAGE=container-registry.oracle.com/os/oraclelinux:10-slim
 FROM ${OS_BASE_IMAGE}
 
 ARG MAJOR_VERSION=7.4
@@ -33,8 +33,8 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             net-snmp" && \
     microdnf -y install \
             --disablerepo="*" \
-            --enablerepo="ol9_baseos_latest" \
-            --enablerepo="ol9_appstream" \
+            --enablerepo="ol10_baseos_latest" \
+            --enablerepo="ol10_appstream" \
             --setopt=install_weak_deps=0 \
             --setopt=keepcache=0 \
             --best \

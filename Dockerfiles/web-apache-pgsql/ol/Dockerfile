@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1
-ARG OS_BASE_IMAGE=oraclelinux:9-slim
+ARG OS_BASE_IMAGE=container-registry.oracle.com/os/oraclelinux:10-slim
 ARG MAJOR_VERSION=7.4
 ARG ZBX_VERSION=${MAJOR_VERSION}
 ARG BUILD_BASE_IMAGE=zabbix-build-mysql:ol-${ZBX_VERSION}
@@ -32,13 +32,14 @@ STOPSIGNAL SIGTERM
 
 COPY --from=builder ["/tmp/zabbix-${ZBX_VERSION}/ui", "${ZABBIX_WWW_ROOT}"]
 COPY ["conf/etc/", "/etc/"]
-COPY ["conf/etc/yum.repos.d/oracle-epel-ol9.repo", "/etc/yum.repos.d/oracle-epel-ol9.repo"]
+COPY ["conf/etc/yum.repos.d/oracle-epel-ol10.repo", "/etc/yum.repos.d/oracle-epel-ol10.repo"]
 
 RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
     --mount=type=tmpfs,target=/var/cache/yum/ \
     set -eux && \
     INSTALL_PKGS="bash \
             curl \
+            gzip \
             httpd \
             mod_ssl \
             php \
@@ -55,18 +56,11 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             findutils \
             glibc-locale-source \
             supervisor" && \
-    microdnf -y module enable \
-        --disablerepo "*" \
-        --enablerepo "ol9_appstream" \
-        --setopt=install_weak_deps=0 \
-        --setopt=keepcache=0 \
-        php:8.2 \
-        postgresql:16 && \
     microdnf -y install \
             --disablerepo="*" \
-            --enablerepo="ol9_baseos_latest" \
-            --enablerepo="ol9_appstream" \
-            --enablerepo="ol9_developer_EPEL" \
+            --enablerepo="ol10_baseos_latest" \
+            --enablerepo="ol10_appstream" \
+            --enablerepo="ol10_u0_developer_EPEL" \
             --setopt=install_weak_deps=0 \
             --setopt=keepcache=0 \
             --best \
@@ -119,7 +113,8 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
     chmod -R g=u /run/httpd/ /var/lib/php/session/ && \
     microdnf -y remove \
             findutils \
-            glibc-locale-source
+            glibc-locale-source \
+            gzip
 
 HEALTHCHECK --interval=1m30s --timeout=3s --retries=3 --start-period=40s --start-interval=5s \
     CMD curl -f http://localhost:8080/ping || exit 1
