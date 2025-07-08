@@ -36,7 +36,7 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             openssl-devel \
             openldap-devel \
             make \
-            mysql-devel \
+            mysql8.4-devel \
             net-snmp-devel \
             OpenIPMI-devel \
             openldap-devel \

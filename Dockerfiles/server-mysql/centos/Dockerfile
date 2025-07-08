@@ -62,8 +62,8 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             libpsl \
             libbrotli \
             libxml2 \
-            mysql \
-            mysql-libs \
+            mysql8.4 \
+            mysql8.4-libs \
             net-snmp-libs \
             OpenIPMI-libs \
             openldap \

@@ -39,7 +39,7 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
     INSTALL_PKGS="bash \
             curl-minimal \
             httpd \
-            mysql \
+            mysql8.4 \
             mod_ssl \
             php \
             php-curl \

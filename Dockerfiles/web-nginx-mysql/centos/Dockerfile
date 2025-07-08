@@ -38,7 +38,7 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
     set -eux && \
     INSTALL_PKGS="bash \
             curl-minimal \
-            mysql \
+            mysql8.4 \
             nginx \
             php-bcmath \
             php-curl \
