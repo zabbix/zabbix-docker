@@ -52,14 +52,33 @@ RUN --mount=type=cache,target=/var/cache/apt/,sharing=locked \
             php8.3-mbstring \
             php8.3-xml \
             php8.3-pgsql \
-            postgresql-client \
+            postgresql-client-17 \
             supervisor" && \
+    apt-get -y update && \
+    DEBIAN_FRONTEND=noninteractive apt-get -y \
+            --no-install-recommends install \
+        gpg \
+        dirmngr \
+        gpg-agent && \
+    DISTRIB_CODENAME=$(/bin/bash -c 'source /etc/lsb-release && echo $DISTRIB_CODENAME') && \
+    echo "deb http://apt.postgresql.org/pub/repos/apt $DISTRIB_CODENAME-pgdg main" > /etc/apt/sources.list.d/pgdg.list && \
+    key='B97B0AFCAA1A47F044F244A07FCC7D46ACCC4CF8' && \
+    export GNUPGHOME="$(mktemp -d)" && \
+    gpg --batch --keyserver keyserver.ubuntu.com --recv-keys "$key" && \
+    gpg --batch --export "$key" > /etc/apt/trusted.gpg.d/postgresql.gpg && \
+    gpgconf --kill all && \
+    rm -rf "$GNUPGHOME" && \
     apt-get -y update && \
     DEBIAN_FRONTEND=noninteractive apt-get -y \
             -o Dpkg::Options::="--force-confdef" \
             -o Dpkg::Options::="--force-confold" \
             --no-install-recommends install \
         ${INSTALL_PKGS} && \
+    DEBIAN_FRONTEND=noninteractive apt-get -y \
+            purge \
+                gpg \
+                dirmngr \
+                gpg-agent && \
     groupadd \
             --system \
             --gid 1995 \
