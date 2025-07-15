@@ -37,6 +37,7 @@ RUN --mount=type=cache,target=/var/cache/apt/,sharing=locked \
     --mount=type=cache,target=/var/lib/apt/,sharing=locked \
     set -eux && \
     echo "#!/bin/sh\nexit 101" > /usr/sbin/policy-rc.d && \
+    export PYTHONDONTWRITEBYTECODE=1 && \
     INSTALL_PKGS="bash \
             tzdata \
             curl \ 
@@ -87,7 +88,7 @@ RUN --mount=type=cache,target=/var/cache/apt/,sharing=locked \
     cd ${ZABBIX_WWW_ROOT}/ && \
     rm -f conf/zabbix.conf.php conf/maintenance.inc.php conf/zabbix.conf.php.example && \
     rm -rf tests && \
-    rm -f locale/add_new_language.sh locale/update_po.sh locale/make_mo.sh && \
+    find /usr -name '*.pyc' -type f -exec bash -c 'for pyc_file; do dpkg -S "$pyc_file" &> /dev/null || rm -f "$pyc_file"; done' -- '{}' + && \
     find ${ZABBIX_WWW_ROOT}/locale -name '*.po' | xargs rm -f && \
     find ${ZABBIX_WWW_ROOT}/locale -name '*.sh' | xargs rm -f && \
     ln -s "${ZABBIX_CONF_DIR}/web/zabbix.conf.php" "${ZABBIX_WWW_ROOT}/conf/zabbix.conf.php" && \
