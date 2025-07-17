@@ -685,7 +685,9 @@ services:
   read_only: true
   volumes:
    - ${DATA_DIRECTORY}/var/lib/zabbix/enc:/var/lib/zabbix/enc:ro
-  tmpfs: /tmp
+  tmpfs:
+   - /var/lib/zabbix/.config
+   - /tmp
   security_opt:
    - seccomp:${ENV_VARS_DIRECTORY}/chrome_dp.json
   deploy:
