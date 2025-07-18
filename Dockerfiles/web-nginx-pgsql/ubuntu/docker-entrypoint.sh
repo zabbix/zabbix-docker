@@ -279,49 +279,6 @@ prepare_zbx_php_config() {
         sed "/ZBX_SESSION_NAME/s/'[^']*'/'${ZBX_SESSION_NAME}'/2" "/tmp/defines.inc.php_tmp" > "$ZABBIX_WWW_ROOT/include/defines.inc.php"
         rm -f "/tmp/defines.inc.php_tmp"
     fi
-
-    FCGI_READ_TIMEOUT=$(expr ${ZBX_MAXEXECUTIONTIME} + 1)
-    sed -i \
-        -e "s/{FCGI_READ_TIMEOUT}/${FCGI_READ_TIMEOUT}/g" \
-    "$ZABBIX_CONF_DIR/nginx.conf"
-
-    : ${HTTP_INDEX_FILE:="index.php"}
-    sed -i \
-        -e "s/{HTTP_INDEX_FILE}/${HTTP_INDEX_FILE}/g" \
-    "$ZABBIX_CONF_DIR/nginx.conf"
-
-    if [ -f "$ZABBIX_CONF_DIR/nginx_ssl.conf" ]; then
-        sed -i \
-            -e "s/{FCGI_READ_TIMEOUT}/${FCGI_READ_TIMEOUT}/g" \
-        "$ZABBIX_CONF_DIR/nginx_ssl.conf"
-
-        sed -i \
-            -e "s/{HTTP_INDEX_FILE}/${HTTP_INDEX_FILE}/g" \
-        "$ZABBIX_CONF_DIR/nginx_ssl.conf"
-    fi
-
-    : ${ENABLE_WEB_ACCESS_LOG:="true"}
-
-    if [ "${ENABLE_WEB_ACCESS_LOG,,}" == "false" ]; then
-        sed -ri \
-            -e 's!^(\s*access_log).+\;!\1 off\;!g' \
-            "$NGINX_CONF_FILE"
-        sed -ri \
-            -e 's!^(\s*access_log).+\;!\1 off\;!g' \
-            "$NGINX_CONF_FILE"
-        sed -ri \
-            -e 's!^(\s*access_log).+\;!\1 off\;!g' \
-            "$ZABBIX_CONF_DIR/nginx_ssl.conf"
-    fi
-
-    : ${EXPOSE_WEB_SERVER_INFO:="on"}
-
-    [[ "${EXPOSE_WEB_SERVER_INFO}" != "off" ]] && EXPOSE_WEB_SERVER_INFO="on"
-
-    export EXPOSE_WEB_SERVER_INFO=${EXPOSE_WEB_SERVER_INFO}
-    sed -i \
-        -e "s/{EXPOSE_WEB_SERVER_INFO}/${EXPOSE_WEB_SERVER_INFO}/g" \
-    "$NGINX_CONF_FILE"
 }
 
 prepare_zbx_config() {
