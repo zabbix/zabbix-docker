@@ -7,7 +7,7 @@ ARG GOLANG_VERSION=1.23.2
 
 ARG BUILD_ARCH=x64
 
-ARG MAJOR_VERSION=7.4
+ARG MAJOR_VERSION=8.0
 ARG ZBX_VERSION=${MAJOR_VERSION}
 
 ARG GIT_URL=https://github.com/git-for-windows/git/releases/download/v2.47.1.windows.1/MinGit-2.47.1-busybox-64-bit.zip

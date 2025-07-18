@@ -2,7 +2,7 @@
 # escape=`
 ARG OS_BASE_IMAGE=mcr.microsoft.com/windows/nanoserver:ltsc2022
 
-ARG MAJOR_VERSION=7.4
+ARG MAJOR_VERSION=8.0
 ARG ZBX_VERSION=${MAJOR_VERSION}
 
 ARG BUILD_BASE_IMAGE=zabbix-build-agent:ltsc2022-agent2-${ZBX_VERSION}

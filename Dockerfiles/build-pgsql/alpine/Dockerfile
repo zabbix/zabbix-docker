@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1
-ARG MAJOR_VERSION=7.4
+ARG MAJOR_VERSION=8.0
 ARG ZBX_VERSION=${MAJOR_VERSION}
 ARG BUILD_BASE_IMAGE=zabbix-build-base:alpine-${ZBX_VERSION}
 

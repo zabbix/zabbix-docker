@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1
 ARG OS_BASE_IMAGE=nvidia/cuda:12.9.0-base-ubi9
-ARG MAJOR_VERSION=7.2
+ARG MAJOR_VERSION=8.0
 ARG RELEASE=7
 ARG ZBX_VERSION=${MAJOR_VERSION}.7
 ARG BUILD_BASE_IMAGE=registry.connect.redhat.com/zabbix/zabbix-agent2-72:${ZBX_VERSION}
