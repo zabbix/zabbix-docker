@@ -41,6 +41,7 @@ services:
   build:
    context: ./Dockerfiles/build-sqlite3/${CENTOS_OS_TAG_SHORT}
    additional_contexts:
+    - sources=./sources/
     - config_templates=./config_templates/
    args:
     BUILD_BASE_IMAGE: ${BUILD_BASE_IMAGE}:${ZABBIX_CENTOS_IMAGE_TAG}${ZABBIX_LOCAL_IMAGE_TAG_POSTFIX}
