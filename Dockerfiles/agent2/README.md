@@ -14,17 +14,17 @@ Zabbix agent 2 is deployed on a monitoring target to actively monitor local reso
 
 # Zabbix agent 2 images
 
-These are the only official Zabbix agent 2 Docker images. They are based on Alpine Linux v3.21, Ubuntu 24.04 (noble), CentOS Stream 9, Oracle Linux 9, Windows 10 LTSC 2019 and Windows 11 LTSC 2022 images. The available versions of Zabbix agent 2 are:
+These are the only official Zabbix agent 2 Docker images. They are based on Alpine Linux v3.22, Ubuntu 24.04 (noble), CentOS Stream 10, Oracle Linux 10, Windows 10 LTSC 2019 and Windows 11 LTSC 2022 images. The available versions of Zabbix agent 2 are:
 
-    Zabbix agent 2 5.0 (tags: alpine-5.0-latest, ubuntu-5.0-latest, ol-5.0-latest , ltsc2019-5.0-latest, ltsc2022-5.0-latest)
-    Zabbix agent 2 5.0.* (tags: alpine-5.0.*, ubuntu-5.0.*, ol-5.0.*, ltsc2019-5.0.*, ltsc2022-5.0.*)
     Zabbix agent 2 6.0 (tags: alpine-6.0-latest, ubuntu-6.0-latest, ol-6.0-latest)
     Zabbix agent 2 6.0.* (tags: alpine-6.0.*, ubuntu-6.0.*, ol-6.0.*, ltsc2019-6.0.*, ltsc2022-6.0.*)
     Zabbix agent 2 7.0 (tags: alpine-7.0-latest, ubuntu-7.0-latest, ol-7.0-latest)
     Zabbix agent 2 7.0.* (tags: alpine-7.0.*, ubuntu-7.0.*, ol-7.0.*, ltsc2019-7.0.*, ltsc2022-7.0.*)
-    Zabbix agent 2 7.2 (tags: alpine-7.2-latest, ubuntu-7.2-latest, ol-7.2-latest, alpine-latest, ubuntu-latest, ol-latest, ltsc2019-latest, ltsc2022-latest, latest)
-    Zabbix agent 2 7.2.* (tags: alpine-7.2.*, ubuntu-7.2.*, ol-7.0.*, ltsc2019-7.2.*, ltsc2022-7.2.*)
-    Zabbix agent 2 7.4 (tags: alpine-trunk, ubuntu-trunk, ol-trunk, ltsc2019-trunk, ltsc2022-trunk)
+    Zabbix agent 2 7.2 (tags: alpine-7.2-latest, ubuntu-7.2-latest, ol-7.2-latest)
+    Zabbix agent 2 7.2.* (tags: alpine-7.2.*, ubuntu-7.2.*, ol-7.2.*, ltsc2019-7.2.*, ltsc2022-7.2.*)
+    Zabbix agent 2 7.4 (tags: alpine-7.4-latest, ubuntu-7.4-latest, ol-7.4-latest, alpine-latest, ubuntu-latest, ol-latest, ltsc2019-latest, ltsc2022-latest, latest)
+    Zabbix agent 2 7.4.* (tags: alpine-7.4.*, ubuntu-7.4.*, ol-7.4.*, ltsc2019-7.4.*, ltsc2022-7.4.*)
+    Zabbix agent 2 8.0 (tags: alpine-trunk, ubuntu-trunk, ol-trunk, ltsc2019-trunk, ltsc2022-trunk)
 
 Images are updated when new releases are published. The image with ``latest`` tag is based on Alpine Linux.
 
