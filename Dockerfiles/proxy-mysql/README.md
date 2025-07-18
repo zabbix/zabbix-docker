@@ -14,17 +14,17 @@ Zabbix proxy is a process that may collect monitoring data from one or more moni
 
 # Zabbix proxy images
 
-These are the only official Zabbix proxy Docker images. They are based on Alpine Linux v3.21, Ubuntu 24.04 (noble), CentOS Stream 9 and Oracle Linux 9 images. The available versions of Zabbix proxy are:
+These are the only official Zabbix proxy Docker images. They are based on Alpine Linux v3.22, Ubuntu 24.04 (noble), CentOS Stream 10 and Oracle Linux 10 images. The available versions of Zabbix proxy are:
 
-    Zabbix proxy 5.0 (tags: alpine-5.0-latest, ubuntu-5.0-latest, ol-5.0-latest)
-    Zabbix proxy 5.0.* (tags: alpine-5.0.*, ubuntu-5.0.*, ol-5.0.*)
     Zabbix proxy 6.0 (tags: alpine-6.0-latest, ubuntu-6.0-latest, ol-6.0-latest)
     Zabbix proxy 6.0.* (tags: alpine-6.0.*, ubuntu-6.0.*, ol-6.0.*)
     Zabbix proxy 7.0 (tags: alpine-7.0-latest, ubuntu-7.0-latest, ol-7.0-latest)
     Zabbix proxy 7.0.* (tags: alpine-7.0.*, ubuntu-7.0.*, ol-7.0.*)
-    Zabbix proxy 7.2 (tags: alpine-7.2-latest, ubuntu-7.2-latest, ol-7.2-latest, alpine-latest, ubuntu-latest, ol-latest, latest)
+    Zabbix proxy 7.2 (tags: alpine-7.2-latest, ubuntu-7.2-latest, ol-7.2-latest)
     Zabbix proxy 7.2.* (tags: alpine-7.2.*, ubuntu-7.2.*, ol-7.2.*)
-    Zabbix proxy 7.2 (tags: alpine-trunk, ubuntu-trunk, ol-trunk)
+    Zabbix proxy 7.4 (tags: alpine-7.4-latest, ubuntu-7.4-latest, ol-7.4-latest, alpine-latest, ubuntu-latest, ol-latest, latest)
+    Zabbix proxy 7.4.* (tags: alpine-7.4.*, ubuntu-7.4.*, ol-7.4.*)
+    Zabbix proxy 8.0 (tags: alpine-trunk, ubuntu-trunk, ol-trunk)
 
 Images are updated when new releases are published. The image with ``latest`` tag is based on Alpine Linux.
 
