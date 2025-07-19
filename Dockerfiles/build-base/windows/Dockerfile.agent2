@@ -216,6 +216,13 @@ RUN Set-Location -Path $env:SystemDrive\.; `
         no-tests `
         no-unit-test `
         no-capieng `
+        no-winstore `
+        no-srp `
+        no-gost `
+        no-dgram `
+        no-dtls1-method `
+        no-dtls1_2-method `
+        thread_scheme=winthreads `
         --api=1.1.0 `
         --libdir=lib `
         --prefix=$env:BUILD_OUTPUT/openssl `
