@@ -1,8 +1,8 @@
 # syntax=docker/dockerfile:1
 ARG OS_BASE_IMAGE=registry.access.redhat.com/ubi9/ubi-minimal:9.6
 ARG MAJOR_VERSION=7.0
-ARG RELEASE=16
-ARG ZBX_VERSION=${MAJOR_VERSION}.16
+ARG RELEASE=17
+ARG ZBX_VERSION=${MAJOR_VERSION}.17
 ARG BUILD_BASE_IMAGE=zabbix-build-pgsql:rhel-${ZBX_VERSION}
 
 FROM ${BUILD_BASE_IMAGE} AS builder

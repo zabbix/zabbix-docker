@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1
 ARG OS_BASE_IMAGE=oraclelinux:9-slim
 ARG MAJOR_VERSION=7.0
-ARG ZBX_VERSION=${MAJOR_VERSION}.16
+ARG ZBX_VERSION=${MAJOR_VERSION}.17
 ARG BUILD_BASE_IMAGE=zabbix-build-pgsql:ol-${ZBX_VERSION}
 
 FROM ${BUILD_BASE_IMAGE} AS builder
