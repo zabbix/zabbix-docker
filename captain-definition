@@ -1,0 +1,56 @@
+{
+  "schemaVersion": 2,
+  "dockerCompose": {
+    "services": {
+      "mysql-server": {
+        "image": "mysql:8.0",
+        "environment": {
+          "MYSQL_DATABASE": "zabbix",
+          "MYSQL_USER": "zabbix",
+          "MYSQL_PASSWORD": "#Bernardo200522",
+          "MYSQL_ROOT_PASSWORD": "#Bernardo200522"
+        },
+        "volumes": [
+          "/home/iguassutech/zabbix/mysql:/var/lib/mysql"
+        ]
+      },
+      "zabbix-server": {
+        "image": "zabbix/zabbix-server-mysql:alpine-7.4-latest",
+        "environment": {
+          "DB_SERVER_HOST": "mysql-server",
+          "MYSQL_DATABASE": "zabbix",
+          "MYSQL_USER": "zabbix",
+          "MYSQL_PASSWORD": "#Bernardo200522",
+          "MYSQL_ROOT_PASSWORD": "#Bernardo200522",
+          "ZBX_SERVER_NAME": "Zabbix Iguassu Tech",
+          "TZ": "America/Sao_Paulo"
+        },
+        "ports": [
+          "10051:10051"
+        ],
+        "depends_on": [
+          "mysql-server"
+        ]
+      },
+      "zabbix-web": {
+        "image": "zabbix/zabbix-web-nginx-mysql:alpine-7.4-latest",
+        "environment": {
+          "ZBX_SERVER_HOST": "zabbix-server",
+          "DB_SERVER_HOST": "mysql-server",
+          "MYSQL_DATABASE": "zabbix",
+          "MYSQL_USER": "zabbix",
+          "MYSQL_PASSWORD": "#Bernardo200522",
+          "MYSQL_ROOT_PASSWORD": "#Bernardo200522",
+          "PHP_TZ": "America/Sao_Paulo"
+        },
+        "ports": [
+          "80:8080",
+          "443:8443"
+        ],
+        "depends_on": [
+          "zabbix-server"
+        ]
+      }
+    }
+  }
+}
