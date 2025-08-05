@@ -261,6 +261,36 @@ services:
    com.zabbix.description: "Zabbix proxy with MySQL database support (database init)"
    com.zabbix.dbtype: "mysql"
 
+ proxy-pgsql-db-init:
+  init: true
+  profiles:
+   - all
+  attach: true
+  volumes:
+   - ${DATA_DIRECTORY}/var/lib/zabbix/dbscripts:/var/lib/zabbix/dbscripts:ro
+#   - ${ENV_VARS_DIRECTORY}/.ZBX_DB_CA_FILE:/run/secrets/root-ca.pem:ro
+#   - ${ENV_VARS_DIRECTORY}/.ZBX_DB_CERT_FILE:/run/secrets/client-cert.pem:ro
+#   - ${ENV_VARS_DIRECTORY}/.ZBX_DB_KEY_FILE:/run/secrets/client-key.pem:ro
+#   - pgsql_socket:/var/run/postgresql
+  command: init_db_only
+  tmpfs: /tmp
+  env_file:
+   - path: ${ENV_VARS_DIRECTORY}/.env_db_pgsql_proxy
+     required: true
+  secrets:
+   - POSTGRES_USER
+   - POSTGRES_PASSWORD
+#   - client-key.pem
+#   - client-cert.pem
+#   - root-ca.pem
+  networks:
+   database:
+     aliases:
+      - zabbix-proxy-pgsql-init
+  labels:
+   com.zabbix.description: "Zabbix proxy with PostgreSQL database support (database init)"
+   com.zabbix.dbtype: "pgsql"
+
  proxy-mysql:
   extends:
    service: proxy
@@ -295,6 +325,41 @@ services:
   labels:
    com.zabbix.description: "Zabbix proxy with MySQL database support"
    com.zabbix.dbtype: "mysql"
+
+ proxy-pgsql:
+  extends:
+   service: proxy
+  ports:
+   - name: zabbix-trapper
+     target: 10051
+     published: "${ZABBIX_PROXY_PGSQL_PORT}"
+     protocol: tcp
+     app_protocol: zabbix-trapper
+#  volumes:
+#   - mysql_socket:/var/run/mysqld/
+  env_file:
+   - path: ${ENV_VARS_DIRECTORY}/.env_db_pgsql_proxy
+     required: true
+   - path: ${ENV_VARS_DIRECTORY}/.env_prx_pgsql
+     required: true
+   - path: ${ENV_VARS_DIRECTORY}/.env_prx_pgsql_override
+     required: false
+  secrets:
+   - POSTGRES_USER
+   - POSTGRES_PASSWORD
+#   - client-key.pem
+#   - client-cert.pem
+#   - root-ca.pem
+  networks:
+   database:
+     aliases:
+      - zabbix-proxy-pgsql
+   backend:
+    aliases:
+     - zabbix-proxy-pgsql
+  labels:
+   com.zabbix.description: "Zabbix proxy with PostgreSQL database support"
+   com.zabbix.dbtype: "pgsql"
 
  web-apache:
   profiles:

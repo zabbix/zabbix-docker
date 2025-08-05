@@ -2,7 +2,7 @@
 ARG OS_BASE_IMAGE=alpine:3.22
 ARG MAJOR_VERSION=7.0
 ARG ZBX_VERSION=${MAJOR_VERSION}.17
-ARG BUILD_BASE_IMAGE=zabbix-build-mysql:alpine-${ZBX_VERSION}
+ARG BUILD_BASE_IMAGE=zabbix-build-pgsql:alpine-${ZBX_VERSION}
 
 FROM ${BUILD_BASE_IMAGE} AS builder
 
@@ -21,11 +21,11 @@ ENV TERM=xterm \
     ZBX_FPINGLOCATION="/usr/sbin/fping"
 
 LABEL org.opencontainers.image.authors="Alexey Pustovalov <alexey.pustovalov@zabbix.com>" \
-      org.opencontainers.image.description="Zabbix proxy with MySQL database support" \
+      org.opencontainers.image.description="Zabbix proxy with PostgreSQL database support" \
       org.opencontainers.image.documentation="https://www.zabbix.com/documentation/${MAJOR_VERSION}/manual/installation/containers" \
       org.opencontainers.image.licenses="AGPL v3.0" \
       org.opencontainers.image.source="${ZBX_SOURCES}" \
-      org.opencontainers.image.title="Zabbix proxy (MySQL)" \
+      org.opencontainers.image.title="Zabbix proxy (PostgreSQL)" \
       org.opencontainers.image.url="https://zabbix.com/" \
       org.opencontainers.image.vendor="Zabbix SIA" \
       org.opencontainers.image.version="${ZBX_VERSION}"
@@ -35,7 +35,7 @@ STOPSIGNAL SIGTERM
 COPY --from=builder ["/tmp/zabbix-${ZBX_VERSION}-output/proxy/sbin/zabbix_proxy", "/usr/sbin/zabbix_proxy"]
 COPY --from=builder ["/tmp/zabbix-${ZBX_VERSION}-output/general/bin/*", "/usr/bin/"]
 COPY --from=builder ["/tmp/zabbix-${ZBX_VERSION}-output/proxy/conf/", "${ZABBIX_CONF_DIR}/"]
-COPY --from=builder ["/tmp/zabbix-${ZBX_VERSION}-output/proxy/database/mysql/", "/usr/share/doc/zabbix-proxy-mysql/"]
+COPY --from=builder ["/tmp/zabbix-${ZBX_VERSION}-output/proxy/database/postgresql/", "/usr/share/doc/zabbix-proxy-postgresql/"]
 
 RUN set -eux && \
     INSTALL_PKGS="bash \
@@ -51,11 +51,10 @@ RUN set -eux && \
             libldap \
             libssh \
             libxml2 \
-            mariadb-client \
-            mariadb-connector-c \
             net-snmp-agent-libs \
             openipmi-libs \
             pcre2 \
+            postgresql17-client \
             unixodbc \
             gzip \
             fping \
@@ -92,7 +91,7 @@ RUN set -eux && \
     mkdir -p ${ZABBIX_USER_HOME_DIR}/ssl/keys && \
     mkdir -p ${ZABBIX_USER_HOME_DIR}/ssl/ssl_ca && \
     mkdir -p /usr/lib/zabbix/externalscripts && \
-    mkdir -p /usr/share/doc/zabbix-proxy-mysql && \
+    mkdir -p /usr/share/doc/zabbix-proxy-postgresql && \
     chown --quiet -R zabbix:root ${ZABBIX_CONF_DIR}/ ${ZABBIX_USER_HOME_DIR}/ && \
     chgrp -R 0 ${ZABBIX_CONF_DIR}/ ${ZABBIX_USER_HOME_DIR}/ && \
     chmod -R g=u ${ZABBIX_CONF_DIR}/ ${ZABBIX_USER_HOME_DIR}/ && \

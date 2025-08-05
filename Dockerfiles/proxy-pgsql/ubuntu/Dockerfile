@@ -1,8 +1,8 @@
 # syntax=docker/dockerfile:1
-ARG OS_BASE_IMAGE=alpine:3.22
+ARG OS_BASE_IMAGE=ubuntu:noble
 ARG MAJOR_VERSION=7.0
 ARG ZBX_VERSION=${MAJOR_VERSION}.17
-ARG BUILD_BASE_IMAGE=zabbix-build-mysql:alpine-${ZBX_VERSION}
+ARG BUILD_BASE_IMAGE=zabbix-build-pgsql:ubuntu-${ZBX_VERSION}
 
 FROM ${BUILD_BASE_IMAGE} AS builder
 
@@ -14,18 +14,18 @@ ARG ZBX_SOURCES=https://git.zabbix.com/scm/zbx/zabbix.git
 
 ENV TERM=xterm \
     ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES} \
-    MIBDIRS=/usr/share/snmp/mibs:/var/lib/zabbix/mibs MIBS=+ALL \
+    MIBDIRS=/var/lib/mibs/ietf:/var/lib/mibs/iana:/usr/share/snmp/mibs:/var/lib/zabbix/mibs MIBS=+ALL \
     NMAP_PRIVILEGED="" \
     ZABBIX_USER_HOME_DIR="/var/lib/zabbix" \
     ZABBIX_CONF_DIR="/etc/zabbix" \
-    ZBX_FPINGLOCATION="/usr/sbin/fping"
+    ZBX_FPINGLOCATION="/usr/bin/fping"
 
 LABEL org.opencontainers.image.authors="Alexey Pustovalov <alexey.pustovalov@zabbix.com>" \
-      org.opencontainers.image.description="Zabbix proxy with MySQL database support" \
+      org.opencontainers.image.description="Zabbix proxy with PostgreSQL database support" \
       org.opencontainers.image.documentation="https://www.zabbix.com/documentation/${MAJOR_VERSION}/manual/installation/containers" \
       org.opencontainers.image.licenses="AGPL v3.0" \
       org.opencontainers.image.source="${ZBX_SOURCES}" \
-      org.opencontainers.image.title="Zabbix proxy (MySQL)" \
+      org.opencontainers.image.title="Zabbix proxy (PostgreSQL)" \
       org.opencontainers.image.url="https://zabbix.com/" \
       org.opencontainers.image.vendor="Zabbix SIA" \
       org.opencontainers.image.version="${ZBX_VERSION}"
@@ -35,47 +35,71 @@ STOPSIGNAL SIGTERM
 COPY --from=builder ["/tmp/zabbix-${ZBX_VERSION}-output/proxy/sbin/zabbix_proxy", "/usr/sbin/zabbix_proxy"]
 COPY --from=builder ["/tmp/zabbix-${ZBX_VERSION}-output/general/bin/*", "/usr/bin/"]
 COPY --from=builder ["/tmp/zabbix-${ZBX_VERSION}-output/proxy/conf/", "${ZABBIX_CONF_DIR}/"]
-COPY --from=builder ["/tmp/zabbix-${ZBX_VERSION}-output/proxy/database/mysql/", "/usr/share/doc/zabbix-proxy-mysql/"]
+COPY --from=builder ["/tmp/zabbix-${ZBX_VERSION}-output/proxy/database/postgresql/", "/usr/share/doc/zabbix-proxy-postgresql/"]
 
-RUN set -eux && \
+RUN --mount=type=cache,target=/var/cache/apt/,sharing=locked \
+    --mount=type=cache,target=/var/lib/apt/,sharing=locked \
+    set -eux && \
+    echo "#!/bin/sh\nexit 101" > /usr/sbin/policy-rc.d && \
     INSTALL_PKGS="bash \
             tzdata \
             traceroute \
             nmap \
-            krb5 \
-            iputils \
-            openssl \
-            libcap \
-            libcurl \
-            libevent \
-            libldap \
-            libssh \
-            libxml2 \
-            mariadb-client \
-            mariadb-connector-c \
-            net-snmp-agent-libs \
-            openipmi-libs \
-            pcre2 \
-            unixodbc \
-            gzip \
+            krb5-user \
+            iputils-ping \
+            ca-certificates \
             fping \
-            zlib" && \
-    apk add \
-            --no-cache \
-            --clean-protected \
+            openssl \
+            libcurl4t64 \
+            libevent-2.1 \
+            libevent-pthreads-2.1 \
+            libevent-extra-2.1 \
+            libopenipmi0t64 \
+            libpcre2-8-0 \
+            libpq5 \
+            libsnmp40t64 \
+            libssh-4 \
+            libssl3t64 \
+            libxml2 \
+            postgresql-client-17 \
+            snmp-mibs-downloader \
+            gzip \
+            unixodbc \
+            zlib1g" && \
+    apt-get -y update && \
+    DEBIAN_FRONTEND=noninteractive apt-get -y \
+            --no-install-recommends install \
+        gpg \
+        dirmngr \
+        gpg-agent && \
+    DISTRIB_CODENAME=$(/bin/bash -c 'source /etc/lsb-release && echo $DISTRIB_CODENAME') && \
+    echo "deb http://apt.postgresql.org/pub/repos/apt $DISTRIB_CODENAME-pgdg main" > /etc/apt/sources.list.d/pgdg.list && \
+    key='B97B0AFCAA1A47F044F244A07FCC7D46ACCC4CF8' && \
+    export GNUPGHOME="$(mktemp -d)" && \
+    gpg --batch --keyserver keyserver.ubuntu.com --recv-keys "$key" && \
+    gpg --batch --export "$key" > /etc/apt/trusted.gpg.d/postgresql.gpg && \
+    gpgconf --kill all && \
+    rm -rf "$GNUPGHOME" && \
+    apt-get -y update && \
+    DEBIAN_FRONTEND=noninteractive apt-get -y \
+            --no-install-recommends install \
         ${INSTALL_PKGS} && \
-    addgroup \
+    DEBIAN_FRONTEND=noninteractive apt-get -y \
+            purge \
+                gpg \
+                dirmngr \
+                gpg-agent && \
+    groupadd \
             --system \
             --gid 1995 \
         zabbix && \
-    adduser \
+    useradd \
             --system \
-            --gecos "Zabbix monitoring system" \
-            --disabled-password \
+            --comment "Zabbix monitoring system" \
+            -g zabbix \
             --uid 1997 \
-            --ingroup zabbix \
             --shell /sbin/nologin \
-            --home ${ZABBIX_USER_HOME_DIR} \
+            --home-dir ${ZABBIX_USER_HOME_DIR} \
         zabbix && \
     chgrp zabbix /usr/bin/nmap && \
     setcap cap_net_raw+eip /usr/bin/nmap && \
@@ -92,11 +116,10 @@ RUN set -eux && \
     mkdir -p ${ZABBIX_USER_HOME_DIR}/ssl/keys && \
     mkdir -p ${ZABBIX_USER_HOME_DIR}/ssl/ssl_ca && \
     mkdir -p /usr/lib/zabbix/externalscripts && \
-    mkdir -p /usr/share/doc/zabbix-proxy-mysql && \
+    mkdir -p /usr/share/doc/zabbix-proxy-postgresql && \
     chown --quiet -R zabbix:root ${ZABBIX_CONF_DIR}/ ${ZABBIX_USER_HOME_DIR}/ && \
     chgrp -R 0 ${ZABBIX_CONF_DIR}/ ${ZABBIX_USER_HOME_DIR}/ && \
     chmod -R g=u ${ZABBIX_CONF_DIR}/ ${ZABBIX_USER_HOME_DIR}/ && \
-    chmod u+s ${ZBX_FPINGLOCATION} && \
     /usr/sbin/zabbix_proxy -V
 
 EXPOSE 10051/TCP

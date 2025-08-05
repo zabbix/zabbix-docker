@@ -1,0 +1,606 @@
+#!/bin/bash
+
+set -o pipefail
+
+set +e
+
+# Script trace mode
+if [ "${DEBUG_MODE,,}" == "true" ]; then
+    set -o xtrace
+fi
+
+# Default Zabbix server host
+: ${ZBX_SERVER_HOST:="zabbix-server"}
+
+# Default directories
+# Internal directory for TLS related files, used when TLS*File specified as plain text values
+ZABBIX_INTERNAL_ENC_DIR="${ZABBIX_USER_HOME_DIR}/enc_internal"
+
+: ${DB_CHARACTER_SET:="utf8mb4"}
+: ${DB_CHARACTER_COLLATE:="utf8mb4_bin"}
+
+# usage: file_env VAR [DEFAULT]
+# as example: file_env 'MYSQL_PASSWORD' 'zabbix'
+#    (will allow for "$MYSQL_PASSWORD_FILE" to fill in the value of "$MYSQL_PASSWORD" from a file)
+# unsets the VAR_FILE afterwards and just leaving VAR
+file_env() {
+    local var="$1"
+    local fileVar="${var}_FILE"
+    local defaultValue="${2:-}"
+
+    if [ "${!var:-}" ] && [ "${!fileVar:-}" ]; then
+        echo "**** Both variables $var and $fileVar are set (but are exclusive)"
+        exit 1
+    fi
+
+    local val="$defaultValue"
+
+    if [ "${!var:-}" ]; then
+        val="${!var}"
+        echo "** Using ${var} variable from ENV"
+    elif [ "${!fileVar:-}" ]; then
+        if [ ! -f "${!fileVar}" ]; then
+            echo "**** Secret file \"${!fileVar}\" is not found"
+            exit 1
+        fi
+        val="$(< "${!fileVar}")"
+        echo "** Using ${var} variable from secret file"
+    fi
+    export "$var"="$val"
+    unset "$fileVar"
+}
+
+escape_spec_char() {
+    local var_value=$1
+
+    var_value="${var_value//\\/\\\\}"
+    var_value="${var_value//[$'\n']/}"
+    var_value="${var_value//\//\\/}"
+    var_value="${var_value//./\\.}"
+    var_value="${var_value//\*/\\*}"
+    var_value="${var_value//^/\\^}"
+    var_value="${var_value//\$/\\\$}"
+    var_value="${var_value//\&/\\\&}"
+    var_value="${var_value//\[/\\[}"
+    var_value="${var_value//\]/\\]}"
+
+    echo "$var_value"
+}
+
+update_config_var() {
+    local config_path=$1
+    local var_name=$2
+    local var_value=$3
+    local is_multiple=$4
+
+    local masklist=("DBPassword TLSPSKIdentity")
+
+    if [ ! -f "$config_path" ]; then
+        echo "**** Configuration file '$config_path' does not exist"
+        return
+    fi
+
+    if [[ " ${masklist[@]} " =~ " $var_name " ]] && [ ! -z "$var_value" ]; then
+        echo -n "** Updating '$config_path' parameter \"$var_name\": '****'. Enable DEBUG_MODE to view value ..."
+    else
+        echo -n "** Updating '$config_path' parameter \"$var_name\": '$var_value'..."
+    fi
+
+    # Remove configuration parameter definition in case of unset or empty parameter value
+    if [ -z "$var_value" ]; then
+        sed -i -e "/^$var_name=/d" "$config_path"
+        echo "removed"
+        return
+    fi
+
+    # Remove value from configuration parameter in case of set to double quoted parameter value
+    if [[ "$var_value" == '""' ]]; then
+        if [ "$(grep -E "^$var_name=" $config_path)" ]; then
+            sed -i -e "/^$var_name=/s/=.*/=/" "$config_path"
+        else
+            sed -i -e "/^[#;] $var_name=/s/.*/&\n$var_name=/" "$config_path"
+        fi
+        echo "undefined"
+        return
+    fi
+
+    # Use full path to a file for TLS related configuration parameters
+    if [[ $var_name =~ ^TLS.*File$ ]] && [[ ! $var_value =~ ^/.+$ ]]; then
+        var_value=$ZABBIX_USER_HOME_DIR/enc/$var_value
+    fi
+
+    # Escaping characters in parameter value and name
+    var_value=$(escape_spec_char "$var_value")
+    var_name=$(escape_spec_char "$var_name")
+
+    if [ "$(grep -E "^$var_name=$var_value$" $config_path)" ]; then
+        echo "exists"
+    elif [ "$(grep -E "^$var_name=" $config_path)" ] && [ "$is_multiple" != "true" ]; then
+        sed -i -e "/^$var_name=/s/=.*/=$var_value/" "$config_path"
+        echo "updated"
+    elif [ "$(grep -Ec "^# $var_name=" $config_path)" -gt 1 ]; then
+        sed -i -e  "/^[#;] $var_name=$/i\\$var_name=$var_value" "$config_path"
+        echo "added first occurrence"
+    else
+        sed -i -e "/^[#;] $var_name=/s/.*/&\n$var_name=$var_value/" "$config_path"
+        echo "added"
+    fi
+
+}
+
+update_config_multiple_var() {
+    local config_path=$1
+    local var_name=$2
+    local var_value=$3
+
+    var_value="${var_value%\"}"
+    var_value="${var_value#\"}"
+
+    local IFS=,
+    local OPT_LIST=($var_value)
+
+    for value in "${OPT_LIST[@]}"; do
+        update_config_var $config_path $var_name $value true
+    done
+}
+
+file_process_from_env() {
+    local config_path=$1
+    local var_name=$2
+    local file_name=$3
+    local var_value=$4
+
+    if [ ! -z "$var_value" ]; then
+        echo -n "$var_value" > "${ZABBIX_INTERNAL_ENC_DIR}/$var_name"
+        file_name="${ZABBIX_INTERNAL_ENC_DIR}/${var_name}"
+    fi
+    update_config_var $config_path "$var_name" "$file_name"
+}
+
+# Check prerequisites for PostgreSQL database
+check_variables_postgresql() {
+    : ${DB_SERVER_HOST="postgres-server"}
+    : ${DB_SERVER_PORT:="5432"}
+
+    file_env POSTGRES_USER
+    file_env POSTGRES_PASSWORD
+
+    DB_SERVER_ROOT_USER=${POSTGRES_USER:-"postgres"}
+    DB_SERVER_ROOT_PASS=${POSTGRES_PASSWORD:-""}
+
+    DB_SERVER_ZBX_USER=${POSTGRES_USER:-"zabbix"}
+    DB_SERVER_ZBX_PASS=${POSTGRES_PASSWORD:-"zabbix"}
+
+    : ${DB_SERVER_SCHEMA:="public"}
+
+    DB_SERVER_DBNAME=${POSTGRES_DB:-"zabbix"}
+
+    : ${POSTGRES_USE_IMPLICIT_SEARCH_PATH:="false"}
+
+    if [ -n "${DB_SERVER_HOST}" ]; then
+        psql_connect_args="--host ${DB_SERVER_HOST} --port ${DB_SERVER_PORT}"
+    else
+        DB_SERVER_HOST='""'
+        psql_connect_args="--port ${DB_SERVER_PORT}"
+    fi
+}
+
+check_db_connect_postgresql() {
+    echo "********************"
+    if [[ "$DB_SERVER_HOST" != '""' ]]; then
+        echo "* DB_SERVER_HOST: ${DB_SERVER_HOST}"
+        echo "* DB_SERVER_PORT: ${DB_SERVER_PORT}"
+    else
+        echo "* DB_SERVER_HOST: Using DB socket"
+        echo "* DB_SERVER_PORT: ${DB_SERVER_PORT}"
+    fi
+    echo "* DB_SERVER_DBNAME: ${DB_SERVER_DBNAME}"
+    echo "* DB_SERVER_SCHEMA: ${DB_SERVER_SCHEMA}"
+    if [ "${DEBUG_MODE,,}" == "true" ]; then
+        echo "* DB_SERVER_ZBX_USER: ${DB_SERVER_ZBX_USER}"
+        echo "* DB_SERVER_ZBX_PASS: ${DB_SERVER_ZBX_PASS}"
+    fi
+    echo "********************"
+
+    if [ -n "${DB_SERVER_ZBX_PASS}" ]; then
+        export PGPASSWORD="${DB_SERVER_ZBX_PASS}"
+    fi
+
+    WAIT_TIMEOUT=5
+
+    if [ "${POSTGRES_USE_IMPLICIT_SEARCH_PATH,,}" == "false" ] && [ -n "${DB_SERVER_SCHEMA}" ]; then
+        PGOPTIONS="--search_path=${DB_SERVER_SCHEMA}"
+        export PGOPTIONS
+    fi
+
+    if [ -n "${ZBX_DBTLSCONNECT}" ]; then
+        PGSSLMODE=${ZBX_DBTLSCONNECT//_/-}
+        export PGSSLMODE=${PGSSLMODE//required/require}
+        export PGSSLROOTCERT=${ZBX_DBTLSCAFILE}
+        export PGSSLCERT=${ZBX_DBTLSCERTFILE}
+        export PGSSLKEY=${ZBX_DBTLSKEYFILE}
+    fi
+
+    while true :
+    do
+        psql $psql_connect_args --username ${DB_SERVER_ROOT_USER} --list --quiet 1>/dev/null 2>&1 && break
+        psql $psql_connect_args --username ${DB_SERVER_ROOT_USER} --list --dbname ${DB_SERVER_DBNAME} --quiet 1>/dev/null 2>&1 && break
+
+        echo "**** PostgreSQL server is not available. Waiting $WAIT_TIMEOUT seconds..."
+        sleep $WAIT_TIMEOUT
+    done
+
+    unset PGPASSWORD
+    unset PGOPTIONS
+    unset PGSSLMODE
+    unset PGSSLROOTCERT
+    unset PGSSLCERT
+    unset PGSSLKEY
+}
+
+psql_query() {
+    query=$1
+    db=$2
+
+    local result=""
+
+    if [ -n "${DB_SERVER_ZBX_PASS}" ]; then
+        export PGPASSWORD="${DB_SERVER_ZBX_PASS}"
+    fi
+
+    if [ "${POSTGRES_USE_IMPLICIT_SEARCH_PATH,,}" == "false" ] && [ -n "${DB_SERVER_SCHEMA}" ]; then
+        PGOPTIONS="--search_path=${DB_SERVER_SCHEMA}"
+        export PGOPTIONS
+    fi
+
+    if [ -n "${ZBX_DBTLSCONNECT}" ]; then
+        PGSSLMODE=${ZBX_DBTLSCONNECT//_/-}
+        export PGSSLMODE=${PGSSLMODE//required/require}
+        export PGSSLROOTCERT=${ZBX_DBTLSCAFILE}
+        export PGSSLCERT=${ZBX_DBTLSCERTFILE}
+        export PGSSLKEY=${ZBX_DBTLSKEYFILE}
+    fi
+
+    result=$(psql --no-align --quiet --tuples-only $psql_connect_args \
+             --username "${DB_SERVER_ROOT_USER}" --command "$query" --dbname "$db" 2>/dev/null);
+
+    unset PGPASSWORD
+    unset PGOPTIONS
+    unset PGSSLMODE
+    unset PGSSLROOTCERT
+    unset PGSSLCERT
+    unset PGSSLKEY
+
+    echo $result
+}
+
+exec_sql_file() {
+    sql_script=$1
+
+    local command="cat"
+
+    if [ -n "${DB_SERVER_ZBX_PASS}" ]; then
+        export PGPASSWORD="${DB_SERVER_ZBX_PASS}"
+    fi
+
+    if [ "${POSTGRES_USE_IMPLICIT_SEARCH_PATH,,}" == "false" ] && [ -n "${DB_SERVER_SCHEMA}" ]; then
+        PGOPTIONS="--search_path=${DB_SERVER_SCHEMA}"
+        export PGOPTIONS
+    fi
+
+    if [ -n "${ZBX_DBTLSCONNECT}" ]; then
+        PGSSLMODE=${ZBX_DBTLSCONNECT//_/-}
+        export PGSSLMODE=${PGSSLMODE//required/require}
+        export PGSSLROOTCERT=${ZBX_DBTLSCAFILE}
+        export PGSSLCERT=${ZBX_DBTLSCERTFILE}
+        export PGSSLKEY=${ZBX_DBTLSKEYFILE}
+    fi
+
+    if [ "${sql_script: -3}" == ".gz" ]; then
+        command="zcat"
+    fi
+
+    $command $sql_script | psql --quiet \
+        $psql_connect_args \
+        --username "${DB_SERVER_ZBX_USER}" --dbname "${DB_SERVER_DBNAME}" 1>/dev/null || exit 1
+
+    unset PGPASSWORD
+    unset PGOPTIONS
+    unset PGSSLMODE
+    unset PGSSLROOTCERT
+    unset PGSSLCERT
+    unset PGSSLKEY
+}
+
+create_db_database_postgresql() {
+    DB_EXISTS=$(psql_query "SELECT 1 AS result FROM pg_database WHERE datname='${DB_SERVER_DBNAME}'" "${DB_SERVER_DBNAME}")
+
+    if [ -z ${DB_EXISTS} ]; then
+        echo "** Database '${DB_SERVER_DBNAME}' does not exist. Creating..."
+
+        if [ -n "${DB_SERVER_ZBX_PASS}" ]; then
+            export PGPASSWORD="${DB_SERVER_ZBX_PASS}"
+        fi
+
+        if [ "${POSTGRES_USE_IMPLICIT_SEARCH_PATH,,}" == "false" ] && [ -n "${DB_SERVER_SCHEMA}" ]; then
+            PGOPTIONS="--search_path=${DB_SERVER_SCHEMA}"
+            export PGOPTIONS
+        fi
+
+        if [ -n "${ZBX_DBTLSCONNECT}" ]; then
+            PGSSLMODE=${ZBX_DBTLSCONNECT//_/-}
+            export PGSSLMODE=${PGSSLMODE//required/require}
+            export PGSSLROOTCERT=${ZBX_DBTLSCAFILE}
+            export PGSSLCERT=${ZBX_DBTLSCERTFILE}
+            export PGSSLKEY=${ZBX_DBTLSKEYFILE}
+        fi
+
+        createdb $psql_connect_args --username "${DB_SERVER_ROOT_USER}" \
+                 --owner "${DB_SERVER_ZBX_USER}" --lc-ctype "en_US.utf8" --lc-collate "en_US.utf8" "${DB_SERVER_DBNAME}"
+
+        unset PGPASSWORD
+        unset PGOPTIONS
+        unset PGSSLMODE
+        unset PGSSLROOTCERT
+        unset PGSSLCERT
+        unset PGSSLKEY
+    else
+        echo "** Database '${DB_SERVER_DBNAME}' already exists. Please be careful with database owner!"
+    fi
+
+    psql_query "CREATE SCHEMA IF NOT EXISTS ${DB_SERVER_SCHEMA}" "${DB_SERVER_DBNAME}" 1>/dev/null
+}
+
+create_db_schema_postgresql() {
+    DBVERSION_TABLE_EXISTS=$(psql_query "SELECT 1 FROM pg_catalog.pg_class c JOIN pg_catalog.pg_namespace n ON n.oid =
+                                         c.relnamespace WHERE  n.nspname = '$DB_SERVER_SCHEMA' AND c.relname = 'dbversion'" "${DB_SERVER_DBNAME}")
+
+    if [ -n "${DBVERSION_TABLE_EXISTS}" ]; then
+        echo "** Table '${DB_SERVER_DBNAME}.dbversion' already exists."
+        ZBX_DB_VERSION=$(psql_query "SELECT mandatory FROM ${DB_SERVER_SCHEMA}.dbversion" "${DB_SERVER_DBNAME}")
+    fi
+
+    if [ -z "${ZBX_DB_VERSION}" ]; then
+        echo "** Creating '${DB_SERVER_DBNAME}' schema in PostgreSQL"
+
+        exec_sql_file "/usr/share/doc/zabbix-proxy-postgresql/create.sql.gz"
+    fi
+}
+
+update_zbx_config() {
+    echo "** Preparing Zabbix proxy configuration file"
+
+    ZBX_CONFIG=${ZABBIX_CONF_DIR}/zabbix_proxy.conf
+
+    update_config_var $ZBX_CONFIG "ProxyMode" "${ZBX_PROXYMODE}"
+    update_config_var $ZBX_CONFIG "Server" "${ZBX_SERVER_HOST}"
+    if [ -z "${ZBX_HOSTNAME}" ] && [ -n "${ZBX_HOSTNAMEITEM}" ]; then
+        update_config_var $ZBX_CONFIG "Hostname" ""
+        update_config_var $ZBX_CONFIG "HostnameItem" "${ZBX_HOSTNAMEITEM}"
+    else
+        update_config_var $ZBX_CONFIG "Hostname" "${ZBX_HOSTNAME:-"zabbix-proxy-postgresql"}"
+        update_config_var $ZBX_CONFIG "HostnameItem" "${ZBX_HOSTNAMEITEM}"
+    fi
+
+    update_config_var $ZBX_CONFIG "ListenIP" "${ZBX_LISTENIP}"
+    update_config_var $ZBX_CONFIG "ListenPort" "${ZBX_LISTENPORT}"
+    update_config_var $ZBX_CONFIG "ListenBacklog" "${ZBX_LISTENBACKLOG}"
+
+    update_config_var $ZBX_CONFIG "SourceIP" "${ZBX_SOURCEIP}"
+    update_config_var $ZBX_CONFIG "LogType" "console"
+    update_config_var $ZBX_CONFIG "LogFile"
+    update_config_var $ZBX_CONFIG "LogFileSize"
+    update_config_var $ZBX_CONFIG "PidFile"
+
+    update_config_var $ZBX_CONFIG "DebugLevel" "${ZBX_DEBUGLEVEL}"
+
+    if [ -n "${ZBX_DBTLSCONNECT}" ]; then
+        update_config_var $ZBX_CONFIG "DBTLSConnect" "${ZBX_DBTLSCONNECT}"
+        update_config_var $ZBX_CONFIG "DBTLSCAFile" "${ZBX_DBTLSCAFILE}"
+        update_config_var $ZBX_CONFIG "DBTLSCertFile" "${ZBX_DBTLSCERTFILE}"
+        update_config_var $ZBX_CONFIG "DBTLSKeyFile" "${ZBX_DBTLSKEYFILE}"
+        update_config_var $ZBX_CONFIG "DBTLSCipher" "${ZBX_DBTLSCIPHER}"
+        update_config_var $ZBX_CONFIG "DBTLSCipher13" "${ZBX_DBTLSCIPHER13}"
+    fi
+
+    update_config_var $ZBX_CONFIG "EnableRemoteCommands" "${ZBX_ENABLEREMOTECOMMANDS}"
+    update_config_var $ZBX_CONFIG "LogRemoteCommands" "${ZBX_LOGREMOTECOMMANDS}"
+
+    if [ ! -n "${DB_SERVER_SOCKET}" ]; then
+        update_config_var $ZBX_CONFIG "DBHost" "${DB_SERVER_HOST}"
+        update_config_var $ZBX_CONFIG "DBPort" "${DB_SERVER_PORT}"
+    else
+        update_config_var $ZBX_CONFIG "DBHost"
+        update_config_var $ZBX_CONFIG "DBPort"
+    fi
+    update_config_var $ZBX_CONFIG "DBSocket" "${DB_SERVER_SOCKET}"
+    update_config_var $ZBX_CONFIG "DBName" "${DB_SERVER_DBNAME}"
+    update_config_var $ZBX_CONFIG "DBSchema" "${DB_SERVER_SCHEMA}"
+
+    if [ -n "${ZBX_VAULTDBPATH}" ] && [ -n "${ZBX_VAULTURL}" ]; then
+        update_config_var $ZBX_CONFIG "Vault" "${ZBX_VAULT}"
+        update_config_var $ZBX_CONFIG "VaultDBPath" "${ZBX_VAULTDBPATH}"
+        update_config_var $ZBX_CONFIG "VaultTLSCertFile" "${ZBX_VAULTTLSCERTFILE}"
+        update_config_var $ZBX_CONFIG "VaultTLSKeyFile" "${ZBX_VAULTTLSKEYFILE}"
+        update_config_var $ZBX_CONFIG "VaultPrefix" "${ZBX_VAULTPREFIX}"
+        update_config_var $ZBX_CONFIG "VaultURL" "${ZBX_VAULTURL}"
+        update_config_var $ZBX_CONFIG "DBUser"
+        update_config_var $ZBX_CONFIG "DBPassword"
+    else
+        update_config_var $ZBX_CONFIG "Vault"
+        update_config_var $ZBX_CONFIG "VaultDBPath"
+        update_config_var $ZBX_CONFIG "VaultTLSCertFile"
+        update_config_var $ZBX_CONFIG "VaultTLSKeyFile"
+        update_config_var $ZBX_CONFIG "VaultPrefix"
+        update_config_var $ZBX_CONFIG "VaultURL"
+        update_config_var $ZBX_CONFIG "DBUser" "${DB_SERVER_ZBX_USER}"
+        update_config_var $ZBX_CONFIG "DBPassword" "${DB_SERVER_ZBX_PASS}"
+    fi
+
+    update_config_var $ZBX_CONFIG "AllowUnsupportedDBVersions" "${ZBX_ALLOWUNSUPPORTEDDBVERSIONS}"
+    update_config_var $ZBX_CONFIG "MaxConcurrentChecksPerPoller" "${ZBX_MAXCONCURRENTCHECKSPERPOLLER}"
+
+    update_config_var $ZBX_CONFIG "ProxyBufferMode" "${ZBX_PROXYBUFFERMODE}"
+    update_config_var $ZBX_CONFIG "ProxyMemoryBufferAge" "${ZBX_PROXYMEMORYBUFFERAGE}"
+    update_config_var $ZBX_CONFIG "ProxyMemoryBufferSize" "${ZBX_PROXYMEMORYBUFFERSIZE}"
+
+    update_config_var $ZBX_CONFIG "ProxyLocalBuffer" "${ZBX_PROXYLOCALBUFFER}"
+    update_config_var $ZBX_CONFIG "ProxyOfflineBuffer" "${ZBX_PROXYOFFLINEBUFFER}"
+    update_config_var $ZBX_CONFIG "ProxyConfigFrequency" "${ZBX_PROXYCONFIGFREQUENCY}"
+    update_config_var $ZBX_CONFIG "DataSenderFrequency" "${ZBX_DATASENDERFREQUENCY}"
+
+    update_config_var $ZBX_CONFIG "StatsAllowedIP" "${ZBX_STATSALLOWEDIP}"
+    update_config_var $ZBX_CONFIG "StartPreprocessors" "${ZBX_STARTPREPROCESSORS}"
+
+    update_config_var $ZBX_CONFIG "StartAgentPollers" "${ZBX_STARTAGENTPOLLERS}"
+    update_config_var $ZBX_CONFIG "StartPollers" "${ZBX_STARTPOLLERS}"
+    update_config_var $ZBX_CONFIG "StartIPMIPollers" "${ZBX_STARTIPMIPOLLERS}"
+    update_config_var $ZBX_CONFIG "StartPollersUnreachable" "${ZBX_STARTPOLLERSUNREACHABLE}"
+    update_config_var $ZBX_CONFIG "StartTrappers" "${ZBX_STARTTRAPPERS}"
+    update_config_var $ZBX_CONFIG "StartPingers" "${ZBX_STARTPINGERS}"
+    update_config_var $ZBX_CONFIG "StartDiscoverers" "${ZBX_STARTDISCOVERERS}"
+    update_config_var $ZBX_CONFIG "StartHTTPAgentPollers" "${ZBX_STARTHTTPAGENTPOLLERS}"
+    update_config_var $ZBX_CONFIG "StartHTTPPollers" "${ZBX_STARTHTTPPOLLERS}"
+    update_config_var $ZBX_CONFIG "StartODBCPollers" "${ZBX_STARTODBCPOLLERS}"
+    update_config_var $ZBX_CONFIG "StartSNMPPollers" "${ZBX_STARTSNMPPOLLERS}"
+
+    : ${ZBX_JAVAGATEWAY_ENABLE:="false"}
+    if [ "${ZBX_JAVAGATEWAY_ENABLE,,}" == "true" ]; then
+        update_config_var $ZBX_CONFIG "JavaGateway" "${ZBX_JAVAGATEWAY:-"zabbix-java-gateway"}"
+        update_config_var $ZBX_CONFIG "JavaGatewayPort" "${ZBX_JAVAGATEWAYPORT}"
+        update_config_var $ZBX_CONFIG "StartJavaPollers" "${ZBX_STARTJAVAPOLLERS:-"5"}"
+    else
+        update_config_var $ZBX_CONFIG "JavaGateway"
+        update_config_var $ZBX_CONFIG "JavaGatewayPort"
+        update_config_var $ZBX_CONFIG "StartJavaPollers"
+    fi
+
+    update_config_var $ZBX_CONFIG "StartVMwareCollectors" "${ZBX_STARTVMWARECOLLECTORS}"
+    update_config_var $ZBX_CONFIG "VMwareFrequency" "${ZBX_VMWAREFREQUENCY}"
+    update_config_var $ZBX_CONFIG "VMwarePerfFrequency" "${ZBX_VMWAREPERFFREQUENCY}"
+    update_config_var $ZBX_CONFIG "VMwareCacheSize" "${ZBX_VMWARECACHESIZE}"
+    update_config_var $ZBX_CONFIG "VMwareTimeout" "${ZBX_VMWARETIMEOUT}"
+
+    : ${ZBX_ENABLE_SNMP_TRAPS:="false"}
+    if [ "${ZBX_ENABLE_SNMP_TRAPS,,}" == "true" ]; then
+        update_config_var $ZBX_CONFIG "SNMPTrapperFile" "${ZABBIX_USER_HOME_DIR}/snmptraps/snmptraps.log"
+        update_config_var $ZBX_CONFIG "StartSNMPTrapper" "1"
+    else
+        update_config_var $ZBX_CONFIG "SNMPTrapperFile"
+        update_config_var $ZBX_CONFIG "StartSNMPTrapper"
+    fi
+
+    update_config_var $ZBX_CONFIG "SocketDir" "/tmp/"
+    update_config_var $ZBX_CONFIG "HousekeepingFrequency" "${ZBX_HOUSEKEEPINGFREQUENCY}"
+
+    update_config_var $ZBX_CONFIG "CacheSize" "${ZBX_CACHESIZE}"
+
+    update_config_var $ZBX_CONFIG "StartDBSyncers" "${ZBX_STARTDBSYNCERS}"
+    update_config_var $ZBX_CONFIG "HistoryCacheSize" "${ZBX_HISTORYCACHESIZE}"
+    update_config_var $ZBX_CONFIG "HistoryIndexCacheSize" "${ZBX_HISTORYINDEXCACHESIZE}"
+
+    update_config_var $ZBX_CONFIG "Timeout" "${ZBX_TIMEOUT}"
+    update_config_var $ZBX_CONFIG "TrapperTimeout" "${ZBX_TRAPPERTIMEOUT}"
+    update_config_var $ZBX_CONFIG "UnreachablePeriod" "${ZBX_UNREACHABLEPERIOD}"
+    update_config_var $ZBX_CONFIG "UnavailableDelay" "${ZBX_UNAVAILABLEDELAY}"
+    update_config_var $ZBX_CONFIG "UnreachableDelay" "${ZBX_UNREACHABLEDELAY}"
+
+    update_config_var $ZBX_CONFIG "ExternalScripts" "/usr/lib/zabbix/externalscripts"
+
+    update_config_var $ZBX_CONFIG "FpingLocation" "${ZBX_FPINGLOCATION}"
+    update_config_var $ZBX_CONFIG "Fping6Location" '""'
+
+    update_config_var $ZBX_CONFIG "SSHKeyLocation" "$ZABBIX_USER_HOME_DIR/ssh_keys"
+    update_config_var $ZBX_CONFIG "LogSlowQueries" "${ZBX_LOGSLOWQUERIES}"
+
+    update_config_var $ZBX_CONFIG "SSLCertLocation" "$ZABBIX_USER_HOME_DIR/ssl/certs/"
+    update_config_var $ZBX_CONFIG "SSLKeyLocation" "$ZABBIX_USER_HOME_DIR/ssl/keys/"
+    update_config_var $ZBX_CONFIG "SSLCALocation" "$ZABBIX_USER_HOME_DIR/ssl/ssl_ca/"
+    update_config_var $ZBX_CONFIG "LoadModulePath" "$ZABBIX_USER_HOME_DIR/modules/"
+    update_config_multiple_var $ZBX_CONFIG "LoadModule" "${ZBX_LOADMODULE}"
+
+    update_config_var $ZBX_CONFIG "TLSConnect" "${ZBX_TLSCONNECT}"
+    update_config_var $ZBX_CONFIG "TLSAccept" "${ZBX_TLSACCEPT}"
+    file_process_from_env $ZBX_CONFIG "TLSCAFile" "${ZBX_TLSCAFILE}" "${ZBX_TLSCA}"
+    file_process_from_env $ZBX_CONFIG "TLSCRLFile" "${ZBX_TLSCRLFILE}" "${ZBX_TLSCRL}"
+
+    update_config_var $ZBX_CONFIG "TLSServerCertIssuer" "${ZBX_TLSSERVERCERTISSUER}"
+    update_config_var $ZBX_CONFIG "TLSServerCertSubject" "${ZBX_TLSSERVERCERTSUBJECT}"
+
+    file_process_from_env $ZBX_CONFIG "TLSCertFile" "${ZBX_TLSCERTFILE}" "${ZBX_TLSCERT}"
+    update_config_var $ZBX_CONFIG "TLSCipherAll" "${ZBX_TLSCIPHERALL}"
+    update_config_var $ZBX_CONFIG "TLSCipherAll13" "${ZBX_TLSCIPHERALL13}"
+    update_config_var $ZBX_CONFIG "TLSCipherCert" "${ZBX_TLSCIPHERCERT}"
+    update_config_var $ZBX_CONFIG "TLSCipherCert13" "${ZBX_TLSCIPHERCERT13}"
+    update_config_var $ZBX_CONFIG "TLSCipherPSK" "${ZBX_TLSCIPHERPSK}"
+    update_config_var $ZBX_CONFIG "TLSCipherPSK13" "${ZBX_TLSCIPHERPSK13}"
+    file_process_from_env $ZBX_CONFIG "TLSKeyFile" "${ZBX_TLSKEYFILE}" "${ZBX_TLSKEY}"
+
+    update_config_var $ZBX_CONFIG "TLSPSKIdentity" "${ZBX_TLSPSKIDENTITY}"
+    file_process_from_env $ZBX_CONFIG "TLSPSKFile" "${ZBX_TLSPSKFILE}" "${ZBX_TLSPSK}"
+
+    if [ "$(id -u)" != '0' ]; then
+        update_config_var $ZBX_CONFIG "User" "$(whoami)"
+    else
+        update_config_var $ZBX_CONFIG "AllowRoot" "1"
+    fi
+
+    update_config_var $ZBX_CONFIG "WebDriverURL" "${ZBX_WEBDRIVERURL}"
+    update_config_var $ZBX_CONFIG "StartBrowserPollers" "${ZBX_STARTBROWSERPOLLERS}"
+
+    command -v openssl >/dev/null 2>&1 && openssl rehash -v "$ZABBIX_USER_HOME_DIR/ssl/ssl_ca/" 1>/dev/null
+}
+
+clear_zbx_env() {
+    [[ "${ZBX_CLEAR_ENV}" == "false" ]] && return
+
+    for env_var in $(env | grep -E "^(ZBX|DB|POSTGRES)_"); do
+        unset "${env_var%%=*}"
+    done
+}
+
+prepare_db() {
+    echo "** Preparing database"
+
+    check_variables_postgresql
+    check_db_connect_postgresql
+    create_db_database_postgresql
+    create_db_schema_postgresql
+}
+
+prepare_proxy() {
+    echo "** Preparing Zabbix proxy"
+
+    prepare_db
+    update_zbx_config
+    clear_zbx_env
+}
+
+#################################################
+
+if [ "${1#-}" != "$1" ]; then
+    set -- /usr/sbin/zabbix_proxy "$@"
+fi
+
+if [ "$1" == '/usr/sbin/zabbix_proxy' ]; then
+    prepare_proxy
+fi
+
+if [ "$1" == "init_db_only" ]; then
+    prepare_db
+else
+
+    # Additional configuration every startup
+    if [ -d "${ZABBIX_USER_HOME_DIR}/dbscripts/startup" ]; then
+        for sql_script in "${ZABBIX_USER_HOME_DIR}/dbscripts/startup/*.sql"; do
+            [ -e "$sql_script" ] || continue
+            echo "** Processing additional '$sql_script' SQL script"
+
+            exec_sql_file "$sql_script"
+        done
+    fi
+
+    exec "$@"
+fi
+
+#################################################

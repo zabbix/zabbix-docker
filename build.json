@@ -33,6 +33,7 @@
     "agent2": { "base": "build-mysql", "rhel": true, "rhel_project": "66425489c3f1cbe661cf6135" },
     "java-gateway": { "base": "build-mysql", "rhel": true, "rhel_project": "66425456fc1b23180a424e19" },
     "proxy-mysql": { "base": "build-mysql", "rhel": true, "rhel_project": "6642544aa84deaf9b8e1e987" },
+    "proxy-pgsql": { "base": "build-pgsql", "rhel": true, "rhel_project": "<TBD>" },
     "proxy-sqlite3": { "base": "build-sqlite3", "rhel": true, "rhel_project": "6642544aff927b6e9cd8ac61" },
     "server-mysql": { "base": "build-mysql", "rhel": true, "rhel_project": "66425419fc1b23180a424c56" },
     "server-pgsql": { "base": "build-pgsql", "rhel": true, "rhel_project": "6642543965a1ed1a86f32682" },
