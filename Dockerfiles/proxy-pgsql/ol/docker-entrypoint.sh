@@ -16,9 +16,6 @@ fi
 # Internal directory for TLS related files, used when TLS*File specified as plain text values
 ZABBIX_INTERNAL_ENC_DIR="${ZABBIX_USER_HOME_DIR}/enc_internal"
 
-: ${DB_CHARACTER_SET:="utf8mb4"}
-: ${DB_CHARACTER_COLLATE:="utf8mb4_bin"}
-
 # usage: file_env VAR [DEFAULT]
 # as example: file_env 'MYSQL_PASSWORD' 'zabbix'
 #    (will allow for "$MYSQL_PASSWORD_FILE" to fill in the value of "$MYSQL_PASSWORD" from a file)
