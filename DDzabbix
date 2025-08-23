@@ -1,0 +1,76 @@
+version: "3.7"
+
+services:
+  Zabbix-Server:
+    image: zabbix/zabbix-server-pgsql:latest
+    ports:
+      - 10051:10051
+    volumes:
+      - <path>/Zabbix/app:/app
+    networks:
+      - network-zabbix
+    environment:
+      - DB_SERVER_HOST=Zabbix-DB
+      - POSTGRES_DB=zabbix
+      - POSTGRES_USER=admin
+      - POSTGRES_PASSWORD=YourPassword
+    restart: always
+    depends_on:
+      - Zabbix-DB
+
+  Zabbix-WEB-Frontend:
+    image: zabbix/zabbix-web-nginx-pgsql:latest
+    ports:
+      - 8881:80
+      - 8882:8080
+    ulimits:
+      nofile:
+        soft: 10000
+        hard: 1000000
+    networks:
+      - network-zabbix
+    environment:
+      - ZBX_SERVER_HOST=Zabbix-Server
+      - ZBX_SERVER_PORT=10051
+      - DB_SERVER_HOST=Zabbix-DB
+      - DB_SERVER_PORT=5432
+      - POSTGRES_DB=zabbix
+      - POSTGRES_USER=admin
+      - POSTGRES_PASSWORD=YourPassword
+      - PHP_TZ=Asia/Aden
+    restart: always
+    depends_on:
+      - Zabbix-DB
+      - Zabbix-Server
+
+  Zabbix-Agent:
+    image: zabbix/zabbix-agent:latest
+    networks:
+      - network-zabbix
+
+    environment:
+      - ZBX_HOSTNAME=Zabbix-Server
+      - ZBX_SERVER_HOST=Zabbix-Server
+    restart: always
+
+  Zabbix-DB:
+    image: postgres:13
+    #ports:
+      #- 5432:5432
+
+    networks:
+      - network-zabbix
+    restart: always
+    environment:
+      - POSTGRES_DB=zabbix
+      - POSTGRES_USER=admin
+      - POSTGRES_PASSWORD=YourPassword
+    volumes:
+      - <path>/Zabbix/db:/var/lib/postgresql/data/
+
+volumes:
+   datastore:
+
+networks:
+   network-zabbix:
+      driver: bridge
