@@ -59,7 +59,7 @@ Templates support several [Compose  profiles](https://docs.docker.com/compose/pr
 Be sure to check [the Wiki-page](https://github.com/zabbix/zabbix-docker/wiki) on common problems and questions. If you still have problems with or questions about the images, please contact us through a [GitHub issue](https://github.com/zabbix/zabbix-docker/issues).
 
 > [!NOTE]
-> Please report here issues and feature requests related to Docker images only. If you have issues or ideas how to improve Zabbix, use official [bug tracker](https://support.zabbix.com/).
+> Please report here issues and feature requests related to Docker images only. If you have issues or ideas how to improve Zabbix, use official [bug tracker](https://support.zabbix.com/)
 
 ## Contributing
 
