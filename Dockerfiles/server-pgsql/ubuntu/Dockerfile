@@ -50,6 +50,7 @@ RUN --mount=type=cache,target=/var/cache/apt/,sharing=locked \
     set -eux && \
     echo "#!/bin/sh\nexit 101" > /usr/sbin/policy-rc.d && \
     INSTALL_PKGS="bash \
+            sudo \
             traceroute \
             nmap \
             krb5-user \
@@ -130,6 +131,7 @@ RUN --mount=type=cache,target=/var/cache/apt/,sharing=locked \
     mkdir -p /usr/lib/zabbix/alertscripts && \
     mkdir -p /usr/lib/zabbix/externalscripts && \
     mkdir -p /usr/share/doc/zabbix-server-postgresql && \
+    echo "zabbix ALL=(root) NOPASSWD: /usr/bin/sudo" >> /etc/sudoers.d/zabbix && \
     chown --quiet -R zabbix:root ${ZABBIX_CONF_DIR}/zabbix_server_modules.conf ${ZABBIX_USER_HOME_DIR} && \
     chown --quiet zabbix:root ${ZABBIX_CONF_DIR}/ && \
     chgrp -R 0 ${ZABBIX_CONF_DIR}/zabbix_server_modules.conf ${ZABBIX_USER_HOME_DIR} && \
