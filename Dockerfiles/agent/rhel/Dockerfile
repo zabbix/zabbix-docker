@@ -61,6 +61,7 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
     INSTALL_PKGS="bash \
             iputils \
             shadow-utils \
+            c-ares \
             pcre2 \
 #            libmodbus \
             libcurl-minimal \

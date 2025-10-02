@@ -44,6 +44,7 @@ RUN --mount=type=cache,target=/var/cache/apt/,sharing=locked \
             tzdata \
             iputils-ping \
             ca-certificates \
+            libcares2 \
             libssl3t64 \
             libcurl4t64 \
             libmodbus5 \

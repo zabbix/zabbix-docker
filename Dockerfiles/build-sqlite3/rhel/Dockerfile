@@ -87,6 +87,7 @@ RUN --mount=type=cache,target=/root/.cache/go-build/ \
             --enable-agent2 \
             --enable-java \
             --enable-proxy \
+            --with-ares \
             --with-ldap \
             --with-libcurl \
 #            --with-libmodbus \
