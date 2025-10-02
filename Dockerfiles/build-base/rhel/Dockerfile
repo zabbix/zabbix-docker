@@ -41,6 +41,7 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             gcc \
             go-toolset \
             patch \
+            c-ares-devel \
             pcre2-devel \
             libcurl-devel \
             libevent-devel \

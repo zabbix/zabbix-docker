@@ -53,6 +53,7 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             traceroute \
             nmap \
             krb5-workstation \
+            c-ares \
             hostname \
             file-libs \
             iputils \

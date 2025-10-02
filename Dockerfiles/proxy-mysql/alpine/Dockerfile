@@ -53,6 +53,7 @@ RUN set -eux && \
             krb5 \
             iputils \
             openssl \
+            c-ares \
             libcap \
             libcurl \
             libevent \

@@ -28,6 +28,7 @@ RUN --mount=type=cache,target=/var/cache/apt/,sharing=locked \
             curl \
             gcc \
             libc6-dev \
+            libc-ares-dev \
             libcurl4-openssl-dev \
             libevent-dev \
             libmodbus-dev \
