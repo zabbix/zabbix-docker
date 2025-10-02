@@ -38,6 +38,7 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
     set -eux && \
     INSTALL_PKGS="bash \
             iputils \
+            c-ares \
             pcre2 \
             libcurl-minimal \
             libmodbus \

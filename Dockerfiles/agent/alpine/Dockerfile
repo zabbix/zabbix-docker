@@ -38,6 +38,7 @@ RUN set -eux && \
             tzdata \
             coreutils \
             iputils \
+            c-ares \
             pcre2 \
             libgcc \
             libcurl \
