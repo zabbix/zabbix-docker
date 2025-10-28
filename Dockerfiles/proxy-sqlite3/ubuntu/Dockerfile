@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1
 ARG OS_BASE_IMAGE=ubuntu:noble
 ARG MAJOR_VERSION=7.0
-ARG ZBX_VERSION=${MAJOR_VERSION}.19
+ARG ZBX_VERSION=${MAJOR_VERSION}.20
 ARG BUILD_BASE_IMAGE=zabbix-build-sqlite3:ubuntu-${ZBX_VERSION}
 
 FROM ${BUILD_BASE_IMAGE} AS builder
