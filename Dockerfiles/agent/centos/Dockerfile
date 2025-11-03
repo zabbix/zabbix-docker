@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1
 ARG OS_BASE_IMAGE=quay.io/centos/centos:stream9-minimal
 ARG MAJOR_VERSION=7.0
-ARG ZBX_VERSION=${MAJOR_VERSION}.20
+ARG ZBX_VERSION=${MAJOR_VERSION}.21
 ARG BUILD_BASE_IMAGE=zabbix-build-mysql:centos-${ZBX_VERSION}
 
 FROM ${BUILD_BASE_IMAGE} AS builder
