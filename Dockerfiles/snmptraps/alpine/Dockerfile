@@ -55,7 +55,7 @@ RUN set -eux && \
     chgrp -R 0 /etc/snmp/ ${ZABBIX_USER_HOME_DIR}/ /var/tmp/ /var/run/ && \
     chmod -R g=u /etc/snmp/ ${ZABBIX_USER_HOME_DIR}/ /var/tmp/ /var/run/
 
-EXPOSE 1162/UDP
+EXPOSE 1162/udp
 
 WORKDIR ${ZABBIX_USER_HOME_DIR}/snmptraps/
 
@@ -64,7 +64,8 @@ VOLUME ["${ZABBIX_USER_HOME_DIR}/snmptraps", "${SNMP_PERSISTENT_DIR}"]
 COPY ["conf/etc/logrotate.d/zabbix_snmptraps", "/etc/logrotate.d/"]
 COPY ["conf/etc/snmp/snmptrapd.conf", "/etc/snmp/"]
 COPY ["conf/usr/sbin/zabbix_trap_handler.sh", "/usr/sbin/"]
+COPY ["conf/usr/sbin/snmptrapd_runner.sh", "/usr/sbin/"]
 
 USER 1997
 
-CMD ["/usr/sbin/snmptrapd", "-n", "-t", "-X", "-C", "-c", "/etc/snmp/snmptrapd.conf", "-Lo", "-A", "--doNotFork=yes"]
+CMD ["/usr/sbin/snmptrapd_runner.sh"]
