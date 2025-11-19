@@ -1530,6 +1530,16 @@
       "name": "writev",
       "action": "SCMP_ACT_ALLOW",
       "args": null
+    },
+    {
+      "name": "statx",
+      "action": "SCMP_ACT_ALLOW",
+      "args": null
+    },
+    {
+      "name": "openat2",
+      "action": "SCMP_ACT_ALLOW",
+      "args": null
     }
   ]
 }
