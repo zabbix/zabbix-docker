@@ -67,6 +67,7 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             --disablerepo "*" \
             --enablerepo "ubi-10-baseos-rpms" \
             --enablerepo "ubi-10-appstream-rpms" \
+            --enablerepo "rhel-10-for-$ARCH_SUFFIX-baseos-rpms" \
             --enablerepo "rhel-10-for-$ARCH_SUFFIX-appstream-rpms" \
             --enablerepo "epel" \
             --setopt=install_weak_deps=0 \
