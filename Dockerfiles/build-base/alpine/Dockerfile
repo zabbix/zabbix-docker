@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1
-ARG OS_BASE_IMAGE=alpine:3.22
+ARG OS_BASE_IMAGE=alpine:3.23
 FROM ${OS_BASE_IMAGE}
 
 ARG MAJOR_VERSION=7.0
