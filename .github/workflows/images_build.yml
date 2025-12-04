@@ -391,10 +391,12 @@ jobs:
             org.opencontainers.image.created=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.created'] }}
 
       - name: Scan for vulnerabilities
+        if: ${{ matrix.os != 'centos' }}
         uses: crazy-max/ghaction-container-scan@v3
         with:
           image: ${{ fromJSON(steps.meta.outputs.json).tags[0] }}
           annotations: true
+          dockerfile: ${{ format('{0}/{1}/{2}/Dockerfile', env.DOCKERFILES_DIRECTORY, env.BASE_BUILD_NAME, matrix.os) }}
 
       - name: Sign the images with GitHub OIDC Token
         if: ${{ env.AUTO_PUSH_IMAGES == 'true' }}
