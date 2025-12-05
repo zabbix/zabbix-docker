@@ -14,7 +14,7 @@ The image is used to receive SNMP traps, store them to a log file and provide ac
 
 # Zabbix snmptraps images
 
-These are the only official Zabbix snmptraps Docker images. They are based on Alpine Linux v3.22, Ubuntu 24.04 (noble), CentOS Stream 10 and Oracle Linux 10 images. The available versions of Zabbix snmptraps are:
+These are the only official Zabbix snmptraps Docker images. They are based on Alpine Linux v3.23, Ubuntu 24.04 (noble), CentOS Stream 10 and Oracle Linux 10 images. The available versions of Zabbix snmptraps are:
 
     Zabbix snmptraps 6.0 (tags: alpine-6.0-latest, ubuntu-6.0-latest, ol-6.0-latest)
     Zabbix snmptraps 6.0.* (tags: alpine-6.0.*, ubuntu-6.0.*, ol-6.0.*)
