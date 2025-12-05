@@ -209,6 +209,30 @@ prepare_web_server() {
     sed -i \
         -e "s/{EXPOSE_WEB_SERVER_INFO}/${EXPOSE_WEB_SERVER_INFO}/g" \
     "$NGINX_CONF_FILE"
+<<<<<<< HEAD
+=======
+
+    [ ! -z "${WEB_REAL_IP_FROM}" ] && WEB_REAL_IP_FROM="set_real_ip_from ${WEB_REAL_IP_FROM};"
+    WEB_REAL_IP_FROM=$(escape_spec_char "$WEB_REAL_IP_FROM")
+    [ ! -z "${WEB_REAL_IP_HEADER}" ] && WEB_REAL_IP_HEADER="real_ip_header ${WEB_REAL_IP_HEADER};"
+    WEB_REAL_IP_HEADER=$(escape_spec_char "$WEB_REAL_IP_HEADER")
+
+    sed -i \
+        -e "s#{WEB_REAL_IP_FROM}#${WEB_REAL_IP_FROM}#g" \
+    "$ZABBIX_CONF_DIR/nginx.conf"
+
+    sed -i \
+        -e "s#{WEB_REAL_IP_FROM}#${WEB_REAL_IP_FROM}#g" \
+    "$ZABBIX_CONF_DIR/nginx_ssl.conf"
+
+    sed -i \
+        -e "s/{WEB_REAL_IP_HEADER}/${WEB_REAL_IP_HEADER}/g" \
+    "$ZABBIX_CONF_DIR/nginx.conf"
+
+    sed -i \
+        -e "s/{WEB_REAL_IP_HEADER}/${WEB_REAL_IP_HEADER}/g" \
+    "$ZABBIX_CONF_DIR/nginx_ssl.conf"
+>>>>>>> 8a11aefbb (Merge pull request #1778 from petrkle/7.4)
 }
 
 prepare_zbx_php_config() {
