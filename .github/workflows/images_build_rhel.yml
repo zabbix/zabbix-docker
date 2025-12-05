@@ -409,7 +409,7 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           containerfiles: |
             ${{ env.DOCKERFILES_DIRECTORY }}/${{ matrix.build }}/rhel/Dockerfile
-          build-args: BUILD_BASE_IMAGE=${{ steps.base_build.outputs.base_build_image }}
+          build-args: BUILD_BASE_IMAGE=localhost/${{ steps.base_build.outputs.base_build_image }}
           extra-args: |
             --iidfile=${{ github.workspace }}/iidfile
             --build-context sources=./sources/
@@ -606,9 +606,8 @@ jobs:
           containerfiles: |
             ${{ env.DOCKERFILES_DIRECTORY }}/${{ matrix.build }}/rhel/Dockerfile
           extra-args: |
-            --pull
             --iidfile=${{ github.workspace }}/iidfile
-          build-args: BUILD_BASE_IMAGE=${{ steps.base_build.outputs.base_build_image }}
+          build-args: BUILD_BASE_IMAGE=localhost/${{ steps.base_build.outputs.base_build_image }}
 
       - name: Log in to ${{ env.REGISTRY }}
         uses: redhat-actions/podman-login@9184318aae1ee5034fbfbacc0388acf12669171f # v1.6
