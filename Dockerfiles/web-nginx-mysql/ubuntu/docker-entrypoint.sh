@@ -242,11 +242,11 @@ prepare_web_server() {
     WEB_REAL_IP_HEADER=$(escape_spec_char "$WEB_REAL_IP_HEADER")
 
     sed -i \
-        -e "s/{WEB_REAL_IP_FROM}/${WEB_REAL_IP_FROM}/g" \
+        -e "s#{WEB_REAL_IP_FROM}#${WEB_REAL_IP_FROM}#g" \
     "$ZABBIX_CONF_DIR/nginx.conf"
 
     sed -i \
-        -e "s/{WEB_REAL_IP_FROM}/${WEB_REAL_IP_FROM}/g" \
+        -e "s#{WEB_REAL_IP_FROM}#${WEB_REAL_IP_FROM}#g" \
     "$ZABBIX_CONF_DIR/nginx_ssl.conf"
 
     sed -i \
