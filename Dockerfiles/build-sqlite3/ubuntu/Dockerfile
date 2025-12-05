@@ -56,7 +56,7 @@ RUN --mount=type=cache,target=/root/.cache/go-build/ \
         git -c advice.detachedHead=false clone ${ZBX_SOURCES} --branch ${GIT_BRANCH:-$ZBX_VERSION} --depth 1 --single-branch ${ZBX_SOURCES_DIR}; \
     fi && \
     cd ${ZBX_SOURCES_DIR} && \
-    for patch_filename in "/tmp/patches/*.patch"; do \
+    for patch_filename in /tmp/patches/*.patch; do \
         if [ -f "$patch_filename" ]; then \
             patch -p1 < "$patch_filename"; \
         fi \
