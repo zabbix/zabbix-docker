@@ -16,6 +16,7 @@ ENV TERM=xterm \
     ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES} \
     MIBDIRS=/usr/share/snmp/mibs:/var/lib/zabbix/mibs MIBS=+ALL \
     NMAP_PRIVILEGED="" \
+    MARIADB_TLS_DISABLE_PEER_VERIFICATION=1 \
     ZABBIX_USER_HOME_DIR="/var/lib/zabbix" \
     ZABBIX_CONF_DIR="/etc/zabbix"
 
