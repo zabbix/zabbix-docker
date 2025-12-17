@@ -72,7 +72,7 @@ jobs:
       secret_prefix: ${{ steps.branch_info.outputs.secret_prefix }}
     steps:
       - name: Block egress traffic
-        uses: step-security/harden-runner@4d991eb9b905ef189e4c376166672c3f2f230481 # v2.11.0
+        uses: step-security/harden-runner@20cf305ff2072d973412fa9b1e3a4f227bda3c76 # v2.14.0
         with:
           disable-sudo: true
           egress-policy: block
@@ -80,9 +80,10 @@ jobs:
             api.github.com:443
             github.com:443
             objects.githubusercontent.com:443
+            release-assets.githubusercontent.com:443
 
       - name: Checkout repository
-        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
         with:
           fetch-depth: 1
           sparse-checkout: ${{ env.MATRIX_FILE }}
@@ -213,13 +214,13 @@ jobs:
       contents: read
     steps:
       - name: Checkout repository
-        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
         with:
           fetch-depth: 1
 
       - name: Install cosign
         if: ${{ env.AUTO_PUSH_IMAGES == 'true' }}
-        uses: sigstore/cosign-installer@d7d6bc7722e3daa8354c50bcb52f4837da5e9b6a
+        uses: sigstore/cosign-installer@faadad0cce49287aee09b3a48701e75088a2c6ad
         with:
           cosign-release: 'v2.4.0'
 
@@ -236,7 +237,7 @@ jobs:
 
       - name: Generate tags
         id: meta
-        uses: docker/metadata-action@902fa8ec7d6ecbf8d84d538b9b233a880e428804 # v5.7.0
+        uses: docker/metadata-action@c1e51972afc2121e065aed6d45c65596fe445f3f # v5.8.0
         with:
           images: ${{ env.IMAGES_PREFIX }}${{ matrix.build }}
           tags: |
@@ -281,7 +282,7 @@ jobs:
             echo "image_tag=${IMAGE_TAG}" >> $GITHUB_OUTPUT
 
       - name: Cache image metadata
-        uses: actions/cache/save@d4323d4df104b026a6aa633fdb11d772146be0bf # v4.2.2
+        uses: actions/cache/save@9255dc7a253b0ccc959486e2bca901246202afeb # v5.0.1
         with:
           path: |
               ${{ env.BASE_BUILD_NAME }}_${{ matrix.arch }}_tag_id
@@ -344,7 +345,7 @@ jobs:
       contents: read
     steps:
       - name: Checkout repository
-        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
         with:
           fetch-depth: 1
 
@@ -356,7 +357,7 @@ jobs:
           echo "arch=${ARCH,,}" >> $GITHUB_OUTPUT
 
       - name: Download metadata of ${{ env.BASE_BUILD_NAME }}:${{ matrix.arch }}
-        uses: actions/cache/restore@d4323d4df104b026a6aa633fdb11d772146be0bf # v4.2.2
+        uses: actions/cache/restore@9255dc7a253b0ccc959486e2bca901246202afeb # v5.0.1
         with:
           path: |
               ${{ env.BASE_BUILD_NAME }}_${{ matrix.arch }}_tag_id
@@ -394,7 +395,7 @@ jobs:
 
       - name: Generate tags
         id: meta
-        uses: docker/metadata-action@902fa8ec7d6ecbf8d84d538b9b233a880e428804 # v5.7.0
+        uses: docker/metadata-action@c1e51972afc2121e065aed6d45c65596fe445f3f # v5.8.0
         with:
           images: ${{ env.IMAGES_PREFIX }}${{ matrix.build }}
           tags: |
@@ -441,7 +442,7 @@ jobs:
             echo "image_tag=${IMAGE_TAG}" >> $GITHUB_OUTPUT
 
       - name: Cache image metadata
-        uses: actions/cache/save@d4323d4df104b026a6aa633fdb11d772146be0bf # v4.2.2
+        uses: actions/cache/save@9255dc7a253b0ccc959486e2bca901246202afeb # v5.0.1
         with:
           path: |
               ${{ matrix.build }}_${{ matrix.arch }}_tag_id
@@ -504,7 +505,7 @@ jobs:
       contents: read
     steps:
       - name: Checkout repository
-        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
         with:
           fetch-depth: 1
 
@@ -538,7 +539,7 @@ jobs:
 
       - name: Download metadata of ${{ steps.build_base_image.outputs.build_base }}:${{ matrix.arch }}
         if: ${{ matrix.build != 'snmptraps' }}
-        uses: actions/cache/restore@d4323d4df104b026a6aa633fdb11d772146be0bf # v4.2.2
+        uses: actions/cache/restore@9255dc7a253b0ccc959486e2bca901246202afeb # v5.0.1
         with:
           path: |
               ${{ steps.build_base_image.outputs.build_base }}_${{ matrix.arch }}_tag_id
@@ -583,7 +584,7 @@ jobs:
 
       - name: Generate tags
         id: meta
-        uses: docker/metadata-action@902fa8ec7d6ecbf8d84d538b9b233a880e428804 # v5.7.0
+        uses: docker/metadata-action@c1e51972afc2121e065aed6d45c65596fe445f3f # v5.8.0
         with:
           images: ${{ env.REGISTRY }}/${{ env.REGISTRY_NAMESPACE }}/${{ secrets[format('{0}_{1}_PROJECT', needs.init_build.outputs.secret_prefix, steps.var_format.outputs.matrix_build)] || matrix.build }}
           tags: |
@@ -719,7 +720,7 @@ jobs:
     permissions: {}
     steps:
       - name: Download metadata of ${{ matrix.build }}:${{ matrix.arch }}
-        uses: actions/cache/restore@d4323d4df104b026a6aa633fdb11d772146be0bf # v4.2.2
+        uses: actions/cache/restore@9255dc7a253b0ccc959486e2bca901246202afeb # v5.0.1
         with:
           path: |
               ${{ matrix.build }}_${{ matrix.arch }}_tag_id
@@ -740,7 +741,7 @@ jobs:
             echo "::endgroup::"
 
       - name: Download metadata of ${{ env.BASE_BUILD_NAME }}:${{ matrix.arch }}
-        uses: actions/cache/restore@d4323d4df104b026a6aa633fdb11d772146be0bf # v4.2.2
+        uses: actions/cache/restore@9255dc7a253b0ccc959486e2bca901246202afeb # v5.0.1
         with:
           path: |
               ${{ env.BASE_BUILD_NAME }}_${{ matrix.arch }}_tag_id

@@ -64,7 +64,7 @@ jobs:
       sha_short: ${{ steps.branch_info.outputs.sha_short }}
     steps:
       - name: Block egress traffic
-        uses: step-security/harden-runner@4d991eb9b905ef189e4c376166672c3f2f230481 # v2.11.0
+        uses: step-security/harden-runner@20cf305ff2072d973412fa9b1e3a4f227bda3c76 # v2.14.0
         with:
           disable-sudo: true
           egress-policy: block
@@ -72,9 +72,10 @@ jobs:
             api.github.com:443
             github.com:443
             objects.githubusercontent.com:443
+            release-assets.githubusercontent.com:443
 
       - name: Checkout repository
-        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
         with:
           ref: ${{ env.TRUNK_ONLY_EVENT == 'true' && env.TRUNK_GIT_BRANCH || '' }}
           fetch-depth: 1
@@ -175,12 +176,13 @@ jobs:
       attestations: write
     steps:
       - name: Block egress traffic
-        uses: step-security/harden-runner@4d991eb9b905ef189e4c376166672c3f2f230481 # v2.11.0
+        uses: step-security/harden-runner@20cf305ff2072d973412fa9b1e3a4f227bda3c76 # v2.14.0
         with:
           disable-sudo: true
           egress-policy: audit
           allowed-endpoints: >
             api.github.com:443
+            release-assets.githubusercontent.com:443
             archive.ubuntu.com:80
             atl.mirrors.knownhost.com:443
             atl.mirrors.knownhost.com:80
@@ -266,25 +268,24 @@ jobs:
             ziply.mm.fcix.net:443
             pkg-containers.githubusercontent.com:443
             raw.githubusercontent.com:443
+            timestamp.sigstore.dev:443
 
       - name: Checkout repository
-        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
         with:
           ref: ${{ env.TRUNK_ONLY_EVENT == 'true' && env.TRUNK_GIT_BRANCH || '' }}
           fetch-depth: 1
 
       - name: Install cosign
         if: ${{ env.AUTO_PUSH_IMAGES == 'true' }}
-        uses: sigstore/cosign-installer@d7d6bc7722e3daa8354c50bcb52f4837da5e9b6a
-        with:
-          cosign-release: 'v2.4.0'
+        uses: sigstore/cosign-installer@faadad0cce49287aee09b3a48701e75088a2c6ad
 
       - name: Check cosign version
         if: ${{ env.AUTO_PUSH_IMAGES == 'true' }}
         run: cosign version
 
       - name: Set up QEMU
-        uses: docker/setup-qemu-action@29109295f81e9208d7d86ff1c6c12d2833863392 # v3.6.0
+        uses: docker/setup-qemu-action@c7c53464625b32c7a7e944ae62b3e17d2b600130 # v3.7.0
         with:
           image: tonistiigi/binfmt:qemu-v8.1.5
           platforms: all
@@ -311,7 +312,7 @@ jobs:
 
       - name: Generate tags
         id: meta
-        uses: docker/metadata-action@902fa8ec7d6ecbf8d84d538b9b233a880e428804 # v5.7.0
+        uses: docker/metadata-action@c1e51972afc2121e065aed6d45c65596fe445f3f # v5.8.0
         with:
           images: |
               ${{ format('{0}/{1}/{2}{3}', env.DOCKER_REGISTRY_TEST, env.DOCKER_REPOSITORY_TEST, env.IMAGES_PREFIX, env.BASE_BUILD_NAME ) }},enable=${{ env.AUTO_PUSH_IMAGES != 'true' }}
@@ -362,14 +363,14 @@ jobs:
 
       - name: Login to DockerHub
         if: ${{ env.AUTO_PUSH_IMAGES == 'true' }}
-        uses: docker/login-action@0d4c9c5ea7693da7b068278f7b52bda2a190a446 # v3.2.0
+        uses: docker/login-action@5e57cd118135c172c3672efd75eb46360885c0ef # v3.6.0
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
       - name: Login to ${{ env.DOCKER_REGISTRY_TEST }}
         if: ${{ env.AUTO_PUSH_IMAGES != 'true' }}
-        uses: docker/login-action@0d4c9c5ea7693da7b068278f7b52bda2a190a446 # v3.2.0
+        uses: docker/login-action@5e57cd118135c172c3672efd75eb46360885c0ef # v3.6.0
         with:
           registry: ${{ env.DOCKER_REGISTRY_TEST }}
           username: ${{ github.actor }}
@@ -421,7 +422,7 @@ jobs:
       - name: Attest images
         if: ${{ env.AUTO_PUSH_IMAGES == 'true' }}
         id: attest
-        uses: actions/attest-build-provenance@v2
+        uses: actions/attest-build-provenance@v3
         with:
           subject-name: ${{ format('{0}/{1}/{2}{3}', env.DOCKER_REGISTRY, env.DOCKER_REPOSITORY, env.IMAGES_PREFIX, env.BASE_BUILD_NAME ) }}
           subject-digest: ${{ steps.docker_build.outputs.digest }}
@@ -442,7 +443,7 @@ jobs:
             echo "${METADATA}" > "$CACHE_FILE_NAME"
 
       - name: Cache image metadata
-        uses: actions/cache@d4323d4df104b026a6aa633fdb11d772146be0bf # v4.2.2
+        uses: actions/cache@9255dc7a253b0ccc959486e2bca901246202afeb # v5.0.1
         with:
           path: ${{ env.BASE_CACHE_FILE_NAME }}
           key: ${{ env.BASE_BUILD_NAME }}-${{ matrix.os }}-${{ github.run_id }}
@@ -464,12 +465,13 @@ jobs:
       attestations: write
     steps:
       - name: Block egress traffic
-        uses: step-security/harden-runner@4d991eb9b905ef189e4c376166672c3f2f230481 # v2.11.0
+        uses: step-security/harden-runner@20cf305ff2072d973412fa9b1e3a4f227bda3c76 # v2.14.0
         with:
           disable-sudo: true
           egress-policy: block
           allowed-endpoints: >
             api.github.com:443
+            release-assets.githubusercontent.com:443
             auth.docker.io:443
             git.zabbix.com:443
             github.com:443
@@ -493,25 +495,24 @@ jobs:
             rekor.sigstore.dev:443
             pkg-containers.githubusercontent.com:443
             raw.githubusercontent.com:443
+            timestamp.sigstore.dev:443
 
       - name: Checkout repository
-        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
         with:
           ref: ${{ env.TRUNK_ONLY_EVENT == 'true' && env.TRUNK_GIT_BRANCH || '' }}
           fetch-depth: 1
 
       - name: Install cosign
         if: ${{ env.AUTO_PUSH_IMAGES == 'true' }}
-        uses: sigstore/cosign-installer@d7d6bc7722e3daa8354c50bcb52f4837da5e9b6a
-        with:
-          cosign-release: 'v2.4.0'
+        uses: sigstore/cosign-installer@faadad0cce49287aee09b3a48701e75088a2c6ad
 
       - name: Check cosign version
         if: ${{ env.AUTO_PUSH_IMAGES == 'true' }}
         run: cosign version
 
       - name: Set up QEMU
-        uses: docker/setup-qemu-action@29109295f81e9208d7d86ff1c6c12d2833863392 # v3.6.0
+        uses: docker/setup-qemu-action@c7c53464625b32c7a7e944ae62b3e17d2b600130 # v3.7.0
         with:
           image: tonistiigi/binfmt:qemu-v8.1.5
           platforms: all
@@ -538,7 +539,7 @@ jobs:
 
       - name: Generate tags
         id: meta
-        uses: docker/metadata-action@902fa8ec7d6ecbf8d84d538b9b233a880e428804 # v5.7.0
+        uses: docker/metadata-action@c1e51972afc2121e065aed6d45c65596fe445f3f # v5.8.0
         with:
           images: |
               ${{ format('{0}/{1}/{2}{3}', env.DOCKER_REGISTRY_TEST, env.DOCKER_REPOSITORY_TEST, env.IMAGES_PREFIX, matrix.build ) }},enable=${{ env.AUTO_PUSH_IMAGES != 'true' }}
@@ -556,7 +557,7 @@ jobs:
             latest=${{ (matrix.os == 'alpine') && (!contains(fromJSON('["workflow_dispatch"]'), github.event_name)) && ( needs.init_build.outputs.is_default_branch == 'true' ) }}
 
       - name: Download metadata of ${{ env.BASE_BUILD_NAME }}:${{ matrix.os }}
-        uses: actions/cache@d4323d4df104b026a6aa633fdb11d772146be0bf # v4.2.2
+        uses: actions/cache@9255dc7a253b0ccc959486e2bca901246202afeb # v5.0.1
         with:
           path: ${{ env.BASE_CACHE_FILE_NAME }}
           key: ${{ env.BASE_BUILD_NAME }}-${{ matrix.os }}-${{ github.run_id }}
@@ -632,14 +633,14 @@ jobs:
 
       - name: Login to DockerHub
         if: ${{ env.AUTO_PUSH_IMAGES == 'true' }}
-        uses: docker/login-action@0d4c9c5ea7693da7b068278f7b52bda2a190a446 # v3.2.0
+        uses: docker/login-action@5e57cd118135c172c3672efd75eb46360885c0ef # v3.6.0
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
       - name: Login to ${{ env.DOCKER_REGISTRY_TEST }}
         if: ${{ env.AUTO_PUSH_IMAGES != 'true' }}
-        uses: docker/login-action@0d4c9c5ea7693da7b068278f7b52bda2a190a446 # v3.2.0
+        uses: docker/login-action@5e57cd118135c172c3672efd75eb46360885c0ef # v3.6.0
         with:
           registry: ${{ env.DOCKER_REGISTRY_TEST }}
           username: ${{ github.actor }}
@@ -687,7 +688,7 @@ jobs:
       - name: Attest images
         if: ${{ env.AUTO_PUSH_IMAGES == 'true' }}
         id: attest
-        uses: actions/attest-build-provenance@v2
+        uses: actions/attest-build-provenance@v3
         with:
           subject-name: ${{ format('{0}/{1}/{2}{3}', env.DOCKER_REGISTRY, env.DOCKER_REPOSITORY, env.IMAGES_PREFIX, matrix.build ) }}
           subject-digest: ${{ steps.docker_build.outputs.digest }}
@@ -708,7 +709,7 @@ jobs:
             echo "${METADATA}" > "$CACHE_FILE_NAME"
 
       - name: Cache image metadata
-        uses: actions/cache@d4323d4df104b026a6aa633fdb11d772146be0bf # v4.2.2
+        uses: actions/cache@9255dc7a253b0ccc959486e2bca901246202afeb # v5.0.1
         with:
           path: ${{ env.BUILD_CACHE_FILE_NAME }}
           key: ${{ matrix.build }}-${{ matrix.os }}-${{ github.run_id }}
@@ -731,12 +732,13 @@ jobs:
       attestations: write
     steps:
       - name: Block egress traffic
-        uses: step-security/harden-runner@4d991eb9b905ef189e4c376166672c3f2f230481 # v2.11.0
+        uses: step-security/harden-runner@20cf305ff2072d973412fa9b1e3a4f227bda3c76 # v2.14.0
         with:
           disable-sudo: true
           egress-policy: block
           allowed-endpoints: >
             api.github.com:443
+            release-assets.githubusercontent.com:443
             apt.postgresql.org:80
             auth.docker.io:443
             dl-cdn.alpinelinux.org:443
@@ -855,25 +857,24 @@ jobs:
             rekor.sigstore.dev:443
             pkg-containers.githubusercontent.com:443
             raw.githubusercontent.com:443
+            timestamp.sigstore.dev:443
 
       - name: Checkout repository
-        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
         with:
           ref: ${{ env.TRUNK_ONLY_EVENT == 'true' && env.TRUNK_GIT_BRANCH || '' }}
           fetch-depth: 1
 
       - name: Install cosign
         if: ${{ env.AUTO_PUSH_IMAGES == 'true' }}
-        uses: sigstore/cosign-installer@d7d6bc7722e3daa8354c50bcb52f4837da5e9b6a
-        with:
-          cosign-release: 'v2.4.0'
+        uses: sigstore/cosign-installer@faadad0cce49287aee09b3a48701e75088a2c6ad
 
       - name: Check cosign version
         if: ${{ env.AUTO_PUSH_IMAGES == 'true' }}
         run: cosign version
 
       - name: Set up QEMU
-        uses: docker/setup-qemu-action@29109295f81e9208d7d86ff1c6c12d2833863392 # v3.6.0
+        uses: docker/setup-qemu-action@c7c53464625b32c7a7e944ae62b3e17d2b600130 # v3.7.0
         with:
           image: tonistiigi/binfmt:qemu-v8.1.5
           platforms: all
@@ -932,7 +933,7 @@ jobs:
 
       - name: Generate tags
         id: meta
-        uses: docker/metadata-action@902fa8ec7d6ecbf8d84d538b9b233a880e428804 # v5.7.0
+        uses: docker/metadata-action@c1e51972afc2121e065aed6d45c65596fe445f3f # v5.8.0
         with:
           images:  |
               ${{ format('{0}/{1}/{2}{3}', env.DOCKER_REGISTRY_TEST, env.DOCKER_REPOSITORY_TEST, env.IMAGES_PREFIX, matrix.build ) }},enable=${{ env.AUTO_PUSH_IMAGES != 'true' }}
@@ -950,7 +951,7 @@ jobs:
             latest=${{ (matrix.os == 'alpine') && (!contains(fromJSON('["workflow_dispatch"]'), github.event_name)) && ( needs.init_build.outputs.is_default_branch == 'true' ) }}
 
       - name: Download metadata of ${{ steps.build_base_image.outputs.build_base }}:${{ matrix.os }}
-        uses: actions/cache@d4323d4df104b026a6aa633fdb11d772146be0bf # v4.2.2
+        uses: actions/cache@9255dc7a253b0ccc959486e2bca901246202afeb # v5.0.1
         if: ${{ matrix.build != 'snmptraps' }}
         with:
           path: ${{ env.BUILD_CACHE_FILE_NAME }}
@@ -1014,7 +1015,7 @@ jobs:
 
       - name: Login to DockerHub
         if: ${{ env.AUTO_PUSH_IMAGES == 'true' }}
-        uses: docker/login-action@0d4c9c5ea7693da7b068278f7b52bda2a190a446 # v3.2.0
+        uses: docker/login-action@5e57cd118135c172c3672efd75eb46360885c0ef # v3.6.0
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
@@ -1058,7 +1059,7 @@ jobs:
       - name: Attest images
         if: ${{ env.AUTO_PUSH_IMAGES == 'true' }}
         id: attest
-        uses: actions/attest-build-provenance@v2
+        uses: actions/attest-build-provenance@v3
         with:
           subject-name:  ${{ format('{0}/{1}/{2}{3}', env.DOCKER_REGISTRY, env.DOCKER_REPOSITORY, env.IMAGES_PREFIX, matrix.build ) }}
           subject-digest: ${{ steps.docker_build.outputs.digest }}
