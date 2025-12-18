@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1
-ARG OS_BASE_IMAGE=registry.access.redhat.com/ubi9/ubi-minimal:9.6
+ARG OS_BASE_IMAGE=registry.access.redhat.com/ubi9/ubi-minimal:9.7
 ARG MAJOR_VERSION=7.2
 ARG RELEASE=15
 ARG ZBX_VERSION=${MAJOR_VERSION}.15
@@ -81,8 +81,8 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
         --enablerepo "rhel-9-for-$ARCH_SUFFIX-appstream-rpms" \
         --setopt=install_weak_deps=0 \
         --setopt=keepcache=0 \
-        php:8.2 \
-        nginx:1.24 && \
+        php:8.3 \
+        nginx:1.26 && \
     microdnf -y install \
             --disablerepo "*" \
             --enablerepo "ubi-9-baseos-rpms" \

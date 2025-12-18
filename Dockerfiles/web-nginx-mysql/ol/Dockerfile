@@ -57,8 +57,8 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
         --enablerepo "ol9_appstream" \
         --setopt=install_weak_deps=0 \
         --setopt=keepcache=0 \
-        php:8.2 \
-        nginx:1.24 && \
+        php:8.4 \
+        nginx:1.26 && \
     microdnf -y install \
             --disablerepo="*" \
             --enablerepo="ol9_baseos_latest" \
