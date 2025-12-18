@@ -2,11 +2,11 @@
 # escape=`
 ARG OS_BASE_IMAGE=mcr.microsoft.com/windows/servercore:ltsc2022
 
-ARG PCRE2_VERSION=10.45
-ARG OPENSSL_VERSION=3.1.5
-ARG GOLANG_VERSION=1.24.3
+ARG PCRE2_VERSION=10.47
+ARG OPENSSL_VERSION=3.0.18
+ARG GOLANG_VERSION=1.25.5
 ARG VS_BUILDTOOLS_VERSION=17
-ARG PWSH_VERSION=7.5.1
+ARG PWSH_VERSION=7.5.4
 
 ARG MSYSTEM=MINGW64
 
@@ -28,21 +28,21 @@ ARG MSYSTEM
 ARG MINGW_URL=https://github.com/niXman/mingw-builds-binaries/releases/download/8.5.0-rt_v10-rev0/x86_64-8.5.0-release-win32-sjlj-rt_v10-rev0.7z
 ARG VS_BUILDTOOLS_URL=https://aka.ms/vs/$VS_BUILDTOOLS_VERSION/release/vs_buildtools.exe
 ARG GOLANG_URL=https://go.dev/dl/go$GOLANG_VERSION.windows-amd64.zip
-ARG MSYS2_URL=https://github.com/msys2/msys2-installer/releases/download/2025-02-21/msys2-base-x86_64-20250221.sfx.exe
+ARG MSYS2_URL=https://github.com/msys2/msys2-installer/releases/download/2025-12-13/msys2-base-x86_64-20251213.sfx.exe
 
 ARG PCRE2_URL=https://github.com/PhilipHazel/pcre2/releases/download/pcre2-$PCRE2_VERSION/pcre2-$PCRE2_VERSION.zip
 ARG OPENSSL_URL=https://github.com/openssl/openssl/releases/download/openssl-$OPENSSL_VERSION/openssl-$OPENSSL_VERSION.tar.gz
 
 ARG PWSH_URL=https://github.com/PowerShell/PowerShell/releases/download/v$PWSH_VERSION/PowerShell-$PWSH_VERSION-win-x64.zip
 
-ADD --checksum=sha256:4d3028da81170f8d1cd226614582f0a95d3dd5592127cf87a09e3a3568e51a08 $PWSH_URL build_deps\pwsh.zip
-ADD --checksum=sha256:be9787cb08998b1860fe3513e48a5fe5b96302d358a321b58e651184fa9638b3 $GOLANG_URL build_deps\go_lang.zip
+ADD --checksum=sha256:b40d192ae95ba6ccc4cc362ff4e1b18ca6fb5055bebbcd3920684e12701fa8f6 $PWSH_URL build_deps\pwsh.zip
+ADD --checksum=sha256:ae756cce1cb80c819b4fe01b0353807178f532211b47f72d7fa77949de054ebb $GOLANG_URL build_deps\go_lang.zip
 ADD --checksum=sha256:d7270f76483aefe0c88f45284b374e27648dec59fb6f89ee2f5cb62f6a060082 $MINGW_URL build_deps\mingw.7z
-ADD --checksum=sha256:6d4952fd65d1924c56620355c3c7d5a1b40e3c7d7be358f6eb1017363d2dbbb1 $MSYS2_URL build_deps\msys2.sfx.exe
+ADD --checksum=sha256:99f2fee9a7b1c344600ac97347e7be23a1f802d8d843b339ec7473a8ed8d49a6 $MSYS2_URL build_deps\msys2.sfx.exe
 ADD $VS_BUILDTOOLS_URL build_deps\vs_buildtools.exe
 
-ADD --checksum=sha256:0e138387df7835d7403b8351e2226c1377da804e0737db0e071b48f07c9d12ee $PCRE2_URL build_src\pcre2.zip
-ADD --checksum=sha256:002a2d6b30b58bf4bea46c43bdd96365aaf8daa6c428782aa4feee06da197df3 $OPENSSL_URL build_src\openssl.tar.gz
+ADD --checksum=sha256:d74c183c86c77248ad50017c7f45bae8f88106a6cca5d87ad09917e1c6fb0784 $PCRE2_URL build_src\pcre2.zip
+ADD --checksum=sha256:d80c34f5cf902dccf1f1b5df5ebb86d0392e37049e5d73df1b3abae72e4ffe8b $OPENSSL_URL build_src\openssl.tar.gz
 
 SHELL ["powershell", "-Command", "$ErrorActionPreference = 'Stop'; $ProgressPreference = 'SilentlyContinue';"]
 
