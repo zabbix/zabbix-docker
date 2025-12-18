@@ -2,16 +2,16 @@
 # escape=`
 ARG OS_BASE_IMAGE=mcr.microsoft.com/windows/servercore:ltsc2022
 
-ARG GIT_VERSION=2.47.1
-ARG NASM_VERSION=2.16.03
+ARG GIT_VERSION=2.52.0
+ARG NASM_VERSION=3.01
 ARG VS_BUILDTOOLS_VERSION=17
-ARG PWSH_VERSION=7.5.1
+ARG PWSH_VERSION=7.5.4
 
-ARG PCRE2_VERSION=10.44
-ARG OPENSSL_VERSION=3.4.1
+ARG PCRE2_VERSION=10.47
+ARG OPENSSL_VERSION=3.5.4
 ARG LIBMODBUS_VERSION=3.1.11
 ARG ZLIB_VERSION=1.3.1
-ARG CURL_VERSION=8.11.1
+ARG CURL_VERSION=8.17.0
 
 ARG BUILD_ARCH=x64
 
@@ -34,7 +34,7 @@ ARG CURL_VERSION
 ARG BUILD_ARCH
 
 ARG GIT_URL=https://github.com/git-for-windows/git/releases/download/v$GIT_VERSION.windows.1/MinGit-$GIT_VERSION-64-bit.zip
-ARG PERL_URL=https://github.com/StrawberryPerl/Perl-Dist-Strawberry/releases/download/SP_54001_64bit_UCRT/strawberry-perl-5.40.0.1-64bit-portable.zip
+ARG PERL_URL=https://github.com/StrawberryPerl/Perl-Dist-Strawberry/releases/download/SP_54201_64bit/strawberry-perl-5.42.0.1-64bit-portable.zip
 
 ARG VS_BUILDTOOLS_URL=https://aka.ms/vs/$VS_BUILDTOOLS_VERSION/release/vs_buildtools.exe
 ARG NASM_URL=https://www.nasm.us/pub/nasm/releasebuilds/$NASM_VERSION/win64/nasm-$NASM_VERSION-win64.zip
@@ -47,16 +47,16 @@ ARG CURL_URL=https://curl.se/download/curl-$CURL_VERSION.tar.gz
 
 ARG PWSH_URL=https://github.com/PowerShell/PowerShell/releases/download/v$PWSH_VERSION/PowerShell-$PWSH_VERSION-win-x64.zip
 
-ADD --checksum=sha256:21c6f0523abfd37a2f5cc85879d0ff32723ab496347f0d20793df888ecec3957 $PCRE2_URL build_src\pcre2.zip
-ADD --checksum=sha256:002a2d6b30b58bf4bea46c43bdd96365aaf8daa6c428782aa4feee06da197df3 $OPENSSL_URL build_src\openssl.tar.gz
+ADD --checksum=sha256:d74c183c86c77248ad50017c7f45bae8f88106a6cca5d87ad09917e1c6fb0784 $PCRE2_URL build_src\pcre2.zip
+ADD --checksum=sha256:967311f84955316969bdb1d8d4b983718ef42338639c621ec4c34fddef355e99 $OPENSSL_URL build_src\openssl.tar.gz
 ADD --checksum=sha256:15b4b2e0f68122c2da9b195de5c330489a9c97d40b4a95d2822378dc14d780e7 $LIBMODBUS_URL build_src\libmodbus.tar.gz
 ADD --checksum=sha256:9A93B2B7DFDAC77CEBA5A558A580E74667DD6FEDE4585B91EEFB60F03B72DF23 $ZLIB_URL build_src\zlib.tar.gz
-ADD --checksum=sha256:a889ac9dbba3644271bd9d1302b5c22a088893719b72be3487bc3d401e5c4e80 $CURL_URL build_src\curl.tar.gz
+ADD --checksum=sha256:e8e74cdeefe5fb78b3ae6e90cd542babf788fa9480029cfcee6fd9ced42b7910 $CURL_URL build_src\curl.tar.gz
 
-ADD --checksum=sha256:4d3028da81170f8d1cd226614582f0a95d3dd5592127cf87a09e3a3568e51a08 $PWSH_URL build_deps\pwsh.zip
-ADD --checksum=sha256:50b04b55425b5c465d076cdb184f63a0cd0f86f6ec8bb4d5860114a713d2c29a $GIT_URL build_deps\git.zip
-ADD --checksum=sha256:754f3e2a8e473dc68d1540c7802fb166a025f35ef18960c4564a31f8b5933907 $PERL_URL build_deps\perl.zip
-ADD --checksum=sha256:3ee4782247bcb874378d02f7eab4e294a84d3d15f3f6ee2de2f47a46aa7226e6 $NASM_URL build_deps\nasm.zip
+ADD --checksum=sha256:b40d192ae95ba6ccc4cc362ff4e1b18ca6fb5055bebbcd3920684e12701fa8f6 $PWSH_URL build_deps\pwsh.zip
+ADD --checksum=sha256:f42a561840627747ad48e6ece05a14093292d31f3393a401a7f7c780ee7695c2 $GIT_URL build_deps\git.zip
+ADD --checksum=sha256:a1cde185656cf307b51670eed69f648b9eff15b5c518cb136e027c628e650b71 $PERL_URL build_deps\perl.zip
+ADD --checksum=sha256:e0ba5157007abc7b1a65118a96657a961ddf55f7e3f632ee035366dfce039ca4 $NASM_URL build_deps\nasm.zip
 ADD $VS_BUILDTOOLS_URL build_deps\vs_buildtools.exe
 
 COPY modbus.vs16.* build_src\libmodbus_project\
