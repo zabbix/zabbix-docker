@@ -120,9 +120,8 @@ ARG ZBX_VERSION
 
 ENV ZBX_VERSION=$ZBX_VERSION `
     BUILD_ARCH=$BUILD_ARCH `
-    MINGW_URL=$MINGW_URL VS_BUILDTOOLS_URL=$VS_BUILDTOOLS_URL VS_BUILDTOOLS_VERSION=$VS_BUILDTOOLS_VERSION GOLANG_VERSION=$GOLANG_VERSION MSYS2_URL=$MSYS2_URL `
+    VS_BUILDTOOLS_VERSION=$VS_BUILDTOOLS_VERSION GOLANG_VERSION=$GOLANG_VERSION `
     PCRE2_VERSION=$PCRE2_VERSION OPENSSL_VERSION=$OPENSSL_VERSION `
-    PCRE2_URL=$PCRE2_URL OPENSSL_URL=$OPENSSL_URL `
     CHERE_INVOKING=yes MSYSTEM=$MSYSTEM
 
 LABEL org.opencontainers.image.title="Zabbix agent 2 build base for Windows" `
@@ -140,7 +139,6 @@ COPY --from=src build_deps build_deps
 SHELL ["powershell", "-Command", "$ErrorActionPreference = 'Stop'; $ProgressPreference = 'SilentlyContinue';"]
 
 RUN Set-Location -Path $env:SystemDrive\.; `
-    [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; `
     `
     $env:BUILD_OUTPUT = [string]::Format('{0}\build_output', $env:SystemDrive); `
     [Environment]::SetEnvironmentVariable('BUILD_OUTPUT', $env:BUILD_OUTPUT, [EnvironmentVariableTarget]::Machine); `
@@ -187,16 +185,18 @@ RUN Set-Location -Path $env:SystemDrive\.; `
     Write-Host 'Visual Studio components installation cleanup'; `
     Get-ChildItem -Path """${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer""" -Directory -Recurse | Remove-Item -Force -Recurse; `
     `
-    Write-Host 'Build environment is ready...'; `
-    `
-    Write-Host 'Building PCRE2 library ...'; `
+    Write-Host 'Build environment is ready...';
+
+RUN Write-Host 'Building PCRE2 library ...'; `
     Set-Location -Path $env:BUILD_SRC\pcre2; `
-    cmake --log-level=ERROR `
+    cmake -S $env:BUILD_SRC\pcre2 -B $env:BUILD_SRC\pcre2\build `
         -G 'MinGW Makefiles' `
         -DBUILD_SHARED_LIBS=OFF `
         -DBUILD_STATIC_LIBS=ON `
         -DPCRE2_DEBUG=OFF `
         -DPCRE2_BUILD_TESTS=OFF `
+        -DPCRE2_BUILD_PCRE2GREP=OFF `
+        -DPCRE2_SUPPORT_JIT=OFF `
         -DINSTALL_MSVC_PDB=OFF `
         -DCMAKE_C_COMPILER=gcc `
         -DCMAKE_C_FLAGS='-O2 -g' `
@@ -204,23 +204,30 @@ RUN Set-Location -Path $env:SystemDrive\.; `
     mingw32-make -s -j"""$env:NUMBER_OF_PROCESSORS"""; `
     mingw32-make -s -j"""$env:NUMBER_OF_PROCESSORS""" install; `
     mingw32-make -s clean | Out-Null; `
-    Remove-Item -Path $env:BUILD_OUTPUT\pcre2\share -Force -Recurse; `
-    Write-Host 'PCRE2 is ready...'; `
-    `
-    Write-Host 'Building OpenSSL library...'; `
+	Remove-Item -Recurse -Force -Path $env:BUILD_OUTPUT\pcre2\share -ErrorAction SilentlyContinue; `
+    Write-Host 'PCRE2 is ready...';
+
+RUN Write-Host 'Building OpenSSL library...'; `
     Set-Location -Path $env:BUILD_SRC\openssl; `
     perl Configure `
         mingw64 `
-        no-shared `
-        no-ui-console `
-        no-tests `
-        no-unit-test `
         no-capieng `
+        no-docs `
+        no-dgram `
+        no-dtls1-method `
+        no-dtls1_2-method `
+        no-gost `
+        no-shared `
+        no-srp `
+        no-tests `
+        no-ui-console `
+        no-winstore `
+        thread_scheme=winthreads `
         --api=1.1.0 `
         --libdir=lib `
         --prefix=$env:BUILD_OUTPUT/openssl `
         --openssldir=$env:BUILD_OUTPUT/openssl_ssl; `
-    mingw32-make -s -j"""$env:NUMBER_OF_PROCESSORS""" build_sw; `
+    mingw32-make -s -j"""$env:NUMBER_OF_PROCESSORS""" build_libs; `
     mingw32-make -s -j"""$env:NUMBER_OF_PROCESSORS""" install_dev; `
     mingw32-make -s clean | Out-Null; `
     Write-Host 'OpenSSL is ready...'; `
