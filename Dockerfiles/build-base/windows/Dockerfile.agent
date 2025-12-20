@@ -39,7 +39,7 @@ ARG PERL_URL=https://github.com/StrawberryPerl/Perl-Dist-Strawberry/releases/dow
 ARG VS_BUILDTOOLS_URL=https://aka.ms/vs/$VS_BUILDTOOLS_VERSION/release/vs_buildtools.exe
 ARG NASM_URL=https://www.nasm.us/pub/nasm/releasebuilds/$NASM_VERSION/win64/nasm-$NASM_VERSION-win64.zip
 
-ARG PCRE2_URL=https://github.com/PhilipHazel/pcre2/releases/download/pcre2-$PCRE2_VERSION/pcre2-$PCRE2_VERSION.zip
+ARG PCRE2_URL=https://github.com/PCRE2Project/pcre2/releases/download/pcre2-$PCRE2_VERSION/pcre2-$PCRE2_VERSION.zip
 ARG OPENSSL_URL=https://github.com/openssl/openssl/releases/download/openssl-$OPENSSL_VERSION/openssl-$OPENSSL_VERSION.tar.gz
 ARG LIBMODBUS_URL=https://github.com/stephane/libmodbus/archive/refs/tags/v$LIBMODBUS_VERSION.tar.gz
 ARG ZLIB_URL=https://zlib.net/zlib-$ZLIB_VERSION.tar.gz
@@ -146,7 +146,7 @@ ARG ZBX_VERSION
 
 ENV ZBX_VERSION=$ZBX_VERSION `
     BUILD_ARCH=$BUILD_ARCH `
-    VS_BUILDTOOLS_URL=$VS_BUILDTOOLS_URL VS_BUILDTOOLS_VERSION=$VS_BUILDTOOLS_VERSION `
+    VS_BUILDTOOLS_VERSION=$VS_BUILDTOOLS_VERSION `
     PCRE2_VERSION=$PCRE2_VERSION OPENSSL_VERSION=$OPENSSL_VERSION LIBMODBUS_VERSION=$LIBMODBUS_VERSION
 
 LABEL org.opencontainers.image.title="Zabbix agent build base for Windows" `
@@ -265,7 +265,7 @@ RUN Import-Module (Get-ChildItem $env:VS_PATH -Recurse -File -Filter Microsoft.V
     Set-Location -Path $env:BUILD_SRC\pcre2; `
     $env:CL = """$env:CL /MP"""; `
     cmake -S $env:BUILD_SRC\pcre2 -B $env:BUILD_SRC\pcre2\build `
-        -G """"Visual Studio 17 2022""" `
+        -G """Visual Studio 17 2022""" `
         -A $env:BUILD_ARCH `
         -DBUILD_SHARED_LIBS=OFF `
         -DPCRE2_BUILD_TESTS=OFF `
