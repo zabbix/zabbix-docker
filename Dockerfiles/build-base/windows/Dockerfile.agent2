@@ -213,7 +213,6 @@ RUN Write-Host 'Building OpenSSL library...'; `
     perl Configure `
         mingw64 `
         no-capieng `
-        no-docs `
         no-dgram `
         no-dtls1-method `
         no-dtls1_2-method `
@@ -222,7 +221,6 @@ RUN Write-Host 'Building OpenSSL library...'; `
         no-srp `
         no-tests `
         no-ui-console `
-        no-winstore `
         thread_scheme=winthreads `
         --api=1.1.0 `
         --libdir=lib `
