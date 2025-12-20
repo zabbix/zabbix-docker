@@ -101,8 +101,8 @@ RUN $env:BUILD_SRC = [string]::Format('{0}\build_src', $env:SystemDrive); `
     Remove-Item -Force -Recurse $env:BUILD_SRC\*.zip; `
     Remove-Item -Force -Recurse $env:BUILD_DEPS\*.tar.gz; `
     Remove-Item -Force -Recurse $env:BUILD_DEPS\*.zip; `
-	Remove-Item -Force -Recurse $env:BUILD_DEPS\msys2.sfx.exe; `
-	Remove-Item -Force -Recurse $env:BUILD_DEPS\*.7z;
+    Remove-Item -Force -Recurse $env:BUILD_DEPS\msys2.sfx.exe; `
+    Remove-Item -Force -Recurse $env:BUILD_DEPS\*.7z;
 
 FROM ${OS_BASE_IMAGE}
 
@@ -201,10 +201,11 @@ RUN Write-Host 'Building PCRE2 library ...'; `
         -DCMAKE_C_COMPILER=gcc `
         -DCMAKE_C_FLAGS='-O2 -g' `
         -DCMAKE_INSTALL_PREFIX="""$env:BUILD_OUTPUT\pcre2""" . ; `
+    Set-Location -Path $env:BUILD_SRC\pcre2\build; `
     mingw32-make -s -j"""$env:NUMBER_OF_PROCESSORS"""; `
     mingw32-make -s -j"""$env:NUMBER_OF_PROCESSORS""" install; `
     mingw32-make -s clean | Out-Null; `
-	Remove-Item -Recurse -Force -Path $env:BUILD_OUTPUT\pcre2\share -ErrorAction SilentlyContinue; `
+    Remove-Item -Recurse -Force -Path $env:BUILD_OUTPUT\pcre2\share -ErrorAction SilentlyContinue; `
     Write-Host 'PCRE2 is ready...';
 
 RUN Write-Host 'Building OpenSSL library...'; `
