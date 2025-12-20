@@ -30,7 +30,7 @@ ARG VS_BUILDTOOLS_URL=https://aka.ms/vs/$VS_BUILDTOOLS_VERSION/release/vs_buildt
 ARG GOLANG_URL=https://go.dev/dl/go$GOLANG_VERSION.windows-amd64.zip
 ARG MSYS2_URL=https://github.com/msys2/msys2-installer/releases/download/2025-12-13/msys2-base-x86_64-20251213.sfx.exe
 
-ARG PCRE2_URL=https://github.com/PhilipHazel/pcre2/releases/download/pcre2-$PCRE2_VERSION/pcre2-$PCRE2_VERSION.zip
+ARG PCRE2_URL=https://github.com/PCRE2Project/pcre2/releases/download/pcre2-$PCRE2_VERSION/pcre2-$PCRE2_VERSION.zip
 ARG OPENSSL_URL=https://github.com/openssl/openssl/releases/download/openssl-$OPENSSL_VERSION/openssl-$OPENSSL_VERSION.tar.gz
 
 ARG PWSH_URL=https://github.com/PowerShell/PowerShell/releases/download/v$PWSH_VERSION/PowerShell-$PWSH_VERSION-win-x64.zip
