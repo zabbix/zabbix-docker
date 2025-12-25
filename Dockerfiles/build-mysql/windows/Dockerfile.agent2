@@ -53,7 +53,7 @@ RUN Set-Location -Path $env:SystemDrive\.; `
     New-Item -ItemType directory -Path $env:ZBX_OUTPUT_DIR\zabbix-agent2-plugin | Out-Null; `
     `
     Import-Module (Get-ChildItem $env:VS_PATH -Recurse -File -Filter Microsoft.VisualStudio.DevShell.dll).FullName; `
-    Enter-VsDevShell -VsInstallPath $env:VS_PATH -SkipAutomaticLocation -DevCmdArguments """-arch=$env:BUILD_ARCH"""; `
+    Enter-VsDevShell -VsInstallPath $env:VS_PATH -SkipAutomaticLocation -DevCmdArguments """-arch=x64"""; `
     `
     Write-Host ('Checkout GIT {0} ({1}) repository ...' -f $env:ZBX_SOURCES, $env:GIT_BRANCH); `
     git -c advice.detachedHead=false clone $env:ZBX_SOURCES --branch $env:GIT_BRANCH --depth 1 --single-branch $env:ZBX_SOURCES_DIR; `
