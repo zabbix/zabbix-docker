@@ -111,14 +111,11 @@ RUN --mount=type=cache,target=/root/.cache/go-build/ \
     cp -R ${ZBX_SOURCES_DIR}/database/postgresql/timescaledb/schema.sql ${ZBX_OUTPUT_DIR}/server/database/${DB_TYPE}/timescaledb.sql && \
     cp -R ${ZBX_SOURCES_DIR}/database/postgresql/timescaledb/option-patches/with-compression/*.sql ${ZBX_OUTPUT_DIR}/server/database/${DB_TYPE}/option-patches/with-compression/ && \
     cp -R ${ZBX_SOURCES_DIR}/database/postgresql/timescaledb/option-patches/without-compression/*.sql ${ZBX_OUTPUT_DIR}/server/database/${DB_TYPE}/option-patches/without-compression/ && \
-    mkdir /tmp/fonts/ && \
-    curl --tlsv1.2 -sSf -L "https://noto-website-2.storage.googleapis.com/pkgs/NotoSansCJKjp-hinted.zip" -o /tmp/fonts/NotoSansCJKjp-hinted.zip && \
-    unzip /tmp/fonts/NotoSansCJKjp-hinted.zip -d /tmp/fonts/ && \
-    cp /tmp/fonts/NotoSansCJKjp-Regular.otf ${ZBX_SOURCES_DIR}/ui/assets/fonts/NotoSansCJKjp-Regular.ttf && \
-    cp /tmp/fonts/LICENSE_OFL.txt ${ZBX_SOURCES_DIR}/ui/assets/fonts/ && \
-    rm -f ${ZBX_SOURCES_DIR}/ui/assets/fonts/DejaVuSans.ttf && \
+    curl --tlsv1.2 -sSf -L "https://raw.githubusercontent.com/notofonts/noto-cjk/main/Sans/OTF/Japanese/NotoSansCJKjp-Regular.otf" -o ${ZBX_SOURCES_DIR}/ui/assets/fonts/NotoSansCJKjp-Regular.otf && \
+    curl --tlsv1.2 -sSf -L "https://raw.githubusercontent.com/notofonts/noto-cjk/main/Sans/LICENSE" -o ${ZBX_SOURCES_DIR}/ui/assets/fonts/OFL.txt && \
     sed -i -r "s/(define\(.*_FONT_NAME.*)DejaVuSans/\1NotoSansCJKjp-Regular/" ${ZBX_SOURCES_DIR}/ui/include/defines.inc.php && \
-    rm -rf /tmp/fonts/ && \
+    sed -i -r "s/\.ttf/\.otf/" ${ZBX_SOURCES_DIR}/ui/include/graphs.inc.php && \
+    rm -f ${ZBX_SOURCES_DIR}/ui/assets/fonts/DejaVuSans.ttf && \
     chmod o+r ${ZBX_SOURCES_DIR}/ui/assets/fonts/* && \
     strip ${ZBX_SOURCES_DIR}/src/zabbix_agent/zabbix_agentd && \
     strip ${ZBX_SOURCES_DIR}/src/zabbix_server/zabbix_server && \
