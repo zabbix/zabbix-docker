@@ -16,6 +16,85 @@ Zabbix is software that monitors numerous parameters of a network and the health
 
 For more information and related downloads for Zabbix components, please visit https://hub.docker.com/u/zabbix/ and https://zabbix.com
 
+## Quick Start
+
+Get started with Zabbix in Docker in just a few minutes!
+
+### Prerequisites
+
+- Docker Engine 20.10.0 or later
+- Docker Compose 2.0.0 or later
+
+### Start Zabbix with Docker Compose
+
+The easiest way to start Zabbix is using Docker Compose:
+
+```bash
+# Clone the repository
+git clone https://github.com/zabbix/zabbix-docker.git
+cd zabbix-docker
+
+# Start Zabbix with MySQL database (Alpine Linux based)
+docker compose -f docker-compose_v3_alpine_mysql_latest.yaml up -d
+```
+
+After starting the containers, access the Zabbix web interface:
+
+- **URL**: http://localhost:80
+- **Default credentials**:
+  - Username: `Admin`
+  - Password: `zabbix`
+
+> [!IMPORTANT]
+> Change the default password immediately after first login for security reasons.
+
+### Start Individual Components
+
+You can also run individual Zabbix components using `docker run`:
+
+```bash
+# Start MySQL database
+docker run --name mysql-server -t \
+  -e MYSQL_DATABASE="zabbix" \
+  -e MYSQL_USER="zabbix" \
+  -e MYSQL_PASSWORD="zabbix_pwd" \
+  -e MYSQL_ROOT_PASSWORD="root_pwd" \
+  -d mysql:8.0-oracle
+
+# Start Zabbix server
+docker run --name zabbix-server-mysql -t \
+  -e DB_SERVER_HOST="mysql-server" \
+  -e MYSQL_DATABASE="zabbix" \
+  -e MYSQL_USER="zabbix" \
+  -e MYSQL_PASSWORD="zabbix_pwd" \
+  --link mysql-server:mysql \
+  -p 10051:10051 \
+  -d zabbix/zabbix-server-mysql:alpine-latest
+
+# Start Zabbix web interface
+docker run --name zabbix-web-nginx-mysql -t \
+  -e ZBX_SERVER_HOST="zabbix-server-mysql" \
+  -e DB_SERVER_HOST="mysql-server" \
+  -e MYSQL_DATABASE="zabbix" \
+  -e MYSQL_USER="zabbix" \
+  -e MYSQL_PASSWORD="zabbix_pwd" \
+  --link mysql-server:mysql \
+  --link zabbix-server-mysql:zabbix-server \
+  -p 80:8080 \
+  -d zabbix/zabbix-web-nginx-mysql:alpine-latest
+```
+
+### Stop and Clean Up
+
+```bash
+# Stop all containers
+docker compose -f docker-compose_v3_alpine_mysql_latest.yaml down
+
+# Remove all data (including database)
+docker compose -f docker-compose_v3_alpine_mysql_latest.yaml down -v
+```
+
+For more advanced configurations and examples, see the sections below.
 
 ## Zabbix Dockerfiles
 
