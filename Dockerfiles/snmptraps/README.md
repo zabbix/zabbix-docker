@@ -81,7 +81,7 @@ The volume contains log file ``snmptraps.log`` named with received SNMP traps.
 
 ### ``/var/lib/zabbix/mibs``
 
-The volume allows to add new MIB files. It does not support subdirectories, all MIBs must be placed to ``/var/lib/zabbix/mibs``.
+The volume allows to add new MIB files. It does not support subdirectories, all MIBs must be placed in ``/var/lib/zabbix/mibs``.
 
 ### ``/var/lib/zabbix/snmptrapd_config``
 

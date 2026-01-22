@@ -184,7 +184,7 @@ ZBX_SMSDEVICES=
 ZBX_HOUSEKEEPINGFREQUENCY=1
 ZBX_MAXHOUSEKEEPERDELETE=5000
 ZBX_PROBLEMHOUSEKEEPINGFREQUENCY=60 # Available since 6.0.0
-ZBX_SENDERFREQUENCY=30 # Depcrecated since 3.4.0
+ZBX_SENDERFREQUENCY=30 # Deprecated since 3.4.0
 ZBX_CACHESIZE=8M
 ZBX_CACHEUPDATEFREQUENCY=10
 ZBX_STARTDBSYNCERS=4
@@ -264,7 +264,7 @@ The volume is used as location of public and private keys for SSH checks and act
 
 ### ``/var/lib/zabbix/ssl/certs``
 
-The volume is used as location of of SSL client certificate files for client authentication. It is `SSLCertLocation` parameter in ``zabbix_server.conf``.
+The volume is used as location of SSL client certificate files for client authentication. It is `SSLCertLocation` parameter in ``zabbix_server.conf``.
 
 ### ``/var/lib/zabbix/ssl/keys``
 
@@ -281,7 +281,7 @@ SNMP traps processing feature could be enabled using shared volume and switched 
 
 ### ``/var/lib/zabbix/mibs``
 
-The volume allows to add new MIB files. It does not support subdirectories, all MIBs must be placed to ``/var/lib/zabbix/mibs``.
+The volume allows to add new MIB files. It does not support subdirectories, all MIBs must be placed in ``/var/lib/zabbix/mibs``.
 
 ### ``/var/lib/zabbix/export``
 

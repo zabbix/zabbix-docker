@@ -64,7 +64,7 @@ $ docker run --name some-zabbix-server --link some-zabbix-proxy-mysql:zabbix-pro
 
 ## Connect to Zabbix server (Active proxy)
 
-This image can operate as Active proxy (`default` mode). Start your application container like this in order to link Zabbix proxy to Zabbix server containters:
+This image can operate as Active proxy (`default` mode). Start your application container like this in order to link Zabbix proxy to Zabbix server containers:
 
 ```console
 $ docker run --name some-zabbix-proxy-mysql --link some-zabbix-server:zabbix-server --init -d zabbix/zabbix-proxy-mysql:latest
@@ -90,7 +90,7 @@ When you start the `zabbix-proxy-mysql` image, you can adjust the configuration 
 
 ### `ZBX_PROXYMODE`
 
-The variable allows to switch Zabbix proxy mode. Bu default, value is `0` - active proxy. Allowed values are `0` - active proxy and `1` - passive proxy.
+The variable allows to switch Zabbix proxy mode. By default, value is `0` - active proxy. Allowed values are `0` - active proxy and `1` - passive proxy.
 
 ### `ZBX_HOSTNAME`
 
@@ -273,7 +273,7 @@ The volume is used as location of public and private keys for SSH checks and act
 
 ### ``/var/lib/zabbix/ssl/certs``
 
-The volume is used as location of of SSL client certificate files for client authentication. It is `SSLCertLocation` parameter in ``zabbix_proxy.conf``.
+The volume is used as location of SSL client certificate files for client authentication. It is `SSLCertLocation` parameter in ``zabbix_proxy.conf``.
 
 ### ``/var/lib/zabbix/ssl/keys``
 
@@ -290,7 +290,7 @@ SNMP traps processing feature could be enabled using shared volume and switched 
 
 ### ``/var/lib/zabbix/mibs``
 
-The volume allows to add new MIB files. It does not support subdirectories, all MIBs must be placed to ``/var/lib/zabbix/mibs``.
+The volume allows to add new MIB files. It does not support subdirectories, all MIBs must be placed in ``/var/lib/zabbix/mibs``.
 
 # The image variants
 

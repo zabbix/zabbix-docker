@@ -144,23 +144,23 @@ The variable allows to hide Web server and PHP versions. By default, `on`.
 
 ### `ZBX_MAXEXECUTIONTIME`
 
-The varable is PHP ``max_execution_time`` option. By default, value is `300`.
+The variable is PHP ``max_execution_time`` option. By default, value is `300`.
 
 ### `ZBX_MEMORYLIMIT`
 
-The varable is PHP ``memory_limit`` option. By default, value is `128M`.
+The variable is PHP ``memory_limit`` option. By default, value is `128M`.
 
 ### `ZBX_POSTMAXSIZE`
 
-The varable is PHP ``post_max_size`` option. By default, value is `16M`.
+The variable is PHP ``post_max_size`` option. By default, value is `16M`.
 
 ### `ZBX_UPLOADMAXFILESIZE`
 
-The varable is PHP ``upload_max_filesize`` option. By default, value is `2M`.
+The variable is PHP ``upload_max_filesize`` option. By default, value is `2M`.
 
 ### `ZBX_MAXINPUTTIME`
 
-The varable is PHP ``max_input_time`` option. By default, value is `300`.
+The variable is PHP ``max_input_time`` option. By default, value is `300`.
 
 ### `ZBX_SESSION_NAME`
 
@@ -204,11 +204,11 @@ The variable allows to specify a custom list of valid ciphers. The format of the
 
 ### `ZBX_SSO_SP_KEY`
 
-The variable allows to specify a custom file path to the Serivce Provider (SP) private key file.
+The variable allows to specify a custom file path to the Service Provider (SP) private key file.
 
 ### `ZBX_SSO_SP_CERT`
 
-The variable allows to specify a custom file path to the Serivce Provider (SP) cert file.
+The variable allows to specify a custom file path to the Service Provider (SP) cert file.
 
 ### `ZBX_SSO_IDP_CERT`
 
@@ -268,13 +268,13 @@ WEB_REAL_IP_HEADER=
 
 ### ``/etc/ssl/apache2``
 
-The volume allows to enable HTTPS for the Zabbix web interface. The volume must contains two files ``ssl.crt`` and ``ssl.key`` prepared for Apache2 SSL connections.
+The volume allows to enable HTTPS for the Zabbix web interface. The volume must contain two files ``ssl.crt`` and ``ssl.key`` prepared for Apache2 SSL connections.
 
 Please follow official Apache2 [documentation](https://httpd.apache.org/docs/2.4/ssl/ssl_howto.html) to get more details about how to create certificate files.
 
 ### ``/etc/zabbix/web/certs``
 
-The volume allows to use custom certificates for SAML authentification. The volume must contains three files ``sp.key``, ``sp.crt`` and ``idp.crt``. Available since 5.0.0.
+The volume allows to use custom certificates for SAML authentication. The volume must contain three files ``sp.key``, ``sp.crt`` and ``idp.crt``. Available since 5.0.0.
 
 ### ``/var/lib/zabbix/enc``
 

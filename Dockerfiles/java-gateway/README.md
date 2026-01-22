@@ -70,7 +70,7 @@ This variable is used to specify timeout for outgoing connections. By default, v
 
 ### `ZBX_DEBUGLEVEL`
 
-This variable is used to specify log level. By default, value is `info`. The variable allows next values: ``trace``, ``debug``, ``info``, ``want``, ``error``, ``all``, ``off``
+This variable is used to specify log level. By default, value is `info`. The variable allows next values: ``trace``, ``debug``, ``info``, ``warn``, ``error``, ``all``, ``off``
 
 ### `ZBX_PROPERTIES_FILE`
 
@@ -104,7 +104,7 @@ This is the defacto image. If you are unsure about what your needs are, you prob
 
 ## `zabbix-java-gateway:ol-<version>`
 
-Oracle Linux is an open-source operating system available under the GNU General Public License (GPLv2). Suitable for general purpose or Oracle workloads, it benefits from rigorous testing of more than 128,000 hours per day with real-world workloads and includes unique innovations such as Ksplice
+Oracle Linux is an open-source operating system available under the GNU General Public License (GPLv2). Suitable for general purpose or Oracle workloads, it benefits from rigorous testing of more than 128,000 hours per day with real-world workloads and includes unique innovations such as Ksplice for zero-downtime kernel patching, DTrace for real-time diagnostics, the powerful Btrfs file system, and more.
 
 # Supported Docker versions
 
