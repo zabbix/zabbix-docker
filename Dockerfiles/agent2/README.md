@@ -48,7 +48,7 @@ $ docker run --name some-zabbix-server --link some-zabbix-agent:zabbix-agent2 --
 
 ## Connect to Zabbix server or Zabbix proxy containers (Active checks)
 
-This image supports perform active checks, so container linking makes Zabbix server and Zabbix proxy containers available to Zabbix agent 2 instance. Start your application container like this in order to link Zabbix agent 2 to Zabbix server or Zabbix proxy containterns:
+This image supports perform active checks, so container linking makes Zabbix server and Zabbix proxy containers available to Zabbix agent 2 instance. Start your application container like this in order to link Zabbix agent 2 to Zabbix server or Zabbix proxy containers:
 
 ```console
 $ docker run --name some-zabbix-agent --link some-zabbix-server:zabbix-server --init -d zabbix/zabbix-agent2:latest
