@@ -240,6 +240,7 @@ Additionally the image allows to specify many other environment variables listed
 ZBX_VAULTDBPATH= # Available since 5.2.0
 ZBX_VAULTURL=https://127.0.0.1:8200 # Available since 5.2.0
 VAULT_TOKEN= # Available since 5.2.0
+ZBX_VAULTPREFIX= # Available since 7.0.0
 
 ZBX_SERVER_TLS_ACTIVE=false # Available since 7.4.0
 ZBX_SERVER_TLS_CAFILE= # Available since 7.4.0

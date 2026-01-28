@@ -258,6 +258,7 @@ prepare_zbx_php_config() {
 
     export ZBX_VAULT=${ZBX_VAULT}
     export ZBX_VAULTURL=${ZBX_VAULTURL}
+    export ZBX_VAULTPREFIX=${ZBX_VAULTPREFIX}
     export ZBX_VAULTDBPATH=${ZBX_VAULTDBPATH}
     export VAULT_TOKEN=${VAULT_TOKEN}
     export ZBX_VAULTCERTFILE=${ZBX_VAULTCERTFILE}
