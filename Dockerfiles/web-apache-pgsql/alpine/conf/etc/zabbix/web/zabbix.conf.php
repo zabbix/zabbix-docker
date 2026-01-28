@@ -29,6 +29,7 @@ $DB['CIPHER_LIST']              = getenv('ZBX_DB_CIPHER_LIST') ? getenv('ZBX_DB_
 // Vault configuration. Used if database credentials are stored in Vault secrets manager.
 $DB['VAULT']                    = getenv('ZBX_VAULT');
 $DB['VAULT_URL']                = getenv('ZBX_VAULTURL');
+$DB['VAULT_PREFIX']		= getenv('ZBX_VAULTPREFIX');
 $DB['VAULT_DB_PATH']            = getenv('ZBX_VAULTDBPATH');
 $DB['VAULT_TOKEN']              = getenv('VAULT_TOKEN');
 
