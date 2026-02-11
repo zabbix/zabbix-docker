@@ -3,7 +3,7 @@
 ARG OS_BASE_IMAGE=mcr.microsoft.com/windows/nanoserver:ltsc2022
 
 ARG MAJOR_VERSION=6.0
-ARG ZBX_VERSION=${MAJOR_VERSION}.43
+ARG ZBX_VERSION=${MAJOR_VERSION}.44
 
 ARG BUILD_BASE_IMAGE=zabbix-build-agent:ltsc2022-agent2-${ZBX_VERSION}
 
