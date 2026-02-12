@@ -72,6 +72,9 @@ This variable is SNMP trap format in the output `snmptraps.log` file. By default
 
 This variable manages source network address representation. It can be IP address or DNS of SNMP trap sender. The variable works only when container command is modified and "-n" command argument is removed from argument list. By default, value is `false`.
 
+### `SNMPTRAP_OUTPUT_OPTIONS`
+
+Modify standard output options for SNMP traps. By default, value is `STte`. Corresponding to "OUTPUT OPTIONS" ("-O" command line argument).
 
 ## Allowed volumes for the Zabbix snmptraps container
 
