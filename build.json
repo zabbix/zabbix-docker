@@ -10,8 +10,7 @@
     ],
     "centos": [
       "linux/amd64",
-      "linux/arm64",
-      "linux/ppc64le"
+      "linux/arm64"
     ],
     "ol": [
       "linux/amd64",
