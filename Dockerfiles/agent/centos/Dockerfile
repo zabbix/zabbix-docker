@@ -44,7 +44,7 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             c-ares \
             pcre2 \
             libcurl-minimal \
-#            libmodbus \
+            libmodbus \
             openssl-libs \
             openldap \
             shadow-utils \
