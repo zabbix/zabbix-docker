@@ -591,6 +591,8 @@ services:
      published: "${ZABBIX_JAVA_GATEWAY_PORT}"
      protocol: tcp
   restart: "${RESTART_POLICY}"
+  volumes:
+   - ${DATA_DIRECTORY}/usr/sbin/zabbix_java/ext_lib:/usr/sbin/zabbix_java/ext_lib:ro
   attach: false
   deploy:
    resources:
