@@ -215,7 +215,10 @@ RUN Import-Module (Get-ChildItem $env:VS_PATH -Recurse -File -Filter Microsoft.V
     cmake -S $env:BUILD_SRC\zlib -B $env:BUILD_SRC\zlib\build `
         -G """Visual Studio 17 2022""" `
         -A x64 `
-        -DBUILD_SHARED_LIBS=OFF `
+        -DZLIB_BUILD_TESTING=OFF `
+        -DZLIB_BUILD_SHARED=OFF `
+        -DZLIB_BUILD_STATIC=ON `
+        -DZLIB_BUILD_MINIZIP=OFF `
         -DCMAKE_MSVC_RUNTIME_LIBRARY="""MultiThreaded$<$<CONFIG:Debug>:Debug>""" `
         -DCMAKE_INSTALL_PREFIX="""$env:BUILD_OUTPUT\zlib"""; `
     cmake --build $env:BUILD_SRC\zlib\build --config Release --parallel; `
@@ -319,7 +322,7 @@ RUN Import-Module (Get-ChildItem $env:VS_PATH -Recurse -File -Filter Microsoft.V
         -DOPENSSL_USE_STATIC_LIBS=ON `
         -DUSE_WIN32_IDN=OFF `
         -DZLIB_INCLUDE_DIR="""$env:BUILD_OUTPUT\zlib\include""" `
-        -DZLIB_LIBRARY="""$env:BUILD_OUTPUT\zlib\lib\zlibstatic.lib""" `
+        -DZLIB_LIBRARY="""$env:BUILD_OUTPUT\zlib\lib\zs.lib""" `
         -DZLIB_USE_STATIC_LIBS=ON `
         -DCMAKE_INSTALL_PREFIX="""$env:BUILD_OUTPUT\curl"""; `
     cmake --build $env:BUILD_SRC\curl\build --config Release --parallel; `

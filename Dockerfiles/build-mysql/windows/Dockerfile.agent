@@ -61,7 +61,7 @@ RUN Set-Location -Path $env:SystemDrive\.; `
         TLSLIBDIR=$env:BUILD_OUTPUT\openssl\lib `
         MODBINCDIR=$env:BUILD_OUTPUT\libmodbus\include `
         MODBLIBDIR=$env:BUILD_OUTPUT\libmodbus\lib `
-        LIBS="""$env:LIBS Crypt32.lib $env:BUILD_OUTPUT\curl\lib\libcurl.lib $env:BUILD_OUTPUT\zlib\lib\zlibstatic.lib""" `
+        LIBS="""$env:LIBS Crypt32.lib $env:BUILD_OUTPUT\curl\lib\libcurl.lib $env:BUILD_OUTPUT\zlib\lib\zs.lib""" `
         all; `
     `
     Write-Host 'Verifying build ("zabbix_agentd.exe -V") ...'; `
