@@ -49,7 +49,7 @@ RUN --mount=type=cache,target=/var/cache/apt/,sharing=locked \
             libssl3t64 \
             libcurl4t64 \
             libpcre2-8-0 \
-            libldap-2.4" && \
+            libldap2" && \
     apt-get -y update && \
     DEBIAN_FRONTEND=noninteractive apt-get -y \
             --no-install-recommends install \
