@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1
-ARG OS_BASE_IMAGE=ubuntu:noble
+ARG OS_BASE_IMAGE=ubuntu:resolute
 ARG MAJOR_VERSION=8.0
 ARG ZBX_VERSION=${MAJOR_VERSION}
 ARG BUILD_BASE_IMAGE=zabbix-build-pgsql:ubuntu-${ZBX_VERSION}
@@ -45,14 +45,14 @@ RUN --mount=type=cache,target=/var/cache/apt/,sharing=locked \
             nginx \
             locales \
             libldap-common \
-            php8.3-bcmath \
-            php8.3-curl \
-            php8.3-fpm \
-            php8.3-gd \
-            php8.3-ldap \
-            php8.3-mbstring \
-            php8.3-xml \
-            php8.3-pgsql \
+            php8.5-bcmath \
+            php8.5-curl \
+            php8.5-fpm \
+            php8.5-gd \
+            php8.5-ldap \
+            php8.5-mbstring \
+            php8.5-xml \
+            php8.5-pgsql \
             postgresql-client-17 \
             supervisor" && \
     apt-get -y update && \
@@ -100,8 +100,8 @@ RUN --mount=type=cache,target=/var/cache/apt/,sharing=locked \
     mkdir -p /var/lib/php/session && \
     rm -f /etc/nginx/conf.d/*.conf && \
     rm -rf /var/cache/nginx/ && \
-    rm -f /etc/php/8.3/fpm/pool.d/www.conf && \
-    rm -f /etc/php/8.3/fpm/php-fpm.conf.dpkg-dist && \
+    rm -f /etc/php/8.5/fpm/pool.d/www.conf && \
+    rm -f /etc/php/8.5/fpm/php-fpm.conf.dpkg-dist && \
     ln -sf /dev/stdout /var/log/nginx/access.log && \
     ln -sf /dev/stderr /var/log/nginx/error.log && \
     cd ${ZABBIX_WWW_ROOT}/ && \
@@ -121,9 +121,9 @@ RUN --mount=type=cache,target=/var/cache/apt/,sharing=locked \
     chown --quiet -R zabbix:root ${ZABBIX_CONF_DIR}/ ${ZABBIX_WWW_ROOT}/include/defines.inc.php ${ZABBIX_WWW_ROOT}/modules/ && \
     chgrp -R 0 ${ZABBIX_CONF_DIR}/ ${ZABBIX_WWW_ROOT}/include/defines.inc.php ${ZABBIX_WWW_ROOT}/modules/ && \
     chmod -R g=u ${ZABBIX_CONF_DIR}/ ${ZABBIX_WWW_ROOT}/include/defines.inc.php ${ZABBIX_WWW_ROOT}/modules/ && \
-    chown --quiet -R zabbix:root ${ZABBIX_USER_HOME_DIR}/ /etc/nginx/ /etc/php/8.3/fpm/php-fpm.conf /etc/php/8.3/fpm/pool.d/ && \
-    chgrp -R 0 ${ZABBIX_USER_HOME_DIR}/ /etc/nginx/ /etc/php/8.3/fpm/php-fpm.conf /etc/php/8.3/fpm/pool.d/ && \
-    chmod -R g=u ${ZABBIX_USER_HOME_DIR}/ /etc/nginx/ /etc/php/8.3/fpm/php-fpm.conf /etc/php/8.3/fpm/pool.d/ && \
+    chown --quiet -R zabbix:root ${ZABBIX_USER_HOME_DIR}/ /etc/nginx/ /etc/php/8.5/fpm/php-fpm.conf /etc/php/8.5/fpm/pool.d/ && \
+    chgrp -R 0 ${ZABBIX_USER_HOME_DIR}/ /etc/nginx/ /etc/php/8.5/fpm/php-fpm.conf /etc/php/8.5/fpm/pool.d/ && \
+    chmod -R g=u ${ZABBIX_USER_HOME_DIR}/ /etc/nginx/ /etc/php/8.5/fpm/php-fpm.conf /etc/php/8.5/fpm/pool.d/ && \
     chown --quiet -R zabbix:root /var/lib/php/session/ && \
     chgrp -R 0 /var/lib/php/session/ && \
     chmod -R g=u /var/lib/php/session/

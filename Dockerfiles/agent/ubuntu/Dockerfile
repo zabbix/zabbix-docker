@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1
-ARG OS_BASE_IMAGE=ubuntu:noble
+ARG OS_BASE_IMAGE=ubuntu:resolute
 ARG MAJOR_VERSION=8.0
 ARG ZBX_VERSION=${MAJOR_VERSION}
 ARG BUILD_BASE_IMAGE=zabbix-build-mysql:ubuntu-${ZBX_VERSION}
@@ -49,7 +49,7 @@ RUN --mount=type=cache,target=/var/cache/apt/,sharing=locked \
             libcurl4t64 \
             libmodbus5 \
             libpcre2-8-0 \
-            libldap-2.4 \
+            libldap2 \
             zlib1g" && \
     apt-get -y update && \
     DEBIAN_FRONTEND=noninteractive apt-get -y \

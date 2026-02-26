@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1
-ARG OS_BASE_IMAGE=ubuntu:noble
+ARG OS_BASE_IMAGE=ubuntu:resolute
 FROM ${OS_BASE_IMAGE}
 
 ARG MAJOR_VERSION=8.0

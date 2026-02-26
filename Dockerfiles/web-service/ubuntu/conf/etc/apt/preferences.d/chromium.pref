@@ -1,6 +1,6 @@
 # Note: 2 blank lines are required between entries
 Package: *
-Pin: release a=focal
+Pin: release a=resolute
 Pin-Priority: 500
 
 Package: *

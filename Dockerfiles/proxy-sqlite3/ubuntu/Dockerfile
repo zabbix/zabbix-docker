@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1
-ARG OS_BASE_IMAGE=ubuntu:noble
+ARG OS_BASE_IMAGE=ubuntu:resolute
 ARG MAJOR_VERSION=8.0
 ARG ZBX_VERSION=${MAJOR_VERSION}
 ARG BUILD_BASE_IMAGE=zabbix-build-sqlite3:ubuntu-${ZBX_VERSION}
@@ -67,7 +67,7 @@ RUN --mount=type=cache,target=/var/cache/apt/,sharing=locked \
             libsqlite3-0 \
             libssh-4 \
             libssl3t64 \
-            libxml2 \
+            libxml2-16 \
             snmp-mibs-downloader \
             unixodbc \
             zlib1g" && \

@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1
-ARG OS_BASE_IMAGE=ubuntu:noble
+ARG OS_BASE_IMAGE=ubuntu:resolute
 ARG MAJOR_VERSION=8.0
 ARG ZBX_VERSION=${MAJOR_VERSION}
 ARG BUILD_BASE_IMAGE=zabbix-build-mysql:ubuntu-${ZBX_VERSION}
@@ -46,10 +46,10 @@ RUN --mount=type=cache,target=/var/cache/apt/,sharing=locked \
     DEBIAN_FRONTEND=noninteractive apt-get -y \
             --no-install-recommends install \
         ${INSTALL_TEMP_PKGS} && \
-    gpg --keyserver keyserver.ubuntu.com --recv-keys 0E98404D386FA1D9 && \
-    gpg -o /etc/apt/keyrings/debian.gpg --export 0E98404D386FA1D9 && \
-    echo "deb [signed-by=/etc/apt/keyrings/debian.gpg] http://deb.debian.org/debian bullseye main" > /etc/apt/sources.list.d/debian.list && \
-    echo "deb [signed-by=/etc/apt/keyrings/debian.gpg] http://deb.debian.org/debian bullseye-updates main" >> /etc/apt/sources.list.d/debian.list && \
+    gpg --keyserver keyserver.ubuntu.com --recv-keys 78DBA3BC47EF2265 && \
+    gpg -o /etc/apt/keyrings/debian.gpg --export 78DBA3BC47EF2265 && \
+    echo "deb [signed-by=/etc/apt/keyrings/debian.gpg] http://deb.debian.org/debian trixie main" > /etc/apt/sources.list.d/debian.list && \
+    echo "deb [signed-by=/etc/apt/keyrings/debian.gpg] http://deb.debian.org/debian trixie-updates main" >> /etc/apt/sources.list.d/debian.list && \
     apt-get -y update && \
     DEBIAN_FRONTEND=noninteractive apt-get -y \
             --no-install-recommends install \

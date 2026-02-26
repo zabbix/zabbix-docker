@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1
-ARG OS_BASE_IMAGE=ubuntu:noble
+ARG OS_BASE_IMAGE=ubuntu:resolute
 ARG MAJOR_VERSION=8.0
 ARG ZBX_VERSION=${MAJOR_VERSION}
 ARG BUILD_BASE_IMAGE=zabbix-build-pgsql:ubuntu-${ZBX_VERSION}
@@ -45,14 +45,14 @@ RUN --mount=type=cache,target=/var/cache/apt/,sharing=locked \
             apache2 \ 
             locales \
             libldap-common \
-            php8.3-bcmath \
-            php8.3-curl \
-            php8.3-fpm \
-            php8.3-gd \
-            php8.3-ldap \
-            php8.3-mbstring \
-            php8.3-xml \
-            php8.3-pgsql \
+            php8.5-bcmath \
+            php8.5-curl \
+            php8.5-fpm \
+            php8.5-gd \
+            php8.5-ldap \
+            php8.5-mbstring \
+            php8.5-xml \
+            php8.5-pgsql \
             postgresql-client-17 \
             supervisor" && \
     apt-get -y update && \
@@ -101,7 +101,7 @@ RUN --mount=type=cache,target=/var/cache/apt/,sharing=locked \
     find /etc/ -name '*.dpkg-dist' | xargs rm -f && \
     rm -f /etc/apache2/sites-available/* && \
     rm -f /etc/apache2/sites-enabled/* && \
-    rm -f /etc/php/8.3/fpm/pool.d/www.conf && \
+    rm -f /etc/php/8.5/fpm/pool.d/www.conf && \
     rm -f /var/run/apache2/ && \
     cd ${ZABBIX_WWW_ROOT}/ && \
     rm -f conf/zabbix.conf.php conf/maintenance.inc.php conf/zabbix.conf.php.example && \
@@ -120,9 +120,9 @@ RUN --mount=type=cache,target=/var/cache/apt/,sharing=locked \
     chown --quiet -R zabbix:root ${ZABBIX_CONF_DIR}/ ${ZABBIX_WWW_ROOT}/include/defines.inc.php ${ZABBIX_WWW_ROOT}/modules/ && \
     chgrp -R 0 ${ZABBIX_CONF_DIR}/ ${ZABBIX_WWW_ROOT}/include/defines.inc.php ${ZABBIX_WWW_ROOT}/modules/ && \
     chmod -R g=u ${ZABBIX_CONF_DIR}/ ${ZABBIX_WWW_ROOT}/include/defines.inc.php ${ZABBIX_WWW_ROOT}/modules/ && \
-    chown --quiet -R zabbix:root ${ZABBIX_USER_HOME_DIR}/ /etc/apache2/ /etc/php/8.3/fpm/ && \
-    chgrp -R 0 ${ZABBIX_USER_HOME_DIR}/ /etc/apache2/ /etc/php/8.3/fpm/ && \
-    chmod -R g=u ${ZABBIX_USER_HOME_DIR}/ /etc/apache2/ /etc/php/8.3/fpm/ && \
+    chown --quiet -R zabbix:root ${ZABBIX_USER_HOME_DIR}/ /etc/apache2/ /etc/php/8.5/fpm/ && \
+    chgrp -R 0 ${ZABBIX_USER_HOME_DIR}/ /etc/apache2/ /etc/php/8.5/fpm/ && \
+    chmod -R g=u ${ZABBIX_USER_HOME_DIR}/ /etc/apache2/ /etc/php/8.5/fpm/ && \
     chown --quiet -R zabbix:root /var/lib/php/session/ && \
     chgrp -R 0 /var/lib/php/session/ && \
     chmod -R g=u /var/lib/php/session/

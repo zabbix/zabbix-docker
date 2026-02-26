@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1
-ARG OS_BASE_IMAGE=ubuntu:noble
+ARG OS_BASE_IMAGE=ubuntu:resolute
 ARG MAJOR_VERSION=8.0
 ARG ZBX_VERSION=${MAJOR_VERSION}
 ARG BUILD_BASE_IMAGE=zabbix-build-mysql:ubuntu-${ZBX_VERSION}
@@ -64,13 +64,13 @@ RUN --mount=type=cache,target=/var/cache/apt/,sharing=locked \
             libevent-2.1 \
             libevent-pthreads-2.1 \
             libevent-extra-2.1 \
-            libmysqlclient21 \
+            libmysqlclient24 \
             libopenipmi0t64 \
             libpcre2-8-0 \
             libsnmp40t64 \
             libssh-4 \
             libssl3t64 \
-            libxml2 \
+            libxml2-16 \
             mysql-client \
             snmp-mibs-downloader \
             gzip \

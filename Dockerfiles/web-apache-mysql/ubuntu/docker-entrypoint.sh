@@ -36,7 +36,7 @@ APACHE_SITES_DIR="/etc/apache2/sites-enabled"
 # Directory with SSL certificate files for Apache
 APACHE_SSL_CONFIG_DIR="/etc/ssl/apache2"
 # PHP-FPM configuration file
-PHP_CONFIG_FILE="/etc/php/8.3/fpm/pool.d/zabbix.conf"
+PHP_CONFIG_FILE="/etc/php/8.5/fpm/pool.d/zabbix.conf"
 
 # usage: file_env VAR [DEFAULT]
 # as example: file_env 'MYSQL_PASSWORD' 'zabbix'

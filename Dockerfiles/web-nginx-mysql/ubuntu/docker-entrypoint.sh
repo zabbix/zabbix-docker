@@ -33,7 +33,7 @@ NGINX_CONFD_DIR="/etc/nginx/conf.d"
 # Directory with SSL certificate files for Nginx
 NGINX_SSL_CONFIG_DIR="/etc/ssl/nginx"
 # PHP-FPM configuration file
-PHP_CONFIG_FILE="/etc/php/8.3/fpm/pool.d/zabbix.conf"
+PHP_CONFIG_FILE="/etc/php/8.5/fpm/pool.d/zabbix.conf"
 
 escape_spec_char() {
     local var_value=$1
