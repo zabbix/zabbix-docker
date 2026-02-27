@@ -110,11 +110,6 @@ services:
    file: compose_databases.yaml
    service: mysql-server
 
- db-data-mysql:
-  extends:
-   file: compose_databases.yaml
-   service: db-data-mysql
-
  elasticsearch:
   extends:
    file: compose_databases.yaml
