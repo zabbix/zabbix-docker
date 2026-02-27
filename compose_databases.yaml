@@ -64,17 +64,6 @@ services:
     aliases:
      - postgres-server
 
- db-data-mysql:
-  image: "${BUSYBOX_IMAGE}:${BUSYBOX_IMAGE_TAG}"
-  volumes:
-   - ${DATA_DIRECTORY}/var/lib/mysql:/var/lib/mysql:rw
-
- db-data-pgsql:
-  image: "${BUSYBOX_IMAGE}:${BUSYBOX_IMAGE_TAG}"
-  attach: false
-  volumes:
-   - ${DATA_DIRECTORY}/var/lib/postgresql/data:/var/lib/postgresql/data:rw
-
  elasticsearch:
   image: "${ELASTICSEARCH_IMAGE}:${ELASTICSEARCH_IMAGE_TAG}"
   restart: "${RESTART_POLICY}"
