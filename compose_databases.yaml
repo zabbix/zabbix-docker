@@ -34,6 +34,12 @@ services:
 #   - server-cert.pem
 #   - root-ca.pem
   stop_grace_period: 1m
+  healthcheck:
+    test: ["CMD-SHELL", "mysqladmin ping -uroot -p$(cat /run/secrets/MYSQL_ROOT_PASSWORD) --silent"]
+    interval: 10s
+    timeout: 5s
+    retries: 12
+    start_period: 30s
   networks:
    database:
     aliases:
