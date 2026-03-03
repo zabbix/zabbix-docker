@@ -34,6 +34,7 @@ services:
 #   - server-cert.pem
 #   - root-ca.pem
   stop_grace_period: 1m
+  tmpfs: /tmp
   healthcheck:
     test: ["CMD-SHELL", "mysqladmin ping -uroot -p$(cat /run/secrets/MYSQL_ROOT_PASSWORD) --silent"]
     interval: 10s
@@ -52,9 +53,9 @@ services:
   attach: false
   volumes:
    - ${DATA_DIRECTORY}/var/lib/postgresql/data:/var/lib/postgresql/data:rw
-   - ${ENV_VARS_DIRECTORY}/.ZBX_DB_CA_FILE:/run/secrets/root-ca.pem:ro
-   - ${ENV_VARS_DIRECTORY}/.ZBX_DB_CERT_FILE:/run/secrets/server-cert.pem:ro
-   - ${ENV_VARS_DIRECTORY}/.ZBX_DB_KEY_FILE:/run/secrets/server-key.pem:ro
+#   - ${ENV_VARS_DIRECTORY}/.ZBX_DB_CA_FILE:/run/secrets/root-ca.pem:ro
+#   - ${ENV_VARS_DIRECTORY}/.ZBX_DB_CERT_FILE:/run/secrets/server-cert.pem:ro
+#   - ${ENV_VARS_DIRECTORY}/.ZBX_DB_KEY_FILE:/run/secrets/server-key.pem:ro
 #   - pgsql_socket:/var/run/postgresql/
   env_file:
    - path: ${ENV_VARS_DIRECTORY}/.env_db_pgsql
@@ -65,6 +66,13 @@ services:
    - POSTGRES_USER
    - POSTGRES_PASSWORD
   stop_grace_period: 1m
+  tmpfs: /tmp
+  healthcheck:
+    test: ["CMD-SHELL", "pg_isready -U postgres || exit 1"]
+    interval: 10s
+    timeout: 5s
+    retries: 12
+    start_period: 30s
   networks:
    database:
     aliases:
@@ -77,8 +85,23 @@ services:
   profiles:
    - elasticsearch
   environment:
-   - transport.host=0.0.0.0
-   - discovery.zen.minimum_master_nodes=1
+   - discovery.type=single-node
+   - xpack.security.enabled=false
+   - ES_JAVA_OPTS=-Xms128m -Xmx128m
+  ulimits:
+   nofile:
+    soft: 65536
+    hard: 65536
+  volumes:
+    - ${DATA_DIRECTORY}/usr/share/elasticsearch/data:/usr/share/elasticsearch/data:rw
+  tmpfs: /tmp
+  stop_grace_period: 1m
+  healthcheck:
+    test: ["CMD-SHELL", "curl -fsS http://localhost:9200/_cluster/health?wait_for_status=yellow\\&timeout=5s >/dev/null || exit 1"]
+    interval: 10s
+    timeout: 5s
+    retries: 20
+    start_period: 40s
   networks:
    database:
     aliases:
