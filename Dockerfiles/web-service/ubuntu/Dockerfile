@@ -80,7 +80,7 @@ RUN --mount=type=cache,target=/var/cache/apt/,sharing=locked \
     apt-get -y autoremove && \
     /usr/sbin/zabbix_web_service -V
 
-EXPOSE 10053/TCP
+EXPOSE 10053/tcp
 
 WORKDIR ${ZABBIX_USER_HOME_DIR}
 

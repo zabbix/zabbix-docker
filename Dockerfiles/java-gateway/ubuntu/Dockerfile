@@ -62,7 +62,7 @@ RUN --mount=type=cache,target=/var/cache/apt/,sharing=locked \
     chgrp -R 0 ${ZABBIX_CONF_DIR}/ /usr/sbin/zabbix_java/ && \
     chmod -R g=u ${ZABBIX_CONF_DIR}/ /usr/sbin/zabbix_java/
 
-EXPOSE 10052/TCP
+EXPOSE 10052/tcp
 
 WORKDIR ${ZABBIX_USER_HOME_DIR}
 

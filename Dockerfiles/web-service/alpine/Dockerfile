@@ -61,7 +61,7 @@ RUN set -eux && \
     chmod -R g=u ${ZABBIX_USER_HOME_DIR}/ && \
     /usr/sbin/zabbix_web_service -V
 
-EXPOSE 10053/TCP
+EXPOSE 10053/tcp
 
 WORKDIR ${ZABBIX_USER_HOME_DIR}
 

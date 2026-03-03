@@ -134,7 +134,7 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
     chmod g=u ${ZABBIX_CONF_DIR} && \
     /usr/sbin/zabbix_agentd -V
 
-EXPOSE 10050/TCP
+EXPOSE 10050/tcp
 
 WORKDIR ${ZABBIX_USER_HOME_DIR}
 

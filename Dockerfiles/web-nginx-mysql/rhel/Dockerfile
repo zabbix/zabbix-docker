@@ -157,7 +157,7 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
 HEALTHCHECK --interval=1m30s --timeout=3s --retries=3 --start-period=40s --start-interval=5s \
     CMD curl -f http://localhost:8080/ping || exit 1
 
-EXPOSE 8080/TCP 8443/TCP
+EXPOSE 8080/tcp 8443/TCP
 
 WORKDIR ${ZABBIX_WWW_ROOT}
 

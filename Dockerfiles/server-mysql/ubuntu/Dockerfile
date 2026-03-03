@@ -120,7 +120,7 @@ RUN --mount=type=cache,target=/var/cache/apt/,sharing=locked \
     chmod g=u ${ZABBIX_CONF_DIR} && \
     /usr/sbin/zabbix_server -V
 
-EXPOSE 10051/TCP
+EXPOSE 10051/tcp
 
 WORKDIR ${ZABBIX_USER_HOME_DIR}
 
