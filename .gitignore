@@ -6,3 +6,5 @@ zbx_env*/
 .*CA_FILE
 Dockerfiles/*/rhel/secrets/*
 sources/*
+.*.orig
+.*.rej
