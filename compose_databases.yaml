@@ -36,7 +36,9 @@ services:
   stop_grace_period: 1m
   tmpfs: /tmp
   healthcheck:
-    test: ["CMD-SHELL", "mysqladmin ping -uroot -p$(cat /run/secrets/MYSQL_ROOT_PASSWORD) --silent"]
+    test:
+     - CMD-SHELL
+     - mysqladmin ping -uroot -p"$$(cat /run/secrets/MYSQL_ROOT_PASSWORD)" --silent
     interval: 10s
     timeout: 5s
     retries: 12
@@ -68,7 +70,9 @@ services:
   stop_grace_period: 1m
   tmpfs: /tmp
   healthcheck:
-    test: ["CMD-SHELL", "pg_isready -U postgres || exit 1"]
+    test:
+     - CMD-SHELL
+     - pg_isready -U "$$(cat /run/secrets/POSTGRES_USER)" -d "$${POSTGRES_DB}" || exit 1
     interval: 10s
     timeout: 5s
     retries: 12
@@ -97,7 +101,9 @@ services:
   tmpfs: /tmp
   stop_grace_period: 1m
   healthcheck:
-    test: ["CMD-SHELL", "curl -fsS http://localhost:9200/_cluster/health?wait_for_status=yellow\\&timeout=5s >/dev/null || exit 1"]
+    test:
+     - CMD-SHELL
+     - curl -fsS http://localhost:9200/_cluster/health?wait_for_status=yellow\\&timeout=5s >/dev/null || exit 1
     interval: 10s
     timeout: 5s
     retries: 20

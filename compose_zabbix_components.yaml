@@ -104,6 +104,7 @@ services:
 #   - ${ENV_VARS_DIRECTORY}/.ZBX_DB_KEY_FILE:/run/secrets/client-key.pem:ro
 #   - pgsql_socket:/var/run/postgresql
   command: init_db_only
+  tmpfs: /tmp
   env_file:
    - path: ${ENV_VARS_DIRECTORY}/.env_db_pgsql
      required: true

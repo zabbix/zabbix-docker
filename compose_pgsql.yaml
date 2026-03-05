@@ -3,123 +3,117 @@ services:
   extends:
    file: compose_zabbix_components.yaml
    service: server-pgsql-db-init
-  image: "${ZABBIX_SERVER_PGSQL_IMAGE}:${ZABBIX_OL_IMAGE_TAG}${ZABBIX_IMAGE_TAG_POSTFIX}"
-  volumes:
-   - /etc/timezone:/etc/timezone:ro
+  image: "${ZABBIX_SERVER_PGSQL_IMAGE}:${ZBX_IMAGE_TAG}"
   depends_on:
    postgres-server:
-    condition: service_started
+    condition: service_healthy
   labels:
-   com.zabbix.os: "${OL_OS_TAG}"
+   com.zabbix.os: "${OS}"
 
  proxy-db-init:
   extends:
    file: compose_zabbix_components.yaml
    service: proxy-mysql-db-init
-  image: "${ZABBIX_PROXY_MYSQL_IMAGE}:${ZABBIX_OL_IMAGE_TAG}${ZABBIX_IMAGE_TAG_POSTFIX}"
-  volumes:
-   - /etc/timezone:/etc/timezone:ro
+  image: "${ZABBIX_PROXY_MYSQL_IMAGE}:${ZBX_IMAGE_TAG}"
   depends_on:
    mysql-server:
-    condition: service_started
+    condition: service_healthy
   labels:
-   com.zabbix.os: "${OL_OS_TAG}"
+   com.zabbix.os: "${OS}"
 
  zabbix-server:
   extends:
    file: compose_zabbix_components.yaml
    service: server-pgsql
-  image: "${ZABBIX_SERVER_PGSQL_IMAGE}:${ZABBIX_OL_IMAGE_TAG}${ZABBIX_IMAGE_TAG_POSTFIX}"
-  volumes:
-   - /etc/timezone:/etc/timezone:ro
+  image: "${ZABBIX_SERVER_PGSQL_IMAGE}:${ZBX_IMAGE_TAG}"
   depends_on:
    server-db-init:
     condition: service_completed_successfully
+   postgres-server:
+    condition: service_healthy
   labels:
-   com.zabbix.os: "${OL_OS_TAG}"
+   com.zabbix.os: "${OS}"
 
  zabbix-proxy-sqlite3:
   extends:
    file: compose_zabbix_components.yaml
    service: proxy-sqlite3
-  image: "${ZABBIX_PROXY_SQLITE3_IMAGE}:${ZABBIX_OL_IMAGE_TAG}${ZABBIX_IMAGE_TAG_POSTFIX}"
+  image: "${ZABBIX_PROXY_SQLITE3_IMAGE}:${ZBX_IMAGE_TAG}"
   volumes:
    - /etc/timezone:/etc/timezone:ro
   labels:
-   com.zabbix.os: "${OL_OS_TAG}"
+   com.zabbix.os: "${OS}"
 
  zabbix-proxy-mysql:
   extends:
    file: compose_zabbix_components.yaml
    service: proxy-mysql
-  image: "${ZABBIX_PROXY_MYSQL_IMAGE}:${ZABBIX_OL_IMAGE_TAG}${ZABBIX_IMAGE_TAG_POSTFIX}"
-  volumes:
-   - /etc/timezone:/etc/timezone:ro
+  image: "${ZABBIX_PROXY_MYSQL_IMAGE}:${ZBX_IMAGE_TAG}"
   depends_on:
    proxy-db-init:
     condition: service_completed_successfully
+   mysql-server:
+    condition: service_healthy
   labels:
-   com.zabbix.os: "${OL_OS_TAG}"
+   com.zabbix.os: "${OS}"
 
  zabbix-web-apache-pgsql:
   extends:
    file: compose_zabbix_components.yaml
    service: web-apache-pgsql
-  image: "${ZABBIX_WEB_APACHE_PGSQL_IMAGE}:${ZABBIX_OL_IMAGE_TAG}${ZABBIX_IMAGE_TAG_POSTFIX}"
-  volumes:
-   - /etc/timezone:/etc/timezone:ro
+  image: "${ZABBIX_WEB_APACHE_PGSQL_IMAGE}:${ZBX_IMAGE_TAG}"
   depends_on:
    server-db-init:
     condition: service_completed_successfully
+   postgres-server:
+    condition: service_healthy
   labels:
-   com.zabbix.os: "${OL_OS_TAG}"
+   com.zabbix.os: "${OS}"
 
  zabbix-web-nginx-pgsql:
   extends:
    file: compose_zabbix_components.yaml
    service: web-nginx-pgsql
-  image: "${ZABBIX_WEB_NGINX_PGSQL_IMAGE}:${ZABBIX_OL_IMAGE_TAG}${ZABBIX_IMAGE_TAG_POSTFIX}"
-  volumes:
-   - /etc/timezone:/etc/timezone:ro
+  image: "${ZABBIX_WEB_NGINX_PGSQL_IMAGE}:${ZBX_IMAGE_TAG}"
   depends_on:
    server-db-init:
     condition: service_completed_successfully
+   postgres-server:
+    condition: service_healthy
   labels:
-   com.zabbix.os: "${OL_OS_TAG}"
+   com.zabbix.os: "${OS}"
 
  zabbix-agent:
   extends:
    file: compose_zabbix_components.yaml
    service: agent
-  image: "${ZABBIX_AGENT_IMAGE}:${ZABBIX_OL_IMAGE_TAG}${ZABBIX_IMAGE_TAG_POSTFIX}"
-  volumes:
-   - /etc/timezone:/etc/timezone:ro
+  image: "${ZABBIX_AGENT_IMAGE}:${ZBX_IMAGE_TAG}"
   labels:
-   com.zabbix.os: "${OL_OS_TAG}"
+   com.zabbix.os: "${OS}"
 
  zabbix-java-gateway:
   extends:
    file: compose_zabbix_components.yaml
    service: java-gateway
-  image: "${ZABBIX_JAVA_GATEWAY_IMAGE}:${ZABBIX_OL_IMAGE_TAG}${ZABBIX_IMAGE_TAG_POSTFIX}"
+  image: "${ZABBIX_JAVA_GATEWAY_IMAGE}:${ZBX_IMAGE_TAG}"
   labels:
-   com.zabbix.os: "${OL_OS_TAG}"
+   com.zabbix.os: "${OS}"
 
  zabbix-snmptraps:
   extends:
    file: compose_zabbix_components.yaml
    service: snmptraps
-  image: "${ZABBIX_SNMPTRAPS_IMAGE}:${ZABBIX_OL_IMAGE_TAG}${ZABBIX_IMAGE_TAG_POSTFIX}"
+  image: "${ZABBIX_SNMPTRAPS_IMAGE}:${ZBX_IMAGE_TAG}"
   labels:
-   com.zabbix.os: "${OL_OS_TAG}"
+   com.zabbix.os: "${OS}"
 
  zabbix-web-service:
   extends:
    file: compose_zabbix_components.yaml
    service: web-service
-  image: "${ZABBIX_WEB_SERVICE_IMAGE}:${ZABBIX_OL_IMAGE_TAG}${ZABBIX_IMAGE_TAG_POSTFIX}"
+  image: "${ZABBIX_WEB_SERVICE_IMAGE}:${ZBX_IMAGE_TAG}"
   labels:
-   com.zabbix.os: "${OL_OS_TAG}"
+   com.zabbix.os: "${OS}"
 
  mysql-server:
   profiles:
