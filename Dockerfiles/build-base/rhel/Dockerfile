@@ -8,7 +8,11 @@ ARG ZBX_VERSION=${MAJOR_VERSION}
 
 ENV TERM=xterm \
     ZBX_VERSION=${ZBX_VERSION} \
-    PATH=/usr/local/go/bin:$PATH
+    PATH=/usr/local/go/bin:$PATH \
+    GOCACHE=/root/.cache/go-build \
+    GOMODCACHE=/root/go/pkg/mod \
+    GOTELEMETRY=off \
+    GOFLAGS="-buildvcs=false"
 
 LABEL description="Prepared environment to build Zabbix components" \
       maintainer="alexey.pustovalov@zabbix.com" \
@@ -79,4 +83,5 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             --setopt=keepcache=0 \
             --best \
             --setopt=tsflags=nodocs \
-        ${INSTALL_PKGS}
+        ${INSTALL_PKGS} && \
+    go telemetry off

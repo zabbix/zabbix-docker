@@ -8,7 +8,11 @@ ARG ZBX_VERSION=${MAJOR_VERSION}
 ENV TERM=xterm \
     ZBX_VERSION=${ZBX_VERSION} \
     PATH=/usr/local/go/bin:$PATH \
-    GOPROXY=direct
+    GOPROXY=direct \
+    GOCACHE=/root/.cache/go-build \
+    GOMODCACHE=/root/go/pkg/mod \
+    GOTELEMETRY=off \
+    GOFLAGS="-buildvcs=false"
 
 LABEL org.opencontainers.image.authors="Alexey Pustovalov <alexey.pustovalov@zabbix.com>" \
       org.opencontainers.image.description="Zabbix build base image contains all required packages to build Zabbix images" \
@@ -66,4 +70,5 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
         --setopt=install_weak_deps=0 \
         --setopt=keepcache=0 \
         --best \
-        --nodocs ${INSTALL_PKGS}
+        --nodocs ${INSTALL_PKGS} && \
+    go telemetry off

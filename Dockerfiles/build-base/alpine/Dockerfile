@@ -8,7 +8,11 @@ ARG ZBX_VERSION=${MAJOR_VERSION}
 ENV TERM=xterm \
     ZBX_VERSION=${ZBX_VERSION} \
     PATH=/usr/lib/jvm/default-jvm/bin:$PATH \
-    JAVA_HOME=/usr/lib/jvm/default-jvm
+    JAVA_HOME=/usr/lib/jvm/default-jvm \
+    GOCACHE=/root/.cache/go-build \
+    GOMODCACHE=/root/go/pkg/mod \
+    GOTELEMETRY=off \
+    GOFLAGS="-buildvcs=false"
 
 LABEL org.opencontainers.image.authors="Alexey Pustovalov <alexey.pustovalov@zabbix.com>" \
       org.opencontainers.image.description="Zabbix build base image contains all required packages to build Zabbix images" \
@@ -59,4 +63,5 @@ RUN set -eux && \
     apk add \
             --no-cache \
             --clean-protected \
-        ${INSTALL_PKGS}
+        ${INSTALL_PKGS} && \
+    go telemetry off
