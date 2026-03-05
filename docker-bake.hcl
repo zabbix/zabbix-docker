@@ -52,7 +52,7 @@ group "builder-pgsql" {
   targets = ["build-pgsql"]
 }
 
-group "builders-sqlite3" {
+group "builder-sqlite3" {
   targets = ["build-sqlite3"]
 }
 
