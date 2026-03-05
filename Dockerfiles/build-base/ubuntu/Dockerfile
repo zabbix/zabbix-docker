@@ -7,7 +7,7 @@ ARG ZBX_VERSION=${MAJOR_VERSION}
 
 ENV TERM=xterm \
     ZBX_VERSION=${ZBX_VERSION} \
-    PATH=/usr/lib/go-1.26/bin:$PATH
+    PATH=/usr/lib/go-1.26/bin:$PATH \
     GOCACHE=/root/.cache/go-build \
     GOMODCACHE=/root/go/pkg/mod \
     GOTELEMETRY=off \
