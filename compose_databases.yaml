@@ -54,7 +54,7 @@ services:
   restart: "${RESTART_POLICY}"
   attach: false
   volumes:
-   - ${DATA_DIRECTORY}/var/lib/postgresql/data:/var/lib/postgresql/data:rw
+   - ${DATA_DIRECTORY}/var/lib/postgresql:/var/lib/postgresql:rw
 #   - ${ENV_VARS_DIRECTORY}/.ZBX_DB_CA_FILE:/run/secrets/root-ca.pem:ro
 #   - ${ENV_VARS_DIRECTORY}/.ZBX_DB_CERT_FILE:/run/secrets/server-cert.pem:ro
 #   - ${ENV_VARS_DIRECTORY}/.ZBX_DB_KEY_FILE:/run/secrets/server-key.pem:ro
