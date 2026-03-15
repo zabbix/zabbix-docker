@@ -5,6 +5,17 @@ ARG ZBX_VERSION=${MAJOR_VERSION}
 ARG BUILD_BASE_IMAGE=zabbix-build-pgsql:alpine-${ZBX_VERSION}
 
 FROM ${BUILD_BASE_IMAGE} AS builder
+FROM builder AS clean_builder
+
+RUN set -eux && \
+    ls -lah "/tmp/zabbix-${ZBX_VERSION}/ui/tests" && \
+    rm -rf \
+        "/tmp/zabbix-${ZBX_VERSION}/ui/tests" \
+        "/tmp/zabbix-${ZBX_VERSION}/ui/conf/zabbix.conf.php" \
+        "/tmp/zabbix-${ZBX_VERSION}/ui/conf/zabbix.conf.php.example" \
+        "/tmp/zabbix-${ZBX_VERSION}/ui/conf/maintenance.inc.php" && \
+    find /tmp/zabbix-${ZBX_VERSION}/ui/locale -name '*.po' -delete && \
+    find /tmp/zabbix-${ZBX_VERSION}/ui/locale -name '*.sh' -delete
 
 FROM ${OS_BASE_IMAGE}
 
@@ -13,10 +24,11 @@ ARG ZBX_VERSION
 ARG ZBX_SOURCES=https://git.zabbix.com/scm/zbx/zabbix.git
 
 ENV TERM=xterm \
-    ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES} \
-    ZABBIX_CONF_DIR="/etc/zabbix" \
-    ZABBIX_USER_HOME_DIR="/var/lib/zabbix" \
-    ZABBIX_WWW_ROOT="/usr/share/zabbix"
+    ZBX_VERSION=${ZBX_VERSION} \
+    ZBX_SOURCES=${ZBX_SOURCES} \
+    ZABBIX_CONF_DIR=/etc/zabbix \
+    ZABBIX_USER_HOME_DIR=/var/lib/zabbix \
+    ZABBIX_WWW_ROOT=/usr/share/zabbix
 
 LABEL org.opencontainers.image.authors="Alexey Pustovalov <alexey.pustovalov@zabbix.com>" \
       org.opencontainers.image.description="Zabbix web-interface based on Nginx web server with PostgreSQL database support" \
@@ -30,8 +42,8 @@ LABEL org.opencontainers.image.authors="Alexey Pustovalov <alexey.pustovalov@zab
 
 STOPSIGNAL SIGTERM
 
-COPY --from=builder ["/tmp/zabbix-${ZBX_VERSION}/ui", "${ZABBIX_WWW_ROOT}"]
-COPY ["conf/etc/", "/etc/"]
+COPY --from=clean_builder /tmp/zabbix-${ZBX_VERSION}/ui ${ZABBIX_WWW_ROOT}/
+COPY conf/etc/ /etc/
 
 RUN set -eux && \
     INSTALL_PKGS="bash \
@@ -61,11 +73,6 @@ RUN set -eux && \
             --no-cache \
             --clean-protected \
         ${INSTALL_PKGS} && \
-    apk add \
-            --clean-protected \
-            --no-cache \
-            --no-scripts \
-        apache2-ssl && \
     addgroup \
             --system \
             --gid 1995 \
@@ -79,23 +86,18 @@ RUN set -eux && \
             --shell /sbin/nologin \
             --home ${ZABBIX_USER_HOME_DIR} \
         zabbix && \
-    mkdir -p ${ZABBIX_CONF_DIR} && \
-    mkdir -p ${ZABBIX_CONF_DIR}/web && \
-    mkdir -p ${ZABBIX_CONF_DIR}/web/certs && \
-    mkdir -p ${ZABBIX_USER_HOME_DIR}/enc && \
-    mkdir -p ${ZABBIX_USER_HOME_DIR}/enc_internal && \
-    mkdir -p /var/lib/php/session && \
-    rm -rf /etc/php84/php-fpm.d/www.conf && \
-    rm -f /etc/nginx/http.d/*.conf && \
+    mkdir -p ${ZABBIX_CONF_DIR} \
+        ${ZABBIX_CONF_DIR}/web \
+        ${ZABBIX_CONF_DIR}/web/certs \
+        ${ZABBIX_USER_HOME_DIR}/enc \
+        ${ZABBIX_USER_HOME_DIR}/enc_internal \
+        /var/lib/php/session && \
+    rm -rf /etc/php84/php-fpm.d/www.conf \
+        /etc/nginx/http.d/*.conf && \
     ln -sf /dev/stdout /var/log/nginx/access.log && \
     ln -sf /dev/stderr /var/log/nginx/error.log && \
-    cd ${ZABBIX_WWW_ROOT}/ && \
-    rm -f conf/zabbix.conf.php conf/maintenance.inc.php conf/zabbix.conf.php.example && \
-    rm -rf tests && \
-    find ${ZABBIX_WWW_ROOT}/locale -name '*.po' | xargs rm -f && \
-    find ${ZABBIX_WWW_ROOT}/locale -name '*.sh' | xargs rm -f && \
-    ln -s "${ZABBIX_CONF_DIR}/web/zabbix.conf.php" "${ZABBIX_WWW_ROOT}/conf/zabbix.conf.php" && \
-    ln -s "${ZABBIX_CONF_DIR}/web/maintenance.inc.php" "${ZABBIX_WWW_ROOT}/conf/maintenance.inc.php" && \
+    ln -sf "${ZABBIX_CONF_DIR}/web/zabbix.conf.php" "${ZABBIX_WWW_ROOT}/conf/zabbix.conf.php" && \
+    ln -sf "${ZABBIX_CONF_DIR}/web/maintenance.inc.php" "${ZABBIX_WWW_ROOT}/conf/maintenance.inc.php" && \
     chown --quiet -R zabbix:root ${ZABBIX_CONF_DIR}/ ${ZABBIX_WWW_ROOT}/include/defines.inc.php ${ZABBIX_WWW_ROOT}/modules/ && \
     chgrp -R 0 ${ZABBIX_CONF_DIR}/ ${ZABBIX_WWW_ROOT}/include/defines.inc.php ${ZABBIX_WWW_ROOT}/modules/ && \
     chmod -R g=u ${ZABBIX_CONF_DIR}/ ${ZABBIX_WWW_ROOT}/include/defines.inc.php ${ZABBIX_WWW_ROOT}/modules/ && \
@@ -113,7 +115,7 @@ EXPOSE 8080/tcp 8443/tcp
 
 WORKDIR ${ZABBIX_WWW_ROOT}
 
-COPY ["docker-entrypoint.sh", "/usr/bin/"]
+COPY docker-entrypoint.sh /usr/bin/
 
 USER 1997
 

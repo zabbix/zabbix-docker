@@ -1,4 +1,4 @@
-# syntax=docker/dockerfile:1
+# syntax=docker/dockerfile:1.6
 ARG OS_BASE_IMAGE=alpine:3.23
 ARG MAJOR_VERSION=8.0
 ARG ZBX_VERSION=${MAJOR_VERSION}
@@ -13,11 +13,12 @@ ARG ZBX_VERSION
 ARG ZBX_SOURCES=https://git.zabbix.com/scm/zbx/zabbix.git
 
 ENV TERM=xterm \
-    ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES} \
-    ZABBIX_USER_HOME_DIR="/var/lib/zabbix" \
-    ZABBIX_CONF_DIR="/etc/zabbix"
+    ZBX_VERSION=${ZBX_VERSION} \
+    ZBX_SOURCES=${ZBX_SOURCES} \
+    ZABBIX_USER_HOME_DIR=/var/lib/zabbix \
+    ZABBIX_CONF_DIR=/etc/zabbix
 
-ENV ZBX_PERSISTENTBUFFERFILE="$ZABBIX_USER_HOME_DIR/buffer/agent2.db" \
+ENV ZBX_PERSISTENTBUFFERFILE=$ZABBIX_USER_HOME_DIR/buffer/agent2.db \
     ZBX_USERPARAMETERDIR=${ZABBIX_USER_HOME_DIR}/user_scripts
 
 LABEL org.opencontainers.image.authors="Alexey Pustovalov <alexey.pustovalov@zabbix.com>" \
@@ -32,9 +33,10 @@ LABEL org.opencontainers.image.authors="Alexey Pustovalov <alexey.pustovalov@zab
 
 STOPSIGNAL SIGTERM
 
-COPY --from=builder ["/tmp/zabbix-${ZBX_VERSION}-output/agent2/sbin/", "/usr/sbin/"]
-COPY --from=builder ["/tmp/zabbix-${ZBX_VERSION}-output/general/bin/*", "/usr/bin/"]
-COPY --from=builder ["/tmp/zabbix-${ZBX_VERSION}-output/agent2/conf/", "${ZABBIX_CONF_DIR}/"]
+COPY --from=builder /tmp/zabbix-${ZBX_VERSION}-output/agent2/sbin/zabbix_agent2 /usr/sbin/
+COPY --from=builder /tmp/zabbix-${ZBX_VERSION}-output/general/bin/zabbix_get /usr/bin/
+COPY --from=builder /tmp/zabbix-${ZBX_VERSION}-output/general/bin/zabbix_sender /usr/bin/
+COPY --from=builder /tmp/zabbix-${ZBX_VERSION}-output/agent2/conf/ ${ZABBIX_CONF_DIR}/
 
 RUN set -eux && \
     INSTALL_PKGS="bash \
@@ -62,14 +64,14 @@ RUN set -eux && \
             --home ${ZABBIX_USER_HOME_DIR}/ \
         zabbix && \
     echo "zabbix ALL=(root) NOPASSWD: /usr/sbin/smartctl" >> /etc/sudoers.d/zabbix && \
-    mkdir -p ${ZABBIX_CONF_DIR} && \
-    mkdir -p ${ZABBIX_CONF_DIR}/zabbix_agentd.d && \
-    mkdir -p ${ZABBIX_CONF_DIR}/zabbix_agent2.d && \
-    mkdir -p ${ZABBIX_USER_HOME_DIR} && \
-    mkdir -p ${ZABBIX_USER_HOME_DIR}/enc && \
-    mkdir -p ${ZABBIX_USER_HOME_DIR}/enc_internal && \
-    mkdir -p ${ZABBIX_USER_HOME_DIR}/buffer && \
-    mkdir -p ${ZBX_USERPARAMETERDIR} && \
+    mkdir -p ${ZABBIX_CONF_DIR} \
+        ${ZABBIX_CONF_DIR}/zabbix_agentd.d \
+        ${ZABBIX_CONF_DIR}/zabbix_agent2.d \
+        ${ZABBIX_USER_HOME_DIR} \
+        ${ZABBIX_USER_HOME_DIR}/enc \
+        ${ZABBIX_USER_HOME_DIR}/enc_internal \
+        ${ZABBIX_USER_HOME_DIR}/buffer \
+        ${ZBX_USERPARAMETERDIR} && \
     chown --quiet -R zabbix:root ${ZABBIX_CONF_DIR}/zabbix_agent2_item_keys.conf \
         ${ZABBIX_CONF_DIR}/zabbix_agentd.d/ \
         ${ZABBIX_CONF_DIR}/zabbix_agent2.d/ \
