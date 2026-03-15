@@ -1,4 +1,4 @@
-# syntax=docker/dockerfile:1
+# syntax=docker/dockerfile:1.6
 ARG OS_BASE_IMAGE=alpine:3.23
 FROM ${OS_BASE_IMAGE}
 
@@ -7,8 +7,12 @@ ARG ZBX_VERSION=${MAJOR_VERSION}.24
 
 ENV TERM=xterm \
     ZBX_VERSION=${ZBX_VERSION} \
-    PATH=/usr/lib/jvm/default-jvm/bin:$PATH \
-    JAVA_HOME=/usr/lib/jvm/default-jvm
+    JAVA_HOME=/usr/lib/jvm/default-jvm \
+    GOPATH=/root/go \
+    GOCACHE=/root/.cache/go-build \
+    GOMODCACHE=/root/go/pkg/mod \
+    GOTELEMETRY=off \
+    GOFLAGS=-buildvcs=false
 
 LABEL org.opencontainers.image.authors="Alexey Pustovalov <alexey.pustovalov@zabbix.com>" \
       org.opencontainers.image.description="Zabbix build base image contains all required packages to build Zabbix images" \
@@ -20,12 +24,10 @@ LABEL org.opencontainers.image.authors="Alexey Pustovalov <alexey.pustovalov@zab
       org.opencontainers.image.version="${ZBX_VERSION}"
 
 RUN set -eux && \
-    ARCH_SUFFIX="$(cat /etc/apk/arch)"; \
+    ARCH_SUFFIX="$(apk --print-arch)"; \
     case "$ARCH_SUFFIX" in \
-        ppc64le) \
-            openjdk_packages='openjdk11 openjdk11-jre-headless'; \
-            ;; \
-        *) openjdk_packages='openjdk17 openjdk17-jre-headless'; \
+        ppc64le) openjdk_packages='openjdk11 openjdk11-jre-headless' ;; \
+        *)       openjdk_packages='openjdk17 openjdk17-jre-headless' ;; \
     esac; \
     INSTALL_PKGS="bash \
             autoconf \
