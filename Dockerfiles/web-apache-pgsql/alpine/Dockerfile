@@ -51,23 +51,23 @@ RUN set -eux && \
             curl \
             apache2 \
             apache2-proxy \
-            php84-bcmath \
-            php84-ctype \
-            php84-curl \
-            php84-fpm \
-            php84-gd \
-            php84-gettext \
-            php84-json \
-            php84-ldap \
-            php84-pgsql \
-            php84-mbstring \
-            php84-session \
-            php84-simplexml \
-            php84-sockets \
-            php84-fileinfo \
-            php84-xmlreader \
-            php84-xmlwriter \
-            php84-openssl \
+            php85-bcmath \
+            php85-ctype \
+            php85-curl \
+            php85-fpm \
+            php85-gd \
+            php85-gettext \
+            php85-json \
+            php85-ldap \
+            php85-pgsql \
+            php85-mbstring \
+            php85-session \
+            php85-simplexml \
+            php85-sockets \
+            php85-fileinfo \
+            php85-xmlreader \
+            php85-xmlwriter \
+            php85-openssl \
             postgresql17-client \
             supervisor" && \
     apk add \
@@ -105,16 +105,16 @@ RUN set -eux && \
         /etc/apache2/conf.d/proxy.conf \
         /etc/apache2/conf.d/languages.conf \
         /etc/apache2/conf.d/userdir.conf \
-        /etc/php84/php-fpm.d/www.conf \
+        /etc/php85/php-fpm.d/www.conf \
         /var/run/apache2/ && \
     ln -sf "${ZABBIX_CONF_DIR}/web/zabbix.conf.php" "${ZABBIX_WWW_ROOT}/conf/zabbix.conf.php" && \
     ln -sf "${ZABBIX_CONF_DIR}/web/maintenance.inc.php" "${ZABBIX_WWW_ROOT}/conf/maintenance.inc.php" && \
     chown --quiet -R zabbix:root ${ZABBIX_CONF_DIR}/ ${ZABBIX_WWW_ROOT}/include/defines.inc.php ${ZABBIX_WWW_ROOT}/modules/ && \
     chgrp -R 0 ${ZABBIX_CONF_DIR}/ ${ZABBIX_WWW_ROOT}/include/defines.inc.php ${ZABBIX_WWW_ROOT}/modules/ && \
     chmod -R g=u ${ZABBIX_CONF_DIR}/ ${ZABBIX_WWW_ROOT}/include/defines.inc.php ${ZABBIX_WWW_ROOT}/modules/ && \
-    chown --quiet -R zabbix:root ${ZABBIX_USER_HOME_DIR} /etc/apache2/ /etc/php84/php-fpm.d/ /etc/php84/php-fpm.conf && \
-    chgrp -R 0 ${ZABBIX_USER_HOME_DIR} /etc/apache2/ /etc/php84/php-fpm.d/ /etc/php84/php-fpm.conf && \
-    chmod -R g=u ${ZABBIX_USER_HOME_DIR} /etc/apache2/ /etc/php84/php-fpm.d/ /etc/php84/php-fpm.conf && \
+    chown --quiet -R zabbix:root ${ZABBIX_USER_HOME_DIR} /etc/apache2/ /etc/php85/php-fpm.d/ /etc/php85/php-fpm.conf && \
+    chgrp -R 0 ${ZABBIX_USER_HOME_DIR} /etc/apache2/ /etc/php85/php-fpm.d/ /etc/php85/php-fpm.conf && \
+    chmod -R g=u ${ZABBIX_USER_HOME_DIR} /etc/apache2/ /etc/php85/php-fpm.d/ /etc/php85/php-fpm.conf && \
     chown --quiet -R zabbix:root /var/lib/php/session/ && \
     chgrp -R 0 /var/lib/php/session/ && \
     chmod -R g=u /var/lib/php/session/
