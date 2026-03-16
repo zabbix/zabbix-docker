@@ -42,21 +42,23 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             ca-certificates \
             shadow-utils" && \
     microdnf -y install \
-        --disablerepo "*" \
-        --enablerepo "extras-common" \
-        --setopt=install_weak_deps=0 \
-        --setopt=keepcache=0 \
-        --best \
-        --nodocs epel-release && \
+            --disablerepo="*" \
+            --enablerepo="extras-common" \
+            --setopt=install_weak_deps=0 \
+            --setopt=keepcache=0 \
+            --best \
+            --nodocs \
+        epel-release && \
     microdnf -y install \
-        --disablerepo "*" \
-        --enablerepo "baseos" \
-        --enablerepo "appstream" \
-        --enablerepo="epel" \
-        --setopt=install_weak_deps=0 \
-        --setopt=keepcache=0 \
-        --best \
-        --nodocs ${INSTALL_PKGS} && \
+            --disablerepo="*" \
+            --enablerepo="baseos" \
+            --enablerepo="appstream" \
+            --enablerepo="epel" \
+            --setopt=install_weak_deps=0 \
+            --setopt=keepcache=0 \
+            --best \
+            --nodocs \
+        ${INSTALL_PKGS} && \
     groupadd \
             --system \
             --gid 1995 \
@@ -81,7 +83,7 @@ EXPOSE 10053/tcp
 
 WORKDIR ${ZABBIX_USER_HOME_DIR}
 
-COPY ["docker-entrypoint.sh", "/usr/bin/"]
+COPY docker-entrypoint.sh /usr/bin/
 
 ENTRYPOINT ["docker-entrypoint.sh"]
 

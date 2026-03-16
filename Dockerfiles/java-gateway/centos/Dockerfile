@@ -41,13 +41,14 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             java-21-openjdk-headless \
             findutils" && \
     microdnf -y install \
-        --disablerepo "*" \
-        --enablerepo "baseos" \
-        --enablerepo "appstream" \
+        --disablerepo="*" \
+        --enablerepo="baseos" \
+        --enablerepo="appstream" \
         --setopt=install_weak_deps=0 \
         --setopt=keepcache=0 \
         --best \
-        --nodocs ${INSTALL_PKGS} && \
+        --nodocs \
+        ${INSTALL_PKGS} && \
     groupadd \
             --system \
             --gid 1995 \
@@ -74,7 +75,7 @@ EXPOSE 10052/tcp
 
 WORKDIR ${ZABBIX_USER_HOME_DIR}
 
-COPY ["docker-entrypoint.sh", "/usr/bin/"]
+COPY docker-entrypoint.sh /usr/bin/
 
 ENTRYPOINT ["docker-entrypoint.sh"]
 

@@ -108,7 +108,7 @@ EXPOSE 10050/tcp
 
 WORKDIR ${ZABBIX_USER_HOME_DIR}
 
-COPY ["docker-entrypoint.sh", "/usr/bin/"]
+COPY docker-entrypoint.sh /usr/bin/
 
 ENTRYPOINT ["/usr/bin/docker-entrypoint.sh"]
 
