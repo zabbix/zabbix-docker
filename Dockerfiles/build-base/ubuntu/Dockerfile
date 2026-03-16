@@ -1,4 +1,4 @@
-# syntax=docker/dockerfile:1
+# syntax=docker/dockerfile:1.6
 ARG OS_BASE_IMAGE=ubuntu:noble
 FROM ${OS_BASE_IMAGE}
 
@@ -7,7 +7,12 @@ ARG ZBX_VERSION=${MAJOR_VERSION}.45
 
 ENV TERM=xterm \
     ZBX_VERSION=${ZBX_VERSION} \
-    PATH=/usr/lib/go-1.23/bin:$PATH
+    PATH=/usr/lib/go-1.24/bin:$PATH \
+    GOPATH=/root/go \
+    GOCACHE=/root/.cache/go-build \
+    GOMODCACHE=/root/go/pkg/mod \
+    GOTELEMETRY=off \
+    GOFLAGS=-buildvcs=false
 
 LABEL org.opencontainers.image.authors="Alexey Pustovalov <alexey.pustovalov@zabbix.com>" \
       org.opencontainers.image.description="Zabbix build base image contains all required packages to build Zabbix images" \
@@ -21,6 +26,8 @@ LABEL org.opencontainers.image.authors="Alexey Pustovalov <alexey.pustovalov@zab
 RUN --mount=type=cache,target=/var/cache/apt/,sharing=locked \
     --mount=type=cache,target=/var/lib/apt/,sharing=locked \
     set -eux && \
+    printf '%s\n' '#!/bin/sh' 'exit 101' > /usr/sbin/policy-rc.d && \
+    chmod +x /usr/sbin/policy-rc.d && \
     INSTALL_PKGS="bash \
             autoconf \
             automake \
@@ -46,11 +53,14 @@ RUN --mount=type=cache,target=/var/cache/apt/,sharing=locked \
             pkg-config \
             gettext \
             git \
-            golang-1.23 \
+            golang-1.24 \
             unzip \
             unixodbc-dev \
             zlib1g-dev" && \
     apt-get -y update && \
     DEBIAN_FRONTEND=noninteractive apt-get -y \
+            -o Dpkg::Options::="--force-confdef" \
+            -o Dpkg::Options::="--force-confold" \
             --no-install-recommends install \
-        ${INSTALL_PKGS}
+        ${INSTALL_PKGS} && \
+    go telemetry off

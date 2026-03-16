@@ -58,8 +58,7 @@ RUN set -eux && \
         ${ZABBIX_USER_HOME_DIR} \
         ${ZABBIX_USER_HOME_DIR}/enc \
         ${ZABBIX_USER_HOME_DIR}/enc_internal && \
-    chown --quiet -R zabbix:root ${ZABBIX_USER_HOME_DIR}/ && \
-    chgrp -R 0 ${ZABBIX_USER_HOME_DIR}/ && \
+    chown --quiet -R zabbix:0 ${ZABBIX_USER_HOME_DIR}/ && \
     chmod -R g=u ${ZABBIX_USER_HOME_DIR}/ && \
     /usr/sbin/zabbix_web_service -V
 

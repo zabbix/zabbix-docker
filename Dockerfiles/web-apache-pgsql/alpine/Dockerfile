@@ -106,15 +106,17 @@ RUN set -eux && \
         /var/run/apache2/ && \
     ln -sf "${ZABBIX_CONF_DIR}/web/zabbix.conf.php" "${ZABBIX_WWW_ROOT}/conf/zabbix.conf.php" && \
     ln -sf "${ZABBIX_CONF_DIR}/web/maintenance.inc.php" "${ZABBIX_WWW_ROOT}/conf/maintenance.inc.php" && \
-    chown --quiet -R zabbix:root ${ZABBIX_CONF_DIR}/ ${ZABBIX_WWW_ROOT}/include/defines.inc.php ${ZABBIX_WWW_ROOT}/modules/ && \
-    chgrp -R 0 ${ZABBIX_CONF_DIR}/ ${ZABBIX_WWW_ROOT}/include/defines.inc.php ${ZABBIX_WWW_ROOT}/modules/ && \
-    chmod -R g=u ${ZABBIX_CONF_DIR}/ ${ZABBIX_WWW_ROOT}/include/defines.inc.php ${ZABBIX_WWW_ROOT}/modules/ && \
-    chown --quiet -R zabbix:root /etc/apache2/ /etc/php83/php-fpm.d/ /etc/php83/php-fpm.conf && \
-    chgrp -R 0 /etc/apache2/ /etc/php83/php-fpm.d/ /etc/php83/php-fpm.conf && \
-    chmod -R g=u /etc/apache2/ /etc/php83/php-fpm.d/ /etc/php83/php-fpm.conf && \
-    chown --quiet -R zabbix:root /var/lib/php/session/ && \
-    chgrp -R 0 /var/lib/php/session/ && \
-    chmod -R g=u /var/lib/php/session/
+    FIX_PERM_LIST="\
+        ${ZABBIX_CONF_DIR}/ \
+        ${ZABBIX_WWW_ROOT}/include/defines.inc.php \
+        ${ZABBIX_WWW_ROOT}/modules/ \
+        ${ZABBIX_USER_HOME_DIR} \
+        /etc/apache2/ \
+        /etc/php83/php-fpm.d/ \
+        /etc/php83/php-fpm.conf \
+        /var/lib/php/session/" && \
+    chown --quiet -R zabbix:0 ${FIX_PERM_LIST} && \
+    chmod -R g=u ${FIX_PERM_LIST}
 
 HEALTHCHECK --interval=1m30s --timeout=3s --retries=3 --start-period=40s --start-interval=5s \
     CMD curl -f http://localhost:8080/ping || exit 1

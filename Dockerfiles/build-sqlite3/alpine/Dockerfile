@@ -114,16 +114,13 @@ RUN --mount=type=cache,target=/root/.cache/go-build \
     strip src/zabbix_sender/zabbix_sender && \
     strip src/go/bin/zabbix_agent2 || true && \
     cp src/zabbix_agent/zabbix_agentd "${ZBX_OUTPUT_DIR}/agent/sbin/" && \
-    cp conf/zabbix_agentd.conf "${ZBX_OUTPUT_DIR}/agent/conf/zabbix_agentd.conf.dist" && \
-    cp -a conf/zabbix_agentd/. "${ZBX_OUTPUT_DIR}/agent/conf/" && \
-    cp -a /tmp/conf/agent/. "${ZBX_OUTPUT_DIR}/agent/conf/" && \
+    cp conf/zabbix_agentd.conf "${ZBX_OUTPUT_DIR}/agent/conf/" && \
+    cp -a conf/zabbix_agentd "${ZBX_OUTPUT_DIR}/agent/conf/" && \
     cp src/go/bin/zabbix_agent2 "${ZBX_OUTPUT_DIR}/agent2/sbin/" && \
-    cp src/go/conf/zabbix_agent2.conf "${ZBX_OUTPUT_DIR}/agent2/conf/zabbix_agent2.conf.dist" && \
-    cp -a src/go/conf/zabbix_agent2.d/. "${ZBX_OUTPUT_DIR}/agent2/conf/zabbix_agent2.d/" && \
-    cp -a /tmp/conf/agent2/. "${ZBX_OUTPUT_DIR}/agent2/conf/" && \
+    cp src/go/conf/zabbix_agent2.conf "${ZBX_OUTPUT_DIR}/agent2/conf/" && \
+    cp -a src/go/conf/zabbix_agent2.d "${ZBX_OUTPUT_DIR}/agent2/conf/" && \
     cp src/zabbix_proxy/zabbix_proxy "${ZBX_OUTPUT_DIR}/proxy/sbin/" && \
-    cp conf/zabbix_proxy.conf "${ZBX_OUTPUT_DIR}/proxy/conf/zabbix_proxy.conf.dist" && \
-    cp -a /tmp/conf/proxy/. "${ZBX_OUTPUT_DIR}/proxy/conf/" && \
+    cp conf/zabbix_proxy.conf ${ZBX_OUTPUT_DIR}/proxy/conf/ && \
     cp -a src/zabbix_java/bin/. "${ZBX_OUTPUT_DIR}/java_gateway/sbin/bin/" && \
     cp -a src/zabbix_java/lib/. "${ZBX_OUTPUT_DIR}/java_gateway/sbin/lib/" && \
     cp src/zabbix_get/zabbix_get "${ZBX_OUTPUT_DIR}/general/bin/" && \

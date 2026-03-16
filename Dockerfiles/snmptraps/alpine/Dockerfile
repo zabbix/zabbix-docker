@@ -56,9 +56,14 @@ RUN set -eux && \
         ${ZABBIX_USER_HOME_DIR}/snmptraps \
         ${ZABBIX_USER_HOME_DIR}/mibs \
         ${SNMP_PERSISTENT_DIR} && \
-    chown --quiet -R zabbix:root /etc/snmp/ ${ZABBIX_USER_HOME_DIR}/ /var/tmp/ /var/run/ && \
-    chgrp -R 0 /etc/snmp/ ${ZABBIX_USER_HOME_DIR}/ /var/tmp/ /var/run/ && \
-    chmod -R g=u /etc/snmp/ ${ZABBIX_USER_HOME_DIR}/ /var/tmp/ /var/run/
+    FIX_PERM_LIST="\
+        /etc/snmp/ \
+        ${ZABBIX_USER_HOME_DIR}/ \
+        /var/tmp/ \
+        /var/run/" && \
+    chown --quiet -R zabbix:root ${FIX_PERM_LIST} && \
+    chgrp -R 0 ${FIX_PERM_LIST} && \
+    chmod -R g=u ${FIX_PERM_LIST}
 
 EXPOSE 1162/udp
 
