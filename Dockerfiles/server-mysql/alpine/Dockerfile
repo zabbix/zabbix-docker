@@ -102,9 +102,11 @@ RUN set -eux && \
         /usr/lib/zabbix/alertscripts \
         /usr/lib/zabbix/externalscripts \
         /usr/share/doc/zabbix-server-mysql && \
-    chown --quiet -R zabbix:root ${ZABBIX_CONF_DIR}/ ${ZABBIX_USER_HOME_DIR}/ && \
-    chgrp -R 0 ${ZABBIX_CONF_DIR}/ ${ZABBIX_USER_HOME_DIR}/ && \
-    chmod -R g=u ${ZABBIX_CONF_DIR}/ ${ZABBIX_USER_HOME_DIR}/ && \
+    FIX_PERM_LIST="\
+        ${ZABBIX_CONF_DIR}/ \
+        ${ZABBIX_USER_HOME_DIR}/" && \
+    chown --quiet -R zabbix:0 ${FIX_PERM_LIST} && \
+    chmod -R g=u ${FIX_PERM_LIST} && \
     /usr/sbin/zabbix_server -V
 
 EXPOSE 10051/tcp

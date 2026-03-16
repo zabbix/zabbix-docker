@@ -1,10 +1,22 @@
-# syntax=docker/dockerfile:1
+# syntax=docker/dockerfile:1.6
 ARG OS_BASE_IMAGE=ubuntu:noble
 ARG MAJOR_VERSION=7.0
 ARG ZBX_VERSION=${MAJOR_VERSION}.24
 ARG BUILD_BASE_IMAGE=zabbix-build-mysql:ubuntu-${ZBX_VERSION}
 
 FROM ${BUILD_BASE_IMAGE} AS builder
+FROM builder AS clean_builder
+
+ARG ZBX_VERSION
+
+RUN set -eux && \
+    rm -rf \
+        "/tmp/zabbix-${ZBX_VERSION}/ui/tests" \
+        "/tmp/zabbix-${ZBX_VERSION}/ui/conf/zabbix.conf.php" \
+        "/tmp/zabbix-${ZBX_VERSION}/ui/conf/zabbix.conf.php.example" \
+        "/tmp/zabbix-${ZBX_VERSION}/ui/conf/maintenance.inc.php" && \
+    find "/tmp/zabbix-${ZBX_VERSION}/ui/locale" -name '*.po' -delete && \
+    find "/tmp/zabbix-${ZBX_VERSION}/ui/locale" -name '*.sh' -delete
 
 FROM ${OS_BASE_IMAGE}
 
@@ -13,9 +25,12 @@ ARG ZBX_VERSION
 ARG ZBX_SOURCES=https://git.zabbix.com/scm/zbx/zabbix.git
 
 ENV TERM=xterm \
-    ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES} \
-    ZABBIX_CONF_DIR="/etc/zabbix" \
-    ZABBIX_WWW_ROOT="/usr/share/zabbix"
+    ZBX_VERSION=${ZBX_VERSION} \
+    ZBX_SOURCES=${ZBX_SOURCES} \
+    ZABBIX_CONF_DIR=/etc/zabbix \
+    ZABBIX_USER_HOME_DIR=/var/lib/zabbix \
+    ZABBIX_WWW_ROOT=/usr/share/zabbix \
+    PYTHONDONTWRITEBYTECODE=1
 
 LABEL org.opencontainers.image.authors="Alexey Pustovalov <alexey.pustovalov@zabbix.com>" \
       org.opencontainers.image.description="Zabbix web-interface based on Nginx web server with MySQL database support" \
@@ -29,14 +44,14 @@ LABEL org.opencontainers.image.authors="Alexey Pustovalov <alexey.pustovalov@zab
 
 STOPSIGNAL SIGTERM
 
-COPY --from=builder ["/tmp/zabbix-${ZBX_VERSION}/ui", "${ZABBIX_WWW_ROOT}"]
-COPY ["conf/etc/", "/etc/"]
+COPY --from=clean_builder /tmp/zabbix-${ZBX_VERSION}/ui ${ZABBIX_WWW_ROOT}/
+COPY conf/etc/ /etc/
 
 RUN --mount=type=cache,target=/var/cache/apt/,sharing=locked \
     --mount=type=cache,target=/var/lib/apt/,sharing=locked \
     set -eux && \
-    echo "#!/bin/sh\nexit 101" > /usr/sbin/policy-rc.d && \
-    export PYTHONDONTWRITEBYTECODE=1 && \
+    printf '%s\n' '#!/bin/sh' 'exit 101' > /usr/sbin/policy-rc.d && \
+    chmod +x /usr/sbin/policy-rc.d && \
     INSTALL_PKGS="bash \
             tzdata \
             ca-certificates \
@@ -60,6 +75,10 @@ RUN --mount=type=cache,target=/var/cache/apt/,sharing=locked \
             -o Dpkg::Options::="--force-confold" \
             --no-install-recommends install \
         ${INSTALL_PKGS} && \
+    find /usr/lib -type f -name '*.pyc' -delete && \
+    find /usr/share/python3 -type f -name '*.pyc' -delete && \
+    find /usr/lib -type d -name '__pycache__' -empty -delete && \
+    find /usr/share/python3 -type d -name '__pycache__' -empty -delete && \
     groupadd \
             --system \
             --gid 1995 \
@@ -70,46 +89,45 @@ RUN --mount=type=cache,target=/var/cache/apt/,sharing=locked \
             -g zabbix \
             --uid 1997 \
             --shell /sbin/nologin \
-            --home-dir /var/lib/zabbix/ \
+            --home-dir ${ZABBIX_USER_HOME_DIR} \
         zabbix && \
-    mkdir -p ${ZABBIX_CONF_DIR} && \
-    mkdir -p ${ZABBIX_CONF_DIR}/web && \
-    mkdir -p ${ZABBIX_CONF_DIR}/web/certs && \
-    mkdir -p /var/lib/php/session && \
-    rm -f /etc/nginx/conf.d/*.conf && \
-    rm -rf /var/cache/nginx/ && \
-    rm -f /etc/php/8.3/fpm/pool.d/www.conf && \
-    rm -f /etc/php/8.3/fpm/php-fpm.conf.dpkg-dist && \
+    mkdir -p \
+        ${ZABBIX_CONF_DIR} \
+        ${ZABBIX_CONF_DIR}/web \
+        ${ZABBIX_CONF_DIR}/web/certs \
+        ${ZABBIX_USER_HOME_DIR} \
+        /var/lib/php/session \
+        /var/lib/locales/supported.d && \
+    rm -rf \
+        /etc/nginx/conf.d/*.conf \
+        /var/cache/nginx/ \
+        /etc/php/8.3/fpm/pool.d/www.conf \
+        /etc/php/8.3/fpm/php-fpm.conf.dpkg-dist \
+        /var/lib/locales/supported.d/local && \
     ln -sf /dev/stdout /var/log/nginx/access.log && \
     ln -sf /dev/stderr /var/log/nginx/error.log && \
-    cd ${ZABBIX_WWW_ROOT}/ && \
-    rm -f conf/zabbix.conf.php conf/maintenance.inc.php conf/zabbix.conf.php.example && \
-    rm -rf tests && \
-    find /usr -name '*.pyc' -type f -exec bash -c 'for pyc_file; do dpkg -S "$pyc_file" &> /dev/null || rm -f "$pyc_file"; done' -- '{}' + && \
-    find ${ZABBIX_WWW_ROOT}/locale -name '*.po' | xargs rm -f && \
-    find ${ZABBIX_WWW_ROOT}/locale -name '*.sh' | xargs rm -f && \
-    ln -s "${ZABBIX_CONF_DIR}/web/zabbix.conf.php" "${ZABBIX_WWW_ROOT}/conf/zabbix.conf.php" && \
-    ln -s "${ZABBIX_CONF_DIR}/web/maintenance.inc.php" "${ZABBIX_WWW_ROOT}/conf/maintenance.inc.php" && \
-    mkdir -p /var/lib/locales/supported.d/ && \
-    rm -f /var/lib/locales/supported.d/local && \
-    cat ${ZABBIX_WWW_ROOT}/include/locales.inc.php | grep display | grep true | awk '{$1=$1};1' | \
-        cut -d"'" -f 2 | sort | \
-        xargs -I '{}' bash -c 'echo "{}.UTF-8 UTF-8" >> /var/lib/locales/supported.d/local' && \
+    ln -sf "${ZABBIX_CONF_DIR}/web/zabbix.conf.php" "${ZABBIX_WWW_ROOT}/conf/zabbix.conf.php" && \
+    ln -sf "${ZABBIX_CONF_DIR}/web/maintenance.inc.php" "${ZABBIX_WWW_ROOT}/conf/maintenance.inc.php" && \
+    awk "/display/ && /true/ {gsub(/^[ \t]+|[ \t]+$/, \"\", \$0); print \$0}" "${ZABBIX_WWW_ROOT}/include/locales.inc.php" | \
+        cut -d"'" -f 2 | sort -u | \
+        xargs -r -I '{}' bash -c 'echo "{}.UTF-8 UTF-8" >> /var/lib/locales/supported.d/local' && \
     dpkg-reconfigure locales && \
-    chown --quiet -R zabbix:root ${ZABBIX_CONF_DIR}/ ${ZABBIX_WWW_ROOT}/include/defines.inc.php ${ZABBIX_WWW_ROOT}/modules/ && \
-    chgrp -R 0 ${ZABBIX_CONF_DIR}/ ${ZABBIX_WWW_ROOT}/include/defines.inc.php ${ZABBIX_WWW_ROOT}/modules/ && \
-    chmod -R g=u ${ZABBIX_CONF_DIR}/ ${ZABBIX_WWW_ROOT}/include/defines.inc.php ${ZABBIX_WWW_ROOT}/modules/ && \
-    chown --quiet -R zabbix:root /etc/nginx/ /etc/php/8.3/fpm/php-fpm.conf /etc/php/8.3/fpm/pool.d/ && \
-    chgrp -R 0 /etc/nginx/ /etc/php/8.3/fpm/php-fpm.conf /etc/php/8.3/fpm/pool.d/ && \
-    chmod -R g=u /etc/nginx/ /etc/php/8.3/fpm/php-fpm.conf /etc/php/8.3/fpm/pool.d/ && \
-    chown --quiet -R zabbix:root /var/lib/php/session/ && \
-    chgrp -R 0 /var/lib/php/session/ && \
-    chmod -R g=u /var/lib/php/session/
+    FIX_PERM_LIST="\
+        ${ZABBIX_CONF_DIR}/ \
+        ${ZABBIX_WWW_ROOT}/include/defines.inc.php \
+        ${ZABBIX_WWW_ROOT}/modules/ \
+        ${ZABBIX_USER_HOME_DIR}/ \
+        /etc/nginx/ \
+        /etc/php/8.3/fpm/php-fpm.conf \
+        /etc/php/8.3/fpm/pool.d/ \
+        /var/lib/php/session/" && \
+    chown --quiet -R zabbix:0 ${FIX_PERM_LIST} && \
+    chmod -R g=u ${FIX_PERM_LIST}
 
 HEALTHCHECK --interval=1m30s --timeout=3s --retries=3 --start-period=40s --start-interval=5s \
     CMD curl -f http://localhost:8080/ping || exit 1
 
-EXPOSE 8080/TCP 8443/TCP
+EXPOSE 8080/tcp 8443/tcp
 
 WORKDIR ${ZABBIX_WWW_ROOT}
 

@@ -94,9 +94,11 @@ RUN set -eux && \
         ${ZABBIX_USER_HOME_DIR}/ssl/keys \
         ${ZABBIX_USER_HOME_DIR}/ssl/ssl_ca \
         /usr/lib/zabbix/externalscripts && \
-    chown --quiet -R zabbix:root ${ZABBIX_CONF_DIR}/ ${ZABBIX_USER_HOME_DIR}/ && \
-    chgrp -R 0 ${ZABBIX_CONF_DIR}/ ${ZABBIX_USER_HOME_DIR}/ && \
-    chmod -R g=u ${ZABBIX_CONF_DIR}/ ${ZABBIX_USER_HOME_DIR}/ && \
+    FIX_PERM_LIST="\
+        ${ZABBIX_CONF_DIR}/ \
+        ${ZABBIX_USER_HOME_DIR}/" && \
+    chown --quiet -R zabbix:0 ${FIX_PERM_LIST} && \
+    chmod -R g=u ${FIX_PERM_LIST} && \
     /usr/sbin/zabbix_proxy -V
 
 EXPOSE 10051/tcp

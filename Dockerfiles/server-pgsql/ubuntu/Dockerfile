@@ -1,4 +1,4 @@
-# syntax=docker/dockerfile:1
+# syntax=docker/dockerfile:1.6
 ARG OS_BASE_IMAGE=ubuntu:noble
 ARG MAJOR_VERSION=7.0
 ARG ZBX_VERSION=${MAJOR_VERSION}.24
@@ -13,12 +13,13 @@ ARG ZBX_VERSION
 ARG ZBX_SOURCES=https://git.zabbix.com/scm/zbx/zabbix.git
 
 ENV TERM=xterm \
-    ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES} \
+    ZBX_VERSION=${ZBX_VERSION} \
+    ZBX_SOURCES=${ZBX_SOURCES} \
     MIBDIRS=/var/lib/mibs/ietf:/var/lib/mibs/iana:/usr/share/snmp/mibs:/var/lib/zabbix/mibs MIBS=+ALL \
-    NMAP_PRIVILEGED="" \
-    ZABBIX_USER_HOME_DIR="/var/lib/zabbix" \
-    ZABBIX_CONF_DIR="/etc/zabbix" \
-    ZBX_FPINGLOCATION="/usr/bin/fping"
+    NMAP_PRIVILEGED= \
+    ZABBIX_USER_HOME_DIR=/var/lib/zabbix \
+    ZABBIX_CONF_DIR=/etc/zabbix \
+    ZBX_FPINGLOCATION=/usr/bin/fping
 
 LABEL org.opencontainers.image.authors="Alexey Pustovalov <alexey.pustovalov@zabbix.com>" \
       org.opencontainers.image.description="Zabbix server with PostgreSQL database support" \
@@ -32,15 +33,17 @@ LABEL org.opencontainers.image.authors="Alexey Pustovalov <alexey.pustovalov@zab
 
 STOPSIGNAL SIGTERM
 
-COPY --from=builder ["/tmp/zabbix-${ZBX_VERSION}-output/server/sbin/zabbix_server", "/usr/sbin/zabbix_server"]
-COPY --from=builder ["/tmp/zabbix-${ZBX_VERSION}-output/general/bin/*", "/usr/bin/"]
-COPY --from=builder ["/tmp/zabbix-${ZBX_VERSION}-output/server/conf/", "${ZABBIX_CONF_DIR}/"]
-COPY --from=builder ["/tmp/zabbix-${ZBX_VERSION}-output/server/database/postgresql/", "/usr/share/doc/zabbix-server-postgresql/"]
+COPY --from=builder /tmp/zabbix-${ZBX_VERSION}-output/server/sbin/zabbix_server /usr/sbin/zabbix_server
+COPY --from=builder /tmp/zabbix-${ZBX_VERSION}-output/general/bin/zabbix_get /usr/bin/
+COPY --from=builder /tmp/zabbix-${ZBX_VERSION}-output/general/bin/zabbix_sender /usr/bin/
+COPY --from=builder /tmp/zabbix-${ZBX_VERSION}-output/server/conf/ ${ZABBIX_CONF_DIR}/
+COPY --from=builder /tmp/zabbix-${ZBX_VERSION}-output/server/database/postgresql/ /usr/share/doc/zabbix-server-postgresql/
 
 RUN --mount=type=cache,target=/var/cache/apt/,sharing=locked \
     --mount=type=cache,target=/var/lib/apt/,sharing=locked \
     set -eux && \
-    echo "#!/bin/sh\nexit 101" > /usr/sbin/policy-rc.d && \
+    printf '%s\n' '#!/bin/sh' 'exit 101' > /usr/sbin/policy-rc.d && \
+    chmod +x /usr/sbin/policy-rc.d && \
     INSTALL_PKGS="bash \
             traceroute \
             nmap \
@@ -70,27 +73,28 @@ RUN --mount=type=cache,target=/var/cache/apt/,sharing=locked \
             zlib1g" && \
     apt-get -y update && \
     DEBIAN_FRONTEND=noninteractive apt-get -y \
+            -o Dpkg::Options::="--force-confdef" \
+            -o Dpkg::Options::="--force-confold" \
             --no-install-recommends install \
-        gpg \
-        dirmngr \
-        gpg-agent && \
-    DISTRIB_CODENAME=$(/bin/bash -c 'source /etc/lsb-release && echo $DISTRIB_CODENAME') && \
-    echo "deb http://apt.postgresql.org/pub/repos/apt $DISTRIB_CODENAME-pgdg main" > /etc/apt/sources.list.d/pgdg.list && \
-    key='B97B0AFCAA1A47F044F244A07FCC7D46ACCC4CF8' && \
-    export GNUPGHOME="$(mktemp -d)" && \
-    gpg --batch --keyserver keyserver.ubuntu.com --recv-keys "$key" && \
-    gpg --batch --export "$key" > /etc/apt/trusted.gpg.d/postgresql.gpg && \
-    gpgconf --kill all && \
-    rm -rf "$GNUPGHOME" && \
+        ca-certificates \
+        curl \
+        gnupg && \
+    curl -fsSL https://www.postgresql.org/media/keys/ACCC4CF8.asc \
+        | gpg --dearmor -o /usr/share/keyrings/postgresql.gpg && \
+    . /etc/os-release && \
+    echo "deb [signed-by=/usr/share/keyrings/postgresql.gpg] https://apt.postgresql.org/pub/repos/apt ${VERSION_CODENAME}-pgdg main" \
+        > /etc/apt/sources.list.d/pgdg.list && \
     apt-get -y update && \
     DEBIAN_FRONTEND=noninteractive apt-get -y \
+            -o Dpkg::Options::="--force-confdef" \
+            -o Dpkg::Options::="--force-confold" \
             --no-install-recommends install \
         ${INSTALL_PKGS} && \
     DEBIAN_FRONTEND=noninteractive apt-get -y \
             purge \
-                gpg \
-                dirmngr \
-                gpg-agent && \
+              curl \
+              gnupg && \
+    apt-get -y autoremove && \
     groupadd \
             --system \
             --gid 1995 \
@@ -106,29 +110,31 @@ RUN --mount=type=cache,target=/var/cache/apt/,sharing=locked \
         zabbix && \
     chgrp zabbix /usr/bin/nmap && \
     setcap cap_net_raw+eip /usr/bin/nmap && \
-    mkdir -p ${ZABBIX_CONF_DIR} && \
-    mkdir -p ${ZABBIX_USER_HOME_DIR} && \
-    mkdir -p ${ZABBIX_USER_HOME_DIR}/dbscripts && \
-    mkdir -p ${ZABBIX_USER_HOME_DIR}/enc && \
-    mkdir -p ${ZABBIX_USER_HOME_DIR}/enc_internal && \
-    mkdir -p ${ZABBIX_USER_HOME_DIR}/export && \
-    mkdir -p ${ZABBIX_USER_HOME_DIR}/mibs && \
-    mkdir -p ${ZABBIX_USER_HOME_DIR}/modules && \
-    mkdir -p ${ZABBIX_USER_HOME_DIR}/snmptraps && \
-    mkdir -p ${ZABBIX_USER_HOME_DIR}/ssh_keys && \
-    mkdir -p ${ZABBIX_USER_HOME_DIR}/ssl && \
-    mkdir -p ${ZABBIX_USER_HOME_DIR}/ssl/certs && \
-    mkdir -p ${ZABBIX_USER_HOME_DIR}/ssl/keys && \
-    mkdir -p ${ZABBIX_USER_HOME_DIR}/ssl/ssl_ca && \
-    mkdir -p /usr/lib/zabbix/alertscripts && \
-    mkdir -p /usr/lib/zabbix/externalscripts && \
-    mkdir -p /usr/share/doc/zabbix-server-postgresql && \
-    chown --quiet -R zabbix:root ${ZABBIX_CONF_DIR}/ ${ZABBIX_USER_HOME_DIR}/ && \
-    chgrp -R 0 ${ZABBIX_CONF_DIR}/ ${ZABBIX_USER_HOME_DIR}/ && \
-    chmod -R g=u ${ZABBIX_CONF_DIR}/ ${ZABBIX_USER_HOME_DIR}/ && \
+    mkdir -p ${ZABBIX_CONF_DIR} \
+        ${ZABBIX_USER_HOME_DIR} \
+        ${ZABBIX_USER_HOME_DIR}/dbscripts \
+        ${ZABBIX_USER_HOME_DIR}/enc \
+        ${ZABBIX_USER_HOME_DIR}/enc_internal \
+        ${ZABBIX_USER_HOME_DIR}/export \
+        ${ZABBIX_USER_HOME_DIR}/mibs \
+        ${ZABBIX_USER_HOME_DIR}/modules \
+        ${ZABBIX_USER_HOME_DIR}/snmptraps \
+        ${ZABBIX_USER_HOME_DIR}/ssh_keys \
+        ${ZABBIX_USER_HOME_DIR}/ssl \
+        ${ZABBIX_USER_HOME_DIR}/ssl/certs \
+        ${ZABBIX_USER_HOME_DIR}/ssl/keys \
+        ${ZABBIX_USER_HOME_DIR}/ssl/ssl_ca \
+        /usr/lib/zabbix/alertscripts \
+        /usr/lib/zabbix/externalscripts \
+        /usr/share/doc/zabbix-server-postgresql && \
+    FIX_PERM_LIST="\
+        ${ZABBIX_CONF_DIR}/ \
+        ${ZABBIX_USER_HOME_DIR}/" && \
+    chown --quiet -R zabbix:0 ${FIX_PERM_LIST} && \
+    chmod -R g=u ${FIX_PERM_LIST} && \
     /usr/sbin/zabbix_server -V
 
-EXPOSE 10051/TCP
+EXPOSE 10051/tcp
 
 WORKDIR ${ZABBIX_USER_HOME_DIR}
 
