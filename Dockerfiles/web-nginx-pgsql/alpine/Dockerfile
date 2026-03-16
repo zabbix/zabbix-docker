@@ -7,15 +7,16 @@ ARG BUILD_BASE_IMAGE=zabbix-build-pgsql:alpine-${ZBX_VERSION}
 FROM ${BUILD_BASE_IMAGE} AS builder
 FROM builder AS clean_builder
 
+ARG ZBX_VERSION
+
 RUN set -eux && \
-    ls -lah "/tmp/zabbix-${ZBX_VERSION}/ui/tests" && \
     rm -rf \
         "/tmp/zabbix-${ZBX_VERSION}/ui/tests" \
         "/tmp/zabbix-${ZBX_VERSION}/ui/conf/zabbix.conf.php" \
         "/tmp/zabbix-${ZBX_VERSION}/ui/conf/zabbix.conf.php.example" \
         "/tmp/zabbix-${ZBX_VERSION}/ui/conf/maintenance.inc.php" && \
-    find /tmp/zabbix-${ZBX_VERSION}/ui/locale -name '*.po' -delete && \
-    find /tmp/zabbix-${ZBX_VERSION}/ui/locale -name '*.sh' -delete
+    find "/tmp/zabbix-${ZBX_VERSION}/ui/locale" -name '*.po' -delete && \
+    find "/tmp/zabbix-${ZBX_VERSION}/ui/locale" -name '*.sh' -delete
 
 FROM ${OS_BASE_IMAGE}
 

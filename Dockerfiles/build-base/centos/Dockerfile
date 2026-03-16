@@ -1,4 +1,4 @@
-# syntax=docker/dockerfile:1
+# syntax=docker/dockerfile:1.6
 ARG OS_BASE_IMAGE=quay.io/centos/centos:stream9-minimal
 FROM ${OS_BASE_IMAGE}
 
@@ -7,8 +7,11 @@ ARG ZBX_VERSION=${MAJOR_VERSION}.24
 
 ENV TERM=xterm \
     ZBX_VERSION=${ZBX_VERSION} \
-    PATH=/usr/local/go/bin:$PATH \
-    GOPROXY=direct
+    GOPATH=/root/go \
+    GOCACHE=/root/.cache/go-build \
+    GOMODCACHE=/root/go/pkg/mod \
+    GOTELEMETRY=off \
+    GOFLAGS=-buildvcs=false
 
 LABEL org.opencontainers.image.authors="Alexey Pustovalov <alexey.pustovalov@zabbix.com>" \
       org.opencontainers.image.description="Zabbix build base image contains all required packages to build Zabbix images" \
@@ -35,15 +38,13 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             libmodbus-devel \
             libxml2-devel \
             openssl-devel \
-            openldap-devel \
             make \
             mysql-devel \
             net-snmp-devel \
             OpenIPMI-devel \
             openldap-devel \
             sqlite-devel \
-            postgresql-private-devel \
-            postgresql-server-devel \
+            libpq-devel \
             java-17-openjdk-devel \
             git \
             gettext \
