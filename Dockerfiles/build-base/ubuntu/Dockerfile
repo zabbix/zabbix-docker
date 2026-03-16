@@ -1,4 +1,4 @@
-# syntax=docker/dockerfile:1
+# syntax=docker/dockerfile:1.6
 ARG OS_BASE_IMAGE=ubuntu:resolute
 FROM ${OS_BASE_IMAGE}
 
@@ -8,10 +8,11 @@ ARG ZBX_VERSION=${MAJOR_VERSION}
 ENV TERM=xterm \
     ZBX_VERSION=${ZBX_VERSION} \
     PATH=/usr/lib/go-1.26/bin:$PATH \
+    GOPATH=/root/go \
     GOCACHE=/root/.cache/go-build \
     GOMODCACHE=/root/go/pkg/mod \
     GOTELEMETRY=off \
-    GOFLAGS="-buildvcs=false"
+    GOFLAGS=-buildvcs=false
 
 LABEL org.opencontainers.image.authors="Alexey Pustovalov <alexey.pustovalov@zabbix.com>" \
       org.opencontainers.image.description="Zabbix build base image contains all required packages to build Zabbix images" \
@@ -25,6 +26,8 @@ LABEL org.opencontainers.image.authors="Alexey Pustovalov <alexey.pustovalov@zab
 RUN --mount=type=cache,target=/var/cache/apt/,sharing=locked \
     --mount=type=cache,target=/var/lib/apt/,sharing=locked \
     set -eux && \
+    printf '%s\n' '#!/bin/sh' 'exit 101' > /usr/sbin/policy-rc.d && \
+    chmod +x /usr/sbin/policy-rc.d && \
     INSTALL_PKGS="bash \
             autoconf \
             automake \
@@ -57,25 +60,8 @@ RUN --mount=type=cache,target=/var/cache/apt/,sharing=locked \
             zlib1g-dev" && \
     apt-get -y update && \
     DEBIAN_FRONTEND=noninteractive apt-get -y \
-            --no-install-recommends install \
-        gpg \
-        dirmngr \
-        gpg-agent && \
-    DISTRIB_CODENAME=$(/bin/bash -c 'source /etc/lsb-release && echo $DISTRIB_CODENAME') && \
-    echo "deb http://apt.postgresql.org/pub/repos/apt $DISTRIB_CODENAME-pgdg main" > /etc/apt/sources.list.d/pgdg.list && \
-    key='B97B0AFCAA1A47F044F244A07FCC7D46ACCC4CF8' && \
-    export GNUPGHOME="$(mktemp -d)" && \
-    gpg --batch --keyserver keyserver.ubuntu.com --recv-keys "$key" && \
-    gpg --batch --export "$key" > /etc/apt/trusted.gpg.d/postgresql.gpg && \
-    gpgconf --kill all && \
-    rm -rf "$GNUPGHOME" && \
-    apt-get -y update && \
-    DEBIAN_FRONTEND=noninteractive apt-get -y \
+            -o Dpkg::Options::="--force-confdef" \
+            -o Dpkg::Options::="--force-confold" \
             --no-install-recommends install \
         ${INSTALL_PKGS} && \
-    DEBIAN_FRONTEND=noninteractive apt-get -y \
-            purge \
-                gpg \
-                dirmngr \
-                gpg-agent && \
     go telemetry off

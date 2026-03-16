@@ -1,4 +1,4 @@
-# syntax=docker/dockerfile:1
+# syntax=docker/dockerfile:1.6
 ARG OS_BASE_IMAGE=ubuntu:resolute
 FROM ${OS_BASE_IMAGE}
 
@@ -7,13 +7,14 @@ ARG ZBX_VERSION=${MAJOR_VERSION}
 ARG ZBX_SOURCES=https://git.zabbix.com/scm/zbx/zabbix.git
 
 ENV TERM=xterm \
-    ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES} \
+    ZBX_VERSION=${ZBX_VERSION} \
+    ZBX_SOURCES=${ZBX_SOURCES} \
     MIBDIRS=/var/lib/mibs/ietf:/var/lib/mibs/iana:/usr/share/snmp/mibs:/var/lib/zabbix/mibs MIBS=+ALL \
     ZBX_SNMP_TRAP_DATE_FORMAT=+%Y-%m-%dT%T%z ZBX_SNMP_TRAP_FORMAT="\n" \
     ZBX_SNMP_TRAP_USE_DNS=false \
-    ZABBIX_USER_HOME_DIR="/var/lib/zabbix"
+    ZABBIX_USER_HOME_DIR=/var/lib/zabbix
 
-ENV SNMP_PERSISTENT_DIR="${ZABBIX_USER_HOME_DIR}/snmptrapd_config"
+ENV SNMP_PERSISTENT_DIR=${ZABBIX_USER_HOME_DIR}/snmptrapd_config
 
 LABEL org.opencontainers.image.authors="Alexey Pustovalov <alexey.pustovalov@zabbix.com>" \
       org.opencontainers.image.description="Zabbix SNMP traps receiver" \
@@ -26,16 +27,23 @@ LABEL org.opencontainers.image.authors="Alexey Pustovalov <alexey.pustovalov@zab
 
 STOPSIGNAL SIGTERM
 
+COPY conf/etc/logrotate.d/zabbix_snmptraps /etc/logrotate.d/
+COPY conf/etc/snmp/snmptrapd.conf /etc/snmp/
+COPY conf/usr/sbin/zabbix_trap_handler.sh conf/usr/sbin/snmptrapd_runner.sh /usr/sbin/
+
 RUN --mount=type=cache,target=/var/cache/apt/,sharing=locked \
     --mount=type=cache,target=/var/lib/apt/,sharing=locked \
     set -eux && \
-    echo "#!/bin/sh\nexit 101" > /usr/sbin/policy-rc.d && \
+    printf '%s\n' '#!/bin/sh' 'exit 101' > /usr/sbin/policy-rc.d && \
+    chmod +x /usr/sbin/policy-rc.d && \
     INSTALL_PKGS="bash \
             tzdata \
             snmp-mibs-downloader \
             snmptrapd" && \
     apt-get -y update && \
     DEBIAN_FRONTEND=noninteractive apt-get -y \
+            -o Dpkg::Options::="--force-confdef" \
+            -o Dpkg::Options::="--force-confold" \
             --no-install-recommends install \
         ${INSTALL_PKGS} && \
     groupadd \
@@ -51,24 +59,24 @@ RUN --mount=type=cache,target=/var/cache/apt/,sharing=locked \
             --home-dir ${ZABBIX_USER_HOME_DIR} \
         zabbix && \
     download-mibs && \
-    mkdir -p ${ZABBIX_USER_HOME_DIR} && \
-    mkdir -p ${ZABBIX_USER_HOME_DIR}/snmptraps && \
-    mkdir -p ${ZABBIX_USER_HOME_DIR}/mibs && \
-    mkdir -p ${SNMP_PERSISTENT_DIR} && \
-    chown --quiet -R zabbix:root /etc/snmp/ ${ZABBIX_USER_HOME_DIR}/ /var/tmp/ /var/run/ && \
-    chgrp -R 0 /etc/snmp/ ${ZABBIX_USER_HOME_DIR}/ /var/tmp/ /var/run/ && \
-    chmod -R g=u /etc/snmp/ ${ZABBIX_USER_HOME_DIR}/ /var/tmp/ /var/run/
+    mkdir -p ${ZABBIX_USER_HOME_DIR} \
+        ${ZABBIX_USER_HOME_DIR}/snmptraps \
+        ${ZABBIX_USER_HOME_DIR}/mibs \
+        ${SNMP_PERSISTENT_DIR} && \
+    FIX_PERM_LIST="\
+        /etc/snmp/ \
+        ${ZABBIX_USER_HOME_DIR}/ \
+        /var/tmp/ \
+        /var/run/" && \
+    chown --quiet -R zabbix:root ${FIX_PERM_LIST} && \
+    chgrp -R 0 ${FIX_PERM_LIST} && \
+    chmod -R g=u ${FIX_PERM_LIST}
 
 EXPOSE 1162/udp
 
 WORKDIR ${ZABBIX_USER_HOME_DIR}/snmptraps/
 
 VOLUME ["${ZABBIX_USER_HOME_DIR}/snmptraps", "${SNMP_PERSISTENT_DIR}"]
-
-COPY ["conf/etc/logrotate.d/zabbix_snmptraps", "/etc/logrotate.d/"]
-COPY ["conf/etc/snmp/snmptrapd.conf", "/etc/snmp/"]
-COPY ["conf/usr/sbin/zabbix_trap_handler.sh", "/usr/sbin/"]
-COPY ["conf/usr/sbin/snmptrapd_runner.sh", "/usr/sbin/"]
 
 USER 1997
 

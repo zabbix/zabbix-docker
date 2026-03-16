@@ -32,6 +32,7 @@ LABEL org.opencontainers.image.authors="Alexey Pustovalov <alexey.pustovalov@zab
 STOPSIGNAL SIGTERM
 
 COPY --from=builder /tmp/zabbix-${ZBX_VERSION}-output/java_gateway/sbin/ /usr/sbin/zabbix_java/
+COPY conf/usr/sbin/zabbix_java_gateway /usr/sbin/
 
 RUN set -eux && \
     ARCH_SUFFIX="$(apk --print-arch)"; \
@@ -62,15 +63,16 @@ RUN set -eux && \
         /usr/sbin/zabbix_java/ext_lib/ && \
     rm -rf /usr/sbin/zabbix_java/lib/logback.xml && \
     mv /usr/sbin/zabbix_java/lib/logback-console.xml ${ZABBIX_CONF_DIR}/zabbix_java_gateway_logback.xml && \
-    chown --quiet -R zabbix:root ${ZABBIX_CONF_DIR}/ /usr/sbin/zabbix_java/ && \
-    chgrp -R 0 ${ZABBIX_CONF_DIR}/ /usr/sbin/zabbix_java/ && \
-    chmod -R g=u ${ZABBIX_CONF_DIR}/ /usr/sbin/zabbix_java/
+    FIX_PERM_LIST="\
+        ${ZABBIX_CONF_DIR}/ \
+        /usr/sbin/zabbix_java/ext_lib" && \
+    chown --quiet -R zabbix:0 ${FIX_PERM_LIST} && \
+    chmod -R g=u ${FIX_PERM_LIST}
 
 EXPOSE 10052/tcp
 
 WORKDIR ${ZABBIX_USER_HOME_DIR}
 
-COPY ["conf/usr/sbin/zabbix_java_gateway", "/usr/sbin/"]
 COPY ["docker-entrypoint.sh", "/usr/bin/"]
 
 ENTRYPOINT ["docker-entrypoint.sh"]

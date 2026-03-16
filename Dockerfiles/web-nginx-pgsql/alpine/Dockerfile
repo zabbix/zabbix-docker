@@ -98,15 +98,18 @@ RUN set -eux && \
     ln -sf /dev/stderr /var/log/nginx/error.log && \
     ln -sf "${ZABBIX_CONF_DIR}/web/zabbix.conf.php" "${ZABBIX_WWW_ROOT}/conf/zabbix.conf.php" && \
     ln -sf "${ZABBIX_CONF_DIR}/web/maintenance.inc.php" "${ZABBIX_WWW_ROOT}/conf/maintenance.inc.php" && \
-    chown --quiet -R zabbix:root ${ZABBIX_CONF_DIR}/ ${ZABBIX_WWW_ROOT}/include/defines.inc.php ${ZABBIX_WWW_ROOT}/modules/ && \
-    chgrp -R 0 ${ZABBIX_CONF_DIR}/ ${ZABBIX_WWW_ROOT}/include/defines.inc.php ${ZABBIX_WWW_ROOT}/modules/ && \
-    chmod -R g=u ${ZABBIX_CONF_DIR}/ ${ZABBIX_WWW_ROOT}/include/defines.inc.php ${ZABBIX_WWW_ROOT}/modules/ && \
-    chown --quiet -R zabbix:root /etc/nginx/ /etc/php85/php-fpm.d/ /etc/php85/php-fpm.conf && \
-    chgrp -R 0 /etc/nginx/ /etc/php85/php-fpm.d/ /etc/php85/php-fpm.conf && \
-    chmod -R g=u /etc/nginx/ /etc/php85/php-fpm.d/ /etc/php85/php-fpm.conf && \
-    chown --quiet -R zabbix:root ${ZABBIX_USER_HOME_DIR}/ /var/lib/php/session/ /var/lib/nginx/ && \
-    chgrp -R 0 ${ZABBIX_USER_HOME_DIR}/ /var/lib/php/session/ /var/lib/nginx/ && \
-    chmod -R g=u ${ZABBIX_USER_HOME_DIR}/ /var/lib/php/session/ /var/lib/nginx/
+    FIX_PERM_LIST="\
+        ${ZABBIX_CONF_DIR}/ \
+        ${ZABBIX_WWW_ROOT}/include/defines.inc.php \
+        ${ZABBIX_WWW_ROOT}/modules/ \
+        /etc/nginx/ \
+        /etc/php85/php-fpm.d/ \
+        /etc/php85/php-fpm.conf \
+        ${ZABBIX_USER_HOME_DIR}/ \
+        /var/lib/php/session/ \
+        /var/lib/nginx/" && \
+    chown --quiet -R zabbix:0 ${FIX_PERM_LIST} && \
+    chmod -R g=u ${FIX_PERM_LIST}
 
 HEALTHCHECK --interval=1m30s --timeout=3s --retries=3 --start-period=40s --start-interval=5s \
     CMD curl -f http://localhost:8080/ping || exit 1

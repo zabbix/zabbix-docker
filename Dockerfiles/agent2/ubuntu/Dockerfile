@@ -1,4 +1,4 @@
-# syntax=docker/dockerfile:1
+# syntax=docker/dockerfile:1.6
 ARG OS_BASE_IMAGE=ubuntu:resolute
 ARG MAJOR_VERSION=8.0
 ARG ZBX_VERSION=${MAJOR_VERSION}
@@ -13,11 +13,12 @@ ARG ZBX_VERSION
 ARG ZBX_SOURCES=https://git.zabbix.com/scm/zbx/zabbix.git
 
 ENV TERM=xterm \
-    ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES} \
-    ZABBIX_USER_HOME_DIR="/var/lib/zabbix" \
-    ZABBIX_CONF_DIR="/etc/zabbix"
+    ZBX_VERSION=${ZBX_VERSION} \
+    ZBX_SOURCES=${ZBX_SOURCES} \
+    ZABBIX_USER_HOME_DIR=/var/lib/zabbix \
+    ZABBIX_CONF_DIR=/etc/zabbix
 
-ENV ZBX_PERSISTENTBUFFERFILE="$ZABBIX_USER_HOME_DIR/buffer/agent2.db" \
+ENV ZBX_PERSISTENTBUFFERFILE=$ZABBIX_USER_HOME_DIR/buffer/agent2.db \
     ZBX_USERPARAMETERDIR=${ZABBIX_USER_HOME_DIR}/user_scripts
 
 LABEL org.opencontainers.image.authors="Alexey Pustovalov <alexey.pustovalov@zabbix.com>" \
@@ -32,14 +33,16 @@ LABEL org.opencontainers.image.authors="Alexey Pustovalov <alexey.pustovalov@zab
 
 STOPSIGNAL SIGTERM
 
-COPY --from=builder ["/tmp/zabbix-${ZBX_VERSION}-output/agent2/sbin/", "/usr/sbin/"]
-COPY --from=builder ["/tmp/zabbix-${ZBX_VERSION}-output/general/bin/*", "/usr/bin/"]
-COPY --from=builder ["/tmp/zabbix-${ZBX_VERSION}-output/agent2/conf/", "${ZABBIX_CONF_DIR}/"]
+COPY --from=builder /tmp/zabbix-${ZBX_VERSION}-output/agent2/sbin/zabbix_agent2 /usr/sbin/
+COPY --from=builder /tmp/zabbix-${ZBX_VERSION}-output/general/bin/zabbix_get /usr/bin/
+COPY --from=builder /tmp/zabbix-${ZBX_VERSION}-output/general/bin/zabbix_sender /usr/bin/
+COPY --from=builder /tmp/zabbix-${ZBX_VERSION}-output/agent2/conf/ ${ZABBIX_CONF_DIR}/
 
 RUN --mount=type=cache,target=/var/cache/apt/,sharing=locked \
     --mount=type=cache,target=/var/lib/apt/,sharing=locked \
     set -eux && \
-    echo "#!/bin/sh\nexit 101" > /usr/sbin/policy-rc.d && \
+    printf '%s\n' '#!/bin/sh' 'exit 101' > /usr/sbin/policy-rc.d && \
+    chmod +x /usr/sbin/policy-rc.d && \
     INSTALL_PKGS="bash \
             tzdata \
             iputils-ping \
@@ -52,6 +55,8 @@ RUN --mount=type=cache,target=/var/cache/apt/,sharing=locked \
             libldap2" && \
     apt-get -y update && \
     DEBIAN_FRONTEND=noninteractive apt-get -y \
+            -o Dpkg::Options::="--force-confdef" \
+            -o Dpkg::Options::="--force-confold" \
             --no-install-recommends install \
         ${INSTALL_PKGS} && \
     groupadd \
@@ -67,28 +72,22 @@ RUN --mount=type=cache,target=/var/cache/apt/,sharing=locked \
             --home-dir ${ZABBIX_USER_HOME_DIR} \
         zabbix && \
     echo "zabbix ALL=(root) NOPASSWD: /usr/sbin/smartctl" >> /etc/sudoers.d/zabbix && \
-    mkdir -p ${ZABBIX_CONF_DIR} && \
-    mkdir -p ${ZABBIX_CONF_DIR}/zabbix_agentd.d && \
-    mkdir -p ${ZABBIX_CONF_DIR}/zabbix_agent2.d && \
-    mkdir -p ${ZABBIX_USER_HOME_DIR} && \
-    mkdir -p ${ZABBIX_USER_HOME_DIR}/enc && \
-    mkdir -p ${ZABBIX_USER_HOME_DIR}/enc_internal && \
-    mkdir -p ${ZABBIX_USER_HOME_DIR}/buffer && \
-    mkdir -p ${ZBX_USERPARAMETERDIR} && \
-    chown --quiet -R zabbix:root ${ZABBIX_CONF_DIR}/zabbix_agent2_item_keys.conf \
+    mkdir -p ${ZABBIX_CONF_DIR} \
+        ${ZABBIX_CONF_DIR}/zabbix_agentd.d \
+        ${ZABBIX_CONF_DIR}/zabbix_agent2.d \
+        ${ZABBIX_USER_HOME_DIR} \
+        ${ZABBIX_USER_HOME_DIR}/enc \
+        ${ZABBIX_USER_HOME_DIR}/enc_internal \
+        ${ZABBIX_USER_HOME_DIR}/buffer \
+        ${ZBX_USERPARAMETERDIR} && \
+    FIX_PERM_LIST="\
+        ${ZABBIX_CONF_DIR}/zabbix_agent2_item_keys.conf \
         ${ZABBIX_CONF_DIR}/zabbix_agentd.d/ \
         ${ZABBIX_CONF_DIR}/zabbix_agent2.d/ \
-        ${ZABBIX_USER_HOME_DIR}/ && \
-    chown --quiet zabbix:root ${ZABBIX_CONF_DIR}/ && \
-    chgrp -R 0 ${ZABBIX_CONF_DIR}/zabbix_agent2_item_keys.conf \
-        ${ZABBIX_CONF_DIR}/zabbix_agentd.d/ \
-        ${ZABBIX_CONF_DIR}/zabbix_agent2.d/ \
-        ${ZABBIX_USER_HOME_DIR}/ && \
-    chgrp 0 ${ZABBIX_CONF_DIR} && \
-    chmod -R g=u ${ZABBIX_CONF_DIR}/zabbix_agent2_item_keys.conf \
-        ${ZABBIX_CONF_DIR}/zabbix_agentd.d/ \
-        ${ZABBIX_CONF_DIR}/zabbix_agent2.d/ \
-        ${ZABBIX_USER_HOME_DIR}/ && \
+        ${ZABBIX_USER_HOME_DIR}/" && \
+    chown --quiet -R zabbix:0 ${FIX_PERM_LIST} && \
+    chmod -R g=u ${FIX_PERM_LIST} && \
+    chown --quiet zabbix:0 ${ZABBIX_CONF_DIR}/ && \
     chmod g=u ${ZABBIX_CONF_DIR} && \
     /usr/sbin/zabbix_agent2 -V
 

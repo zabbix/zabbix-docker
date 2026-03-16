@@ -72,20 +72,14 @@ RUN set -eux && \
         ${ZABBIX_USER_HOME_DIR}/enc_internal \
         ${ZABBIX_USER_HOME_DIR}/buffer \
         ${ZBX_USERPARAMETERDIR} && \
-    chown --quiet -R zabbix:root ${ZABBIX_CONF_DIR}/zabbix_agent2_item_keys.conf \
+    FIX_PERM_LIST="\
+        ${ZABBIX_CONF_DIR}/zabbix_agent2_item_keys.conf
         ${ZABBIX_CONF_DIR}/zabbix_agentd.d/ \
         ${ZABBIX_CONF_DIR}/zabbix_agent2.d/ \
-        ${ZABBIX_USER_HOME_DIR}/ && \
-    chown --quiet zabbix:root ${ZABBIX_CONF_DIR}/ && \
-    chgrp -R 0 ${ZABBIX_CONF_DIR}/zabbix_agent2_item_keys.conf \
-        ${ZABBIX_CONF_DIR}/zabbix_agentd.d/ \
-        ${ZABBIX_CONF_DIR}/zabbix_agent2.d/ \
-        ${ZABBIX_USER_HOME_DIR}/ && \
-    chgrp 0 ${ZABBIX_CONF_DIR} && \
-    chmod -R g=u ${ZABBIX_CONF_DIR}/zabbix_agent2_item_keys.conf \
-        ${ZABBIX_CONF_DIR}/zabbix_agentd.d/ \
-        ${ZABBIX_CONF_DIR}/zabbix_agent2.d/ \
-        ${ZABBIX_USER_HOME_DIR}/ && \
+        ${ZABBIX_USER_HOME_DIR}/" && \
+    chown --quiet -R zabbix:0 ${FIX_PERM_LIST} && \
+    chmod -R g=u ${FIX_PERM_LIST} && \
+    chown --quiet zabbix:0 ${ZABBIX_CONF_DIR}/ && \
     chmod g=u ${ZABBIX_CONF_DIR} && \
     /usr/sbin/zabbix_agent2 -V
 
