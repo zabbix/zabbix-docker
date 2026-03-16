@@ -69,7 +69,7 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             openssl-libs \
             pcre2 \
             postgresql \
-            postgresql-private-libs \
+            libpq \
             zlib \
             gzip \
             unixODBC" && \
