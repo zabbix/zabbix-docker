@@ -66,31 +66,33 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             shadow-utils \
             supervisor" && \
     microdnf -y install \
-        --disablerepo "*" \
-        --enablerepo "extras-common" \
-        --setopt=install_weak_deps=0 \
-        --setopt=keepcache=0 \
-        --best \
-        --nodocs epel-release && \
+            --disablerepo="*" \
+            --enablerepo="extras-common" \
+            --setopt=install_weak_deps=0 \
+            --setopt=keepcache=0 \
+            --best \
+            --nodocs \
+            epel-release && \
     microdnf -y module enable \
-        --disablerepo "*" \
-        --enablerepo "appstream" \
-        --setopt=install_weak_deps=0 \
-        --setopt=keepcache=0 \
+            --disablerepo="*" \
+            --enablerepo="appstream" \
+            --setopt=install_weak_deps=0 \
+            --setopt=keepcache=0 \
         php:8.3 \
         postgresql:16 \
         nginx:1.26 && \
     microdnf -y install \
-        --disablerepo "*" \
-        --enablerepo "baseos" \
-        --enablerepo "appstream" \
-        --enablerepo="epel" \
-        --setopt=install_weak_deps=0 \
-        --setopt=keepcache=0 \
-        --best \
-        --nodocs ${INSTALL_PKGS} && \
+            --disablerepo="*" \
+            --enablerepo="baseos" \
+            --enablerepo="appstream" \
+            --enablerepo="epel" \
+            --setopt=install_weak_deps=0 \
+            --setopt=keepcache=0 \
+            --best \
+            --nodocs \
+        ${INSTALL_PKGS} && \
     microdnf -y reinstall \
-            --enablerepo "baseos" \
+            --enablerepo="baseos" \
             --setopt=install_weak_deps=0 \
             --setopt=keepcache=0 \
             --best \
