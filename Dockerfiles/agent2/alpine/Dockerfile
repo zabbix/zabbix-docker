@@ -73,7 +73,7 @@ RUN set -eux && \
         ${ZABBIX_USER_HOME_DIR}/buffer \
         ${ZBX_USERPARAMETERDIR} && \
     FIX_PERM_LIST="\
-        ${ZABBIX_CONF_DIR}/zabbix_agent2_item_keys.conf
+        ${ZABBIX_CONF_DIR}/zabbix_agent2_item_keys.conf \
         ${ZABBIX_CONF_DIR}/zabbix_agentd.d/ \
         ${ZABBIX_CONF_DIR}/zabbix_agent2.d/ \
         ${ZABBIX_USER_HOME_DIR}/" && \
