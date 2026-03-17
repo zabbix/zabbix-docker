@@ -1,4 +1,4 @@
-# syntax=docker/dockerfile:1
+# syntax=docker/dockerfile:1.6
 ARG OS_BASE_IMAGE=registry.access.redhat.com/ubi10/ubi-minimal:10.1
 FROM ${OS_BASE_IMAGE}
 
@@ -8,11 +8,11 @@ ARG ZBX_VERSION=${MAJOR_VERSION}
 
 ENV TERM=xterm \
     ZBX_VERSION=${ZBX_VERSION} \
-    PATH=/usr/local/go/bin:$PATH \
+    GOPATH=/root/go \
     GOCACHE=/root/.cache/go-build \
     GOMODCACHE=/root/go/pkg/mod \
     GOTELEMETRY=off \
-    GOFLAGS="-buildvcs=false"
+    GOFLAGS=-buildvcs=false
 
 LABEL description="Prepared environment to build Zabbix components" \
       maintainer="alexey.pustovalov@zabbix.com" \
@@ -33,7 +33,7 @@ LABEL description="Prepared environment to build Zabbix components" \
       org.label-schema.vcs-ref="${VCS_REF}" \
       org.label-schema.vendor="Zabbix SIA"
 
-COPY ["licenses", "/licenses"]
+COPY licenses /licenses/
 
 RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
     --mount=type=tmpfs,target=/var/cache/yum/ \
@@ -53,15 +53,13 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             libmodbus-devel \
             libxml2-devel \
             openssl-devel \
-            openldap-devel \
             make \
             mysql8.4-devel \
             net-snmp-devel \
             OpenIPMI-devel \
             openldap-devel \
             sqlite-devel \
-            postgresql-private-devel \
-            postgresql-server-devel \
+            libpq-devel \
             java-21-openjdk-devel \
             git \
             gettext \
@@ -72,13 +70,13 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
     rm -rf /tmp/epel-release-latest-10.noarch.rpm && \
     ARCH_SUFFIX="$(arch)"; \
     microdnf -y install \
-            --disablerepo "*" \
-            --enablerepo "ubi-10-baseos-rpms" \
-            --enablerepo "ubi-10-appstream-rpms" \
-            --enablerepo "rhel-10-for-$ARCH_SUFFIX-baseos-rpms" \
-            --enablerepo "rhel-10-for-$ARCH_SUFFIX-appstream-rpms" \
-            --enablerepo "codeready-builder-for-rhel-10-$ARCH_SUFFIX-rpms" \
-            --enablerepo "epel" \
+            --disablerepo="*" \
+            --enablerepo="ubi-10-baseos-rpms" \
+            --enablerepo="ubi-10-appstream-rpms" \
+            --enablerepo="rhel-10-for-$ARCH_SUFFIX-baseos-rpms" \
+            --enablerepo="rhel-10-for-$ARCH_SUFFIX-appstream-rpms" \
+            --enablerepo="codeready-builder-for-rhel-10-$ARCH_SUFFIX-rpms" \
+            --enablerepo="epel" \
             --setopt=install_weak_deps=0 \
             --setopt=keepcache=0 \
             --best \

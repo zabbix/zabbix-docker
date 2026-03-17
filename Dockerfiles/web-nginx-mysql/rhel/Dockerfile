@@ -1,4 +1,4 @@
-# syntax=docker/dockerfile:1
+# syntax=docker/dockerfile:1.6
 ARG OS_BASE_IMAGE=registry.access.redhat.com/ubi10/ubi-minimal:10.1
 ARG MAJOR_VERSION=8.0
 ARG RELEASE=0
@@ -6,6 +6,18 @@ ARG ZBX_VERSION=${MAJOR_VERSION}
 ARG BUILD_BASE_IMAGE=zabbix-build-mysql:rhel-${ZBX_VERSION}
 
 FROM ${BUILD_BASE_IMAGE} AS builder
+FROM builder AS clean_builder
+
+ARG ZBX_VERSION
+
+RUN set -eux && \
+    rm -rf \
+        "/tmp/zabbix-${ZBX_VERSION}/ui/tests" \
+        "/tmp/zabbix-${ZBX_VERSION}/ui/conf/zabbix.conf.php" \
+        "/tmp/zabbix-${ZBX_VERSION}/ui/conf/zabbix.conf.php.example" \
+        "/tmp/zabbix-${ZBX_VERSION}/ui/conf/maintenance.inc.php" && \
+    find "/tmp/zabbix-${ZBX_VERSION}/ui/locale" -name '*.po' -delete && \
+    find "/tmp/zabbix-${ZBX_VERSION}/ui/locale" -name '*.sh' -delete
 
 FROM ${OS_BASE_IMAGE}
 
@@ -15,10 +27,11 @@ ARG ZBX_VERSION
 ARG ZBX_SOURCES=https://git.zabbix.com/scm/zbx/zabbix.git
 
 ENV TERM=xterm \
-    ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES} \
-    ZABBIX_CONF_DIR="/etc/zabbix" \
-    ZABBIX_USER_HOME_DIR="/var/lib/zabbix" \
-    ZABBIX_WWW_ROOT="/usr/share/zabbix"
+    ZBX_VERSION=${ZBX_VERSION} \
+    ZBX_SOURCES=${ZBX_SOURCES} \
+    ZABBIX_CONF_DIR=/etc/zabbix \
+    ZABBIX_USER_HOME_DIR=/var/lib/zabbix \
+    ZABBIX_WWW_ROOT=/usr/share/zabbix
 
 LABEL description="Zabbix web-interface based on Nginx web server with MySQL database support" \
       maintainer="alexey.pustovalov@zabbix.com" \
@@ -48,13 +61,12 @@ LABEL description="Zabbix web-interface based on Nginx web server with MySQL dat
 
 STOPSIGNAL SIGTERM
 
-COPY ["licenses", "/licenses"]
-COPY ["conf/etc/", "/etc/"]
-COPY --from=builder ["/tmp/zabbix-${ZBX_VERSION}/ui", "${ZABBIX_WWW_ROOT}"]
+COPY licenses /licenses/
+COPY --from=clean_builder /tmp/zabbix-${ZBX_VERSION}/ui ${ZABBIX_WWW_ROOT}/
+COPY conf/etc/ /etc/
 
 RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
     --mount=type=tmpfs,target=/var/cache/yum/ \
-#    --mount=type=bind,target=/run/secrets/,src=secrets/ \
     set -eux && \
     INSTALL_PKGS="bash \
             curl-minimal \
@@ -79,12 +91,12 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
     rm -rf /tmp/epel-release-latest-10.noarch.rpm && \
     ARCH_SUFFIX="$(arch)"; \
     microdnf -y install \
-            --disablerepo "*" \
-            --enablerepo "ubi-10-baseos-rpms" \
-            --enablerepo "ubi-10-appstream-rpms" \
-            --enablerepo "rhel-10-for-$ARCH_SUFFIX-baseos-rpms" \
-            --enablerepo "rhel-10-for-$ARCH_SUFFIX-appstream-rpms" \
-            --enablerepo "epel" \
+            --disablerepo="*" \
+            --enablerepo="ubi-10-baseos-rpms" \
+            --enablerepo="ubi-10-appstream-rpms" \
+            --enablerepo="rhel-10-for-$ARCH_SUFFIX-baseos-rpms" \
+            --enablerepo="rhel-10-for-$ARCH_SUFFIX-appstream-rpms" \
+            --enablerepo="epel" \
             --setopt=install_weak_deps=0 \
             --setopt=keepcache=0 \
             --best \
@@ -92,21 +104,12 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
         ${INSTALL_PKGS} && \
     microdnf -y update \
             --disableplugin=subscription-manager \
-            --disablerepo "*" \
-            --enablerepo "ubi-10-baseos-rpms" \
+            --disablerepo="*" \
+            --enablerepo="ubi-10-baseos-rpms" \
             --setopt=install_weak_deps=0 \
             --best \
             --setopt=tsflags=nodocs \
         tzdata && \
-#    microdnf -y reinstall \
-#            --disableplugin=subscription-manager \
-#            --disablerepo "*" \
-#            --enablerepo "ubi-9-baseos-rpms" \
-#            --setopt=install_weak_deps=0 \
-#            --setopt=keepcache=0 \
-#            --best \
-#            --setopt=tsflags=nodocs \
-#        tzdata && \
     groupadd \
             --system \
             --gid 1995 \
@@ -119,36 +122,33 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             --shell /sbin/nologin \
             --home-dir ${ZABBIX_USER_HOME_DIR} \
         zabbix && \
-    mkdir -p ${ZABBIX_CONF_DIR} && \
-    mkdir -p ${ZABBIX_CONF_DIR}/web && \
-    mkdir -p ${ZABBIX_CONF_DIR}/web/certs && \
-    mkdir -p ${ZABBIX_USER_HOME_DIR}/enc && \
-    mkdir -p ${ZABBIX_USER_HOME_DIR}/enc_internal && \
-    mkdir -p /var/lib/php/session && \
-    rm -f /etc/nginx/conf.d/*.conf  && \
-    rm -f /etc/php-fpm.conf.rpmnew && \
-    rm -f /etc/php-fpm.d/www.conf && \
+    mkdir -p ${ZABBIX_CONF_DIR} \
+        ${ZABBIX_CONF_DIR}/web \
+        ${ZABBIX_CONF_DIR}/web/certs \
+        ${ZABBIX_USER_HOME_DIR}/enc \
+        ${ZABBIX_USER_HOME_DIR}/enc_internal \
+        /var/lib/php/session && \
+    rm -rf /etc/nginx/conf.d/*.conf \
+        /etc/php-fpm.d/www.conf && \
     ln -sf /dev/stdout /var/log/nginx/access.log && \
     ln -sf /dev/stderr /var/log/nginx/error.log && \
-    cd ${ZABBIX_WWW_ROOT}/ && \
-    rm -f conf/zabbix.conf.php conf/maintenance.inc.php conf/zabbix.conf.php.example && \
-    rm -rf tests && \
-    find ${ZABBIX_WWW_ROOT}/locale -name '*.po' | xargs rm -f && \
-    find ${ZABBIX_WWW_ROOT}/locale -name '*.sh' | xargs rm -f && \
-    ln -s "${ZABBIX_CONF_DIR}/web/zabbix.conf.php" "${ZABBIX_WWW_ROOT}/conf/zabbix.conf.php" && \
-    ln -s "${ZABBIX_CONF_DIR}/web/maintenance.inc.php" "${ZABBIX_WWW_ROOT}/conf/maintenance.inc.php" && \
-    cat ${ZABBIX_WWW_ROOT}/include/locales.inc.php | grep display | grep true | awk '{$1=$1};1' | \
-        cut -d"'" -f 2 | sort | \
-        xargs -I '{}' bash -c 'echo "{}" && localedef -c -i {} -f UTF-8 {}.UTF-8 2>/dev/null' && \
-    chown --quiet -R zabbix:root ${ZABBIX_CONF_DIR}/ ${ZABBIX_WWW_ROOT}/include/defines.inc.php ${ZABBIX_WWW_ROOT}/modules/ && \
-    chgrp -R 0 ${ZABBIX_CONF_DIR}/ ${ZABBIX_WWW_ROOT}/include/defines.inc.php ${ZABBIX_WWW_ROOT}/modules/ && \
-    chmod -R g=u ${ZABBIX_CONF_DIR}/ ${ZABBIX_WWW_ROOT}/include/defines.inc.php ${ZABBIX_WWW_ROOT}/modules/ && \
-    chown --quiet -R zabbix:root ${ZABBIX_USER_HOME_DIR}/ /etc/nginx/ /etc/php-fpm.d/ /etc/php-fpm.conf /var/log/nginx/ && \
-    chgrp -R 0 ${ZABBIX_USER_HOME_DIR}/ /etc/nginx/ /etc/php-fpm.d/ /etc/php-fpm.conf /var/log/nginx/ && \
-    chmod -R g=u ${ZABBIX_USER_HOME_DIR}/ /etc/nginx/ /etc/php-fpm.d/ /etc/php-fpm.conf /var/log/nginx/ && \
-    chown --quiet -R zabbix:root /var/lib/php/session/ && \
-    chgrp -R 0 /var/lib/php/session/ && \
-    chmod -R g=u /var/lib/php/session/ && \
+    ln -sf "${ZABBIX_CONF_DIR}/web/zabbix.conf.php" "${ZABBIX_WWW_ROOT}/conf/zabbix.conf.php" && \
+    ln -sf "${ZABBIX_CONF_DIR}/web/maintenance.inc.php" "${ZABBIX_WWW_ROOT}/conf/maintenance.inc.php" && \
+    awk "/display/ && /true/ {gsub(/^[ \t]+|[ \t]+$/, \"\", \$0); print \$0}" "${ZABBIX_WWW_ROOT}/include/locales.inc.php" | \
+        cut -d"'" -f 2 | sort -u | \
+        xargs -r -I '{}' bash -c 'echo "{}" && localedef -c -i {} -f UTF-8 {}.UTF-8 2>/dev/null' && \
+    FIX_PERM_LIST="\
+        ${ZABBIX_CONF_DIR}/ \
+        ${ZABBIX_WWW_ROOT}/include/defines.inc.php \
+        ${ZABBIX_WWW_ROOT}/modules/ \
+        ${ZABBIX_USER_HOME_DIR}/ \
+        /etc/nginx/ \
+        /etc/php-fpm.d/ \
+        /etc/php-fpm.conf \
+        /var/log/nginx/ \
+        /var/lib/php/session/" && \
+    chown --quiet -R zabbix:0 ${FIX_PERM_LIST} && \
+    chmod -R g=u ${FIX_PERM_LIST} && \
     microdnf -y remove \
             findutils \
             glibc-locale-source \
@@ -161,7 +161,7 @@ EXPOSE 8080/tcp 8443/tcp
 
 WORKDIR ${ZABBIX_WWW_ROOT}
 
-COPY ["docker-entrypoint.sh", "/usr/bin/"]
+COPY docker-entrypoint.sh /usr/bin/
 
 USER 1997
 
