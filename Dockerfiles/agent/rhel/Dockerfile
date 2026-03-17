@@ -1,4 +1,4 @@
-# syntax=docker/dockerfile:1
+# syntax=docker/dockerfile:1.6
 ARG OS_BASE_IMAGE=registry.access.redhat.com/ubi9/ubi-minimal:9.7
 ARG MAJOR_VERSION=7.0
 ARG RELEASE=24
@@ -15,9 +15,10 @@ ARG ZBX_VERSION
 ARG ZBX_SOURCES=https://git.zabbix.com/scm/zbx/zabbix.git
 
 ENV TERM=xterm \
-    ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES} \
-    ZABBIX_USER_HOME_DIR="/var/lib/zabbix" \
-    ZABBIX_CONF_DIR="/etc/zabbix"
+    ZBX_VERSION=${ZBX_VERSION} \
+    ZBX_SOURCES=${ZBX_SOURCES} \
+    ZABBIX_USER_HOME_DIR=/var/lib/zabbix \
+    ZABBIX_CONF_DIR=/etc/zabbix
 
 LABEL description="Zabbix agent is deployed on a monitoring target to actively monitor local resources and applications" \
       maintainer="alexey.pustovalov@zabbix.com" \
@@ -47,10 +48,11 @@ LABEL description="Zabbix agent is deployed on a monitoring target to actively m
 
 STOPSIGNAL SIGTERM
 
-COPY ["licenses", "/licenses"]
-COPY --from=builder ["/tmp/zabbix-${ZBX_VERSION}-output/agent/sbin/zabbix_agentd", "/usr/sbin/zabbix_agentd"]
-COPY --from=builder ["/tmp/zabbix-${ZBX_VERSION}-output/general/bin/*", "/usr/bin/"]
-COPY --from=builder ["/tmp/zabbix-${ZBX_VERSION}-output/agent/conf/", "${ZABBIX_CONF_DIR}/"]
+COPY licenses /licenses/
+COPY --from=builder /tmp/zabbix-${ZBX_VERSION}-output/agent/sbin/zabbix_agentd /usr/sbin/
+COPY --from=builder /tmp/zabbix-${ZBX_VERSION}-output/general/bin/zabbix_get /usr/bin/
+COPY --from=builder /tmp/zabbix-${ZBX_VERSION}-output/general/bin/zabbix_sender /usr/bin/
+COPY --from=builder /tmp/zabbix-${ZBX_VERSION}-output/agent/conf/ ${ZABBIX_CONF_DIR}/
 
 RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
     --mount=type=tmpfs,target=/var/cache/yum/ \
@@ -68,10 +70,10 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
     rm -rf /tmp/epel-release-latest-9.noarch.rpm && \
     ARCH_SUFFIX="$(arch)"; \
     microdnf -y install \
-            --disablerepo "*" \
-            --enablerepo "ubi-9-baseos-rpms" \
-            --enablerepo "rhel-9-for-$ARCH_SUFFIX-baseos-rpms" \
-            --enablerepo "epel" \
+            --disablerepo="*" \
+            --enablerepo="ubi-9-baseos-rpms" \
+            --enablerepo="rhel-9-for-$ARCH_SUFFIX-baseos-rpms" \
+            --enablerepo="epel" \
             --setopt=install_weak_deps=0 \
             --setopt=keepcache=0 \
             --best \
@@ -79,18 +81,9 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
         ${INSTALL_PKGS} && \
     microdnf -y update \
             --disableplugin=subscription-manager \
-            --disablerepo "*" \
-            --enablerepo "ubi-9-baseos-rpms" \
+            --disablerepo="*" \
+            --enablerepo="ubi-9-baseos-rpms" \
             --setopt=install_weak_deps=0 \
-            --best \
-            --setopt=tsflags=nodocs \
-        tzdata && \
-    microdnf -y reinstall \
-            --disableplugin=subscription-manager \
-            --disablerepo "*" \
-            --enablerepo "ubi-9-baseos-rpms" \
-            --setopt=install_weak_deps=0 \
-            --setopt=keepcache=0 \
             --best \
             --setopt=tsflags=nodocs \
         tzdata && \
@@ -106,23 +99,25 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             --shell /sbin/nologin \
             --home-dir ${ZABBIX_USER_HOME_DIR} \
         zabbix && \
-    mkdir -p ${ZABBIX_CONF_DIR}/ && \
-    mkdir -p ${ZABBIX_CONF_DIR}/zabbix_agentd.d && \
-    mkdir -p ${ZABBIX_USER_HOME_DIR} && \
-    mkdir -p ${ZABBIX_USER_HOME_DIR}/enc && \
-    mkdir -p ${ZABBIX_USER_HOME_DIR}/enc_internal && \
-    mkdir -p ${ZABBIX_USER_HOME_DIR}/modules && \
-    mkdir -p ${ZABBIX_USER_HOME_DIR}/user_scripts && \
-    chown --quiet -R zabbix:root ${ZABBIX_CONF_DIR}/ ${ZABBIX_USER_HOME_DIR}/ && \
-    chgrp -R 0 ${ZABBIX_CONF_DIR}/ ${ZABBIX_USER_HOME_DIR}/ && \
-    chmod -R g=u ${ZABBIX_CONF_DIR}/ ${ZABBIX_USER_HOME_DIR}/ && \
+    mkdir -p ${ZABBIX_CONF_DIR} \
+        ${ZABBIX_CONF_DIR}/zabbix_agentd.d \
+        ${ZABBIX_USER_HOME_DIR} \
+        ${ZABBIX_USER_HOME_DIR}/enc \
+        ${ZABBIX_USER_HOME_DIR}/enc_internal \
+        ${ZABBIX_USER_HOME_DIR}/modules \
+        ${ZABBIX_USER_HOME_DIR}/user_scripts && \
+    FIX_PERM_LIST="\
+        ${ZABBIX_CONF_DIR}/ \
+        ${ZABBIX_USER_HOME_DIR}/" && \
+    chown --quiet -R zabbix:0 ${FIX_PERM_LIST} && \
+    chmod -R g=u ${FIX_PERM_LIST} && \
     /usr/sbin/zabbix_agentd -V
 
-EXPOSE 10050/TCP
+EXPOSE 10050/tcp
 
 WORKDIR ${ZABBIX_USER_HOME_DIR}
 
-COPY ["docker-entrypoint.sh", "/usr/bin/"]
+COPY docker-entrypoint.sh /usr/bin/
 
 ENTRYPOINT ["/usr/bin/docker-entrypoint.sh"]
 
