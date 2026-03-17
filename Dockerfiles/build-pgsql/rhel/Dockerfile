@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1.6
-ARG MAJOR_VERSION=6.0
-ARG RELEASE=45
-ARG ZBX_VERSION=${MAJOR_VERSION}.45
+ARG MAJOR_VERSION=7.0
+ARG RELEASE=24
+ARG ZBX_VERSION=${MAJOR_VERSION}.24
 ARG BUILD_BASE_IMAGE=zabbix-build-base:rhel-${ZBX_VERSION}
 
 FROM ${BUILD_BASE_IMAGE} AS builder
@@ -16,26 +16,27 @@ ARG ZBX_PLUGINS_VERSION=${GIT_BRANCH:-$ZBX_VERSION}
 ARG CFLAGS
 ARG LDFLAGS
 
-LABEL description="Zabbix build base for SQLite3 based images" \
+LABEL description="Zabbix build base for PostgreSQL based images" \
       maintainer="alexey.pustovalov@zabbix.com" \
-      name="zabbix/zabbix-build-sqlite3-60" \
+      name="zabbix/zabbix-build-pgsql-70" \
       release="${RELEASE}" \
-      summary="Zabbix build base (SQLite3)" \
+      summary="Zabbix build base (PostgreSQL)" \
       url="https://www.zabbix.com/" \
       vendor="Zabbix SIA" \
       version="${MAJOR_VERSION}" \
-      io.k8s.description="Zabbix build base for SQLite3 based images" \
-      io.k8s.display-name="Zabbix build base (SQLite3)" \
+      io.k8s.description="Zabbix build base for PostgreSQL based images" \
+      io.k8s.display-name="Zabbix build base (PostgreSQL)" \
       io.openshift.expose-services="" \
-      io.openshift.tags="zabbix,build,sqlite3" \
-      org.label-schema.description="Zabbix build base for SQLite3 based images" \
-      org.label-schema.name="zabbix-build-sqlite3-rhel" \
+      io.openshift.tags="zabbix,build,pgsql" \
+      org.label-schema.description="Zabbix build base for PostgreSQL based images" \
+      org.label-schema.license="AGPL v3.0" \
+      org.label-schema.name="zabbix-build-pgsql-rhel" \
       org.label-schema.url="https://zabbix.com/" \
       org.label-schema.vcs-ref="${VCS_REF}" \
       org.label-schema.vendor="Zabbix SIA"
 
 ENV ZBX_SOURCES_DIR=/tmp/zabbix-${ZBX_VERSION} ZBX_OUTPUT_DIR=/tmp/zabbix-${ZBX_VERSION}-output \
-    DB_TYPE=sqlite3 \
+    DB_TYPE=postgresql \
     CFLAGS=${CFLAGS:-"-O2 -fPIE -fstack-protector-strong -D_FORTIFY_SOURCE=2 -Wformat -Wformat-security -pipe"} \
     LDFLAGS=${LDFLAGS:-"-pie -Wl,-z,relro,-z,now,-z,defs -Wl,--as-needed"} \
     MONGODB_PLUGIN_SOURCES=https://git.zabbix.com/scm/ap/mongodb.git MONGODB_PLUGIN_VERSION=${ZBX_PLUGINS_VERSION} \
@@ -55,7 +56,12 @@ RUN --mount=from=sources,target=/tmp/src,z \
         ${ZBX_OUTPUT_DIR}/proxy/sbin \
         ${ZBX_OUTPUT_DIR}/proxy/conf \
         ${ZBX_OUTPUT_DIR}/proxy/database/${DB_TYPE} \
+        ${ZBX_OUTPUT_DIR}/server/sbin \
+        ${ZBX_OUTPUT_DIR}/server/conf \
+        ${ZBX_OUTPUT_DIR}/server/database/${DB_TYPE} \
         ${ZBX_OUTPUT_DIR}/java_gateway/sbin \
+        ${ZBX_OUTPUT_DIR}/web_service/sbin \
+        ${ZBX_OUTPUT_DIR}/web_service/conf \
         ${ZBX_OUTPUT_DIR}/general/sbin \
         ${ZBX_OUTPUT_DIR}/general/bin \
         ${ZBX_OUTPUT_DIR}/general/conf && \
@@ -99,6 +105,9 @@ RUN --mount=type=cache,target=/root/.cache/go-build \
         --enable-agent2 \
         --enable-java \
         --enable-proxy \
+        --enable-server \
+        --enable-webservice \
+        --with-ares \
         --with-ldap \
         --with-libcurl \
         --with-libmodbus \
@@ -117,21 +126,31 @@ RUN --mount=type=cache,target=/root/.cache/go-build \
     make -j"${jobs}" -s gettext && \
     cat "database/${DB_TYPE}/schema.sql" > "database/${DB_TYPE}/create.sql" && \
     gzip -c "database/${DB_TYPE}/create.sql" > "${ZBX_OUTPUT_DIR}/proxy/database/${DB_TYPE}/create.sql.gz" && \
+    cat "database/${DB_TYPE}/images.sql" >> "database/${DB_TYPE}/create.sql" && \
+    cat "database/${DB_TYPE}/data.sql" >> "database/${DB_TYPE}/create.sql" && \
+    gzip -c "database/${DB_TYPE}/create.sql" > "${ZBX_OUTPUT_DIR}/server/database/${DB_TYPE}/create.sql.gz" && \
+    rm -f "database/${DB_TYPE}/create.sql" && \
     strip src/zabbix_agent/zabbix_agentd && \
+    strip src/zabbix_server/zabbix_server && \
     strip src/zabbix_proxy/zabbix_proxy && \
     strip src/zabbix_get/zabbix_get && \
     strip src/zabbix_sender/zabbix_sender && \
     strip src/go/bin/zabbix_agent2 || true && \
+    strip src/go/bin/zabbix_web_service || true && \
     cp src/zabbix_agent/zabbix_agentd "${ZBX_OUTPUT_DIR}/agent/sbin/" && \
     cp conf/zabbix_agentd.conf "${ZBX_OUTPUT_DIR}/agent/conf/" && \
     cp -a conf/zabbix_agentd "${ZBX_OUTPUT_DIR}/agent/conf/" && \
     cp src/go/bin/zabbix_agent2 "${ZBX_OUTPUT_DIR}/agent2/sbin/" && \
     cp src/go/conf/zabbix_agent2.conf "${ZBX_OUTPUT_DIR}/agent2/conf/" && \
     cp -a src/go/conf/zabbix_agent2.d "${ZBX_OUTPUT_DIR}/agent2/conf/" && \
+    cp src/zabbix_server/zabbix_server "${ZBX_OUTPUT_DIR}/server/sbin/" && \
+    cp conf/zabbix_server.conf "${ZBX_OUTPUT_DIR}/server/conf/" && \
     cp src/zabbix_proxy/zabbix_proxy "${ZBX_OUTPUT_DIR}/proxy/sbin/" && \
     cp conf/zabbix_proxy.conf ${ZBX_OUTPUT_DIR}/proxy/conf/ && \
     cp -a src/zabbix_java/bin/. "${ZBX_OUTPUT_DIR}/java_gateway/sbin/bin/" && \
     cp -a src/zabbix_java/lib/. "${ZBX_OUTPUT_DIR}/java_gateway/sbin/lib/" && \
+    cp src/go/bin/zabbix_web_service "${ZBX_OUTPUT_DIR}/web_service/sbin/" && \
+    cp src/go/conf/zabbix_web_service.conf "${ZBX_OUTPUT_DIR}/web_service/conf/" && \
     cp src/zabbix_get/zabbix_get "${ZBX_OUTPUT_DIR}/general/bin/" && \
     cp src/zabbix_sender/zabbix_sender "${ZBX_OUTPUT_DIR}/general/bin/" && \
     make -s distclean

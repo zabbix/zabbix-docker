@@ -1,4 +1,4 @@
-# syntax=docker/dockerfile:1
+# syntax=docker/dockerfile:1.6
 ARG OS_BASE_IMAGE=registry.access.redhat.com/ubi8/ubi-minimal:8.10
 FROM ${OS_BASE_IMAGE}
 
@@ -8,7 +8,11 @@ ARG ZBX_VERSION=${MAJOR_VERSION}.45
 
 ENV TERM=xterm \
     ZBX_VERSION=${ZBX_VERSION} \
-    PATH=/usr/local/go/bin:$PATH
+    GOPATH=/root/go \
+    GOCACHE=/root/.cache/go-build \
+    GOMODCACHE=/root/go/pkg/mod \
+    GOTELEMETRY=off \
+    GOFLAGS=-buildvcs=false
 
 LABEL description="Prepared environment to build Zabbix components" \
       maintainer="alexey.pustovalov@zabbix.com" \
@@ -28,11 +32,10 @@ LABEL description="Prepared environment to build Zabbix components" \
       org.label-schema.vcs-ref="${VCS_REF}" \
       org.label-schema.vendor="Zabbix SIA"
 
-COPY ["licenses", "/licenses"]
+COPY licenses /licenses/
 
 RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
     --mount=type=tmpfs,target=/var/cache/yum/ \
-#    --mount=type=bind,target=/run/secrets/,src=secrets/ \
     set -eux && \
     INSTALL_PKGS="autoconf \
             automake \
@@ -47,7 +50,6 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             libmodbus-devel \
             libxml2-devel \
             openssl-devel \
-            openldap-devel \
             make \
             mysql-devel \
             net-snmp-devel \
@@ -63,21 +65,22 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
     rpm -ivh /tmp/epel-release-latest-8.noarch.rpm && \
     rm -rf /tmp/epel-release-latest-8.noarch.rpm && \
     microdnf -y module enable \
-        --disablerepo "*" \
-        --enablerepo "rhel-8-for-x86_64-appstream-rpms" \
-        --setopt=install_weak_deps=0 \
-        --setopt=keepcache=0 \
+            --disablerepo="*" \
+            --enablerepo="rhel-8-for-x86_64-appstream-rpms" \
+            --setopt=install_weak_deps=0 \
+            --setopt=keepcache=0 \
         mysql && \
     microdnf -y install \
-            --disablerepo "*" \
-            --enablerepo "ubi-8-baseos-rpms" \
-            --enablerepo "ubi-8-appstream-rpms" \
-            --enablerepo "rhel-8-for-x86_64-baseos-rpms" \
-            --enablerepo "rhel-8-for-x86_64-appstream-rpms" \
-            --enablerepo "codeready-builder-for-rhel-8-x86_64-rpms" \
-            --enablerepo "epel" \
+            --disablerepo="*" \
+            --enablerepo="ubi-8-baseos-rpms" \
+            --enablerepo="ubi-8-appstream-rpms" \
+            --enablerepo="rhel-8-for-x86_64-baseos-rpms" \
+            --enablerepo="rhel-8-for-x86_64-appstream-rpms" \
+            --enablerepo="codeready-builder-for-rhel-8-x86_64-rpms" \
+            --enablerepo="epel" \
             --setopt=install_weak_deps=0 \
             --setopt=keepcache=0 \
             --best \
             --setopt=tsflags=nodocs \
-        ${INSTALL_PKGS}
+        ${INSTALL_PKGS} && \
+    go telemetry off

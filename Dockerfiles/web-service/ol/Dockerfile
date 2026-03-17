@@ -66,8 +66,11 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
         ${ZABBIX_USER_HOME_DIR} \
         ${ZABBIX_USER_HOME_DIR}/enc \
         ${ZABBIX_USER_HOME_DIR}/enc_internal && \
-    chown --quiet -R zabbix:0 ${ZABBIX_USER_HOME_DIR}/ && \
-    chmod -R g=u ${ZABBIX_USER_HOME_DIR}/ && \
+    FIX_PERM_LIST="\
+        ${ZABBIX_CONF_DIR}/ \
+        ${ZABBIX_USER_HOME_DIR}/" && \
+    chown --quiet -R zabbix:0 ${FIX_PERM_LIST} && \
+    chmod -R g=u ${FIX_PERM_LIST} && \
     /usr/sbin/zabbix_web_service -V
 
 EXPOSE 10053/tcp
