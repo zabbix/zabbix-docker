@@ -52,7 +52,6 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             krb5-workstation \
             c-ares \
             iputils \
-            traceroute \
             libevent \
             libssh \
             libxml2 \

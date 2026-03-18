@@ -51,7 +51,6 @@ RUN --mount=type=cache,target=/var/cache/apt/,sharing=locked \
             tzdata \
             ca-certificates \
             iputils-ping \
-            traceroute \
             fping \
             openssl \
             libcares2 \
