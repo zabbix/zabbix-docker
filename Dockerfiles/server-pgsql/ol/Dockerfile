@@ -53,7 +53,6 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             krb5-workstation \
             iputils \
             tzdata \
-            traceroute \
             libevent \
             libssh \
             libxml2 \

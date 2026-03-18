@@ -53,7 +53,6 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             file-libs \
             tzdata \
             iputils \
-            traceroute \
             libcurl \
             libevent \
             libxml2 \

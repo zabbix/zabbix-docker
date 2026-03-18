@@ -51,7 +51,6 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             nmap \
             krb5-workstation \
             iputils \
-            traceroute \
             libevent \
             libssh \
             libpsl \
