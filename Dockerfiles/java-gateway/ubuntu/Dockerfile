@@ -68,7 +68,7 @@ RUN --mount=type=cache,target=/var/cache/apt/,sharing=locked \
     chown --quiet -R zabbix:0 ${FIX_PERM_LIST} && \
     chmod -R g=u ${FIX_PERM_LIST}
 
-EXPOSE 10052/TCP
+EXPOSE 10052/tcp
 
 WORKDIR ${ZABBIX_USER_HOME_DIR}
 

@@ -121,7 +121,7 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
     chmod -R g=u ${FIX_PERM_LIST} && \
     /usr/sbin/zabbix_proxy -V
 
-EXPOSE 10051/TCP
+EXPOSE 10051/tcp
 
 WORKDIR ${ZABBIX_USER_HOME_DIR}
 
