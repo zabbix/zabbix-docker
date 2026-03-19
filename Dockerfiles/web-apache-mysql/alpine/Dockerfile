@@ -97,6 +97,7 @@ RUN set -eux && \
     mkdir -p ${ZABBIX_CONF_DIR} \
         ${ZABBIX_CONF_DIR}/web \
         ${ZABBIX_CONF_DIR}/web/certs \
+        ${ZABBIX_USER_HOME_DIR}/ \
         /var/lib/php/session && \
     rm -rf /etc/apache2/conf.d/default.conf \
         /etc/apache2/conf.d/ssl.conf \

@@ -76,7 +76,7 @@ RUN --mount=type=cache,target=/var/cache/apt/,sharing=locked \
         ${ZABBIX_USER_HOME_DIR}/modules \
         ${ZABBIX_USER_HOME_DIR}/user_scripts && \
     FIX_PERM_LIST="\
-        ${ZABBIX_CONF_DIR}/
+        ${ZABBIX_CONF_DIR}/ \
         ${ZABBIX_USER_HOME_DIR}/" && \
     chown --quiet -R zabbix:0 ${FIX_PERM_LIST} && \
     chmod -R g=u ${FIX_PERM_LIST} && \

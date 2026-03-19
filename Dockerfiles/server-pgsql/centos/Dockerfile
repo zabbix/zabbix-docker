@@ -62,7 +62,7 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             openssl \
             openssl-libs \
             pcre2 \
-            postgresql18 \
+            postgresql \
             libpq \
             shadow-utils \
             zlib \
@@ -81,7 +81,7 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             --enablerepo="appstream" \
             --setopt=install_weak_deps=0 \
             --setopt=keepcache=0 \
-        postgresql:16 && \
+        postgresql:18 && \
     microdnf -y install \
             --disablerepo="*" \
             --enablerepo="baseos" \
@@ -99,7 +99,10 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             --best \
             --setopt=tsflags=nodocs \
         tzdata && \
-    microdnf swap -y libcurl-minimal libcurl && \
+    microdnf download libcurl && \
+    rpm -Uvh --nodeps --replacefiles "*curl*$( uname -i ).rpm" && \
+    microdnf remove -y libcurl-minimal && \
+    rm -rf "*curl*$( uname -i ).rpm" && \
     groupadd \
             --system \
             --gid 1995 \

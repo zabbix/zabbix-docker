@@ -100,6 +100,7 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
     mkdir -p ${ZABBIX_CONF_DIR} \
         ${ZABBIX_CONF_DIR}/web \
         ${ZABBIX_CONF_DIR}/web/certs \
+        ${ZABBIX_USER_HOME_DIR}/ \
         /var/lib/php/session && \
     rm -rf /etc/nginx/conf.d/*.conf \
         /etc/php-fpm.d/www.conf && \
