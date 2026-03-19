@@ -138,10 +138,10 @@ RUN --mount=type=cache,target=/root/.cache/go-build \
 
 RUN set -eux && \
     cd "${ZBX_SOURCES_DIR}" && \
-    curl --retry 5 --retry-all-errors --retry-delay 2 --tlsv1.2 -sSf -L \
+    curl --retry 5 --retry-delay 2 --tlsv1.2 -sSf -L \
         "https://raw.githubusercontent.com/notofonts/noto-cjk/main/Sans/OTF/Japanese/NotoSansCJKjp-Regular.otf" \
         -o ui/assets/fonts/NotoSansCJKjp-Regular.otf && \
-    curl --retry 5 --retry-all-errors --retry-delay 2 --tlsv1.2 -sSf -L \
+    curl --retry 5 --retry-delay 2 --tlsv1.2 -sSf -L \
         "https://raw.githubusercontent.com/notofonts/noto-cjk/main/Sans/LICENSE" \
         -o ui/assets/fonts/OFL.txt && \
     sed -i -r 's/(define\(.*_FONT_NAME.*)DejaVuSans/\1NotoSansCJKjp-Regular/' ui/include/defines.inc.php && \
