@@ -59,6 +59,7 @@ RUN --mount=type=cache,target=/var/cache/apt/,sharing=locked \
             ca-certificates \
             fping \
             openssl \
+            libc6 \
             libcares2 \
             libcurl4t64 \
             libevent-2.1 \
