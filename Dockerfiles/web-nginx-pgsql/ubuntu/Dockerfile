@@ -90,7 +90,6 @@ RUN --mount=type=cache,target=/var/cache/apt/,sharing=locked \
         ${INSTALL_PKGS} && \
     DEBIAN_FRONTEND=noninteractive apt-get -y \
             purge \
-              curl \
               gnupg && \
     apt-get -y autoremove && \
     find /usr/lib -type f -name '*.pyc' -delete && \
