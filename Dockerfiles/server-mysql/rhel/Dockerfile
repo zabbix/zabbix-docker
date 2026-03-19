@@ -92,11 +92,11 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
     ARCH_SUFFIX="$(arch)"; \
     microdnf -y install \
             --disablerepo="*" \
-            --enablerepo="ubi-10-baseos-rpms" \
-            --enablerepo="ubi-10-appstream-rpms" \
-            --enablerepo="rhel-10-for-$ARCH_SUFFIX-baseos-rpms" \
-            --enablerepo="rhel-10-for-$ARCH_SUFFIX-appstream-rpms" \
-            --enablerepo="codeready-builder-for-rhel-10-$ARCH_SUFFIX-rpms" \
+            --enablerepo="ubi-9-baseos-rpms" \
+            --enablerepo="ubi-9-appstream-rpms" \
+            --enablerepo="rhel-9-for-$ARCH_SUFFIX-baseos-rpms" \
+            --enablerepo="rhel-9-for-$ARCH_SUFFIX-appstream-rpms" \
+            --enablerepo="codeready-builder-for-rhel-9-$ARCH_SUFFIX-rpms" \
             --enablerepo="epel" \
             --setopt=install_weak_deps=0 \
             --setopt=keepcache=0 \
