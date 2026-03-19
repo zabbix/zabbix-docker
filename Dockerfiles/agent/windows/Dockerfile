@@ -66,6 +66,6 @@ RUN Set-Location -Path $env:SystemDrive\.; `
 
 USER zabbix
 
-EXPOSE 10050/TCP
+EXPOSE 10050/tcp
 
 CMD C:\zabbix\docker-entrypoint.ps1 C:\zabbix\sbin\zabbix_agentd.exe -c C:\zabbix\conf\zabbix_agentd.conf -f
