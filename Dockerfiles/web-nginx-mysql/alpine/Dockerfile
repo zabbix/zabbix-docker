@@ -90,6 +90,7 @@ RUN set -eux && \
     mkdir -p ${ZABBIX_CONF_DIR} \
         ${ZABBIX_CONF_DIR}/web \
         ${ZABBIX_CONF_DIR}/web/certs \
+        ${ZABBIX_USER_HOME_DIR}/ \
         /var/lib/php/session && \
     rm -rf /etc/php83/php-fpm.d/www.conf \
         /etc/nginx/http.d/*.conf && \
@@ -101,10 +102,10 @@ RUN set -eux && \
         ${ZABBIX_CONF_DIR}/ \
         ${ZABBIX_WWW_ROOT}/include/defines.inc.php \
         ${ZABBIX_WWW_ROOT}/modules/ \
+        ${ZABBIX_USER_HOME_DIR}/ \
         /etc/nginx/ \
         /etc/php83/php-fpm.d/ \
         /etc/php83/php-fpm.conf \
-        ${ZABBIX_USER_HOME_DIR}/ \
         /var/lib/php/session/ \
         /var/lib/nginx/" && \
     chown --quiet -R zabbix:0 ${FIX_PERM_LIST} && \

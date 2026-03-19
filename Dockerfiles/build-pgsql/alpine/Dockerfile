@@ -81,7 +81,6 @@ RUN --mount=from=sources,target=/tmp/src,ro \
 
 RUN --mount=type=cache,target=/root/.cache/go-build \
     --mount=type=cache,target=/root/go/pkg/mod \
-    --mount=from=config_templates,target=/tmp/conf,ro \
     set -eux && \
     cd "${ZBX_SOURCES_DIR}" && \
     ./bootstrap.sh && \

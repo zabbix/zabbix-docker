@@ -112,6 +112,7 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
     mkdir -p ${ZABBIX_CONF_DIR} \
         ${ZABBIX_CONF_DIR}/web \
         ${ZABBIX_CONF_DIR}/web/certs \
+        ${ZABBIX_USER_HOME_DIR}/ \
         /var/lib/php/session && \
     rm -rf /etc/nginx/conf.d/*.conf \
         /etc/php-fpm.d/www.conf && \
@@ -132,7 +133,7 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
         /etc/php-fpm.conf \
         /var/log/nginx/ \
         /var/lib/php/session/" && \
-    chown --quiet -R zabbix:0 ${FIX_PERM_LIST} && \
+    chown -R zabbix:0 ${FIX_PERM_LIST} && \
     chmod -R g=u ${FIX_PERM_LIST} && \
     microdnf -y remove \
             findutils \

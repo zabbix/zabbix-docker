@@ -62,7 +62,7 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             php-pgsql \
             php-json \
             php-xml \
-            postgresql18 \
+            postgresql \
             findutils \
             glibc-locale-source \
             shadow-utils \
@@ -81,7 +81,7 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             --setopt=install_weak_deps=0 \
             --setopt=keepcache=0 \
         php:8.3 \
-        postgresql:16 && \
+        postgresql:18 && \
     microdnf -y install \
             --disablerepo="*" \
             --enablerepo="baseos" \
@@ -114,6 +114,7 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
     mkdir -p ${ZABBIX_CONF_DIR} \
         ${ZABBIX_CONF_DIR}/web \
         ${ZABBIX_CONF_DIR}/web/certs \
+        ${ZABBIX_USER_HOME_DIR}/ \
         /var/lib/php/session && \
     rm -rf /etc/httpd/conf.d/default.conf \
         /etc/httpd/conf.d/ssl.conf \

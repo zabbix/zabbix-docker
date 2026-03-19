@@ -62,7 +62,7 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             php-mbstring \
             php-pgsql \
             php-xml \
-            postgresql18 \
+            postgresql \
             shadow-utils \
             supervisor" && \
     microdnf -y install \
@@ -79,7 +79,7 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             --setopt=install_weak_deps=0 \
             --setopt=keepcache=0 \
         php:8.3 \
-        postgresql:16 \
+        postgresql:18 \
         nginx:1.26 && \
     microdnf -y install \
             --disablerepo="*" \
@@ -113,6 +113,7 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
     mkdir -p ${ZABBIX_CONF_DIR} \
         ${ZABBIX_CONF_DIR}/web \
         ${ZABBIX_CONF_DIR}/web/certs \
+        ${ZABBIX_USER_HOME_DIR}/ \
         /var/lib/php/session && \
     rm -rf /etc/nginx/conf.d/*.conf \
         /etc/php-fpm.d/www.conf && \
