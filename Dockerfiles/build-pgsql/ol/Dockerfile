@@ -180,7 +180,7 @@ RUN --mount=type=cache,target=/root/.cache/go-build \
         strip "$binary" || true; \
         cp "$binary" "${ZBX_OUTPUT_DIR}/agent2/sbin/zabbix-agent2-plugin/${outname}"; \
         cp "$conf" "${ZBX_OUTPUT_DIR}/agent2/conf/zabbix_agent2.d/plugins.d/"; \
-        make clean; \
+        make clean || true; \
     }; \
     build_plugin mongodb "${MONGODB_PLUGIN_SOURCES}" "${MONGODB_PLUGIN_VERSION}" \
         zabbix-agent2-plugin-mongodb mongodb.conf mongodb && \
