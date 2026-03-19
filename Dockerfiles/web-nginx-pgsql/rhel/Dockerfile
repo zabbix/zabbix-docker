@@ -167,8 +167,7 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
     chmod -R g=u ${FIX_PERM_LIST} && \
     microdnf -y remove \
             findutils \
-            glibc-locale-source \
-            gzip
+            glibc-locale-source
 
 HEALTHCHECK --interval=1m30s --timeout=3s --retries=3 --start-period=40s --start-interval=5s \
     CMD curl -f http://localhost:8080/ping || exit 1
