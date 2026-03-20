@@ -26,7 +26,7 @@ LABEL org.opencontainers.image.authors="Alexey Pustovalov <alexey.pustovalov@zab
 RUN set -eux && \
     ARCH_SUFFIX="$(apk --print-arch)"; \
     case "$ARCH_SUFFIX" in \
-        x86) openjdk_packages='openjdk8-jre-base' ;; \
+        x86) openjdk_packages='openjdk8 openjdk8-jre-base' ;; \
         armv7) openjdk_packages='openjdk8 openjdk8-jre-base' ;; \
         riscv64) openjdk_packages='openjdk21 openjdk21-jre-headless' ;; \
         *)       openjdk_packages='openjdk17 openjdk17-jre-headless' ;; \
