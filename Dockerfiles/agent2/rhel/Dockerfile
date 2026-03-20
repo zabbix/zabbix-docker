@@ -53,6 +53,7 @@ STOPSIGNAL SIGTERM
 
 COPY licenses /licenses/
 COPY --from=builder /tmp/zabbix-${ZBX_VERSION}-output/agent2/sbin/zabbix_agent2 /usr/sbin/
+COPY --from=builder /tmp/zabbix-${ZBX_VERSION}-output/agent2/sbin/zabbix-agent2-plugin/ /usr/sbin/zabbix-agent2-plugin/
 COPY --from=builder /tmp/zabbix-${ZBX_VERSION}-output/general/bin/zabbix_get /usr/bin/
 COPY --from=builder /tmp/zabbix-${ZBX_VERSION}-output/general/bin/zabbix_sender /usr/bin/
 COPY --from=builder /tmp/zabbix-${ZBX_VERSION}-output/agent2/conf/ ${ZABBIX_CONF_DIR}/
