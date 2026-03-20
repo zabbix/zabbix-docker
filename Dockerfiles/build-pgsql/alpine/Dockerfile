@@ -49,6 +49,8 @@ RUN --mount=from=sources,target=/tmp/src,ro \
         ${ZBX_OUTPUT_DIR}/server/sbin \
         ${ZBX_OUTPUT_DIR}/server/conf \
         ${ZBX_OUTPUT_DIR}/server/database/${DB_TYPE} \
+        ${ZBX_OUTPUT_DIR}/server/database/${DB_TYPE}/option-patches/with-compression/ \
+        ${ZBX_OUTPUT_DIR}/server/database/${DB_TYPE}/option-patches/without-compression/ \
         ${ZBX_OUTPUT_DIR}/java_gateway/sbin \
         ${ZBX_OUTPUT_DIR}/web_service/sbin \
         ${ZBX_OUTPUT_DIR}/web_service/conf \
@@ -121,6 +123,9 @@ RUN --mount=type=cache,target=/root/.cache/go-build \
     cat "database/${DB_TYPE}/data.sql" >> "database/${DB_TYPE}/create.sql" && \
     gzip -c "database/${DB_TYPE}/create.sql" > "${ZBX_OUTPUT_DIR}/server/database/${DB_TYPE}/create.sql.gz" && \
     rm -f "database/${DB_TYPE}/create.sql" && \
+    cp "database/${DB_TYPE}/timescaledb/schema.sql" "${ZBX_OUTPUT_DIR}/server/database/${DB_TYPE}/timescaledb.sql" && \
+    cp -R "${ZBX_SOURCES_DIR}/database/${DB_TYPE}/timescaledb/option-patches/with-compression/*.sql ${ZBX_OUTPUT_DIR}/server/database/${DB_TYPE}/option-patches/with-compression/" && \
+    cp -R "${ZBX_SOURCES_DIR}/database/${DB_TYPE}/timescaledb/option-patches/without-compression/*.sql" "${ZBX_OUTPUT_DIR}/server/database/${DB_TYPE}/option-patches/without-compression/" && \
     strip src/zabbix_agent/zabbix_agentd && \
     strip src/zabbix_server/zabbix_server && \
     strip src/zabbix_proxy/zabbix_proxy && \
