@@ -4,45 +4,73 @@ import json
 import markdown
 import os
 
-repository_description = None
 
-if ("DESCRIPTION_FILE" not in os.environ or len(os.environ["DESCRIPTION_FILE"]) == 0):
-    print("::error::Description file environment variable is not specified")
-    sys.exit(1)
-if ("PYXIS_API_TOKEN" not in os.environ or len(os.environ["PYXIS_API_TOKEN"]) == 0):
-    print("::error::API token environment variable is not specified")
-    sys.exit(1)
-if ("API_URL" not in os.environ or len(os.environ["API_URL"]) == 0):
-    print("::error::API URL environment variable is not specified")
-    sys.exit(1)
-if ("PROJECT_ID" not in os.environ or len(os.environ["PROJECT_ID"]) == 0):
-    print("RedHat project ID environment variable is not specified")
-    sys.exit(1)
+def load_description(description_file):
+    """Load repository description from .html or .md file.
 
-if (os.path.isfile(os.environ["DESCRIPTION_FILE"] + '.html')):
-    file = open(os.environ["DESCRIPTION_FILE"] + '.html', mode='r')
-    repository_description = file.read()
-    file.close()
-elif (os.path.isfile(os.environ["DESCRIPTION_FILE"] + '.md')):
-    file = open(os.environ["DESCRIPTION_FILE"] + '.md', mode='r')
-    markdown_data = file.read()
-    file.close()
-    repository_description=markdown.markdown(markdown_data)
+    Returns the description string, or None if no suitable file is found.
+    """
+    if os.path.isfile(description_file + '.html'):
+        with open(description_file + '.html', mode='r') as f:
+            return f.read()
+    if os.path.isfile(description_file + '.md'):
+        with open(description_file + '.md', mode='r') as f:
+            markdown_data = f.read()
+        return markdown.markdown(markdown_data)
+    return None
 
-if (repository_description is None or len(repository_description) == 0):
-    print("::error::No description file found")
-    sys.exit(1)
 
-data = dict()
-data['container'] = dict()
-data['container']['repository_description'] = repository_description[:32768]
+def validate_env():
+    """Validate required environment variables.  Exits with code 1 on failure."""
+    if not os.environ.get("DESCRIPTION_FILE"):
+        print("::error::Description file environment variable is not specified")
+        sys.exit(1)
+    if not os.environ.get("PYXIS_API_TOKEN"):
+        print("::error::API token environment variable is not specified")
+        sys.exit(1)
+    if not os.environ.get("API_URL"):
+        print("::error::API URL environment variable is not specified")
+        sys.exit(1)
+    if not os.environ.get("PROJECT_ID"):
+        print("RedHat project ID environment variable is not specified")
+        sys.exit(1)
 
-headers = {'accept' : 'application/json', 'X-API-KEY' : os.environ["PYXIS_API_TOKEN"], 'Content-Type' : 'application/json'}
-result = requests.patch(os.environ["API_URL"] + os.environ["PROJECT_ID"],
-                        headers = headers,
-                        data = json.dumps(data))
 
-print("::group::Result")
-print("Response code: " + str(result.status_code))
-print("Last update date: " + json.loads(result.content)['last_update_date'])
-print("::endgroup::")
+def update_registry_description(api_url, project_id, api_token, description):
+    """PATCH the Red Hat container registry with the given description.
+
+    Returns the requests.Response object.
+    """
+    data = {'container': {'repository_description': description[:32768]}}
+    headers = {
+        'accept': 'application/json',
+        'X-API-KEY': api_token,
+        'Content-Type': 'application/json',
+    }
+    return requests.patch(api_url + project_id, headers=headers, data=json.dumps(data))
+
+
+def main():
+    validate_env()
+
+    repository_description = load_description(os.environ["DESCRIPTION_FILE"])
+
+    if not repository_description:
+        print("::error::No description file found")
+        sys.exit(1)
+
+    result = update_registry_description(
+        os.environ["API_URL"],
+        os.environ["PROJECT_ID"],
+        os.environ["PYXIS_API_TOKEN"],
+        repository_description,
+    )
+
+    print("::group::Result")
+    print("Response code: " + str(result.status_code))
+    print("Last update date: " + json.loads(result.content)['last_update_date'])
+    print("::endgroup::")
+
+
+if __name__ == '__main__':
+    main()
