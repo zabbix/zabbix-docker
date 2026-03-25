@@ -8,3 +8,5 @@ Dockerfiles/*/rhel/secrets/*
 sources/*
 .*.orig
 .*.rej
+**/__pycache__/
+**/*.pyc
