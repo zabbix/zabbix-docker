@@ -1,2 +1,2 @@
 markdown==3.7
-requests==2.32.3
+requests==2.32.4
