@@ -74,8 +74,11 @@ RUN --mount=type=cache,target=/var/cache/apt/,sharing=locked \
         ${ZABBIX_USER_HOME_DIR} \
         ${ZABBIX_USER_HOME_DIR}/enc \
         ${ZABBIX_USER_HOME_DIR}/enc_internal && \
-    chown --quiet -R zabbix:0 ${ZABBIX_USER_HOME_DIR}/ && \
-    chmod -R g=u ${ZABBIX_USER_HOME_DIR}/ && \
+    FIX_PERM_LIST="\
+        ${ZABBIX_CONF_DIR}/ \
+        ${ZABBIX_USER_HOME_DIR}/" && \
+    chown --quiet -R zabbix:0 ${FIX_PERM_LIST} && \
+    chmod -R g=u ${FIX_PERM_LIST} && \
     DEBIAN_FRONTEND=noninteractive apt-get -y \
             purge \
         ${INSTALL_TEMP_PKGS} && \
