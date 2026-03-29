@@ -1,4 +1,4 @@
-# syntax=docker/dockerfile:1
+# syntax=docker/dockerfile:1.6
 # escape=`
 ARG OS_BASE_IMAGE=mcr.microsoft.com/windows/servercore:ltsc2022
 
@@ -71,7 +71,7 @@ RUN Set-Location -Path $env:SystemDrive\.; `
     Expand-Archive `
         -Path $env:BUILD_DEPS\pwsh.zip `
         -DestinationPath $env:BUILD_DEPS\pwsh\.; `
-	Get-ChildItem -Path $env:BUILD_DEPS\pwsh -Directory | Where-Object { `
+    Get-ChildItem -Path $env:BUILD_DEPS\pwsh -Directory | Where-Object { `
         $_.Name -match '^(cs|de|es|fr|it|ja|ko|pl|pt-BR|ru|tr|zh-Hans|zh-Hant)$' `
     } | Remove-Item -Recurse -Force; `
     Get-ChildItem -Path $env:BUILD_DEPS\pwsh -Recurse -Include '*.xml' | Where-Object { $_.FullName -notmatch '\\en-US\\' } | Remove-Item -Force; `
@@ -81,7 +81,7 @@ RUN Set-Location -Path $env:SystemDrive\.; `
     Expand-Archive `
         -Path $env:BUILD_DEPS\nasm.zip `
         -DestinationPath $env:BUILD_DEPS\.; `
-	Rename-Item -Path $env:BUILD_DEPS\nasm-$env:NASM_VERSION -NewName $env:BUILD_DEPS\NASM; `
+    Rename-Item -Path $env:BUILD_DEPS\nasm-$env:NASM_VERSION -NewName $env:BUILD_DEPS\NASM; `
     `
     Write-Host 'Installing GIT...'; `
     Expand-Archive `
@@ -175,10 +175,10 @@ RUN Set-Location -Path $env:SystemDrive\.; `
     `
     Write-Host 'Verifying install ("nasm -v") ...'; `
     nasm -v; `
-	`
+    `
     Write-Host 'Verifying install ("perl -v") ...'; `
     perl -v; `
-	`
+    `
     Write-Host ('{0} - Visual Studio components installing...' -f $(Get-Date -format 'u')); `
     cmd /C start /w $env:BUILD_DEPS\vs_buildtools.exe `
         --quiet `
@@ -286,7 +286,7 @@ RUN Import-Module (Get-ChildItem $env:VS_PATH -Recurse -File -Filter Microsoft.V
     cscript //nologo .\configure.js; `
     Set-Location -Path $env:BUILD_SRC\libmodbus; `
     cmake -S $env:BUILD_SRC\libmodbus -B $env:BUILD_SRC\libmodbus\build `
-        -G """"Visual Studio 17 2022""" `
+        -G """Visual Studio 17 2022""" `
         -A x64 `
         -DBUILD_SHARED_LIBS=OFF `
         -DCMAKE_MSVC_RUNTIME_LIBRARY="""MultiThreaded$<$<CONFIG:Debug>:Debug>""" `
