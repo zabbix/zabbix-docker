@@ -1,4 +1,4 @@
-# syntax=docker/dockerfile:1
+# syntax=docker/dockerfile:1.6
 # escape=`
 ARG OS_BASE_IMAGE=mcr.microsoft.com/windows/nanoserver:ltsc2022
 
