@@ -69,6 +69,7 @@ services:
   init: true
   attach: true
   read_only: true
+  restart: no
   volumes:
    - /etc/localtime:/etc/localtime:ro
    - ${DATA_DIRECTORY}/var/lib/zabbix/dbscripts:/var/lib/zabbix/dbscripts:ro
@@ -97,6 +98,7 @@ services:
   init: true
   attach: true
   read_only: true
+  restart: no
   volumes:
    - ${DATA_DIRECTORY}/var/lib/zabbix/dbscripts:/var/lib/zabbix/dbscripts:ro
 #   - ${ENV_VARS_DIRECTORY}/.ZBX_DB_CA_FILE:/run/secrets/root-ca.pem:ro
@@ -238,9 +240,11 @@ services:
 
  proxy-mysql-db-init:
   init: true
+  attach: true
+  read_only: true
+  restart: no
   profiles:
    - all
-  attach: true
   volumes:
    - /etc/localtime:/etc/localtime:ro
    - ${DATA_DIRECTORY}/var/lib/zabbix/enc:/var/lib/zabbix/enc:ro

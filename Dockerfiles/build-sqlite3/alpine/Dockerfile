@@ -75,6 +75,8 @@ RUN --mount=from=sources,target=/tmp/src,ro \
     sed -i "s/{ZABBIX_REVISION}/$zabbix_revision/g" src/go/pkg/version/version.go && \
     sed -i "s/{ZABBIX_REVISION}/$zabbix_revision/g" src/zabbix_java/src/com/zabbix/gateway/GeneralInformation.java
 
+WORKDIR ${ZBX_SOURCES_DIR}
+
 RUN --mount=type=cache,target=/root/.cache/go-build \
     --mount=type=cache,target=/root/go/pkg/mod \
     --mount=from=config_templates,target=/tmp/conf,ro \

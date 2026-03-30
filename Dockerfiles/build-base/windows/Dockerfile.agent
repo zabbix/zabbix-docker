@@ -207,7 +207,7 @@ RUN Set-Location -Path $env:SystemDrive\.; `
     Write-Host 'Build environment is ready...';
 
 RUN Import-Module (Get-ChildItem $env:VS_PATH -Recurse -File -Filter Microsoft.VisualStudio.DevShell.dll).FullName; `
-    Enter-VsDevShell -VsInstallPath $env:VS_PATH -SkipAutomaticLocation -DevCmdArguments """-arch=$env:BUILD_ARCH"""; `
+    Enter-VsDevShell -VsInstallPath $env:VS_PATH -SkipAutomaticLocation -DevCmdArguments """-arch=x64"""; `
     `
     Write-Host 'Building Zlib library...'; `
     Set-Location -Path $env:SystemDrive\.; `
