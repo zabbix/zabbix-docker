@@ -1,0 +1,56 @@
+name: Docker metadata
+description: Generate Docker tags and labels consistently
+
+inputs:
+  image:
+    required: true
+    description: 'Full image name, e.g. docker.io/org/prefix-image'
+  os:
+    required: true
+    description: 'OS suffix/prefix for tags'
+  current_branch:
+    required: true
+    description: 'Current branch name'
+  is_default_branch:
+    required: true
+    description: '"true" or "false"'
+  trunk_only_event:
+    required: true
+    description: '"true" or false"'
+  event_name:
+    required: true
+    description: 'GitHub event name'
+
+outputs:
+  tags:
+    description: Generated Docker tags
+    value: ${{ steps.meta.outputs.tags }}
+  labels:
+    description: Generated Docker labels
+    value: ${{ steps.meta.outputs.labels }}
+  json:
+    description: Full metadata-action json output
+    value: ${{ steps.meta.outputs.json }}
+  version:
+    description: Generated version
+    value: ${{ steps.meta.outputs.version }}
+
+runs:
+  using: composite
+  steps:
+    - name: Generate tags
+      id: meta
+      uses: docker/metadata-action@030e881283bb7a6894de51c315a6bfe6a94e05cf # v6.0.0
+      with:
+        images: ${{ inputs.image }}
+        context: ${{ inputs.trunk_only_event == 'true' && 'git' || '' }}
+        tags: |
+          type=semver,enable=${{ inputs.current_branch != 'trunk' }},pattern={{version}},prefix=${{ inputs.os }}-
+          type=semver,enable=${{ inputs.current_branch != 'trunk' }},pattern={{version}},suffix=-${{ inputs.os }}
+          type=ref,enable=${{ inputs.current_branch != 'trunk' && inputs.event_name != 'workflow_dispatch' }},event=branch,prefix=${{ inputs.os }}-,suffix=-latest
+          type=ref,enable=${{ inputs.current_branch != 'trunk' && inputs.event_name != 'workflow_dispatch' }},event=branch,suffix=-${{ inputs.os }}-latest
+          type=raw,enable=${{ inputs.current_branch != 'trunk' && inputs.is_default_branch == 'true' }},value=${{ inputs.os }}-latest
+          type=ref,enable=${{ inputs.current_branch == 'trunk' }},event=branch,prefix=${{ inputs.os }}-
+          type=ref,enable=${{ inputs.current_branch == 'trunk' || inputs.event_name == 'workflow_dispatch' }},event=branch,suffix=-${{ inputs.os }}
+        flavor: |
+          latest=${{ inputs.os == 'alpine' && inputs.event_name != 'workflow_dispatch' && inputs.is_default_branch == 'true' }}

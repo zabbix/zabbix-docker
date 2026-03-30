@@ -1,0 +1,65 @@
+name: Docker build for Linux
+description: Build and optionally push a Linux image via docker/build-push-action
+
+inputs:
+  context:
+    required: true
+    description: Docker build context
+  file:
+    required: true
+    description: Dockerfile path
+  platforms:
+    required: true
+    description: Target platforms
+  push:
+    required: false
+    default: "true"
+    description: Whether to push the image
+  sbom:
+    required: false
+    default: "true"
+    description: Whether to generate SBOM
+  provenance:
+    required: false
+    default: mode=max
+    description: Provenance mode
+  tags:
+    required: true
+    description: Image tags
+  labels:
+    required: true
+    description: Image labels
+  build_args:
+    required: false
+    default: ""
+    description: Optional multiline build args
+  build_contexts:
+    required: false
+    default: ""
+    description: Optional multiline build contexts
+
+outputs:
+  digest:
+    description: Built image digest
+    value: ${{ steps.build.outputs.digest }}
+  metadata:
+    description: Build metadata
+    value: ${{ steps.build.outputs.metadata }}
+
+runs:
+  using: composite
+  steps:
+    - name: Build and optionally push image
+      id: build
+      uses: docker/build-push-action@d08e5c354a6adb9ed34480a06d141179aa583294
+      with:
+        context: ${{ inputs.context }}
+        file: ${{ inputs.file }}
+        platforms: ${{ inputs.platforms }}
+        push: ${{ inputs.push }}
+        provenance: ${{ inputs.provenance }}
+        sbom: ${{ inputs.sbom }}
+        tags: ${{ inputs.tags }}
+        labels: ${{ inputs.labels }}
+        build-args: ${{ inputs.build_args }}
+        build-contexts: ${{ inputs.build_contexts }}

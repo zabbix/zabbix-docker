@@ -1,0 +1,54 @@
+name: Docker Linux setup
+description: Set up QEMU, Docker Buildx, and optional registry login
+
+inputs:
+  auto_push_images:
+    required: false
+    default: false
+    description: Whether registry login is needed
+
+  qemu_image:
+    required: false
+    default: tonistiigi/binfmt:qemu-v10.0.4
+    description: QEMU binfmt image
+
+  qemu_platforms:
+    required: false
+    default: all
+    description: Platforms for QEMU
+
+  buildkit_image:
+    required: false
+    default: moby/buildkit:v0.28.1
+    description: BuildKit image
+
+  docker_username:
+    required: false
+    default: ""
+    description: Docker registry username
+
+  docker_password:
+    required: false
+    default: ""
+    description: Docker registry password
+
+runs:
+  using: composite
+  steps:
+    - name: Set up QEMU
+      uses: docker/setup-qemu-action@ce360397dd3f832beb865e1373c09c0e9f86d70a # v4.0.0
+      with:
+        image: ${{ inputs.qemu_image }}
+        platforms: ${{ inputs.qemu_platforms }}
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@4d04d5d9486b7bd6fa91e7baf45bbb4f8b9deedd # v4.0.0
+      with:
+        driver-opts: image=${{ inputs.buildkit_image }}
+
+    - name: Login to DockerHub
+      if: ${{ inputs.auto_push_images == 'true' }}
+      uses: docker/login-action@b45d80f862d83dbcd57f89517bcf500b2ab88fb2 # v4.0.0
+      with:
+        username: ${{ inputs.docker_username }}
+        password: ${{ inputs.docker_password }}
