@@ -10,18 +10,18 @@ variable "OS"                   {
 }
 variable "ZBX_VERSION"          {
    type        = string
-   default     = "7.4"
+   default     = "6.0"
    description = "Zabbix branch or exact version to build"
 }
 variable "OS_BASE_IMAGE"        {
    type        = string
-   default     = "alpine:3.23"
+   default     = "alpine:3.22"
    description = "Base image for images. Passed to Dockerfiles as OS_BASE_IMAGE"
 }
 variable "ZBX_IMAGE_TAG"        {
    type        = string
    default     = "${OS}-${ZBX_VERSION}-local"
-   description = "Image tag for all images. For example, \"alpine-7.4-local\""
+   description = "Image tag for all images. For example, \"alpine-6.0-local\""
 }
 variable "PLATFORMS"            {
    type        = string
