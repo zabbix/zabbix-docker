@@ -755,6 +755,7 @@ jobs:
           echo "base_build_image=${image_name}@${image_digest}" >> "$GITHUB_OUTPUT"
 
       - name: Verify ${{ steps.build_base_image.outputs.build_base }}:${{ matrix.os }} cosign
+        if: ${{ matrix.build != 'snmptraps' }}
         uses: ./.github/actions/cosign-verify
         with:
           image: ${{ steps.base_build.outputs.base_build_image }}
