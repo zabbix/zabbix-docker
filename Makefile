@@ -8,7 +8,7 @@ COMPOSE_PROFILES ?=
 # -------- User-facing knobs (override via CLI) --------
 OS ?= alpine
 DB ?= mysql
-ZBX_VERSION ?= 7.4
+ZBX_VERSION ?= 7.0
 
 # Remote defaults (Official image registry)
 REMOTE_IMAGE_PREFIX ?= zabbix/
@@ -23,10 +23,10 @@ PLATFORMS ?=
 
 # ---- Base images per OS ----
 ALPINE_BASE_IMAGE ?= alpine:3.23
-CENTOS_BASE_IMAGE ?= quay.io/centos/centos:stream10-minimal
-OL_BASE_IMAGE ?= container-registry.oracle.com/os/oraclelinux:10-slim
+CENTOS_BASE_IMAGE ?= quay.io/centos/centos:stream9-minimal
+OL_BASE_IMAGE ?= container-registry.oracle.com/os/oraclelinux:9-slim
 UBUNTU_BASE_IMAGE ?= ubuntu:noble
-RHEL_BASE_IMAGE ?= registry.access.redhat.com/ubi10/ubi-minimal:10.1
+RHEL_BASE_IMAGE ?= registry.access.redhat.com/ubi9/ubi-minimal:9.7
 
 # Auto-select base image by OS (unless explicitly overridden)
 ifeq ($(origin OS_BASE_IMAGE), undefined)

@@ -1,48 +1,96 @@
-import sys
-import requests
-import json
-import markdown
 import os
+import sys
+from pathlib import Path
 
-repository_description = None
+import markdown
+import requests
 
-if ("DESCRIPTION_FILE" not in os.environ or len(os.environ["DESCRIPTION_FILE"]) == 0):
-    print("::error::Description file environment variable is not specified")
-    sys.exit(1)
-if ("PYXIS_API_TOKEN" not in os.environ or len(os.environ["PYXIS_API_TOKEN"]) == 0):
-    print("::error::API token environment variable is not specified")
-    sys.exit(1)
-if ("API_URL" not in os.environ or len(os.environ["API_URL"]) == 0):
-    print("::error::API URL environment variable is not specified")
-    sys.exit(1)
-if ("PROJECT_ID" not in os.environ or len(os.environ["PROJECT_ID"]) == 0):
-    print("RedHat project ID environment variable is not specified")
-    sys.exit(1)
+MAX_DESCRIPTION_LEN = 32768
+REQUEST_TIMEOUT = 30
 
-if (os.path.isfile(os.environ["DESCRIPTION_FILE"] + '.html')):
-    file = open(os.environ["DESCRIPTION_FILE"] + '.html', mode='r')
-    repository_description = file.read()
-    file.close()
-elif (os.path.isfile(os.environ["DESCRIPTION_FILE"] + '.md')):
-    file = open(os.environ["DESCRIPTION_FILE"] + '.md', mode='r')
-    markdown_data = file.read()
-    file.close()
-    repository_description=markdown.markdown(markdown_data)
+##################
 
-if (repository_description is None or len(repository_description) == 0):
-    print("::error::No description file found")
+def fail(msg: str) -> None:
+    print(f"::error::{msg}")
     sys.exit(1)
 
-data = dict()
-data['container'] = dict()
-data['container']['repository_description'] = repository_description[:32768]
 
-headers = {'accept' : 'application/json', 'X-API-KEY' : os.environ["PYXIS_API_TOKEN"], 'Content-Type' : 'application/json'}
-result = requests.patch(os.environ["API_URL"] + os.environ["PROJECT_ID"],
-                        headers = headers,
-                        data = json.dumps(data))
+def get_env(name: str) -> str:
+    value = os.environ.get(name, "").strip()
+    if not value:
+        fail(f"{name} environment variable is not specified")
+    return value
 
-print("::group::Result")
-print("Response code: " + str(result.status_code))
-print("Last update date: " + json.loads(result.content)['last_update_date'])
-print("::endgroup::")
+##################
+
+def load_description(file_name: str) -> str:
+    html_path = Path(f"{file_name}.html")
+    md_path = Path(f"{file_name}.md")
+
+    if html_path.is_file():
+        with html_path.open("r", encoding="utf-8") as f:
+            return f.read()
+
+    if md_path.is_file():
+        with md_path.open("r", encoding="utf-8") as f:
+            markdown_data = f.read()
+        return markdown.markdown(markdown_data)
+
+    fail(f"No description file found: expected '{html_path}' or '{md_path}'")
+
+def main() -> int:
+    description_file = get_env("DESCRIPTION_FILE")
+    api_token = get_env("PYXIS_API_TOKEN")
+    api_url = get_env("API_URL")
+    project_id = get_env("PROJECT_ID")
+
+    repository_description = load_description(description_file)
+
+    if not repository_description.strip():
+        fail("Description file is empty")
+
+    was_truncated = len(repository_description) > MAX_DESCRIPTION_LEN
+    repository_description = repository_description[:MAX_DESCRIPTION_LEN]
+
+    payload = {
+        "container": {
+            "repository_description": repository_description,
+        }
+    }
+
+    headers = {
+        "accept": "application/json",
+        "X-API-KEY": api_token,
+        "Content-Type": "application/json",
+    }
+
+    url = f"{api_url}{project_id}"
+
+    try:
+        with requests.Session() as session:
+            response = session.patch(
+                url,
+                headers = headers,
+                json = payload,
+                timeout = REQUEST_TIMEOUT,
+            )
+            response.raise_for_status()
+    except requests.RequestException as exc:
+        fail(f"Request to Pyxis API failed: {exc}")
+
+    try:
+        response_data = response.json()
+    except ValueError:
+        fail(f"API returned non-JSON response: {response.text[:500]}")
+
+    print("::group::Result")
+    print(f"Response code: {response.status_code}")
+    if was_truncated:
+        print(f"Warning: repository_description was truncated to {MAX_DESCRIPTION_LEN} characters")
+    print(f"Last update date: {response_data.get('last_update_date', '<missing>')}")
+    print("::endgroup::")
+
+    return 0
+
+if __name__ == "__main__":
+    raise SystemExit(main())

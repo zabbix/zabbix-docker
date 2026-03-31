@@ -3,11 +3,15 @@ name: DockerHub Description
 on:
   push:
     branches:
-      - 'trunk'
+      - trunk
     paths:
       - 'Dockerfiles/*/README.md'
       - '.github/workflows/dockerhub_description.yml'
   workflow_dispatch:
+
+concurrency:
+  group: dockerhub-description-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 env:
   DOCKER_REPOSITORY: "zabbix"
@@ -15,14 +19,12 @@ env:
   DOCKERFILES_DIRECTORY: "./Dockerfiles"
 
 permissions:
-   contents: read
+  contents: read
 
 jobs:
-  main:
+  update-description:
     name: Update description
     runs-on: ubuntu-latest
-    env:
-      DOCKER_REPOSITORY: "zabbix"
     permissions:
       contents: read
     strategy:
@@ -46,9 +48,10 @@ jobs:
           - web-nginx-mysql
           - web-nginx-pgsql
           - web-service
+
     steps:
       - name: Block egress traffic
-        uses: step-security/harden-runner@20cf305ff2072d973412fa9b1e3a4f227bda3c76 # v2.14.0
+        uses: step-security/harden-runner@fa2e9d605c4eeb9fcad4c99c224cee0c6c7f3594 # v2.16.0
         with:
           disable-sudo: true
           egress-policy: block
@@ -61,7 +64,16 @@ jobs:
         with:
           fetch-depth: 1
 
-      - name: Update DockerHub repo description (zabbix-${{ matrix.component }})
+      - name: Check README file
+        run: |
+          set -Eeuo pipefail
+          readme="${DOCKERFILES_DIRECTORY}/${{ matrix.component }}/README.md"
+          if [[ ! -f "$readme" ]]; then
+            echo "::error::README file is missing: $readme"
+            exit 1
+          fi
+
+      - name: Update DockerHub repo description
         uses: peter-evans/dockerhub-description@1b9a80c056b620d92cedb9d9b5a223409c68ddfa # v5.0.0
         with:
           username: ${{ secrets.DOCKER_USERNAME }}

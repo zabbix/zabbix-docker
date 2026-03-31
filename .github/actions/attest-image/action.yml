@@ -1,0 +1,18 @@
+name: Attest image
+description: Generate and push attestation for image
+
+inputs:
+  subject_name:
+    required: true
+  subject_digest:
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Attest image
+      uses: actions/attest@59d89421af93a897026c735860bf21b6eb4f7b26 # v4.1.0
+      with:
+        subject-name: ${{ inputs.subject_name }}
+        subject-digest: ${{ inputs.subject_digest }}
+        push-to-registry: true
