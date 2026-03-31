@@ -1,0 +1,20 @@
+name: Install cosign
+description: Install cosign and print its version
+
+inputs:
+  cosign_release:
+    required: false
+    default: v3.0.5
+    description: Cosign release version to install
+
+runs:
+  using: composite
+  steps:
+    - name: Install cosign
+      uses: sigstore/cosign-installer@ba7bc0a3fef59531c69a25acd34668d6d3fe6f22
+      with:
+        cosign-release: ${{ inputs.cosign_release }}
+
+    - name: Check cosign version
+      shell: bash
+      run: cosign version

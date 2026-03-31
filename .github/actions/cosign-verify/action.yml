@@ -1,0 +1,63 @@
+name: Cosign verify image
+description: Verify container image signature with cosign and GitHub OIDC
+
+inputs:
+  image:
+    required: true
+    description: Image reference in name@digest format
+  oidc_issuer:
+    required: true
+    description: OIDC issuer regexp
+  identity_regexp:
+    required: true
+    description: Certificate identity regexp
+
+runs:
+  using: composite
+  steps:
+    - name: Verify image signature on Linux
+      if: runner.os != 'Windows'
+      shell: bash
+      env:
+        IMAGE: ${{ inputs.image }}
+        OIDC_ISSUER: ${{ inputs.oidc_issuer }}
+        IDENTITY_REGEX: ${{ inputs.identity_regexp }}
+      run: |
+        set -euo pipefail
+
+        echo "::group::Image sign data"
+        echo "OIDC issuer=$OIDC_ISSUER"
+        echo "Identity=$IDENTITY_REGEX"
+        echo "Image to verify=$IMAGE"
+        echo "::endgroup::"
+
+        echo "::group::Verify signature"
+        cosign verify \
+          --certificate-oidc-issuer-regexp "$OIDC_ISSUER" \
+          --certificate-identity-regexp "$IDENTITY_REGEX" \
+          "$IMAGE" | jq
+        echo "::endgroup::"
+
+    - name: Verify image signature on Windows
+      if: runner.os == 'Windows'
+      shell: pwsh
+      env:
+        IMAGE: ${{ inputs.image }}
+        OIDC_ISSUER: ${{ inputs.oidc_issuer }}
+        IDENTITY_REGEX: ${{ inputs.identity_regexp }}
+      run: |
+        $ErrorActionPreference = 'Stop'
+        Set-StrictMode -Version Latest
+
+        Write-Output '::group::Image sign data'
+        Write-Output "OIDC issuer=$env:OIDC_ISSUER"
+        Write-Output "Identity=$env:IDENTITY_REGEX"
+        Write-Output "Image to verify=$env:IMAGE"
+        Write-Output '::endgroup::'
+
+        Write-Output '::group::Verify signature'
+        cosign verify `
+          --certificate-oidc-issuer-regexp "$env:OIDC_ISSUER" `
+          --certificate-identity-regexp "$env:IDENTITY_REGEX" `
+          "$env:IMAGE" | ConvertFrom-Json | ConvertTo-Json -Depth 100
+        Write-Output '::endgroup::'

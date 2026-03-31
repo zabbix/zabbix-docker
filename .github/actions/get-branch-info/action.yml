@@ -1,0 +1,86 @@
+name: Get branch info
+description: Extract branch metadata and derived values for the workflow
+
+inputs:
+  trunk_version:
+    required: false
+    default: ""
+    description: Major version to use when the branch resolves to trunk
+  trunk_git_branch:
+    required: false
+    default: ""
+    description: Git ref to use for scheduled runs
+
+outputs:
+  is_default_branch:
+    description: Whether the current branch is the default branch
+    value: ${{ steps.branch_info.outputs.is_default_branch }}
+  current_branch:
+    description: Normalized current branch or tag name
+    value: ${{ steps.branch_info.outputs.current_branch }}
+  secret_prefix:
+    description: Derived secret prefix for the current branch
+    value: ${{ steps.branch_info.outputs.secret_prefix }}
+  sha_short:
+    description: Short Git commit SHA
+    value: ${{ steps.branch_info.outputs.sha_short }}
+
+runs:
+  using: composite
+  steps:
+    - name: Get branch info
+      id: branch_info
+      shell: bash
+      env:
+        DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+        GITHUB_REF_RAW: ${{ github.ref }}
+        GITHUB_EVENT_NAME: ${{ github.event_name }}
+        TRUNK_MAJOR_VERSION: ${{ inputs.trunk_version }}
+        TRUNK_GIT_BRANCH: ${{ inputs.trunk_git_branch }}
+      run: |
+        set -euo pipefail
+
+        if [[ "$GITHUB_EVENT_NAME" == "schedule" ]]; then
+          if [[ -z "$TRUNK_GIT_BRANCH" ]]; then
+            echo "TRUNK_GIT_BRANCH must be set for schedule events" >&2
+            exit 1
+          fi
+          ref="$TRUNK_GIT_BRANCH"
+        else
+          ref="$GITHUB_REF_RAW"
+        fi
+
+        sha_short="$(git rev-parse --short HEAD)"
+
+        if [[ "$ref" == refs/tags/* ]]; then
+          ref="${ref%.*}"
+        fi
+
+        current_branch="${ref##*/}"
+        is_default_branch=false
+
+        if [[ "$current_branch" == "$DEFAULT_BRANCH" ]]; then
+          is_default_branch=true
+        fi
+
+        if [[ "${current_branch//.}" == "trunk" && -n "$TRUNK_MAJOR_VERSION" ]]; then
+          secret_prefix="RHEL_${TRUNK_MAJOR_VERSION//.}"
+        else
+          secret_prefix="RHEL_${current_branch//.}"
+        fi
+
+        echo "::group::Branch metadata"
+        echo "event_name=$GITHUB_EVENT_NAME"
+        echo "ref=$ref"
+        echo "is_default_branch=$is_default_branch"
+        echo "current_branch=$current_branch"
+        echo "secret_prefix=$secret_prefix"
+        echo "sha_short=$sha_short"
+        echo "::endgroup::"
+
+        {
+          echo "is_default_branch=$is_default_branch"
+          echo "current_branch=$current_branch"
+          echo "secret_prefix=$secret_prefix"
+          echo "sha_short=$sha_short"
+        } >> "$GITHUB_OUTPUT"

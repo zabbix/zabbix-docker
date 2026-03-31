@@ -1,0 +1,71 @@
+name: Cosign sign images
+description: Sign image tags with digest via cosign
+
+inputs:
+  digest:
+    required: true
+    description: Built image digest
+  tags:
+    required: true
+    description: Newline-separated image tags
+
+runs:
+  using: composite
+  steps:
+    - name: Sign images on Linux
+      if: runner.os != 'Windows'
+      shell: bash
+      env:
+        DIGEST: ${{ inputs.digest }}
+        TAGS: ${{ inputs.tags }}
+      run: |
+        set -euo pipefail
+
+        images=()
+
+        while IFS= read -r tag; do
+          [[ -n "$tag" ]] || continue
+          images+=("${tag}@${DIGEST}")
+        done <<< "$TAGS"
+
+        if [[ ${#images[@]} -eq 0 ]]; then
+          echo "No image tags provided"
+          exit 1
+        fi
+
+        echo "::group::Images to sign"
+        printf '%s\n' "${images[@]}"
+        echo "::endgroup::"
+
+        echo "::group::Signing"
+        cosign sign --yes "${images[@]}"
+        echo "::endgroup::"
+
+    - name: Sign images on Windows
+      if: runner.os == 'Windows'
+      shell: pwsh
+      env:
+        DIGEST: ${{ inputs.digest }}
+        TAGS: ${{ inputs.tags }}
+      run: |
+        $ErrorActionPreference = 'Stop'
+        Set-StrictMode -Version Latest
+
+        $images = @()
+        $tagsArray = $Env:TAGS -split "\r?\n" | Where-Object { $_.Trim() }
+
+        foreach ($tag in $tagsArray) {
+          $images += "$tag@$Env:DIGEST"
+        }
+
+        if ($images.Count -eq 0) {
+          throw 'No image tags provided'
+        }
+
+        Write-Output '::group::Images to sign'
+        $images | ForEach-Object { Write-Output $_ }
+        Write-Output '::endgroup::'
+
+        Write-Output '::group::Signing'
+        cosign sign --yes $images
+        Write-Output '::endgroup::'

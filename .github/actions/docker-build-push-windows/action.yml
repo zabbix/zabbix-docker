@@ -1,0 +1,188 @@
+name: Docker build and optionally push image on Windows
+description: Build a Windows Docker image, optionally push it, and output its digest
+
+inputs:
+  context:
+    required: true
+    description: Docker build context path
+
+  dockerfile:
+    required: true
+    description: Dockerfile path
+
+  tags:
+    required: true
+    description: Newline-separated image tags
+
+  label_revision:
+    required: true
+    description: org.opencontainers.image.revision label value
+
+  label_created:
+    required: true
+    description: org.opencontainers.image.created label value
+
+  pull_images:
+    required: false
+    default: ""
+    description: Newline-separated image references to pull before build
+
+  build_args:
+    required: false
+    default: ""
+    description: Newline-separated build arguments in NAME=value format
+
+  push:
+    required: false
+    default: "true"
+    description: Whether to push built image tags
+
+  remove_readme:
+    required: false
+    default: "true"
+    description: Whether to remove README.md from the build context
+
+outputs:
+  digest:
+    description: Built image digest or image ID
+    value: ${{ steps.build_push.outputs.digest }}
+
+runs:
+  using: composite
+  steps:
+    - name: Build and optionally push image
+      id: build_push
+      shell: pwsh
+      env:
+        CONTEXT: ${{ inputs.context }}
+        DOCKERFILE: ${{ inputs.dockerfile }}
+        TAGS: ${{ inputs.tags }}
+        LABEL_REVISION: ${{ inputs.label_revision }}
+        LABEL_CREATED: ${{ inputs.label_created }}
+        PULL_IMAGES: ${{ inputs.pull_images }}
+        BUILD_ARGS_INPUT: ${{ inputs.build_args }}
+        PUSH_IMAGES: ${{ inputs.push }}
+        REMOVE_README: ${{ inputs.remove_readme }}
+      run: |
+        $ErrorActionPreference = 'Stop'
+        Set-StrictMode -Version Latest
+
+        Write-Output '::group::Docker version'
+        docker version
+        Write-Output '::endgroup::'
+
+        Write-Output '::group::Docker info'
+        docker info
+        Write-Output '::endgroup::'
+
+        if ($Env:REMOVE_README -eq 'true') {
+          Remove-Item -ErrorAction Ignore -Force -Path (Join-Path $Env:CONTEXT 'README.md')
+        }
+
+        $tagsArray = @($Env:TAGS -split "\r?\n" | Where-Object { $_.Trim() })
+        if ($tagsArray.Count -eq 0) {
+          throw 'No image tags provided'
+        }
+
+        $tagArgs = @()
+        foreach ($tag in $tagsArray) {
+          $tagArgs += "--tag=$tag"
+        }
+
+        Write-Output '::group::Image tags'
+        $tagsArray | ForEach-Object { Write-Output $_ }
+        Write-Output '::endgroup::'
+
+        $pullImagesArray = @($Env:PULL_IMAGES -split "\r?\n" | Where-Object { $_.Trim() })
+        if ($pullImagesArray.Count -gt 0) {
+          Write-Output '::group::Pull base images'
+          foreach ($image in $pullImagesArray) {
+            Write-Output "docker pull $image"
+            docker pull $image
+            if (-not $?) {
+              throw "Failed to pull $image"
+            }
+          }
+          Write-Output '::endgroup::'
+        }
+
+        $buildArgsInputArray = @($Env:BUILD_ARGS_INPUT -split "\r?\n" | Where-Object { $_.Trim() })
+        $buildArgCliArgs = @()
+
+        foreach ($buildArg in $buildArgsInputArray) {
+          $buildArgCliArgs += "--build-arg=$buildArg"
+        }
+
+        Write-Output '::group::Build arguments'
+        if ($buildArgsInputArray.Count -gt 0) {
+          $buildArgsInputArray | ForEach-Object { Write-Output $_ }
+        }
+        else {
+          Write-Output 'No build arguments provided'
+        }
+        Write-Output '::endgroup::'
+
+        Write-Output '::group::Build image'
+        Write-Output @"
+        docker build --label org.opencontainers.image.revision=$Env:LABEL_REVISION `
+          --label org.opencontainers.image.created=$Env:LABEL_CREATED `
+          $($buildArgCliArgs -join " ") `
+          --file=$Env:DOCKERFILE `
+          $($tagArgs -join " ") `
+          $Env:CONTEXT
+        "@
+
+        docker build `
+          --label "org.opencontainers.image.revision=$Env:LABEL_REVISION" `
+          --label "org.opencontainers.image.created=$Env:LABEL_CREATED" `
+          $buildArgCliArgs `
+          --file "$Env:DOCKERFILE" `
+          $tagArgs `
+          "$Env:CONTEXT"
+
+        if (-not $?) {
+          throw 'Failed to build image'
+        }
+        Write-Output '::endgroup::'
+
+        Write-Output '::group::Publish image'
+        if ($Env:PUSH_IMAGES -eq 'true') {
+          foreach ($tag in $tagsArray) {
+            Write-Output "docker image push $tag"
+            docker image push $tag
+            if (-not $?) {
+              throw "Failed to push $tag"
+            }
+          }
+
+          $repoDigest = docker inspect $tagsArray[0] --format "{{ index .RepoDigests 0}}"
+          if (-not $?) {
+            throw "Failed to inspect RepoDigests for $($tagsArray[0])"
+          }
+
+          $digest = $repoDigest.Split('@')[-1]
+          if ([string]::IsNullOrWhiteSpace($digest)) {
+            throw 'Image digest is empty'
+          }
+
+          Write-Output 'Image digest got from RepoDigests'
+        }
+        else {
+          $digest = docker inspect $tagsArray[0] --format "{{ .Id }}"
+          if (-not $?) {
+            throw "Failed to inspect image Id for $($tagsArray[0])"
+          }
+
+          if ([string]::IsNullOrWhiteSpace($digest)) {
+            throw 'Image ID digest is empty'
+          }
+
+          Write-Output 'Image digest got from Id'
+        }
+        Write-Output '::endgroup::'
+
+        Write-Output '::group::Digest'
+        Write-Output $digest
+        Write-Output '::endgroup::'
+
+        "digest=$digest" >> $Env:GITHUB_OUTPUT
