@@ -65,6 +65,7 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             php-mysqlnd \
             php-xml \
             shadow-utils \
+            jq \
             supervisor" && \
     microdnf -y module enable \
         --disablerepo "*" \

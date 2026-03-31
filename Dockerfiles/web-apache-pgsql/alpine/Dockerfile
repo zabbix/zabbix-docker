@@ -50,6 +50,7 @@ RUN set -eux && \
     INSTALL_PKGS="bash \
             tzdata \
             curl \
+            jq \
             apache2 \
             apache2-proxy \
             php84-bcmath \

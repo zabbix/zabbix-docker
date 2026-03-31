@@ -67,6 +67,7 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             findutils \
             glibc-locale-source \
             shadow-utils \
+            jq \
             supervisor" && \
     microdnf -y install \
             --disablerepo="*" \

@@ -70,6 +70,7 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
     set -eux && \
     INSTALL_PKGS="bash \
             curl-minimal \
+            jq \
             supervisor \
             shadow-utils \
             findutils \
