@@ -68,6 +68,7 @@ RUN --mount=type=cache,target=/var/cache/apt/,sharing=locked \
             php8.5-xml \
             php8.5-pgsql \
             postgresql-client \
+            jq \
             supervisor" && \
     apt-get -y update && \
     DEBIAN_FRONTEND=noninteractive apt-get -y \

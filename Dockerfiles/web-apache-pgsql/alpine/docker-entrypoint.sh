@@ -109,6 +109,57 @@ check_variables() {
     fi
 }
 
+get_vault_secrets() {
+    WAIT_TIMEOUT=5
+    vault_url="${ZBX_VAULTURL}${ZBX_VAULTPREFIX}${ZBX_VAULTDBPATH}"
+    curl_opts=(-s -m 10 -k)
+
+
+    if [ -z "${ZBX_VAULTURL}" ] || [ -z "${ZBX_VAULTPREFIX}" ] || [ -z "${ZBX_VAULTDBPATH}" ]; then
+        echo "Missing variables! If ZBX_VAULT is used then ZBX_VAULTURL, ZBX_VAULTPREFIX and ZBX_VAULTDBPATH must be set"
+        exit 1
+    fi
+
+    if [ "${ZBX_VAULT}" == "HashiCorp" ]; then
+        while ! vaultdata="$(curl "${curl_opts[@]}" -H "X-Vault-Token: $VAULT_TOKEN" "$vault_url")"; do
+            echo "**** Vault is not available. Waiting ${WAIT_TIMEOUT} seconds... ****"
+            sleep $WAIT_TIMEOUT
+        done
+        errors=$(printf '%s' "$vaultdata" | jq -r '.errors // empty')
+        if [ -n "${errors}" ]; then
+            echo "Error getting secrets from vault: $errors"
+            exit 1
+        fi
+        DB_SERVER_ZBX_USER="$(printf '%s' "$vaultdata" | jq -r '.data.data.username')"
+        DB_SERVER_ZBX_PASS="$(printf '%s' "$vaultdata" | jq -r '.data.data.password')"
+
+    elif [ "${ZBX_VAULT}" == "CyberArk" ]; then
+        cyberark_opts=(-H "Content-type: application/json" --cert "$ZBX_VAULTCERTFILE")
+
+        # if key is defined use it
+        if [ -n "${ZBX_VAULTKEYFILE}" ]; then
+            cyberark_opts+=(--key "$ZBX_VAULTKEYFILE")
+        fi
+        while ! vaultdata=$(curl "${curl_opts[@]}" "${cyberark_opts[@]}" "$vault_url") ; do
+            echo "**** Vault is not available. Waiting ${WAIT_TIMEOUT} seconds... ****"
+            sleep $WAIT_TIMEOUT
+        done
+
+        errors=$(printf '%s' "$vaultdata" | jq -r '.ErrorCode // empty')
+        if [ -n "${errors}" ]; then
+            echo "Error getting secrets from vault: $errors"
+            exit 1
+        fi
+        DB_SERVER_ZBX_USER="$(printf '%s' "$vaultdata" | jq -r '.UserName')"
+        DB_SERVER_ZBX_PASS="$(printf '%s' "$vaultdata" | jq -r '.Content')"
+
+    else
+        echo "ZBX_VAULT has wrong value. HashiCorp or CyberArk are supported!"
+        exit 1
+    fi
+
+}
+
 check_db_connect() {
     echo "********************"
     if [ -n "${DB_SERVER_HOST}" ]; then
@@ -127,11 +178,20 @@ check_db_connect() {
     fi
     echo "********************"
 
+    WAIT_TIMEOUT=5
+
+    if [ -n "${ZBX_VAULT}" ]; then
+        unset DB_SERVER_ZBX_USER
+        unset DB_SERVER_ZBX_PASS
+
+        echo "***** Connecting to vault... *****"
+        echo "***** VAULT URL: $ZBX_VAULTURL"
+        get_vault_secrets
+    fi
+
     if [ -n "${DB_SERVER_ZBX_PASS}" ]; then
         export PGPASSWORD="${DB_SERVER_ZBX_PASS}"
     fi
-
-    WAIT_TIMEOUT=5
 
     if [ "${POSTGRES_USE_IMPLICIT_SEARCH_PATH,,}" == "false" ] && [ -n "${DB_SERVER_SCHEMA}" ]; then
         PGOPTIONS="--search_path=${DB_SERVER_SCHEMA}"
@@ -147,7 +207,7 @@ check_db_connect() {
     fi
 
     while [ ! "$(psql $psql_connect_args --username ${DB_SERVER_ZBX_USER} --dbname ${DB_SERVER_DBNAME} --list --quiet 2>/dev/null)" ]; do
-        echo "**** PostgreSQL server is not available. Waiting $WAIT_TIMEOUT seconds..."
+        echo "**** PostgreSQL server is not available. Waiting ${WAIT_TIMEOUT} seconds..."
         sleep $WAIT_TIMEOUT
     done
 

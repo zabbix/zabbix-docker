@@ -66,6 +66,7 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             postgresql18 \
             shadow-utils \
             gzip \
+            jq \
             supervisor" && \
     microdnf -y install \
             --disablerepo="*" \

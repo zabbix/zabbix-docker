@@ -50,6 +50,7 @@ RUN set -eux && \
     INSTALL_PKGS="bash \
             tzdata \
             curl \
+            jq \
             nginx \
             php85-bcmath \
             php85-ctype \

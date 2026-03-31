@@ -68,6 +68,7 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             postgresql \
             findutils \
             glibc-locale-source \
+            jq \
             supervisor" && \
     microdnf -y install \
             --disablerepo="*" \

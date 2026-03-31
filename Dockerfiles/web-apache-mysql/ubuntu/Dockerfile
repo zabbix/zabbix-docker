@@ -68,6 +68,7 @@ RUN --mount=type=cache,target=/var/cache/apt/,sharing=locked \
             php8.5-mbstring \
             php8.5-mysql \
             php8.5-xml \
+            jq \
             supervisor" && \
     apt-get -y update && \
     DEBIAN_FRONTEND=noninteractive apt-get -y \
