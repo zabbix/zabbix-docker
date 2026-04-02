@@ -19,7 +19,8 @@ ENV TERM=xterm \
     NMAP_PRIVILEGED= \
     ZABBIX_USER_HOME_DIR=/var/lib/zabbix \
     ZABBIX_CONF_DIR=/etc/zabbix \
-    ZBX_FPINGLOCATION=/usr/bin/fping
+    ZBX_FPINGLOCATION=/usr/bin/fping \
+    DB_ENGINE=mysql
 
 LABEL org.opencontainers.image.authors="Alexey Pustovalov <alexey.pustovalov@zabbix.com>" \
       org.opencontainers.image.description="Zabbix proxy with MySQL database support" \

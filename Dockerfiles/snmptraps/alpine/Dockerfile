@@ -27,11 +27,9 @@ LABEL org.opencontainers.image.authors="Alexey Pustovalov <alexey.pustovalov@zab
 
 STOPSIGNAL SIGTERM
 
-COPY conf/etc/logrotate.d/zabbix_snmptraps /etc/logrotate.d/
-COPY conf/etc/snmp/snmptrapd.conf /etc/snmp/
-COPY conf/usr/sbin/zabbix_trap_handler.sh conf/usr/sbin/snmptrapd_runner.sh /usr/sbin/
-
-RUN set -eux && \
+RUN --mount=from=config_templates,target=/tmp/conf,ro \
+    --mount=from=scripts,target=/tmp/scripts,ro \
+    set -eux && \
     INSTALL_PKGS="bash \
             tzdata \
             net-snmp" && \
@@ -56,6 +54,10 @@ RUN set -eux && \
         ${ZABBIX_USER_HOME_DIR}/snmptraps \
         ${ZABBIX_USER_HOME_DIR}/mibs \
         ${SNMP_PERSISTENT_DIR} && \
+    cp /tmp/conf/logrotate.d/zabbix_snmptraps /etc/logrotate.d/ && \
+    cp /tmp/conf/snmp/snmptrapd.conf /etc/snmp/ && \
+    cp /tmp/scripts/zabbix_trap_handler.sh /usr/sbin/ && \
+    cp /tmp/scripts/snmptrapd_runner.sh /usr/sbin/ && \
     FIX_PERM_LIST="\
         /etc/snmp/ \
         ${ZABBIX_USER_HOME_DIR}/ \

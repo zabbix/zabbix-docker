@@ -33,6 +33,10 @@ ENV TERM=xterm \
     ZABBIX_USER_HOME_DIR=/var/lib/zabbix \
     ZABBIX_WWW_ROOT=/usr/share/zabbix
 
+ENV DB_ENGINE=mysql \
+    NGINX_CONFD_DIR=/etc/nginx/conf.d \
+    PHP_CONFIG_FILE=/etc/php-fpm.d/zabbix.conf
+
 LABEL description="Zabbix web-interface based on Nginx web server with MySQL database support" \
       maintainer="alexey.pustovalov@zabbix.com" \
       name="zabbix/zabbix-web-mysql" \
@@ -168,14 +172,18 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             findutils \
             glibc-locale-source
 
+RUN --mount=from=entrypoints,target=/tmp/entrypoints,ro \
+    set -eux && \
+    install -d /usr/lib/docker-entrypoint && \
+    install -m 0755 /tmp/entrypoints/web-nginx-mysql.sh /usr/bin/docker-entrypoint.sh && \
+    install -m 0644 /tmp/entrypoints/lib/*.sh /usr/lib/docker-entrypoint/
+
 HEALTHCHECK --interval=1m30s --timeout=3s --retries=3 --start-period=40s --start-interval=5s \
     CMD curl -f http://localhost:8080/ping || exit 1
 
 EXPOSE 8080/tcp 8443/tcp
 
 WORKDIR ${ZABBIX_WWW_ROOT}
-
-COPY docker-entrypoint.sh /usr/bin/
 
 USER 1997
 
