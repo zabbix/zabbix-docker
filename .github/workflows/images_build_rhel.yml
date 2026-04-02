@@ -591,7 +591,7 @@ jobs:
             ${{ env.DOCKERFILES_DIRECTORY }}/${{ matrix.build }}/rhel/Dockerfile
           extra-args: |
             --iidfile=${{ github.workspace }}/iidfile
-            --build-context entrypoints="./templates/entrypoints"
+            --build-context entrypoints=./templates/entrypoints
           build-args: |
             BUILD_BASE_IMAGE=${{ steps.base_build.outputs.base_build_image }}
 
@@ -610,8 +610,8 @@ jobs:
             ${{ env.DOCKERFILES_DIRECTORY }}/${{ matrix.build }}/rhel/Dockerfile
           extra-args: |
             --iidfile=${{ github.workspace }}/iidfile
-            --build-context config_templates="./templates/config/snmptraps"
-            --build-context scripts="./templates/scripts/snmptraps"
+            --build-context config_templates=./templates/config/snmptraps
+            --build-context scripts=./templates/scripts/snmptraps
 
       - name: Validate registry secrets
         if: ${{ env.AUTO_PUSH_IMAGES == 'true' }}
