@@ -596,7 +596,7 @@ jobs:
             BUILD_BASE_IMAGE=${{ steps.base_build.outputs.base_build_image }}
 
       - name: Build snmptraps image
-        id: build_image
+        id: build_image_snmptraps
         if: ${{ matrix.build == 'snmptraps' }}
         uses: redhat-actions/buildah-build@v2.13
         with:
@@ -646,7 +646,7 @@ jobs:
           PFLT_PYXIS_API_TOKEN: ${{ secrets.REDHAT_API_TOKEN }}
           PFLT_ARTIFACTS: ${{ env.PFLT_ARTIFACTS }}
           PFLT_LOGLEVEL: ${{ env.PFLT_LOGLEVEL }}
-          IMAGE_TAG: ${{ steps.build_image.outputs.image-with-tag }}
+          IMAGE_TAG: ${{ matrix.build == 'snmptraps' && steps.build_image_snmptraps.outputs.image-with-tag || steps.build_image.outputs.image-with-tag }}
           PREFLIGHT_IMAGE: ${{ env.PREFLIGHT_IMAGE }}
         run: |
           mkdir -p "$PFLT_ARTIFACTS"
