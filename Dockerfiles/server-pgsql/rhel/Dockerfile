@@ -173,8 +173,6 @@ WORKDIR ${ZABBIX_USER_HOME_DIR}
 
 VOLUME ["${ZABBIX_USER_HOME_DIR}/snmptraps", "${ZABBIX_USER_HOME_DIR}/export"]
 
-COPY docker-entrypoint.sh /usr/bin/
-
 USER 1997
 
 CMD ["/usr/sbin/zabbix_server", "--foreground", "-c", "/etc/zabbix/zabbix_server.conf"]
