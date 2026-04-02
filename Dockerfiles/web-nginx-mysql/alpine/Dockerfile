@@ -32,8 +32,8 @@ ENV TERM=xterm \
     ZABBIX_WWW_ROOT=/usr/share/zabbix
 
 ENV DB_ENGINE=mariadb \
-    NGINX_CONFD_DIR="/etc/nginx/http.d" \
-    PHP_CONFIG_FILE="/etc/php-fpm.d/zabbix.conf"
+    NGINX_CONFD_DIR=/etc/nginx/http.d \
+    PHP_CONFIG_FILE=/etc/php-fpm.d/zabbix.conf
 
 LABEL org.opencontainers.image.authors="Alexey Pustovalov <alexey.pustovalov@zabbix.com>" \
       org.opencontainers.image.description="Zabbix web-interface based on Nginx web server with MySQL database support" \

@@ -32,10 +32,10 @@ ENV TERM=xterm \
     ZABBIX_WWW_ROOT=/usr/share/zabbix
 
 ENV DB_ENGINE=mysql \
-    APACHE_RUN_DIR="/tmp/httpd" \
-    HTTPD_CONF_FILE="/etc/httpd/conf/httpd.conf" \
-    APACHE_SITES_DIR="/etc/httpd/conf.d" \
-    PHP_CONFIG_FILE="/etc/php-fpm.d/zabbix.conf"
+    APACHE_RUN_DIR=/tmp/httpd \
+    HTTPD_CONF_FILE=/etc/httpd/conf/httpd.conf \
+    APACHE_SITES_DIR=/etc/httpd/conf.d \
+    PHP_CONFIG_FILE=/etc/php-fpm.d/zabbix.conf
 
 LABEL org.opencontainers.image.authors="Alexey Pustovalov <alexey.pustovalov@zabbix.com>" \
       org.opencontainers.image.description="Zabbix web-interface based on Apache2 web server with MySQL database support" \
