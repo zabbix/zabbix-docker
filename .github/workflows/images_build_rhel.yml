@@ -380,7 +380,7 @@ jobs:
           extra-args: |
             --iidfile=${{ github.workspace }}/iidfile
             --build-context sources=./sources/
-            --build-context config_templates=./config_templates/
+            --build-context config_templates=./templates/config/
 
       - name: Save image metadata
         id: image_metadata
