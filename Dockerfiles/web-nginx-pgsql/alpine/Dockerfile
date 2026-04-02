@@ -1,4 +1,4 @@
-# syntax=docker/dockerfile:1
+# syntax=docker/dockerfile:1.6
 ARG OS_BASE_IMAGE=alpine:3.23
 ARG MAJOR_VERSION=7.0
 ARG ZBX_VERSION=${MAJOR_VERSION}.25
@@ -31,8 +31,8 @@ ENV TERM=xterm \
     ZABBIX_USER_HOME_DIR=/var/lib/zabbix \
     ZABBIX_WWW_ROOT=/usr/share/zabbix
 
-ENV NGINX_CONFD_DIR="/etc/nginx/http.d" \
-    PHP_CONFIG_FILE="/etc/php-fpm.d/zabbix.conf"
+ENV NGINX_CONFD_DIR=/etc/nginx/http.d \
+    PHP_CONFIG_FILE=/etc/php-fpm.d/zabbix.conf
 
 LABEL org.opencontainers.image.authors="Alexey Pustovalov <alexey.pustovalov@zabbix.com>" \
       org.opencontainers.image.description="Zabbix web-interface based on Nginx web server with PostgreSQL database support" \

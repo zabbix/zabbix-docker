@@ -31,10 +31,10 @@ ENV TERM=xterm \
     ZABBIX_USER_HOME_DIR=/var/lib/zabbix \
     ZABBIX_WWW_ROOT=/usr/share/zabbix
 
-ENV APACHE_RUN_DIR="/tmp/apache2" \
-    HTTPD_CONF_FILE="/etc/apache2/httpd.conf" \
-    APACHE_SITES_DIR="/etc/apache2/conf.d" \
-    PHP_CONFIG_FILE="/etc/php84/php-fpm.d/zabbix.conf"
+ENV APACHE_RUN_DIR=/tmp/apache2 \
+    HTTPD_CONF_FILE=/etc/apache2/httpd.conf \
+    APACHE_SITES_DIR=/etc/apache2/conf.d \
+    PHP_CONFIG_FILE=/etc/php84/php-fpm.d/zabbix.conf
 
 LABEL org.opencontainers.image.authors="Alexey Pustovalov <alexey.pustovalov@zabbix.com>" \
       org.opencontainers.image.description="Zabbix web-interface based on Apache2 web server with PostgreSQL database support" \

@@ -35,10 +35,10 @@ ENV TERM=xterm \
 ENV DB_ENGINE=mysql \
     DAEMON_USER=www-data \
     DAEMON_GROUP=www-data \
-    APACHE_RUN_DIR="/tmp/apache2" \
-    HTTPD_CONF_FILE="/etc/apache2/apache2.conf" \
-    APACHE_SITES_DIR="/etc/apache2/sites-enabled" \
-    PHP_CONFIG_FILE="/etc/php/8.3/fpm/pool.d/zabbix.conf"
+    APACHE_RUN_DIR=/tmp/apache2 \
+    HTTPD_CONF_FILE=/etc/apache2/apache2.conf \
+    APACHE_SITES_DIR=/etc/apache2/sites-enabled \
+    PHP_CONFIG_FILE=/etc/php/8.3/fpm/pool.d/zabbix.conf
 
 LABEL org.opencontainers.image.authors="Alexey Pustovalov <alexey.pustovalov@zabbix.com>" \
       org.opencontainers.image.description="Zabbix web-interface based on Apache2 web server with MySQL database support" \

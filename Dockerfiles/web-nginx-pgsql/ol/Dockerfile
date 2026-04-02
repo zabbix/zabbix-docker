@@ -31,7 +31,7 @@ ENV TERM=xterm \
     ZABBIX_USER_HOME_DIR=/var/lib/zabbix \
     ZABBIX_WWW_ROOT=/usr/share/zabbix
 
-ENV NGINX_CONFD_DIR=/etc/nginx/conf.d \                                                
+ENV NGINX_CONFD_DIR=/etc/nginx/conf.d \
     PHP_CONFIG_FILE=/etc/php-fpm.d/zabbix.conf
 
 LABEL org.opencontainers.image.authors="Alexey Pustovalov <alexey.pustovalov@zabbix.com>" \
