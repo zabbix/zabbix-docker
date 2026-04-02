@@ -157,7 +157,7 @@ target "_common" {
 target "_builder_common" {
   inherits = ["_common"]
   contexts = {
-    config_templates = "config_templates",
+    config_templates = "templates/config",
     sources          = "sources"
   }
   dockerfile = "Dockerfile"
@@ -170,20 +170,25 @@ target "_builder_common" {
 target "_runtime_db_common_mysql" {
   inherits = ["_common"]
   contexts = {
-    builder = "target:build-mysql"
+    builder = "target:build-mysql",
+    entrypoints = "templates/entrypoints"
   }
 }
 
 target "_runtime_db_common_pgsql" {
   inherits = ["_common"]
   contexts = {
-    builder = "target:build-pgsql"
+    builder = "target:build-pgsql",
+    entrypoints = "templates/entrypoints"
   }
 }
 
 // For runtime images that do not depend on DB builder
 target "_runtime_nodb" {
   inherits = ["_common"]
+  contexts = {
+    entrypoints = "templates/entrypoints"
+  }
 }
 
 // =========================
@@ -353,6 +358,9 @@ target "proxy-mysql" {
   args        = {
     BUILD_BASE_IMAGE = "${ZBX_IMAGE_NAMESPACE}${ZBX_IMAGE_PREFIX}build-mysql:${ZBX_IMAGE_TAG}"
   }
+  contexts = {
+    entrypoints = "templates/entrypoints"
+  }
   tags        = ["${ZBX_IMAGE_NAMESPACE}${ZBX_IMAGE_PREFIX}proxy-mysql:${ZBX_IMAGE_TAG}"]
 }
 
@@ -364,6 +372,9 @@ target "proxy-sqlite3" {
   context     = "Dockerfiles/proxy-sqlite3/${OS}"
   args        = {
     BUILD_BASE_IMAGE = "${ZBX_IMAGE_NAMESPACE}${ZBX_IMAGE_PREFIX}build-sqlite3:${ZBX_IMAGE_TAG}"
+  }
+  contexts = {
+    entrypoints = "templates/entrypoints"
   }
   tags        = ["${ZBX_IMAGE_NAMESPACE}${ZBX_IMAGE_PREFIX}proxy-sqlite3:${ZBX_IMAGE_TAG}"]
 }

@@ -578,6 +578,7 @@ jobs:
 
       - name: Build image
         id: build_image
+        if: ${{ matrix.build != 'snmptraps' }}
         uses: redhat-actions/buildah-build@v2.13
         with:
           context: ${{ format('{0}/{1}/rhel', env.DOCKERFILES_DIRECTORY, matrix.build) }}
@@ -590,8 +591,27 @@ jobs:
             ${{ env.DOCKERFILES_DIRECTORY }}/${{ matrix.build }}/rhel/Dockerfile
           extra-args: |
             --iidfile=${{ github.workspace }}/iidfile
+            --build-context entrypoints="./templates/entrypoints"
           build-args: |
-            BUILD_BASE_IMAGE=${{ matrix.build != 'snmptraps' && format('localhost/{0}', steps.base_build.outputs.base_build_image) || '' }}
+            BUILD_BASE_IMAGE=${{ steps.base_build.outputs.base_build_image }}
+
+      - name: Build snmptraps image
+        id: build_image
+        if: ${{ matrix.build == 'snmptraps' }}
+        uses: redhat-actions/buildah-build@v2.13
+        with:
+          context: ${{ format('{0}/{1}/rhel', env.DOCKERFILES_DIRECTORY, matrix.build) }}
+          layers: false
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: |
+            org.opencontainers.image.revision=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.revision'] }}
+            org.opencontainers.image.created=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.created'] }}
+          containerfiles: |
+            ${{ env.DOCKERFILES_DIRECTORY }}/${{ matrix.build }}/rhel/Dockerfile
+          extra-args: |
+            --iidfile=${{ github.workspace }}/iidfile
+            --build-context config_templates="./templates/config/snmptraps"
+            --build-context scripts="./templates/scripts/snmptraps"
 
       - name: Validate registry secrets
         if: ${{ env.AUTO_PUSH_IMAGES == 'true' }}

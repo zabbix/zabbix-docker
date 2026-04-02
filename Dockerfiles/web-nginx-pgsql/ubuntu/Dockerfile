@@ -32,6 +32,11 @@ ENV TERM=xterm \
     ZABBIX_WWW_ROOT=/usr/share/zabbix \
     PYTHONDONTWRITEBYTECODE=1
 
+ENV DAEMON_USER=www-data \
+    DAEMON_GROUP=www-data \
+    NGINX_CONFD_DIR=/etc/nginx/conf.d \
+    PHP_CONFIG_FILE=/etc/php/8.5/fpm/pool.d/zabbix.conf
+
 LABEL org.opencontainers.image.authors="Alexey Pustovalov <alexey.pustovalov@zabbix.com>" \
       org.opencontainers.image.description="Zabbix web-interface based on Nginx web server with PostgreSQL database support" \
       org.opencontainers.image.documentation="https://www.zabbix.com/documentation/${MAJOR_VERSION}/manual/installation/containers" \
@@ -127,14 +132,18 @@ RUN --mount=type=cache,target=/var/cache/apt/,sharing=locked \
     chown --quiet -R zabbix:0 ${FIX_PERM_LIST} && \
     chmod -R g=u ${FIX_PERM_LIST}
 
+RUN --mount=from=entrypoints,target=/tmp/entrypoints,ro \
+    set -eux && \
+    install -d /usr/lib/docker-entrypoint && \
+    install -m 0755 /tmp/entrypoints/web-nginx-pgsql.sh /usr/bin/docker-entrypoint.sh && \
+    install -m 0644 /tmp/entrypoints/lib/*.sh /usr/lib/docker-entrypoint/
+
 HEALTHCHECK --interval=1m30s --timeout=3s --retries=3 --start-period=40s --start-interval=5s \
     CMD curl -f http://localhost:8080/ping || exit 1
 
 EXPOSE 8080/tcp 8443/tcp
 
 WORKDIR ${ZABBIX_WWW_ROOT}
-
-COPY ["docker-entrypoint.sh", "/usr/bin/"]
 
 USER 1997
 

@@ -493,7 +493,7 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           build_contexts: |
             sources=./sources/
-            config_templates=./config_templates/
+            config_templates=./templates/config/
           build_args: |
             BUILD_BASE_IMAGE=${{ steps.base_build.outputs.base_build_image }}
           labels: |
@@ -780,6 +780,8 @@ jobs:
           push: ${{ env.AUTO_PUSH_IMAGES }}
           sbom: ${{ env.AUTO_PUSH_IMAGES }}
           tags: ${{ steps.meta.outputs.tags }}
+          build_contexts: |
+            entrypoints=./templates/entrypoints/
           build_args: |
             BUILD_BASE_IMAGE=${{ steps.base_build.outputs.base_build_image }}
           labels: |
@@ -797,6 +799,9 @@ jobs:
           push: ${{ env.AUTO_PUSH_IMAGES }}
           sbom: ${{ env.AUTO_PUSH_IMAGES }}
           tags: ${{ steps.meta.outputs.tags }}
+          build_contexts: |
+            config_templates=./templates/config/snmptraps/
+            scripts=./templates/scripts/snmptraps/
           labels: |
             org.opencontainers.image.revision=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.revision'] }}
             org.opencontainers.image.created=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.created'] }}
