@@ -1,71 +1,99 @@
-#!/bin/bash
+#!/usr/bin/env bash
+set -euo pipefail
 
-set +e
-
-if [ ! -f "Dockerfile" ]; then
-    echo "Dockerfile is missing!"
+error() {
+    printf 'Error: %s\n' "$*" >&2
     exit 1
-fi
+}
 
-os=${PWD##*/}
+info() {
+    printf '%s\n' "$*"
+}
 
-version=${1:-latest}
+require_file() {
+    local file="${1:-}"
+    [ -f "$file" ] || error "'$file' is missing"
+}
 
-type=${2:-build}
+get_dockerfile_arg() {
+    local arg_name="${1:-}"
+    grep -E "^ARG[[:space:]]+${arg_name}=" Dockerfile | head -n1 | cut -d= -f2- || true
+}
 
-app_component=$(cd ../ && echo "${PWD##*/}")
+resolve_vcs_ref() {
+    local version="${1:-}"
 
-if [ "$app_component" == "zabbix-appliance" ]; then
-    app_component="appliance"
-fi
+    if [ "$version" != "local" ]; then
+        git ls-remote https://git.zabbix.com/scm/zbx/zabbix.git "refs/tags/$version" | awk '{print substr($1,1,10); exit}'
+        return
+    fi
 
-if [[ ! $version =~ ^[0-9]*\.[0-9]*\.[0-9]*$ ]] && [ "$version" != "latest" ]; then
-    echo "Incorrect syntax of the version"
-    exit 1
-fi
+    local major_version zbx_version_raw
+    major_version="$(get_dockerfile_arg "MAJOR_VERSION")"
+    zbx_version_raw="$(get_dockerfile_arg "ZBX_VERSION")"
 
-if [ "$version" != "latest" ]; then
-    VCS_REF=$(git ls-remote https://git.zabbix.com/scm/zbx/zabbix.git refs/tags/"$version" | cut -c1-10)
-else
-    MAJOR_VERSION=$(grep "ARG MAJOR_VERSION" Dockerfile | head -n1 | cut -f2 -d"=")
-    MINOR_VERSION=$(grep "ARG ZBX_VERSION" Dockerfile | head -n1 | cut -f2 -d".")
+    [ -n "$major_version" ] || error "Unable to extract ARG MAJOR_VERSION from Dockerfile"
+    [ -n "$zbx_version_raw" ] || error "Unable to extract ARG ZBX_VERSION from Dockerfile"
 
-    VCS_REF=$MAJOR_VERSION.$MINOR_VERSION
-fi
+    if [ "$zbx_version_raw" = '${MAJOR_VERSION}' ]; then
+        printf '%s\n' "$major_version"
+    else
+        printf '%s\n' "${major_version}.${zbx_version_raw%%.*}"
+    fi
+}
 
-if hash docker 2>/dev/null; then
-    exec_command='docker'
-elif hash podman 2>/dev/null; then
-    exec_command='podman'
-else
-    echo >&2 "Build command requires docker or podman.  Aborting."
-    exit 1
-fi
+resolve_container_runtime() {
+    if command -v docker >/dev/null 2>&1; then
+        printf 'docker\n'
+    elif command -v podman >/dev/null 2>&1; then
+        printf 'podman\n'
+    else
+        error "Build command requires docker or podman"
+    fi
+}
 
-DOCKER_BUILDKIT=1 $exec_command build -t "zabbix-$app_component:$os-$version" \
+validate_version() {
+    local version="${1:-}"
+
+    if [ "$version" = "local" ]; then
+        return 0
+    fi
+
+    [[ "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || error "Incorrect version syntax: '$version'"
+}
+
+build_image() {
+    local runtime="${1:-}"
+    local image_tag="${2:-}"
+    local vcs_ref="${3:-}"
+
+    DOCKER_BUILDKIT=1 "$runtime" build \
+        -t "$image_tag" \
         --build-context sources="../../../sources" \
-        --build-context config_templates="../../../config_templates" \
-        --build-arg VCS_REF="$VCS_REF" \
-        --build-arg BUILD_DATE="$(date -u +"%Y-%m-%dT%H:%M:%SZ")" \
+        --build-context config_templates="../../../templates/config" \
+        --build-arg "VCS_REF=$vcs_ref" \
+        --build-arg "BUILD_DATE=$(date -u '+%Y-%m-%dT%H:%M:%SZ')" \
         -f Dockerfile .
+}
 
-if [ "$type" != "build" ]; then
-    links=""
-    env_vars=""
+main() {
+    require_file "Dockerfile"
 
-    if [[ $app_component =~ .*mysql.* ]]; then
-        links="$links --link mysql-server:mysql"
-        env_vars=("$env_vars" -e MYSQL_DATABASE="zabbix" -e MYSQL_USER="zabbix" -e MYSQL_PASSWORD="zabbix" -e MYSQL_RANDOM_ROOT_PASSWORD=true)
+    local os version app_component vcs_ref runtime image_name
+    os="${PWD##*/}"
+    version="${1:-local}"
+    app_component="$(basename $(cd .. && pwd))"
 
-        $exec_command rm -f mysql-server
-        $exec_command run --name mysql-server -t "${env_vars[@]}" -d mysql:8.0-oracle
-    fi
+    validate_version "$version"
 
-    if [ "$links" != "" ]; then
-        sleep 5
-    fi
+    vcs_ref="$(resolve_vcs_ref "$version")"
+    [ -n "$vcs_ref" ] || error "Unable to resolve VCS_REF for version '$version'"
 
-    $exec_command rm -f zabbix-$app_component
+    runtime="$(resolve_container_runtime)"
+    image_name="zabbix-${app_component}:${os}-${vcs_ref}"
 
-    $exec_command run --name zabbix-$app_component -t -d "$links" "${env_vars[@]}" "zabbix-$app_component:$os-$version"
-fi
+    info "Building image '$image_name' using $runtime"
+    build_image "$runtime" "$image_name" "$vcs_ref"
+}
+
+main "$@"
