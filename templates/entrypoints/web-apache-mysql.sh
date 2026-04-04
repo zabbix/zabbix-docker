@@ -5,7 +5,7 @@ set -euo pipefail
 readonly ENTRYPOINT_LIBS="/usr/lib/docker-entrypoint"
 source "${ENTRYPOINT_LIBS}/bootstrap.sh"
 
-source "${ENTRYPOINT_LIBS}/${DB_ENGINE}.sh"
+source "${ENTRYPOINT_LIBS}/mysql.sh"
 source "${ENTRYPOINT_LIBS}/php.sh"
 source "${ENTRYPOINT_LIBS}/web.sh"
 source "${ENTRYPOINT_LIBS}/apache.sh"

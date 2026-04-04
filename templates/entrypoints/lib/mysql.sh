@@ -1,15 +1,43 @@
 : "${DB_CHARACTER_SET:=utf8mb4}"
 : "${DB_CHARACTER_COLLATE:=utf8mb4_bin}"
 
+[ -n "${DB_ENGINE:-}" ] || error "DB_ENGINE is not set. Expected 'mysql' or 'mariadb'"
+
 source "${ENTRYPOINT_LIBS}/logging.sh"
 source "${ENTRYPOINT_LIBS}/config.sh"
+
+set_mysql_cli() {
+    case "${DB_ENGINE}" in
+        mysql)
+            MYSQL_CLI_BIN="mysql"
+            MYSQL_ADMIN_BIN="mysqladmin"
+            MYSQL_EXTRA_ARGS=()
+            ;;
+        mariadb)
+            MYSQL_CLI_BIN="mariadb"
+            MYSQL_ADMIN_BIN="mariadb-admin"
+            MYSQL_EXTRA_ARGS=(--skip-ssl-verify-server-cert)
+            ;;
+        *)
+            error "Unsupported DB_ENGINE: '${DB_ENGINE}'. Expected 'mysql' or 'mariadb'"
+            ;;
+    esac
+}
 
 set_mysql_tls_args() {
     MYSQL_TLS_ARGS=()
 
     if [ -n "${ZBX_DBTLSCONNECT:-}" ]; then
-        local ssl_mode=${ZBX_DBTLSCONNECT//verify_full/verify_identity}
-        MYSQL_TLS_ARGS+=(--ssl=$ssl_mode)
+        if [ "${DB_ENGINE}" = "mariadb" ]; then
+            MYSQL_TLS_ARGS+=(--ssl)
+
+            if [ "${ZBX_DBTLSCONNECT}" != "required" ]; then
+                MYSQL_TLS_ARGS+=(--ssl-verify-server-cert)
+            fi
+        else
+            local ssl_mode="${ZBX_DBTLSCONNECT//verify_full/verify_identity}"
+            MYSQL_TLS_ARGS+=("--ssl=${ssl_mode}")
+        fi
 
         [ -n "${ZBX_DBTLSCAFILE:-}" ] && MYSQL_TLS_ARGS+=("--ssl-ca=${ZBX_DBTLSCAFILE}")
         [ -n "${ZBX_DBTLSKEYFILE:-}" ] && MYSQL_TLS_ARGS+=("--ssl-key=${ZBX_DBTLSKEYFILE}")
@@ -25,7 +53,7 @@ clear_mysql_auth_env() {
     unset MYSQL_PWD
 }
 
-# Check prerequisites for MySQL database
+# Check prerequisites for MySQL-compatible database
 check_db_variables() {
     local default_db_name="${1:-}"
 
@@ -70,70 +98,73 @@ check_db_variables() {
     DB_SERVER_ZBX_USER="${MYSQL_USER:-zabbix}"
     DB_SERVER_ZBX_PASS="${MYSQL_PASSWORD:-zabbix}"
     DB_SERVER_DBNAME="${MYSQL_DATABASE:-$default_db_name}"
+
+    set_mysql_cli
 }
 
 get_vault_secrets() {
-    WAIT_TIMEOUT=5
-    vault_url="${ZBX_VAULTURL}${ZBX_VAULTPREFIX}${ZBX_VAULTDBPATH}"
-    curl_opts=(-s -m 10 -k)
+    local wait_timeout=5
+    local curl_opts=(-s -m 10 -k)
+    local vaultdata errors
+    local cyberark_opts
 
-
-    if [ -z "${ZBX_VAULTURL}" ] || [ -z "${ZBX_VAULTPREFIX}" ] || [ -z "${ZBX_VAULTDBPATH}" ]; then
+    if [ -z "${ZBX_VAULTURL:-}" ] || [ -z "${ZBX_VAULTPREFIX:-}" ] || [ -z "${ZBX_VAULTDBPATH:-}" ]; then
         error "Missing variables! If ZBX_VAULT is used then ZBX_VAULTURL, ZBX_VAULTPREFIX and ZBX_VAULTDBPATH must be set"
     fi
+    local vault_url="${ZBX_VAULTURL}${ZBX_VAULTPREFIX}${ZBX_VAULTDBPATH}"
 
-    if [ "${ZBX_VAULT:-}" == "HashiCorp" ]; then
+    if [ "${ZBX_VAULT:-}" = "HashiCorp" ]; then
         while ! vaultdata="$(curl "${curl_opts[@]}" -H "X-Vault-Token: $VAULT_TOKEN" "$vault_url")"; do
-            info "**** Vault is not available. Waiting ${WAIT_TIMEOUT} seconds... ****"
-            sleep $WAIT_TIMEOUT
+            info "**** Vault is not available. Waiting ${wait_timeout} seconds... ****"
+            sleep "$wait_timeout"
         done
-        errors=$(printf '%s' "$vaultdata" | jq -r '.errors // empty')
+        errors="$(printf '%s' "$vaultdata" | jq -r '.errors // empty')"
         if [ -n "${errors}" ]; then
             error "Error getting secrets from vault: $errors"
         fi
         DB_SERVER_ZBX_USER="$(printf '%s' "$vaultdata" | jq -r '.data.data.username')"
         DB_SERVER_ZBX_PASS="$(printf '%s' "$vaultdata" | jq -r '.data.data.password')"
 
-    elif [ "${ZBX_VAULT:-}" == "CyberArk" ]; then
+    elif [ "${ZBX_VAULT:-}" = "CyberArk" ]; then
         cyberark_opts=(-H "Content-type: application/json" --cert "$ZBX_VAULTCERTFILE")
 
         # if key is defined use it
-        if [ -n "${ZBX_VAULTKEYFILE}" ]; then
+        if [ -n "${ZBX_VAULTKEYFILE:-}" ]; then
             cyberark_opts+=(--key "$ZBX_VAULTKEYFILE")
         fi
-        while ! vaultdata=$(curl "${curl_opts[@]}" "${cyberark_opts[@]}" "$vault_url") ; do
-            info "**** Vault is not available. Waiting ${WAIT_TIMEOUT} seconds... ****"
-            sleep $WAIT_TIMEOUT
+        while ! vaultdata="$(curl "${curl_opts[@]}" "${cyberark_opts[@]}" "$vault_url")"; do
+            info "**** Vault is not available. Waiting ${wait_timeout} seconds... ****"
+            sleep "$wait_timeout"
         done
 
         errors=$(printf '%s' "$vaultdata" | jq -r '.ErrorCode // empty')
         if [ -n "${errors}" ]; then
-            info "Error getting secrets from vault: $errors"
-            exit 1
+            error "Error getting secrets from vault: $errors"
         fi
+
         DB_SERVER_ZBX_USER="$(printf '%s' "$vaultdata" | jq -r '.UserName')"
         DB_SERVER_ZBX_PASS="$(printf '%s' "$vaultdata" | jq -r '.Content')"
 
-    else 
+    else
         error "ZBX_VAULT has wrong value. HashiCorp or CyberArk are supported!"
     fi
 }
-
 
 check_db_connect() {
     local use_vault="${1:-false}"
     local wait_timeout=5
 
     info "********************"
-    if [ -z "${DB_SERVER_SOCKET:-}" ]; then
+    if [ -n "${DB_SERVER_SOCKET:-}" ]; then
+        info "* DB_SERVER_SOCKET: ${DB_SERVER_SOCKET}"
+    else
         info "* DB_SERVER_HOST: ${DB_SERVER_HOST}"
         info "* DB_SERVER_PORT: ${DB_SERVER_PORT}"
-    else
-        info "* DB_SERVER_SOCKET: ${DB_SERVER_SOCKET}"
     fi
     info "* DB_SERVER_DBNAME: ${DB_SERVER_DBNAME}"
+
     if [ "${DEBUG_MODE:-}" = "true" ]; then
-        if [ "${USE_DB_ROOT_USER}" = "true" ]; then
+        if [ "${USE_DB_ROOT_USER:-}" = "true" ]; then
             info "* DB_SERVER_ROOT_USER: ${DB_SERVER_ROOT_USER}"
             info "* DB_SERVER_ROOT_PASS: ${DB_SERVER_ROOT_PASS}"
         fi
@@ -154,14 +185,15 @@ check_db_connect() {
     set_mysql_tls_args
     set_mysql_auth_env
 
-    while ! mysqladmin ping \
+    while ! "$MYSQL_ADMIN_BIN" ping \
         "${mysql_connect_args[@]}" \
         -u "${DB_SERVER_ROOT_USER}" \
         --silent \
+        "${MYSQL_EXTRA_ARGS[@]}" \
         --connect_timeout=10 \
         "${MYSQL_TLS_ARGS[@]}" >/dev/null 2>&1; do
         info "**** MySQL server is not available. Waiting ${wait_timeout} seconds..."
-        sleep "${wait_timeout}"
+        sleep "$wait_timeout"
     done
 
     clear_mysql_auth_env
@@ -174,15 +206,18 @@ mysql_query() {
     set_mysql_tls_args
     set_mysql_auth_env
 
-    result="$({
-        mysql \
-            --silent \
-            --skip-column-names \
-            "${mysql_connect_args[@]}" \
-            -u "${DB_SERVER_ROOT_USER}" \
-            -e "$query" \
-            "${MYSQL_TLS_ARGS[@]}"
-    })"
+    result="$(
+        {
+            "$MYSQL_CLI_BIN" \
+                --silent \
+                --skip-column-names \
+                "${MYSQL_EXTRA_ARGS[@]}" \
+                "${mysql_connect_args[@]}" \
+                -u "${DB_SERVER_ROOT_USER}" \
+                -e "$query" \
+                "${MYSQL_TLS_ARGS[@]}"
+        } 2>/dev/null
+    )"
 
     clear_mysql_auth_env
     printf '%s\n' "$result"
@@ -197,9 +232,10 @@ exec_sql_file() {
 
     [ "${sql_script: -3}" = ".gz" ] && command="zcat"
 
-    "$command" "$sql_script" | mysql \
+    "$command" "$sql_script" | "$MYSQL_CLI_BIN" \
         --silent \
         --skip-column-names \
+        "${MYSQL_EXTRA_ARGS[@]}" \
         --default-character-set="${DB_CHARACTER_SET}" \
         "${mysql_connect_args[@]}" \
         -u "${DB_SERVER_ROOT_USER}" \
@@ -210,13 +246,12 @@ exec_sql_file() {
 }
 
 create_db_user() {
-    local user_exists=""
-
     [ "${CREATE_ZBX_DB_USER}" = "true" ] || return 0
 
     info "** Creating '${DB_SERVER_ZBX_USER}' user in MySQL database"
 
-    user_exists="$(mysql_query "SELECT 1 FROM mysql.user WHERE user = '${DB_SERVER_ZBX_USER}' AND host = '%'" )"
+    local user_exists
+    user_exists="$(mysql_query "SELECT 1 FROM mysql.user WHERE user = '${DB_SERVER_ZBX_USER}' AND host = '%'")"
 
     if [ -z "$user_exists" ]; then
         mysql_query "CREATE USER '${DB_SERVER_ZBX_USER}'@'%' IDENTIFIED BY '${DB_SERVER_ZBX_PASS}'" >/dev/null
@@ -228,8 +263,7 @@ create_db_user() {
 }
 
 create_db_database() {
-    local db_exists=""
-
+    local db_exists
     db_exists="$(mysql_query "SELECT SCHEMA_NAME FROM information_schema.SCHEMATA WHERE SCHEMA_NAME='${DB_SERVER_DBNAME}'")"
 
     if [ -z "${db_exists}" ]; then
@@ -242,11 +276,10 @@ create_db_database() {
 }
 
 apply_db_scripts() {
-    local db_scripts="${1:-}"
     local sql_script
 
     shopt -s nullglob
-    for sql_script in $db_scripts; do
+    for sql_script in "${ZABBIX_USER_HOME_DIR}"/dbscripts/*.sql; do
         info "** Processing additional '${sql_script}' SQL script"
         exec_sql_file "$sql_script"
     done
@@ -255,9 +288,9 @@ apply_db_scripts() {
 
 create_db_schema() {
     local db_schema_file="${1:-}"
-    local dbversion_table_exists=""
+    local dbversion_table_exists
 
-    dbversion_table_exists="$(mysql_query "SELECT 1 FROM information_schema.tables WHERE table_schema='${DB_SERVER_DBNAME}' and table_name = 'dbversion'")"
+    dbversion_table_exists="$(mysql_query "SELECT 1 FROM information_schema.tables WHERE table_schema='${DB_SERVER_DBNAME}' and table_name='dbversion'")"
 
     if [ -n "${dbversion_table_exists}" ]; then
         warn "** Table '${DB_SERVER_DBNAME}.dbversion' already exists."
@@ -269,6 +302,6 @@ create_db_schema() {
         exec_sql_file "${db_schema_file}"
         info "** Database schema successfully created!"
 
-        apply_db_scripts "${ZABBIX_USER_HOME_DIR}/dbscripts/*.sql"
+        apply_db_scripts
     fi
 }

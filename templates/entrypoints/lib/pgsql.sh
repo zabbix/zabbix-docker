@@ -47,44 +47,45 @@ check_db_variables() {
 }
 
 get_vault_secrets() {
-    WAIT_TIMEOUT=5
-    vault_url="${ZBX_VAULTURL}${ZBX_VAULTPREFIX}${ZBX_VAULTDBPATH}"
-    curl_opts=(-s -m 10 -k)
+    local wait_timeout=5
+    local curl_opts=(-s -m 10 -k)
+    local vaultdata errors
+    local cyberark_opts
 
-
-    if [ -z "${ZBX_VAULTURL}" ] || [ -z "${ZBX_VAULTPREFIX}" ] || [ -z "${ZBX_VAULTDBPATH}" ]; then
+    if [ -z "${ZBX_VAULTURL:-}" ] || [ -z "${ZBX_VAULTPREFIX:-}" ] || [ -z "${ZBX_VAULTDBPATH:-}" ]; then
         error "Missing variables! If ZBX_VAULT is used then ZBX_VAULTURL, ZBX_VAULTPREFIX and ZBX_VAULTDBPATH must be set"
     fi
+    local vault_url="${ZBX_VAULTURL}${ZBX_VAULTPREFIX}${ZBX_VAULTDBPATH}"
 
-    if [ "${ZBX_VAULT:-}" == "HashiCorp" ]; then
+    if [ "${ZBX_VAULT:-}" = "HashiCorp" ]; then
         while ! vaultdata="$(curl "${curl_opts[@]}" -H "X-Vault-Token: $VAULT_TOKEN" "$vault_url")"; do
-            info "**** Vault is not available. Waiting ${WAIT_TIMEOUT} seconds... ****"
-            sleep $WAIT_TIMEOUT
+            info "**** Vault is not available. Waiting ${wait_timeout} seconds... ****"
+            sleep "$wait_timeout"
         done
-        errors=$(printf '%s' "$vaultdata" | jq -r '.errors // empty')
+        errors="$(printf '%s' "$vaultdata" | jq -r '.errors // empty')"
         if [ -n "${errors}" ]; then
             error "Error getting secrets from vault: $errors"
         fi
         DB_SERVER_ZBX_USER="$(printf '%s' "$vaultdata" | jq -r '.data.data.username')"
         DB_SERVER_ZBX_PASS="$(printf '%s' "$vaultdata" | jq -r '.data.data.password')"
 
-    elif [ "${ZBX_VAULT:-}" == "CyberArk" ]; then
+    elif [ "${ZBX_VAULT:-}" = "CyberArk" ]; then
         cyberark_opts=(-H "Content-type: application/json" --cert "$ZBX_VAULTCERTFILE")
 
         # if key is defined use it
-        if [ -n "${ZBX_VAULTKEYFILE}" ]; then
+        if [ -n "${ZBX_VAULTKEYFILE:-}" ]; then
             cyberark_opts+=(--key "$ZBX_VAULTKEYFILE")
         fi
-        while ! vaultdata=$(curl "${curl_opts[@]}" "${cyberark_opts[@]}" "$vault_url") ; do
-            info "**** Vault is not available. Waiting ${WAIT_TIMEOUT} seconds... ****"
-            sleep $WAIT_TIMEOUT
+        while ! vaultdata="$(curl "${curl_opts[@]}" "${cyberark_opts[@]}" "$vault_url")"; do
+            info "**** Vault is not available. Waiting ${wait_timeout} seconds... ****"
+            sleep "$wait_timeout"
         done
 
         errors=$(printf '%s' "$vaultdata" | jq -r '.ErrorCode // empty')
         if [ -n "${errors}" ]; then
-            info "Error getting secrets from vault: $errors"
-            exit 1
+            error "Error getting secrets from vault: $errors"
         fi
+
         DB_SERVER_ZBX_USER="$(printf '%s' "$vaultdata" | jq -r '.UserName')"
         DB_SERVER_ZBX_PASS="$(printf '%s' "$vaultdata" | jq -r '.Content')"
 
@@ -196,14 +197,14 @@ create_db_database() {
 }
 
 apply_db_scripts() {
-    local db_scripts="${1:-}"
     local sql_script
 
-    for sql_script in $db_scripts; do
-        [ -e "$sql_script" ] || continue
-        info "** Processing additional '$sql_script' SQL script"
+    shopt -s nullglob
+    for sql_script in "${ZABBIX_USER_HOME_DIR}"/dbscripts/*.sql; do
+        info "** Processing additional '${sql_script}' SQL script"
         exec_sql_file "$sql_script"
     done
+    shopt -u nullglob
 }
 
 create_db_schema() {
@@ -221,16 +222,13 @@ create_db_schema() {
     if [ -z "${ZBX_DB_VERSION:-}" ]; then
         info "** Creating '${DB_SERVER_DBNAME}' schema in PostgreSQL"
 
-        if [ "${ENABLE_TIMESCALEDB,,}" = "true" ]; then
-            psql_query "CREATE EXTENSION IF NOT EXISTS timescaledb CASCADE;" "${DB_SERVER_DBNAME}" >/dev/null
-        fi
-
         exec_sql_file "${db_schema_file}"
 
         if [ "${ENABLE_TIMESCALEDB,,}" = "true" ]; then
+            psql_query "CREATE EXTENSION IF NOT EXISTS timescaledb CASCADE;" "${DB_SERVER_DBNAME}" >/dev/null
             exec_sql_file "/usr/share/doc/zabbix-server-postgresql/timescaledb.sql"
         fi
 
-        apply_db_scripts "${ZABBIX_USER_HOME_DIR}/dbscripts/*.sql"
+        apply_db_scripts
     fi
 }
