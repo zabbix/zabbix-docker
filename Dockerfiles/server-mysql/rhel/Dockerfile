@@ -21,7 +21,8 @@ ENV TERM=xterm \
     NMAP_PRIVILEGED= \
     ZABBIX_USER_HOME_DIR=/var/lib/zabbix \
     ZABBIX_CONF_DIR=/etc/zabbix \
-    ZBX_FPINGLOCATION=/usr/sbin/fping
+    ZBX_FPINGLOCATION=/usr/sbin/fping \
+    DB_ENGINE=mysql
 
 LABEL description="Zabbix server with MySQL database support" \
       maintainer="alexey.pustovalov@zabbix.com" \
