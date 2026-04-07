@@ -29,7 +29,7 @@ readonly ZABBIX_INTERNAL_ENC_DIR="${ZABBIX_USER_HOME_DIR}/enc_internal"
 
 info "** Deploying Zabbix web-interface (Apache) with MySQL database"
 
-check_db_variables
+check_db_variables "zabbix"
 check_db_connect "true"
 prepare_php_config "MYSQL"
 prepare_web_server

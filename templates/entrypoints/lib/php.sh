@@ -57,6 +57,10 @@ prepare_php_config() {
     export DB_SERVER_SCHEMA="${DB_SERVER_SCHEMA:-}"
     export DB_SERVER_USER="${DB_SERVER_ZBX_USER:-}"
     export DB_SERVER_PASS="${DB_SERVER_ZBX_PASS:-}"
+
+    : "${ZBX_SERVER_HOST:=zabbix-server}"
+    : "${ZBX_SERVER_PORT:=10051}"
+
     export ZBX_SERVER_HOST="${ZBX_SERVER_HOST}"
     export ZBX_SERVER_PORT="${ZBX_SERVER_PORT}"
     export ZBX_SERVER_NAME="${ZBX_SERVER_NAME}"
