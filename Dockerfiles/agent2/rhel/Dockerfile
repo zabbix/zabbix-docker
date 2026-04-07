@@ -67,6 +67,7 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             pcre2 \
 #            smartmontools \
             sudo \
+            c-ares \
             libcurl-minimal" && \
     microdnf -y install \
             --disableplugin=subscription-manager \

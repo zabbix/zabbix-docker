@@ -49,6 +49,7 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             smartmontools \
             shadow-utils \
             sudo \
+            c-ares \
             openssl-libs" && \
     microdnf -y install \
         --disablerepo "*" \

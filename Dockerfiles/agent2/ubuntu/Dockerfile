@@ -52,6 +52,7 @@ RUN --mount=type=cache,target=/var/cache/apt/,sharing=locked \
             sudo \
             libssl3t64 \
             libcurl4t64 \
+            libcares2 \
             libpcre2-8-0" && \
     apt-get -y update && \
     DEBIAN_FRONTEND=noninteractive apt-get -y \

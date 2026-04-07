@@ -46,6 +46,7 @@ RUN set -eux && \
             coreutils \
             smartmontools \
             sudo \
+            c-ares \
             iputils" && \
     apk add \
             --no-cache \
