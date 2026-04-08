@@ -26,7 +26,7 @@ clear_pg_env() {
 check_db_variables() {
     local default_db_name="${1:-}"
 
-    : "${DB_SERVER_HOST:=postgres-server}"
+    : "${DB_SERVER_HOST=postgres-server}"
     : "${DB_SERVER_PORT:=5432}"
     : "${DB_SERVER_SCHEMA:=public}"
     : "${POSTGRES_USE_IMPLICIT_SEARCH_PATH:=false}"
@@ -43,7 +43,7 @@ check_db_variables() {
     DB_SERVER_DBNAME="${POSTGRES_DB:-$default_db_name}"
 
     psql_connect_args=(--port "${DB_SERVER_PORT}")
-    [ -n "${DB_SERVER_HOST}" ] && psql_connect_args=(--host "${DB_SERVER_HOST}" --port "${DB_SERVER_PORT}")
+    [ -n "${DB_SERVER_HOST}" ] && psql_connect_args=(--host "${DB_SERVER_HOST}")
 }
 
 get_vault_secrets() {

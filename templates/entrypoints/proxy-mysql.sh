@@ -32,7 +32,7 @@ update_config() {
 prepare_database() {
     info "** Preparing database"
 
-    check_db_variables "zabbix-proxy"
+    check_db_variables "zabbix_proxy"
     check_db_connect
     create_db_user
     create_db_database

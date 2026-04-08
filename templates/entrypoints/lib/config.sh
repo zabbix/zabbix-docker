@@ -46,7 +46,7 @@ update_config_var() {
     local is_multiple="${4:-false}"
     local log_message
 
-    [[ -f "$config_path" ]] || { error "Missing configuration file: $config_path" >&2; exit 1; }
+    [[ -f "$config_path" ]] || error "Missing configuration file: $config_path"
 
     if is_masked_config_var "$var_name" && [ -n "$var_value" ]; then
         log_message="** Updating $config_path parameter '$var_name': '****'. Enable DEBUG_MODE to view value..."

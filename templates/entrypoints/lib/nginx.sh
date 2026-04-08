@@ -1,6 +1,8 @@
 prepare_web_server() {
     local fcgi_read_timeout
 
+    [[ -f "$NGINX_CONF_FILE" ]] || error "Missing configuration file: $NGINX_CONF_FILE"
+
     if [ "$(id -u)" -eq 0 ]; then
         sed -i -e "/^[#;] user/s/.*/user ${DAEMON_USER};/" "$NGINX_CONF_FILE"
     fi

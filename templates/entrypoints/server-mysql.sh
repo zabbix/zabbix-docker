@@ -7,7 +7,6 @@ source "${ENTRYPOINT_LIBS}/bootstrap.sh"
 
 source "${ENTRYPOINT_LIBS}/mysql.sh"
 source "${ENTRYPOINT_LIBS}/server-config.sh"
-source "${ENTRYPOINT_LIBS}/openssl.sh"
 
 update_config() {
     [ -n "${DB_SERVER_SOCKET:-}" ] && export ZBX_DB_SOCKET="${DB_SERVER_SOCKET}"
