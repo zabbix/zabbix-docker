@@ -39,9 +39,15 @@ set_mysql_tls_args() {
             MYSQL_TLS_ARGS+=("--ssl=${ssl_mode}")
         fi
 
-        [ -n "${ZBX_DBTLSCAFILE:-}" ] && MYSQL_TLS_ARGS+=("--ssl-ca=${ZBX_DBTLSCAFILE}")
-        [ -n "${ZBX_DBTLSKEYFILE:-}" ] && MYSQL_TLS_ARGS+=("--ssl-key=${ZBX_DBTLSKEYFILE}")
-        [ -n "${ZBX_DBTLSCERTFILE:-}" ] && MYSQL_TLS_ARGS+=("--ssl-cert=${ZBX_DBTLSCERTFILE}")
+        if [ -n "${ZBX_DBTLSCAFILE:-}" ]; then
+            MYSQL_TLS_ARGS+=("--ssl-ca=${ZBX_DBTLSCAFILE}")
+        fi
+        if [ -n "${ZBX_DBTLSKEYFILE:-}" ]; then
+            MYSQL_TLS_ARGS+=("--ssl-key=${ZBX_DBTLSKEYFILE}")
+        fi
+        if [ -n "${ZBX_DBTLSCERTFILE:-}" ]; then
+            MYSQL_TLS_ARGS+=("--ssl-cert=${ZBX_DBTLSCERTFILE}")
+        fi
     fi
 }
 
