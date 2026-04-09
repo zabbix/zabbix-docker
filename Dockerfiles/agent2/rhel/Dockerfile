@@ -67,7 +67,7 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             libcurl-minimal" && \
     ARCH_SUFFIX="$(arch)"; \
     microdnf -y install \
-            --disableplugin=subscription-manager \
+#            --disableplugin=subscription-manager \
             --disablerepo="*" \
             --enablerepo="ubi-9-baseos-rpms" \
             --enablerepo="rhel-9-for-$ARCH_SUFFIX-baseos-rpms" \
