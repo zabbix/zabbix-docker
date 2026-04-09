@@ -38,7 +38,6 @@ COPY --from=builder /tmp/zabbix-${ZBX_VERSION}-output/agent2/sbin/zabbix-agent2-
 COPY --from=builder /tmp/zabbix-${ZBX_VERSION}-output/general/bin/zabbix_get /usr/bin/
 COPY --from=builder /tmp/zabbix-${ZBX_VERSION}-output/general/bin/zabbix_sender /usr/bin/
 COPY --from=builder /tmp/zabbix-${ZBX_VERSION}-output/agent2/conf/ ${ZABBIX_CONF_DIR}/
-COPY conf/etc/yum.repos.d/oracle-epel-ol10.repo /etc/yum.repos.d/oracle-epel-ol10.repo
 
 RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
     --mount=type=tmpfs,target=/var/cache/yum/ \
@@ -51,10 +50,18 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             sudo \
             openssl-libs" && \
     microdnf -y install \
+            --disablerepo "*" \
+            --enablerepo "ol10_baseos_latest" \
+            --setopt=install_weak_deps=0 \
+            --setopt=keepcache=0 \
+            --best \
+            --nodocs \
+        oracle-epel-release-el10 && \
+    microdnf -y install \
             --disablerepo="*" \
             --enablerepo="ol10_baseos_latest" \
             --enablerepo="ol10_appstream" \
-            --enablerepo="ol10_u0_developer_EPEL" \
+            --enablerepo="ol10_u1_developer_EPEL" \
             --setopt=install_weak_deps=0 \
             --setopt=keepcache=0 \
             --best \
