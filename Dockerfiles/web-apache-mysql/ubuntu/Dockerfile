@@ -98,13 +98,13 @@ RUN --mount=type=cache,target=/var/cache/apt/,sharing=locked \
             -g zabbix \
             --uid 1997 \
             --shell /sbin/nologin \
-            --home-dir /var/lib/zabbix/ \
+            --home-dir ${ZABBIX_USER_HOME_DIR}/ \
         zabbix && \
     mkdir -p \
         ${ZABBIX_CONF_DIR} \
         ${ZABBIX_CONF_DIR}/web \
         ${ZABBIX_CONF_DIR}/web/certs \
-        ${ZABBIX_USER_HOME_DIR}/ \
+        ${ZABBIX_USER_HOME_DIR} \
         /var/lib/php/session \
         /var/lib/locales/supported.d && \
     rm -rf /etc/apache2/sites-available/* \

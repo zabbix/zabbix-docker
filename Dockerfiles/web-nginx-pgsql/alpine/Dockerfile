@@ -94,7 +94,7 @@ RUN set -eux && \
     mkdir -p ${ZABBIX_CONF_DIR} \
         ${ZABBIX_CONF_DIR}/web \
         ${ZABBIX_CONF_DIR}/web/certs \
-        ${ZABBIX_USER_HOME_DIR}/ \
+        ${ZABBIX_USER_HOME_DIR} \
         /var/lib/php/session && \
     rm -rf /etc/php84/php-fpm.d/www.conf \
         /etc/nginx/http.d/*.conf && \

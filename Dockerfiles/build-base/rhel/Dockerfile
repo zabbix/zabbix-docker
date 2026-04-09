@@ -86,4 +86,5 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             --setopt=keepcache=0 \
             --best \
             --setopt=tsflags=nodocs \
-        ${INSTALL_PKGS}
+        ${INSTALL_PKGS} && \
+    go telemetry off

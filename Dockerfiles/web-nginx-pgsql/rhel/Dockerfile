@@ -19,7 +19,6 @@ RUN set -eux && \
     find "/tmp/zabbix-${ZBX_VERSION}/ui/locale" -name '*.po' -delete && \
     find "/tmp/zabbix-${ZBX_VERSION}/ui/locale" -name '*.sh' -delete
 
-ARG OS_BASE_IMAGE=registry.access.redhat.com/ubi9/ubi-minimal:9.7
 FROM ${OS_BASE_IMAGE}
 
 ARG MAJOR_VERSION
@@ -95,10 +94,10 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
     rm -rf /tmp/epel-release-latest-9.noarch.rpm && \
     ARCH_SUFFIX="$(arch)"; \
     microdnf -y module enable \
-        --disablerepo "*" \
-        --enablerepo "rhel-9-for-$ARCH_SUFFIX-appstream-rpms" \
-        --setopt=install_weak_deps=0 \
-        --setopt=keepcache=0 \
+            --disablerepo "*" \
+            --enablerepo "rhel-9-for-$ARCH_SUFFIX-appstream-rpms" \
+            --setopt=install_weak_deps=0 \
+            --setopt=keepcache=0 \
         php:8.3 \
         postgresql:16 \
         nginx:1.26 && \
@@ -146,7 +145,7 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
     mkdir -p ${ZABBIX_CONF_DIR} \
         ${ZABBIX_CONF_DIR}/web \
         ${ZABBIX_CONF_DIR}/web/certs \
-        ${ZABBIX_USER_HOME_DIR}/ \
+        ${ZABBIX_USER_HOME_DIR} \
         /var/lib/php/session && \
     rm -rf /etc/nginx/conf.d/*.conf \
         /etc/php-fpm.d/www.conf && \

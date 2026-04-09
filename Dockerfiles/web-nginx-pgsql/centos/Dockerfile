@@ -77,7 +77,7 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             --setopt=keepcache=0 \
             --best \
             --nodocs \
-            epel-release && \
+        epel-release && \
     microdnf -y module enable \
             --disablerepo="*" \
             --enablerepo="appstream" \
@@ -118,7 +118,7 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
     mkdir -p ${ZABBIX_CONF_DIR} \
         ${ZABBIX_CONF_DIR}/web \
         ${ZABBIX_CONF_DIR}/web/certs \
-        ${ZABBIX_USER_HOME_DIR}/ \
+        ${ZABBIX_USER_HOME_DIR} \
         /var/lib/php/session && \
     rm -rf /etc/nginx/conf.d/*.conf \
         /etc/php-fpm.d/www.conf && \

@@ -61,4 +61,5 @@ RUN set -eux && \
     apk add \
             --no-cache \
             --clean-protected \
-        ${INSTALL_PKGS}
+        ${INSTALL_PKGS} && \
+    go telemetry off

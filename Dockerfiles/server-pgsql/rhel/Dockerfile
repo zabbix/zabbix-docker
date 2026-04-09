@@ -91,10 +91,10 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
     rm -rf /tmp/epel-release-latest-9.noarch.rpm && \
     ARCH_SUFFIX="$(arch)"; \
     microdnf -y module enable \
-        --disablerepo "*" \
-        --enablerepo "rhel-9-for-$ARCH_SUFFIX-appstream-rpms" \
-        --setopt=install_weak_deps=0 \
-        --setopt=keepcache=0 \
+            --disablerepo "*" \
+            --enablerepo "rhel-9-for-$ARCH_SUFFIX-appstream-rpms" \
+            --setopt=install_weak_deps=0 \
+            --setopt=keepcache=0 \
         postgresql:16 && \
     microdnf -y install \
             --disablerepo="*" \

@@ -84,7 +84,6 @@ RUN set -eux && \
         zabbix && \
     chgrp zabbix /usr/bin/nmap && \
     setcap cap_net_raw+eip /usr/bin/nmap && \
-    mkdir -p ${ZABBIX_CONF_DIR} && \
     chmod u+s /usr/sbin/fping && \
     mkdir -p ${ZABBIX_CONF_DIR} \
         ${ZABBIX_USER_HOME_DIR} \
