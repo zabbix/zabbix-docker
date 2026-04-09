@@ -38,7 +38,6 @@ COPY --from=builder /tmp/zabbix-${ZBX_VERSION}-output/general/bin/zabbix_get /us
 COPY --from=builder /tmp/zabbix-${ZBX_VERSION}-output/general/bin/zabbix_sender /usr/bin/
 COPY --from=builder /tmp/zabbix-${ZBX_VERSION}-output/server/conf/ ${ZABBIX_CONF_DIR}/
 COPY --from=builder /tmp/zabbix-${ZBX_VERSION}-output/server/database/postgresql/ /usr/share/doc/zabbix-server-postgresql/
-COPY conf/etc/yum.repos.d/oracle-epel-ol9.repo /etc/yum.repos.d/oracle-epel-ol9.repo
 
 RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
     --mount=type=tmpfs,target=/var/cache/yum/ \
@@ -74,9 +73,18 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             --setopt=keepcache=0 \
         postgresql:16 && \
     microdnf -y install \
+            --disablerepo "*" \
+            --enablerepo "ol9_baseos_latest" \
+            --setopt=install_weak_deps=0 \
+            --setopt=keepcache=0 \
+            --best \
+            --nodocs \
+        oracle-epel-release-el9 && \
+    microdnf -y install \
             --disablerepo="*" \
             --enablerepo="ol9_baseos_latest" \
             --enablerepo="ol9_appstream" \
+            --enablerepo="ol9_codeready_builder" \
             --enablerepo="ol9_developer_EPEL" \
             --setopt=install_weak_deps=0 \
             --setopt=keepcache=0 \

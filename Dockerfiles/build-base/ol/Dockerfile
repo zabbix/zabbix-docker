@@ -22,8 +22,6 @@ LABEL org.opencontainers.image.authors="Alexey Pustovalov <alexey.pustovalov@zab
       org.opencontainers.image.vendor="Zabbix SIA" \
       org.opencontainers.image.version="${ZBX_VERSION}"
 
-COPY ["conf/etc/yum.repos.d/oracle-epel-ol9.repo", "/etc/yum.repos.d/oracle-epel-ol9.repo"]
-
 RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
     --mount=type=tmpfs,target=/var/cache/yum/ \
     set -eux && \
@@ -55,18 +53,28 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             unixODBC-devel \
             zlib-devel" && \
     microdnf -y module enable \
-        --disablerepo "*" \
-        --enablerepo "ol9_appstream" \
-        --setopt=install_weak_deps=0 \
-        --setopt=keepcache=0 \
+            --disablerepo "*" \
+            --enablerepo "ol9_appstream" \
+            --setopt=install_weak_deps=0 \
+            --setopt=keepcache=0 \
         postgresql:16 && \
     microdnf -y install \
-        --disablerepo "*" \
-        --enablerepo "ol9_baseos_latest" \
-        --enablerepo "ol9_appstream" \
-        --enablerepo "ol9_codeready_builder" \
-        --enablerepo="ol9_developer_EPEL" \
-        --setopt=install_weak_deps=0 \
-        --setopt=keepcache=0 \
-        --best \
-        --nodocs ${INSTALL_PKGS}
+            --disablerepo "*" \
+            --enablerepo "ol9_baseos_latest" \
+            --setopt=install_weak_deps=0 \
+            --setopt=keepcache=0 \
+            --best \
+            --nodocs \
+        oracle-epel-release-el9 && \
+    microdnf -y install \
+            --disablerepo "*" \
+            --enablerepo "ol9_baseos_latest" \
+            --enablerepo "ol9_appstream" \
+            --enablerepo "ol9_codeready_builder" \
+            --enablerepo="ol9_developer_EPEL" \
+            --setopt=install_weak_deps=0 \
+            --setopt=keepcache=0 \
+            --best \
+            --nodocs \
+        ${INSTALL_PKGS} && \
+    go telemetry off

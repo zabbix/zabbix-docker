@@ -33,13 +33,20 @@ STOPSIGNAL SIGTERM
 
 COPY --from=builder /tmp/zabbix-${ZBX_VERSION}-output/web_service/sbin/zabbix_web_service /usr/sbin/zabbix_web_service
 COPY --from=builder /tmp/zabbix-${ZBX_VERSION}-output/web_service/conf/ ${ZABBIX_CONF_DIR}/
-COPY conf/etc/yum.repos.d/oracle-epel-ol9.repo /etc/yum.repos.d/oracle-epel-ol9.repo
 
 RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
     --mount=type=tmpfs,target=/var/cache/yum/ \
     set -eux && \
     INSTALL_PKGS="bash \
             chromium-headless" && \
+    microdnf -y install \
+            --disablerepo "*" \
+            --enablerepo "ol9_baseos_latest" \
+            --setopt=install_weak_deps=0 \
+            --setopt=keepcache=0 \
+            --best \
+            --nodocs \
+        oracle-epel-release-el9 && \
     microdnf -y install \
             --disablerepo="*" \
             --enablerepo="ol9_baseos_latest" \

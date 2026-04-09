@@ -51,7 +51,6 @@ STOPSIGNAL SIGTERM
 
 COPY --from=clean_builder /tmp/zabbix-${ZBX_VERSION}/ui ${ZABBIX_WWW_ROOT}/
 COPY conf/etc/ /etc/
-COPY conf/etc/yum.repos.d/oracle-epel-ol9.repo /etc/yum.repos.d/oracle-epel-ol9.repo
 
 RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
     --mount=type=tmpfs,target=/var/cache/yum/ \
@@ -81,6 +80,14 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             --setopt=install_weak_deps=0 \
             --setopt=keepcache=0 \
         php:8.3 && \
+    microdnf -y install \
+            --disablerepo "*" \
+            --enablerepo "ol9_baseos_latest" \
+            --setopt=install_weak_deps=0 \
+            --setopt=keepcache=0 \
+            --best \
+            --nodocs \
+        oracle-epel-release-el9 && \
     microdnf -y install \
             --disablerepo="*" \
             --enablerepo="ol9_baseos_latest" \

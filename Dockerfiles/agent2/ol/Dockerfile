@@ -35,7 +35,6 @@ COPY --from=builder /tmp/zabbix-${ZBX_VERSION}-output/agent2/sbin/zabbix-agent2-
 COPY --from=builder /tmp/zabbix-${ZBX_VERSION}-output/general/bin/zabbix_get /usr/bin/
 COPY --from=builder /tmp/zabbix-${ZBX_VERSION}-output/general/bin/zabbix_sender /usr/bin/
 COPY --from=builder /tmp/zabbix-${ZBX_VERSION}-output/agent2/conf/ ${ZABBIX_CONF_DIR}/
-COPY conf/etc/yum.repos.d/oracle-epel-ol9.repo /etc/yum.repos.d/oracle-epel-ol9.repo
 
 RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
     --mount=type=tmpfs,target=/var/cache/yum/ \
@@ -47,6 +46,14 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             smartmontools \
             sudo \
             openssl-libs" && \
+    microdnf -y install \
+            --disablerepo "*" \
+            --enablerepo "ol10_baseos_latest" \
+            --setopt=install_weak_deps=0 \
+            --setopt=keepcache=0 \
+            --best \
+            --nodocs \
+        oracle-epel-release-el9 && \
     microdnf -y install \
             --disablerepo="*" \
             --enablerepo="ol9_baseos_latest" \
