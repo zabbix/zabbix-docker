@@ -23,7 +23,7 @@ readonly ZABBIX_INTERNAL_ENC_DIR="${ZABBIX_USER_HOME_DIR}/enc_internal"
 : "${HTTPD_CONF_FILE:=/etc/apache2/httpd.conf}"
 : "${APACHE_SITES_DIR:=/etc/apache2/conf.d}"
 : "${APACHE_SSL_CONFIG_DIR:=/etc/ssl/apache2}"
-: "${PHP_CONFIG_FILE:=/etc/php85/php-fpm.d/zabbix.conf}"
+: "${PHP_CONFIG_FILE:=/etc/php84/php-fpm.d/zabbix.conf}"
 
 #################################################
 

@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 set -euo pipefail
 
@@ -7,18 +7,31 @@ source "${ENTRYPOINT_LIBS}/bootstrap.sh"
 
 source "${ENTRYPOINT_LIBS}/proxy-config.sh"
 
-update_config() {
-    : "${ZBX_USE_NODE_NAME_AS_DB_NAME:=false}"
-    if [ "${ZBX_USE_NODE_NAME_AS_DB_NAME,,}" = "true" ]; then
-        local node_name
-        node_name="$(uname -n)"
-        export ZBX_DB_NAME="${ZABBIX_USER_HOME_DIR}/db_data/${node_name}.sqlite"
-    else
-        export ZBX_DB_NAME="${ZABBIX_USER_HOME_DIR}/db_data/${ZBX_HOSTNAME:-zabbix-proxy-sqlite3}.sqlite"
-    fi
-    unset ZBX_USE_NODE_NAME_AS_DB_NAME
+readonly ZBX_PROXY_CONFIG="${ZABBIX_CONF_DIR}/zabbix_proxy.conf"
 
-    proxy_config
+update_config() {
+    local proxy_name="${ZBX_HOSTNAME:-zabbix-proxy-sqlite3}"
+    local node_name=""
+
+    info "** Preparing Zabbix proxy configuration file"
+
+    [[ -f "$ZBX_PROXY_CONFIG" ]] || error "Missing configuration file: $ZBX_PROXY_CONFIG"
+
+    update_config_var "${ZBX_PROXY_CONFIG}" "DBHost"
+
+    : "${ZBX_USE_NODE_NAME_AS_DB_NAME:=false}"
+    if [ "${ZBX_USE_NODE_NAME_AS_DB_NAME,,}" = "false" ]; then
+        update_config_var "${ZBX_PROXY_CONFIG}" "DBName" "${ZABBIX_USER_HOME_DIR}/db_data/${proxy_name}.sqlite"
+    else
+        node_name="$(uname -n)"
+        update_config_var "${ZBX_PROXY_CONFIG}" "DBName" "${ZABBIX_USER_HOME_DIR}/db_data/${node_name}.sqlite"
+    fi
+
+    update_config_var "${ZBX_PROXY_CONFIG}" "DBUser"
+    update_config_var "${ZBX_PROXY_CONFIG}" "DBPort"
+    update_config_var "${ZBX_PROXY_CONFIG}" "DBPassword"
+
+    proxy_config "$proxy_name"
 }
 
 prepare_service() {
@@ -36,7 +49,7 @@ elif [ "${1#-}" != "$1" ]; then
     set -- /usr/sbin/zabbix_proxy "$@"
 fi
 
-if [ "${1:-}" = '/usr/sbin/zabbix_proxy' ]; then
+if [ "${1:-}" = "/usr/sbin/zabbix_proxy" ]; then
     prepare_service
 fi
 

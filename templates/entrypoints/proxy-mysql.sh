@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 set -euo pipefail
 
@@ -8,25 +8,57 @@ source "${ENTRYPOINT_LIBS}/bootstrap.sh"
 source "${ENTRYPOINT_LIBS}/mysql.sh"
 source "${ENTRYPOINT_LIBS}/proxy-config.sh"
 
+readonly ZBX_PROXY_CONFIG="${ZABBIX_CONF_DIR}/zabbix_proxy.conf"
+
 update_config() {
-    [ -n "${DB_SERVER_SOCKET:-}" ] && export ZBX_DB_SOCKET="${DB_SERVER_SOCKET}"
-    [ -n "${DB_SERVER_HOST:-}" ] && export ZBX_DB_HOST="${DB_SERVER_HOST}"
-    [ -n "${DB_SERVER_PORT:-}" ] && export ZBX_DB_PORT="${DB_SERVER_PORT}"
+    local proxy_name="${ZBX_HOSTNAME:-zabbix-proxy-mysql}"
 
-    export ZBX_DB_NAME="${DB_SERVER_DBNAME}"
+    info "** Preparing Zabbix proxy configuration file"
 
-    if [ -n "${ZBX_VAULT:-}" ] && [ -n "${ZBX_VAULTURL:-}" ] && [ -z "${ZBX_VAULTDBPATH:-}" ]; then
-        export ZBX_DB_USER="${DB_SERVER_ZBX_USER}"
-        export ZBX_DB_PASSWORD="${DB_SERVER_ZBX_PASS}"
-    elif [ -z "${ZBX_VAULT:-}" ] && [ -z "${ZBX_VAULTURL:-}" ]; then
-        export ZBX_DB_USER="${DB_SERVER_ZBX_USER}"
-        export ZBX_DB_PASSWORD="${DB_SERVER_ZBX_PASS}"
-    else
-        unset ZBX_DB_USER
-        unset ZBX_DB_PASSWORD
+    [[ -f "$ZBX_PROXY_CONFIG" ]] || error "Missing configuration file: $ZBX_PROXY_CONFIG"
+
+    if [ -n "${ZBX_DBTLSCONNECT:-}" ]; then
+        update_config_var "${ZBX_PROXY_CONFIG}" "DBTLSConnect" "${ZBX_DBTLSCONNECT:-}"
+        update_config_var "${ZBX_PROXY_CONFIG}" "DBTLSCAFile" "${ZBX_DBTLSCAFILE:-}"
+        update_config_var "${ZBX_PROXY_CONFIG}" "DBTLSCertFile" "${ZBX_DBTLSCERTFILE:-}"
+        update_config_var "${ZBX_PROXY_CONFIG}" "DBTLSKeyFile" "${ZBX_DBTLSKEYFILE:-}"
+        update_config_var "${ZBX_PROXY_CONFIG}" "DBTLSCipher" "${ZBX_DBTLSCIPHER:-}"
+        update_config_var "${ZBX_PROXY_CONFIG}" "DBTLSCipher13" "${ZBX_DBTLSCIPHER13:-}"
     fi
 
-    proxy_config
+    if [ -z "${DB_SERVER_SOCKET:-}" ]; then
+        update_config_var "${ZBX_PROXY_CONFIG}" "DBHost" "${DB_SERVER_HOST:-}"
+        update_config_var "${ZBX_PROXY_CONFIG}" "DBPort" "${DB_SERVER_PORT:-}"
+    else
+        update_config_var "${ZBX_PROXY_CONFIG}" "DBHost"
+        update_config_var "${ZBX_PROXY_CONFIG}" "DBPort"
+    fi
+
+    update_config_var "${ZBX_PROXY_CONFIG}" "DBSocket" "${DB_SERVER_SOCKET:-}"
+    update_config_var "${ZBX_PROXY_CONFIG}" "DBName" "${DB_SERVER_DBNAME:-}"
+    update_config_var "${ZBX_PROXY_CONFIG}" "DBSchema" "${DB_SERVER_SCHEMA:-}"
+
+    if [ -n "${ZBX_VAULTDBPATH:-}" ] && [ -n "${ZBX_VAULTURL:-}" ]; then
+        update_config_var "${ZBX_PROXY_CONFIG}" "Vault" "${ZBX_VAULT:-}"
+        update_config_var "${ZBX_PROXY_CONFIG}" "VaultDBPath" "${ZBX_VAULTDBPATH:-}"
+        update_config_var "${ZBX_PROXY_CONFIG}" "VaultTLSCertFile" "${ZBX_VAULTTLSCERTFILE:-}"
+        update_config_var "${ZBX_PROXY_CONFIG}" "VaultTLSKeyFile" "${ZBX_VAULTTLSKEYFILE:-}"
+        update_config_var "${ZBX_PROXY_CONFIG}" "VaultPrefix" "${ZBX_VAULTPREFIX:-}"
+        update_config_var "${ZBX_PROXY_CONFIG}" "VaultURL" "${ZBX_VAULTURL:-}"
+        update_config_var "${ZBX_PROXY_CONFIG}" "DBUser"
+        update_config_var "${ZBX_PROXY_CONFIG}" "DBPassword"
+    else
+        update_config_var "${ZBX_PROXY_CONFIG}" "Vault"
+        update_config_var "${ZBX_PROXY_CONFIG}" "VaultDBPath"
+        update_config_var "${ZBX_PROXY_CONFIG}" "VaultTLSCertFile"
+        update_config_var "${ZBX_PROXY_CONFIG}" "VaultTLSKeyFile"
+        update_config_var "${ZBX_PROXY_CONFIG}" "VaultPrefix"
+        update_config_var "${ZBX_PROXY_CONFIG}" "VaultURL"
+        update_config_var "${ZBX_PROXY_CONFIG}" "DBUser" "${DB_SERVER_ZBX_USER:-}"
+        update_config_var "${ZBX_PROXY_CONFIG}" "DBPassword" "${DB_SERVER_ZBX_PASS:-}"
+    fi
+
+    proxy_config "$proxy_name"
 }
 
 prepare_database() {
@@ -55,7 +87,7 @@ elif [ "${1#-}" != "$1" ]; then
     set -- /usr/sbin/zabbix_proxy "$@"
 fi
 
-if [ "${1:-}" = '/usr/sbin/zabbix_proxy' ]; then
+if [ "${1:-}" = "/usr/sbin/zabbix_proxy" ]; then
     prepare_service
 fi
 

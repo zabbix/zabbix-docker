@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 set -euo pipefail
 
@@ -8,23 +8,15 @@ source "${ENTRYPOINT_LIBS}/bootstrap.sh"
 source "${ENTRYPOINT_LIBS}/pgsql.sh"
 source "${ENTRYPOINT_LIBS}/server-config.sh"
 
+readonly ZBX_SERVER_CONFIG="$ZABBIX_CONF_DIR/zabbix_server.conf"
+
 update_config() {
-    [ -n "${DB_SERVER_HOST:-}" ] && export ZBX_DB_HOST="${DB_SERVER_HOST}"
-    [ -n "${DB_SERVER_PORT:-}" ] && export ZBX_DB_PORT="${DB_SERVER_PORT}"
+    info "** Preparing Zabbix server configuration file"
 
-    export ZBX_DB_NAME="${DB_SERVER_DBNAME}"
-    export ZBX_DB_SCHEMA="${DB_SERVER_SCHEMA}"
+    [[ -f "$ZBX_SERVER_CONFIG" ]] || error "Missing configuration file: $ZBX_SERVER_CONFIG"
 
-    if [ -n "${ZBX_VAULT:-}" ] && [ -n "${ZBX_VAULTURL:-}" ] && [ -z "${ZBX_VAULTDBPATH:-}" ]; then
-        export ZBX_DB_USER="${DB_SERVER_ZBX_USER}"
-        export ZBX_DB_PASSWORD="${DB_SERVER_ZBX_PASS}"
-    elif [ -z "${ZBX_VAULT:-}" ] && [ -z "${ZBX_VAULTURL:-}" ]; then
-        export ZBX_DB_USER="${DB_SERVER_ZBX_USER}"
-        export ZBX_DB_PASSWORD="${DB_SERVER_ZBX_PASS}"
-    else
-        unset ZBX_DB_USER
-        unset ZBX_DB_PASSWORD
-    fi
+    update_config_var "$ZBX_SERVER_CONFIG" "DBHost" "${DB_SERVER_HOST:-}"
+    update_config_var "$ZBX_SERVER_CONFIG" "DBPort" "${DB_SERVER_PORT:-}"
 
     server_config
 }
@@ -56,7 +48,7 @@ fi
 
 if [ "${1:-}" = '/usr/sbin/zabbix_server' ]; then
     prepare_service
-fi  
+fi
 
 if [ "${1:-}" = "init_db_only" ]; then
     prepare_database

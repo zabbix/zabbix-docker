@@ -3,6 +3,7 @@
 set -euo pipefail
 
 readonly ENTRYPOINT_LIBS="/usr/lib/docker-entrypoint"
+source "${ENTRYPOINT_LIBS}/debug.sh"
 source "${ENTRYPOINT_LIBS}/logging.sh"
 
 : "${JAVA:=/usr/bin/java}"
@@ -22,6 +23,7 @@ build_classpath() {
 
 update_config() {
     info "** Preparing Zabbix Java Gateway log configuration file"
+    [[ -f "$ZBX_GATEWAY_CONFIG" ]] || error "Missing configuration file: $ZBX_GATEWAY_CONFIG"
 
     : ${ZBX_DEBUGLEVEL:=info}
 
@@ -31,7 +33,6 @@ update_config() {
 
 run_service() {
     info "** Preparing Zabbix Java Gateway"
-    [[ -f "$ZBX_GATEWAY_CONFIG" ]] || { error "Missing configuration file: $ZBX_GATEWAY_CONFIG" >&2; exit 1; }
 
     : ${ZBX_TIMEOUT:=3}
 

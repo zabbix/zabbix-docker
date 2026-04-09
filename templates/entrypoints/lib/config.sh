@@ -119,16 +119,17 @@ update_config_multiple_var() {
 
 file_process_from_env() {
     local dir_name="${1:-}"
-    local var_name="${2:-}"
-    local file_name="${3:-}"
-    local var_value="${4:-}"
+    local config_path="${2:-}"
+    local var_name="${3:-}"
+    local file_name="${4:-}"
+    local var_value="${5:-}"
 
     if [ -n "$var_value" ]; then
         file_name="${dir_name}/${var_name}"
         printf '%s' "$var_value" > "$file_name"
-        export "$var_name=$file_name"
     fi
 
+    update_config_var $config_path "$var_name" "$file_name"
     # Remove variable with plain text data, for example ZBX_TLSCAFILE -> ZBX_TLSCA
     unset "${var_name%%FILE}"
 }

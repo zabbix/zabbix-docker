@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+
 set -eo pipefail
 
 ZABBIX_TRAPS_FILE="${ZABBIX_USER_HOME_DIR}/snmptraps/snmptraps.log"

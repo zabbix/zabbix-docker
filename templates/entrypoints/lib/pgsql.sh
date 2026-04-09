@@ -148,7 +148,7 @@ psql_query() {
             "${psql_connect_args[@]}" \
             --username "${DB_SERVER_ROOT_USER}" \
             --command "$query" \
-            --dbname "$db" 2>/dev/null
+            --dbname "$db"
     })"
 
     clear_pg_env

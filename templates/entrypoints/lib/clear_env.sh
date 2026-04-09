@@ -8,6 +8,10 @@ clear_zbx_env() {
             DB_*) unset "$env_var" ;;
             MYSQL_*) unset "$env_var" ;;
             POSTGRES_*) unset "$env_var" ;;
+            # new 7.0
+            ZBX_*) unset "$env_var" ;;
+            DB_*) unset "$env_var" ;;
+            MYSQL_*) unset "$env_var" ;;
         esac
     done < <(env)
 }
