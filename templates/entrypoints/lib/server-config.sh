@@ -1,3 +1,5 @@
+# shellcheck shell=bash
+
 source "${ENTRYPOINT_LIBS}/bootstrap.sh"
 source "${ENTRYPOINT_LIBS}/openssl.sh"
 
@@ -216,9 +218,9 @@ server_config() {
     update_config_var "${ZBX_SERVER_CONFIG}" "StartBrowserPollers" "${ZBX_STARTBROWSERPOLLERS:-}"
 
     if [ "$(id -u)" -ne 0 ]; then
-        export ZBX_USER="$(id -un)"
+        update_config_var "${ZBX_SERVER_CONFIG}" "User" "$(id -un)"
     else
-        export ZBX_ALLOWROOT=1
+        update_config_var "${ZBX_SERVER_CONFIG}" "AllowRoot" "1"
     fi
 
     openssl_rehash "${ZABBIX_USER_HOME_DIR}/ssl/ssl_ca/"

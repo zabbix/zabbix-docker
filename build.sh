@@ -35,7 +35,7 @@ resolve_vcs_ref() {
     [ -n "$major_version" ] || error "Unable to extract ARG MAJOR_VERSION from Dockerfile"
     [ -n "$zbx_version_raw" ] || error "Unable to extract ARG ZBX_VERSION from Dockerfile"
 
-    if [ "$zbx_version_raw" = '${MAJOR_VERSION}' ]; then
+    if [ "$zbx_version_raw" = "\${MAJOR_VERSION}" ]; then
         printf '%s\n' "$major_version"
     else
         printf '%s\n' "${major_version}.${zbx_version_raw%%.*}"
@@ -81,7 +81,7 @@ main() {
     local os version app_component vcs_ref runtime image_name
     os="${PWD##*/}"
     version="${1:-local}"
-    app_component="$(basename $(cd .. && pwd))"
+    app_component="$(basename "$(cd .. && pwd)")"
 
     validate_version "$version"
 

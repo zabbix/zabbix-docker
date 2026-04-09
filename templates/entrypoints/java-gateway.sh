@@ -11,8 +11,9 @@ readonly ZBX_GATEWAY_CONFIG="${ZABBIX_CONF_DIR}/zabbix_java_gateway_logback.xml"
 readonly ZABBIX_JAVA_DIR="/usr/sbin/zabbix_java"
 
 build_classpath() {
-    local classpath="lib"
+    local classpath
     local jar
+    classpath="lib"
 
     while IFS= read -r -d '' jar; do
         classpath="${classpath}:$jar"
@@ -25,7 +26,7 @@ update_config() {
     info "** Preparing Zabbix Java Gateway log configuration file"
     [[ -f "$ZBX_GATEWAY_CONFIG" ]] || error "Missing configuration file: $ZBX_GATEWAY_CONFIG"
 
-    : ${ZBX_DEBUGLEVEL:=info}
+    : "${ZBX_DEBUGLEVEL:=info}"
 
     info "Updating ${ZBX_GATEWAY_CONFIG} 'DebugLevel' parameter: '${ZBX_DEBUGLEVEL}'... updated"
     sed -i -e "/^.*<root level=/s/=.*/=\"${ZBX_DEBUGLEVEL}\">/" "$ZBX_GATEWAY_CONFIG"
@@ -34,12 +35,13 @@ update_config() {
 run_service() {
     info "** Preparing Zabbix Java Gateway"
 
-    : ${ZBX_TIMEOUT:=3}
+    : "${ZBX_TIMEOUT:=3}"
 
     update_config
     cd "$ZABBIX_JAVA_DIR"
 
-    local classpath="$(build_classpath)"
+    local classpath
+    classpath="$(build_classpath)"
 
     local -a java_opts=(
         -server

@@ -1,3 +1,5 @@
+# shellcheck shell=bash
+
 source "${ENTRYPOINT_LIBS}/logging.sh"
 source "${ENTRYPOINT_LIBS}/format.sh"
 
@@ -93,7 +95,7 @@ update_config_var() {
         sed -i -e "/^[#;] ${var_name}=/s/.*/&\n${var_name}=${var_value}/" "$config_path"
         log_message="$log_message added"
     else
-        sed -i -e '$a\' -e "${var_name}=${var_value}" "$config_path"
+        printf '\n%s=%s\n' "$var_name" "$var_value" >> "$config_path"
         log_message="$log_message added at the end"
     fi
 
@@ -129,7 +131,7 @@ file_process_from_env() {
         printf '%s' "$var_value" > "$file_name"
     fi
 
-    update_config_var $config_path "$var_name" "$file_name"
+    update_config_var "$config_path" "$var_name" "$file_name"
     # Remove variable with plain text data, for example ZBX_TLSCAFILE -> ZBX_TLSCA
     unset "${var_name%%FILE}"
 }

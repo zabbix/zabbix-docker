@@ -1,3 +1,5 @@
+# shellcheck shell=bash
+
 openssl_rehash() {
     local ssl_location="${1:-}"
 

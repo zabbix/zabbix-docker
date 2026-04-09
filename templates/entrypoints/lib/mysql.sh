@@ -1,3 +1,5 @@
+# shellcheck shell=bash
+
 : "${DB_CHARACTER_SET:=utf8mb4}"
 : "${DB_CHARACTER_COLLATE:=utf8mb4_bin}"
 

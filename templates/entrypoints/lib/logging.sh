@@ -1,3 +1,5 @@
+# shellcheck shell=bash
+
 timestamp() {
     date -u '+%Y-%m-%dT%H:%M:%SZ'
 }

@@ -1,0 +1,14 @@
+extends: default
+
+rules:
+  document-start: disable
+  comments-indentation: disable
+  truthy: disable
+
+  line-length:
+    max: 180
+    level: warning
+
+  indentation:
+    spaces: 2
+    indent-sequences: consistent

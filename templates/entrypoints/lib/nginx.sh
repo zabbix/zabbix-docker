@@ -1,3 +1,5 @@
+# shellcheck shell=bash
+
 prepare_web_server() {
     local fcgi_read_timeout
 
