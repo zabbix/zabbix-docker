@@ -43,7 +43,7 @@ check_db_variables() {
     DB_SERVER_DBNAME="${POSTGRES_DB:-$default_db_name}"
 
     psql_connect_args=(--port "${DB_SERVER_PORT}")
-    [ -n "${DB_SERVER_HOST}" ] && psql_connect_args=(--host "${DB_SERVER_HOST}")
+    [ -n "${DB_SERVER_HOST}" ] && psql_connect_args+=(--host "${DB_SERVER_HOST}")
 }
 
 get_vault_secrets() {
