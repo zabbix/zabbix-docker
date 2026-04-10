@@ -2,16 +2,18 @@
 
 set -euo pipefail
 
-ENTRYPOINT_LIBS="/usr/lib/docker-entrypoint"
+readonly ENTRYPOINT_LIBS="/usr/lib/docker-entrypoint"
+source "${ENTRYPOINT_LIBS}/debug.sh"
 source "${ENTRYPOINT_LIBS}/logging.sh"
 
 : "${JAVA:=/usr/bin/java}"
-ZBX_GATEWAY_CONFIG="${ZABBIX_CONF_DIR}/zabbix_java_gateway_logback.xml"
-ZABBIX_JAVA_DIR="/usr/sbin/zabbix_java"
+readonly ZBX_GATEWAY_CONFIG="${ZABBIX_CONF_DIR}/zabbix_java_gateway_logback.xml"
+readonly ZABBIX_JAVA_DIR="/usr/sbin/zabbix_java"
 
 build_classpath() {
-    local classpath="lib"
+    local classpath
     local jar
+    classpath="lib"
 
     while IFS= read -r -d '' jar; do
         classpath="${classpath}:$jar"
@@ -22,8 +24,9 @@ build_classpath() {
 
 update_config() {
     info "** Preparing Zabbix Java Gateway log configuration file"
+    [[ -f "$ZBX_GATEWAY_CONFIG" ]] || error "Missing configuration file: $ZBX_GATEWAY_CONFIG"
 
-    : ${ZBX_DEBUGLEVEL:=info}
+    : "${ZBX_DEBUGLEVEL:=info}"
 
     info "Updating ${ZBX_GATEWAY_CONFIG} 'DebugLevel' parameter: '${ZBX_DEBUGLEVEL}'... updated"
     sed -i -e "/^.*<root level=/s/=.*/=\"${ZBX_DEBUGLEVEL}\">/" "$ZBX_GATEWAY_CONFIG"
@@ -31,14 +34,14 @@ update_config() {
 
 run_service() {
     info "** Preparing Zabbix Java Gateway"
-    [[ -f "$ZBX_GATEWAY_CONFIG" ]] || { error "Missing configuration file: $ZBX_GATEWAY_CONFIG" >&2; exit 1; }
 
-    : ${ZBX_TIMEOUT:=3}
+    : "${ZBX_TIMEOUT:=3}"
 
     update_config
     cd "$ZABBIX_JAVA_DIR"
 
-    local classpath="$(build_classpath)"
+    local classpath
+    classpath="$(build_classpath)"
 
     local -a java_opts=(
         -server

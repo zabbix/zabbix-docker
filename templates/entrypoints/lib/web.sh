@@ -1,3 +1,5 @@
+# shellcheck shell=bash
+
 prepare_zbx_config() {
     [ -n "${ZBX_SESSION_NAME:-}" ] || return 0
 

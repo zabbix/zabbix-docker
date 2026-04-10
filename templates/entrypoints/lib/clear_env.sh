@@ -1,3 +1,5 @@
+# shellcheck shell=bash
+
 clear_zbx_env() {
     [[ "${ZBX_CLEAR_ENV:-}" == "false" ]] && return
 

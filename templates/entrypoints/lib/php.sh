@@ -1,3 +1,5 @@
+# shellcheck shell=bash
+
 prepare_php_config() {
     local db_server_type="${1:-}"
 

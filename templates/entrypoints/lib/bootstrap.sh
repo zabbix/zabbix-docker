@@ -1,3 +1,5 @@
+# shellcheck shell=bash
+
 : "${ENTRYPOINT_LIBS:=/usr/lib/docker-entrypoint}"
 
 # Base helpers used by most entrypoints

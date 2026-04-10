@@ -39,13 +39,13 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             java-21-openjdk-headless \
             findutils" && \
     microdnf -y install \
-        --disablerepo="*" \
-        --enablerepo="ol10_baseos_latest" \
-        --enablerepo="ol10_appstream" \
-        --setopt=install_weak_deps=0 \
-        --setopt=keepcache=0 \
-        --best \
-        --nodocs \
+            --disablerepo="*" \
+            --enablerepo="ol10_baseos_latest" \
+            --enablerepo="ol10_appstream" \
+            --setopt=install_weak_deps=0 \
+            --setopt=keepcache=0 \
+            --best \
+            --nodocs \
         ${INSTALL_PKGS} && \
     groupadd \
             --system \

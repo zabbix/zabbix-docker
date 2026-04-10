@@ -1,10 +1,15 @@
+# shellcheck shell=bash
+
 prepare_web_server() {
     if [ "$(id -u)" -eq 0 ]; then
-        export APACHE_RUN_USER="${DAEMON_USER}"
+        APACHE_RUN_USER="${DAEMON_USER}"
+        export APACHE_RUN_USER
     else
-        export APACHE_RUN_USER="$(id -un)"
+        APACHE_RUN_USER="$(id -un)"
+        export APACHE_RUN_USER
     fi
-    export APACHE_RUN_GROUP="${DAEMON_GROUP}"
+    APACHE_RUN_GROUP="${DAEMON_GROUP}"
+    export APACHE_RUN_GROUP
 
     info "** Adding Zabbix virtual host (HTTP)"
     if [ -f "${ZABBIX_CONF_DIR}/apache.conf" ]; then

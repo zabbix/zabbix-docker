@@ -1,3 +1,5 @@
+# shellcheck shell=bash
+
 escape_special_chars() {
     local var_value="${1:-}"
 
