@@ -77,7 +77,7 @@ RUN set -eux && \
             --uid 1997 \
             --ingroup zabbix \
             --shell /sbin/nologin \
-            --home ${ZABBIX_USER_HOME_DIR}/ \
+            --home ${ZABBIX_USER_HOME_DIR} \
         zabbix && \
     adduser zabbix dialout && \
     chgrp zabbix /usr/bin/nmap && \
