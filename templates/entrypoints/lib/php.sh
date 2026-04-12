@@ -26,7 +26,7 @@ prepare_php_config() {
     export PHP_FPM_PM_MAX_REQUESTS
 
     if [ "$(id -u)" -eq 0 ]; then
-        [[ -f "$PHP_CONFIG_FILE" ]] || error "Missing configuration file: $PHP_CONFIG_FILE"
+        [[ -f "$PHP_ZBX_CONFIG_FILE" ]] || error "Missing configuration file: $PHP_CONFIG_FILE"
 
         {
             echo "user = ${DAEMON_USER}"

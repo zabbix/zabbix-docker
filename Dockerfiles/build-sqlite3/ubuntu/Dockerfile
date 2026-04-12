@@ -47,6 +47,7 @@ RUN --mount=from=sources,target=/tmp/src,ro \
         ${ZBX_OUTPUT_DIR}/proxy/conf \
         ${ZBX_OUTPUT_DIR}/proxy/database/${DB_TYPE} \
         ${ZBX_OUTPUT_DIR}/java_gateway/sbin \
+        ${ZBX_OUTPUT_DIR}/web/conf \
         ${ZBX_OUTPUT_DIR}/general/sbin \
         ${ZBX_OUTPUT_DIR}/general/bin \
         ${ZBX_OUTPUT_DIR}/general/conf && \

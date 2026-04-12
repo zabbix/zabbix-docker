@@ -1,5 +1,14 @@
 # shellcheck shell=bash
 
+: "${DAEMON_USER:=apache}"
+: "${DAEMON_GROUP:=apache}"
+
+: "${APACHE_RUN_DIR:=/tmp/apache2}"
+
+: "${HTTPD_CONF_FILE:=/etc/apache2/httpd.conf}"
+: "${APACHE_SITES_DIR:=/etc/apache2/conf.d}"
+: "${APACHE_SSL_CONFIG_DIR:=/etc/ssl/apache2}"
+
 prepare_web_server() {
     if [ "$(id -u)" -eq 0 ]; then
         APACHE_RUN_USER="${DAEMON_USER}"
@@ -47,13 +56,11 @@ prepare_web_server() {
     fi
 
     if [ -z "${WEB_REAL_IP_FROM:-}" ]; then
-        [ -f "${ZABBIX_CONF_DIR}/apache.conf" ] && sed -i '/WEB_REAL_IP_FROM/d' "${ZABBIX_CONF_DIR}/apache.conf"
-        [ -f "${ZABBIX_CONF_DIR}/apache_ssl.conf" ] && sed -i '/WEB_REAL_IP_FROM/d' "${ZABBIX_CONF_DIR}/apache_ssl.conf"
+        [ -f "${APACHE_SITES_DIR}/server-common.inc" ] && sed -i '/WEB_REAL_IP_FROM/d' "${APACHE_SITES_DIR}/server-common.inc"
     fi
 
     if [ -z "${WEB_REAL_IP_HEADER:-}" ]; then
-        [ -f "${ZABBIX_CONF_DIR}/apache.conf" ] && sed -i '/WEB_REAL_IP_HEADER/d' "${ZABBIX_CONF_DIR}/apache.conf"
-        [ -f "${ZABBIX_CONF_DIR}/apache_ssl.conf" ] && sed -i '/WEB_REAL_IP_HEADER/d' "${ZABBIX_CONF_DIR}/apache_ssl.conf"
+        [ -f "${APACHE_SITES_DIR}/server-common.inc" ] && sed -i '/WEB_REAL_IP_HEADER/d' "${APACHE_SITES_DIR}/server-common.inc"
     fi
 
     mkdir -p "${APACHE_RUN_DIR}"

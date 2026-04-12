@@ -32,10 +32,13 @@ ENV TERM=xterm \
     ZABBIX_WWW_ROOT=/usr/share/zabbix
 
 ENV DB_ENGINE=mariadb \
-    APACHE_RUN_DIR="/tmp/apache2" \
-    HTTPD_CONF_FILE="/etc/apache2/httpd.conf" \
-    APACHE_SITES_DIR="/etc/apache2/conf.d" \
-    PHP_CONFIG_FILE="/etc/php85/php-fpm.d/zabbix.conf"
+    APACHE_BIN=/usr/sbin/httpd \
+    PHP_FPM_BIN=/usr/sbin/php-fpm85 \
+    APACHE_RUN_DIR=/tmp/apache2 \
+    HTTPD_CONF_FILE=/etc/apache2/httpd.conf \
+    APACHE_SITES_DIR=/etc/apache2/conf.d \
+    PHP_FPM_CONFIG=/etc/php85/php-fpm.conf \
+    PHP_ZBX_CONFIG_FILE=/etc/php85/php-fpm.d/zabbix.conf
 
 LABEL org.opencontainers.image.authors="Alexey Pustovalov <alexey.pustovalov@zabbix.com>" \
       org.opencontainers.image.description="Zabbix web-interface based on Apache2 web server with MySQL database support" \
@@ -78,8 +81,7 @@ RUN set -eux && \
             php85-fileinfo \
             php85-xmlreader \
             php85-xmlwriter \
-            php85-openssl \
-            supervisor" && \
+            php85-openssl" && \
     apk add \
             --no-cache \
             --clean-protected \
