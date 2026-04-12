@@ -84,10 +84,6 @@ RUN --mount=type=cache,target=/var/cache/apt/,sharing=locked \
             -o Dpkg::Options::="--force-confold" \
             --no-install-recommends install \
         ${INSTALL_PKGS} && \
-    find /usr/lib -type f -name '*.pyc' -delete && \
-    find /usr/share/python3 -type f -name '*.pyc' -delete && \
-    find /usr/lib -type d -name '__pycache__' -empty -delete && \
-    find /usr/share/python3 -type d -name '__pycache__' -empty -delete && \
     groupadd \
             --system \
             --gid 1995 \
