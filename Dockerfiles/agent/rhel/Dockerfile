@@ -103,7 +103,7 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             --shell /sbin/nologin \
             --home-dir ${ZABBIX_USER_HOME_DIR} \
         zabbix && \
-    mkdir -p ${ZABBIX_CONF_DIR} \ 
+    mkdir -p ${ZABBIX_CONF_DIR} \
         ${ZABBIX_CONF_DIR}/zabbix_agentd.d \
         ${ZABBIX_USER_HOME_DIR} \
         ${ZABBIX_USER_HOME_DIR}/enc \

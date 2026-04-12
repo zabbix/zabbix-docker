@@ -1,3 +1,5 @@
+# shellcheck shell=bash
+
 source "${ENTRYPOINT_LIBS}/bootstrap.sh"
 source "${ENTRYPOINT_LIBS}/openssl.sh"
 
@@ -16,23 +18,28 @@ server_config() {
     file_process_from_env "${ZABBIX_INTERNAL_ENC_DIR}" "ZBX_TLSCERTFILE" "${ZBX_TLSCERTFILE:-}" "${ZBX_TLSCERT:-}"
     file_process_from_env "${ZABBIX_INTERNAL_ENC_DIR}" "ZBX_TLSKEYFILE" "${ZBX_TLSKEYFILE:-}" "${ZBX_TLSKEY:-}"
 
-    if [ "${ZBX_AUTOHANODENAME:-}" == 'fqdn' ] && [ ! -n "${ZBX_HANODENAME:-}" ]; then
-        export ZBX_HANODENAME="$(hostname -f)"
-    elif [ "${ZBX_AUTOHANODENAME:-}" == 'hostname' ] && [ ! -n "${ZBX_HANODENAME:-}" ]; then
-        export ZBX_HANODENAME="$(hostname)"
+    if [ "${ZBX_AUTOHANODENAME:-}" == 'fqdn' ] && [ -z "${ZBX_HANODENAME:-}" ]; then
+        ZBX_HANODENAME="$(hostname -f)"
+        export ZBX_HANODENAME
+    elif [ "${ZBX_AUTOHANODENAME:-}" == 'hostname' ] && [ -z "${ZBX_HANODENAME:-}" ]; then
+        ZBX_HANODENAME="$(hostname)"
+        export ZBX_HANODENAME
     fi
     unset ZBX_AUTOHANODENAME
 
     : "${ZBX_NODEADDRESSPORT:=10051}"
-    if [ "${ZBX_AUTONODEADDRESS:-}" == 'fqdn' ] && [ ! -n "${ZBX_NODEADDRESS:-}" ]; then
-        export ZBX_NODEADDRESS="$(hostname -f):${ZBX_NODEADDRESSPORT}"
-    elif [ "${ZBX_AUTONODEADDRESS:-}" == 'hostname' ] && [ ! -n "${ZBX_NODEADDRESS:-}" ]; then
-        export ZBX_NODEADDRESS="$(hostname):${ZBX_NODEADDRESSPORT}"
+    if [ "${ZBX_AUTONODEADDRESS:-}" == 'fqdn' ] && [ -z "${ZBX_NODEADDRESS:-}" ]; then
+        ZBX_NODEADDRESS="$(hostname -f):${ZBX_NODEADDRESSPORT}"
+        export ZBX_NODEADDRESS
+    elif [ "${ZBX_AUTONODEADDRESS:-}" == 'hostname' ] && [ -z "${ZBX_NODEADDRESS:-}" ]; then
+        ZBX_NODEADDRESS="$(hostname):${ZBX_NODEADDRESSPORT}"
+        export ZBX_NODEADDRESS
     fi
     unset ZBX_AUTONODEADDRESS
 
     if [ "$(id -u)" -ne 0 ]; then
-        export ZBX_USER="$(id -un)"
+        ZBX_USER="$(id -un)"
+        export ZBX_USER
     else
         export ZBX_ALLOWROOT=1
     fi

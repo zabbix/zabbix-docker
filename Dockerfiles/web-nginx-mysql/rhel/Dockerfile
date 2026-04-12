@@ -34,8 +34,11 @@ ENV TERM=xterm \
     ZABBIX_WWW_ROOT=/usr/share/zabbix
 
 ENV DB_ENGINE=mysql \
+    NGINX_BIN=/usr/sbin/nginx \
+    PHP_FPM_BIN=/usr/sbin/php-fpm \
     NGINX_CONFD_DIR=/etc/nginx/conf.d \
-    PHP_CONFIG_FILE=/etc/php-fpm.d/zabbix.conf
+    PHP_FPM_CONFIG=/etc/php-fpm.conf \
+    PHP_ZBX_CONFIG_FILE=/etc/php-fpm.d/zabbix.conf
 
 LABEL description="Zabbix web-interface based on Nginx web server with MySQL database support" \
       maintainer="alexey.pustovalov@zabbix.com" \
@@ -67,6 +70,7 @@ STOPSIGNAL SIGTERM
 
 COPY licenses /licenses/
 COPY --from=clean_builder /tmp/zabbix-${ZBX_VERSION}/ui ${ZABBIX_WWW_ROOT}/
+COPY --from=clean_builder /tmp/zabbix-${ZBX_VERSION}-output/web/conf ${ZABBIX_CONF_DIR}/web/
 COPY conf/etc/ /etc/
 
 RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
@@ -75,7 +79,6 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
     INSTALL_PKGS="bash \
             curl-minimal \
             jq \
-            supervisor \
             shadow-utils \
             findutils \
             glibc-locale-source \
@@ -91,9 +94,6 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             php-mbstring \
             php-mysqlnd \
             php-xml" && \
-    curl --tlsv1.2 -sSf -L https://dl.fedoraproject.org/pub/epel/epel-release-latest-10.noarch.rpm -o /tmp/epel-release-latest-10.noarch.rpm && \
-    rpm -ivh /tmp/epel-release-latest-10.noarch.rpm && \
-    rm -rf /tmp/epel-release-latest-10.noarch.rpm && \
     ARCH_SUFFIX="$(arch)"; \
     microdnf -y install \
             --disablerepo="*" \
@@ -101,7 +101,6 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             --enablerepo="ubi-10-appstream-rpms" \
             --enablerepo="rhel-10-for-$ARCH_SUFFIX-baseos-rpms" \
             --enablerepo="rhel-10-for-$ARCH_SUFFIX-appstream-rpms" \
-            --enablerepo="epel" \
             --setopt=install_weak_deps=0 \
             --setopt=keepcache=0 \
             --best \

@@ -58,7 +58,7 @@ fi
 
 if [ "${1:-}" = '/usr/sbin/zabbix_server' ]; then
     prepare_service
-fi  
+fi
 
 if [ "${1:-}" = "init_db_only" ]; then
     prepare_database

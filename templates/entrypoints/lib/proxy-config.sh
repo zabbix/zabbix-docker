@@ -1,3 +1,5 @@
+# shellcheck shell=bash
+
 source "${ENTRYPOINT_LIBS}/bootstrap.sh"
 source "${ENTRYPOINT_LIBS}/openssl.sh"
 
@@ -27,7 +29,8 @@ proxy_config() {
     file_process_from_env "${ZABBIX_INTERNAL_ENC_DIR}" "ZBX_TLSPSKFILE" "${ZBX_TLSPSKFILE:-}" "${ZBX_TLSPSK:-}"
 
     if [ "$(id -u)" -ne 0 ]; then
-        export ZBX_USER="$(id -un)"
+        ZBX_USER="$(id -un)"
+        export ZBX_USER
     else
         export ZBX_ALLOWROOT=1
     fi

@@ -78,7 +78,8 @@ update_config() {
     file_process_from_env "${ZABBIX_INTERNAL_ENC_DIR}" "ZBX_TLSPSKFILE" "${ZBX_TLSPSKFILE:-}" "${ZBX_TLSPSK:-}"
 
     if [ "$(id -u)" -ne 0 ]; then
-        export ZBX_USER="$(id -un)"
+        ZBX_USER="$(id -un)"
+        export ZBX_USER
     else
         export ZBX_ALLOWROOT=1
     fi
@@ -87,13 +88,17 @@ update_config() {
 update_plugin_config() {
     info "** Preparing Zabbix agent 2 plugin configuration files"
 
-    update_config_var "${ZABBIX_CONF_DIR}/zabbix_agent2.d/plugins.d/mongodb.conf" "Plugins.MongoDB.System.Path" "/usr/sbin/zabbix-agent2-plugin/mongodb"
-    update_config_var "${ZABBIX_CONF_DIR}/zabbix_agent2.d/plugins.d/postgresql.conf" "Plugins.PostgreSQL.System.Path" "/usr/sbin/zabbix-agent2-plugin/postgresql"
-    update_config_var "${ZABBIX_CONF_DIR}/zabbix_agent2.d/plugins.d/mssql.conf" "Plugins.MSSQL.System.Path" "/usr/sbin/zabbix-agent2-plugin/mssql"
-    update_config_var "${ZABBIX_CONF_DIR}/zabbix_agent2.d/plugins.d/ember.conf" "Plugins.EmberPlus.System.Path" "/usr/sbin/zabbix-agent2-plugin/ember-plus"
-    if command -v nvidia-smi 2>&1 >/dev/null
+    local plugin_config_dir="${ZABBIX_CONF_DIR}/zabbix_agent2.d/plugins.d"
+    local plugin_bin_dir="/usr/sbin/zabbix-agent2-plugin"
+
+    update_config_var "$plugin_config_dir/mongodb.conf" "Plugins.MongoDB.System.Path" "$plugin_bin_dir/mongodb"
+    update_config_var "$plugin_config_dir/postgresql.conf" "Plugins.PostgreSQL.System.Path" "$plugin_bin_dir/postgresql"
+    update_config_var "$plugin_config_dir/mssql.conf" "Plugins.MSSQL.System.Path" "$plugin_bin_dir/mssql"
+    update_config_var "$plugin_config_dir/ember.conf" "Plugins.EmberPlus.System.Path" "$plugin_bin_dir/ember-plus"
+
+    if command -v nvidia-smi >/dev/null 2>&1
     then
-        update_config_var "${ZABBIX_CONF_DIR}/zabbix_agent2.d/plugins.d/nvidia.conf" "Plugins.NVIDIA.System.Path" "/usr/sbin/zabbix-agent2-plugin/nvidia-gpu"
+        update_config_var "$plugin_config_dir/nvidia.conf" "Plugins.NVIDIA.System.Path" "$plugin_bin_dir/nvidia-gpu"
     fi
 }
 

@@ -31,8 +31,11 @@ ENV TERM=xterm \
     ZABBIX_USER_HOME_DIR=/var/lib/zabbix \
     ZABBIX_WWW_ROOT=/usr/share/zabbix
 
-ENV NGINX_CONFD_DIR=/etc/nginx/conf.d \
-    PHP_CONFIG_FILE=/etc/php-fpm.d/zabbix.conf
+ENV NGINX_BIN=/usr/sbin/nginx \
+    PHP_FPM_BIN=/usr/sbin/php-fpm \
+    NGINX_CONFD_DIR=/etc/nginx/conf.d \
+    PHP_FPM_CONFIG=/etc/php-fpm.conf \
+    PHP_ZBX_CONFIG_FILE=/etc/php-fpm.d/zabbix.conf
 
 LABEL org.opencontainers.image.authors="Alexey Pustovalov <alexey.pustovalov@zabbix.com>" \
       org.opencontainers.image.description="Zabbix web-interface based on Nginx web server with PostgreSQL database support" \
@@ -47,6 +50,7 @@ LABEL org.opencontainers.image.authors="Alexey Pustovalov <alexey.pustovalov@zab
 STOPSIGNAL SIGTERM
 
 COPY --from=clean_builder /tmp/zabbix-${ZBX_VERSION}/ui ${ZABBIX_WWW_ROOT}/
+COPY --from=clean_builder /tmp/zabbix-${ZBX_VERSION}-output/web/conf ${ZABBIX_CONF_DIR}/web/
 COPY conf/etc/ /etc/
 
 RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
@@ -68,21 +72,11 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             postgresql \
             jq \
             findutils \
-            glibc-locale-source \
-            supervisor" && \
-    microdnf -y install \
-            --disablerepo "*" \
-            --enablerepo "ol10_baseos_latest" \
-            --setopt=install_weak_deps=0 \
-            --setopt=keepcache=0 \
-            --best \
-            --nodocs \
-        oracle-epel-release-el10 && \
+            glibc-locale-source" && \
     microdnf -y install \
             --disablerepo="*" \
             --enablerepo="ol10_baseos_latest" \
             --enablerepo="ol10_appstream" \
-            --enablerepo="ol10_u1_developer_EPEL" \
             --setopt=install_weak_deps=0 \
             --setopt=keepcache=0 \
             --best \

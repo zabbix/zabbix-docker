@@ -1,3 +1,5 @@
+# shellcheck shell=bash
+
 source "${ENTRYPOINT_LIBS}/logging.sh"
 source "${ENTRYPOINT_LIBS}/format.sh"
 
@@ -46,7 +48,7 @@ update_config_var() {
     local is_multiple="${4:-false}"
     local log_message
 
-    [[ -f "$config_path" ]] || { error "Missing configuration file: $config_path" >&2; exit 1; }
+    [[ -f "$config_path" ]] || error "Missing configuration file: $config_path"
 
     if is_masked_config_var "$var_name" && [ -n "$var_value" ]; then
         log_message="** Updating $config_path parameter '$var_name': '****'. Enable DEBUG_MODE to view value..."
@@ -93,7 +95,7 @@ update_config_var() {
         sed -i -e "/^[#;] ${var_name}=/s/.*/&\n${var_name}=${var_value}/" "$config_path"
         log_message="$log_message added"
     else
-        sed -i -e '$a\' -e "${var_name}=${var_value}" "$config_path"
+        printf '\n%s=%s\n' "$var_name" "$var_value" >> "$config_path"
         log_message="$log_message added at the end"
     fi
 

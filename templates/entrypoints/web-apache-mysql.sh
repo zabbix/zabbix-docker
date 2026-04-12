@@ -10,8 +10,6 @@ source "${ENTRYPOINT_LIBS}/php.sh"
 source "${ENTRYPOINT_LIBS}/web.sh"
 source "${ENTRYPOINT_LIBS}/apache.sh"
 
-readonly ZABBIX_INTERNAL_ENC_DIR="${ZABBIX_USER_HOME_DIR}/enc_internal"
-
 : "${ZBX_SERVER_NAME:=Zabbix docker}"
 : "${ZBX_SERVER_PORT:=10051}"
 : "${PHP_TZ:=Europe/Riga}"
