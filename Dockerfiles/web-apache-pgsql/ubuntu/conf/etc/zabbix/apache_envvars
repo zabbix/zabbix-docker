@@ -1,4 +1,0 @@
-export APACHE_RUN_USER=$(id -n -u)
-export APACHE_RUN_GROUP=www-data
-export APACHE_PID_FILE=/tmp/apache2.pid
-export APACHE_RUN_DIR=/tmp/apache2

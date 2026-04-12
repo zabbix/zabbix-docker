@@ -76,8 +76,7 @@ RUN set -eux && \
             php85-xmlreader \
             php85-xmlwriter \
             php85-openssl \
-            postgresql17-client \
-            supervisor" && \
+            postgresql17-client" && \
     apk add \
             --no-cache \
             --clean-protected \

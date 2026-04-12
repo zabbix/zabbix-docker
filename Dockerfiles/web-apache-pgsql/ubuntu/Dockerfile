@@ -34,10 +34,13 @@ ENV TERM=xterm \
 
 ENV DAEMON_USER=www-data \
     DAEMON_GROUP=www-data \
+    APACHE_BIN=/usr/sbin/apache2 \
+    PHP_FPM_BIN=/usr/sbin/php-fpm8.5 \
     APACHE_RUN_DIR=/tmp/apache2 \
     HTTPD_CONF_FILE=/etc/apache2/apache2.conf \
     APACHE_SITES_DIR=/etc/apache2/sites-enabled \
-    PHP_CONFIG_FILE=/etc/php/8.5/fpm/pool.d/zabbix.conf
+    PHP_FPM_CONFIG=/etc/php/8.5/fpm/php-fpm.conf \
+    PHP_ZBX_CONFIG_FILE=/etc/php/8.5/fpm/pool.d/zabbix.conf
 
 LABEL org.opencontainers.image.authors="Alexey Pustovalov <alexey.pustovalov@zabbix.com>" \
       org.opencontainers.image.description="Zabbix web-interface based on Apache2 web server with PostgreSQL database support" \
@@ -76,8 +79,7 @@ RUN --mount=type=cache,target=/var/cache/apt/,sharing=locked \
             php8.5-xml \
             php8.5-pgsql \
             postgresql-client \
-            jq \
-            supervisor" && \
+            jq" && \
     apt-get -y update && \
     DEBIAN_FRONTEND=noninteractive apt-get -y \
             -o Dpkg::Options::="--force-confdef" \

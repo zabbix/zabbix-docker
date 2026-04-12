@@ -32,10 +32,13 @@ ENV TERM=xterm \
     ZABBIX_WWW_ROOT=/usr/share/zabbix
 
 ENV DB_ENGINE=mysql \
+    APACHE_BIN=/usr/sbin/httpd \
+    PHP_FPM_BIN=/usr/sbin/php-fpm \
     APACHE_RUN_DIR=/tmp/httpd \
     HTTPD_CONF_FILE=/etc/httpd/conf/httpd.conf \
     APACHE_SITES_DIR=/etc/httpd/conf.d \
-    PHP_CONFIG_FILE=/etc/php-fpm.d/zabbix.conf
+    PHP_FPM_CONFIG=/etc/php-fpm.conf \
+    PHP_ZBX_CONFIG_FILE=/etc/php-fpm.d/zabbix.conf
 
 LABEL org.opencontainers.image.authors="Alexey Pustovalov <alexey.pustovalov@zabbix.com>" \
       org.opencontainers.image.description="Zabbix web-interface based on Apache2 web server with MySQL database support" \
@@ -74,21 +77,11 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             php-xml \
             findutils \
             glibc-locale-source \
-            jq \
-            supervisor" && \
-    microdnf -y install \
-            --disablerepo "*" \
-            --enablerepo "ol10_baseos_latest" \
-            --setopt=install_weak_deps=0 \
-            --setopt=keepcache=0 \
-            --best \
-            --nodocs \
-        oracle-epel-release-el10 && \
+            jq" && \
     microdnf -y install \
             --disablerepo="*" \
             --enablerepo="ol10_baseos_latest" \
             --enablerepo="ol10_appstream" \
-            --enablerepo="ol10_u1_developer_EPEL" \
             --setopt=install_weak_deps=0 \
             --setopt=keepcache=0 \
             --best \
