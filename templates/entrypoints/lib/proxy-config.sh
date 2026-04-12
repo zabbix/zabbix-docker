@@ -3,6 +3,9 @@
 source "${ENTRYPOINT_LIBS}/bootstrap.sh"
 source "${ENTRYPOINT_LIBS}/openssl.sh"
 
+# Default Zabbix server host
+: ${ZBX_SERVER_HOST:="zabbix-server"}
+
 # Internal directory for TLS related files, used when TLS*File specified as plain text values
 readonly ZABBIX_INTERNAL_ENC_DIR="${ZABBIX_USER_HOME_DIR}/enc_internal"
 
@@ -10,6 +13,9 @@ proxy_config() {
     local default_hostname="${1:-}"
 
     [[ -f "$ZBX_PROXY_CONFIG" ]] || error "Missing configuration file: $ZBX_PROXY_CONFIG"
+
+    update_config_var "${ZBX_PROXY_CONFIG}" "ProxyMode" "${ZBX_PROXYMODE:-}"
+    update_config_var "${ZBX_PROXY_CONFIG}" "Server" "${ZBX_SERVER_HOST}"
 
     if [ -z "${ZBX_HOSTNAME:-}" ] && [ -n "${ZBX_HOSTNAMEITEM:-}" ]; then
         update_config_var "${ZBX_PROXY_CONFIG}" "Hostname" ""
