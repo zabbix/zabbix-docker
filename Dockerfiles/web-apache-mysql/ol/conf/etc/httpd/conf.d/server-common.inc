@@ -6,6 +6,27 @@ RemoteIPHeader ${WEB_REAL_IP_HEADER}
     SetHandler "proxy:unix:/tmp/php-fpm.sock|fcgi://localhost"
 </LocationMatch>
 
+<DirectoryMatch "^/usr/share/zabbix/(conf|app|include|local|locale|vendor)(/|$)">
+    Require all denied
+    <Files "*.php">
+        Require all denied
+    </Files>
+</DirectoryMatch>
+
+<Directory "/usr/share/zabbix/data">
+    <Files "top_passwords.txt">
+        Require all denied
+    </Files>
+</Directory>
+
+<Location "/robots.txt">
+    Require all granted
+</Location>
+
+<LocationMatch "/\.">
+    Require all denied
+</LocationMatch>
+
 <Directory "/usr/share/zabbix">
     Options FollowSymLinks
     AllowOverride None
@@ -36,22 +57,3 @@ RemoteIPHeader ${WEB_REAL_IP_HEADER}
         Header append Cache-Control "public"
     </FilesMatch>
 </Directory>
-
-<DirectoryMatch "^/usr/share/zabbix/(conf|app|include|local|locale|vendor)$">
-    Require all denied
-    <Files "*.php">
-        Require all denied
-    </Files>
-</DirectoryMatch>
-
-<Location "^/usr/share/zabbix/robots.txt">
-    Require all granted
-</Location>
-
-<Files "^/usr/share/zabbix/data/top_passwords.txt">
-    Require all denied
-</Files>
-
-<LocationMatch "^/\.">
-    Require all denied
-</LocationMatch>
