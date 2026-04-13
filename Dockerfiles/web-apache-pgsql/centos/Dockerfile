@@ -31,8 +31,7 @@ ENV TERM=xterm \
     ZABBIX_USER_HOME_DIR=/var/lib/zabbix \
     ZABBIX_WWW_ROOT=/usr/share/zabbix
 
-ENV DB_ENGINE=mysql \
-    APACHE_BIN=/usr/sbin/httpd \
+ENV APACHE_BIN=/usr/sbin/httpd \
     PHP_FPM_BIN=/usr/sbin/php-fpm \
     APACHE_RUN_DIR=/tmp/httpd \
     HTTPD_CONF_FILE=/etc/httpd/conf/httpd.conf \
