@@ -55,23 +55,23 @@ RUN set -eux && \
             curl \
             jq \
             nginx \
-            php84-bcmath \
-            php84-ctype \
-            php84-curl \
-            php84-fpm \
-            php84-gd \
-            php84-gettext \
-            php84-json \
-            php84-ldap \
-            php84-mbstring \
-            php84-pgsql \
-            php84-session \
-            php84-simplexml \
-            php84-sockets \
-            php84-fileinfo \
-            php84-xmlreader \
-            php84-xmlwriter \
-            php84-openssl \
+            php85-bcmath \
+            php85-ctype \
+            php85-curl \
+            php85-fpm \
+            php85-gd \
+            php85-gettext \
+            php85-json \
+            php85-ldap \
+            php85-mbstring \
+            php85-pgsql \
+            php85-session \
+            php85-simplexml \
+            php85-sockets \
+            php85-fileinfo \
+            php85-xmlreader \
+            php85-xmlwriter \
+            php85-openssl \
             postgresql17-client \
             supervisor" && \
     apk add \
@@ -96,7 +96,7 @@ RUN set -eux && \
         ${ZABBIX_CONF_DIR}/web/certs \
         ${ZABBIX_USER_HOME_DIR} \
         /var/lib/php/session && \
-    rm -rf /etc/php84/php-fpm.d/www.conf \
+    rm -rf /etc/php85/php-fpm.d/www.conf \
         /etc/nginx/http.d/*.conf && \
     ln -sf /dev/stdout /var/log/nginx/access.log && \
     ln -sf /dev/stderr /var/log/nginx/error.log && \
@@ -108,8 +108,8 @@ RUN set -eux && \
         ${ZABBIX_WWW_ROOT}/modules/ \
         ${ZABBIX_USER_HOME_DIR}/ \
         /etc/nginx/ \
-        /etc/php84/php-fpm.d/ \
-        /etc/php84/php-fpm.conf \
+        /etc/php85/php-fpm.d/ \
+        /etc/php85/php-fpm.conf \
         /var/lib/php/session/ \
         /var/lib/nginx/" && \
     chown --quiet -R zabbix:0 ${FIX_PERM_LIST} && \
