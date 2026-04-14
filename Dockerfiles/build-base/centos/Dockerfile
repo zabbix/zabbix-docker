@@ -52,20 +52,22 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             unixODBC-devel \
             zlib-devel" && \
     microdnf -y install \
-        --disablerepo "*" \
-        --enablerepo "extras-common" \
-        --setopt=install_weak_deps=0 \
-        --setopt=keepcache=0 \
-        --best \
-        --nodocs epel-release && \
+            --disablerepo "*" \
+            --enablerepo "extras-common" \
+            --setopt=install_weak_deps=0 \
+            --setopt=keepcache=0 \
+            --best \
+            --nodocs \
+        epel-release && \
     microdnf -y install \
-        --disablerepo "*" \
-        --enablerepo "baseos" \
-        --enablerepo "appstream" \
-        --enablerepo "crb" \
-        --enablerepo="epel" \
-        --setopt=install_weak_deps=0 \
-        --setopt=keepcache=0 \
-        --best \
-        --nodocs ${INSTALL_PKGS} && \
+            --disablerepo "*" \
+            --enablerepo "baseos" \
+            --enablerepo "appstream" \
+            --enablerepo "crb" \
+            --enablerepo="epel" \
+            --setopt=install_weak_deps=0 \
+            --setopt=keepcache=0 \
+            --best \
+            --nodocs \
+        ${INSTALL_PKGS} && \
     go telemetry off

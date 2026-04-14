@@ -36,8 +36,8 @@ prepare_web_server() {
     if [ -f "${NGINX_SSL_CONFIG_DIR}/ssl.crt" ] && [ -f "${NGINX_SSL_CONFIG_DIR}/ssl.key" ] \
         && [ -f "${NGINX_SSL_CONFIG_DIR}/dhparam.pem" ]; then
         info "** Enable SSL support for Nginx"
-        if [ -f "${ZABBIX_CONF_DIR}/nginx-ssl.conf" ]; then
-            ln -sfT "${ZABBIX_CONF_DIR}/nginx-ssl.conf" "${NGINX_CONFD_DIR}/nginx-ssl.conf"
+        if [ -f "${ZABBIX_CONF_DIR}/nginx_ssl.conf" ]; then
+            ln -sfT "${ZABBIX_CONF_DIR}/nginx_ssl.conf" "${NGINX_CONFD_DIR}/nginx_ssl.conf"
             if [ -f "/proc/net/if_inet6" ]; then
                 printf 'listen [::]:8443 ssl;\n' > "${NGINX_INCLUDES_DIR}/listen-ipv6-ssl.conf"
                 printf 'allow ::1;\n' >> "${NGINX_INCLUDES_DIR}/listen-ipv6-ssl.conf"

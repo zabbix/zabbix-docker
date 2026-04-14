@@ -116,6 +116,7 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             --disablerepo="*" \
             --enablerepo="ubi-10-baseos-rpms" \
             --setopt=install_weak_deps=0 \
+            --setopt=keepcache=0 \
             --best \
             --setopt=tsflags=nodocs \
         tzdata && \
