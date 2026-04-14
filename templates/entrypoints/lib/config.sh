@@ -80,6 +80,8 @@ update_config_var() {
     fi
 
     # Escaping characters in parameter value and name
+    var_value_raw=$var_value
+    var_name_raw=$var_name
     var_value="$(escape_special_chars "$var_value")"
     var_name="$(escape_special_chars "$var_name")"
 
@@ -95,7 +97,7 @@ update_config_var() {
         sed -i -e "/^[#;] ${var_name}=/s/.*/&\n${var_name}=${var_value}/" "$config_path"
         log_message="$log_message added"
     else
-        printf '\n%s=%s\n' "$var_name" "$var_value" >> "$config_path"
+        printf '\n%s=%s\n' "$var_name_raw" "$var_value_raw" >> "$config_path"
         log_message="$log_message added at the end"
     fi
 
