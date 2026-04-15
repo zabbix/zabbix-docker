@@ -69,6 +69,9 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             sudo \
             c-ares \
             libcurl-minimal" && \
+    curl --tlsv1.2 -sSf -L https://dl.fedoraproject.org/pub/epel/epel-release-latest-10.noarch.rpm -o /tmp/epel-release-latest-10.noarch.rpm && \
+    rpm -ivh /tmp/epel-release-latest-10.noarch.rpm && \
+    rm -rf /tmp/epel-release-latest-10.noarch.rpm && \
     ARCH_SUFFIX="$(arch)"; \
     microdnf -y install \
             --disableplugin=subscription-manager \
