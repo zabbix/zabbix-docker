@@ -12,6 +12,3 @@
 #    sudo rm -rf /usr/share/dotnet
 #    sudo rm -rf /usr/share/swift
 #    sudo rm -rf "$AGENT_TOOLSDIRECTORY"
- 
-    # Verify gains
-    df -h /
