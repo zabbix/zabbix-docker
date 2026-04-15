@@ -1,9 +1,6 @@
 
 name: Cleanup
 
-on:
-  workflow_dispatch:
-
 jobs:
   cleanup:
     runs-on: ubuntu-latest
