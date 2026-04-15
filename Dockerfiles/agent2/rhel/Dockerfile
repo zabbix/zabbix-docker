@@ -73,6 +73,7 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             --disableplugin=subscription-manager \
             --disablerepo="*" \
             --enablerepo="ubi-10-baseos-rpms" \
+            --enablerepo="rhel-10-for-$ARCH_SUFFIX-baseos-rpms" \
             --setopt=install_weak_deps=0 \
             --setopt=keepcache=0 \
             --best \
