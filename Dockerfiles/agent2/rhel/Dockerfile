@@ -69,6 +69,7 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             sudo \
             c-ares \
             libcurl-minimal" && \
+    ARCH_SUFFIX="$(arch)"; \
     microdnf -y install \
             --disableplugin=subscription-manager \
             --disablerepo="*" \
