@@ -349,7 +349,7 @@ RUN Import-Module (Get-ChildItem $env:VS_PATH -Recurse -File -Filter Microsoft.V
         -DCARES_SHARED=OFF `
         -DCARES_BUILD_TOOLS=OFF `
         -DCMAKE_MSVC_RUNTIME_LIBRARY="""MultiThreaded$<$<CONFIG:Debug>:Debug>""" `
-        -DCMAKE_INSTALL_PREFIX="""$env:BUILD_OUTPUT\c-ares"""
+        -DCMAKE_INSTALL_PREFIX="""$env:BUILD_OUTPUT\c-ares""" `
     cmake --build $env:BUILD_SRC\c-ares\build --config Release --parallel; `
     cmake --install $env:BUILD_SRC\c-ares\build --config Release; `
     `
