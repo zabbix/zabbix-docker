@@ -219,7 +219,6 @@ RUN Write-Host 'Building OpenSSL library...'; `
         no-ui-console `
         no-winstore `
         thread_scheme=winthreads `
-        --api=1.1.0 `
         --libdir=lib `
         --prefix=$env:BUILD_OUTPUT/openssl `
         --openssldir=$env:BUILD_OUTPUT/openssl_ssl; `
