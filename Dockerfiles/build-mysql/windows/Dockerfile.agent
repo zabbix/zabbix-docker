@@ -61,6 +61,8 @@ RUN Set-Location -Path $env:SystemDrive\.; `
         TLSLIBDIR=$env:BUILD_OUTPUT\openssl\lib `
         MODBINCDIR=$env:BUILD_OUTPUT\libmodbus\include `
         MODBLIBDIR=$env:BUILD_OUTPUT\libmodbus\lib `
+        ARESINCDIR=$env:BUILD_OUTPUT\c-ares\include `
+        ARESLIBDIR=$env:BUILD_OUTPUT\c-ares\lib `
         LIBS="""$env:LIBS Crypt32.lib $env:BUILD_OUTPUT\curl\lib\libcurl.lib $env:BUILD_OUTPUT\zlib\lib\zs.lib""" `
         all; `
     `
