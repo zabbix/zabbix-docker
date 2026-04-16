@@ -31,8 +31,11 @@ ENV TERM=xterm \
     ZABBIX_USER_HOME_DIR=/var/lib/zabbix \
     ZABBIX_WWW_ROOT=/usr/share/zabbix
 
-ENV NGINX_CONFD_DIR=/etc/nginx/http.d \
-    PHP_CONFIG_FILE=/etc/php-fpm.d/zabbix.conf
+ENV NGINX_BIN=/usr/sbin/nginx \
+    PHP_FPM_BIN=/usr/sbin/php-fpm85 \
+    NGINX_CONFD_DIR=/etc/nginx/http.d \
+    PHP_FPM_CONFIG=/etc/php85/php-fpm.conf \
+    PHP_ZBX_CONFIG_FILE=/etc/php85/php-fpm.d/zabbix.conf
 
 LABEL org.opencontainers.image.authors="Alexey Pustovalov <alexey.pustovalov@zabbix.com>" \
       org.opencontainers.image.description="Zabbix web-interface based on Nginx web server with PostgreSQL database support" \
@@ -47,6 +50,7 @@ LABEL org.opencontainers.image.authors="Alexey Pustovalov <alexey.pustovalov@zab
 STOPSIGNAL SIGTERM
 
 COPY --from=clean_builder /tmp/zabbix-${ZBX_VERSION}/ui ${ZABBIX_WWW_ROOT}/
+COPY --from=clean_builder /tmp/zabbix-${ZBX_VERSION}-output/web/conf ${ZABBIX_CONF_DIR}/web/
 COPY conf/etc/ /etc/
 
 RUN set -eux && \
@@ -72,8 +76,7 @@ RUN set -eux && \
             php85-xmlreader \
             php85-xmlwriter \
             php85-openssl \
-            postgresql17-client \
-            supervisor" && \
+            postgresql17-client" && \
     apk add \
             --no-cache \
             --clean-protected \

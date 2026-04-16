@@ -494,6 +494,7 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           build_contexts: |
             sources=./sources/
+            config_templates=./templates/config/
           build_args: |
             BUILD_BASE_IMAGE=${{ steps.base_build.outputs.base_build_image }}
           labels: |

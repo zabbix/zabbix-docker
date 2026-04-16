@@ -80,6 +80,8 @@ update_config_var() {
     fi
 
     # Escaping characters in parameter value and name
+    var_value_raw=$var_value
+    var_name_raw=$var_name
     var_value="$(escape_special_chars "$var_value")"
     var_name="$(escape_special_chars "$var_name")"
 
@@ -95,7 +97,7 @@ update_config_var() {
         sed -i -e "/^[#;] ${var_name}=/s/.*/&\n${var_name}=${var_value}/" "$config_path"
         log_message="$log_message added"
     else
-        printf '\n%s=%s\n' "$var_name" "$var_value" >> "$config_path"
+        printf '\n%s=%s\n' "$var_name_raw" "$var_value_raw" >> "$config_path"
         log_message="$log_message added at the end"
     fi
 
@@ -132,6 +134,7 @@ file_process_from_env() {
     fi
 
     update_config_var "$config_path" "$var_name" "$file_name"
+
     # Remove variable with plain text data, for example ZBX_TLSCAFILE -> ZBX_TLSCA
     unset "${var_name%%FILE}"
 }

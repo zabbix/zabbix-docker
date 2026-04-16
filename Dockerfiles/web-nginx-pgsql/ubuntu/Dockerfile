@@ -34,8 +34,11 @@ ENV TERM=xterm \
 
 ENV DAEMON_USER=www-data \
     DAEMON_GROUP=www-data \
+    NGINX_BIN=/usr/sbin/nginx \
+    PHP_FPM_BIN=/usr/sbin/php-fpm8.3 \
     NGINX_CONFD_DIR=/etc/nginx/conf.d \
-    PHP_CONFIG_FILE=/etc/php/8.3/fpm/pool.d/zabbix.conf
+    PHP_FPM_CONFIG=/etc/php/8.3/fpm/php-fpm.conf \
+    PHP_ZBX_CONFIG_FILE=/etc/php/8.3/fpm/pool.d/zabbix.conf
 
 LABEL org.opencontainers.image.authors="Alexey Pustovalov <alexey.pustovalov@zabbix.com>" \
       org.opencontainers.image.description="Zabbix web-interface based on Nginx web server with PostgreSQL database support" \
@@ -50,6 +53,7 @@ LABEL org.opencontainers.image.authors="Alexey Pustovalov <alexey.pustovalov@zab
 STOPSIGNAL SIGTERM
 
 COPY --from=clean_builder /tmp/zabbix-${ZBX_VERSION}/ui ${ZABBIX_WWW_ROOT}/
+COPY --from=clean_builder /tmp/zabbix-${ZBX_VERSION}-output/web/conf ${ZABBIX_CONF_DIR}/web/
 COPY conf/etc/ /etc/
 
 RUN --mount=type=cache,target=/var/cache/apt/,sharing=locked \
@@ -73,8 +77,7 @@ RUN --mount=type=cache,target=/var/cache/apt/,sharing=locked \
             php8.3-xml \
             php8.3-pgsql \
             postgresql-client-17 \
-            jq \
-            supervisor" && \
+            jq" && \
     apt-get -y update && \
     DEBIAN_FRONTEND=noninteractive apt-get -y \
             -o Dpkg::Options::="--force-confdef" \
@@ -98,10 +101,6 @@ RUN --mount=type=cache,target=/var/cache/apt/,sharing=locked \
             purge \
               gnupg && \
     apt-get -y autoremove && \
-    find /usr/lib -type f -name '*.pyc' -delete && \
-    find /usr/share/python3 -type f -name '*.pyc' -delete && \
-    find /usr/lib -type d -name '__pycache__' -empty -delete && \
-    find /usr/share/python3 -type d -name '__pycache__' -empty -delete && \
     groupadd \
             --system \
             --gid 1995 \

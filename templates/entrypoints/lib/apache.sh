@@ -1,6 +1,17 @@
 # shellcheck shell=bash
 
+: "${DAEMON_USER:=apache}"
+: "${DAEMON_GROUP:=apache}"
+
+: "${APACHE_RUN_DIR:=/tmp/apache2}"
+
+: "${HTTPD_CONF_FILE:=/etc/apache2/httpd.conf}"
+: "${APACHE_SITES_DIR:=/etc/apache2/conf.d}"
+: "${APACHE_SSL_CONFIG_DIR:=/etc/ssl/apache2}"
+
 prepare_web_server() {
+    : > "${APACHE_SITES_DIR}/real-ip.inc"
+
     if [ "$(id -u)" -eq 0 ]; then
         APACHE_RUN_USER="${DAEMON_USER}"
         export APACHE_RUN_USER
@@ -46,14 +57,11 @@ prepare_web_server() {
         export APACHE_SERVER_SIGNATURE="Off"
     fi
 
-    if [ -z "${WEB_REAL_IP_FROM:-}" ]; then
-        [ -f "${ZABBIX_CONF_DIR}/apache.conf" ] && sed -i '/WEB_REAL_IP_FROM/d' "${ZABBIX_CONF_DIR}/apache.conf"
-        [ -f "${ZABBIX_CONF_DIR}/apache_ssl.conf" ] && sed -i '/WEB_REAL_IP_FROM/d' "${ZABBIX_CONF_DIR}/apache_ssl.conf"
-    fi
-
-    if [ -z "${WEB_REAL_IP_HEADER:-}" ]; then
-        [ -f "${ZABBIX_CONF_DIR}/apache.conf" ] && sed -i '/WEB_REAL_IP_HEADER/d' "${ZABBIX_CONF_DIR}/apache.conf"
-        [ -f "${ZABBIX_CONF_DIR}/apache_ssl.conf" ] && sed -i '/WEB_REAL_IP_HEADER/d' "${ZABBIX_CONF_DIR}/apache_ssl.conf"
+    if [ -n "${WEB_REAL_IP_FROM:-}" ]; then
+        printf 'RemoteIPInternalProxy %s\n' "${WEB_REAL_IP_FROM}" > "${APACHE_SITES_DIR}/real-ip.inc"
+        if [ -n "${WEB_REAL_IP_HEADER:-}" ]; then
+            printf 'RemoteIPHeader %s\n' "${WEB_REAL_IP_HEADER}" >> "${APACHE_SITES_DIR}/real-ip.inc"
+        fi
     fi
 
     mkdir -p "${APACHE_RUN_DIR}"

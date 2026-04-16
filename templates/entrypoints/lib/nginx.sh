@@ -1,30 +1,36 @@
 # shellcheck shell=bash
 
+: "${DAEMON_USER:=nginx}"
+
+: "${NGINX_CONF_FILE:=/etc/nginx/nginx.conf}"
+: "${NGINX_CONFD_DIR:=/etc/nginx/http.d}"
+: "${NGINX_INCLUDES_DIR:=/etc/nginx/includes}"
+: "${NGINX_SSL_CONFIG_DIR:=/etc/ssl/nginx}"
+
 prepare_web_server() {
     local fcgi_read_timeout
 
-    [[ -f "$NGINX_CONF_FILE" ]] || error "Missing configuration file: $NGINX_CONF_FILE"
+    : > "${NGINX_INCLUDES_DIR}/access-log.conf"
+    : > "${NGINX_INCLUDES_DIR}/user.conf"
+    : > "${NGINX_INCLUDES_DIR}/real-ip.conf"
+    : > "${NGINX_INCLUDES_DIR}/listen-ipv6.conf"
+    : > "${NGINX_INCLUDES_DIR}/listen-ipv6-ssl.conf"
 
     if [ "$(id -u)" -eq 0 ]; then
-        sed -i -e "/^[#;] user/s/.*/user ${DAEMON_USER};/" "$NGINX_CONF_FILE"
-    fi
-
-    if [ ! -f "/proc/net/if_inet6" ]; then
-        [ -f "${ZABBIX_CONF_DIR}/nginx.conf" ] && {
-            sed -i '/listen \[::\]/d' "${ZABBIX_CONF_DIR}/nginx.conf"
-            sed -i '/allow ::1/d' "${ZABBIX_CONF_DIR}/nginx.conf"
-        }
-        [ -f "${ZABBIX_CONF_DIR}/nginx_ssl.conf" ] && {
-            sed -i '/listen \[::\]/d' "${ZABBIX_CONF_DIR}/nginx_ssl.conf"
-            sed -i '/allow ::1/d' "${ZABBIX_CONF_DIR}/nginx_ssl.conf"
-        }
+        printf 'user %s;\n' "$DAEMON_USER" > "${NGINX_INCLUDES_DIR}/user.conf"
     fi
 
     info "** Adding Zabbix virtual host (HTTP)"
+
     if [ -f "${ZABBIX_CONF_DIR}/nginx.conf" ]; then
         ln -sfT "${ZABBIX_CONF_DIR}/nginx.conf" "${NGINX_CONFD_DIR}/nginx.conf"
+        if [ -f "/proc/net/if_inet6" ]; then
+            printf 'listen [::]:8080;\n' > "${NGINX_INCLUDES_DIR}/listen-ipv6.conf"
+            printf 'allow ::1;\n' >> "${NGINX_INCLUDES_DIR}/listen-ipv6.conf"
+        fi
     else
-        info "**** Impossible to enable HTTP virtual host"
+        warn "**** Impossible to enable HTTP virtual host"
+        : > "${NGINX_INCLUDES_DIR}/listen-ipv6.conf"
     fi
 
     if [ -f "${NGINX_SSL_CONFIG_DIR}/ssl.crt" ] && [ -f "${NGINX_SSL_CONFIG_DIR}/ssl.key" ] \
@@ -32,11 +38,15 @@ prepare_web_server() {
         info "** Enable SSL support for Nginx"
         if [ -f "${ZABBIX_CONF_DIR}/nginx_ssl.conf" ]; then
             ln -sfT "${ZABBIX_CONF_DIR}/nginx_ssl.conf" "${NGINX_CONFD_DIR}/nginx_ssl.conf"
+            if [ -f "/proc/net/if_inet6" ]; then
+                printf 'listen [::]:8443 ssl;\n' > "${NGINX_INCLUDES_DIR}/listen-ipv6-ssl.conf"
+                printf 'allow ::1;\n' >> "${NGINX_INCLUDES_DIR}/listen-ipv6-ssl.conf"
+            fi
         else
-            info "**** Impossible to enable HTTPS virtual host"
+            warn "**** Impossible to enable HTTPS virtual host"
         fi
     else
-        info "**** Impossible to enable SSL support for Nginx. Certificates are missing."
+        warn "**** Impossible to enable SSL support for Nginx. Certificates are missing."
     fi
 
     : "${ZBX_MAXEXECUTIONTIME:=3}"
@@ -44,60 +54,30 @@ prepare_web_server() {
 
     : "${HTTP_INDEX_FILE:=index.php}"
 
-    [ -f "${ZABBIX_CONF_DIR}/nginx.conf" ] && sed -i \
+    [ -f "${NGINX_INCLUDES_DIR}/server-common.conf" ] && sed -i \
         -e "s/{FCGI_READ_TIMEOUT}/${fcgi_read_timeout}/g" \
         -e "s/{HTTP_INDEX_FILE}/${HTTP_INDEX_FILE}/g" \
-        "${ZABBIX_CONF_DIR}/nginx.conf"
-
-    [ -f "${ZABBIX_CONF_DIR}/nginx_ssl.conf" ] && sed -i \
-        -e "s/{FCGI_READ_TIMEOUT}/${fcgi_read_timeout}/g" \
-        -e "s/{HTTP_INDEX_FILE}/${HTTP_INDEX_FILE}/g" \
-        "${ZABBIX_CONF_DIR}/nginx_ssl.conf"
-
-    : "${ENABLE_WEB_ACCESS_LOG:=true}"
-    if [ "${ENABLE_WEB_ACCESS_LOG,,}" = "false" ]; then
-        [ -f "${NGINX_CONF_FILE}" ] && sed -ri \
-            -e 's!^(\s*access_log).+\;!\1 off\;!g' \
-            "${NGINX_CONF_FILE}"
-
-        [ -f "${ZABBIX_CONF_DIR}/nginx.conf" ] && sed -ri \
-            -e 's!^(\s*access_log).+\;!\1 off\;!g' \
-            "${ZABBIX_CONF_DIR}/nginx.conf"
-
-        [ -f "${ZABBIX_CONF_DIR}/nginx_ssl.conf" ] && sed -ri \
-            -e 's!^(\s*access_log).+\;!\1 off\;!g' \
-            "${ZABBIX_CONF_DIR}/nginx_ssl.conf"
-    fi
+        "${NGINX_INCLUDES_DIR}/server-common.conf"
 
     : "${EXPOSE_WEB_SERVER_INFO:=on}"
     [[ "${EXPOSE_WEB_SERVER_INFO,,}" != "off" ]] && EXPOSE_WEB_SERVER_INFO="on"
 
-    export EXPOSE_WEB_SERVER_INFO
     [ -f "${NGINX_CONF_FILE}" ] && sed -i \
         -e "s/{EXPOSE_WEB_SERVER_INFO}/${EXPOSE_WEB_SERVER_INFO}/g" \
         "${NGINX_CONF_FILE}"
 
+    : "${ENABLE_WEB_ACCESS_LOG:=true}"
+    if [ "${ENABLE_WEB_ACCESS_LOG,,}" = "false" ]; then
+        printf 'access_log off;\n' > "${NGINX_INCLUDES_DIR}/access-log.conf"
+    else
+        printf 'access_log /var/log/nginx/access.log main;\n' > "${NGINX_INCLUDES_DIR}/access-log.conf"
+    fi
+
     if [ -n "${WEB_REAL_IP_FROM:-}" ]; then
-        WEB_REAL_IP_FROM="set_real_ip_from ${WEB_REAL_IP_FROM};"
-    else
-        WEB_REAL_IP_FROM=""
+        printf 'set_real_ip_from %s;\n' "${WEB_REAL_IP_FROM}" > "${NGINX_INCLUDES_DIR}/real-ip.conf"
+
+        if [ -n "${WEB_REAL_IP_HEADER:-}" ]; then
+            printf 'real_ip_header %s;\n' "${WEB_REAL_IP_HEADER}" >> "${NGINX_INCLUDES_DIR}/real-ip.conf"
+        fi
     fi
-    WEB_REAL_IP_FROM="$(escape_special_chars "$WEB_REAL_IP_FROM")"
-
-    if [ -n "${WEB_REAL_IP_HEADER:-}" ]; then
-        WEB_REAL_IP_HEADER="real_ip_header ${WEB_REAL_IP_HEADER};"
-    else
-        WEB_REAL_IP_HEADER=""
-    fi
-    WEB_REAL_IP_HEADER="$(escape_special_chars "$WEB_REAL_IP_HEADER")"
-
-    [ -f "${ZABBIX_CONF_DIR}/nginx.conf" ] && sed -i \
-        -e "s#{WEB_REAL_IP_FROM}#${WEB_REAL_IP_FROM}#g" \
-        -e "s#{WEB_REAL_IP_HEADER}#${WEB_REAL_IP_HEADER}#g" \
-        "${ZABBIX_CONF_DIR}/nginx.conf"
-
-    [ -f "${ZABBIX_CONF_DIR}/nginx_ssl.conf" ] && sed -i \
-        -e "s#{WEB_REAL_IP_FROM}#${WEB_REAL_IP_FROM}#g" \
-        -e "s#{WEB_REAL_IP_HEADER}#${WEB_REAL_IP_HEADER}#g" \
-        "${ZABBIX_CONF_DIR}/nginx_ssl.conf"
 }

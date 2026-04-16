@@ -11,6 +11,7 @@ source "${ENTRYPOINT_LIBS}/bootstrap.sh"
 : "${ZBX_SERVER_PORT=10051}"
 
 readonly ZBX_AGENT_CONFIG="${ZABBIX_CONF_DIR}/zabbix_agent2.conf"
+
 readonly ZABBIX_INTERNAL_ENC_DIR="${ZABBIX_USER_HOME_DIR}/enc_internal"
 
 update_config() {
