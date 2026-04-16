@@ -3,7 +3,7 @@
 ARG OS_BASE_IMAGE=mcr.microsoft.com/windows/servercore:ltsc2022
 
 ARG PCRE2_VERSION=10.47
-ARG OPENSSL_VERSION=3.5.4
+ARG OPENSSL_VERSION=4.0.0
 ARG GOLANG_VERSION=1.25.5
 ARG VS_BUILDTOOLS_VERSION=17
 ARG PWSH_VERSION=7.5.4
@@ -40,7 +40,7 @@ ADD --checksum=sha256:99f2fee9a7b1c344600ac97347e7be23a1f802d8d843b339ec7473a8ed
 ADD $VS_BUILDTOOLS_URL build_deps\vs_buildtools.exe
 
 ADD --checksum=sha256:d74c183c86c77248ad50017c7f45bae8f88106a6cca5d87ad09917e1c6fb0784 $PCRE2_URL build_src\pcre2.zip
-ADD --checksum=sha256:967311f84955316969bdb1d8d4b983718ef42338639c621ec4c34fddef355e99 $OPENSSL_URL build_src\openssl.tar.gz
+ADD --checksum=sha256:c32cf49a959c4f345f9606982dd36e7d28f7c58b19c2e25d75624d2b3d2f79ac $OPENSSL_URL build_src\openssl.tar.gz
 
 SHELL ["powershell", "-Command", "$ErrorActionPreference = 'Stop'; $ProgressPreference = 'SilentlyContinue';"]
 

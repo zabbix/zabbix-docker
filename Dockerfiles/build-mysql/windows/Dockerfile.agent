@@ -53,7 +53,7 @@ RUN Set-Location -Path $env:SystemDrive\.; `
     $env:CL = """$env:CL /MP /MT"""; `
     nmake /S -f Makefile `
         CPU=$env:CPU_MODEL `
-        CFLAGS="""/D CURL_STATICLIB /D HAVE_LIBCURL /I "$env:BUILD_OUTPUT\curl\include" /D ZABBIX_VERSION_REVISION=$ZbxRevision /D HAVE_LIBMODBUS_STATIC /D DEFAULT_CONFIG_FILE=$env:SystemDrive\zabbix\conf\zabbix_agentd.conf""" `
+        CFLAGS="""/D CURL_STATICLIB /D HAVE_LIBCURL /D CARES_STATICLIB /I "$env:BUILD_OUTPUT\curl\include" /D ZABBIX_VERSION_REVISION=$ZbxRevision /D HAVE_LIBMODBUS_STATIC /D DEFAULT_CONFIG_FILE=$env:SystemDrive\zabbix\conf\zabbix_agentd.conf""" `
         PCRE2INCDIR=$env:SystemDrive\build_output\pcre2\include `
         PCRE2LIBDIR=$env:SystemDrive\build_output\pcre2\lib TLS=openssl `
         RFLAGS="""/D ZABBIX_VERSION_REVISION=$ZbxRevision /D ZABBIX_VERSION_RC_NUM=$env:ZABBIX_VERSION_RC_NUM""" `
