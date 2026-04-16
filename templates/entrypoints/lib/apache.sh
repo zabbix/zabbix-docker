@@ -10,8 +10,6 @@
 : "${APACHE_SSL_CONFIG_DIR:=/etc/ssl/apache2}"
 
 prepare_web_server() {
-    : > "${APACHE_SITES_DIR}/real-ip.inc"
-
     if [ "$(id -u)" -eq 0 ]; then
         APACHE_RUN_USER="${DAEMON_USER}"
         export APACHE_RUN_USER
@@ -57,11 +55,12 @@ prepare_web_server() {
         export APACHE_SERVER_SIGNATURE="Off"
     fi
 
-    if [ -n "${WEB_REAL_IP_FROM:-}" ]; then
-        printf 'RemoteIPInternalProxy %s\n' "${WEB_REAL_IP_FROM}" > "${APACHE_SITES_DIR}/real-ip.inc"
-        if [ -n "${WEB_REAL_IP_HEADER:-}" ]; then
-            printf 'RemoteIPHeader %s\n' "${WEB_REAL_IP_HEADER}" >> "${APACHE_SITES_DIR}/real-ip.inc"
-        fi
+    if [ -z "${WEB_REAL_IP_FROM:-}" ]; then
+        [ -f "${APACHE_SITES_DIR}/server-common.inc" ] && sed -i '/WEB_REAL_IP_FROM/d' "${APACHE_SITES_DIR}/server-common.inc"
+    fi
+
+    if [ -z "${WEB_REAL_IP_HEADER:-}" ]; then
+        [ -f "${APACHE_SITES_DIR}/server-common.inc" ] && sed -i '/WEB_REAL_IP_HEADER/d' "${APACHE_SITES_DIR}/server-common.inc"
     fi
 
     mkdir -p "${APACHE_RUN_DIR}"

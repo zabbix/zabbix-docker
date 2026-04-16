@@ -1,4 +1,5 @@
-Include ${APACHE_SITES_DIR}/real-ip.inc
+RemoteIPInternalProxy ${WEB_REAL_IP_FROM}
+RemoteIPHeader ${WEB_REAL_IP_HEADER}
 
 <LocationMatch "^/(ping|status)$">
     Require all granted
