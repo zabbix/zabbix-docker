@@ -108,7 +108,7 @@ RUN --mount=type=cache,target=/var/cache/apt/,sharing=locked \
         /var/lib/php/session \
         /var/lib/locales/supported.d && \
     rm -rf /etc/apache2/sites-available/* \
-        /etc/apache2/sites-enabled/* \
+        ${APACHE_SITES_DIR}/*.conf \
         /etc/php/8.5/fpm/pool.d/www.conf \
         /var/run/apache2/ \
         /var/lib/locales/supported.d/local && \
