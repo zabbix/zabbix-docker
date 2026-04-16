@@ -74,10 +74,10 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
     rm -rf /tmp/epel-release-latest-10.noarch.rpm && \
     ARCH_SUFFIX="$(arch)"; \
     microdnf -y install \
-            --disableplugin=subscription-manager \
             --disablerepo="*" \
             --enablerepo="ubi-10-baseos-rpms" \
             --enablerepo="rhel-10-for-$ARCH_SUFFIX-baseos-rpms" \
+            --enablerepo="epel" \
             --setopt=install_weak_deps=0 \
             --setopt=keepcache=0 \
             --best \
