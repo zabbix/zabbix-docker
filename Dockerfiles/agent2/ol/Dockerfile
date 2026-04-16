@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1.6
-ARG OS_BASE_IMAGE=oraclelinux:9-slim
+ARG OS_BASE_IMAGE=container-registry.oracle.com/os/oraclelinux:10-slim
 ARG MAJOR_VERSION=7.0
 ARG ZBX_VERSION=${MAJOR_VERSION}.25
 ARG BUILD_BASE_IMAGE=zabbix-build-mysql:ol-${ZBX_VERSION}
@@ -48,17 +48,17 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             openssl-libs" && \
     microdnf -y install \
             --disablerepo "*" \
-            --enablerepo "ol9_baseos_latest" \
+            --enablerepo "ol10_baseos_latest" \
             --setopt=install_weak_deps=0 \
             --setopt=keepcache=0 \
             --best \
             --nodocs \
-        oracle-epel-release-el9 && \
+        oracle-epel-release-el10 && \
     microdnf -y install \
             --disablerepo="*" \
-            --enablerepo="ol9_baseos_latest" \
-            --enablerepo="ol9_appstream" \
-            --enablerepo="ol9_developer_EPEL" \
+            --enablerepo="ol10_baseos_latest" \
+            --enablerepo="ol10_appstream" \
+            --enablerepo="ol10_u1_developer_EPEL" \
             --setopt=install_weak_deps=0 \
             --setopt=keepcache=0 \
             --best \

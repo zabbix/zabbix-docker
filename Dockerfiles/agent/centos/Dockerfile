@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1.6
-ARG OS_BASE_IMAGE=quay.io/centos/centos:stream9-minimal
+ARG OS_BASE_IMAGE=quay.io/centos/centos:stream10-minimal
 ARG MAJOR_VERSION=7.0
 ARG ZBX_VERSION=${MAJOR_VERSION}.25
 ARG BUILD_BASE_IMAGE=zabbix-build-mysql:centos-${ZBX_VERSION}
@@ -45,6 +45,7 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             libcurl-minimal \
             libmodbus \
             openssl-libs \
+            openldap \
             shadow-utils \
             zlib" && \
     microdnf -y install \

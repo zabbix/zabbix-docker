@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1.6
-ARG OS_BASE_IMAGE=oraclelinux:9-slim
+ARG OS_BASE_IMAGE=container-registry.oracle.com/os/oraclelinux:10-slim
 ARG MAJOR_VERSION=7.0
 ARG ZBX_VERSION=${MAJOR_VERSION}.25
 ARG BUILD_BASE_IMAGE=zabbix-build-pgsql:ol-${ZBX_VERSION}
@@ -60,6 +60,7 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
     set -eux && \
     INSTALL_PKGS="bash \
             curl \
+            gzip \
             httpd \
             mod_ssl \
             php \
@@ -76,17 +77,10 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             findutils \
             glibc-locale-source \
             jq" && \
-    microdnf -y module enable \
-            --disablerepo="*" \
-            --enablerepo="ol9_appstream" \
-            --setopt=install_weak_deps=0 \
-            --setopt=keepcache=0 \
-        php:8.3 \
-        postgresql:16 && \
     microdnf -y install \
             --disablerepo="*" \
-            --enablerepo="ol9_baseos_latest" \
-            --enablerepo="ol9_appstream" \
+            --enablerepo="ol10_baseos_latest" \
+            --enablerepo="ol10_appstream" \
             --setopt=install_weak_deps=0 \
             --setopt=keepcache=0 \
             --best \
@@ -135,7 +129,8 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
     chmod -R g=u ${FIX_PERM_LIST} && \
     microdnf -y remove \
             findutils \
-            glibc-locale-source
+            glibc-locale-source \
+            gzip
 
 RUN --mount=from=entrypoints,target=/tmp/entrypoints,ro \
     set -eux && \

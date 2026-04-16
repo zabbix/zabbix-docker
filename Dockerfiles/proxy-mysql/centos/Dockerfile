@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1.6
-ARG OS_BASE_IMAGE=quay.io/centos/centos:stream9-minimal
+ARG OS_BASE_IMAGE=quay.io/centos/centos:stream10-minimal
 ARG MAJOR_VERSION=7.0
 ARG ZBX_VERSION=${MAJOR_VERSION}.25
 ARG BUILD_BASE_IMAGE=zabbix-build-mysql:centos-${ZBX_VERSION}
@@ -55,8 +55,8 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             fping \
             iputils \
             libxml2 \
-            mysql \
-            mysql-libs \
+            mysql8.4 \
+            mysql8.4-libs \
             net-snmp-libs \
             OpenIPMI-libs \
             openldap \

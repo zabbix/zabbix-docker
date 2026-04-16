@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1.6
-ARG OS_BASE_IMAGE=quay.io/centos/centos:stream9-minimal
+ARG OS_BASE_IMAGE=quay.io/centos/centos:stream10-minimal
 ARG MAJOR_VERSION=7.0
 ARG ZBX_VERSION=${MAJOR_VERSION}.25
 ARG BUILD_BASE_IMAGE=zabbix-build-mysql:centos-${ZBX_VERSION}
@@ -57,8 +57,8 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             libpsl \
             libbrotli \
             libxml2 \
-            mysql \
-            mysql-libs \
+            mysql8.4 \
+            mysql8.4-libs \
             net-snmp-libs \
             OpenIPMI-libs \
             openldap \
@@ -95,10 +95,7 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             --best \
             --setopt=tsflags=nodocs \
         tzdata && \
-    microdnf download libcurl && \
-    rpm -Uvh --nodeps --replacefiles "*curl*$( uname -i ).rpm" && \
-    microdnf remove -y libcurl-minimal && \
-    rm -rf "*curl*$( uname -i ).rpm" && \
+    microdnf swap -y libcurl-minimal libcurl && \
     groupadd \
             --system \
             --gid 1995 \

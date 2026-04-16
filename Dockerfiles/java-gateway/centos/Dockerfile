@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1.6
-ARG OS_BASE_IMAGE=quay.io/centos/centos:stream9-minimal
+ARG OS_BASE_IMAGE=quay.io/centos/centos:stream10-minimal
 ARG MAJOR_VERSION=7.0
 ARG ZBX_VERSION=${MAJOR_VERSION}.25
 ARG BUILD_BASE_IMAGE=zabbix-build-mysql:centos-${ZBX_VERSION}
@@ -37,16 +37,16 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
     set -eux && \
     INSTALL_PKGS="bash \
             shadow-utils \
-            java-17-openjdk-headless \
+            java-21-openjdk-headless \
             findutils" && \
     microdnf -y install \
-        --disablerepo="*" \
-        --enablerepo="baseos" \
-        --enablerepo="appstream" \
-        --setopt=install_weak_deps=0 \
-        --setopt=keepcache=0 \
-        --best \
-        --nodocs \
+            --disablerepo="*" \
+            --enablerepo="baseos" \
+            --enablerepo="appstream" \
+            --setopt=install_weak_deps=0 \
+            --setopt=keepcache=0 \
+            --best \
+            --nodocs \
         ${INSTALL_PKGS} && \
     groupadd \
             --system \

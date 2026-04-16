@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1.6
-ARG OS_BASE_IMAGE=quay.io/centos/centos:stream9-minimal
+ARG OS_BASE_IMAGE=quay.io/centos/centos:stream10-minimal
 FROM ${OS_BASE_IMAGE}
 
 ARG MAJOR_VERSION=7.0
@@ -39,13 +39,13 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             libxml2-devel \
             openssl-devel \
             make \
-            mysql-devel \
+            mysql8.4-devel \
             net-snmp-devel \
             OpenIPMI-devel \
             openldap-devel \
             sqlite-devel \
             libpq-devel \
-            java-17-openjdk-devel \
+            java-21-openjdk-devel \
             git \
             gettext \
             go-toolset \
@@ -59,12 +59,6 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             --best \
             --nodocs \
         epel-release && \
-    microdnf -y module enable \
-            --disablerepo "*" \
-            --enablerepo "appstream" \
-            --setopt=install_weak_deps=0 \
-            --setopt=keepcache=0 \
-        postgresql:16 && \
     microdnf -y install \
             --disablerepo "*" \
             --enablerepo "baseos" \
