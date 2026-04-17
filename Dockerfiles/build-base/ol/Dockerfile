@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1.6
-ARG OS_BASE_IMAGE=oraclelinux:9-slim
+ARG OS_BASE_IMAGE=container-registry.oracle.com/os/oraclelinux:10-slim
 FROM ${OS_BASE_IMAGE}
 
 ARG MAJOR_VERSION=6.0
@@ -22,8 +22,6 @@ LABEL org.opencontainers.image.authors="Alexey Pustovalov <alexey.pustovalov@zab
       org.opencontainers.image.vendor="Zabbix SIA" \
       org.opencontainers.image.version="${ZBX_VERSION}"
 
-COPY ["conf/etc/yum.repos.d/oracle-epel-ol9.repo", "/etc/yum.repos.d/oracle-epel-ol9.repo"]
-
 RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
     --mount=type=tmpfs,target=/var/cache/yum/ \
     set -eux && \
@@ -42,31 +40,34 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             openssl-devel \
             openldap-devel \
             make \
-            mysql-devel \
+            mysql8.4-devel \
             net-snmp-devel \
             OpenIPMI-devel \
             openldap-devel \
             sqlite-devel \
             libpq-devel \
-            java-1.8.0-openjdk-devel \
+            java-21-openjdk-devel \
             git \
             gettext \
             unixODBC-devel \
             zlib-devel" && \
-    microdnf -y module enable \
-        --disablerepo "*" \
-        --enablerepo "ol9_appstream" \
-        --setopt=install_weak_deps=0 \
-        --setopt=keepcache=0 \
-        postgresql:16 && \
     microdnf -y install \
-        --disablerepo "*" \
-        --enablerepo "ol9_baseos_latest" \
-        --enablerepo "ol9_appstream" \
-        --enablerepo "ol9_codeready_builder" \
-        --enablerepo="ol9_developer_EPEL" \
-        --setopt=install_weak_deps=0 \
-        --setopt=keepcache=0 \
-        --best \
-        --nodocs ${INSTALL_PKGS} && \
+            --disablerepo="*" \
+            --enablerepo="ol10_baseos_latest" \
+            --setopt=install_weak_deps=0 \
+            --setopt=keepcache=0 \
+            --best \
+            --nodocs \
+        oracle-epel-release-el10 && \
+    microdnf -y install \
+            --disablerepo="*" \
+            --enablerepo="ol10_baseos_latest" \
+            --enablerepo="ol10_appstream" \
+            --enablerepo="ol10_codeready_builder" \
+            --enablerepo="ol10_u1_developer_EPEL" \
+            --setopt=install_weak_deps=0 \
+            --setopt=keepcache=0 \
+            --best \
+            --nodocs \
+        ${INSTALL_PKGS} && \
     go telemetry off

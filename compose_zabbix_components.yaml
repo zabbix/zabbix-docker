@@ -1,5 +1,6 @@
 services:
  server:
+  init: true
   ports:
    - name: zabbix-trapper
      target: 10051
@@ -164,6 +165,7 @@ services:
    com.zabbix.dbtype: "pgsql"
 
  proxy:
+  init: true
   profiles:
    - all
   restart: "${RESTART_POLICY}"
@@ -491,6 +493,7 @@ services:
    com.zabbix.dbtype: "pgsql"
 
  agent:
+  init: true
   profiles:
    - full
    - all
@@ -538,6 +541,7 @@ services:
    com.zabbix.component: "agent"
 
  agent2:
+  init: true
   profiles:
    - full
    - all
@@ -598,9 +602,9 @@ services:
      published: "${ZABBIX_JAVA_GATEWAY_PORT}"
      protocol: tcp
   restart: "${RESTART_POLICY}"
+  attach: false
   volumes:
    - ${DATA_DIRECTORY}/usr/sbin/zabbix_java/ext_lib:/usr/sbin/zabbix_java/ext_lib:ro
-  attach: false
   deploy:
    resources:
     limits:

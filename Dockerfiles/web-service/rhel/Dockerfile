@@ -63,7 +63,7 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
     rpm -ivh /tmp/epel-release-latest-8.noarch.rpm && \
     rm -rf /tmp/epel-release-latest-8.noarch.rpm && \
     microdnf -y install \
-            --disablerepo "*" \
+            --disablerepo="*" \
             --enablerepo="ubi-8-baseos-rpms" \
             --enablerepo="ubi-8-appstream-rpms" \
             --enablerepo="rhel-8-for-x86_64-baseos-rpms" \

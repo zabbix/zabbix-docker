@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1.6
-ARG OS_BASE_IMAGE=oraclelinux:9-slim
+ARG OS_BASE_IMAGE=container-registry.oracle.com/os/oraclelinux:10-slim
 ARG MAJOR_VERSION=6.0
 ARG ZBX_VERSION=${MAJOR_VERSION}.45
 ARG BUILD_BASE_IMAGE=zabbix-build-mysql:ol-${ZBX_VERSION}
@@ -38,14 +38,12 @@ COPY --from=builder /tmp/zabbix-${ZBX_VERSION}-output/general/bin/zabbix_get /us
 COPY --from=builder /tmp/zabbix-${ZBX_VERSION}-output/general/bin/zabbix_sender /usr/bin/
 COPY --from=builder /tmp/zabbix-${ZBX_VERSION}-output/proxy/conf/ ${ZABBIX_CONF_DIR}/
 COPY --from=builder /tmp/zabbix-${ZBX_VERSION}-output/proxy/database/mysql/ /usr/share/doc/zabbix-proxy-mysql/
-COPY conf/etc/yum.repos.d/oracle-epel-ol9.repo /etc/yum.repos.d/oracle-epel-ol9.repo
 
 RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
     --mount=type=tmpfs,target=/var/cache/yum/ \
     set -eux && \
     INSTALL_PKGS="bash \
             libevent \
-            tini \
             traceroute \
             nmap \
             krb5-workstation \
@@ -55,8 +53,8 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             iputils \
             libcurl \
             libxml2 \
-            mysql \
-            mysql-libs \
+            mysql8.4 \
+            mysql8.4-libs \
             net-snmp-libs \
             OpenIPMI-libs \
             openldap \
@@ -67,15 +65,23 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             gzip \
             unixODBC" && \
     microdnf -y install \
-        --disablerepo="*" \
-        --enablerepo="ol9_baseos_latest" \
-        --enablerepo="ol9_appstream" \
-        --enablerepo="ol9_codeready_builder" \
-        --enablerepo="ol9_developer_EPEL" \
-        --setopt=install_weak_deps=0 \
-        --setopt=keepcache=0 \
-        --best \
-        --nodocs \
+            --disablerepo="*" \
+            --enablerepo="ol10_baseos_latest" \
+            --setopt=install_weak_deps=0 \
+            --setopt=keepcache=0 \
+            --best \
+            --nodocs \
+        oracle-epel-release-el10 && \
+    microdnf -y install \
+            --disablerepo="*" \
+            --enablerepo="ol10_baseos_latest" \
+            --enablerepo="ol10_appstream" \
+            --enablerepo="ol10_codeready_builder" \
+            --enablerepo="ol10_u1_developer_EPEL" \
+            --setopt=install_weak_deps=0 \
+            --setopt=keepcache=0 \
+            --best \
+            --nodocs \
         ${INSTALL_PKGS} && \
     groupadd \
             --system \
@@ -122,7 +128,7 @@ VOLUME ["${ZABBIX_USER_HOME_DIR}/snmptraps"]
 
 COPY docker-entrypoint.sh /usr/bin/
 
-ENTRYPOINT ["/usr/bin/tini", "--", "/usr/bin/docker-entrypoint.sh"]
+ENTRYPOINT ["/usr/bin/docker-entrypoint.sh"]
 
 USER 1997
 

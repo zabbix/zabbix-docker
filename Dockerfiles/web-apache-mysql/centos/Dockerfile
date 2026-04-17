@@ -68,8 +68,8 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             shadow-utils \
             supervisor" && \
     microdnf -y install \
-            --disablerepo "*" \
-            --enablerepo "extras-common" \
+            --disablerepo="*" \
+            --enablerepo="extras-common" \
             --setopt=install_weak_deps=0 \
             --setopt=keepcache=0 \
             --best \
@@ -86,7 +86,7 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             --nodocs \
         ${INSTALL_PKGS} && \
     microdnf -y reinstall \
-            --enablerepo "baseos" \
+            --enablerepo="baseos" \
             --setopt=install_weak_deps=0 \
             --setopt=keepcache=0 \
             --best \
