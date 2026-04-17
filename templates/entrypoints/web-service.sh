@@ -28,9 +28,9 @@ update_config() {
     update_config_var "${ZBX_WEB_SERVICE_CONFIG}" "Timeout" "${ZBX_TIMEOUT:-}"
 
     update_config_var "${ZBX_WEB_SERVICE_CONFIG}" "TLSAccept" "${ZBX_TLSACCEPT:-}"
-    file_process_from_env "${ZABBIX_INTERNAL_ENC_DIR}" "${ZBX_WEB_SERVICE_CONFIG}" "ZBX_TLSCAFILE" "${ZBX_TLSCAFILE:-}" "${ZBX_TLSCA:-}"
-    file_process_from_env "${ZABBIX_INTERNAL_ENC_DIR}" "${ZBX_WEB_SERVICE_CONFIG}" "ZBX_TLSCERTFILE" "${ZBX_TLSCERTFILE:-}" "${ZBX_TLSCERT:-}"
-    file_process_from_env "${ZABBIX_INTERNAL_ENC_DIR}" "${ZBX_WEB_SERVICE_CONFIG}" "ZBX_TLSKEYFILE" "${ZBX_TLSKEYFILE:-}" "${ZBX_TLSKEY:-}"
+    file_process_from_env "${ZABBIX_INTERNAL_ENC_DIR}" "${ZBX_WEB_SERVICE_CONFIG}" "TLSCAFile" "${ZBX_TLSCAFILE:-}" "${ZBX_TLSCA:-}"
+    file_process_from_env "${ZABBIX_INTERNAL_ENC_DIR}" "${ZBX_WEB_SERVICE_CONFIG}" "TLSCertFile" "${ZBX_TLSCERTFILE:-}" "${ZBX_TLSCERT:-}"
+    file_process_from_env "${ZABBIX_INTERNAL_ENC_DIR}" "${ZBX_WEB_SERVICE_CONFIG}" "TLSKeyFile" "${ZBX_TLSKEYFILE:-}" "${ZBX_TLSKEY:-}"
 
     update_config_var "${ZBX_WEB_SERVICE_CONFIG}" "IgnoreURLCertErrors" "${ZBX_IGNOREURLCERTERRORS:-}"
 }
