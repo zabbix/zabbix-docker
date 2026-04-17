@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1.6
-ARG OS_BASE_IMAGE=quay.io/centos/centos:stream9-minimal
+ARG OS_BASE_IMAGE=quay.io/centos/centos:stream10-minimal
 ARG MAJOR_VERSION=6.0
 ARG ZBX_VERSION=${MAJOR_VERSION}.45
 ARG BUILD_BASE_IMAGE=zabbix-build-sqlite3:centos-${ZBX_VERSION}
@@ -42,7 +42,6 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
     --mount=type=tmpfs,target=/var/cache/yum/ \
     set -eux && \
     INSTALL_PKGS="bash \
-            tini \
             libevent \
             traceroute \
             nmap \
@@ -129,7 +128,7 @@ VOLUME ["${ZABBIX_USER_HOME_DIR}/snmptraps"]
 
 COPY docker-entrypoint.sh /usr/bin/
 
-ENTRYPOINT ["/usr/bin/tini", "--", "/usr/bin/docker-entrypoint.sh"]
+ENTRYPOINT ["/usr/bin/docker-entrypoint.sh"]
 
 USER 1997
 

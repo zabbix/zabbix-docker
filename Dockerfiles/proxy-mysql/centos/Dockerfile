@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1.6
-ARG OS_BASE_IMAGE=quay.io/centos/centos:stream9-minimal
+ARG OS_BASE_IMAGE=quay.io/centos/centos:stream10-minimal
 ARG MAJOR_VERSION=6.0
 ARG ZBX_VERSION=${MAJOR_VERSION}.45
 ARG BUILD_BASE_IMAGE=zabbix-build-mysql:centos-${ZBX_VERSION}
@@ -44,7 +44,6 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
     set -eux && \
     INSTALL_PKGS="bash \
             libevent \
-            tini \
             traceroute \
             nmap \
             krb5-workstation \
@@ -54,8 +53,8 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             fping \
             iputils \
             libxml2 \
-            mysql \
-            mysql-libs \
+            mysql8.4 \
+            mysql8.4-libs \
             net-snmp-libs \
             OpenIPMI-libs \
             openldap \
@@ -74,7 +73,7 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             --nodocs \
         epel-release && \
     microdnf -y install \
-            --disablerepo "*" \
+            --disablerepo="*" \
             --enablerepo="baseos" \
             --enablerepo="appstream" \
             --enablerepo="crb" \
@@ -85,7 +84,7 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             --nodocs \
         ${INSTALL_PKGS} && \
     microdnf -y reinstall \
-            --enablerepo "baseos" \
+            --enablerepo="baseos" \
             --setopt=install_weak_deps=0 \
             --setopt=keepcache=0 \
             --best \
@@ -134,7 +133,7 @@ VOLUME ["${ZABBIX_USER_HOME_DIR}/snmptraps"]
 
 COPY docker-entrypoint.sh /usr/bin/
 
-ENTRYPOINT ["/usr/bin/tini", "--", "/usr/bin/docker-entrypoint.sh"]
+ENTRYPOINT ["/usr/bin/docker-entrypoint.sh"]
 
 USER 1997
 

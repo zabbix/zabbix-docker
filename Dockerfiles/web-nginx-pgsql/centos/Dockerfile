@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1.6
-ARG OS_BASE_IMAGE=quay.io/centos/centos:stream9-minimal
+ARG OS_BASE_IMAGE=quay.io/centos/centos:stream10-minimal
 ARG MAJOR_VERSION=6.0
 ARG ZBX_VERSION=${MAJOR_VERSION}.45
 ARG BUILD_BASE_IMAGE=zabbix-build-pgsql:centos-${ZBX_VERSION}
@@ -62,7 +62,7 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             php-mbstring \
             php-pgsql \
             php-xml \
-            postgresql \
+            postgresql18 \
             shadow-utils \
             supervisor" && \
     microdnf -y install \
@@ -73,14 +73,6 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             --best \
             --nodocs \
             epel-release && \
-    microdnf -y module enable \
-            --disablerepo="*" \
-            --enablerepo="appstream" \
-            --setopt=install_weak_deps=0 \
-            --setopt=keepcache=0 \
-        php:8.3 \
-        postgresql:18 \
-        nginx:1.26 && \
     microdnf -y install \
             --disablerepo="*" \
             --enablerepo="baseos" \

@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1.6
-ARG OS_BASE_IMAGE=quay.io/centos/centos:stream9-minimal
+ARG OS_BASE_IMAGE=quay.io/centos/centos:stream10-minimal
 FROM ${OS_BASE_IMAGE}
 
 ARG MAJOR_VERSION=6.0
@@ -38,39 +38,35 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             libxml2-devel \
             openssl-devel \
             make \
-            mysql-devel \
+            mysql8.4-devel \
             net-snmp-devel \
             OpenIPMI-devel \
             openldap-devel \
             sqlite-devel \
             libpq-devel \
-            java-17-openjdk-devel \
+            java-21-openjdk-devel \
             git \
             gettext \
             go-toolset \
             unixODBC-devel \
             zlib-devel" && \
     microdnf -y install \
-        --disablerepo "*" \
-        --enablerepo "extras-common" \
-        --setopt=install_weak_deps=0 \
-        --setopt=keepcache=0 \
-        --best \
-        --nodocs epel-release && \
-    microdnf -y module enable \
-        --disablerepo "*" \
-        --enablerepo "appstream" \
-        --setopt=install_weak_deps=0 \
-        --setopt=keepcache=0 \
-        postgresql:16 && \
+            --disablerepo "*" \
+            --enablerepo "extras-common" \
+            --setopt=install_weak_deps=0 \
+            --setopt=keepcache=0 \
+            --best \
+            --nodocs \
+        epel-release && \
     microdnf -y install \
-        --disablerepo "*" \
-        --enablerepo "baseos" \
-        --enablerepo "appstream" \
-        --enablerepo "crb" \
-        --enablerepo="epel" \
-        --setopt=install_weak_deps=0 \
-        --setopt=keepcache=0 \
-        --best \
-        --nodocs ${INSTALL_PKGS} && \
+            --disablerepo "*" \
+            --enablerepo "baseos" \
+            --enablerepo "appstream" \
+            --enablerepo "crb" \
+            --enablerepo="epel" \
+            --setopt=install_weak_deps=0 \
+            --setopt=keepcache=0 \
+            --best \
+            --nodocs \
+        ${INSTALL_PKGS} && \
     go telemetry off

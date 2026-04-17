@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1.6
-ARG OS_BASE_IMAGE=quay.io/centos/centos:stream9-minimal
+ARG OS_BASE_IMAGE=quay.io/centos/centos:stream10-minimal
 ARG MAJOR_VERSION=6.0
 ARG ZBX_VERSION=${MAJOR_VERSION}.45
 ARG BUILD_BASE_IMAGE=zabbix-build-mysql:centos-${ZBX_VERSION}
@@ -40,7 +40,6 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
     --mount=type=tmpfs,target=/var/cache/yum/ \
     set -eux && \
     INSTALL_PKGS="bash \
-            tini \
             iputils \
             pcre2 \
             libcurl-minimal \
@@ -49,27 +48,29 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             sudo \
             openssl-libs" && \
     microdnf -y install \
-        --disablerepo "*" \
-        --enablerepo "extras-common" \
-        --setopt=install_weak_deps=0 \
-        --setopt=keepcache=0 \
-        --best \
-        --nodocs epel-release && \
+            --disablerepo="*" \
+            --enablerepo="extras-common" \
+            --setopt=install_weak_deps=0 \
+            --setopt=keepcache=0 \
+            --best \
+            --nodocs \
+        epel-release && \
     microdnf -y install \
-        --disablerepo "*" \
-        --enablerepo "baseos" \
-        --enablerepo "appstream" \
-        --enablerepo="epel" \
-        --setopt=install_weak_deps=0 \
-        --setopt=keepcache=0 \
-        --best \
-        --nodocs ${INSTALL_PKGS} && \
+            --disablerepo="*" \
+            --enablerepo="baseos" \
+            --enablerepo="appstream" \
+            --enablerepo="epel" \
+            --setopt=install_weak_deps=0 \
+            --setopt=keepcache=0 \
+            --best \
+            --nodocs \
+        ${INSTALL_PKGS} && \
     microdnf -y reinstall \
-        --enablerepo "baseos" \
-        --setopt=install_weak_deps=0 \
-        --setopt=keepcache=0 \
-        --best \
-        --setopt=tsflags=nodocs \
+            --enablerepo "baseos" \
+            --setopt=install_weak_deps=0 \
+            --setopt=keepcache=0 \
+            --best \
+            --setopt=tsflags=nodocs \
         tzdata && \
     groupadd \
             --system \
@@ -105,7 +106,7 @@ WORKDIR ${ZABBIX_USER_HOME_DIR}
 
 COPY docker-entrypoint.sh /usr/bin/
 
-ENTRYPOINT ["/usr/bin/tini", "--", "/usr/bin/docker-entrypoint.sh"]
+ENTRYPOINT ["/usr/bin/docker-entrypoint.sh"]
 
 USER 1997
 
