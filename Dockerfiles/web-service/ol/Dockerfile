@@ -40,8 +40,8 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
     INSTALL_PKGS="bash \
             chromium-headless" && \
     microdnf -y install \
-            --disablerepo "*" \
-            --enablerepo "ol10_baseos_latest" \
+            --disablerepo="*" \
+            --enablerepo="ol10_baseos_latest" \
             --setopt=install_weak_deps=0 \
             --setopt=keepcache=0 \
             --best \

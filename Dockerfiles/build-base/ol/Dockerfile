@@ -53,18 +53,18 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             unixODBC-devel \
             zlib-devel" && \
     microdnf -y install \
-            --disablerepo "*" \
-            --enablerepo "ol10_baseos_latest" \
+            --disablerepo="*" \
+            --enablerepo="ol10_baseos_latest" \
             --setopt=install_weak_deps=0 \
             --setopt=keepcache=0 \
             --best \
             --nodocs \
         oracle-epel-release-el10 && \
     microdnf -y install \
-            --disablerepo "*" \
-            --enablerepo "ol10_baseos_latest" \
-            --enablerepo "ol10_appstream" \
-            --enablerepo "ol10_codeready_builder" \
+            --disablerepo="*" \
+            --enablerepo="ol10_baseos_latest" \
+            --enablerepo="ol10_appstream" \
+            --enablerepo="ol10_codeready_builder" \
             --enablerepo="ol10_u1_developer_EPEL" \
             --setopt=install_weak_deps=0 \
             --setopt=keepcache=0 \

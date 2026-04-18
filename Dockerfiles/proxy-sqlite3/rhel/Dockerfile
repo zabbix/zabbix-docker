@@ -106,7 +106,7 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
     microdnf -y update \
             --disableplugin=subscription-manager \
             --disablerepo="*" \
-            --enablerepo "ubi-10-baseos-rpms" \
+            --enablerepo="ubi-10-baseos-rpms" \
             --setopt=install_weak_deps=0 \
             --best \
             --setopt=tsflags=nodocs \

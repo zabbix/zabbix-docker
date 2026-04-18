@@ -83,7 +83,7 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             --nodocs \
         epel-release && \
     microdnf -y install \
-            --disablerepo "*" \
+            --disablerepo="*" \
             --enablerepo="baseos" \
             --enablerepo="appstream" \
             --enablerepo="crb" \
@@ -94,7 +94,7 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             --nodocs \
         ${INSTALL_PKGS} && \
     microdnf -y reinstall \
-            --enablerepo "baseos" \
+            --enablerepo="baseos" \
             --setopt=install_weak_deps=0 \
             --setopt=keepcache=0 \
             --best \

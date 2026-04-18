@@ -59,7 +59,7 @@ update_config_var() {
     # Remove configuration parameter definition in case of unset or empty parameter value
     if [ -z "$var_value" ]; then
         sed -i -e "/^${var_name}=/d" "$config_path"
-        log_message="$log_message removed"
+        info "$log_message removed"
         return
     fi
 
@@ -70,7 +70,7 @@ update_config_var() {
         else
             sed -i -e "/^[#;] ${var_name}=/s/.*/&\n${var_name}=/" "$config_path"
         fi
-        log_message="$log_message undefined"
+        info "$log_message undefined"
         return
     fi
 
