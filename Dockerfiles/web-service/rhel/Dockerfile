@@ -64,7 +64,7 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
     rm -rf /tmp/epel-release-latest-9.noarch.rpm && \
     ARCH_SUFFIX="$(arch)"; \
     microdnf -y install \
-            --disablerepo "*" \
+            --disablerepo="*" \
             --enablerepo="ubi-9-baseos-rpms" \
             --enablerepo="ubi-9-appstream-rpms" \
             --enablerepo="rhel-9-for-$ARCH_SUFFIX-baseos-rpms" \

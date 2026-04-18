@@ -72,7 +72,6 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             iputils \
             hostname \
             openssl \
-            libssh \
             libpsl \
             libbrotli \
             libevent \

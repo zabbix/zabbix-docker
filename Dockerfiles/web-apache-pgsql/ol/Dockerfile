@@ -96,7 +96,7 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             -g zabbix \
             --uid 1997 \
             --shell /sbin/nologin \
-            --home-dir ${ZABBIX_USER_HOME_DIR} \
+            --home-dir ${ZABBIX_USER_HOME_DIR}/ \
         zabbix && \
     mkdir -p ${ZABBIX_CONF_DIR} \
         ${ZABBIX_CONF_DIR}/web \
