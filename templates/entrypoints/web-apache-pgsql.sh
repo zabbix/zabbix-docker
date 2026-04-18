@@ -53,7 +53,7 @@ start_web_stack() {
 }
 
 prepare_service() {
-    info "** Preparing Zabbix web-interface (Apache) with MySQL database"
+    info "** Preparing Zabbix web-interface (Apache) with PostgreSQL database"
 
     check_db_variables "zabbix"
     check_db_connect "true"

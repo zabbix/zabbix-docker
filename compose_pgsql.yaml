@@ -39,8 +39,6 @@ services:
    file: compose_zabbix_components.yaml
    service: proxy-sqlite3
   image: "${ZABBIX_PROXY_SQLITE3_IMAGE}:${ZBX_IMAGE_TAG}"
-  volumes:
-   - /etc/timezone:/etc/timezone:ro
   labels:
    com.zabbix.os: "${OS}"
 
