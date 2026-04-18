@@ -77,7 +77,7 @@ RUN set -eux && \
             --uid 1997 \
             --ingroup zabbix \
             --shell /sbin/nologin \
-            --home ${ZABBIX_USER_HOME_DIR}/ \
+            --home ${ZABBIX_USER_HOME_DIR} \
         zabbix && \
     adduser zabbix dialout && \
     chgrp zabbix /usr/bin/nmap && \
@@ -107,13 +107,17 @@ RUN set -eux && \
     chmod -R g=u ${FIX_PERM_LIST} && \
     /usr/sbin/zabbix_server -V
 
+RUN --mount=from=entrypoints,target=/tmp/entrypoints,ro \
+    set -eux && \
+    install -d /usr/lib/docker-entrypoint && \
+    install -m 0755 /tmp/entrypoints/server-pgsql.sh /usr/bin/docker-entrypoint.sh && \
+    install -m 0644 /tmp/entrypoints/lib/*.sh /usr/lib/docker-entrypoint/
+
 EXPOSE 10051/tcp
 
 WORKDIR ${ZABBIX_USER_HOME_DIR}
 
 VOLUME ["${ZABBIX_USER_HOME_DIR}/snmptraps", "${ZABBIX_USER_HOME_DIR}/export"]
-
-COPY ["docker-entrypoint.sh", "/usr/bin/"]
 
 ENTRYPOINT ["/sbin/tini", "--", "/usr/bin/docker-entrypoint.sh"]
 

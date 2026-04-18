@@ -31,6 +31,12 @@ ENV TERM=xterm \
     ZABBIX_USER_HOME_DIR=/var/lib/zabbix \
     ZABBIX_WWW_ROOT=/usr/share/zabbix
 
+ENV DB_ENGINE=mysql \
+    NGINX_BIN=/usr/sbin/nginx \
+    PHP_FPM_BIN=/usr/sbin/php-fpm \
+    NGINX_CONFD_DIR=/etc/nginx/conf.d \
+    PHP_CONFIG_FILE=/etc/php-fpm.d/zabbix.conf
+
 LABEL org.opencontainers.image.authors="Alexey Pustovalov <alexey.pustovalov@zabbix.com>" \
       org.opencontainers.image.description="Zabbix web-interface based on Nginx web server with MySQL database support" \
       org.opencontainers.image.documentation="https://www.zabbix.com/documentation/${MAJOR_VERSION}/manual/installation/containers" \
@@ -44,6 +50,7 @@ LABEL org.opencontainers.image.authors="Alexey Pustovalov <alexey.pustovalov@zab
 STOPSIGNAL SIGTERM
 
 COPY --from=clean_builder /tmp/zabbix-${ZBX_VERSION}/ui ${ZABBIX_WWW_ROOT}/
+COPY --from=clean_builder /tmp/zabbix-${ZBX_VERSION}-output/web/conf ${ZABBIX_CONF_DIR}/web/
 COPY conf/etc/ /etc/
 
 RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
@@ -64,20 +71,11 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             php-xml \
             findutils \
             glibc-locale-source \
-            supervisor" && \
-    microdnf -y install \
-            --disablerepo="*" \
-            --enablerepo="ol10_baseos_latest" \
-            --setopt=install_weak_deps=0 \
-            --setopt=keepcache=0 \
-            --best \
-            --nodocs \
-        oracle-epel-release-el10 && \
+            jq" && \
     microdnf -y install \
             --disablerepo="*" \
             --enablerepo="ol10_baseos_latest" \
             --enablerepo="ol10_appstream" \
-            --enablerepo="ol10_u1_developer_EPEL" \
             --setopt=install_weak_deps=0 \
             --setopt=keepcache=0 \
             --best \
@@ -126,14 +124,18 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             glibc-locale-source \
             gzip
 
+RUN --mount=from=entrypoints,target=/tmp/entrypoints,ro \
+    set -eux && \
+    install -d /usr/lib/docker-entrypoint && \
+    install -m 0755 /tmp/entrypoints/web-nginx-mysql.sh /usr/bin/docker-entrypoint.sh && \
+    install -m 0644 /tmp/entrypoints/lib/*.sh /usr/lib/docker-entrypoint/
+
 HEALTHCHECK --interval=1m30s --timeout=3s --retries=3 --start-period=40s --start-interval=5s \
     CMD curl -f http://localhost:8080/ping || exit 1
 
 EXPOSE 8080/tcp 8443/tcp
 
 WORKDIR ${ZABBIX_WWW_ROOT}
-
-ENTRYPOINT ["/usr/bin/docker-entrypoint.sh"]
 
 USER 1997
 

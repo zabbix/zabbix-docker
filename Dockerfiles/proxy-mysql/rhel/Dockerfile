@@ -20,7 +20,8 @@ ENV TERM=xterm \
     NMAP_PRIVILEGED= \
     ZABBIX_USER_HOME_DIR=/var/lib/zabbix \
     ZABBIX_CONF_DIR=/etc/zabbix \
-    ZBX_FPINGLOCATION=/usr/sbin/fping
+    ZBX_FPINGLOCATION=/usr/sbin/fping \
+    DB_ENGINE=mysql
 
 LABEL description="Zabbix proxy with MySQL database support" \
       maintainer="alexey.pustovalov@zabbix.com" \
@@ -152,13 +153,17 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
     chmod g=u ${ZABBIX_CONF_DIR} && \
     /usr/sbin/zabbix_proxy -V
 
+RUN --mount=from=entrypoints,target=/tmp/entrypoints,ro \
+    set -eux && \
+    install -d /usr/lib/docker-entrypoint && \
+    install -m 0755 /tmp/entrypoints/proxy-mysql.sh /usr/bin/docker-entrypoint.sh && \
+    install -m 0644 /tmp/entrypoints/lib/*.sh /usr/lib/docker-entrypoint/
+
 EXPOSE 10051/tcp
 
 WORKDIR ${ZABBIX_USER_HOME_DIR}
 
 VOLUME ["${ZABBIX_USER_HOME_DIR}/snmptraps"]
-
-COPY docker-entrypoint.sh /usr/bin/
 
 ENTRYPOINT ["/usr/bin/tini", "--", "/usr/bin/docker-entrypoint.sh"]
 

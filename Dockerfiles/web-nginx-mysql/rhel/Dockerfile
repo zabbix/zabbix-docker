@@ -33,6 +33,13 @@ ENV TERM=xterm \
     ZABBIX_USER_HOME_DIR=/var/lib/zabbix \
     ZABBIX_WWW_ROOT=/usr/share/zabbix
 
+ENV DB_ENGINE=mysql \
+    NGINX_BIN=/usr/sbin/nginx \
+    PHP_FPM_BIN=/usr/sbin/php-fpm \
+    NGINX_CONFD_DIR=/etc/nginx/conf.d \
+    PHP_FPM_CONFIG=/etc/php-fpm.conf \
+    PHP_ZBX_CONFIG_FILE=/etc/php-fpm.d/zabbix.conf
+
 LABEL description="Zabbix web-interface based on Nginx web server with MySQL database support" \
       maintainer="alexey.pustovalov@zabbix.com" \
       name="zabbix/zabbix-web-mysql-60" \
@@ -63,6 +70,7 @@ STOPSIGNAL SIGTERM
 
 COPY licenses /licenses/
 COPY --from=clean_builder /tmp/zabbix-${ZBX_VERSION}/ui ${ZABBIX_WWW_ROOT}/
+COPY --from=clean_builder /tmp/zabbix-${ZBX_VERSION}-output/web/conf ${ZABBIX_CONF_DIR}/web/
 COPY conf/etc/ /etc/
 
 RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
@@ -70,7 +78,7 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
     set -eux && \
     INSTALL_PKGS="bash \
             curl \
-            supervisor \
+            jq \
             shadow-utils \
             findutils \
             glibc-locale-source \
@@ -84,9 +92,6 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             php-mbstring \
             php-mysqlnd \
             php-xml" && \
-    curl --tlsv1.2 -sSf -L https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm -o /tmp/epel-release-latest-8.noarch.rpm && \
-    rpm -ivh /tmp/epel-release-latest-8.noarch.rpm && \
-    rm -rf /tmp/epel-release-latest-8.noarch.rpm && \
     microdnf -y module enable mysql && \
     microdnf -y module enable php:8.2 nginx:1.24 && \
     microdnf -y install \
@@ -95,7 +100,6 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             --enablerepo="ubi-8-appstream-rpms" \
             --enablerepo="rhel-8-for-x86_64-baseos-rpms" \
             --enablerepo="rhel-8-for-x86_64-appstream-rpms" \
-            --enablerepo="epel" \
             --setopt=install_weak_deps=0 \
             --setopt=keepcache=0 \
             --best \
@@ -133,7 +137,7 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
     mkdir -p ${ZABBIX_CONF_DIR} \
         ${ZABBIX_CONF_DIR}/web \
         ${ZABBIX_CONF_DIR}/web/certs \
-        ${ZABBIX_USER_HOME_DIR}/ \
+        ${ZABBIX_USER_HOME_DIR} \
         /var/lib/php/session && \
     rm -rf /etc/nginx/conf.d/*.conf \
         /etc/php-fpm.d/www.conf && \
@@ -160,14 +164,18 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             findutils \
             glibc-locale-source
 
+RUN --mount=from=entrypoints,target=/tmp/entrypoints,ro \
+    set -eux && \
+    install -d /usr/lib/docker-entrypoint && \
+    install -m 0755 /tmp/entrypoints/web-nginx-mysql.sh /usr/bin/docker-entrypoint.sh && \
+    install -m 0644 /tmp/entrypoints/lib/*.sh /usr/lib/docker-entrypoint/
+
 HEALTHCHECK --interval=1m30s --timeout=3s --retries=3 --start-period=40s --start-interval=5s \
     CMD curl -f http://localhost:8080/ping || exit 1
 
 EXPOSE 8080/tcp 8443/tcp
 
 WORKDIR ${ZABBIX_WWW_ROOT}
-
-COPY docker-entrypoint.sh /usr/bin/
 
 USER 1997
 

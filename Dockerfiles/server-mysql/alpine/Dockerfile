@@ -17,9 +17,11 @@ ENV TERM=xterm \
     ZBX_SOURCES=${ZBX_SOURCES} \
     MIBDIRS=/usr/share/snmp/mibs:/var/lib/zabbix/mibs MIBS=+ALL \
     NMAP_PRIVILEGED= \
+    MARIADB_TLS_DISABLE_PEER_VERIFICATION=1 \
     ZABBIX_USER_HOME_DIR=/var/lib/zabbix \
     ZABBIX_CONF_DIR=/etc/zabbix \
-    ZBX_FPINGLOCATION=/usr/sbin/fping
+    ZBX_FPINGLOCATION=/usr/sbin/fping \
+    DB_ENGINE=mariadb
 
 LABEL org.opencontainers.image.authors="Alexey Pustovalov <alexey.pustovalov@zabbix.com>" \
       org.opencontainers.image.description="Zabbix server with MySQL database support" \
@@ -108,13 +110,17 @@ RUN set -eux && \
     chmod -R g=u ${FIX_PERM_LIST} && \
     /usr/sbin/zabbix_server -V
 
+RUN --mount=from=entrypoints,target=/tmp/entrypoints,ro \
+    set -eux && \
+    install -d /usr/lib/docker-entrypoint && \
+    install -m 0755 /tmp/entrypoints/server-mysql.sh /usr/bin/docker-entrypoint.sh && \
+    install -m 0644 /tmp/entrypoints/lib/*.sh /usr/lib/docker-entrypoint/
+
 EXPOSE 10051/tcp
 
 WORKDIR ${ZABBIX_USER_HOME_DIR}
 
 VOLUME ["${ZABBIX_USER_HOME_DIR}/snmptraps", "${ZABBIX_USER_HOME_DIR}/export"]
-
-COPY ["docker-entrypoint.sh", "/usr/bin/"]
 
 ENTRYPOINT ["/sbin/tini", "--", "/usr/bin/docker-entrypoint.sh"]
 

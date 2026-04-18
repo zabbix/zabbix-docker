@@ -56,6 +56,7 @@ RUN --mount=from=sources,target=/tmp/src,z \
         ${ZBX_OUTPUT_DIR}/proxy/conf \
         ${ZBX_OUTPUT_DIR}/proxy/database/${DB_TYPE} \
         ${ZBX_OUTPUT_DIR}/java_gateway/sbin \
+        ${ZBX_OUTPUT_DIR}/web/conf \
         ${ZBX_OUTPUT_DIR}/general/sbin \
         ${ZBX_OUTPUT_DIR}/general/bin \
         ${ZBX_OUTPUT_DIR}/general/conf && \
@@ -88,6 +89,7 @@ WORKDIR ${ZBX_SOURCES_DIR}
 
 RUN --mount=type=cache,target=/root/.cache/go-build \
     --mount=type=cache,target=/root/go/pkg/mod \
+    --mount=from=config_templates,target=/tmp/conf,z \
     set -eux && \
     cd "${ZBX_SOURCES_DIR}" && \
     ./bootstrap.sh && \
@@ -136,6 +138,7 @@ RUN --mount=type=cache,target=/root/.cache/go-build \
     cp -a src/zabbix_java/lib/. "${ZBX_OUTPUT_DIR}/java_gateway/sbin/lib/" && \
     cp src/zabbix_get/zabbix_get "${ZBX_OUTPUT_DIR}/general/bin/" && \
     cp src/zabbix_sender/zabbix_sender "${ZBX_OUTPUT_DIR}/general/bin/" && \
+    cp -a /tmp/conf/web/. "${ZBX_OUTPUT_DIR}/web/conf/" && \
     make -s distclean
 
 RUN set -eux && \

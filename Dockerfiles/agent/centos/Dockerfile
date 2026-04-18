@@ -48,21 +48,23 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             shadow-utils \
             zlib" && \
     microdnf -y install \
-        --disablerepo="*" \
-        --enablerepo="extras-common" \
-        --setopt=install_weak_deps=0 \
-        --setopt=keepcache=0 \
-        --best \
-        --nodocs epel-release && \
+            --disablerepo="*" \
+            --enablerepo="extras-common" \
+            --setopt=install_weak_deps=0 \
+            --setopt=keepcache=0 \
+            --best \
+            --nodocs \
+        epel-release && \
     microdnf -y install \
-        --disablerepo="*" \
-        --enablerepo="baseos" \
-        --enablerepo="appstream" \
-        --enablerepo="epel" \
-        --setopt=install_weak_deps=0 \
-        --setopt=keepcache=0 \
-        --best \
-        --nodocs ${INSTALL_PKGS} && \
+            --disablerepo="*" \
+            --enablerepo="baseos" \
+            --enablerepo="appstream" \
+            --enablerepo="epel" \
+            --setopt=install_weak_deps=0 \
+            --setopt=keepcache=0 \
+            --best \
+            --nodocs \
+        ${INSTALL_PKGS} && \
     microdnf -y reinstall \
             --enablerepo="baseos" \
             --setopt=install_weak_deps=0 \
@@ -96,11 +98,15 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
     chmod -R g=u ${FIX_PERM_LIST} && \
     /usr/sbin/zabbix_agentd -V
 
+RUN --mount=from=entrypoints,target=/tmp/entrypoints,ro \
+    set -eux && \
+    install -d /usr/lib/docker-entrypoint && \
+    install -m 0755 /tmp/entrypoints/agent.sh /usr/bin/docker-entrypoint.sh && \
+    install -m 0644 /tmp/entrypoints/lib/*.sh /usr/lib/docker-entrypoint/
+
 EXPOSE 10050/tcp
 
 WORKDIR ${ZABBIX_USER_HOME_DIR}
-
-COPY docker-entrypoint.sh /usr/bin/
 
 ENTRYPOINT ["/usr/bin/docker-entrypoint.sh"]
 

@@ -31,6 +31,15 @@ ENV TERM=xterm \
     ZABBIX_USER_HOME_DIR=/var/lib/zabbix \
     ZABBIX_WWW_ROOT=/usr/share/zabbix
 
+ENV DB_ENGINE=mariadb \
+    APACHE_BIN=/usr/sbin/httpd \
+    PHP_FPM_BIN=/usr/sbin/php-fpm83 \
+    APACHE_RUN_DIR=/tmp/apache2 \
+    HTTPD_CONF_FILE=/etc/apache2/httpd.conf \
+    APACHE_SITES_DIR=/etc/apache2/conf.d \
+    PHP_FPM_CONFIG=/etc/php83/php-fpm.conf \
+    PHP_ZBX_CONFIG_FILE=/etc/php83/php-fpm.d/zabbix.conf
+
 LABEL org.opencontainers.image.authors="Alexey Pustovalov <alexey.pustovalov@zabbix.com>" \
       org.opencontainers.image.description="Zabbix web-interface based on Apache2 web server with MySQL database support" \
       org.opencontainers.image.documentation="https://www.zabbix.com/documentation/${MAJOR_VERSION}/manual/installation/containers" \
@@ -43,13 +52,15 @@ LABEL org.opencontainers.image.authors="Alexey Pustovalov <alexey.pustovalov@zab
 
 STOPSIGNAL SIGTERM
 
-COPY --from=clean_builder /tmp/zabbix-${ZBX_VERSION}/ui ${ZABBIX_WWW_ROOT}
+COPY --from=clean_builder /tmp/zabbix-${ZBX_VERSION}/ui ${ZABBIX_WWW_ROOT}/
+COPY --from=clean_builder /tmp/zabbix-${ZBX_VERSION}-output/web/conf ${ZABBIX_CONF_DIR}/web/
 COPY conf/etc/ /etc/
 
 RUN set -eux && \
     INSTALL_PKGS="bash \
             tzdata \
             curl \
+            jq \
             mariadb-client \
             mariadb-connector-c \
             apache2 \
@@ -69,8 +80,7 @@ RUN set -eux && \
             php83-fileinfo \
             php83-xmlreader \
             php83-xmlwriter \
-            php83-openssl \
-            supervisor" && \
+            php83-openssl" && \
     apk add \
             --no-cache \
             --clean-protected \
@@ -121,14 +131,18 @@ RUN set -eux && \
     chown --quiet -R zabbix:0 ${FIX_PERM_LIST} && \
     chmod -R g=u ${FIX_PERM_LIST}
 
+RUN --mount=from=entrypoints,target=/tmp/entrypoints,ro \
+    set -eux && \
+    install -d /usr/lib/docker-entrypoint && \
+    install -m 0755 /tmp/entrypoints/web-apache-mysql.sh /usr/bin/docker-entrypoint.sh && \
+    install -m 0644 /tmp/entrypoints/lib/*.sh /usr/lib/docker-entrypoint/
+
 HEALTHCHECK --interval=1m30s --timeout=3s --retries=3 --start-period=40s --start-interval=5s \
     CMD curl -f http://localhost:8080/ping || exit 1
 
 EXPOSE 8080/tcp 8443/tcp
 
 WORKDIR ${ZABBIX_WWW_ROOT}
-
-COPY ["docker-entrypoint.sh", "/usr/bin/"]
 
 USER 1997
 
