@@ -687,7 +687,6 @@ services:
      protocol: tcp
   restart: "${RESTART_POLICY}"
   attach: false
-  read_only: true
   volumes:
    - ${DATA_DIRECTORY}/var/lib/zabbix/enc:/var/lib/zabbix/enc:ro
   tmpfs:
