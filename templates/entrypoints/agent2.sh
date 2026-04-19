@@ -76,13 +76,6 @@ update_config() {
     file_process_from_env "${ZABBIX_INTERNAL_ENC_DIR}" "ZBX_TLSCERTFILE" "${ZBX_TLSCERTFILE:-}" "${ZBX_TLSCERT:-}"
     file_process_from_env "${ZABBIX_INTERNAL_ENC_DIR}" "ZBX_TLSKEYFILE" "${ZBX_TLSKEYFILE:-}" "${ZBX_TLSKEY:-}"
     file_process_from_env "${ZABBIX_INTERNAL_ENC_DIR}" "ZBX_TLSPSKFILE" "${ZBX_TLSPSKFILE:-}" "${ZBX_TLSPSK:-}"
-
-    if [ "$(id -u)" -ne 0 ]; then
-        ZBX_USER="$(id -un)"
-        export ZBX_USER
-    else
-        export ZBX_ALLOWROOT=1
-    fi
 }
 
 update_plugin_config() {
