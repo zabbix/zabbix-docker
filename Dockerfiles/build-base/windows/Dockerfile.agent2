@@ -5,7 +5,6 @@ ARG OS_BASE_IMAGE=mcr.microsoft.com/windows/servercore:ltsc2022
 ARG PCRE2_VERSION=10.47
 ARG OPENSSL_VERSION=3.0.18
 ARG GOLANG_VERSION=1.25.5
-ARG VS_BUILDTOOLS_VERSION=17
 ARG PWSH_VERSION=7.5.4
 
 ARG MSYSTEM=MINGW64
@@ -18,13 +17,11 @@ FROM ${OS_BASE_IMAGE} as src
 ARG PCRE2_VERSION
 ARG OPENSSL_VERSION
 ARG GOLANG_VERSION
-ARG VS_BUILDTOOLS_VERSION
 ARG PWSH_VERSION
 
 ARG MSYSTEM
 
 ARG MINGW_URL=https://github.com/niXman/mingw-builds-binaries/releases/download/8.5.0-rt_v10-rev0/x86_64-8.5.0-release-win32-sjlj-rt_v10-rev0.7z
-ARG VS_BUILDTOOLS_URL=https://aka.ms/vs/$VS_BUILDTOOLS_VERSION/release/vs_buildtools.exe
 ARG GOLANG_URL=https://go.dev/dl/go$GOLANG_VERSION.windows-amd64.zip
 ARG MSYS2_URL=https://github.com/msys2/msys2-installer/releases/download/2025-12-13/msys2-base-x86_64-20251213.sfx.exe
 
@@ -37,7 +34,6 @@ ADD --checksum=sha256:b40d192ae95ba6ccc4cc362ff4e1b18ca6fb5055bebbcd3920684e1270
 ADD --checksum=sha256:ae756cce1cb80c819b4fe01b0353807178f532211b47f72d7fa77949de054ebb $GOLANG_URL build_deps\go_lang.zip
 ADD --checksum=sha256:d7270f76483aefe0c88f45284b374e27648dec59fb6f89ee2f5cb62f6a060082 $MINGW_URL build_deps\mingw.7z
 ADD --checksum=sha256:99f2fee9a7b1c344600ac97347e7be23a1f802d8d843b339ec7473a8ed8d49a6 $MSYS2_URL build_deps\msys2.sfx.exe
-ADD $VS_BUILDTOOLS_URL build_deps\vs_buildtools.exe
 
 ADD --checksum=sha256:d74c183c86c77248ad50017c7f45bae8f88106a6cca5d87ad09917e1c6fb0784 $PCRE2_URL build_src\pcre2.zip
 ADD --checksum=sha256:d80c34f5cf902dccf1f1b5df5ebb86d0392e37049e5d73df1b3abae72e4ffe8b $OPENSSL_URL build_src\openssl.tar.gz
@@ -107,7 +103,6 @@ FROM ${OS_BASE_IMAGE}
 ARG PCRE2_VERSION
 ARG OPENSSL_VERSION
 ARG GOLANG_VERSION
-ARG VS_BUILDTOOLS_VERSION
 
 ARG MSYSTEM
 
@@ -115,7 +110,7 @@ ARG MAJOR_VERSION
 ARG ZBX_VERSION
 
 ENV ZBX_VERSION=$ZBX_VERSION `
-    VS_BUILDTOOLS_VERSION=$VS_BUILDTOOLS_VERSION GOLANG_VERSION=$GOLANG_VERSION `
+    GOLANG_VERSION=$GOLANG_VERSION `
     PCRE2_VERSION=$PCRE2_VERSION OPENSSL_VERSION=$OPENSSL_VERSION `
     CHERE_INVOKING=yes MSYSTEM=$MSYSTEM
 
@@ -155,30 +150,6 @@ RUN Set-Location -Path $env:SystemDrive\.; `
     `
     Write-Host 'Verifying install ("gcc -v") ...'; `
     gcc -v; `
-    `
-    Write-Host ('{0} - Visual Studio components installing...' -f $(Get-Date -format 'u')); `
-    cmd /C start /w $env:BUILD_DEPS\vs_buildtools.exe `
-        --quiet `
-        --wait `
-        --norestart `
-        --nocache `
-        --installPath """${env:ProgramFiles(x86)}\Microsoft Visual Studio\2022\BuildTools""" `
-        --channelUri https://aka.ms/vs/$env:VS_BUILDTOOLS_VERSION/release/channel `
-        --installChannelUri https://aka.ms/vs/$env:VS_BUILDTOOLS_VERSION/release/channel `
-        --channelId VisualStudio.$env:VS_BUILDTOOLS_VERSION.Release `
-        # https://docs.microsoft.com/en-us/visualstudio/install/workload-component-id-vs-build-tools?view=vs-2022
-        --add Microsoft.VisualStudio.Component.VC.Tools.x86.x64; `
-    if ($err = dir $Env:TEMP -Filter dd_setup_*_errors.log | where Length -gt 0 | Get-Content) { `
-        throw $err; `
-    }; `
-    Wait-Process -name msiexec; `
-    Write-Host ('{0} - Visual Studio components installed' -f $(Get-Date -format 'u')); `
-    `
-    $env:VS_PATH = &(Join-Path ${env:ProgramFiles(x86)} """\Microsoft Visual Studio\Installer\vswhere.exe""") -latest -products Microsoft.VisualStudio.Product.BuildTools -property installationPath; `
-    [Environment]::SetEnvironmentVariable('VS_PATH', $env:VS_PATH, [EnvironmentVariableTarget]::Machine); `
-    `
-    Write-Host 'Visual Studio components installation cleanup'; `
-    Get-ChildItem -Path """${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer""" -Directory -Recurse | Remove-Item -Force -Recurse; `
     `
     Write-Host 'Build environment is ready...';
 
