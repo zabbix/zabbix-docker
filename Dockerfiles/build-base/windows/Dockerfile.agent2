@@ -93,14 +93,15 @@ RUN $env:BUILD_SRC = [string]::Format('{0}\build_src', $env:SystemDrive); `
     $env:SystemDirectory = [Environment]::SystemDirectory; `
     tar -zxf "$env:BUILD_SRC\openssl.tar.gz"; `
     Rename-Item -Path $env:BUILD_SRC\openssl-$env:OPENSSL_VERSION -NewName $env:BUILD_SRC\openssl; `
+    Remove-Item -Recurse -Force $env:BUILD_SRC\openssl\test -ErrorAction SilentlyContinue; `
     `
     Write-Host 'Removing downloaded...'; `
-    Remove-Item -Force -Recurse $env:BUILD_SRC\*.tar.gz; `
-    Remove-Item -Force -Recurse $env:BUILD_SRC\*.zip; `
-    Remove-Item -Force -Recurse $env:BUILD_DEPS\*.tar.gz; `
-    Remove-Item -Force -Recurse $env:BUILD_DEPS\*.zip; `
-    Remove-Item -Force -Recurse $env:BUILD_DEPS\msys2.sfx.exe; `
-    Remove-Item -Force -Recurse $env:BUILD_DEPS\*.7z;
+    Remove-Item -Force -Recurse $env:BUILD_SRC\*.tar.gz -ErrorAction SilentlyContinue; `
+    Remove-Item -Force -Recurse $env:BUILD_SRC\*.zip -ErrorAction SilentlyContinue; `
+    Remove-Item -Force -Recurse $env:BUILD_DEPS\*.tar.gz -ErrorAction SilentlyContinue; `
+    Remove-Item -Force -Recurse $env:BUILD_DEPS\*.zip -ErrorAction SilentlyContinue; `
+    Remove-Item -Force -Recurse $env:BUILD_DEPS\*.exe -ErrorAction SilentlyContinue; `
+    Remove-Item -Force -Recurse $env:BUILD_DEPS\*.7z -ErrorAction SilentlyContinue;
 
 FROM ${OS_BASE_IMAGE}
 
