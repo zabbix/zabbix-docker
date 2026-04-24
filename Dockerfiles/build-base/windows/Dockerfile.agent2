@@ -5,7 +5,7 @@ ARG OS_BASE_IMAGE=mcr.microsoft.com/windows/servercore:ltsc2022
 ARG PCRE2_VERSION=10.47
 ARG OPENSSL_VERSION=3.5.4
 ARG GOLANG_VERSION=1.26.2
-ARG PWSH_VERSION=7.5.4
+ARG PWSH_VERSION=7.6.1
 
 ARG MSYSTEM=UCRT64
 
@@ -30,7 +30,7 @@ ARG OPENSSL_URL=https://github.com/openssl/openssl/releases/download/openssl-$OP
 
 ARG PWSH_URL=https://github.com/PowerShell/PowerShell/releases/download/v$PWSH_VERSION/PowerShell-$PWSH_VERSION-win-x64.zip
 
-ADD --checksum=sha256:b40d192ae95ba6ccc4cc362ff4e1b18ca6fb5055bebbcd3920684e12701fa8f6 $PWSH_URL build_deps\pwsh.zip
+ADD --checksum=sha256:B5C9E8457CA7DF4998ABE3CC2C58E6DD4005AD1B4C5320BBAC86244A747DB91D $PWSH_URL build_deps\pwsh.zip
 ADD --checksum=sha256:98eb3570bade15cb826b0909338df6cc6d2cf590bc39c471142002db3832b708 $GOLANG_URL build_deps\go_lang.zip
 ADD --checksum=sha256:9e9f0b912a59d2cfb3ce5a01bae4e7a05e4be4f8ff89e36e0f57606ec525525d $MINGW_URL build_deps\mingw.7z
 ADD --checksum=sha256:99f2fee9a7b1c344600ac97347e7be23a1f802d8d843b339ec7473a8ed8d49a6 $MSYS2_URL build_deps\msys2.sfx.exe
@@ -44,8 +44,10 @@ RUN $env:BUILD_SRC = [string]::Format('{0}\build_src', $env:SystemDrive); `
     [Environment]::SetEnvironmentVariable('BUILD_SRC', $env:BUILD_SRC, [EnvironmentVariableTarget]::Machine); `
     $env:BUILD_DEPS = [string]::Format('{0}\build_deps', $env:SystemDrive); `
     [Environment]::SetEnvironmentVariable('BUILD_DEPS', $env:BUILD_DEPS, [EnvironmentVariableTarget]::Machine); `
+    $env:MSYS_BIN = [string]::Format('{0}\msys64\{1}\bin', $env:BUILD_DEPS, $env:MSYSTEM.ToLower()); `
+    [Environment]::SetEnvironmentVariable('MSYS_BIN', $env:MSYS_BIN, [EnvironmentVariableTarget]::Machine); `
     `
-    $env:PATH = $env:PATH + [string]::Format(';{0}\mingw64\bin;{0}\go\bin;{0}\msys64\usr\bin;{0}\msys64\{1}\bin', $env:BUILD_DEPS, $env:MSYSTEM.ToLower()); `
+    $env:PATH = $env:PATH + [string]::Format(';{0}\mingw64\bin;{0}\go\bin;{0}\msys64\usr\bin', $env:BUILD_DEPS); `
     [Environment]::SetEnvironmentVariable('PATH', $env:PATH, [EnvironmentVariableTarget]::Machine); `
     `
     Set-Location -Path $env:BUILD_DEPS; `
@@ -61,19 +63,21 @@ RUN $env:BUILD_SRC = [string]::Format('{0}\build_src', $env:SystemDrive); `
     `
     Write-Host 'Installing MSYS2...'; `
     & $env:BUILD_DEPS\msys2.sfx.exe -y -o"""$env:BUILD_DEPS\""" | Out-Null; `
-    bash -lc 'pacman --noprogressbar --noconfirm -Syuu'; `
-    bash -lc 'pacman --noprogressbar --noconfirm -Syuu'; `
-    bash -lc 'pacman --noprogressbar --sync --quiet --noconfirm mingw-w64-ucrt-x86_64-cmake mingw-w64-ucrt-x86_64-make mingw-w64-ucrt-x86_64-7zip git'; `
-    bash -lc 'pacman --noprogressbar --noconfirm -Scc'; `
-    bash -lc 'rm -rf /usr/share/man/* /usr/share/doc/* /usr/share/locale/*'; `
-    bash -lc 'rm -rf /$MSYSTEM/usr/share/man/* /$MSYSTEM/usr/share/doc/* /$MSYSTEM/usr/share/locale/*'; `
-    bash -lc 'rm -rf /$MSYSTEM/share/man/* /$MSYSTEM/share/doc/* /$MSYSTEM/share/locale/*'; `
-    bash -lc 'rm -rf /var/cache/pacman/pkg/*'; `
+    function msys() { bash @('-lc') + @Args; }; `
+    msys """sed -i -E '/^\[(clangarm64|mingw32|mingw64|clang64)\]/,/^Include/ s/^[^#]/#&/' /etc/pacman.conf"""; `
+    msys 'pacman --noprogressbar --noconfirm -Syuu'; `
+    msys 'pacman --noprogressbar --noconfirm -Syuu'; `
+    msys 'pacman --noprogressbar --sync --quiet --noconfirm mingw-w64-ucrt-x86_64-cmake mingw-w64-ucrt-x86_64-7zip git'; `
+    msys 'pacman --noprogressbar --noconfirm -Scc'; `
+    msys 'rm -rf /usr/share/man/* /usr/share/doc/* /usr/share/locale/*'; `
+    msys 'rm -rf /$MSYSTEM/usr/share/man/* /$MSYSTEM/usr/share/doc/* /$MSYSTEM/usr/share/locale/*'; `
+    msys 'rm -rf /$MSYSTEM/share/man/* /$MSYSTEM/share/doc/* /$MSYSTEM/share/locale/*'; `
+    msys 'rm -rf /var/cache/pacman/pkg/*'; `
     taskkill /F /FI 'MODULES eq msys-2.0.dll' | Out-Null; `
     compact /c /i /s:$env:BUILD_DEPS\msys64 | Out-Null; `
     `
     Write-Host 'Installing Mingw-w64...'; `
-    7z x $env:BUILD_DEPS\mingw.7z; `
+    & $env:MSYS_BIN\7z.exe x $env:BUILD_DEPS\mingw.7z -bso0 -bsp0; `
     compact /c /i /s:$env:BUILD_DEPS\mingw64 | Out-Null; `
     `
     Write-Host 'Installing Go Lang...'; `
@@ -136,8 +140,10 @@ RUN Set-Location -Path $env:SystemDrive\.; `
     [Environment]::SetEnvironmentVariable('BUILD_SRC', $env:BUILD_SRC, [EnvironmentVariableTarget]::Machine); `
     $env:BUILD_DEPS = [string]::Format('{0}\build_deps', $env:SystemDrive); `
     [Environment]::SetEnvironmentVariable('BUILD_DEPS', $env:BUILD_DEPS, [EnvironmentVariableTarget]::Machine); `
+    $env:MSYS_BIN = [string]::Format('{0}\msys64\{1}\bin', $env:BUILD_DEPS, $env:MSYSTEM.ToLower()); `
+    [Environment]::SetEnvironmentVariable('MSYS_BIN', $env:MSYS_BIN, [EnvironmentVariableTarget]::Machine); `
     `
-    $env:PATH = $env:PATH + [string]::Format(';{0}\mingw64\bin;{0}\go\bin;{0}\msys64\usr\bin;{0}\msys64\{1}\bin', $env:BUILD_DEPS, $env:MSYSTEM.ToLower()); `
+    $env:PATH = $env:PATH + [string]::Format(';{0}\mingw64\bin;{0}\go\bin;{0}\msys64\usr\bin', $env:BUILD_DEPS); `
     [Environment]::SetEnvironmentVariable('PATH', $env:PATH, [EnvironmentVariableTarget]::Machine); `
     `
     New-Item -ItemType directory -Path $env:BUILD_OUTPUT -Force | Out-Null; `
@@ -151,11 +157,14 @@ RUN Set-Location -Path $env:SystemDrive\.; `
     Write-Host 'Verifying install ("gcc -v") ...'; `
     gcc -v; `
     `
+    Write-Host 'Verifying install ("git -v") ...'; `
+    git --version; `
+    `
     Write-Host 'Build environment is ready...';
 
 RUN Write-Host 'Building PCRE2 library ...'; `
     Set-Location -Path $env:BUILD_SRC\pcre2; `
-    cmake -S $env:BUILD_SRC\pcre2 -B $env:BUILD_SRC\pcre2\build `
+    & $env:MSYS_BIN\cmake.exe -S $env:BUILD_SRC\pcre2 -B $env:BUILD_SRC\pcre2\build `
         -G 'MinGW Makefiles' `
         -DBUILD_SHARED_LIBS=OFF `
         -DBUILD_STATIC_LIBS=ON `
@@ -164,7 +173,7 @@ RUN Write-Host 'Building PCRE2 library ...'; `
         -DPCRE2_BUILD_PCRE2GREP=OFF `
         -DPCRE2_SUPPORT_JIT=OFF `
         -DINSTALL_MSVC_PDB=OFF `
-        -DCMAKE_C_COMPILER=gcc `
+        -DCMAKE_C_COMPILER="""$env:BUILD_DEPS\mingw64\bin\gcc.exe""" `
         -DCMAKE_C_FLAGS='-O2 -g' `
         -DCMAKE_INSTALL_PREFIX="""$env:BUILD_OUTPUT\pcre2""" . ; `
     Set-Location -Path $env:BUILD_SRC\pcre2\build; `
@@ -176,6 +185,7 @@ RUN Write-Host 'Building PCRE2 library ...'; `
 
 RUN Write-Host 'Building OpenSSL library...'; `
     Set-Location -Path $env:BUILD_SRC\openssl; `
+    $env:CFLAGS = """$env:CFLAGS -Wno-overflow""".Trim(); `
     perl Configure `
         mingw64 `
         no-capieng `
