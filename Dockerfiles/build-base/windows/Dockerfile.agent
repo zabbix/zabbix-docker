@@ -102,6 +102,7 @@ RUN Set-Location -Path $env:SystemDrive\.; `
     Write-Host 'Extracting OpenSSL archive ...'; `
     tar -zxf $env:BUILD_SRC\openssl.tar.gz; `
     Rename-Item -Path $env:BUILD_SRC\openssl-$env:OPENSSL_VERSION -NewName $env:BUILD_SRC\openssl; `
+    Remove-Item -Recurse -Force $env:BUILD_SRC\openssl\test -ErrorAction SilentlyContinue; `
     `
     Write-Host 'Extracting Libmodbus archive ...'; `
     tar -zxf $env:BUILD_SRC\libmodbus.tar.gz; `
@@ -118,10 +119,10 @@ RUN Set-Location -Path $env:SystemDrive\.; `
     Move-Item -Path $env:BUILD_SRC\curl-$env:CURL_VERSION\ -Destination $env:BUILD_SRC\curl; `
     `
     Write-Host 'Removing downloaded...'; `
-    Remove-Item -Force -Recurse $env:BUILD_SRC\*.tar.gz; `
-    Remove-Item -Force -Recurse $env:BUILD_SRC\*.zip; `
-    Remove-Item -Force -Recurse $env:BUILD_DEPS\*.tar.gz; `
-    Remove-Item -Force -Recurse $env:BUILD_DEPS\*.zip;
+    Remove-Item -Force -Recurse $env:BUILD_SRC\*.tar.gz -ErrorAction SilentlyContinue; `
+    Remove-Item -Force -Recurse $env:BUILD_SRC\*.zip -ErrorAction SilentlyContinue; `
+    Remove-Item -Force -Recurse $env:BUILD_DEPS\*.tar.gz -ErrorAction SilentlyContinue; `
+    Remove-Item -Force -Recurse $env:BUILD_DEPS\*.zip -ErrorAction SilentlyContinue;
 
 FROM ${OS_BASE_IMAGE}
 
@@ -263,6 +264,7 @@ RUN Import-Module (Get-ChildItem $env:VS_PATH -Recurse -File -Filter Microsoft.V
     cmake -S $env:BUILD_SRC\pcre2 -B $env:BUILD_SRC\pcre2\build `
         -G """Visual Studio 17 2022""" `
         -A x64 `
+        -DBUILD_STATIC_LIBS=ON `
         -DBUILD_SHARED_LIBS=OFF `
         -DPCRE2_BUILD_TESTS=OFF `
         -DPCRE2_BUILD_PCRE2GREP=OFF `
