@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1.6
-ARG OS_BASE_IMAGE=ubuntu:noble
+ARG OS_BASE_IMAGE=ubuntu:resolute
 ARG MAJOR_VERSION=7.0
 ARG ZBX_VERSION=${MAJOR_VERSION}.25
 ARG BUILD_BASE_IMAGE=zabbix-build-mysql:ubuntu-${ZBX_VERSION}
@@ -36,10 +36,10 @@ ENV DB_ENGINE=mysql \
     DAEMON_USER=www-data \
     DAEMON_GROUP=www-data \
     NGINX_BIN=/usr/sbin/nginx \
-    PHP_FPM_BIN=/usr/sbin/php-fpm8.3 \
+    PHP_FPM_BIN=/usr/sbin/php-fpm8.5 \
     NGINX_CONFD_DIR=/etc/nginx/conf.d \
-    PHP_FPM_CONFIG=/etc/php/8.3/fpm/php-fpm.conf \
-    PHP_ZBX_CONFIG_FILE=/etc/php/8.3/fpm/pool.d/zabbix.conf
+    PHP_FPM_CONFIG=/etc/php/8.5/fpm/php-fpm.conf \
+    PHP_ZBX_CONFIG_FILE=/etc/php/8.5/fpm/pool.d/zabbix.conf
 
 LABEL org.opencontainers.image.authors="Alexey Pustovalov <alexey.pustovalov@zabbix.com>" \
       org.opencontainers.image.description="Zabbix web-interface based on Nginx web server with MySQL database support" \
@@ -70,14 +70,14 @@ RUN --mount=type=cache,target=/var/cache/apt/,sharing=locked \
             nginx \
             locales \
             libldap-common \
-            php8.3-bcmath \
-            php8.3-curl \
-            php8.3-fpm \
-            php8.3-gd \
-            php8.3-ldap \
-            php8.3-mbstring \
-            php8.3-mysql \
-            php8.3-xml \
+            php8.5-bcmath \
+            php8.5-curl \
+            php8.5-fpm \
+            php8.5-gd \
+            php8.5-ldap \
+            php8.5-mbstring \
+            php8.5-mysql \
+            php8.5-xml \
             jq" && \
     apt-get -y update && \
     DEBIAN_FRONTEND=noninteractive apt-get -y \
@@ -107,8 +107,8 @@ RUN --mount=type=cache,target=/var/cache/apt/,sharing=locked \
     rm -rf \
         /etc/nginx/conf.d/*.conf \
         /var/cache/nginx/ \
-        /etc/php/8.3/fpm/pool.d/www.conf \
-        /etc/php/8.3/fpm/php-fpm.conf.dpkg-dist \
+        /etc/php/8.5/fpm/pool.d/www.conf \
+        /etc/php/8.5/fpm/php-fpm.conf.dpkg-dist \
         /var/lib/locales/supported.d/local && \
     ln -sf /dev/stdout /var/log/nginx/access.log && \
     ln -sf /dev/stderr /var/log/nginx/error.log && \
@@ -124,8 +124,8 @@ RUN --mount=type=cache,target=/var/cache/apt/,sharing=locked \
         ${ZABBIX_WWW_ROOT}/modules/ \
         ${ZABBIX_USER_HOME_DIR}/ \
         /etc/nginx/ \
-        /etc/php/8.3/fpm/php-fpm.conf \
-        /etc/php/8.3/fpm/pool.d/ \
+        /etc/php/8.5/fpm/php-fpm.conf \
+        /etc/php/8.5/fpm/pool.d/ \
         /var/lib/php/session/" && \
     chown --quiet -R zabbix:0 ${FIX_PERM_LIST} && \
     chmod -R g=u ${FIX_PERM_LIST}

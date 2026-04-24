@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1.6
-ARG OS_BASE_IMAGE=ubuntu:noble
+ARG OS_BASE_IMAGE=ubuntu:resolute
 FROM ${OS_BASE_IMAGE}
 
 ARG MAJOR_VERSION=7.0
@@ -7,7 +7,7 @@ ARG ZBX_VERSION=${MAJOR_VERSION}.25
 
 ENV TERM=xterm \
     ZBX_VERSION=${ZBX_VERSION} \
-    PATH=/usr/lib/go-1.24/bin:$PATH \
+    PATH=/usr/lib/go-1.26/bin:$PATH \
     GOPATH=/root/go \
     GOCACHE=/root/.cache/go-build \
     GOMODCACHE=/root/go/pkg/mod \
@@ -54,7 +54,7 @@ RUN --mount=type=cache,target=/var/cache/apt/,sharing=locked \
             pkg-config \
             gettext \
             git \
-            golang-1.24 \
+            golang-1.26 \
             unzip \
             unixodbc-dev \
             zlib1g-dev" && \

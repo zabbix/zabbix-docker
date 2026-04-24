@@ -25,7 +25,7 @@ PLATFORMS ?=
 ALPINE_BASE_IMAGE ?= alpine:3.23
 CENTOS_BASE_IMAGE ?= quay.io/centos/centos:stream10-minimal
 OL_BASE_IMAGE ?= container-registry.oracle.com/os/oraclelinux:10-slim
-UBUNTU_BASE_IMAGE ?= ubuntu:noble
+UBUNTU_BASE_IMAGE ?= ubuntu:resolute
 RHEL_BASE_IMAGE ?= registry.access.redhat.com/ubi9/ubi-minimal:9.7
 
 # Auto-select base image by OS (unless explicitly overridden)
@@ -149,7 +149,7 @@ help:
 	@echo "  make build DB=mysql"
 	@echo "  make build DB=pgsql"
 	@echo "  make builders DB=sqlite3"
-	@echo "  make build OS=ubuntu OS_BASE_IMAGE=ubuntu:noble"
+	@echo "  make build OS=ubuntu OS_BASE_IMAGE=ubuntu:resolute"
 	@echo "  make build PLATFORMS=linux/amd64,linux/arm64"
 	@echo "  make build LOCAL_IMAGE_PREFIX=ghcr.io/zabbix/"
 	@echo ""

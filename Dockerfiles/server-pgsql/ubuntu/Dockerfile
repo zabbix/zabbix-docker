@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1.6
-ARG OS_BASE_IMAGE=ubuntu:noble
+ARG OS_BASE_IMAGE=ubuntu:resolute
 ARG MAJOR_VERSION=7.0
 ARG ZBX_VERSION=${MAJOR_VERSION}.25
 ARG BUILD_BASE_IMAGE=zabbix-build-pgsql:ubuntu-${ZBX_VERSION}
@@ -53,6 +53,7 @@ RUN --mount=type=cache,target=/var/cache/apt/,sharing=locked \
             iputils-ping \
             fping \
             openssl \
+            libc6 \
             libcares2 \
             libcurl4t64 \
             libevent-2.1 \
@@ -64,8 +65,8 @@ RUN --mount=type=cache,target=/var/cache/apt/,sharing=locked \
             libsnmp40t64 \
             libssh-4 \
             libssl3t64 \
-            libxml2 \
-            postgresql-client-17 \
+            libxml2-16 \
+            postgresql-client \
             snmp-mibs-downloader \
             gzip \
             unixodbc \
@@ -75,25 +76,7 @@ RUN --mount=type=cache,target=/var/cache/apt/,sharing=locked \
             -o Dpkg::Options::="--force-confdef" \
             -o Dpkg::Options::="--force-confold" \
             --no-install-recommends install \
-        ca-certificates \
-        curl \
-        gnupg && \
-    curl -fsSL https://www.postgresql.org/media/keys/ACCC4CF8.asc \
-        | gpg --dearmor -o /usr/share/keyrings/postgresql.gpg && \
-    . /etc/os-release && \
-    echo "deb [signed-by=/usr/share/keyrings/postgresql.gpg] https://apt.postgresql.org/pub/repos/apt ${VERSION_CODENAME}-pgdg main" \
-        > /etc/apt/sources.list.d/pgdg.list && \
-    apt-get -y update && \
-    DEBIAN_FRONTEND=noninteractive apt-get -y \
-            -o Dpkg::Options::="--force-confdef" \
-            -o Dpkg::Options::="--force-confold" \
-            --no-install-recommends install \
         ${INSTALL_PKGS} && \
-    DEBIAN_FRONTEND=noninteractive apt-get -y \
-            purge \
-              curl \
-              gnupg && \
-    apt-get -y autoremove && \
     groupadd \
             --system \
             --gid 1995 \
