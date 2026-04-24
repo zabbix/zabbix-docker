@@ -75,65 +75,46 @@ RUN Set-Location -Path $env:SystemDrive\.; `
     Copy-Item -Path $env:ZBX_SOURCES_DIR\src\go\conf\zabbix_agent2.win.conf $env:ZBX_OUTPUT_DIR\conf\zabbix_agent2.conf_template; `
     Copy-Item -Recurse -Path $env:ZBX_SOURCES_DIR\src\go\conf\zabbix_agent2.d $env:ZBX_OUTPUT_DIR\conf\zabbix_agent2.d; `
     Copy-Item -Recurse -Path $env:SystemDrive\config_templates\agent2\* $env:ZBX_OUTPUT_DIR\conf; `
-    mingw32-make -s clean; `
+    mingw32-make -s clean;
+
+RUN function Build-Plugin { `
+        param( `
+            [Parameter(Mandatory)] [string] $Name, `
+            [Parameter(Mandatory)] [string] $Repo, `
+            [Parameter(Mandatory)] [string] $Version, `
+            [Parameter(Mandatory)] [string] $Binary, `
+            [Parameter(Mandatory)] [string] $Conf, `
+            [Parameter(Mandatory)] [string] $OutName `
+        ); `
+        `
+        $workDir = Join-Path $env:SystemDrive "$Name-plugin-$Version"; `
+        $outBinDir = Join-Path $env:ZBX_OUTPUT_DIR 'zabbix-agent2-plugin'; `
+        $outConfDir = Join-Path $env:ZBX_OUTPUT_DIR 'conf\zabbix_agent2.d\plugins.d'; `
+        $binaryPath = Join-Path $workDir """$Binary.exe"""; `
+        `
+        Remove-Item -Recurse -Force $workDir -ErrorAction SilentlyContinue; `
+        `
+        Write-Host ('Building {0} plugin {1} version ...' -f $Name, $Version); `
+        git -c advice.detachedHead=false clone $Repo --branch $Version --depth 1 --single-branch $workDir; `
+        `
+        Set-Location -Path $workDir; `
+        mingw32-make; `
+        `
+        Write-Host ('Verifying {0} plugin ({1}.exe -V) ...' -f $Name, $Binary); `
+        & $binaryPath -V; `
+        `
+        Copy-Item -Path $binaryPath -Destination (Join-Path $outBinDir """$OutName.exe""") -Force; `
+        Copy-Item -Path (Join-Path $workDir $Conf) -Destination $outConfDir -Force; `
+        `
+        mingw32-make -s clean; `
+    }; `
     `
-    Write-Host ('Building Zabbix MongoDB plugin {0} version ...' -f $env:MONGODB_PLUGIN_VERSION); `
-    git -c advice.detachedHead=false clone $env:MONGODB_PLUGIN_SOURCES --branch $env:MONGODB_PLUGIN_VERSION --depth 1 --single-branch $env:SystemDrive\mongodb-plugin-$env:MONGODB_PLUGIN_VERSION; `
-    Set-Location -Path $env:SystemDrive\mongodb-plugin-$env:MONGODB_PLUGIN_VERSION; `
-    mingw32-make; `
+    New-Item -ItemType Directory -Force -Path (Join-Path $env:ZBX_OUTPUT_DIR 'zabbix-agent2-plugin') | Out-Null; `
+    New-Item -ItemType Directory -Force -Path (Join-Path $env:ZBX_OUTPUT_DIR 'conf\zabbix_agent2.d\plugins.d') | Out-Null; `
     `
-    Write-Host 'Verifying MongoDB plugin ("zabbix-agent2-plugin-mongodb.exe -V") ...'; `
-    & $env:SystemDrive\mongodb-plugin-$env:MONGODB_PLUGIN_VERSION\zabbix-agent2-plugin-mongodb.exe -V; `
-    `
-    Copy-Item -Path $env:SystemDrive\mongodb-plugin-$env:MONGODB_PLUGIN_VERSION\zabbix-agent2-plugin-mongodb.exe $env:ZBX_OUTPUT_DIR\zabbix-agent2-plugin\mongodb.exe; `
-    Copy-Item -Path $env:SystemDrive\mongodb-plugin-$env:MONGODB_PLUGIN_VERSION\mongodb.conf $env:ZBX_OUTPUT_DIR\conf\zabbix_agent2.d\plugins.d; `
-    mingw32-make -s clean; `
-    `
-    Write-Host ('Building Zabbix PostgreSQL plugin {0} version ...' -f $env:POSTGRESQL_PLUGIN_VERSION); `
-    git -c advice.detachedHead=false clone $env:POSTGRESQL_PLUGIN_SOURCES --branch $env:POSTGRESQL_PLUGIN_VERSION --depth 1 --single-branch $env:SystemDrive\postgresql-plugin-$env:POSTGRESQL_PLUGIN_VERSION; `
-    Set-Location -Path $env:SystemDrive\postgresql-plugin-$env:POSTGRESQL_PLUGIN_VERSION; `
-    mingw32-make; `
-    `
-    Write-Host 'Verifying build ("zabbix-agent2-plugin-postgresql.exe -V") ...'; `
-    & $env:SystemDrive\postgresql-plugin-$env:POSTGRESQL_PLUGIN_VERSION\zabbix-agent2-plugin-postgresql.exe -V; `
-    `
-    Copy-Item -Path $env:SystemDrive\postgresql-plugin-$env:POSTGRESQL_PLUGIN_VERSION\zabbix-agent2-plugin-postgresql.exe $env:ZBX_OUTPUT_DIR\zabbix-agent2-plugin\postgresql.exe; `
-    Copy-Item -Path $env:SystemDrive\postgresql-plugin-$env:POSTGRESQL_PLUGIN_VERSION\postgresql.conf $env:ZBX_OUTPUT_DIR\conf\zabbix_agent2.d\plugins.d; `
-    mingw32-make -s clean; `
-    `
-    Write-Host ('Building Zabbix MSSQL plugin {0} version ...' -f $env:MSSQL_PLUGIN_VERSION); `
-    git -c advice.detachedHead=false clone $env:MSSQL_PLUGIN_SOURCES --branch $env:MSSQL_PLUGIN_VERSION --depth 1 --single-branch $env:SystemDrive\mssql-plugin-$env:MSSQL_PLUGIN_VERSION; `
-    Set-Location -Path $env:SystemDrive\mssql-plugin-$env:MSSQL_PLUGIN_VERSION; `
-    mingw32-make; `
-    `
-    Write-Host 'Verifying MSSQL plugin ("zabbix-agent2-plugin-mssql.exe -V") ...'; `
-    & $env:SystemDrive\mssql-plugin-$env:MSSQL_PLUGIN_VERSION\zabbix-agent2-plugin-mssql.exe -V; `
-    `
-    Copy-Item -Path $env:SystemDrive\mssql-plugin-$env:MSSQL_PLUGIN_VERSION\zabbix-agent2-plugin-mssql.exe $env:ZBX_OUTPUT_DIR\zabbix-agent2-plugin\mssql.exe; `
-    Copy-Item -Path $env:SystemDrive\mssql-plugin-$env:MSSQL_PLUGIN_VERSION\mssql.conf $env:ZBX_OUTPUT_DIR\conf\zabbix_agent2.d\plugins.d; `
-    mingw32-make -s clean; `
-    `
-    Write-Host ('Building Zabbix Ember+ plugin {0} version ...' -f $env:EMBER_PLUS_PLUGIN_VERSION); `
-    git -c advice.detachedHead=false clone $env:EMBER_PLUS_PLUGIN_SOURCES --branch $env:EMBER_PLUS_PLUGIN_VERSION --depth 1 --single-branch $env:SystemDrive\ember-plus-plugin-$env:EMBER_PLUS_PLUGIN_VERSION; `
-    Set-Location -Path $env:SystemDrive\ember-plus-plugin-$env:EMBER_PLUS_PLUGIN_VERSION; `
-    mingw32-make; `
-    `
-    Write-Host 'Verifying Ember+ plugin ("zabbix-agent2-plugin-ember-plus.exe -V") ...'; `
-    & $env:SystemDrive\ember-plus-plugin-$env:EMBER_PLUS_PLUGIN_VERSION\zabbix-agent2-plugin-ember-plus.exe -V; `
-    `
-    Copy-Item -Path $env:SystemDrive\ember-plus-plugin-$env:EMBER_PLUS_PLUGIN_VERSION\zabbix-agent2-plugin-ember-plus.exe $env:ZBX_OUTPUT_DIR\zabbix-agent2-plugin\ember-plus.exe; `
-    Copy-Item -Path $env:SystemDrive\ember-plus-plugin-$env:EMBER_PLUS_PLUGIN_VERSION\ember.conf $env:ZBX_OUTPUT_DIR\conf\zabbix_agent2.d\plugins.d; `
-    mingw32-make -s clean; `
-    `
-    Write-Host ('Building NVIDIA GPU plugin {0} version ...' -f $env:NVIDIA_GPU_PLUGIN_VERSION); `
-    git -c advice.detachedHead=false clone $env:NVIDIA_GPU_PLUGIN_SOURCES --branch $env:NVIDIA_GPU_PLUGIN_VERSION --depth 1 --single-branch $env:SystemDrive\nvidia-gpu-plugin-$env:NVIDIA_GPU_PLUGIN_VERSION; `
-    Set-Location -Path $env:SystemDrive\nvidia-gpu-plugin-$env:NVIDIA_GPU_PLUGIN_VERSION; `
-    mingw32-make; `
-    `
-    Write-Host 'Verifying NVIDIA GPU plugin ("zabbix-agent2-plugin-nvidia-gpu.exe -V") ...'; `
-    & $env:SystemDrive\nvidia-gpu-plugin-$env:NVIDIA_GPU_PLUGIN_VERSION\zabbix-agent2-plugin-nvidia-gpu.exe -V; `
-    `
-    Copy-Item -Path $env:SystemDrive\nvidia-gpu-plugin-$env:NVIDIA_GPU_PLUGIN_VERSION\zabbix-agent2-plugin-nvidia-gpu.exe $env:ZBX_OUTPUT_DIR\zabbix-agent2-plugin\nvidia-gpu.exe; `
-    Copy-Item -Path $env:SystemDrive\nvidia-gpu-plugin-$env:NVIDIA_GPU_PLUGIN_VERSION\nvidia.conf $env:ZBX_OUTPUT_DIR\conf\zabbix_agent2.d\plugins.d; `
-    mingw32-make -s clean; `
-    Write-Host 'Zabbix binaries are compiled...';
+    Build-Plugin mongodb $env:MONGODB_PLUGIN_SOURCES $env:MONGODB_PLUGIN_VERSION zabbix-agent2-plugin-mongodb mongodb.conf mongodb; `
+    Build-Plugin postgresql $env:POSTGRESQL_PLUGIN_SOURCES $env:POSTGRESQL_PLUGIN_VERSION zabbix-agent2-plugin-postgresql postgresql.conf postgresql; `
+    Build-Plugin mssql $env:MSSQL_PLUGIN_SOURCES $env:MSSQL_PLUGIN_VERSION zabbix-agent2-plugin-mssql mssql.conf mssql; `
+    $env:PATH = $env:PATH + [string]::Format(';{0}', $env:MSYS_BIN); `
+    Build-Plugin ember $env:EMBER_PLUS_PLUGIN_SOURCES $env:EMBER_PLUS_PLUGIN_VERSION zabbix-agent2-plugin-ember-plus ember.conf ember-plus; `
+    Build-Plugin nvidia-gpu $env:NVIDIA_GPU_PLUGIN_SOURCES $env:NVIDIA_GPU_PLUGIN_VERSION zabbix-agent2-plugin-nvidia-gpu nvidia.conf nvidia-gpu;

@@ -71,4 +71,6 @@ USER zabbix
 
 EXPOSE 10050/tcp 31999/tcp
 
-CMD C:\zabbix\docker-entrypoint.ps1 C:\zabbix\sbin\zabbix_agent2.exe -c C:\zabbix\conf\zabbix_agent2.conf -f
+ENTRYPOINT ["pwsh", "-File", "C:\\zabbix\\docker-entrypoint.ps1"]
+
+CMD ["C:\\zabbix\\sbin\\zabbix_agent2.exe", "-c", "C:\\zabbix\\conf\\zabbix_agent2.conf", "-f"]
