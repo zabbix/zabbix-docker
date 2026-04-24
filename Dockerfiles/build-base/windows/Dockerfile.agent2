@@ -4,7 +4,7 @@ ARG OS_BASE_IMAGE=mcr.microsoft.com/windows/servercore:ltsc2022
 
 ARG PCRE2_VERSION=10.47
 ARG OPENSSL_VERSION=3.5.4
-ARG GOLANG_VERSION=1.25.5
+ARG GOLANG_VERSION=1.26.2
 ARG PWSH_VERSION=7.5.4
 
 ARG MSYSTEM=UCRT64
@@ -31,7 +31,7 @@ ARG OPENSSL_URL=https://github.com/openssl/openssl/releases/download/openssl-$OP
 ARG PWSH_URL=https://github.com/PowerShell/PowerShell/releases/download/v$PWSH_VERSION/PowerShell-$PWSH_VERSION-win-x64.zip
 
 ADD --checksum=sha256:b40d192ae95ba6ccc4cc362ff4e1b18ca6fb5055bebbcd3920684e12701fa8f6 $PWSH_URL build_deps\pwsh.zip
-ADD --checksum=sha256:ae756cce1cb80c819b4fe01b0353807178f532211b47f72d7fa77949de054ebb $GOLANG_URL build_deps\go_lang.zip
+ADD --checksum=sha256:98eb3570bade15cb826b0909338df6cc6d2cf590bc39c471142002db3832b708 $GOLANG_URL build_deps\go_lang.zip
 ADD --checksum=sha256:9e9f0b912a59d2cfb3ce5a01bae4e7a05e4be4f8ff89e36e0f57606ec525525d $MINGW_URL build_deps\mingw.7z
 ADD --checksum=sha256:99f2fee9a7b1c344600ac97347e7be23a1f802d8d843b339ec7473a8ed8d49a6 $MSYS2_URL build_deps\msys2.sfx.exe
 
