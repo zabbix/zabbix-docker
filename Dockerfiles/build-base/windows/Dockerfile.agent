@@ -250,9 +250,10 @@ RUN Import-Module (Get-ChildItem $env:VS_PATH -Recurse -File -Filter Microsoft.V
         --api=1.1.0 `
         --prefix=$env:BUILD_OUTPUT\openssl `
         --openssldir=$env:BUILD_OUTPUT\openssl_ssl; `
-    nmake /S build_libs; `
+    nmake /S build_libs | Out-Null; `
     nmake /S INSTALLDOCS=0 INSTALLHTML=0 install_dev; `
-    nmake /S clean | Out-Null; `
+    $ErrorActionPreference = 'Continue'; `
+    nmake /S clean 2>$null | Out-Null; `
     Write-Host 'OpenSSL is ready...';
 
 RUN Import-Module (Get-ChildItem $env:VS_PATH -Recurse -File -Filter Microsoft.VisualStudio.DevShell.dll).FullName; `
