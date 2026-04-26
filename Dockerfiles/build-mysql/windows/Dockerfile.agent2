@@ -113,7 +113,4 @@ RUN function Build-Plugin { `
     Build-Plugin mongodb $env:MONGODB_PLUGIN_SOURCES $env:MONGODB_PLUGIN_VERSION zabbix-agent2-plugin-mongodb mongodb.conf mongodb; `
     Build-Plugin postgresql $env:POSTGRESQL_PLUGIN_SOURCES $env:POSTGRESQL_PLUGIN_VERSION zabbix-agent2-plugin-postgresql postgresql.conf postgresql; `
     Build-Plugin mssql $env:MSSQL_PLUGIN_SOURCES $env:MSSQL_PLUGIN_VERSION zabbix-agent2-plugin-mssql mssql.conf mssql; `
-    $env:PATH = $env:PATH + [string]::Format(';{0}', $env:MSYS_BIN); `
-    Build-Plugin ember $env:EMBER_PLUS_PLUGIN_SOURCES $env:EMBER_PLUS_PLUGIN_VERSION zabbix-agent2-plugin-ember-plus ember.conf ember-plus; `
-    Build-Plugin nvidia-gpu $env:NVIDIA_GPU_PLUGIN_SOURCES $env:NVIDIA_GPU_PLUGIN_VERSION zabbix-agent2-plugin-nvidia-gpu nvidia.conf nvidia-gpu;
-
+    Build-Plugin ember $env:EMBER_PLUS_PLUGIN_SOURCES $env:EMBER_PLUS_PLUGIN_VERSION zabbix-agent2-plugin-ember-plus ember.conf ember-plus;
