@@ -67,7 +67,7 @@ RUN $env:BUILD_SRC = [string]::Format('{0}\build_src', $env:SystemDrive); `
     msys """sed -i -E '/^\[(clangarm64|mingw32|clang64|ucrt64)\]/,/^Include/ s/^[^#]/#&/' /etc/pacman.conf"""; `
     msys 'pacman --noprogressbar --noconfirm -Syuu'; `
     msys 'pacman --noprogressbar --noconfirm -Syuu'; `
-    msys 'pacman --noprogressbar --sync --quiet --noconfirm mingw-w64-x86_64-make mingw-w64-x86_64-7zip git'; `
+    msys 'pacman --noprogressbar --sync --quiet --noconfirm mingw-w64-x86_64-cmake mingw-w64-x86_64-make mingw-w64-x86_64-7zip git'; `
     msys 'pacman --noprogressbar --noconfirm -Scc'; `
     msys 'rm -rf /usr/share/man/* /usr/share/doc/* /usr/share/locale/*'; `
     msys 'rm -rf /$MSYSTEM/usr/share/man/* /$MSYSTEM/usr/share/doc/* /$MSYSTEM/usr/share/locale/*'; `
