@@ -457,7 +457,12 @@ jobs:
             throw "Base image digest is empty in file: $baseImageFile"
           }
 
-          $buildBaseImage = "$Env:DOCKER_REPOSITORY/$Env:IMAGES_PREFIX$Env:BASE_IMAGE_NAME@" + $baseTag
+          if ($baseTag -like 'sha256:*') {
+            $buildBaseImage = "$Env:DOCKER_REPOSITORY/$Env:IMAGES_PREFIX$Env:BASE_IMAGE_NAME@$baseTag"
+          }
+          else {
+            $buildBaseImage = $baseTag
+          }
 
           echo "::group::Base image info"
           echo "base_tag=$baseTag"
