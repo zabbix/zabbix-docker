@@ -257,7 +257,7 @@ jobs:
           $shortHash = $hash.Substring(0, 12)
 
           $tag = "$component-$osTag-$branch-$epoch-$shortHash"
-          $ref = "$base_image:$tag"
+          $ref = "${base_image}:${tag}"
 
           echo "::group::Base Microsoft Windows OS ref"
           echo "$ref"
@@ -283,11 +283,16 @@ jobs:
           docker manifest inspect "$toolchain_ref" *> $null
 
           if ($LASTEXITCODE -eq 0) {
-            "reuse=true" >> $env:GITHUB_OUTPUT
+            Add-Content -Path $env:GITHUB_OUTPUT -Value 'reuse=true'
+            Write-Host "Toolchain $toolchain_ref image exists, will reuse it."
           }
           else {
-            "reuse=false" >> $env:GITHUB_OUTPUT
+            Add-Content -Path $env:GITHUB_OUTPUT -Value 'reuse=false'
+            Write-Host "Toolchain $toolchain_ref image is missing, will build it."
           }
+
+          $global:LASTEXITCODE = 0
+          exit 0
 
       - name: Generate tags
         id: meta
