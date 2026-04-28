@@ -54,12 +54,16 @@ get_vault_secrets() {
     local vaultdata errors
     local cyberark_opts
 
-    if [ -z "${ZBX_VAULTURL:-}" ] || [ -z "${ZBX_VAULTPREFIX:-}" ] || [ -z "${ZBX_VAULTDBPATH:-}" ]; then
-        error "Missing variables! If ZBX_VAULT is used then ZBX_VAULTURL, ZBX_VAULTPREFIX and ZBX_VAULTDBPATH must be set"
+    if [ -z "${ZBX_VAULTURL:-}" ] || [ -z "${ZBX_VAULTDBPATH:-}" ]; then
+        error "Missing variables! If ZBX_VAULT is used then ZBX_VAULTURL and ZBX_VAULTDBPATH must be set"
     fi
-    local vault_url="${ZBX_VAULTURL}${ZBX_VAULTPREFIX}${ZBX_VAULTDBPATH}"
 
     if [ "${ZBX_VAULT:-}" = "HashiCorp" ]; then
+        if [ -z "$ZBX_VAULTPREFIX" ]; then
+            ZBX_VAULTPREFIX="/v1/${ZBX_VAULTDBPATH%/*}/data/"
+            ZBX_VAULTDBPATH="${ZBX_VAULTDBPATH##*/}"
+        fi
+        local vault_url="${ZBX_VAULTURL}${ZBX_VAULTPREFIX}${ZBX_VAULTDBPATH}"
         while ! vaultdata="$(curl "${curl_opts[@]}" -H "X-Vault-Token: $VAULT_TOKEN" "$vault_url")"; do
             info "**** Vault is not available. Waiting ${wait_timeout} seconds... ****"
             sleep "$wait_timeout"
@@ -73,7 +77,10 @@ get_vault_secrets() {
 
     elif [ "${ZBX_VAULT:-}" = "CyberArk" ]; then
         cyberark_opts=(-H "Content-type: application/json" --cert "$ZBX_VAULTCERTFILE")
-
+        if [ -z "$ZBX_VAULTPREFIX" ]; then
+            ZBX_VAULTPREFIX="/AIMWebService/api/Accounts?"
+        fi
+        local vault_url="${ZBX_VAULTURL}${ZBX_VAULTPREFIX}${ZBX_VAULTDBPATH}"
         # if key is defined use it
         if [ -n "${ZBX_VAULTKEYFILE:-}" ]; then
             cyberark_opts+=(--key "$ZBX_VAULTKEYFILE")
