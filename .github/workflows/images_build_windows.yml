@@ -258,6 +258,10 @@ jobs:
           $tag = "$component-$osTag-$branch-$epoch-$shortHash"
           $ref = "$Env:IMAGE:$tag"
 
+          echo "::group::Base Microsoft Windows OS ref"
+          echo "$ref"
+          echo "::endgroup::"
+
           "tag=$tag" >> $env:GITHUB_OUTPUT
           "ref=$ref" >> $env:GITHUB_OUTPUT
 
@@ -266,7 +270,14 @@ jobs:
         env:
           TOOLCHAIN_REF: ${{ steps.toolchain_key.outputs.ref }}
         run: |
+          $ErrorActionPreference = 'Continue'
+
           $toolchain_ref = "$Env:TOOLCHAIN_REF"
+
+          if ([string]::IsNullOrWhiteSpace($toolchain_ref)) {
+            throw 'TOOLCHAIN_REF is empty. Check toolchain_key step outputs.'
+          }
+
           docker manifest inspect "$toolchain_ref" *> $null
 
           if ($LASTEXITCODE -eq 0) {
