@@ -225,6 +225,7 @@ jobs:
           $epoch = Get-Date -Format 'yyyyMM'
           $context = "$Env:CONTEXT"
           $branch = "$env:CURRENT_BRANCH"
+          $base_image = "$Env:IMAGE"
 
           $files = @(
             "$context/Dockerfile.$component"
@@ -256,7 +257,7 @@ jobs:
           $shortHash = $hash.Substring(0, 12)
 
           $tag = "$component-$osTag-$branch-$epoch-$shortHash"
-          $ref = "$Env:IMAGE:$tag"
+          $ref = "$base_image:$tag"
 
           echo "::group::Base Microsoft Windows OS ref"
           echo "$ref"
@@ -271,6 +272,7 @@ jobs:
           TOOLCHAIN_REF: ${{ steps.toolchain_tag.outputs.ref }}
         run: |
           $ErrorActionPreference = 'Continue'
+          $PSNativeCommandUseErrorActionPreference = $false
 
           $toolchain_ref = "$Env:TOOLCHAIN_REF"
 
