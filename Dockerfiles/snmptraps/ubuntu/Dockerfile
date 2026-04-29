@@ -57,6 +57,16 @@ RUN --mount=type=cache,target=/var/cache/apt/,sharing=locked \
             --home-dir ${ZABBIX_USER_HOME_DIR} \
         zabbix && \
     download-mibs && \
+    rm -f \
+        /var/lib/mibs/ietf/VM-MIB \
+        /var/lib/mibs/ietf/TRILL-OAM-MIB \
+        /var/lib/mibs/ietf/SMF-MIB \
+        /var/lib/mibs/ietf/ENERGY-OBJECT-MIB \
+        /var/lib/mibs/ietf/POWER-ATTRIBUTES-MIB \
+        /var/lib/mibs/ietf/OLSRv2-MIB \
+        /var/lib/mibs/ietf/ENERGY-OBJECT-CONTEXT-MIB \
+        /var/lib/mibs/ietf/BFD-STD-MIB \
+        /var/lib/mibs/ietf/SNMPv2-PDU && \
     mkdir -p ${ZABBIX_USER_HOME_DIR} \
         ${ZABBIX_USER_HOME_DIR}/snmptraps \
         ${ZABBIX_USER_HOME_DIR}/mibs \
