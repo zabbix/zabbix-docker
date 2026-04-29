@@ -81,6 +81,16 @@ RUN --mount=type=cache,target=/var/cache/apt/,sharing=locked \
             -o Dpkg::Options::="--force-confold" \
             --no-install-recommends install \
         ${INSTALL_PKGS} && \
+    rm -f \
+        /var/lib/mibs/ietf/VM-MIB \
+        /var/lib/mibs/ietf/TRILL-OAM-MIB \
+        /var/lib/mibs/ietf/SMF-MIB \
+        /var/lib/mibs/ietf/ENERGY-OBJECT-MIB \
+        /var/lib/mibs/ietf/POWER-ATTRIBUTES-MIB \
+        /var/lib/mibs/ietf/OLSRv2-MIB \
+        /var/lib/mibs/ietf/ENERGY-OBJECT-CONTEXT-MIB \
+        /var/lib/mibs/ietf/BFD-STD-MIB \
+        /var/lib/mibs/ietf/SNMPv2-PDU && \
     groupadd \
             --system \
             --gid 1995 \
