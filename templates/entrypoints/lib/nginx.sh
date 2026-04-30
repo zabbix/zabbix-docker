@@ -1,7 +1,5 @@
 # shellcheck shell=bash
 
-: "${DAEMON_USER:=nginx}"
-
 : "${NGINX_CONF_FILE:=/etc/nginx/nginx.conf}"
 : "${NGINX_CONFD_DIR:=/etc/nginx/http.d}"
 : "${NGINX_INCLUDES_DIR:=/etc/nginx/includes}"

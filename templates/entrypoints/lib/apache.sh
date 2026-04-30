@@ -1,8 +1,5 @@
 # shellcheck shell=bash
 
-: "${DAEMON_USER:=apache}"
-: "${DAEMON_GROUP:=apache}"
-
 : "${APACHE_RUN_DIR:=/tmp/apache2}"
 
 : "${HTTPD_CONF_FILE:=/etc/apache2/httpd.conf}"
