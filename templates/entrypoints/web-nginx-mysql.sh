@@ -13,6 +13,9 @@ source "${ENTRYPOINT_LIBS}/nginx.sh"
 : "${ZBX_SERVER_NAME:=Zabbix docker}"
 : "${PHP_TZ:=Europe/Riga}"
 
+: "${DAEMON_USER:=nginx}"
+: "${DAEMON_GROUP:=nginx}"
+
 prepare_runtime_commands() {
     NGINX_BIN="${NGINX_BIN:-/usr/sbin/nginx}"
     PHP_FPM_BIN="${PHP_FPM_BIN:-/usr/sbin/php-fpm}"
