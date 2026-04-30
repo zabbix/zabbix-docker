@@ -13,6 +13,9 @@ source "${ENTRYPOINT_LIBS}/web.sh"
 : "${ZBX_SERVER_NAME:=Zabbix docker}"
 : "${PHP_TZ:=Europe/Riga}"
 
+: "${DAEMON_USER:=apache}"
+: "${DAEMON_GROUP:=apache}"
+
 prepare_runtime_commands() {
     APACHE_BIN="${APACHE_BIN:-/usr/sbin/httpd}"
     PHP_FPM_BIN="${PHP_FPM_BIN:-/usr/sbin/php-fpm}"
