@@ -23,14 +23,14 @@ prepare_php_config() {
     export PHP_FPM_PM_MAX_REQUESTS
 
     if [ "$(id -u)" -eq 0 ]; then
-        [[ -f "$PHP_ZBX_CONFIG_FILE" ]] || error "Missing configuration file: $PHP_CONFIG_FILE"
+        [[ -f "$PHP_ZBX_CONFIG_FILE" ]] || error "Missing configuration file: $PHP_ZBX_CONFIG_FILE"
 
         {
             echo "user = ${DAEMON_USER}"
             echo "group = ${DAEMON_GROUP}"
             echo "listen.owner = ${DAEMON_USER}"
             echo "listen.group = ${DAEMON_GROUP}"
-        } >> "$PHP_CONFIG_FILE"
+        } >> "$PHP_ZBX_CONFIG_FILE"
     fi
 
     : "${EXPOSE_WEB_SERVER_INFO:=on}"
