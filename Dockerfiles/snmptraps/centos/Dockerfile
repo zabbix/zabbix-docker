@@ -3,7 +3,7 @@ ARG OS_BASE_IMAGE=quay.io/centos/centos:stream10-minimal
 FROM ${OS_BASE_IMAGE}
 
 ARG MAJOR_VERSION=6.0
-ARG ZBX_VERSION=${MAJOR_VERSION}.45
+ARG ZBX_VERSION=${MAJOR_VERSION}.46
 ARG ZBX_SOURCES=https://git.zabbix.com/scm/zbx/zabbix.git
 
 ENV TERM=xterm \
