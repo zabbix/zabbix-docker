@@ -10,6 +10,8 @@ set_pg_env() {
         export PGOPTIONS="--search_path=${DB_SERVER_SCHEMA}"
     fi
 
+    [ "${ZBX_DB_ENCRYPTION:-}" = "true" ] && export ZBX_DBTLSCONNECT=required
+
     if [ -n "${ZBX_DBTLSCONNECT:-}" ]; then
         local pg_sslmode
         pg_sslmode="${ZBX_DBTLSCONNECT//_/-}"
