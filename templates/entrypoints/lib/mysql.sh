@@ -29,6 +29,8 @@ set_mysql_cli() {
 set_mysql_tls_args() {
     MYSQL_TLS_ARGS=()
 
+    [ "${ZBX_DB_ENCRYPTION:-}" = "true" ] && export ZBX_DBTLSCONNECT=required
+
     if [ -n "${ZBX_DBTLSCONNECT:-}" ]; then
         if [ "${DB_ENGINE}" = "mariadb" ]; then
             MYSQL_TLS_ARGS+=(--ssl)
@@ -38,7 +40,7 @@ set_mysql_tls_args() {
             fi
         else
             local ssl_mode="${ZBX_DBTLSCONNECT//verify_full/verify_identity}"
-            MYSQL_TLS_ARGS+=("--ssl=${ssl_mode}")
+            MYSQL_TLS_ARGS+=("--ssl-mode=${ssl_mode}")
         fi
 
         if [ -n "${ZBX_DBTLSCAFILE:-}" ]; then
