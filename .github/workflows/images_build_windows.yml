@@ -187,32 +187,120 @@ jobs:
         if: ${{ env.AUTO_PUSH_IMAGES == 'true' }}
         uses: ./.github/actions/cosign-install
 
-      - name: Login to DockerHub
-        uses: docker/login-action@b45d80f862d83dbcd57f89517bcf500b2ab88fb2 # v4.0.0
-        with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
-
       - name: Base Windows OS tag
         id: base_os_tag
         env:
           MATRIX_OS: ${{ matrix.os }}
           MATRIX_FILE: ${{ env.MATRIX_FILE }}
         run: |
-          $osTag = (Get-Content -Path $Env:MATRIX_FILE | ConvertFrom-Json).'os-windows'."$Env:MATRIX_OS"
+          $matrixFile = "$env:MATRIX_FILE"
+          $matrixOs = "$env:MATRIX_OS"
+
+          $osTag = (Get-Content -Path $matrixFile | ConvertFrom-Json).'os-windows'."$matrixOs"
 
           if ([string]::IsNullOrWhiteSpace($osTag)) {
-            throw "Failed to detect Windows base OS tag for '$Env:MATRIX_OS'"
+            throw "Failed to detect Windows base OS tag for '$matrixOs'"
           }
 
           echo "::group::Base Microsoft Windows OS tag"
           echo "$osTag"
           echo "::endgroup::"
 
-          echo "os_tag=$osTag" >> $Env:GITHUB_OUTPUT
+          Add-Content -Path $env:GITHUB_OUTPUT -Value "os_tag=$osTag"
+
+      - name: Generate toolchain tag
+        id: toolchain_tag
+        env:
+          COMPONENT: ${{ matrix.component }}
+          OS_TAG: ${{ steps.base_os_tag.outputs.os_tag }}
+          IMAGE: ${{ format('{0}/{1}/{2}{3}', env.DOCKER_REGISTRY, env.DOCKER_REPOSITORY, env.IMAGES_PREFIX, env.BASE_IMAGE_NAME ) }}
+          CONTEXT: ${{ format('{0}/{1}/windows', env.DOCKERFILES_DIRECTORY, env.BASE_IMAGE_NAME) }}
+          CURRENT_BRANCH: ${{ needs.init_build.outputs.current_branch }}
+          OS_BASE_IMAGE: ${{ env.MSFT_BASE_BUILD_IMAGE }}
+        run: |
+          $component = "$env:COMPONENT"
+          $osTag = "$env:OS_TAG"
+          $epoch = Get-Date -Format 'yyyyMM'
+          $context = "$env:CONTEXT"
+          $branch = "$env:CURRENT_BRANCH"
+          $baseImage = "$env:IMAGE"
+          $osBaseImage = "$env:OS_BASE_IMAGE"
+          $branch = ($branch -replace '[^A-Za-z0-9_.-]', '-').Trim('.-')
+
+          if ([string]::IsNullOrWhiteSpace($branch)) {
+            throw 'Current branch is empty after Docker tag normalization'
+          }
+
+          $files = @(
+            "$context/Dockerfile.$component"
+          )
+
+          if ($component -eq 'agent') {
+            $files += "$context/CMakeLists.txt"
+          }
+
+          $inputText = @()
+          foreach ($file in $files) {
+            $inputText += "### $file"
+            $inputText += Get-Content -Raw -Path $file
+          }
+
+          $inputText += "OS_BASE_IMAGE=${osBaseImage}:$osTag"
+          $inputText += "TOOLCHAIN_EPOCH=$epoch"
+
+          $bytes = [System.Text.Encoding]::UTF8.GetBytes(($inputText -join "`n"))
+          $sha256 = [System.Security.Cryptography.SHA256]::Create()
+          try {
+            $hashBytes = $sha256.ComputeHash($bytes)
+          }
+          finally {
+            $sha256.Dispose()
+          }
+
+          $hash = -join ($hashBytes | ForEach-Object { $_.ToString("x2") })
+          $shortHash = $hash.Substring(0, 12)
+
+          $tag = "$component-$osTag-$branch-$epoch-$shortHash"
+          $ref = "${baseImage}:${tag}"
+
+          echo "::group::Base Microsoft Windows OS ref"
+          echo "Ref - $ref"
+          echo "::endgroup::"
+
+          Add-Content -Path $env:GITHUB_OUTPUT -Value "tag=$tag"
+          Add-Content -Path $env:GITHUB_OUTPUT -Value "ref=$ref"
+
+      - name: Verify toolchain
+        id: toolchain_lookup
+        env:
+          TOOLCHAIN_REF: ${{ steps.toolchain_tag.outputs.ref }}
+        run: |
+          $ErrorActionPreference = 'Continue'
+          $PSNativeCommandUseErrorActionPreference = $false
+
+          $toolchainRef = "$env:TOOLCHAIN_REF"
+
+          if ([string]::IsNullOrWhiteSpace($toolchainRef)) {
+            throw 'TOOLCHAIN_REF is empty. Check toolchain_tag step outputs.'
+          }
+
+          docker manifest inspect "$toolchainRef" *> $null
+
+          if ($LASTEXITCODE -eq 0) {
+            Add-Content -Path $env:GITHUB_OUTPUT -Value 'reuse=true'
+            Write-Host "Toolchain '$toolchainRef' image exists, will reuse it."
+          }
+          else {
+            Add-Content -Path $env:GITHUB_OUTPUT -Value 'reuse=false'
+            Write-Host "Toolchain '$toolchainRef' image is missing, will build it."
+          }
+
+          $global:LASTEXITCODE = 0
+          exit 0
 
       - name: Generate tags
         id: meta
+        if: ${{ steps.toolchain_lookup.outputs.reuse != 'true' }}
         uses: docker/metadata-action@030e881283bb7a6894de51c315a6bfe6a94e05cf # v6.0.0
         with:
           images: ${{ format('{0}/{1}/{2}{3}', env.DOCKER_REGISTRY, env.DOCKER_REPOSITORY, env.IMAGES_PREFIX, env.BASE_IMAGE_NAME ) }}
@@ -228,13 +316,23 @@ jobs:
           flavor: |
             latest=false
 
+      - name: Login to DockerHub
+        if: ${{ steps.toolchain_lookup.outputs.reuse != 'true' }}
+        uses: docker/login-action@b45d80f862d83dbcd57f89517bcf500b2ab88fb2 # v4.0.0
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
       - name: Build and push image
         id: docker_build
+        if: ${{ steps.toolchain_lookup.outputs.reuse != 'true' }}
         uses: ./.github/actions/docker-build-push-windows
         with:
-          context: ${{ env.DOCKERFILES_DIRECTORY }}\${{ env.BASE_IMAGE_NAME }}\windows
-          dockerfile: ${{ env.DOCKERFILES_DIRECTORY }}\${{ env.BASE_IMAGE_NAME }}\windows\Dockerfile.${{ matrix.component }}
-          tags: ${{ steps.meta.outputs.tags }}
+          context: ${{ format('{0}/{1}/windows', env.DOCKERFILES_DIRECTORY, env.BASE_IMAGE_NAME) }}
+          dockerfile: ${{ format('{0}\{1}\windows\Dockerfile.{2}', env.DOCKERFILES_DIRECTORY, env.BASE_IMAGE_NAME, matrix.component ) }}
+          tags: |
+            ${{ steps.meta.outputs.tags }}
+            ${{ steps.toolchain_tag.outputs.ref }}
           label_revision: ${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.revision'] }}
           label_created: ${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.created'] }}
           pull_images: |
@@ -244,31 +342,59 @@ jobs:
           push: true
 
       - name: Sign the images with GitHub OIDC Token
+        if: ${{ steps.toolchain_lookup.outputs.reuse != 'true' }}
         uses: ./.github/actions/cosign-sign
         with:
           digest: ${{ steps.docker_build.outputs.digest }}
-          tags: ${{ steps.meta.outputs.tags }}
+          tags: |
+            ${{ steps.meta.outputs.tags }}
+            ${{ steps.toolchain_tag.outputs.ref }}
 
       - name: Attest images
+        if: ${{ steps.toolchain_lookup.outputs.reuse != 'true' }}
         uses: ./.github/actions/attest-image
         with:
           subject_name: ${{ format('{0}/{1}/{2}{3}', env.DOCKER_REGISTRY, env.DOCKER_REPOSITORY, env.IMAGES_PREFIX, env.BASE_IMAGE_NAME ) }}
           subject_digest: ${{ steps.docker_build.outputs.digest }}
 
-      - name: Image digest
+      - name: Image ref
         env:
           DIGEST: ${{ steps.docker_build.outputs.digest }}
+          IMAGE: ${{ format('{0}/{1}/{2}{3}', env.DOCKER_REGISTRY, env.DOCKER_REPOSITORY, env.IMAGES_PREFIX, env.BASE_IMAGE_NAME ) }}
+          REUSE: ${{ steps.toolchain_lookup.outputs.reuse }}
+          REUSE_IMAGE_REF: ${{ steps.toolchain_tag.outputs.ref }}
           CACHE_FILE_NAME: ${{ env.BASE_IMAGE_NAME }}_${{ matrix.os }}_${{ matrix.component }}
         run: |
-          echo "::group::Image digest"
-          echo "$Env:DIGEST"
+          $reuse = "$env:REUSE"
+          $image = "$env:IMAGE"
+          $digest = "$env:DIGEST"
+          $reuseImageRef = "$env:REUSE_IMAGE_REF"
+          $cacheFileName = "$env:CACHE_FILE_NAME"
+
+          if ($reuse -eq 'true') {
+            $imageRef = "$reuseImageRef"
+          }
+          else {
+            if ([string]::IsNullOrWhiteSpace($digest)) {
+              throw 'Built image digest is empty'
+            }
+
+            $imageRef = "${image}@${digest}"
+          }
+
+          if ([string]::IsNullOrWhiteSpace($imageRef)) {
+            throw 'Image ref is empty'
+          }
+
+          echo "::group::Image ref"
+          echo "$imageRef"
           echo "::endgroup::"
 
           echo "::group::Cache file name"
-          echo "$Env:CACHE_FILE_NAME"
+          echo "$cacheFileName"
           echo "::endgroup::"
 
-          Set-Content -Path $Env:CACHE_FILE_NAME -Value $Env:DIGEST -NoNewline
+          Set-Content -Path $cacheFileName -Value $imageRef -NoNewline
 
       - name: Upload artifact metadata
         uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
@@ -314,17 +440,20 @@ jobs:
           MATRIX_OS: ${{ matrix.os }}
           MATRIX_FILE: ${{ env.MATRIX_FILE }}
         run: |
-          $osTag = (Get-Content -Path $Env:MATRIX_FILE | ConvertFrom-Json).'os-windows'."$Env:MATRIX_OS"
+          $matrixFile = "$env:MATRIX_FILE"
+          $matrixOs = "$env:MATRIX_OS"
+
+          $osTag = (Get-Content -Path $matrixFile | ConvertFrom-Json).'os-windows'."$matrixOs"
 
           if ([string]::IsNullOrWhiteSpace($osTag)) {
-            throw "Failed to detect Windows base OS tag for '$Env:MATRIX_OS'"
+            throw "Failed to detect Windows base OS tag for '$matrixOs'"
           }
 
           echo "::group::Base Windows OS tag"
           echo "$osTag"
           echo "::endgroup::"
 
-          echo "os_tag=$osTag" >> $Env:GITHUB_OUTPUT
+          Add-Content -Path $env:GITHUB_OUTPUT -Value "os_tag=$osTag"
 
       - name: Generate tags
         id: meta
@@ -343,40 +472,32 @@ jobs:
           flavor: |
             latest=false
 
-      - name: Download SHA256 tag of ${{ env.BASE_IMAGE_NAME }}:${{ matrix.os }}
+      - name: Download image ref of ${{ env.BASE_IMAGE_NAME }}:${{ matrix.os }}
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           name: ${{ env.BASE_IMAGE_NAME }}-${{ matrix.os }}-${{ matrix.component }}-${{ github.run_id }}
 
-      - name: Retrieve ${{ env.BASE_IMAGE_NAME }}:${{ matrix.os }} SHA256 tag
+      - name: Retrieve ${{ env.BASE_IMAGE_NAME }}:${{ matrix.os }} image ref
         id: base_build
         env:
-          BASE_IMAGE_NAME: ${{ env.BASE_IMAGE_NAME }}
-          MATRIX_OS: ${{ matrix.os }}
-          MATRIX_COMPONENT: ${{ matrix.component }}
-          DOCKER_REPOSITORY: ${{ env.DOCKER_REPOSITORY }}
-          IMAGES_PREFIX: ${{ env.IMAGES_PREFIX }}
+          BASE_IMAGE_FILE: ${{ format('{0}_{1}_{2}', env.BASE_IMAGE_NAME, matrix.os, matrix.component) }}
         run: |
-          $baseImageFile = "$Env:BASE_IMAGE_NAME" + "_" + "$Env:MATRIX_OS" + "_" + "$Env:MATRIX_COMPONENT"
+          $baseImageFile = "$env:BASE_IMAGE_FILE"
 
           if (-not (Test-Path $baseImageFile)) {
-            throw "Missing cached base image digest file: $baseImageFile"
+            throw "Missing cached base image ref file: $baseImageFile"
           }
 
-          $baseTag = (Get-Content $baseImageFile -Raw).Trim()
-          if ([string]::IsNullOrWhiteSpace($baseTag)) {
-            throw "Base image digest is empty in file: $baseImageFile"
+          $buildBaseImage = (Get-Content $baseImageFile -Raw).Trim()
+          if ([string]::IsNullOrWhiteSpace($buildBaseImage)) {
+            throw "Base image ref is empty in file: $baseImageFile"
           }
-
-          $buildBaseImage = "$Env:DOCKER_REPOSITORY/$Env:IMAGES_PREFIX$Env:BASE_IMAGE_NAME@" + $baseTag
 
           echo "::group::Base image info"
-          echo "base_tag=$baseTag"
           echo "base_build_image=$buildBaseImage"
           echo "::endgroup::"
 
-          echo "base_tag=$baseTag" >> $Env:GITHUB_OUTPUT
-          echo "base_build_image=$buildBaseImage" >> $Env:GITHUB_OUTPUT
+          Add-Content -Path $env:GITHUB_OUTPUT -Value "base_build_image=$buildBaseImage"
 
       - name: Verify ${{ env.BASE_IMAGE_NAME }}:${{ matrix.os }} cosign
         uses: ./.github/actions/cosign-verify
@@ -412,20 +533,31 @@ jobs:
           digest: ${{ steps.docker_build.outputs.digest }}
           tags: ${{ steps.meta.outputs.tags }}
 
-      - name: Image digest
+      - name: Image ref
         env:
           DIGEST: ${{ steps.docker_build.outputs.digest }}
+          IMAGE: ${{ format('{0}/{1}/{2}{3}', env.DOCKER_REGISTRY, env.DOCKER_REPOSITORY, env.IMAGES_PREFIX, env.BASE_BUILD_IMAGE_NAME ) }}
           CACHE_FILE_NAME: ${{ env.BASE_BUILD_IMAGE_NAME }}_${{ matrix.os }}_${{ matrix.component }}
         run: |
-          echo "::group::Image digest"
-          echo "$Env:DIGEST"
+          $digest = "$env:DIGEST"
+          $image = "$env:IMAGE"
+          $cacheFileName = "$env:CACHE_FILE_NAME"
+
+          if ([string]::IsNullOrWhiteSpace($digest)) {
+            throw 'Built image digest is empty'
+          }
+
+          $imageRef = "${image}@${digest}"
+
+          echo "::group::Image ref"
+          echo "$imageRef"
           echo "::endgroup::"
 
           echo "::group::Cache file name"
-          echo "$Env:CACHE_FILE_NAME"
+          echo "$cacheFileName"
           echo "::endgroup::"
 
-          Set-Content -Path $Env:CACHE_FILE_NAME -Value $Env:DIGEST -NoNewline
+          Set-Content -Path $cacheFileName -Value $imageRef -NoNewline
 
       - name: Upload artifact metadata
         uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
@@ -496,17 +628,20 @@ jobs:
           MATRIX_OS: ${{ matrix.os }}
           MATRIX_FILE: ${{ env.MATRIX_FILE }}
         run: |
-          $osTag = (Get-Content -Path $Env:MATRIX_FILE | ConvertFrom-Json).'os-windows'."$Env:MATRIX_OS"
+          $matrixFile = "$env:MATRIX_FILE"
+          $matrixOs = "$env:MATRIX_OS"
+
+          $osTag = (Get-Content -Path $matrixFile | ConvertFrom-Json).'os-windows'."$matrixOs"
 
           if ([string]::IsNullOrWhiteSpace($osTag)) {
-            throw "Failed to detect Windows base OS tag for '$Env:MATRIX_OS'"
+            throw "Failed to detect Windows base OS tag for '$matrixOs'"
           }
 
           echo "::group::Base OS tag"
           echo "$osTag"
           echo "::endgroup::"
 
-          echo "os_tag=$osTag" >> $Env:GITHUB_OUTPUT
+          Add-Content -Path $env:GITHUB_OUTPUT -Value "os_tag=$osTag"
 
       - name: Generate tags
         id: meta
@@ -525,40 +660,32 @@ jobs:
           flavor: |
             latest=false
 
-      - name: Download SHA256 tag of ${{ env.BASE_BUILD_IMAGE_NAME }}:${{ matrix.os }}
+      - name: Download image ref of ${{ env.BASE_BUILD_IMAGE_NAME }}:${{ matrix.os }}
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           name: ${{ env.BASE_BUILD_IMAGE_NAME }}-${{ matrix.os }}-${{ matrix.component }}-${{ github.run_id }}
 
-      - name: Retrieve ${{ env.BASE_BUILD_IMAGE_NAME }}:${{ matrix.os }} SHA256 tag
+      - name: Retrieve ${{ env.BASE_BUILD_IMAGE_NAME }}:${{ matrix.os }} image ref
         id: base_build
         env:
-          BASE_BUILD_IMAGE_NAME: ${{ env.BASE_BUILD_IMAGE_NAME }}
-          MATRIX_OS: ${{ matrix.os }}
-          MATRIX_COMPONENT: ${{ matrix.component }}
-          DOCKER_REPOSITORY: ${{ env.DOCKER_REPOSITORY }}
-          IMAGES_PREFIX: ${{ env.IMAGES_PREFIX }}
+          BASE_IMAGE_FILE: ${{ format('{0}_{1}_{2}', env.BASE_BUILD_IMAGE_NAME, matrix.os, matrix.component) }}
         run: |
-          $baseImageFile = "$Env:BASE_BUILD_IMAGE_NAME" + "_" + "$Env:MATRIX_OS" + "_" + "$Env:MATRIX_COMPONENT"
+          $baseImageFile = "$env:BASE_IMAGE_FILE"
 
           if (-not (Test-Path $baseImageFile)) {
-            throw "Missing cached build-components digest file: $baseImageFile"
+            throw "Missing cached build-components image ref file: $baseImageFile"
           }
 
-          $baseTag = (Get-Content $baseImageFile -Raw).Trim()
-          if ([string]::IsNullOrWhiteSpace($baseTag)) {
-            throw "Build-components digest is empty in file: $baseImageFile"
+          $buildBaseImage = (Get-Content $baseImageFile -Raw).Trim()
+          if ([string]::IsNullOrWhiteSpace($buildBaseImage)) {
+            throw "Build-components image ref is empty in file: $baseImageFile"
           }
-
-          $buildBaseImage = "$Env:DOCKER_REPOSITORY/$Env:IMAGES_PREFIX$Env:BASE_BUILD_IMAGE_NAME@" + $baseTag
 
           echo "::group::Base image info"
-          echo "base_tag=$baseTag"
           echo "base_build_image=$buildBaseImage"
           echo "::endgroup::"
 
-          echo "base_tag=$baseTag" >> $Env:GITHUB_OUTPUT
-          echo "base_build_image=$buildBaseImage" >> $Env:GITHUB_OUTPUT
+          Add-Content -Path $env:GITHUB_OUTPUT -Value "base_build_image=$buildBaseImage"
 
       - name: Verify ${{ env.BASE_BUILD_IMAGE_NAME }}:${{ matrix.os }} cosign
         uses: ./.github/actions/cosign-verify
