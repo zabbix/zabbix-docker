@@ -50,6 +50,8 @@ update_config() {
         update_config_var "${ZBX_PROXY_CONFIG}" "DBPassword" "${DB_SERVER_ZBX_PASS:-}"
     fi
 
+    update_config_var "${ZBX_PROXY_CONFIG}" "AllowUnsupportedDBVersions" "${ZBX_ALLOWUNSUPPORTEDDBVERSIONS:-}"
+
     proxy_config "$proxy_name"
 }
 
