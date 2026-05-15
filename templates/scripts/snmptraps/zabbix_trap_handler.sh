@@ -27,7 +27,7 @@ IFS= read -r sender
 #IFS= read -r trapoid
 
 # The remaining lines will contain the payload varbind list. For SNMPv1 traps, the final OID will be SNMPv2-MIB::snmpTrapEnterprise.0.
-while IFS= read -r oid val; do
+while read -r oid val; do
     if [ -z "$vars" ]; then
         vars="$oid = $val"
     else
