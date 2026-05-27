@@ -36,23 +36,45 @@ Please also follow usage instructions of each Zabbix component image:
 
 * [zabbix-agent](https://hub.docker.com/r/zabbix/zabbix-agent/) - Zabbix agent
 * [zabbix-agent2](https://hub.docker.com/r/zabbix/zabbix-agent2/) - Zabbix agent 2
-* [zabbix-server-mysql](https://hub.docker.com/r/zabbix/zabbix-server-mysql/) - Zabbix server with MySQL database support
+* [zabbix-server-mysql](https://hub.docker.com/r/zabbix/zabbix-server-mysql/) - Zabbix server with MySQL or MariaDB database support
 * [zabbix-server-pgsql](https://hub.docker.com/r/zabbix/zabbix-server-pgsql/) - Zabbix server with PostgreSQL database support
-* [zabbix-web-apache-mysql](https://hub.docker.com/r/zabbix/zabbix-web-apache-mysql/) - Zabbix web interface on Apache2 web server with MySQL database support
+* [zabbix-web-apache-mysql](https://hub.docker.com/r/zabbix/zabbix-web-apache-mysql/) - Zabbix web interface on Apache2 web server with MySQL or MariaDB database support
 * [zabbix-web-apache-pgsql](https://hub.docker.com/r/zabbix/zabbix-web-apache-pgsql/) - Zabbix web interface on Apache2 web server with PostgreSQL database support
-* [zabbix-web-nginx-mysql](https://hub.docker.com/r/zabbix/zabbix-web-nginx-mysql/) - Zabbix web interface on Nginx web server with MySQL database support
+* [zabbix-web-nginx-mysql](https://hub.docker.com/r/zabbix/zabbix-web-nginx-mysql/) - Zabbix web interface on Nginx web server with MySQL or MariaDB database support
 * [zabbix-web-nginx-pgsql](https://hub.docker.com/r/zabbix/zabbix-web-nginx-pgsql/) - Zabbix web interface on Nginx web server with PostgreSQL database support
 * [zabbix-proxy-sqlite3](https://hub.docker.com/r/zabbix/zabbix-proxy-sqlite3/) - Zabbix proxy with SQLite3 database support
-* [zabbix-proxy-mysql](https://hub.docker.com/r/zabbix/zabbix-proxy-mysql/) - Zabbix proxy with MySQL database support
+* [zabbix-proxy-mysql](https://hub.docker.com/r/zabbix/zabbix-proxy-mysql/) - Zabbix proxy with MySQL or MariaDB database support
 * [zabbix-java-gateway](https://hub.docker.com/r/zabbix/zabbix-java-gateway/) - Zabbix Java Gateway
 * [zabbix-web-service](https://hub.docker.com/r/zabbix/zabbix-web-service/) - Zabbix web service for performing various tasks using headless web browser (for example, reporting)
 * [zabbix-snmptraps](https://hub.docker.com/r/zabbix/zabbix-snmptraps/) - Additional container image for Zabbix server and Zabbix proxy to support SNMP traps
 
 ### Docker Compose
 
-There is provided Docker Compose files for each set of base Operating System and Database engine.
+> [!NOTE]
+> The following requires `make` and `docker compose` version 2.24.0 or greater.
 
-Templates support several [Compose  profiles](https://docs.docker.com/compose/profiles/). Minimal set of services is brought up by default, to start additional components e.g. Zabbix Agent use profile 'full' or 'all'. Additionally, it is possible to start only required components.
+You can use the Docker Compose files for MySQL or MariaDB, and PostgreSQL (**compose.yaml** and **compose_pgsql.yaml**, respectively) directly with the ``docker compose`` command. The required images and the Compose file behavior can be configured through environment variables and the .env file. By default, Alpine-based images and the latest version from the current branch are used.
+
+In addition, a Makefile is provided to configure and run the required Docker Compose files, supporting a variety of base operating system and database engine combinations, as well as to build Zabbix components locally.
+
+To get started clone this repository and then from the root directory of the repository run:
+```
+make help
+```
+To start with the default configuration run:
+```
+make up
+```
+Use variables to customize the configuration to suit your needs.  For example, the following selects Postgres as the underlying database, alpine as the base OS, and exposes the web interface on ports 8282 and 8443:
+```
+make up DB=pgsql OS=alpine ZABBIX_WEB_NGINX_HTTP_PORT=8282 ZABBIX_WEB_NGINX_HTTPS_PORT=8443
+```
+Then to clean up run:
+```
+make down DB=pgsql
+```
+
+Provided compose files support several [Compose  profiles](https://docs.docker.com/compose/profiles/). Minimal set of services is brought up by default, to start additional components e.g. Zabbix Agent use profile 'full' or 'all'. Additionally, it is possible to start only required components.
 
 ## Issues and Wiki
 
