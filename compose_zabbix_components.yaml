@@ -326,7 +326,7 @@ services:
    - ${DATA_DIRECTORY}/var/lib/zabbix/enc:/var/lib/zabbix/enc:ro
   tmpfs:
    - /tmp
-   - /var/lib/php/session:mode=770,uid=1997,gid=1995
+   - /var/lib/php/session:mode=1777
   deploy:
    resources:
     limits:
@@ -420,7 +420,7 @@ services:
    - ${DATA_DIRECTORY}/var/lib/zabbix/enc:/var/lib/zabbix/enc:ro
   tmpfs:
    - /tmp
-   - /var/lib/php/session:mode=770,uid=1997,gid=1995
+   - /var/lib/php/session:mode=1777
   deploy:
    resources:
     limits:

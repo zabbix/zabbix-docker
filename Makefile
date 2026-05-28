@@ -5,6 +5,22 @@
 
 COMPOSE_PROFILES ?=
 
+# Container runtime defaults. Override when both Docker and Podman are installed:
+#   make CONTAINER=podman up
+#   make CONTAINER=docker up
+# If CONTAINER is empty, prefer Docker and fall back to Podman.
+CONTAINER ?=
+
+ifeq ($(strip $(CONTAINER)),)
+  override CONTAINER := $(shell if command -v docker >/dev/null 2>&1; then printf 'docker'; elif command -v podman >/dev/null 2>&1; then printf 'podman'; fi)
+endif
+
+# Keep help/print-vars usable on systems without either runtime; real targets will
+# fail with a normal "docker: command not found" style error.
+ifeq ($(strip $(CONTAINER)),)
+  override CONTAINER := docker
+endif
+
 # -------- User-facing knobs (override via CLI) --------
 OS ?= alpine
 DB ?= mysql
@@ -45,8 +61,10 @@ ifeq ($(origin OS_BASE_IMAGE), undefined)
   endif
 endif
 
-# Compose
-COMPOSE ?= docker compose
+# Compose / bake / image commands
+COMPOSE ?= $(CONTAINER) compose
+BAKE ?= $(CONTAINER) buildx bake
+IMAGE ?= $(CONTAINER) image
 ENV_FILE ?= .env
 
 # -------- Bake group names (as in docker-bake.hcl) --------
@@ -63,7 +81,7 @@ BAKE_RUNTIME_PGSQL_MINIMAL   := runtime-pgsql-minimal
 # Export for sub-make / shells
 export OS DB MAJOR_VERSION ZBX_VERSION OS_BASE_IMAGE PLATFORMS
 export LOCAL_IMAGE_PREFIX LOCAL_ZBX_TAG REMOTE_IMAGE_PREFIX REMOTE_ZBX_TAG
-export COMPOSE_PROFILES
+export COMPOSE_PROFILES CONTAINER
 
 # Pick compose file based on DB
 ifeq ($(DB),mysql)
@@ -88,7 +106,7 @@ OS_BASE_IMAGE="$(OS_BASE_IMAGE)" \
 ZBX_IMAGE_TAG="$(LOCAL_ZBX_TAG)" \
 PLATFORMS="$(PLATFORMS)" \
 ZBX_IMAGE_NAMESPACE="$(LOCAL_IMAGE_PREFIX)" \
-docker buildx bake
+$(BAKE)
 endef
 
 # Choose runtime groups by DB
@@ -129,7 +147,14 @@ check-rhel-host:
 	runtime-all runtime-minimal runtime \
 	build build-all \
 	up up-local down restart logs ps \
-	bake-target clean
+	bake-target clean \
+	check-bake
+
+BAKE_MAKE_TARGETS := base builders-mysql builders-pgsql builders-sqlite3 builders \
+	runtime-mysql-all runtime-mysql-minimal runtime-pgsql-all runtime-pgsql-minimal \
+	runtime-all runtime-minimal bake-target
+
+$(BAKE_MAKE_TARGETS): check-bake
 
 help:
 	@echo "Usage:"
@@ -142,10 +167,13 @@ help:
 	@echo "  make bake-target TARGET=server-mysql   # build a single bake target by name"
 	@echo ""
 	@echo "Compose:"
-	@echo "  make up                          # pull+up using REMOTE_* images"
+	@echo "  make up                          # auto-detect Docker/Podman, then pull+up using REMOTE_* images"
 	@echo "  make up-local                    # build (minimal) then up using LOCAL_* images"
 	@echo ""
 	@echo "Common overrides:"
+	@echo "  make up CONTAINER=podman           # use Podman instead of Docker"
+	@echo "  make up CONTAINER=docker            # use Docker explicitly"
+	@echo "  make build CONTAINER=docker         # build targets require Docker Buildx bake"
 	@echo "  make build DB=mysql"
 	@echo "  make build DB=pgsql"
 	@echo "  make builders DB=sqlite3"
@@ -157,6 +185,10 @@ help:
 	@$(MAKE) --no-print-directory print-vars
 
 print-vars:
+	@echo "CONTAINER=$(CONTAINER)"
+	@echo "COMPOSE=$(COMPOSE)"
+	@echo "BAKE=$(BAKE)"
+	@echo "IMAGE=$(IMAGE)"
 	@echo "OS=$(OS)"
 	@echo "OS_BASE_IMAGE=$(OS_BASE_IMAGE)"
 	@echo "DB=$(DB)"
@@ -170,6 +202,16 @@ print-vars:
 	@echo "BAKE_BUILDERS_GROUP=$(BAKE_BUILDERS_GROUP)"
 	@echo "BAKE_RUNTIME_MINIMAL_GROUP=$(BAKE_RUNTIME_MINIMAL_GROUP)"
 	@echo "BAKE_RUNTIME_ALL_GROUP=$(BAKE_RUNTIME_ALL_GROUP)"
+
+check-bake:
+	@case "$(strip $(BAKE))" in \
+	  "podman buildx bake"*) \
+	    echo "ERROR: Podman does not support 'buildx bake'."; \
+	    echo "Build targets use docker-bake.hcl and require Docker Buildx bake."; \
+	    echo "Use CONTAINER=docker for build targets, or override BAKE with a compatible bake command."; \
+	    exit 1; \
+	    ;; \
+	esac
 
 # ---- Bake groups ----
 base: check-rhel-host
@@ -272,7 +314,7 @@ l-%:
 # ---- Cleanup ----
 clean:
 	@echo "==> Removing local images for OS=$(OS) tag=$(LOCAL_ZBX_TAG) (best-effort)"
-	@docker image rm -f \
+	@$(IMAGE) rm -f \
 	  "$(LOCAL_IMAGE_PREFIX)build-base:$(LOCAL_ZBX_TAG)" \
 	  "$(LOCAL_IMAGE_PREFIX)build-mysql:$(LOCAL_ZBX_TAG)" \
 	  "$(LOCAL_IMAGE_PREFIX)build-pgsql:$(LOCAL_ZBX_TAG)" \
