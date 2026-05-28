@@ -323,7 +323,7 @@ services:
    - ${DATA_DIRECTORY}/usr/share/zabbix/modules/:/usr/share/zabbix/modules/:ro
   tmpfs:
    - /tmp
-   - /var/lib/php/session:mode=770,uid=1997,gid=1995
+   - /var/lib/php/session:mode=1777
   deploy:
    resources:
     limits:
@@ -416,7 +416,7 @@ services:
    - ${DATA_DIRECTORY}/usr/share/zabbix/modules/:/usr/share/zabbix/modules/:ro
   tmpfs:
    - /tmp
-   - /var/lib/php/session:mode=770,uid=1997,gid=1995
+   - /var/lib/php/session:mode=1777
   deploy:
    resources:
     limits:
