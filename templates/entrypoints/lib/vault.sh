@@ -10,20 +10,21 @@ get_vault_secrets() {
     fi
 
     # Sanitize input
-    ZBX_VAULTURL="${ZBX_VAULTURL#/}"
-    ZBX_VAULTURL="${ZBX_VAULTURL%/}/"
+    ZBX_VAULTURL="${ZBX_VAULTURL%/}"
     ZBX_VAULTDBPATH="${ZBX_VAULTDBPATH#/}"
     ZBX_VAULTDBPATH="${ZBX_VAULTDBPATH%/}"
 
     if [ "${ZBX_VAULT:-}" = "HashiCorp" ]; then
         if [ -z "${ZBX_VAULTPREFIX:-}" ]; then
-            ZBX_VAULTPREFIX="v1/${ZBX_VAULTDBPATH%/*}/data/"
+            ZBX_VAULTPREFIX="v1/${ZBX_VAULTDBPATH%/*}/data"
             ZBX_VAULTDBPATH="${ZBX_VAULTDBPATH##*/}"
         else
             ZBX_VAULTPREFIX="${ZBX_VAULTPREFIX#/}"
-            ZBX_VAULTPREFIX="${ZBX_VAULTPREFIX%/}/"
+            ZBX_VAULTPREFIX="${ZBX_VAULTPREFIX%/}"
         fi
-        local vault_url="${ZBX_VAULTURL}${ZBX_VAULTPREFIX}${ZBX_VAULTDBPATH}"
+
+        local vault_url="${ZBX_VAULTURL}/${ZBX_VAULTPREFIX}/${ZBX_VAULTDBPATH}"
+        local curl_opts=(-s -m 10 -k)
         info "***** VAULT URL: $vault_url"
         while ! vaultdata="$(curl "${curl_opts[@]}" -H "X-Vault-Token: $VAULT_TOKEN" "$vault_url")"; do
             info "**** Vault is not available. Waiting ${wait_timeout} seconds... ****"
@@ -48,6 +49,7 @@ get_vault_secrets() {
             ZBX_VAULTPREFIX="${ZBX_VAULTPREFIX%/}/"
         fi
         local vault_url="${ZBX_VAULTURL}${ZBX_VAULTPREFIX}${ZBX_VAULTDBPATH}"
+        local curl_opts=(-s -m 10)
         info "***** VAULT URL: $vault_url"
         # if key is defined use it
         if [ -n "${ZBX_VAULTKEYFILE:-}" ]; then

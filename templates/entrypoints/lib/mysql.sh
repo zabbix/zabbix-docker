@@ -87,7 +87,7 @@ check_db_variables() {
     fi
 
     if [ -z "${MYSQL_USER:-}" ] && [ -z "${MYSQL_ROOT_PASSWORD:-}" ] && [ "${MYSQL_ALLOW_EMPTY_PASSWORD:-}" != "true" ] && [ -z "${ZBX_VAULT:-}" ]; then
-        error "*** Impossible to use MySQL server because 'root' password is not defined and it is not empty"
+        error "*** Impossible to use MySQL server because 'root' password is not defined, external vault is not configured and empty password is not allowed"
     fi
 
     if [ "${MYSQL_ALLOW_EMPTY_PASSWORD:-}" = "true" ] || [ -n "${MYSQL_ROOT_PASSWORD:-}" ]; then
