@@ -2,7 +2,6 @@
 
 get_vault_secrets() {
     local wait_timeout=5
-    local curl_opts=(-s -m 10 -k)
     local vaultdata errors
     local cyberark_opts
     if [ -z "${ZBX_VAULTURL:-}" ] || [ -z "${ZBX_VAULTDBPATH:-}" ]; then
