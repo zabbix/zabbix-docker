@@ -3,6 +3,8 @@
 # Enable PostgreSQL timescaleDB feature
 : "${ENABLE_TIMESCALEDB:=false}"
 
+source "${ENTRYPOINT_LIBS}/vault.sh"
+
 set_pg_env() {
     [ -n "${DB_SERVER_ZBX_PASS:-}" ] && export PGPASSWORD="${DB_SERVER_ZBX_PASS}"
 
@@ -50,54 +52,6 @@ check_db_variables() {
     [ -n "${DB_SERVER_HOST}" ] && psql_connect_args+=(--host "${DB_SERVER_HOST}")
 }
 
-get_vault_secrets() {
-    local wait_timeout=5
-    local curl_opts=(-s -m 10 -k)
-    local vaultdata errors
-    local cyberark_opts
-
-    if [ -z "${ZBX_VAULTURL:-}" ] || [ -z "${ZBX_VAULTPREFIX:-}" ] || [ -z "${ZBX_VAULTDBPATH:-}" ]; then
-        error "Missing variables! If ZBX_VAULT is used then ZBX_VAULTURL, ZBX_VAULTPREFIX and ZBX_VAULTDBPATH must be set"
-    fi
-    local vault_url="${ZBX_VAULTURL}${ZBX_VAULTPREFIX}${ZBX_VAULTDBPATH}"
-
-    if [ "${ZBX_VAULT:-}" = "HashiCorp" ]; then
-        while ! vaultdata="$(curl "${curl_opts[@]}" -H "X-Vault-Token: $VAULT_TOKEN" "$vault_url")"; do
-            info "**** Vault is not available. Waiting ${wait_timeout} seconds... ****"
-            sleep "$wait_timeout"
-        done
-        errors="$(printf '%s' "$vaultdata" | jq -r '.errors // empty')"
-        if [ -n "${errors}" ]; then
-            error "Error getting secrets from vault: $errors"
-        fi
-        DB_SERVER_ZBX_USER="$(printf '%s' "$vaultdata" | jq -r '.data.data.username')"
-        DB_SERVER_ZBX_PASS="$(printf '%s' "$vaultdata" | jq -r '.data.data.password')"
-
-    elif [ "${ZBX_VAULT:-}" = "CyberArk" ]; then
-        cyberark_opts=(-H "Content-type: application/json" --cert "$ZBX_VAULTCERTFILE")
-
-        # if key is defined use it
-        if [ -n "${ZBX_VAULTKEYFILE:-}" ]; then
-            cyberark_opts+=(--key "$ZBX_VAULTKEYFILE")
-        fi
-        while ! vaultdata="$(curl "${curl_opts[@]}" "${cyberark_opts[@]}" "$vault_url")"; do
-            info "**** Vault is not available. Waiting ${wait_timeout} seconds... ****"
-            sleep "$wait_timeout"
-        done
-
-        errors=$(printf '%s' "$vaultdata" | jq -r '.ErrorCode // empty')
-        if [ -n "${errors}" ]; then
-            error "Error getting secrets from vault: $errors"
-        fi
-
-        DB_SERVER_ZBX_USER="$(printf '%s' "$vaultdata" | jq -r '.UserName')"
-        DB_SERVER_ZBX_PASS="$(printf '%s' "$vaultdata" | jq -r '.Content')"
-
-    else
-        error "ZBX_VAULT has wrong value. HashiCorp or CyberArk are supported!"
-    fi
-}
-
 check_db_connect() {
     local use_vault="${1:-false}"
     local wait_timeout=5
@@ -123,7 +77,6 @@ check_db_connect() {
         unset DB_SERVER_ZBX_PASS
 
         info "***** Connecting to vault... ******"
-        info "***** VAULT URL: $ZBX_VAULTURL"
         get_vault_secrets
     fi
 
