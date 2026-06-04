@@ -1,6 +1,4 @@
 <?php
-// Zabbix GUI configuration file.
-global $DB, $HISTORY;
 
 $DB['TYPE']     = getenv('DB_SERVER_TYPE');
 $DB['SERVER']   = getenv('DB_SERVER_HOST');
@@ -9,7 +7,6 @@ $DB['DATABASE'] = getenv('DB_SERVER_DBNAME');
 $DB['USER']     = (! getenv('VAULT_TOKEN') || ! getenv('ZBX_VAULTURL')) ? getenv('DB_SERVER_USER') : '';
 $DB['PASSWORD'] = (! getenv('VAULT_TOKEN') || ! getenv('ZBX_VAULTURL')) ? getenv('DB_SERVER_PASS') : '';
 
-// Schema name. Used for PostgreSQL.
 $DB['SCHEMA'] = getenv('DB_SERVER_SCHEMA');
 
 if (getenv('ZBX_SERVER_HOST')) {
@@ -18,7 +15,6 @@ if (getenv('ZBX_SERVER_HOST')) {
 }
 $ZBX_SERVER_NAME = getenv('ZBX_SERVER_NAME');
 
-// Used for TLS connection.
 $DB['ENCRYPTION']               = getenv('ZBX_DB_ENCRYPTION') == 'true' ? true: false;
 $DB['KEY_FILE']                 = getenv('ZBX_DB_KEY_FILE');
 $DB['CERT_FILE']                = getenv('ZBX_DB_CERT_FILE');
@@ -26,7 +22,6 @@ $DB['CA_FILE']                  = getenv('ZBX_DB_CA_FILE');
 $DB['VERIFY_HOST']              = getenv('ZBX_DB_VERIFY_HOST') == 'true' ? true: false;
 $DB['CIPHER_LIST']              = getenv('ZBX_DB_CIPHER_LIST') ? getenv('ZBX_DB_CIPHER_LIST') : '';
 
-// Vault configuration. Used if database credentials are stored in Vault secrets manager.
 $DB['VAULT']                    = getenv('ZBX_VAULT');
 $DB['VAULT_URL']                = getenv('ZBX_VAULTURL');
 $DB['VAULT_PREFIX']		= getenv('ZBX_VAULTPREFIX');
@@ -55,21 +50,15 @@ else {
 
 $DB['VAULT_CACHE']              = getenv('ZBX_VAULTCACHE') == 'true' ? true: false;
 
-// Use IEEE754 compatible value range for 64-bit Numeric (float) history values.
-// This option is enabled by default for new Zabbix installations.
-// For upgraded installations, please read database upgrade notes before enabling this option.
 $DB['DOUBLE_IEEE754']           = getenv('DB_DOUBLE_IEEE754') == 'true' ? true: false;
-
 
 $IMAGE_FORMAT_DEFAULT  = IMAGE_FORMAT_PNG;
 
-// Elasticsearch url (can be string if same url is used for all types).
-$history_url = str_replace("'","\"",getenv('ZBX_HISTORYSTORAGEURL'));
-$HISTORY['url']   = (json_decode($history_url)) ? json_decode($history_url, true) : $history_url;
-// Value types stored in Elasticsearch.
-$storage_types = str_replace("'","\"",getenv('ZBX_HISTORYSTORAGETYPES'));
+$history_providers = str_replace("'","\"",getenv('ZBX_HISTORYPROVIDERS'));
 
-$HISTORY['types'] = (json_decode($storage_types)) ? json_decode($storage_types, true) : array();
+if (json_decode($history_providers)) {
+   $HISTORY_PROVIDERS[] = json_decode($history_providers, true);
+}
 
 // Used for SAML authentication.
 if (file_exists('/etc/zabbix/web/certs/sp.key')) {
@@ -105,9 +94,18 @@ else {
 $sso_settings = str_replace("'","\"",getenv('ZBX_SSO_SETTINGS'));
 $SSO['SETTINGS'] = (json_decode($sso_settings)) ? json_decode($sso_settings, true) : array();
 
-$ALLOW_HTTP_AUTH = getenv('ZBX_ALLOW_HTTP_AUTH') == 'true' ? true: false;
+$SSO['CERT_STORAGE']		= getenv('ZBX_CERT_STORAGE') ? getenv('ZBX_CERT_STORAGE') : 'database';
 
-$ZBX_SERVER_TLS['ACTIVE'] = getenv('ZBX_SERVER_TLS_ACTIVE') == 'true' ? '1': '0';
+$ZBX_FEATURE_FLAGS['banners_enabled'] = getenv('ZBX_BANNERS_ENABLED') ? getenv('ZBX_BANNERS_ENABLED') : true;
+
+$ZBX_FEATURE_FLAGS['http_auth_enabled'] = getenv('ZBX_HTTP_AUTH_ENABLED') ? getenv('ZBX_HTTP_AUTH_ENABLED') : true;
+
+$ZBX_FEATURE_FLAGS['modules_config_enabled'] = getenv('ZBX_MODULES_CONFIG_ENABLED') ? getenv('ZBX_MODULES_CONFIG_ENABLED') : true;
+
+$media_type_denylist = str_replace("'","\"",getenv('ZBX_MEDIA_TYPE_DENYLIST'));
+$ZBX_FEATURE_FLAGS['media_type_denylist'] = (json_decode($media_type_denylist)) ? json_decode($media_type_denylist, true) : array();
+
+$ZBX_SERVER_TLS['ACTIVE'] = getenv('ZBX_SERVER_TLS_ACTIVE') == 'true' ? true : false;
 $ZBX_SERVER_TLS['CA_FILE'] = file_exists(getenv('ZBX_SERVER_TLS_CAFILE')) ? getenv('ZBX_SERVER_TLS_CAFILE') : '';
 $ZBX_SERVER_TLS['KEY_FILE'] = file_exists(getenv('ZBX_SERVER_TLS_KEYFILE')) ? getenv('ZBX_SERVER_TLS_KEYFILE') : '';
 $ZBX_SERVER_TLS['CERT_FILE'] = file_exists(getenv('ZBX_SERVER_TLS_CERTFILE')) ? getenv('ZBX_SERVER_TLS_CERTFILE') : '';

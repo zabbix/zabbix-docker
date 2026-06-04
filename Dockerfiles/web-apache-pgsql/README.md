@@ -114,13 +114,19 @@ The variable is Zabbix database name. By default, value is `zabbix`.
 
 In some setups, for example including [PgBouncer](https://www.pgbouncer.org), setting the `search_path` via connection parameters fails. If this variable is set to `"true"`, the image skips setting the `search_path` and trusts that the `search_path` of the Zabbix user is setup correctly in PostgreSQL database.
 
-### `ZBX_HISTORYSTORAGEURL`
+### `ZBX_HISTORYPROVIDERS`
 
-History storage HTTP[S] URL. This parameter is used for Elasticsearch setup. Available since 3.4.5.
+Configuration of history storage providers for Elasticsearch or ClickHouse. Available since 8.0.0.
 
-### `ZBX_HISTORYSTORAGETYPES`
+Example of YAML Mapping to Sequences
 
-Array of value types to be sent to the history storage. An example: ['uint', 'dbl']. This parameter is used for Elasticsearch setup. Available since 3.4.5.
+```
+....
+  environment:
+    ZBX_HISTORYPROVIDERS: "{'types':['uint','dbl','str','log','text','json'],'provider':'clickhouse','url':'http://clickhouse:8123','db':'zabbix','username':'zabbix','password':'zabbix'}"
+    ....
+....
+```
 
 ### `PHP_TZ`
 
@@ -228,7 +234,7 @@ Example of YAML Mapping to Sequences
 ....
 ```
 
-## `ZBX_ALLOW_HTTP_AUTH`
+## `ZBX_HTTP_AUTH_ENABLED`
 
 The variable allows to disable user HTTP authentication.
 
@@ -241,6 +247,11 @@ ZBX_VAULTDBPATH= # Available since 5.2.0
 ZBX_VAULTURL=https://127.0.0.1:8200 # Available since 5.2.0
 VAULT_TOKEN= # Available since 5.2.0
 ZBX_VAULTPREFIX= # Available since 7.0.0
+
+ZBX_CERT_STORAGE=database # Available since 8.0.0
+ZBX_BANNERS_ENABLED=true # Available since 8.0.0
+ZBX_MODULES_CONFIG_ENABLED=true # Available since 8.0.0
+ZBX_MEDIA_TYPE_DENYLIST=[] # Available since 8.0.0
 
 ZBX_SERVER_TLS_ACTIVE=false # Available since 7.4.0
 ZBX_SERVER_TLS_CAFILE= # Available since 7.4.0

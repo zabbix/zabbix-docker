@@ -13,6 +13,8 @@ server_config() {
 
     update_config_multiple_var "${ZABBIX_CONF_DIR}/zabbix_server_modules.conf" "LoadModule" "${ZBX_LOADMODULE:-}"
 
+    update_config_indexed_vars "${ZABBIX_CONF_DIR}/zabbix_server_history_storage.conf" "HistoryProvider" "ZBX_HISTORYPROVIDER"
+
     file_process_from_env "${ZABBIX_INTERNAL_ENC_DIR}" "ZBX_TLSCAFILE" "${ZBX_TLSCAFILE:-}" "${ZBX_TLSCA:-}"
     file_process_from_env "${ZABBIX_INTERNAL_ENC_DIR}" "ZBX_TLSCRLFILE" "${ZBX_TLSCRLFILE:-}" "${ZBX_TLSCRL:-}"
     file_process_from_env "${ZABBIX_INTERNAL_ENC_DIR}" "ZBX_TLSCERTFILE" "${ZBX_TLSCERTFILE:-}" "${ZBX_TLSCERT:-}"

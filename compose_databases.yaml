@@ -112,3 +112,38 @@ services:
    database:
     aliases:
      - elasticsearch
+
+ clickhouse:
+  image: "${CLICKHOUSE_IMAGE}:${CLICKHOUSE_IMAGE_TAG}"
+  restart: "${RESTART_POLICY}"
+  attach: false
+  user: "101:101"
+  profiles:
+   - clickhouse
+  env_file:
+   - path: ${ENV_VARS_DIRECTORY}/.env_db_clickhouse
+     required: true
+  ulimits:
+   nofile:
+    soft: 262144
+    hard: 262144
+  cap_add:
+    - SYS_NICE
+#    - IPC_LOCK
+  volumes:
+    - ${ENV_VARS_DIRECTORY}/clickhouse_init:/docker-entrypoint-initdb.d:ro
+    - ${DATA_DIRECTORY}/var/lib/clickhouse:/var/lib/clickhouse:rw
+    - ${DATA_DIRECTORY}/var/log/clickhouse-server:/var/log/clickhouse-server:rw
+  stop_grace_period: 5m
+  healthcheck:
+    test:
+     - CMD-SHELL
+     - clickhouse-client --user "$${CLICKHOUSE_USER:-default}" --password "$${CLICKHOUSE_PASSWORD:-}" --query "SELECT 1"
+    interval: 10s
+    timeout: 5s
+    retries: 20
+    start_period: 40s
+  networks:
+   database:
+    aliases:
+     - clickhouse

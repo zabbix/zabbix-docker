@@ -123,6 +123,11 @@ services:
    file: compose_databases.yaml
    service: elasticsearch
 
+ clickhouse:
+  extends:
+   file: compose_databases.yaml
+   service: clickhouse
+
  selenium:
   extends:
    file: compose_additional_components.yaml

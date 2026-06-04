@@ -37,6 +37,7 @@ is_masked_config_var() {
     case "$var_name" in
         TLSPSKIdentity) return 0 ;;
         DBPassword) return 0 ;;
+        HistoryProvider) return 0 ;;
         *) return 1 ;;
     esac
 }
@@ -135,4 +136,25 @@ file_process_from_env() {
 
     # Remove variable with plain text data, for example ZBX_TLSCAFILE -> ZBX_TLSCA
     unset "${var_name%%FILE}"
+}
+
+
+update_config_indexed_vars() {
+    local config_path="${1:-}"
+    local var_name="${2:-}"
+    local env_prefix="${3:-}"
+    local i=0
+    local value
+
+    while true; do
+        value="$(eval "printf '%s' \"\${${env_prefix}_${i}:-}\"")"
+
+        [ -n "$value" ] || break
+
+        update_config_var "$config_path" "$var_name" "$value" true
+        i=$((i + 1))
+
+        # Remove variable with plain text data
+        unset "${env_prefix}_${i}"
+    done
 }

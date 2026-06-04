@@ -51,6 +51,7 @@ RUN --mount=from=sources,target=/tmp/src,ro \
         ${ZBX_OUTPUT_DIR}/server/database/${DB_TYPE} \
         ${ZBX_OUTPUT_DIR}/server/database/${DB_TYPE}/option-patches/with-compression/ \
         ${ZBX_OUTPUT_DIR}/server/database/${DB_TYPE}/option-patches/without-compression/ \
+        ${ZBX_OUTPUT_DIR}/server/database/clickhouse \
         ${ZBX_OUTPUT_DIR}/java_gateway/sbin \
         ${ZBX_OUTPUT_DIR}/web_service/sbin \
         ${ZBX_OUTPUT_DIR}/web_service/conf \
@@ -129,6 +130,7 @@ RUN --mount=type=cache,target=/root/.cache/go-build \
     cp "database/${DB_TYPE}/timescaledb/schema.sql" "${ZBX_OUTPUT_DIR}/server/database/${DB_TYPE}/timescaledb.sql" && \
     cp -R "${ZBX_SOURCES_DIR}/database/${DB_TYPE}/timescaledb/option-patches/with-compression/*.sql ${ZBX_OUTPUT_DIR}/server/database/${DB_TYPE}/option-patches/with-compression/" && \
     cp -R "${ZBX_SOURCES_DIR}/database/${DB_TYPE}/timescaledb/option-patches/without-compression/*.sql" "${ZBX_OUTPUT_DIR}/server/database/${DB_TYPE}/option-patches/without-compression/" && \
+    cp -a database/clickhouse/. "${ZBX_OUTPUT_DIR}/server/database/clickhouse/" && \
     strip src/zabbix_agent/zabbix_agentd && \
     strip src/zabbix_server/zabbix_server && \
     strip src/zabbix_proxy/zabbix_proxy && \
