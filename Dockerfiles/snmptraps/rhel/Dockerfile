@@ -98,7 +98,8 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
     mkdir -p ${ZABBIX_USER_HOME_DIR} \
         ${ZABBIX_USER_HOME_DIR}/snmptraps \
         ${ZABBIX_USER_HOME_DIR}/mibs \
-        ${SNMP_PERSISTENT_DIR} && \
+        ${SNMP_PERSISTENT_DIR} \
+        /etc/logrotate.d && \
     cp /tmp/conf/logrotate.d/zabbix_snmptraps /etc/logrotate.d/ && \
     cp /tmp/conf/snmp/snmptrapd.conf /etc/snmp/ && \
     cp /tmp/scripts/zabbix_trap_handler.sh /usr/sbin/ && \
