@@ -1,82 +1,88 @@
 <?php
-// Zabbix GUI configuration file.
-global $DB, $HISTORY;
 
-$DB['TYPE']     = getenv('DB_SERVER_TYPE');
-$DB['SERVER']   = getenv('DB_SERVER_HOST');
-$DB['PORT']     = getenv('DB_SERVER_PORT');
-$DB['DATABASE'] = getenv('DB_SERVER_DBNAME');
-$DB['USER']     = (! getenv('VAULT_TOKEN') || ! getenv('ZBX_VAULTURL')) ? getenv('DB_SERVER_USER') : '';
-$DB['PASSWORD'] = (! getenv('VAULT_TOKEN') || ! getenv('ZBX_VAULTURL')) ? getenv('DB_SERVER_PASS') : '';
+function env_string(string $name, string $default = ''): string {
+    $value = getenv($name);
 
-// Schema name. Used for PostgreSQL.
-$DB['SCHEMA'] = getenv('DB_SERVER_SCHEMA');
+    return ($value === false) ? $default : $value;
+}
+
+function env_bool(string $name, bool $default = false): bool {
+    $value = getenv($name);
+
+    if ($value === false || $value === '') {
+        return $default;
+    }
+
+    return filter_var($value, FILTER_VALIDATE_BOOLEAN);
+}
+
+function env_json(string $name, array $default = []): array {
+    $value = getenv($name);
+
+    if ($value === false || $value === '') {
+        return $default;
+    }
+
+    $decoded = json_decode(str_replace("'", '"', $value), true);
+
+    return is_array($decoded) ? $decoded : $default;
+}
+
+function resolve_file(string $default_path, string $env_name): string {
+    if (file_exists($default_path)) {
+        return $default_path;
+    }
+
+    $path = getenv($env_name);
+
+    return ($path && file_exists($path)) ? $path : '';
+}
+
+$DB['TYPE']     = env_string('DB_SERVER_TYPE');
+$DB['SERVER']   = env_string('DB_SERVER_HOST');
+$DB['PORT']     = env_string('DB_SERVER_PORT');
+$DB['DATABASE'] = env_string('DB_SERVER_DBNAME');
+$DB['SCHEMA']   = env_string('DB_SERVER_SCHEMA');
+
+if (!getenv('VAULT_TOKEN') || !getenv('ZBX_VAULTURL')) {
+    $DB['USER']     = env_string('DB_SERVER_USER');
+    $DB['PASSWORD'] = env_string('DB_SERVER_PASS');
+}
+else {
+    $DB['USER']     = '';
+    $DB['PASSWORD'] = '';
+}
 
 if (getenv('ZBX_SERVER_HOST')) {
-    $ZBX_SERVER      = getenv('ZBX_SERVER_HOST');
-    $ZBX_SERVER_PORT = getenv('ZBX_SERVER_PORT');
-}
-$ZBX_SERVER_NAME = getenv('ZBX_SERVER_NAME');
-
-// Used for TLS connection.
-$DB['ENCRYPTION']               = getenv('ZBX_DB_ENCRYPTION') == 'true' ? true: false;
-$DB['KEY_FILE']                 = getenv('ZBX_DB_KEY_FILE');
-$DB['CERT_FILE']                = getenv('ZBX_DB_CERT_FILE');
-$DB['CA_FILE']                  = getenv('ZBX_DB_CA_FILE');
-$DB['VERIFY_HOST']              = getenv('ZBX_DB_VERIFY_HOST') == 'true' ? true: false;
-$DB['CIPHER_LIST']              = getenv('ZBX_DB_CIPHER_LIST') ? getenv('ZBX_DB_CIPHER_LIST') : '';
-
-// Vault configuration. Used if database credentials are stored in Vault secrets manager.
-$DB['VAULT_URL']                = getenv('ZBX_VAULTURL');
-$DB['VAULT_DB_PATH']            = getenv('ZBX_VAULTDBPATH');
-$DB['VAULT_TOKEN']              = getenv('VAULT_TOKEN');
-
-// Use IEEE754 compatible value range for 64-bit Numeric (float) history values.
-// This option is enabled by default for new Zabbix installations.
-// For upgraded installations, please read database upgrade notes before enabling this option.
-$DB['DOUBLE_IEEE754']           = getenv('DB_DOUBLE_IEEE754') == 'true' ? true: false;
-
-
-$IMAGE_FORMAT_DEFAULT  = IMAGE_FORMAT_PNG;
-
-// Elasticsearch url (can be string if same url is used for all types).
-$history_url = str_replace("'","\"",getenv('ZBX_HISTORYSTORAGEURL'));
-$HISTORY['url']   = (json_decode($history_url)) ? json_decode($history_url, true) : $history_url;
-// Value types stored in Elasticsearch.
-$storage_types = str_replace("'","\"",getenv('ZBX_HISTORYSTORAGETYPES'));
-
-$HISTORY['types'] = (json_decode($storage_types)) ? json_decode($storage_types, true) : array();
-
-// Used for SAML authentication.
-if (file_exists('/etc/zabbix/web/certs/sp.key')) {
-   $SSO['SP_KEY'] = '/etc/zabbix/web/certs/sp.key';
-}
-elseif (file_exists(getenv('ZBX_SSO_SP_KEY'))) {
-   $SSO['SP_KEY'] = getenv('ZBX_SSO_SP_KEY');
-}
-else {
-   $SSO['SP_KEY'] = '';
+    $ZBX_SERVER      = env_string('ZBX_SERVER_HOST');
+    $ZBX_SERVER_PORT = env_string('ZBX_SERVER_PORT');
 }
 
-if (file_exists('/etc/zabbix/web/certs/sp.crt')) {
-   $SSO['SP_CERT'] = '/etc/zabbix/web/certs/sp.crt';
-}
-elseif (file_exists(getenv('ZBX_SSO_SP_CERT'))) {
-   $SSO['SP_CERT'] = getenv('ZBX_SSO_SP_CERT');
-}
-else {
-   $SSO['SP_CERT'] = '';
-}
+$ZBX_SERVER_NAME = env_string('ZBX_SERVER_NAME');
 
-if (file_exists('/etc/zabbix/web/certs/idp.crt')) {
-   $SSO['IDP_CERT'] = '/etc/zabbix/web/certs/idp.crt';
-}
-elseif (file_exists(getenv('ZBX_SSO_IDP_CERT'))) {
-   $SSO['IDP_CERT'] = getenv('ZBX_SSO_IDP_CERT');
-}
-else {
-   $SSO['IDP_CERT'] = '';
-}
+$DB['ENCRYPTION']  = env_bool('ZBX_DB_ENCRYPTION');
+$DB['VERIFY_HOST'] = env_bool('ZBX_DB_VERIFY_HOST');
+$DB['KEY_FILE']    = env_string('ZBX_DB_KEY_FILE');
+$DB['CERT_FILE']   = env_string('ZBX_DB_CERT_FILE');
+$DB['CA_FILE']     = env_string('ZBX_DB_CA_FILE');
+$DB['CIPHER_LIST'] = env_string('ZBX_DB_CIPHER_LIST');
 
-$sso_settings = str_replace("'","\"",getenv('ZBX_SSO_SETTINGS'));
-$SSO['SETTINGS'] = (json_decode($sso_settings)) ? json_decode($sso_settings, true) : array();
+$DB['VAULT_URL']     = env_string('ZBX_VAULTURL');
+$DB['VAULT_DB_PATH'] = env_string('ZBX_VAULTDBPATH');
+$DB['VAULT_TOKEN']   = env_string('VAULT_TOKEN');
+
+$DB['DOUBLE_IEEE754'] = env_bool('DB_DOUBLE_IEEE754');
+
+$IMAGE_FORMAT_DEFAULT = IMAGE_FORMAT_PNG;
+
+$HISTORY['url'] = env_json('ZBX_HISTORYSTORAGEURL');
+if ($HISTORY['url'] === []) {
+    $HISTORY['url'] = env_string('ZBX_HISTORYSTORAGEURL');
+}
+$HISTORY['types'] = env_json('ZBX_HISTORYSTORAGETYPES');
+
+$SSO['SP_KEY'] = resolve_file('/etc/zabbix/web/certs/sp.key', 'ZBX_SSO_SP_KEY');
+$SSO['SP_CERT'] = resolve_file('/etc/zabbix/web/certs/sp.crt', 'ZBX_SSO_SP_CERT');
+$SSO['IDP_CERT'] = resolve_file('/etc/zabbix/web/certs/idp.crt', 'ZBX_SSO_IDP_CERT');
+
+$SSO['SETTINGS'] = env_json('ZBX_SSO_SETTINGS');
