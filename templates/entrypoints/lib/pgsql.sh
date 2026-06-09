@@ -34,7 +34,7 @@ check_db_variables() {
 
     : "${DB_SERVER_HOST=postgres-server}"
     : "${DB_SERVER_PORT:=5432}"
-    : "${DB_SERVER_SCHEMA:=public}"
+    : "${DB_SERVER_SCHEMA=public}"
     : "${POSTGRES_USE_IMPLICIT_SEARCH_PATH:=false}"
 
     file_env POSTGRES_USER
@@ -150,7 +150,13 @@ create_db_database() {
         info "** Database '${DB_SERVER_DBNAME}' already exists. Please be careful with database owner!"
     fi
 
-    psql_query "CREATE SCHEMA IF NOT EXISTS ${DB_SERVER_SCHEMA}" "${DB_SERVER_DBNAME}" >/dev/null
+    if [ -n "${DB_SERVER_SCHEMA:-}" ]; then
+        schema_exists="$(psql_query "SELECT 1 FROM pg_namespace WHERE nspname='${DB_SERVER_SCHEMA}'" "${DB_SERVER_DBNAME}")"
+
+        if [ -z "$schema_exists" ]; then
+            psql_query "CREATE SCHEMA ${DB_SERVER_SCHEMA}" "${DB_SERVER_DBNAME}"
+        fi
+    fi
 }
 
 apply_db_scripts() {
@@ -166,14 +172,24 @@ apply_db_scripts() {
 
 create_db_schema() {
     local db_schema_file="${1:-}"
-    local dbversion_table_exists
 
-    dbversion_table_exists="$(psql_query "SELECT 1 FROM pg_catalog.pg_class c JOIN pg_catalog.pg_namespace n ON n.oid =
-                                         c.relnamespace WHERE  n.nspname = '$DB_SERVER_SCHEMA' AND c.relname = 'dbversion'" "${DB_SERVER_DBNAME}")"
+    local dbversion_table_exists
+    local dbversion_table
+    local schema_filter=""
+
+    if [ -n "${DB_SERVER_SCHEMA:-}" ]; then
+        schema_filter="AND n.nspname = '${DB_SERVER_SCHEMA}'"
+        dbversion_table="${DB_SERVER_SCHEMA}.dbversion"
+    else
+        dbversion_table="dbversion"
+    fi
+
+    dbversion_table_exists="$(psql_query "SELECT 1 FROM pg_catalog.pg_class c JOIN pg_catalog.pg_namespace n ON n.oid = c.relnamespace WHERE c.relname = 'dbversion'
+               ${schema_filter}" "${DB_SERVER_DBNAME}")"
 
     if [ -n "${dbversion_table_exists}" ]; then
         info "** Table '${DB_SERVER_DBNAME}.dbversion' already exists."
-        ZBX_DB_VERSION="$(psql_query "SELECT mandatory FROM ${DB_SERVER_SCHEMA}.dbversion" "${DB_SERVER_DBNAME}")"
+        ZBX_DB_VERSION="$(psql_query "SELECT mandatory FROM ${dbversion_table}" "${DB_SERVER_DBNAME}")"
     fi
 
     if [ -z "${ZBX_DB_VERSION:-}" ]; then
