@@ -42,7 +42,7 @@ proxy_config() {
 
     update_config_var "${ZBX_PROXY_CONFIG}" "ProxyLocalBuffer" "${ZBX_PROXYLOCALBUFFER:-}"
     update_config_var "${ZBX_PROXY_CONFIG}" "ProxyOfflineBuffer" "${ZBX_PROXYOFFLINEBUFFER:-}"
-    update_config_var "${ZBX_PROXY_CONFIG}" "ProxyConfigFrequency" "${ZBX_PROXYCONFIGFREQUENCY:-}"
+    update_config_var "${ZBX_PROXY_CONFIG}" "ConfigFrequency" "${ZBX_CONFIGFREQUENCY:-}"
     update_config_var "${ZBX_PROXY_CONFIG}" "DataSenderFrequency" "${ZBX_DATASENDERFREQUENCY:-}"
 
     update_config_var "${ZBX_PROXY_CONFIG}" "StatsAllowedIP" "${ZBX_STATSALLOWEDIP:-}"
