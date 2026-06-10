@@ -102,8 +102,8 @@ EXPOSE 10050/tcp 31999/tcp
 
 WORKDIR ${ZABBIX_USER_HOME_DIR}
 
-ENTRYPOINT ["/usr/bin/docker-entrypoint.sh"]
-
 USER 1997
+
+ENTRYPOINT ["/usr/bin/docker-entrypoint.sh"]
 
 CMD ["/usr/sbin/zabbix_agent2", "--foreground", "-c", "/etc/zabbix/zabbix_agent2.conf"]

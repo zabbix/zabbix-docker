@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1.6
-ARG OS_BASE_IMAGE=alpine:3.23
+ARG OS_BASE_IMAGE=alpine:3.24
 ARG MAJOR_VERSION=7.0
 ARG ZBX_VERSION=${MAJOR_VERSION}.27
 ARG BUILD_BASE_IMAGE=zabbix-build-mysql:alpine-${ZBX_VERSION}
@@ -87,8 +87,8 @@ EXPOSE 10050/tcp 31999/tcp
 
 WORKDIR ${ZABBIX_USER_HOME_DIR}
 
-ENTRYPOINT ["/usr/bin/docker-entrypoint.sh"]
-
 USER 1997
+
+ENTRYPOINT ["/usr/bin/docker-entrypoint.sh"]
 
 CMD ["/usr/sbin/zabbix_agent2", "--foreground", "-c", "/etc/zabbix/zabbix_agent2.conf"]

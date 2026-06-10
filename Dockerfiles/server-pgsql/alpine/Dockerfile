@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1.6
-ARG OS_BASE_IMAGE=alpine:3.23
+ARG OS_BASE_IMAGE=alpine:3.24
 ARG MAJOR_VERSION=7.0
 ARG ZBX_VERSION=${MAJOR_VERSION}.27
 ARG BUILD_BASE_IMAGE=zabbix-build-pgsql:alpine-${ZBX_VERSION}
@@ -119,8 +119,8 @@ WORKDIR ${ZABBIX_USER_HOME_DIR}
 
 VOLUME ["${ZABBIX_USER_HOME_DIR}/snmptraps", "${ZABBIX_USER_HOME_DIR}/export"]
 
-ENTRYPOINT ["/usr/bin/docker-entrypoint.sh"]
-
 USER 1997
+
+ENTRYPOINT ["/usr/bin/docker-entrypoint.sh"]
 
 CMD ["/usr/sbin/zabbix_server", "--foreground", "-c", "/etc/zabbix/zabbix_server.conf"]
