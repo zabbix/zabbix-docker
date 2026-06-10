@@ -32,6 +32,7 @@ RUN set -eux && \
     INSTALL_PKGS="bash \
             autoconf \
             automake \
+            cmake \
             c-ares-dev \
             coreutils \
             curl \
