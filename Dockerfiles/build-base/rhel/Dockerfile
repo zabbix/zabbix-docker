@@ -42,6 +42,7 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
     INSTALL_PKGS="autoconf \
             automake \
             bash \
+            cmake \
             gcc \
             go-toolset \
             patch \
