@@ -17,7 +17,7 @@ variable "ZBX_VERSION" {
 
 variable "OS_BASE_IMAGE" {
   type        = string
-  default     = "alpine:3.23"
+  default     = "alpine:3.24"
   description = "Base image for images. Passed to Dockerfiles as OS_BASE_IMAGE"
 }
 
