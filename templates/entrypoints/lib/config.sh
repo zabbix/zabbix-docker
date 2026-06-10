@@ -152,9 +152,9 @@ update_config_indexed_vars() {
         [ -n "$value" ] || break
 
         update_config_var "$config_path" "$var_name" "$value" true
-        i=$((i + 1))
 
         # Remove variable with plain text data
         unset "${env_prefix}_${i}"
+        i=$((i + 1))
     done
 }

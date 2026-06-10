@@ -54,7 +54,6 @@ get_vault_secrets() {
         if [ -n "${ZBX_VAULTKEYFILE:-}" ]; then
             cyberark_opts+=(--key "$ZBX_VAULTKEYFILE")
         fi
-        echo "FULL_URL: $vault_url"
         while ! vaultdata="$(curl "${curl_opts[@]}" "${cyberark_opts[@]}" "$vault_url")"; do
             info "**** Vault is not available. Waiting ${wait_timeout} seconds... ****"
             sleep "$wait_timeout"
