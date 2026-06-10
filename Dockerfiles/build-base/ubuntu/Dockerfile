@@ -35,6 +35,7 @@ RUN --mount=type=cache,target=/var/cache/apt/,sharing=locked \
             binutils \
             curl \
             gcc \
+            g++ \
             libc6-dev \
             libc-ares-dev \
             libcurl4-openssl-dev \
