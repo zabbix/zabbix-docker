@@ -87,8 +87,8 @@ EXPOSE 10053/tcp
 
 WORKDIR ${ZABBIX_USER_HOME_DIR}
 
-ENTRYPOINT ["docker-entrypoint.sh"]
-
 USER 1997
+
+ENTRYPOINT ["docker-entrypoint.sh"]
 
 CMD ["/usr/sbin/zabbix_web_service", "-c", "/etc/zabbix/zabbix_web_service.conf"]

@@ -38,7 +38,7 @@ LOCAL_ZBX_TAG ?= $(OS)-$(ZBX_VERSION)-local
 PLATFORMS ?=
 
 # ---- Base images per OS ----
-ALPINE_BASE_IMAGE ?= alpine:3.23
+ALPINE_BASE_IMAGE ?= alpine:3.24
 CENTOS_BASE_IMAGE ?= quay.io/centos/centos:stream10-minimal
 OL_BASE_IMAGE ?= container-registry.oracle.com/os/oraclelinux:10-slim
 UBUNTU_BASE_IMAGE ?= ubuntu:resolute

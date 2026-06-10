@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1.6
-ARG OS_BASE_IMAGE=alpine:3.23
+ARG OS_BASE_IMAGE=alpine:3.24
 ARG MAJOR_VERSION=8.0
 ARG ZBX_VERSION=${MAJOR_VERSION}
 ARG BUILD_BASE_IMAGE=zabbix-build-mysql:alpine-${ZBX_VERSION}
@@ -128,8 +128,8 @@ WORKDIR ${ZABBIX_USER_HOME_DIR}
 
 VOLUME ["${ZABBIX_USER_HOME_DIR}/snmptraps"]
 
-ENTRYPOINT ["/usr/bin/docker-entrypoint.sh"]
-
 USER 1997
+
+ENTRYPOINT ["/usr/bin/docker-entrypoint.sh"]
 
 CMD ["/usr/sbin/zabbix_proxy", "--foreground", "-c", "/etc/zabbix/zabbix_proxy.conf"]

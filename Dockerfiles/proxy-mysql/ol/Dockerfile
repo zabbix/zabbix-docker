@@ -142,8 +142,8 @@ WORKDIR ${ZABBIX_USER_HOME_DIR}
 
 VOLUME ["${ZABBIX_USER_HOME_DIR}/snmptraps"]
 
-ENTRYPOINT ["/usr/bin/docker-entrypoint.sh"]
-
 USER 1997
+
+ENTRYPOINT ["/usr/bin/docker-entrypoint.sh"]
 
 CMD ["/usr/sbin/zabbix_proxy", "--foreground", "-c", "/etc/zabbix/zabbix_proxy.conf"]
