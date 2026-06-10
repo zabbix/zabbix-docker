@@ -30,6 +30,7 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             bash \
             cmake \
             gcc \
+            gcc-c++ \
             go-toolset \
             patch \
             c-ares-devel \
