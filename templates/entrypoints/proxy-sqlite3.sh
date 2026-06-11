@@ -5,6 +5,7 @@ set -euo pipefail
 readonly ENTRYPOINT_LIBS="/usr/lib/docker-entrypoint"
 source "${ENTRYPOINT_LIBS}/bootstrap.sh"
 
+source "${ENTRYPOINT_LIBS}/sqlite3.sh"
 source "${ENTRYPOINT_LIBS}/proxy-config.sh"
 
 update_config() {
@@ -18,13 +19,14 @@ update_config() {
     fi
     unset ZBX_USE_NODE_NAME_AS_DB_NAME
 
-    proxy_config
+    proxy_config "zabbix-proxy-sqlite3"
 }
 
 prepare_service() {
     info "** Preparing Zabbix proxy"
 
     update_config
+    create_db_schema "/usr/share/doc/zabbix-proxy-sqlite3/create.sql.gz"
     clear_zbx_env
 }
 

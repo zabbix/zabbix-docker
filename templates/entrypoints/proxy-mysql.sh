@@ -26,7 +26,7 @@ update_config() {
         unset ZBX_DB_PASSWORD
     fi
 
-    proxy_config
+    proxy_config "zabbix-proxy-mysql"
 }
 
 prepare_database() {

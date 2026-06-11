@@ -7,13 +7,15 @@ source "${ENTRYPOINT_LIBS}/openssl.sh"
 readonly ZABBIX_INTERNAL_ENC_DIR="${ZABBIX_USER_HOME_DIR}/enc_internal"
 
 proxy_config() {
+    local default_host_name="${1:-}"
+
     : "${ZBX_SERVER_HOST:=zabbix-server}"
     export ZBX_SERVER_HOST
 
     if [ -z "${ZBX_HOSTNAME:-}" ] && [ -n "${ZBX_HOSTNAMEITEM:-}" ]; then
         export ZBX_HOSTNAME=""
     else
-        export ZBX_HOSTNAME="${ZBX_HOSTNAME:-zabbix-proxy-mysql}"
+        export ZBX_HOSTNAME="${ZBX_HOSTNAME:-$default_host_name}"
     fi
 
     : "${ZBX_ENABLE_SNMP_TRAPS:=false}"

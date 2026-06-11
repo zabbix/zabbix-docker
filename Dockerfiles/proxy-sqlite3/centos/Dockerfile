@@ -44,6 +44,7 @@ COPY --from=builder /tmp/zabbix-${ZBX_VERSION}-output/proxy/sbin/zabbix_proxy /u
 COPY --from=builder /tmp/zabbix-${ZBX_VERSION}-output/general/bin/zabbix_get /usr/bin/
 COPY --from=builder /tmp/zabbix-${ZBX_VERSION}-output/general/bin/zabbix_sender /usr/bin/
 COPY --from=builder /tmp/zabbix-${ZBX_VERSION}-output/proxy/conf/ ${ZABBIX_CONF_DIR}/
+COPY --from=builder /tmp/zabbix-${ZBX_VERSION}-output/proxy/database/sqlite3/ /usr/share/doc/zabbix-proxy-sqlite3/
 
 RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
     --mount=type=tmpfs,target=/var/cache/yum/ \
@@ -65,8 +66,11 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             openssl \
             openssl-libs \
             pcre2 \
+            sqlite \
+            sqlite-libs \
             shadow-utils \
             zlib \
+            gzip \
             unixODBC" && \
     microdnf -y install \
             --disablerepo="*" \
