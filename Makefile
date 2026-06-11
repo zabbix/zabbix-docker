@@ -177,7 +177,7 @@ help:
 	@echo "  make build DB=mysql"
 	@echo "  make build DB=pgsql"
 	@echo "  make builders DB=sqlite3"
-	@echo "  make build OS=ubuntu OS_BASE_IMAGE=ubuntu:noble"
+	@echo "  make build OS=ubuntu OS_BASE_IMAGE=ubuntu:resolute"
 	@echo "  make build PLATFORMS=linux/amd64,linux/arm64"
 	@echo "  make build LOCAL_IMAGE_PREFIX=ghcr.io/zabbix/"
 	@echo ""
