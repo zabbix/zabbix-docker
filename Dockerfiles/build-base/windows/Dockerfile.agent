@@ -5,7 +5,7 @@ ARG OS_BASE_IMAGE=mcr.microsoft.com/windows/servercore:ltsc2022
 ARG GIT_VERSION=2.52.0
 ARG NASM_VERSION=3.01
 ARG VS_BUILDTOOLS_VERSION=17
-ARG PWSH_VERSION=7.5.4
+ARG PWSH_VERSION=7.6.2
 
 ARG PCRE2_VERSION=10.47
 ARG OPENSSL_VERSION=3.5.4
@@ -53,7 +53,7 @@ ADD --checksum=sha256:bb329a0a2cd0274d05519d61c667c062e06990d72e125ee2dfa8de64f0
 ADD --checksum=sha256:e8e74cdeefe5fb78b3ae6e90cd542babf788fa9480029cfcee6fd9ced42b7910 $CURL_URL build_src\curl.tar.gz
 ADD --checksum=sha256:912dd7cc3b3e8a79c52fd7fb9c0f4ecf0aaa73e45efda880266a2d6e26b84ef5 $CARES_URL build_src\cares.tar.gz
 
-ADD --checksum=sha256:b40d192ae95ba6ccc4cc362ff4e1b18ca6fb5055bebbcd3920684e12701fa8f6 $PWSH_URL build_deps\pwsh.zip
+ADD --checksum=sha256:32e0dd26752483ba3f0e40e9ae44150643cbff469c13210c93295d158bfd7b26 $PWSH_URL build_deps\pwsh.zip
 ADD --checksum=sha256:f42a561840627747ad48e6ece05a14093292d31f3393a401a7f7c780ee7695c2 $GIT_URL build_deps\git.zip
 ADD --checksum=sha256:a1cde185656cf307b51670eed69f648b9eff15b5c518cb136e027c628e650b71 $PERL_URL build_deps\perl.zip
 ADD --checksum=sha256:e0ba5157007abc7b1a65118a96657a961ddf55f7e3f632ee035366dfce039ca4 $NASM_URL build_deps\nasm.zip
