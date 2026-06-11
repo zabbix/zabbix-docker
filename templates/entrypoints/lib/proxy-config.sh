@@ -10,7 +10,7 @@ source "${ENTRYPOINT_LIBS}/openssl.sh"
 readonly ZABBIX_INTERNAL_ENC_DIR="${ZABBIX_USER_HOME_DIR}/enc_internal"
 
 proxy_config() {
-    local default_hostname="${1:-}"
+    local default_host_name="${1:-}"
 
     [[ -f "$ZBX_PROXY_CONFIG" ]] || error "Missing configuration file: $ZBX_PROXY_CONFIG"
 
@@ -21,7 +21,7 @@ proxy_config() {
         update_config_var "${ZBX_PROXY_CONFIG}" "Hostname" ""
         update_config_var "${ZBX_PROXY_CONFIG}" "HostnameItem" "${ZBX_HOSTNAMEITEM:-}"
     else
-        update_config_var "${ZBX_PROXY_CONFIG}" "Hostname" "${ZBX_HOSTNAME:-$default_hostname}"
+        update_config_var "${ZBX_PROXY_CONFIG}" "Hostname" "${ZBX_HOSTNAME:-$default_host_name}"
         update_config_var "${ZBX_PROXY_CONFIG}" "HostnameItem" "${ZBX_HOSTNAMEITEM:-}"
     fi
 
