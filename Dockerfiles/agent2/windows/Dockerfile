@@ -38,11 +38,9 @@ WORKDIR C:\zabbix\
 
 USER ContainerAdministrator
 
-RUN setx /M PATH "%PATH%;C:\Program Files\PowerShell"
+SHELL ["C:\\Program Files\\PowerShell\\pwsh.exe", "-Command", "$ErrorActionPreference = 'Stop';"]
 
-SHELL ["pwsh", "-Command", "$ErrorActionPreference = 'Stop';"]
-
-RUN $env:PATH = [string]::Format('{0}\zabbix\sbin;{0}\zabbix\bin;', $env:SystemDrive) + $env:PATH; `
+RUN $env:PATH = [string]::Format('{0}\zabbix\sbin;{0}\zabbix\bin;{0}\Program Files\PowerShell;', $env:SystemDrive) + $env:PATH; `
     [Environment]::SetEnvironmentVariable('PATH', $env:PATH, [EnvironmentVariableTarget]::Machine); `
     `
     [Environment]::SetEnvironmentVariable('ZABBIX_USER_HOME_DIR', $env:ZABBIX_USER_HOME_DIR, [EnvironmentVariableTarget]::Machine); `
