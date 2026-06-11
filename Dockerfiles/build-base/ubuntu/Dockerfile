@@ -31,11 +31,9 @@ RUN --mount=type=cache,target=/var/cache/apt/,sharing=locked \
     INSTALL_PKGS="bash \
             autoconf \
             automake \
-            cmake \
             binutils \
             curl \
             gcc \
-            g++ \
             libc6-dev \
             libc-ares-dev \
             libcurl4-openssl-dev \

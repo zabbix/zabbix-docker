@@ -28,9 +28,7 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
     INSTALL_PKGS="autoconf \
             automake \
             bash \
-            cmake \
             gcc \
-            gcc-c++ \
             go-toolset \
             patch \
             c-ares-devel \
