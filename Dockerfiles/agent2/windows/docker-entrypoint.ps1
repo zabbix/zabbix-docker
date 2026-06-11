@@ -142,10 +142,10 @@ function Prepare-Zbx-Agent-Config {
 
     $ZbxAgentConfig="$env:ZABBIX_CONF_DIR\zabbix_agent2.conf"
 
-    if ($env:ZBX_PASSIVESERVERS -eq $null) {
+    if ([string]::IsNullOrEmpty($env:ZBX_PASSIVESERVERS)) {
         $env:ZBX_PASSIVESERVERS=""
     }
-    if ($env:ZBX_ACTIVESERVERS -eq $null) {
+    if ([string]::IsNullOrEmpty($env:ZBX_ACTIVESERVERS)) {
         $env:ZBX_ACTIVESERVERS=""
     }
 
@@ -292,16 +292,18 @@ function PrepareAgent {
     ClearZbxEnv
 }
 
-$commandArgs=$args
+$commandArgs = $args
 
-if ($args.length -gt 0 -And $args[0].Substring(0, 1) -eq '-') {
-    $commandArgs = "C:\zabbix\sbin\zabbix_agent2.exe " + $commandArgs
+if ($args.length -gt 0 -And $args[0].StartsWith('-')) {
+    $commandArgs = @("C:\zabbix\sbin\zabbix_agent2.exe") + $args
 }
 
-if ($args.length -gt 0 -And $args[0] -eq "C:\zabbix\sbin\zabbix_agent2.exe") {
+if ($commandArgs.length -gt 0 -And $commandArgs[0] -eq "C:\zabbix\sbin\zabbix_agent2.exe") {
     PrepareAgent
 }
 
-if ($args.length -gt 0) {
-    Invoke-Expression "$CommandArgs"
+if ($commandArgs.length -gt 0) {
+    $exe, $exeArgs = $commandArgs
+    & $exe @exeArgs
+    exit $LASTEXITCODE
 }
