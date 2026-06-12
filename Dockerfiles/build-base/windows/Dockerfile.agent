@@ -202,12 +202,15 @@ RUN Set-Location -Path $env:SystemDrive\.; `
     $env:VS_PATH = &(Join-Path ${env:ProgramFiles(x86)} """\Microsoft Visual Studio\Installer\vswhere.exe""") -latest -products Microsoft.VisualStudio.Product.BuildTools -property installationPath; `
     [Environment]::SetEnvironmentVariable('VS_PATH', $env:VS_PATH, [EnvironmentVariableTarget]::Machine); `
     `
+    $env:VS_DEVSHELL = (Get-ChildItem $env:VS_PATH -Recurse -File -Filter Microsoft.VisualStudio.DevShell.dll).FullName; `
+    [Environment]::SetEnvironmentVariable('VS_DEVSHELL', $env:VS_DEVSHELL, [EnvironmentVariableTarget]::Machine); `
+    `
     Write-Host 'Visual Studio components installation cleanup'; `
     Get-ChildItem -Path """${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer""" -Directory -Recurse | Remove-Item -Force -Recurse; `
     `
     Write-Host 'Build environment is ready...';
 
-RUN Import-Module (Get-ChildItem $env:VS_PATH -Recurse -File -Filter Microsoft.VisualStudio.DevShell.dll).FullName; `
+RUN Import-Module $env:VS_DEVSHELL; `
     Enter-VsDevShell -VsInstallPath $env:VS_PATH -SkipAutomaticLocation -DevCmdArguments """-arch=x64"""; `
     `
     Write-Host 'Building Zlib library...'; `
@@ -227,7 +230,7 @@ RUN Import-Module (Get-ChildItem $env:VS_PATH -Recurse -File -Filter Microsoft.V
     Remove-Item -Path $env:BUILD_SRC\zlib\build -Force -Recurse; `
     Write-Host 'Zlib is ready...';
 
-RUN Import-Module (Get-ChildItem $env:VS_PATH -Recurse -File -Filter Microsoft.VisualStudio.DevShell.dll).FullName; `
+RUN Import-Module $env:VS_DEVSHELL; `
     Enter-VsDevShell -VsInstallPath $env:VS_PATH -SkipAutomaticLocation -DevCmdArguments """-arch=x64"""; `
     `
     Write-Host 'Building OpenSSL library...'; `
@@ -256,7 +259,7 @@ RUN Import-Module (Get-ChildItem $env:VS_PATH -Recurse -File -Filter Microsoft.V
     nmake /S clean 2>$null | Out-Null; `
     Write-Host 'OpenSSL is ready...';
 
-RUN Import-Module (Get-ChildItem $env:VS_PATH -Recurse -File -Filter Microsoft.VisualStudio.DevShell.dll).FullName; `
+RUN Import-Module $env:VS_DEVSHELL; `
     Enter-VsDevShell -VsInstallPath $env:VS_PATH -SkipAutomaticLocation -DevCmdArguments """-arch=x64"""; `
     `
     Write-Host 'Building PCRE2 library ...'; `
@@ -280,7 +283,7 @@ RUN Import-Module (Get-ChildItem $env:VS_PATH -Recurse -File -Filter Microsoft.V
     Remove-Item -Recurse -Force $env:BUILD_SRC\pcre2\build; `
     Write-Host 'PCRE2 is ready...';
 
-RUN Import-Module (Get-ChildItem $env:VS_PATH -Recurse -File -Filter Microsoft.VisualStudio.DevShell.dll).FullName; `
+RUN Import-Module $env:VS_DEVSHELL; `
     Enter-VsDevShell -VsInstallPath $env:VS_PATH -SkipAutomaticLocation -DevCmdArguments """-arch=x64"""; `
     `
     Write-Host 'Building Libmodbus library ...'; `
@@ -300,7 +303,7 @@ RUN Import-Module (Get-ChildItem $env:VS_PATH -Recurse -File -Filter Microsoft.V
     Remove-Item -Recurse -Force $env:BUILD_SRC\libmodbus\build; `
     Write-Host 'Libmodbus is ready...';
 
-RUN Import-Module (Get-ChildItem $env:VS_PATH -Recurse -File -Filter Microsoft.VisualStudio.DevShell.dll).FullName; `
+RUN Import-Module $env:VS_DEVSHELL; `
     Enter-VsDevShell -VsInstallPath $env:VS_PATH -SkipAutomaticLocation -DevCmdArguments """-arch=x64"""; `
     Write-Host 'Building Curl library...'; `
     Set-Location -Path $env:BUILD_SRC\curl; `
