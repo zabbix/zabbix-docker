@@ -23,9 +23,11 @@ update_config() {
     : "${ZBX_USE_NODE_NAME_AS_DB_NAME:=false}"
     if [ "${ZBX_USE_NODE_NAME_AS_DB_NAME,,}" = "false" ]; then
         update_config_var "${ZBX_PROXY_CONFIG}" "DBName" "${ZABBIX_USER_HOME_DIR}/db_data/${proxy_name}.sqlite"
+        export ZBX_DB_NAME="${ZABBIX_USER_HOME_DIR}/db_data/${proxy_name}.sqlite"
     else
         node_name="$(uname -n)"
         update_config_var "${ZBX_PROXY_CONFIG}" "DBName" "${ZABBIX_USER_HOME_DIR}/db_data/${node_name}.sqlite"
+        export ZBX_DB_NAME="${ZABBIX_USER_HOME_DIR}/db_data/${proxy_name}.sqlite"
     fi
 
     update_config_var "${ZBX_PROXY_CONFIG}" "DBUser"
