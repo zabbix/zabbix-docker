@@ -5,6 +5,7 @@ ARG ZBX_VERSION=${MAJOR_VERSION}
 ARG BUILD_BASE_IMAGE=zabbix-build-base:rhel-${ZBX_VERSION}
 
 FROM ${BUILD_BASE_IMAGE} AS builder
+ARG BUILD_JOBS
 
 ARG MAJOR_VERSION
 ARG RELEASE
@@ -128,7 +129,7 @@ RUN --mount=type=cache,target=/root/.cache/go-build \
         --with-ssh \
         --with-unixodbc \
         --silent && \
-    jobs="$(nproc)" && \
+    jobs="${BUILD_JOBS:-$(nproc)}" && \
     make -j"${jobs}" -s dbschema && \
     make -j"${jobs}" -s && \
     make -j"${jobs}" -s gettext && \
