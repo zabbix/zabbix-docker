@@ -483,6 +483,20 @@ jobs:
           docker_username: ${{ secrets.DOCKER_USERNAME }}
           docker_password: ${{ secrets.DOCKER_PASSWORD }}
 
+      - name: Compute build parallelism
+        id: jobs
+        env:
+          PLATFORMS: ${{ steps.platform.outputs.list }}
+        run: |
+          # Multi-arch QEMU builds compile all platforms concurrently, so peak memory
+          # scales as platform_count * (make -j). Cap total concurrent compilers near the
+          # runner vCPU count to avoid OOM-induced runner shutdowns ("operation canceled").
+          count=$(( $(printf '%s' "$PLATFORMS" | tr -cd ',' | wc -c) + 1 ))
+          jobs=$(( 4 / count ))
+          [ "$jobs" -lt 1 ] && jobs=1
+          echo "Platforms: $PLATFORMS -> BUILD_JOBS=$jobs"
+          echo "jobs=$jobs" >> "$GITHUB_OUTPUT"
+
       - name: Build ${{ matrix.build }}/${{ matrix.os }} and push
         id: docker_build
         uses: ./.github/actions/docker-build-push-linux
@@ -498,6 +512,7 @@ jobs:
             config_templates=./templates/config/
           build_args: |
             BUILD_BASE_IMAGE=${{ steps.base_build.outputs.base_build_image }}
+            BUILD_JOBS=${{ steps.jobs.outputs.jobs }}
           labels: |
             org.opencontainers.image.revision=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.revision'] }}
             org.opencontainers.image.created=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.created'] }}
