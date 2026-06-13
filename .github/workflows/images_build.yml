@@ -490,12 +490,14 @@ jobs:
         env:
           PLATFORMS: ${{ steps.platform.outputs.list }}
         run: |
-          # Multi-arch QEMU builds compile all platforms concurrently, so peak memory
-          # scales as platform_count * (make -j). Cap total concurrent compilers near the
-          # runner vCPU count to avoid OOM-induced runner shutdowns ("operation canceled").
-          count=$(( $(printf '%s' "$PLATFORMS" | tr -cd ',' | wc -c) + 1 ))
-          jobs=$(( 4 / count ))
-          [ "$jobs" -lt 1 ] && jobs=1
+          # QEMU-emulated (non-amd64) compiles are the memory bottleneck: a single emulated
+          # gcc/Go process is huge, and even make -j2 OOMs a 16 GB runner ("runner received a
+          # shutdown signal"). Use -j1 whenever the build includes any emulated arch; allow
+          # full parallelism only for a pure native amd64 build.
+          case "$PLATFORMS" in
+            linux/amd64) jobs="$(nproc)" ;;
+            *)           jobs=1 ;;
+          esac
           echo "Platforms: $PLATFORMS -> BUILD_JOBS=$jobs"
           echo "jobs=$jobs" >> "$GITHUB_OUTPUT"
 
