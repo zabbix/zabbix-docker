@@ -496,6 +496,7 @@ jobs:
             linux/amd64) jobs="$(nproc)" ;;
             *)           jobs=1 ;;
           esac
+
           echo "Platforms: $PLATFORMS -> BUILD_JOBS=$jobs"
           echo "jobs=$jobs" >> "$GITHUB_OUTPUT"
 
