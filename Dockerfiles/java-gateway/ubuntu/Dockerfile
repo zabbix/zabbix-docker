@@ -38,7 +38,7 @@ RUN --mount=type=cache,target=/var/cache/apt/,sharing=locked \
     printf '%s\n' '#!/bin/sh' 'exit 101' > /usr/sbin/policy-rc.d && \
     chmod +x /usr/sbin/policy-rc.d && \
     INSTALL_PKGS="bash \
-            openjdk-17-jre-headless" && \
+            openjdk-21-jre-headless" && \
     apt-get -y update && \
     DEBIAN_FRONTEND=noninteractive apt-get -y \
             -o Dpkg::Options::="--force-confdef" \
