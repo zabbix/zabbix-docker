@@ -19,7 +19,7 @@ inputs:
 
   buildkit_image:
     required: false
-    default: moby/buildkit:v0.28.1
+    default: moby/buildkit:v0.30.0
     description: BuildKit image
 
   docker_username:
