@@ -299,6 +299,7 @@ jobs:
         uses: ./.github/actions/docker-linux-setup
         with:
           auto_push_images: true
+          platforms: ${{ steps.platform.outputs.list }}
           docker_username: ${{ secrets.DOCKER_USERNAME }}
           docker_password: ${{ secrets.DOCKER_PASSWORD }}
 
@@ -480,6 +481,7 @@ jobs:
         uses: ./.github/actions/docker-linux-setup
         with:
           auto_push_images: true
+          platforms: ${{ steps.platform.outputs.list }}
           docker_username: ${{ secrets.DOCKER_USERNAME }}
           docker_password: ${{ secrets.DOCKER_PASSWORD }}
 
@@ -786,6 +788,7 @@ jobs:
         uses: ./.github/actions/docker-linux-setup
         with:
           auto_push_images: ${{ env.AUTO_PUSH_IMAGES }}
+          platforms: ${{ steps.platform.outputs.list }}
           docker_username: ${{ secrets.DOCKER_USERNAME }}
           docker_password: ${{ secrets.DOCKER_PASSWORD }}
 

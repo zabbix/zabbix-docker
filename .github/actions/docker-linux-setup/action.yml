@@ -12,10 +12,10 @@ inputs:
     default: tonistiigi/binfmt:qemu-v10.0.4
     description: QEMU binfmt image
 
-  qemu_platforms:
+  platforms:
     required: false
     default: all
-    description: Platforms for QEMU
+    description: Build platforms to derive required QEMU platforms from
 
   buildkit_image:
     required: false
@@ -35,11 +35,47 @@ inputs:
 runs:
   using: composite
   steps:
+    - name: Prepare QEMU platform list
+      id: qemu
+      shell: bash
+      env:
+        PLATFORMS: ${{ inputs.platforms }}
+      run: |
+        if [[ -z "$PLATFORMS" || "$PLATFORMS" == "all" ]]; then
+          qemu_platforms="$PLATFORMS"
+        else
+          qemu_platforms=""
+          IFS=',' read -ra build_platforms <<< "$PLATFORMS"
+
+          for platform in "${build_platforms[@]}"; do
+            arch="${platform#linux/}"
+            arch="${arch%%/*}"
+
+            case "$arch" in
+              amd64|386|"")
+                continue
+                ;;
+            esac
+
+            case ",$qemu_platforms," in
+              *",$arch,"*) ;;
+              *) qemu_platforms="${qemu_platforms:+$qemu_platforms,}$arch" ;;
+            esac
+          done
+        fi
+
+        echo "::group::QEMU Platform List"
+        echo "${qemu_platforms:-<none>}"
+        echo "::endgroup::"
+
+        echo "platforms=$qemu_platforms" >> "$GITHUB_OUTPUT"
+
     - name: Set up QEMU
+      if: ${{ steps.qemu.outputs.platforms != '' }}
       uses: docker/setup-qemu-action@ce360397dd3f832beb865e1373c09c0e9f86d70a # v4.0.0
       with:
         image: ${{ inputs.qemu_image }}
-        platforms: ${{ inputs.qemu_platforms }}
+        platforms: ${{ steps.qemu.outputs.platforms }}
 
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@4d04d5d9486b7bd6fa91e7baf45bbb4f8b9deedd # v4.0.0
