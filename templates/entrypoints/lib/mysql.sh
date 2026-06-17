@@ -9,6 +9,9 @@ source "${ENTRYPOINT_LIBS}/logging.sh"
 source "${ENTRYPOINT_LIBS}/config.sh"
 source "${ENTRYPOINT_LIBS}/vault.sh"
 
+# DML is required for runtime, DDL is required for automatic Zabbix DB upgrades.
+readonly MYSQL_ZBX_DB_PRIVILEGES="ALTER, CREATE, CREATE TEMPORARY TABLES, DELETE, DROP, INDEX, INSERT, SELECT, UPDATE"
+
 set_mysql_cli() {
     case "${DB_ENGINE}" in
         mysql)
@@ -223,7 +226,7 @@ create_db_user() {
         mysql_query "ALTER USER '${DB_SERVER_ZBX_USER}'@'%' IDENTIFIED BY '${DB_SERVER_ZBX_PASS}'" >/dev/null
     fi
 
-    mysql_query "GRANT ALL PRIVILEGES ON ${DB_SERVER_DBNAME}.* TO '${DB_SERVER_ZBX_USER}'@'%'" >/dev/null
+    mysql_query "GRANT ${MYSQL_ZBX_DB_PRIVILEGES} ON \`${DB_SERVER_DBNAME}\`.* TO '${DB_SERVER_ZBX_USER}'@'%'" >/dev/null
 }
 
 create_db_database() {
@@ -233,7 +236,7 @@ create_db_database() {
     if [ -z "${db_exists}" ]; then
         info "** Database '${DB_SERVER_DBNAME}' does not exist. Creating..."
         mysql_query "CREATE DATABASE ${DB_SERVER_DBNAME} CHARACTER SET ${DB_CHARACTER_SET} COLLATE ${DB_CHARACTER_COLLATE}" >/dev/null
-        mysql_query "GRANT ALL PRIVILEGES ON ${DB_SERVER_DBNAME}.* TO '${DB_SERVER_ZBX_USER}'@'%'" >/dev/null
+        mysql_query "GRANT ${MYSQL_ZBX_DB_PRIVILEGES} ON \`${DB_SERVER_DBNAME}\`.* TO '${DB_SERVER_ZBX_USER}'@'%'" >/dev/null
     else
         info "** Database '${DB_SERVER_DBNAME}' already exists. Please be careful with database COLLATE!"
     fi
