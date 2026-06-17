@@ -1,2 +1,2 @@
-CREATE DATABASE IF NOT EXISTS `zabbix_proxy`;
-GRANT ALL ON `zabbix_proxy`.* TO 'zabbix'@'%';
+CREATE DATABASE IF NOT EXISTS `zabbix_proxy` CHARACTER SET utf8mb4 COLLATE utf8mb4_bin;
+GRANT SELECT, INSERT, UPDATE, DELETE, CREATE, DROP, ALTER, INDEX, CREATE TEMPORARY TABLES ON `zabbix_proxy`.* TO 'zabbix'@'%';
