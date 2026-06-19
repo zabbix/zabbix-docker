@@ -166,6 +166,8 @@ networks:
     internal: true
     ipam:
       driver: "${DATABASE_NETWORK_DRIVER}"
+      config:
+      - subnet: "${DATABASE_SUBNET}"
   tools_frontend:
     driver: bridge
     enable_ipv6: "${ADD_TOOLS_ENABLE_IPV6}"

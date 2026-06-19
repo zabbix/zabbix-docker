@@ -80,9 +80,12 @@ services:
   env_file:
    - path: ${ENV_VARS_DIRECTORY}/.env_db_mysql
      required: true
+  environment:
+   - MYSQL_ROOT_PASSWORD_FILE=/run/secrets/MYSQL_ROOT_PASSWORD
   secrets:
    - MYSQL_USER
    - MYSQL_PASSWORD
+   - MYSQL_ROOT_PASSWORD
 #   - client-key.pem
 #   - client-cert.pem
 #   - root-ca.pem
@@ -254,9 +257,12 @@ services:
   env_file:
    - path: ${ENV_VARS_DIRECTORY}/.env_db_mysql_proxy
      required: true
+  environment:
+   - MYSQL_ROOT_PASSWORD_FILE=/run/secrets/MYSQL_ROOT_PASSWORD
   secrets:
    - MYSQL_USER
    - MYSQL_PASSWORD
+   - MYSQL_ROOT_PASSWORD
 #   - client-key.pem
 #   - client-cert.pem
 #   - root-ca.pem

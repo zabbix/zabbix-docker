@@ -17,7 +17,7 @@ services:
   attach: false
   volumes:
    - ${DATA_DIRECTORY}/var/lib/mysql:/var/lib/mysql:rw
-   - ${ENV_VARS_DIRECTORY}/mysql_init/init_proxy_db.sql:/docker-entrypoint-initdb.d/mysql_init_proxy.sql:ro
+#   - ${ENV_VARS_DIRECTORY}/mysql_init:/docker-entrypoint-initdb.d:ro
 #   - mysql_socket:/var/run/mysqld/
   env_file:
    - path: ${ENV_VARS_DIRECTORY}/.env_db_mysql
@@ -55,6 +55,7 @@ services:
   attach: false
   volumes:
    - ${DATA_DIRECTORY}/var/lib/postgresql:/var/lib/postgresql:rw
+#   - ${ENV_VARS_DIRECTORY}/postgresql_init:/docker-entrypoint-initdb.d:ro
 #   - ${ENV_VARS_DIRECTORY}/.ZBX_DB_CA_FILE:/run/secrets/root-ca.pem:ro
 #   - ${ENV_VARS_DIRECTORY}/.ZBX_DB_CERT_FILE:/run/secrets/server-cert.pem:ro
 #   - ${ENV_VARS_DIRECTORY}/.ZBX_DB_KEY_FILE:/run/secrets/server-key.pem:ro

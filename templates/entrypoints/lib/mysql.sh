@@ -10,7 +10,7 @@ source "${ENTRYPOINT_LIBS}/config.sh"
 source "${ENTRYPOINT_LIBS}/vault.sh"
 
 # DML is required for runtime, DDL is required for automatic Zabbix DB upgrades.
-readonly MYSQL_ZBX_DB_PRIVILEGES="ALTER, CREATE, CREATE TEMPORARY TABLES, DELETE, DROP, INDEX, INSERT, SELECT, UPDATE"
+readonly MYSQL_ZBX_DB_PRIVILEGES="SELECT, INSERT, UPDATE, DELETE, CREATE, DROP, ALTER, INDEX, CREATE TEMPORARY TABLES, TRIGGER, REFERENCES"
 
 set_mysql_cli() {
     case "${DB_ENGINE}" in

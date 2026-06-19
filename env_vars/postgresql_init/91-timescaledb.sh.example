@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+set -e
+
+docker_process_sql --dbname "$ZBX_SERVER_DB_NAME" \
+    --set=schema="$ZBX_SERVER_DB_SCHEMA" <<-'EOSQL'
+CREATE EXTENSION IF NOT EXISTS timescaledb WITH SCHEMA :"schema" CASCADE;
+EOSQL
