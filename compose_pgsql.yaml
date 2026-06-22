@@ -177,7 +177,7 @@ networks:
       - subnet: "${ADD_TOOLS_SUBNET}"
 
 volumes:
-  snmptraps:
+  snmptraps: {}
 #  mysql_socket:
 #  pgsql_socket:
 
