@@ -59,7 +59,7 @@ update_config() {
     update_config_var "${ZBX_AGENT_CONFIG}" "LogFile"
     update_config_var "${ZBX_AGENT_CONFIG}" "LogFileSize"
     update_config_var "${ZBX_AGENT_CONFIG}" "DebugLevel" "${ZBX_DEBUGLEVEL:-}"
-    update_config_var "${ZBX_AGENT_CONFIG}" "SourceIP"
+    update_config_var "${ZBX_AGENT_CONFIG}" "SourceIP" "${ZBX_SOURCEIP:-}"
 
     update_config_var "${ZBX_AGENT_CONFIG}" "ListenPort" "${ZBX_LISTENPORT:-}"
     update_config_var "${ZBX_AGENT_CONFIG}" "ListenIP" "${ZBX_LISTENIP:-}"
