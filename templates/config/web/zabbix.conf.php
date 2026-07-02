@@ -6,6 +6,12 @@ function env_string(string $name, string $default = ''): string {
     return ($value === false) ? $default : $value;
 }
 
+function env_int(string $name, int $default = 0): int {
+    $value = getenv($name);
+
+    return ($value === false || $value === '') ? $default : (int) $value;
+}
+
 function env_bool(string $name, bool $default = false): bool {
     $value = getenv($name);
 
@@ -40,7 +46,7 @@ function resolve_file(string $default_path, string $env_name): string {
 
 $DB['TYPE']     = env_string('DB_SERVER_TYPE');
 $DB['SERVER']   = env_string('DB_SERVER_HOST');
-$DB['PORT']     = env_string('DB_SERVER_PORT');
+$DB['PORT']     = env_int('DB_SERVER_PORT');
 $DB['DATABASE'] = env_string('DB_SERVER_DBNAME');
 $DB['SCHEMA']   = env_string('DB_SERVER_SCHEMA');
 
