@@ -147,8 +147,8 @@ networks:
       driver: "${DATABASE_NETWORK_DRIVER}"
 
 volumes:
-  snmptraps:
-#  mysql_socket:
+  snmptraps: {}
+#  mysql_socket: {}
 
 secrets:
   MYSQL_USER:

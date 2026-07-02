@@ -154,9 +154,9 @@ networks:
       driver: "${DATABASE_NETWORK_DRIVER}"
 
 volumes:
-  snmptraps:
-#  mysql_socket:
-#  pgsql_socket:
+  snmptraps: {}
+#  mysql_socket: {}
+#  pgsql_socket: {}
 
 secrets:
   MYSQL_USER:
