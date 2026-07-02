@@ -170,8 +170,8 @@ networks:
       - subnet: "${ADD_TOOLS_SUBNET}"
 
 volumes:
-  snmptraps:
-#  mysql_socket:
+  snmptraps: {}
+#  mysql_socket: {}
 
 secrets:
   MYSQL_USER:
