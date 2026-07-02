@@ -184,9 +184,9 @@ networks:
       - subnet: "${ADD_TOOLS_SUBNET}"
 
 volumes:
-  snmptraps:
-#  mysql_socket:
-#  pgsql_socket:
+  snmptraps: {}
+#  mysql_socket: {}
+#  pgsql_socket: {}
 
 secrets:
   MYSQL_USER:
