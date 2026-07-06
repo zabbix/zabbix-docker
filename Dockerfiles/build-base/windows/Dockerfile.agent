@@ -2,7 +2,6 @@
 # escape=`
 ARG OS_BASE_IMAGE=mcr.microsoft.com/windows/servercore:ltsc2022
 
-ARG GIT_VERSION=2.55.0.2
 ARG NASM_VERSION=3.02
 ARG VS_BUILDTOOLS_VERSION=17
 ARG PWSH_VERSION=7.6.3
@@ -18,7 +17,6 @@ ARG ZBX_VERSION=${MAJOR_VERSION}.11
 
 FROM ${OS_BASE_IMAGE} AS src
 
-ARG GIT_VERSION
 ARG NASM_VERSION
 ARG VS_BUILDTOOLS_VERSION
 ARG PWSH_VERSION
@@ -29,7 +27,7 @@ ARG LIBMODBUS_VERSION
 ARG ZLIB_VERSION
 ARG CURL_VERSION
 
-ARG GIT_URL=https://github.com/git-for-windows/git/releases/download/v$GIT_VERSION.windows.1/MinGit-$GIT_VERSION-64-bit.zip
+ARG GIT_URL=https://github.com/git-for-windows/git/releases/download/v2.55.0.windows.2/MinGit-2.55.0.2-64-bit.zip
 ARG PERL_URL=https://github.com/StrawberryPerl/Perl-Dist-Strawberry/releases/download/SP_54221_64bit/strawberry-perl-5.42.2.1-64bit-portable.zip
 
 ARG VS_BUILDTOOLS_URL=https://aka.ms/vs/$VS_BUILDTOOLS_VERSION/release/vs_buildtools.exe
@@ -126,7 +124,6 @@ RUN Set-Location -Path $env:SystemDrive\.; `
 
 FROM ${OS_BASE_IMAGE}
 
-ARG GIT_VERSION
 ARG NASM_VERSION
 ARG VS_BUILDTOOLS_VERSION
 
