@@ -78,6 +78,20 @@ prepare_service() {
     info "** Preparing Zabbix agent"
 
     update_config
+
+    # Expand environment variables in zabbix_agentd_active_checks.conf
+    # before they are cleared by clear_zbx_env()
+    if [ -f "${ZABBIX_CONF_DIR}/zabbix_agentd_active_checks.conf" ]; then
+        for var in ACTIVESERVERS HOSTNAME HOSTNAMEITEM METADATA METADATAITEM \
+            HOSTINTERFACE HOSTINTERFACEITEM REFRESHACTIVECHECKS BUFFERSEND \
+            BUFFERSIZE MAXLINESPERSECOND HEARTBEAT_FREQUENCY; do
+            eval "val=\${ZBX_${var}:-}"
+            if [ -n "$val" ]; then
+                sed -i "s|\${ZBX_${var}}|${val}|g" "${ZABBIX_CONF_DIR}/zabbix_agentd_active_checks.conf"
+            fi
+        done
+    fi
+
     clear_zbx_env
 }
 
