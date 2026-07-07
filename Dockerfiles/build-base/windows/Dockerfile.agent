@@ -259,6 +259,8 @@ RUN Import-Module $env:VS_DEVSHELL; `
         no-tests `
         no-ui-console `
         no-winstore `
+        --api=1.1.0 `
+        no-deprecated `
         --prefix=$env:BUILD_OUTPUT\openssl `
         --openssldir=$env:BUILD_OUTPUT\openssl_ssl; `
     nmake /S build_libs | Out-Null; `
@@ -276,11 +278,17 @@ RUN Import-Module $env:VS_DEVSHELL; `
     cmake -S $env:BUILD_SRC\pcre2 -B $env:BUILD_SRC\pcre2\build `
         -G """Visual Studio 17 2022""" `
         -A x64 `
-        -DBUILD_STATIC_LIBS=ON `
         -DBUILD_SHARED_LIBS=OFF `
-        -DPCRE2_BUILD_TESTS=OFF `
+        -DBUILD_STATIC_LIBS=ON `
+        -DPCRE2_BUILD_PCRE2_8=ON `
+        -DPCRE2_BUILD_PCRE2_16=OFF `
+        -DPCRE2_BUILD_PCRE2_32=OFF `
         -DPCRE2_BUILD_PCRE2GREP=OFF `
+        -DPCRE2_BUILD_TESTS=OFF `
+        -DPCRE2_DEBUG=OFF `
         -DPCRE2_SUPPORT_JIT=OFF `
+        -DPCRE2_SUPPORT_UNICODE=ON `
+        -DINSTALL_MSVC_PDB=OFF `
         -DCMAKE_MSVC_RUNTIME_LIBRARY="""MultiThreaded$<$<CONFIG:Debug>:Debug>""" `
         -DCMAKE_INSTALL_PREFIX="""$env:BUILD_OUTPUT\pcre2"""; `
     `
