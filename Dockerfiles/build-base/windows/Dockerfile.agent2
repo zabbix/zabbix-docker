@@ -189,6 +189,8 @@ RUN Write-Host 'Building OpenSSL library...'; `
     $env:CFLAGS = """$env:CFLAGS -Wno-overflow""".Trim(); `
     perl Configure `
         mingw64 `
+        no-autoload-config `
+        no-apps `
         no-capieng `
         no-docs `
         no-dgram `
@@ -197,6 +199,7 @@ RUN Write-Host 'Building OpenSSL library...'; `
         no-gost `
         no-shared `
         no-srp `
+        no-module `
         no-tests `
         no-ui-console `
         no-winstore `
