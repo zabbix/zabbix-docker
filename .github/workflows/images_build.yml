@@ -319,7 +319,7 @@ jobs:
 
       - name: Scan for vulnerabilities
         if: ${{ matrix.os != 'centos' }}
-        uses: crazy-max/ghaction-container-scan@a0a3900b79d158c85ccf034e5368fae620a9233a # v4.0.0
+        uses: crazy-max/ghaction-container-scan@ffcba8deb5cb3531954cbedbbcd0179d79edf510 # v4.1.0
         with:
           image: ${{ fromJSON(steps.meta.outputs.json).tags[0] }}
           annotations: true
@@ -531,7 +531,7 @@ jobs:
 
       - name: Attest images
         id: attest
-        uses: actions/attest@59d89421af93a897026c735860bf21b6eb4f7b26 # v4.1.0
+        uses: actions/attest@a1948c3f048ba23858d222213b7c278aabede763 # v4.1.1
         with:
           subject-name: ${{ format('{0}/{1}/{2}{3}', env.DOCKER_REGISTRY, env.DOCKER_REPOSITORY, env.IMAGES_PREFIX, matrix.build) }}
           subject-digest: ${{ steps.docker_build.outputs.digest }}
@@ -840,7 +840,7 @@ jobs:
       - name: Attest images
         if: ${{ env.AUTO_PUSH_IMAGES == 'true' }}
         id: attest
-        uses: actions/attest@59d89421af93a897026c735860bf21b6eb4f7b26 # v4.1.0
+        uses: actions/attest@a1948c3f048ba23858d222213b7c278aabede763 # v4.1.1
         with:
           subject-name: ${{ format('{0}/{1}/{2}{3}', env.DOCKER_REGISTRY, env.DOCKER_REPOSITORY, env.IMAGES_PREFIX, matrix.build) }}
           subject-digest: ${{ matrix.build == 'snmptraps' && steps.docker_build_snmptraps.outputs.digest || steps.docker_build.outputs.digest }}
