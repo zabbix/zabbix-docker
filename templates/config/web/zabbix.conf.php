@@ -100,7 +100,7 @@ $SSO['IDP_CERT'] = resolve_file('/etc/zabbix/web/certs/idp.crt', 'ZBX_SSO_IDP_CE
 
 $SSO['SETTINGS'] = env_json('ZBX_SSO_SETTINGS');
 
-$ALLOW_HTTP_AUTH = env_bool('ALLOW_HTTP_AUTH', true);
+$ALLOW_HTTP_AUTH = env_bool('ZBX_ALLOW_HTTP_AUTH', true);
 
 $ZBX_SERVER_TLS['ACTIVE'] = env_bool('ZBX_SERVER_TLS_ACTIVE');
 $ZBX_SERVER_TLS['CA_FILE'] = resolve_file('', 'ZBX_SERVER_TLS_CAFILE');
