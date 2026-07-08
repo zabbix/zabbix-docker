@@ -176,4 +176,6 @@ VOLUME ["${ZABBIX_USER_HOME_DIR}/snmptraps", "${ZABBIX_USER_HOME_DIR}/export"]
 
 USER 1997
 
+ENTRYPOINT ["/usr/bin/docker-entrypoint.sh"]
+
 CMD ["/usr/sbin/zabbix_server", "--foreground", "-c", "/etc/zabbix/zabbix_server.conf"]
