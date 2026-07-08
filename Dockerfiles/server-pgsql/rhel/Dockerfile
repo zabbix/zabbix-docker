@@ -90,8 +90,8 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             net-snmp-agent-libs \
             OpenIPMI-libs \
             pcre2 \
-            postgresql \
-            libpq \
+            postgresql18 \
+            postgresql18-private-libs \
             gzip \
             unixODBC \
             zlib" && \

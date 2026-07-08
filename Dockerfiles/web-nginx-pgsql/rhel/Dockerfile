@@ -83,7 +83,7 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             glibc-locale-source \
             gzip \
             nginx \
-            postgresql \
+            postgresql18 \
             php-bcmath \
             php-curl \
             php-fpm \
