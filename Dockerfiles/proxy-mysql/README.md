@@ -156,10 +156,6 @@ The variable is used to specify debug level. By default, value is ``3``. It is `
 
 The variable is used to specify timeout for processing checks. By default, value is ``4``.
 
-### `ZBX_JAVAGATEWAY_ENABLE`
-
-The variable enable communication with Zabbix Java Gateway to collect Java related checks. By default, value is `false`.
-
 ### Other variables
 
 Additionally the image allows to specify many other environment variables listed below:

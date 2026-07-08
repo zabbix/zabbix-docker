@@ -503,8 +503,6 @@ spec:
             value: ""
           - name: ZBX_STARTALERTERS
             value: ""
-          - name: ZBX_JAVAGATEWAY_ENABLE
-            value: "true"
           - name: ZBX_JAVAGATEWAY
             value: "zabbix-java-gateway"
           - name: ZBX_JAVAGATEWAYPORT
@@ -702,8 +700,6 @@ spec:
             value: ""
           - name: ZBX_STARTHTTPPOLLERS
             value: ""
-          - name: ZBX_JAVAGATEWAY_ENABLE
-            value: "true"
           - name: ZBX_JAVAGATEWAY
             value: "zabbix-java-gateway"
           - name: ZBX_JAVAGATEWAYPORT
@@ -896,8 +892,6 @@ spec:
             value: ""
           - name: ZBX_STARTHTTPPOLLERS
             value: ""
-          - name: ZBX_JAVAGATEWAY_ENABLE
-            value: "true"
           - name: ZBX_JAVAGATEWAY
             value: "zabbix-java-gateway"
           - name: ZBX_JAVAGATEWAYPORT
