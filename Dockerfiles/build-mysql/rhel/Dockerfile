@@ -144,27 +144,27 @@ RUN --mount=type=cache,target=/root/.cache/go-build \
     strip src/zabbix_sender/zabbix_sender && \
     strip src/go/bin/zabbix_agent2 || true && \
     strip src/go/bin/zabbix_web_service || true && \
-    cp src/zabbix_agent/zabbix_agentd "${ZBX_OUTPUT_DIR}/agent/sbin/" && \
+    mv src/zabbix_agent/zabbix_agentd "${ZBX_OUTPUT_DIR}/agent/sbin/" && \
     cp conf/zabbix_agentd.conf "${ZBX_OUTPUT_DIR}/agent/conf/zabbix_agentd.conf.dist" && \
     cp -a conf/zabbix_agentd/. "${ZBX_OUTPUT_DIR}/agent/conf/" && \
     cp -a /tmp/conf/agent/. "${ZBX_OUTPUT_DIR}/agent/conf/" && \
-    cp src/go/bin/zabbix_agent2 "${ZBX_OUTPUT_DIR}/agent2/sbin/" && \
+    mv src/go/bin/zabbix_agent2 "${ZBX_OUTPUT_DIR}/agent2/sbin/" && \
     cp src/go/conf/zabbix_agent2.conf "${ZBX_OUTPUT_DIR}/agent2/conf/zabbix_agent2.conf.dist" && \
     cp -a src/go/conf/zabbix_agent2.d/. "${ZBX_OUTPUT_DIR}/agent2/conf/zabbix_agent2.d/" && \
     cp -a /tmp/conf/agent2/. "${ZBX_OUTPUT_DIR}/agent2/conf/" && \
-    cp src/zabbix_server/zabbix_server "${ZBX_OUTPUT_DIR}/server/sbin/" && \
+    mv src/zabbix_server/zabbix_server "${ZBX_OUTPUT_DIR}/server/sbin/" && \
     cp conf/zabbix_server.conf "${ZBX_OUTPUT_DIR}/server/conf/zabbix_server.conf.dist" && \
     cp -a /tmp/conf/server/. "${ZBX_OUTPUT_DIR}/server/conf/" && \
-    cp src/zabbix_proxy/zabbix_proxy "${ZBX_OUTPUT_DIR}/proxy/sbin/" && \
+    mv src/zabbix_proxy/zabbix_proxy "${ZBX_OUTPUT_DIR}/proxy/sbin/" && \
     cp conf/zabbix_proxy.conf "${ZBX_OUTPUT_DIR}/proxy/conf/zabbix_proxy.conf.dist" && \
     cp -a /tmp/conf/proxy/. "${ZBX_OUTPUT_DIR}/proxy/conf/" && \
     cp -a src/zabbix_java/bin/. "${ZBX_OUTPUT_DIR}/java_gateway/sbin/bin/" && \
     cp -a src/zabbix_java/lib/. "${ZBX_OUTPUT_DIR}/java_gateway/sbin/lib/" && \
-    cp src/go/bin/zabbix_web_service "${ZBX_OUTPUT_DIR}/web_service/sbin/" && \
+    mv src/go/bin/zabbix_web_service "${ZBX_OUTPUT_DIR}/web_service/sbin/" && \
     cp src/go/conf/zabbix_web_service.conf "${ZBX_OUTPUT_DIR}/web_service/conf/zabbix_web_service.conf.dist" && \
     cp -a /tmp/conf/web_service/. "${ZBX_OUTPUT_DIR}/web_service/conf/" && \
-    cp src/zabbix_get/zabbix_get "${ZBX_OUTPUT_DIR}/general/bin/" && \
-    cp src/zabbix_sender/zabbix_sender "${ZBX_OUTPUT_DIR}/general/bin/" && \
+    mv src/zabbix_get/zabbix_get "${ZBX_OUTPUT_DIR}/general/bin/" && \
+    mv src/zabbix_sender/zabbix_sender "${ZBX_OUTPUT_DIR}/general/bin/" && \
     cp -a /tmp/conf/web/. "${ZBX_OUTPUT_DIR}/web/conf/" && \
     make -s distclean
 
@@ -203,7 +203,7 @@ RUN --mount=type=cache,target=/root/.cache/go-build \
         cd "$workdir"; \
         make; \
         strip "$binary" || true; \
-        cp "$binary" "${ZBX_OUTPUT_DIR}/agent2/sbin/zabbix-agent2-plugin/${outname}"; \
+        mv "$binary" "${ZBX_OUTPUT_DIR}/agent2/sbin/zabbix-agent2-plugin/${outname}"; \
         cp "$conf" "${ZBX_OUTPUT_DIR}/agent2/conf/zabbix_agent2.d/plugins.d/"; \
         make clean; \
     }; \
