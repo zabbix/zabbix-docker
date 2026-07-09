@@ -168,7 +168,6 @@ RUN Set-Location -Path $env:SystemDrive\.; `
     `
     New-Item -ItemType directory -Path $env:BUILD_OUTPUT -Force | Out-Null; `
     Write-Host 'Verifying install ("git version") ...'; `
-    Write-Host $env:VS_BUILDTOOLS_VERSION; `
     git version; `
     `
     Write-Host 'Verifying install ("nasm -v") ...'; `
@@ -238,7 +237,6 @@ RUN Import-Module $env:VS_DEVSHELL; `
         VC-WIN64A `
         no-autoload-config `
         no-apps `
-        no-capieng `
         no-docs `
         no-dgram `
         no-dtls1-method `
