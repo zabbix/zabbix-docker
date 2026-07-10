@@ -99,7 +99,7 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             --setopt=install_weak_deps=0 \
             --setopt=keepcache=0 \
         php:8.3 \
-        postgresql:16 \
+        postgresql:18 \
         nginx:1.26 && \
     microdnf -y install \
             --disablerepo="*" \

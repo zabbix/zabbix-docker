@@ -63,7 +63,7 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             openssl-libs \
             pcre2 \
             postgresql18 \
-            libpq \
+            postgresql18-private-libs \
             shadow-utils \
             zlib \
             gzip \
