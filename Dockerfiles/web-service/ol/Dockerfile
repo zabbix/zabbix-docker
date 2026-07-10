@@ -74,10 +74,12 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
         ${ZABBIX_USER_HOME_DIR}/enc \
         ${ZABBIX_USER_HOME_DIR}/enc_internal && \
     FIX_PERM_LIST="\
-        ${ZABBIX_CONF_DIR}/ \
+        ${ZABBIX_CONF_DIR}/zabbix_web_service.conf \
         ${ZABBIX_USER_HOME_DIR}/" && \
     chown --quiet -R zabbix:0 ${FIX_PERM_LIST} && \
     chmod -R g=u ${FIX_PERM_LIST} && \
+    chown --quiet zabbix:0 ${ZABBIX_CONF_DIR}/ && \
+    chmod g=u ${ZABBIX_CONF_DIR} && \
     /usr/sbin/zabbix_web_service -V
 
 RUN --mount=from=entrypoints,target=/tmp/entrypoints,ro \

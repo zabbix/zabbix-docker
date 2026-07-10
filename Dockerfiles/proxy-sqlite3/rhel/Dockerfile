@@ -145,7 +145,7 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
         ${ZABBIX_USER_HOME_DIR}/ssl/ssl_ca \
         /usr/lib/zabbix/externalscripts && \
     FIX_PERM_LIST="\
-        ${ZABBIX_CONF_DIR}/ \
+        ${ZABBIX_CONF_DIR}/zabbix_proxy.conf \
         ${ZABBIX_USER_HOME_DIR}/" && \
     chown --quiet -R zabbix:0 ${FIX_PERM_LIST} && \
     chmod -R g=u ${FIX_PERM_LIST} && \

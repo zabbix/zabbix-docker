@@ -96,7 +96,7 @@ RUN --mount=type=cache,target=/var/cache/apt/,sharing=locked \
             -g zabbix \
             --uid 1997 \
             --shell /sbin/nologin \
-            --home-dir ${ZABBIX_USER_HOME_DIR} \
+            --home-dir ${ZABBIX_USER_HOME_DIR}/ \
         zabbix && \
     mkdir -p \
         ${ZABBIX_CONF_DIR} \

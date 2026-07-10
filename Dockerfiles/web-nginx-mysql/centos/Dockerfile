@@ -126,7 +126,7 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
         /etc/php-fpm.conf \
         /var/log/nginx/ \
         /var/lib/php/session/" && \
-    chown -R zabbix:0 ${FIX_PERM_LIST} && \
+    chown --quiet -R zabbix:0 ${FIX_PERM_LIST} && \
     chmod -R g=u ${FIX_PERM_LIST} && \
     microdnf -y remove \
             findutils \

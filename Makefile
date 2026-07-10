@@ -122,7 +122,7 @@ else ifeq ($(DB),sqlite3)
   # No sqlite3 runtime groups listed in your target table; keep builders only.
   BAKE_BUILDERS_GROUP        := $(BAKE_BUILDERS_SQLITE3_GROUP)
   BAKE_RUNTIME_ALL_GROUP     :=
-  BAKE_RUNTIME_MINIMAL_GROUP := proxy-sqlite3
+  BAKE_RUNTIME_MINIMAL_GROUP :=
 endif
 
 # ---- Guards ----

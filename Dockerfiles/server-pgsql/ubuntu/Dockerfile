@@ -120,10 +120,12 @@ RUN --mount=type=cache,target=/var/cache/apt/,sharing=locked \
         /usr/lib/zabbix/externalscripts \
         /usr/share/doc/zabbix-server-postgresql && \
     FIX_PERM_LIST="\
-        ${ZABBIX_CONF_DIR}/ \
+        ${ZABBIX_CONF_DIR}/zabbix_server.conf \
         ${ZABBIX_USER_HOME_DIR}/" && \
     chown --quiet -R zabbix:0 ${FIX_PERM_LIST} && \
     chmod -R g=u ${FIX_PERM_LIST} && \
+    chown --quiet zabbix:0 ${ZABBIX_CONF_DIR}/ && \
+    chmod g=u ${ZABBIX_CONF_DIR} && \
     /usr/sbin/zabbix_server -V
 
 RUN --mount=from=entrypoints,target=/tmp/entrypoints,ro \
