@@ -66,12 +66,16 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             smartmontools \
             sudo \
             libcurl-minimal" && \
+    curl --tlsv1.2 -sSf -L https://dl.fedoraproject.org/pub/epel/epel-release-latest-9.noarch.rpm -o /tmp/epel-release-latest-9.noarch.rpm && \
+    rpm -ivh /tmp/epel-release-latest-9.noarch.rpm && \
+    rm -rf /tmp/epel-release-latest-9.noarch.rpm && \
     ARCH_SUFFIX="$(arch)"; \
     microdnf -y install \
 #            --disableplugin=subscription-manager \
             --disablerepo="*" \
             --enablerepo="ubi-9-baseos-rpms" \
             --enablerepo="rhel-9-for-$ARCH_SUFFIX-baseos-rpms" \
+            --enablerepo="epel" \
             --setopt=install_weak_deps=0 \
             --setopt=keepcache=0 \
             --best \
