@@ -61,6 +61,7 @@ RUN Set-Location -Path $env:SystemDrive\.; `
     (Get-Content include\version.h).replace('{ZABBIX_REVISION}', $ZbxRevision) | Set-Content include\version.h; `
     (Get-Content src\go\pkg\version\version.go).replace('{ZABBIX_REVISION}', $ZbxRevision) | Set-Content src\go\pkg\version\version.go; `
     Set-Location -Path $env:ZBX_SOURCES_DIR\build\mingw; `
+    $env:CFLAGS='-fcommon'; `
     mingw32-make -j"""$env:NUMBER_OF_PROCESSORS""" `
         PCRE2=$env:BUILD_OUTPUT\pcre2 `
         OPENSSL=$env:BUILD_OUTPUT\openssl `
