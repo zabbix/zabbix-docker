@@ -35,7 +35,8 @@ ENV DB_ENGINE=mysql \
     NGINX_BIN=/usr/sbin/nginx \
     PHP_FPM_BIN=/usr/sbin/php-fpm \
     NGINX_CONFD_DIR=/etc/nginx/conf.d \
-    PHP_CONFIG_FILE=/etc/php-fpm.d/zabbix.conf
+    PHP_FPM_CONFIG=/etc/php-fpm.conf \
+    PHP_ZBX_CONFIG_FILE=/etc/php-fpm.d/zabbix.conf
 
 LABEL org.opencontainers.image.authors="Alexey Pustovalov <alexey.pustovalov@zabbix.com>" \
       org.opencontainers.image.description="Zabbix web-interface based on Nginx web server with MySQL database support" \

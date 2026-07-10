@@ -59,7 +59,6 @@ RUN set -eux && \
             --home ${ZABBIX_USER_HOME_DIR} \
         zabbix && \
     mkdir -p ${ZABBIX_CONF_DIR}/ \
-        /usr/bin/entrypoint_lib/ \
         /usr/sbin/zabbix_java/ext_lib/ && \
     rm -rf /usr/sbin/zabbix_java/lib/logback.xml && \
     mv /usr/sbin/zabbix_java/lib/logback-console.xml ${ZABBIX_CONF_DIR}/zabbix_java_gateway_logback.xml && \
