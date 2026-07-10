@@ -473,8 +473,6 @@ spec:
             value: ""
           - name: ZBX_HISTORYSTORAGETYPES
             value: ""
-          - name: ZBX_HISTORYSTORAGEDATEINDEX
-            value: "1"
           - name: ZBX_STARTREPORTWRITERS
             value: "3"
           - name: ZBX_WEBSERVICEURL
