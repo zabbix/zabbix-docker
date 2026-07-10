@@ -275,9 +275,7 @@ spec:
             value: "false"
           - name: ZBX_DB_CIPHER_LIST
             value: ""
-#          - name: ZBX_HISTORYSTORAGEURL
-#            value: ""
-#          - name: ZBX_HISTORYSTORAGETYPES
+#          - name: ZBX_HISTORYPROVIDERS
 #            value: ""
 #          - name: ZBX_MAXEXECUTIONTIME
 #            value: ""
@@ -469,9 +467,7 @@ spec:
             value: ""
           - name: ZBX_DBTLSCIPHER13
             value: ""
-          - name: ZBX_HISTORYSTORAGEURL
-            value: ""
-          - name: ZBX_HISTORYSTORAGETYPES
+          - name: ZBX_HISTORYPROVIDER_0
             value: ""
           - name: ZBX_STARTREPORTWRITERS
             value: "3"

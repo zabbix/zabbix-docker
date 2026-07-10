@@ -92,8 +92,7 @@ podman run --name some-zabbix-server-pgsql <span class="hljs-_">-e</span> DB_SER
 <span class="hljs-attr">ZBX_STARTREPORTWRITERS</span>=<span class="hljs-number">0</span> # Available since <span class="hljs-number">5.4</span>.<span class="hljs-number">0</span>
 <span class="hljs-attr">ZBX_WEBSERVICEURL</span>=http://zabbix-web-service:<span class="hljs-number">10053</span>/report # Available since <span class="hljs-number">5.4</span>.<span class="hljs-number">0</span>
 <span class="hljs-attr">ZBX_SERVICEMANAGERSYNCFREQUENCY</span>=<span class="hljs-number">60</span> # Available since <span class="hljs-number">6.0</span>.<span class="hljs-number">0</span>
-<span class="hljs-attr">ZBX_HISTORYSTORAGEURL</span>= # Available since <span class="hljs-number">3.4</span>.<span class="hljs-number">0</span>
-<span class="hljs-attr">ZBX_HISTORYSTORAGETYPES</span>=uint,dbl,str,log,text # Available since <span class="hljs-number">3.4</span>.<span class="hljs-number">0</span>
+<span class="hljs-attr">ZBX_HISTORYPROVIDER_&lt;N&gt;</span>= # Available since <span class="hljs-number">8.0</span>.<span class="hljs-number">0</span>
 <span class="hljs-attr">ZBX_ENABLEGLOBALSCRIPTS</span>=0 # Available since  <span class="hljs-number">7.0</span>
 <span class="hljs-attr">ZBX_STARTPOLLERS</span>=<span class="hljs-number">5</span>
 <span class="hljs-attr">ZBX_STARTIPMIPOLLERS</span>=<span class="hljs-number">0</span>
@@ -125,7 +124,6 @@ podman run --name some-zabbix-server-pgsql <span class="hljs-_">-e</span> DB_SER
 <span class="hljs-attr">ZBX_HOUSEKEEPINGFREQUENCY</span>=<span class="hljs-number">1</span>
 <span class="hljs-attr">ZBX_MAXHOUSEKEEPERDELETE</span>=<span class="hljs-number">5000</span>
 <span class="hljs-attr">ZBX_PROBLEMHOUSEKEEPINGFREQUENCY</span>=<span class="hljs-number">60</span> # Available since <span class="hljs-number">6.0</span>.<span class="hljs-number">0</span>
-<span class="hljs-attr">ZBX_SENDERFREQUENCY</span>=<span class="hljs-number">30</span> # Depcrecated since <span class="hljs-number">3.4</span>.<span class="hljs-number">0</span>
 <span class="hljs-attr">ZBX_CACHESIZE</span>=<span class="hljs-number">8</span>M
 <span class="hljs-attr">ZBX_CACHEUPDATEFREQUENCY</span>=<span class="hljs-number">10</span>
 <span class="hljs-attr">ZBX_STARTDBSYNCERS</span>=<span class="hljs-number">4</span>

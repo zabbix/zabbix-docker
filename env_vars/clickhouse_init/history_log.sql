@@ -11,4 +11,4 @@ CREATE TABLE zabbix.history_log
 ENGINE = MergeTree()
 PARTITION BY toDate(clock_ns)
 PRIMARY KEY (itemid, clock_ns)
-TTL clock_ns + toIntervalSecond(2678400)
+TTL clock_ns + toIntervalSecond(2678400);

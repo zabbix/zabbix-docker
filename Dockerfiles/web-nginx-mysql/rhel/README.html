@@ -53,10 +53,8 @@ podman run --name some-zabbix-web-nginx-mysql <span class="hljs-_">-e</span> DB_
 <p>By default, values for <code>MYSQL_USER</code> and <code>MYSQL_PASSWORD</code> are <code>zabbix</code>, <code>zabbix</code>.</p>
 <h3 id="-mysql_database-"><code>MYSQL_DATABASE</code></h3>
 <p>The variable is Zabbix database name. By default, value is <code>zabbix</code>.</p>
-<h3 id="-zbx_historystorageurl-"><code>ZBX_HISTORYSTORAGEURL</code></h3>
-<p>History storage HTTP[S] URL. This parameter is used for Elasticsearch setup. Available since 3.4.5.</p>
-<h3 id="-zbx_historystoragetypes-"><code>ZBX_HISTORYSTORAGETYPES</code></h3>
-<p>Array of value types to be sent to the history storage. An example: [&#39;uint&#39;, &#39;dbl&#39;]. This parameter is used for Elasticsearch setup. Available since 3.4.5.</p>
+<h3 id="-zbx_historyproviders-"><code>ZBX_HISTORYPROVIDERS</code></h3>
+<p>Configuration of history storage providers for Elasticsearch or ClickHouse. Available since 8.0.0.</p>
 <h3 id="-php_tz-"><code>PHP_TZ</code></h3>
 <p>The variable is timezone in PHP format. Full list of supported timezones are available on <a href="http://php.net/manual/en/timezones.php"><code>php.net</code></a>. By default, value is &#39;Europe/Riga&#39; and system timezone since Zabbix 5.2.0.</p>
 <h3 id="-zbx_server_name-"><code>ZBX_SERVER_NAME</code></h3>
@@ -113,13 +111,19 @@ podman run --name some-zabbix-web-nginx-mysql <span class="hljs-_">-e</span> DB_
     ZBX_SSO_SETTINGS: "{'baseurl': 'https://zabbix-docker.mydomain.com', 'use_proxy_headers': true, 'strict': false}"
     ....
 ....</span>
-<h3 id="-zbx_allow_http_auth-"><code>ZBX_ALLOW_HTTP_AUTH</code></h3>
+<h3 id="-zbx_http_auth_enabled-"><code>ZBX_HTTP_AUTH_ENABLED</code></h3>
 <p>The variable allows to disable user HTTP authentication.</p>
 </code></pre><h3 id="other-variables">Other variables</h3>
 <p>Additionally the image allows to specify many other environment variables listed below:</p>
 <pre><code><span class="hljs-attr">ZBX_VAULTDBPATH=</span> <span class="hljs-comment"># Available since 5.2.0</span>
 <span class="hljs-attr">ZBX_VAULTURL=https://127.0.0.1:8200</span> <span class="hljs-comment"># Available since 5.2.0</span>
 <span class="hljs-attr">VAULT_TOKEN=</span> <span class="hljs-comment"># Available since 5.2.0</span>
+<span class="hljs-attr">ZBX_VAULTPREFIX=</span> <span class="hljs-comment"># Available since 7.0.0</span>
+
+<span class="hljs-attr">ZBX_CERT_STORAGE=database</span> <span class="hljs-comment"># Available since 8.0.0</span>
+<span class="hljs-attr">ZBX_BANNERS_ENABLED=true</span> <span class="hljs-comment"># Available since 8.0.0</span>
+<span class="hljs-attr">ZBX_MODULES_CONFIG_ENABLED=true</span> <span class="hljs-comment"># Available since 8.0.0</span>
+<span class="hljs-attr">ZBX_MEDIA_TYPE_DENYLIST=[]</span> <span class="hljs-comment"># Available since 8.0.0</span>
 
 Allowed PHP-FPM configuration options:
 <span class="hljs-attr">PHP_FPM_PM=dynamic</span>
