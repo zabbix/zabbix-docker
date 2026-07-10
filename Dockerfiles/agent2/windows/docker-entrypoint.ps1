@@ -201,7 +201,6 @@ function Prepare-Zbx-Agent-Config {
     Update-Config-Var $ZbxAgentConfig "ListenPort" "$env:ZBX_LISTENPORT"
     Update-Config-Var $ZbxAgentConfig "ListenIP" "$env:ZBX_LISTENIP"
 
-    Update-Config-Var $ZbxAgentConfig "HeartbeatFrequency" "$env:ZBX_HEARTBEAT_FREQUENCY"
     Update-Config-Var $ZbxAgentConfig "ForceActiveChecksOnStart" "$env:ZBX_FORCEACTIVECHECKSONSTART"
 
     if ([string]::IsNullOrWhitespace($env:ZBX_ENABLEPERSISTENTBUFFER)) {

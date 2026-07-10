@@ -38,7 +38,7 @@ LABEL description="Zabbix proxy with SQLite3 database support" \
       io.openshift.tags="zabbix,zabbix-proxy,sqlite" \
       org.label-schema.build-date="${BUILD_DATE}" \
       org.label-schema.description="Zabbix proxy with SQLite3 database support" \
-      org.label-schema.docker.cmd="docker run --name zabbix-proxy -p 10051:10051 -d registry.connect.redhat.com/zabbix/zabbix-proxy-sqlite3-60:${ZBX_VERSION}" \
+      org.label-schema.docker.cmd="docker run --name zabbix-proxy -p 10051:10051 -d registry.connect.redhat.com/zabbix/zabbix-proxy-sqlite-60:${ZBX_VERSION}" \
       org.label-schema.license="GPL v2.0" \
       org.label-schema.name="zabbix-proxy-sqlite-rhel" \
       org.label-schema.schema-version="1.0" \
@@ -145,7 +145,7 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
         ${ZABBIX_USER_HOME_DIR}/ssl/ssl_ca \
         /usr/lib/zabbix/externalscripts && \
     FIX_PERM_LIST="\
-        ${ZABBIX_CONF_DIR}/ \
+        ${ZABBIX_CONF_DIR}/zabbix_proxy.conf \
         ${ZABBIX_USER_HOME_DIR}/" && \
     chown --quiet -R zabbix:0 ${FIX_PERM_LIST} && \
     chmod -R g=u ${FIX_PERM_LIST} && \

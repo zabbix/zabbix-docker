@@ -204,8 +204,6 @@ function Prepare-Zbx-Agent-Config {
     Update-Config-Var $ZbxAgentConfig "ListenIP" "$env:ZBX_LISTENIP"
     Update-Config-Var $ZbxAgentConfig "StartAgents" "$env:ZBX_STARTAGENTS"
 
-    Update-Config-Var $ZbxAgentConfig "HeartbeatFrequency" "$env:ZBX_HEARTBEAT_FREQUENCY"
-
     Update-Config-Var $ZbxAgentConfig "HostInterface" "$env:ZBX_HOSTINTERFACE"
     Update-Config-Var $ZbxAgentConfig "HostInterfaceItem" "$env:ZBX_HOSTINTERFACEITEM"
 

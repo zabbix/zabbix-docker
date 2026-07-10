@@ -113,7 +113,7 @@ RUN set -eux && \
         /etc/apache2/conf.d/proxy.conf \
         /etc/apache2/conf.d/languages.conf \
         /etc/apache2/conf.d/userdir.conf \
-        /etc/php84/php-fpm.d/www.conf \
+        /etc/php83/php-fpm.d/www.conf \
         /var/run/apache2/ && \
     ln -sf "${ZABBIX_CONF_DIR}/web/zabbix.conf.php" "${ZABBIX_WWW_ROOT}/conf/zabbix.conf.php" && \
     ln -sf "${ZABBIX_CONF_DIR}/web/maintenance.inc.php" "${ZABBIX_WWW_ROOT}/conf/maintenance.inc.php" && \

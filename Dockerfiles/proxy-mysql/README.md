@@ -127,7 +127,7 @@ With Docker Swarm or Kubernetes this works with secrets. That way it is replicat
 ```console
 printf "zabbix" | docker secret create MYSQL_USER -
 printf "zabbix" | docker secret create MYSQL_PASSWORD -
-docker run --name some-zabbix-proxy-mysql -e DB_SERVER_HOST="some-mysql-server" -e MYSQL_USER_FILE=/run/secrets/MYSQL_USER -e MYSQL_PASSWORD_FILE=/run/secrets/MYSQL_PASSWORD -e ZBX_SERVER_HOST="some-zabbix-server" -e ZBX_HOSTNAME=some-hostname -e ZBX_SERVER_HOST=some-zabbix-server -d zabbix/zabbix-proxy-mysql:tag
+docker run --name some-zabbix-proxy-mysql -e DB_SERVER_HOST="some-mysql-server" -e MYSQL_USER_FILE=/run/secrets/MYSQL_USER -e MYSQL_PASSWORD_FILE=/run/secrets/MYSQL_PASSWORD -e ZBX_SERVER_HOST="some-zabbix-server" -e ZBX_HOSTNAME=some-hostname -d zabbix/zabbix-proxy-mysql:tag
 ```
 
 This method is also applicable for `MYSQL_ROOT_PASSWORD` with `MYSQL_ROOT_PASSWORD_FILE`.
