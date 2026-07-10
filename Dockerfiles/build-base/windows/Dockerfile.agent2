@@ -201,6 +201,7 @@ RUN Write-Host 'Building OpenSSL library...'; `
         no-gost `
         no-shared `
         no-srp `
+        no-makedepend `
         no-module `
         no-tests `
         no-ui-console `
