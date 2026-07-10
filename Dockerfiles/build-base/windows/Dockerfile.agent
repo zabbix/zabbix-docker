@@ -7,7 +7,7 @@ ARG VS_BUILDTOOLS_VERSION=17
 ARG PWSH_VERSION=7.6.3
 
 ARG PCRE2_VERSION=10.47
-ARG OPENSSL_VERSION=3.6.3
+ARG OPENSSL_VERSION=4.0.1
 ARG LIBMODBUS_VERSION=3.2.0
 ARG ZLIB_VERSION=1.3.2
 ARG CURL_VERSION=8.21.0
@@ -42,7 +42,7 @@ ARG CURL_URL=https://curl.se/download/curl-$CURL_VERSION.tar.gz
 ARG PWSH_URL=https://github.com/PowerShell/PowerShell/releases/download/v$PWSH_VERSION/PowerShell-$PWSH_VERSION-win-x64.zip
 
 ADD --checksum=sha256:d74c183c86c77248ad50017c7f45bae8f88106a6cca5d87ad09917e1c6fb0784 $PCRE2_URL build_src\pcre2.zip
-ADD --checksum=sha256:243a86649cf6f23eeb6a2ff2456e09e5d77dd9018a54d3d96b0c6bdd6ba6c7f1 $OPENSSL_URL build_src\openssl.tar.gz
+ADD --checksum=sha256:2db3f3a0d6ea4b59e1f094ace2c8cd536dffb87cdc39084c5afa1e6f7f37dd09 $OPENSSL_URL build_src\openssl.tar.gz
 ADD --checksum=sha256:72239f319b9b8483e3d393c5a60865d734fcff18a8abbb2486e389834a2f6ef1 $LIBMODBUS_URL build_src\libmodbus.tar.gz
 ADD --checksum=sha256:bb329a0a2cd0274d05519d61c667c062e06990d72e125ee2dfa8de64f0119d16 $ZLIB_URL build_src\zlib.tar.gz
 ADD --checksum=sha256:d9b327997999045a24cda50f3983e69e51c516bd8be6ef9842fc7f99135e33bb $CURL_URL build_src\curl.tar.gz
@@ -168,7 +168,6 @@ RUN Set-Location -Path $env:SystemDrive\.; `
     `
     New-Item -ItemType directory -Path $env:BUILD_OUTPUT -Force | Out-Null; `
     Write-Host 'Verifying install ("git version") ...'; `
-    Write-Host $env:VS_BUILDTOOLS_VERSION; `
     git version; `
     `
     Write-Host 'Verifying install ("nasm -v") ...'; `
@@ -236,7 +235,8 @@ RUN Import-Module $env:VS_DEVSHELL; `
     $env:NMAKEFLAGS = """/nologo"""; `
     perl $env:BUILD_SRC\openssl\Configure `
         VC-WIN64A `
-        no-capieng `
+        no-autoload-config `
+        no-apps `
         no-docs `
         no-dgram `
         no-dtls1-method `
@@ -244,10 +244,12 @@ RUN Import-Module $env:VS_DEVSHELL; `
         no-gost `
         no-shared `
         no-srp `
+        no-module `
         no-tests `
         no-ui-console `
         no-winstore `
         --api=1.1.0 `
+        no-deprecated `
         --prefix=$env:BUILD_OUTPUT\openssl `
         --openssldir=$env:BUILD_OUTPUT\openssl_ssl; `
     nmake /S build_libs | Out-Null; `
@@ -265,11 +267,17 @@ RUN Import-Module $env:VS_DEVSHELL; `
     cmake -S $env:BUILD_SRC\pcre2 -B $env:BUILD_SRC\pcre2\build `
         -G """Visual Studio 17 2022""" `
         -A x64 `
-        -DBUILD_STATIC_LIBS=ON `
         -DBUILD_SHARED_LIBS=OFF `
-        -DPCRE2_BUILD_TESTS=OFF `
+        -DBUILD_STATIC_LIBS=ON `
+        -DPCRE2_BUILD_PCRE2_8=ON `
+        -DPCRE2_BUILD_PCRE2_16=OFF `
+        -DPCRE2_BUILD_PCRE2_32=OFF `
         -DPCRE2_BUILD_PCRE2GREP=OFF `
+        -DPCRE2_BUILD_TESTS=OFF `
+        -DPCRE2_DEBUG=OFF `
         -DPCRE2_SUPPORT_JIT=OFF `
+        -DPCRE2_SUPPORT_UNICODE=ON `
+        -DINSTALL_MSVC_PDB=OFF `
         -DCMAKE_MSVC_RUNTIME_LIBRARY="""MultiThreaded$<$<CONFIG:Debug>:Debug>""" `
         -DCMAKE_INSTALL_PREFIX="""$env:BUILD_OUTPUT\pcre2"""; `
     `
@@ -311,6 +319,8 @@ RUN Import-Module $env:VS_DEVSHELL; `
         -DCMAKE_MSVC_RUNTIME_LIBRARY="""MultiThreaded$<$<CONFIG:Debug>:Debug>""" `
         -DBUILD_CURL_EXE=OFF `
         -DBUILD_EXAMPLES=OFF `
+        -DBUILD_TESTING=OFF `
+        -DENABLE_CURL_MANUAL=OFF `
         -DBUILD_LIBCURL_DOCS=OFF `
         -DBUILD_SHARED_LIBS=OFF `
         -DBUILD_STATIC_LIBS=ON `

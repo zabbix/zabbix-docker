@@ -169,11 +169,14 @@ RUN Write-Host 'Building PCRE2 library ...'; `
         -G 'MinGW Makefiles' `
         -DBUILD_SHARED_LIBS=OFF `
         -DBUILD_STATIC_LIBS=ON `
-        -DPCRE2_DEBUG=OFF `
-        -DPCRE2_BUILD_TESTS=OFF `
+        -DPCRE2_BUILD_PCRE2_8=ON `
+        -DPCRE2_BUILD_PCRE2_16=OFF `
+        -DPCRE2_BUILD_PCRE2_32=OFF `
         -DPCRE2_BUILD_PCRE2GREP=OFF `
+        -DPCRE2_BUILD_TESTS=OFF `
+        -DPCRE2_DEBUG=OFF `
         -DPCRE2_SUPPORT_JIT=OFF `
-        -DINSTALL_MSVC_PDB=OFF `
+        -DPCRE2_SUPPORT_UNICODE=ON `
         -DCMAKE_C_COMPILER="""$env:BUILD_DEPS\mingw64\bin\gcc.exe""" `
         -DCMAKE_C_FLAGS='-O2 -g' `
         -DCMAKE_INSTALL_PREFIX="""$env:BUILD_OUTPUT\pcre2""" . ; `
@@ -189,7 +192,8 @@ RUN Write-Host 'Building OpenSSL library...'; `
     $env:CFLAGS = """$env:CFLAGS -Wno-overflow""".Trim(); `
     perl Configure `
         mingw64 `
-        no-capieng `
+        no-autoload-config `
+        no-apps `
         no-docs `
         no-dgram `
         no-dtls1-method `
@@ -197,11 +201,13 @@ RUN Write-Host 'Building OpenSSL library...'; `
         no-gost `
         no-shared `
         no-srp `
+        no-module `
         no-tests `
         no-ui-console `
         no-winstore `
         thread_scheme=winthreads `
         --api=1.1.0 `
+        no-deprecated `
         --libdir=lib `
         --prefix=$env:BUILD_OUTPUT/openssl `
         --openssldir=$env:BUILD_OUTPUT/openssl_ssl; `
