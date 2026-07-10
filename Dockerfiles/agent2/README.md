@@ -223,7 +223,7 @@ If you have any problems with or questions about this image, please contact us t
 
 ### Known issues
 
-Currently it is not allowed to specify ``ZBX_ALIAS`` environment variable. Please use ``/etc/zabbix/zabbix_agent.d`` volume with additional configuration files with ``Alias`` options.
+Currently it is not allowed to specify ``ZBX_ALIAS`` environment variable. Please use ``/etc/zabbix/zabbix_agentd.d`` volume with additional configuration files with ``Alias`` options.
 
 ## Contributing
 
