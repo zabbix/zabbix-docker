@@ -30,6 +30,7 @@ LABEL description="Zabbix build base for SQLite3 based images" \
       io.openshift.expose-services="" \
       io.openshift.tags="zabbix,build,sqlite3" \
       org.label-schema.description="Zabbix build base for SQLite3 based images" \
+      org.label-schema.license="GPL v2.0" \
       org.label-schema.name="zabbix-build-sqlite3-rhel" \
       org.label-schema.url="https://zabbix.com/" \
       org.label-schema.vcs-ref="${VCS_REF}" \
@@ -144,10 +145,10 @@ RUN --mount=type=cache,target=/root/.cache/go-build \
 
 RUN set -eux && \
     cd "${ZBX_SOURCES_DIR}" && \
-    curl --retry 5 --retry-delay 2 --tlsv1.2 -sSf -L \
+    curl --retry 5 --retry-all-errors --retry-delay 2 --tlsv1.2 -sSf -L \
         "https://raw.githubusercontent.com/notofonts/noto-cjk/main/Sans/OTF/Japanese/NotoSansCJKjp-Regular.otf" \
         -o ui/assets/fonts/NotoSansCJKjp-Regular.otf && \
-    curl --retry 5 --retry-delay 2 --tlsv1.2 -sSf -L \
+    curl --retry 5 --retry-all-errors --retry-delay 2 --tlsv1.2 -sSf -L \
         "https://raw.githubusercontent.com/notofonts/noto-cjk/main/Sans/LICENSE" \
         -o ui/assets/fonts/OFL.txt && \
     sed -i -r 's/(define\(.*_FONT_NAME.*)DejaVuSans/\1NotoSansCJKjp-Regular/' ui/include/defines.inc.php && \
@@ -179,7 +180,7 @@ RUN --mount=type=cache,target=/root/.cache/go-build \
         strip "$binary" || true; \
         cp "$binary" "${ZBX_OUTPUT_DIR}/agent2/sbin/zabbix-agent2-plugin/${outname}"; \
         cp "$conf" "${ZBX_OUTPUT_DIR}/agent2/conf/zabbix_agent2.d/plugins.d/"; \
-        make clean || true; \
+        make clean; \
     }; \
     build_plugin mongodb "${MONGODB_PLUGIN_SOURCES}" "${MONGODB_PLUGIN_VERSION}" \
         zabbix-agent2-plugin-mongodb mongodb.conf mongodb && \

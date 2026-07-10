@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1.6
-ARG OS_BASE_IMAGE=registry.access.redhat.com/ubi8/ubi-minimal:8.10
+ARG OS_BASE_IMAGE=registry.access.redhat.com/ubi9/ubi-minimal:9.8
 ARG MAJOR_VERSION=6.0
 ARG RELEASE=47
 ARG ZBX_VERSION=${MAJOR_VERSION}.47
@@ -61,8 +61,8 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
     microdnf -y install \
             --disableplugin=subscription-manager \
             --disablerepo="*" \
-            --enablerepo="ubi-8-baseos-rpms" \
-            --enablerepo="ubi-8-appstream-rpms" \
+            --enablerepo="ubi-9-baseos-rpms" \
+            --enablerepo="ubi-9-appstream-rpms" \
             --setopt=install_weak_deps=0 \
             --setopt=keepcache=0 \
             --best \
@@ -103,4 +103,3 @@ USER 1997
 WORKDIR ${ZABBIX_USER_HOME_DIR}
 
 ENTRYPOINT ["docker-entrypoint.sh"]
-

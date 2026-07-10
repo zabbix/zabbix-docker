@@ -42,7 +42,7 @@ ALPINE_BASE_IMAGE ?= alpine:3.24
 CENTOS_BASE_IMAGE ?= quay.io/centos/centos:stream10-minimal
 OL_BASE_IMAGE ?= container-registry.oracle.com/os/oraclelinux:10-slim
 UBUNTU_BASE_IMAGE ?= ubuntu:noble
-RHEL_BASE_IMAGE ?= registry.access.redhat.com/ubi8/ubi-minimal:8.10
+RHEL_BASE_IMAGE ?= registry.access.redhat.com/ubi9/ubi-minimal:9.8
 
 # Auto-select base image by OS (unless explicitly overridden)
 ifeq ($(origin OS_BASE_IMAGE), undefined)

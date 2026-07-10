@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1.6
-ARG OS_BASE_IMAGE=registry.access.redhat.com/ubi8/ubi-minimal:8.10
+ARG OS_BASE_IMAGE=registry.access.redhat.com/ubi9/ubi-minimal:9.8
 FROM ${OS_BASE_IMAGE}
 
 ARG MAJOR_VERSION=6.0
@@ -27,6 +27,7 @@ LABEL description="Prepared environment to build Zabbix components" \
       io.openshift.expose-services="" \
       io.openshift.tags="zabbix,build" \
       org.label-schema.description="Prepared environment to build Zabbix components" \
+      org.label-schema.license="GPL v2.0" \
       org.label-schema.name="zabbix-build-base-rhel" \
       org.label-schema.url="https://zabbix.com/" \
       org.label-schema.vcs-ref="${VCS_REF}" \
@@ -61,22 +62,17 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             gettext \
             unixODBC-devel \
             zlib-devel" && \
-    curl --tlsv1.2 -sSf -L https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm -o /tmp/epel-release-latest-8.noarch.rpm && \
-    rpm -ivh /tmp/epel-release-latest-8.noarch.rpm && \
-    rm -rf /tmp/epel-release-latest-8.noarch.rpm && \
-    microdnf -y module enable \
-            --disablerepo="*" \
-            --enablerepo="rhel-8-for-x86_64-appstream-rpms" \
-            --setopt=install_weak_deps=0 \
-            --setopt=keepcache=0 \
-        mysql && \
+    curl --tlsv1.2 -sSf -L https://dl.fedoraproject.org/pub/epel/epel-release-latest-9.noarch.rpm -o /tmp/epel-release-latest-9.noarch.rpm && \
+    rpm -ivh /tmp/epel-release-latest-9.noarch.rpm && \
+    rm -rf /tmp/epel-release-latest-9.noarch.rpm && \
+    ARCH_SUFFIX="$(arch)"; \
     microdnf -y install \
             --disablerepo="*" \
-            --enablerepo="ubi-8-baseos-rpms" \
-            --enablerepo="ubi-8-appstream-rpms" \
-            --enablerepo="rhel-8-for-x86_64-baseos-rpms" \
-            --enablerepo="rhel-8-for-x86_64-appstream-rpms" \
-            --enablerepo="codeready-builder-for-rhel-8-x86_64-rpms" \
+            --enablerepo="ubi-9-baseos-rpms" \
+            --enablerepo="ubi-9-appstream-rpms" \
+            --enablerepo="rhel-9-for-$ARCH_SUFFIX-baseos-rpms" \
+            --enablerepo="rhel-9-for-$ARCH_SUFFIX-appstream-rpms" \
+            --enablerepo="codeready-builder-for-rhel-9-$ARCH_SUFFIX-rpms" \
             --enablerepo="epel" \
             --setopt=install_weak_deps=0 \
             --setopt=keepcache=0 \

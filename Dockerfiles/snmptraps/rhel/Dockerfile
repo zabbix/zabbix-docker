@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1.6
-ARG OS_BASE_IMAGE=registry.access.redhat.com/ubi8/ubi-minimal:8.10
+ARG OS_BASE_IMAGE=registry.access.redhat.com/ubi9/ubi-minimal:9.8
 FROM ${OS_BASE_IMAGE}
 
 ARG MAJOR_VERSION=6.0
@@ -59,17 +59,13 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
     microdnf -y install \
             --disableplugin=subscription-manager \
             --disablerepo="*" \
-            --enablerepo="ubi-8-baseos-rpms" \
-            --enablerepo="ubi-8-appstream-rpms" \
-            --setopt=install_weak_deps=0 \
-            --setopt=keepcache=0 \
-            --best \
-            --setopt=tsflags=nodocs \
+            --enablerepo="ubi-9-baseos-rpms" \
+            --enablerepo="ubi-9-appstream-rpms" \
         ${INSTALL_PKGS} && \
     microdnf -y update \
             --disableplugin=subscription-manager \
             --disablerepo="*" \
-            --enablerepo="ubi-8-baseos-rpms" \
+            --enablerepo="ubi-9-baseos-rpms" \
             --setopt=install_weak_deps=0 \
             --best \
             --setopt=tsflags=nodocs \
@@ -77,7 +73,7 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
     microdnf -y reinstall \
             --disableplugin=subscription-manager \
             --disablerepo="*" \
-            --enablerepo="ubi-8-baseos-rpms" \
+            --enablerepo="ubi-9-baseos-rpms" \
             --setopt=install_weak_deps=0 \
             --setopt=keepcache=0 \
             --best \
@@ -98,8 +94,7 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
     mkdir -p ${ZABBIX_USER_HOME_DIR} \
         ${ZABBIX_USER_HOME_DIR}/snmptraps \
         ${ZABBIX_USER_HOME_DIR}/mibs \
-        ${SNMP_PERSISTENT_DIR} \
-        /etc/logrotate.d && \
+        ${SNMP_PERSISTENT_DIR} && \
     cp /tmp/conf/logrotate.d/zabbix_snmptraps /etc/logrotate.d/ && \
     cp /tmp/conf/snmp/snmptrapd.conf /etc/snmp/ && \
     cp /tmp/scripts/zabbix_trap_handler.sh /usr/sbin/ && \

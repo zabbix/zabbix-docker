@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1.6
-ARG OS_BASE_IMAGE=registry.access.redhat.com/ubi8/ubi-minimal:8.10
+ARG OS_BASE_IMAGE=registry.access.redhat.com/ubi9/ubi-minimal:9.8
 ARG MAJOR_VERSION=6.0
 ARG RELEASE=47
 ARG ZBX_VERSION=${MAJOR_VERSION}.47
@@ -69,7 +69,7 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             shadow-utils \
             fping \
             iputils \
-            libcurl \
+            libcurl-minimal \
             libevent \
             openldap \
             openssl \
@@ -83,23 +83,34 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             unixODBC \
             gzip \
             zlib" && \
-    curl --tlsv1.2 -sSf -L https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm -o /tmp/epel-release-latest-8.noarch.rpm && \
-    rpm -ivh /tmp/epel-release-latest-8.noarch.rpm && \
-    rm -rf /tmp/epel-release-latest-8.noarch.rpm && \
+    curl --tlsv1.2 -sSf -L https://dl.fedoraproject.org/pub/epel/epel-release-latest-9.noarch.rpm -o /tmp/epel-release-latest-9.noarch.rpm && \
+    rpm -ivh /tmp/epel-release-latest-9.noarch.rpm && \
+    rm -rf /tmp/epel-release-latest-9.noarch.rpm && \
+    ARCH_SUFFIX="$(arch)"; \
     microdnf -y install \
             --disablerepo="*" \
-            --enablerepo="ubi-8-baseos-rpms" \
-            --enablerepo="ubi-8-appstream-rpms" \
-            --enablerepo="rhel-8-for-x86_64-baseos-rpms" \
+            --enablerepo="ubi-9-baseos-rpms" \
+            --enablerepo="ubi-9-appstream-rpms" \
+            --enablerepo="rhel-9-for-$ARCH_SUFFIX-baseos-rpms" \
+            --enablerepo="rhel-9-for-$ARCH_SUFFIX-appstream-rpms" \
             --enablerepo="epel" \
             --setopt=install_weak_deps=0 \
             --setopt=keepcache=0 \
             --best \
             --setopt=tsflags=nodocs \
         ${INSTALL_PKGS} && \
+    microdnf -y update \
+            --disableplugin=subscription-manager \
+            --disablerepo="*" \
+            --enablerepo="ubi-9-baseos-rpms" \
+            --setopt=install_weak_deps=0 \
+            --best \
+            --setopt=tsflags=nodocs \
+        tzdata && \
     microdnf -y reinstall \
             --disableplugin=subscription-manager \
-            --enablerepo="ubi-8-baseos-rpms" \
+            --disablerepo="*" \
+            --enablerepo="ubi-9-baseos-rpms" \
             --setopt=install_weak_deps=0 \
             --setopt=keepcache=0 \
             --best \
@@ -154,8 +165,8 @@ WORKDIR ${ZABBIX_USER_HOME_DIR}
 
 VOLUME ["${ZABBIX_USER_HOME_DIR}/snmptraps"]
 
-ENTRYPOINT ["/usr/bin/tini", "--", "/usr/bin/docker-entrypoint.sh"]
-
 USER 1997
+
+ENTRYPOINT ["/usr/bin/tini", "--", "/usr/bin/docker-entrypoint.sh"]
 
 CMD ["/usr/sbin/zabbix_proxy", "--foreground", "-c", "/etc/zabbix/zabbix_proxy.conf"]

@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1.6
-ARG OS_BASE_IMAGE=registry.access.redhat.com/ubi8/ubi-minimal:8.10
+ARG OS_BASE_IMAGE=registry.access.redhat.com/ubi9/ubi-minimal:9.8
 ARG MAJOR_VERSION=6.0
 ARG RELEASE=47
 ARG ZBX_VERSION=${MAJOR_VERSION}.47
@@ -59,15 +59,16 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
     INSTALL_PKGS="bash \
             shadow-utils \
             chromium-headless" && \
-    curl --tlsv1.2 -sSf -L https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm -o /tmp/epel-release-latest-8.noarch.rpm && \
-    rpm -ivh /tmp/epel-release-latest-8.noarch.rpm && \
-    rm -rf /tmp/epel-release-latest-8.noarch.rpm && \
+    curl --tlsv1.2 -sSf -L https://dl.fedoraproject.org/pub/epel/epel-release-latest-9.noarch.rpm -o /tmp/epel-release-latest-9.noarch.rpm && \
+    rpm -ivh /tmp/epel-release-latest-9.noarch.rpm && \
+    rm -rf /tmp/epel-release-latest-9.noarch.rpm && \
+    ARCH_SUFFIX="$(arch)"; \
     microdnf -y install \
             --disablerepo="*" \
-            --enablerepo="ubi-8-baseos-rpms" \
-            --enablerepo="ubi-8-appstream-rpms" \
-            --enablerepo="rhel-8-for-x86_64-baseos-rpms" \
-            --enablerepo="rhel-8-for-x86_64-appstream-rpms" \
+            --enablerepo="ubi-9-baseos-rpms" \
+            --enablerepo="ubi-9-appstream-rpms" \
+            --enablerepo="rhel-9-for-$ARCH_SUFFIX-baseos-rpms" \
+            --enablerepo="rhel-9-for-$ARCH_SUFFIX-appstream-rpms" \
             --enablerepo="epel" \
             --setopt=install_weak_deps=0 \
             --setopt=keepcache=0 \

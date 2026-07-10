@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1.6
-ARG OS_BASE_IMAGE=registry.access.redhat.com/ubi8/ubi-minimal:8.10
+ARG OS_BASE_IMAGE=registry.access.redhat.com/ubi9/ubi-minimal:9.8
 ARG MAJOR_VERSION=6.0
 ARG RELEASE=47
 ARG ZBX_VERSION=${MAJOR_VERSION}.47
@@ -65,15 +65,13 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             pcre2 \
             smartmontools \
             sudo \
-            libcurl" && \
-    curl --tlsv1.2 -sSf -L https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm -o /tmp/epel-release-latest-8.noarch.rpm && \
-    rpm -ivh /tmp/epel-release-latest-8.noarch.rpm && \
-    rm -rf /tmp/epel-release-latest-8.noarch.rpm && \
+            libcurl-minimal" && \
+    ARCH_SUFFIX="$(arch)"; \
     microdnf -y install \
+#            --disableplugin=subscription-manager \
             --disablerepo="*" \
-            --enablerepo="ubi-8-baseos-rpms" \
-            --enablerepo="rhel-8-for-x86_64-baseos-rpms" \
-            --enablerepo="epel" \
+            --enablerepo="ubi-9-baseos-rpms" \
+            --enablerepo="rhel-9-for-$ARCH_SUFFIX-baseos-rpms" \
             --setopt=install_weak_deps=0 \
             --setopt=keepcache=0 \
             --best \
@@ -82,7 +80,7 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
     microdnf -y update \
             --disableplugin=subscription-manager \
             --disablerepo="*" \
-            --enablerepo="ubi-8-baseos-rpms" \
+            --enablerepo="ubi-9-baseos-rpms" \
             --setopt=install_weak_deps=0 \
             --best \
             --setopt=tsflags=nodocs \
@@ -90,7 +88,7 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
     microdnf -y reinstall \
             --disableplugin=subscription-manager \
             --disablerepo="*" \
-            --enablerepo="ubi-8-baseos-rpms" \
+            --enablerepo="ubi-9-baseos-rpms" \
             --setopt=install_weak_deps=0 \
             --setopt=keepcache=0 \
             --best \
@@ -134,8 +132,8 @@ EXPOSE 10050/tcp 31999/tcp
 
 WORKDIR ${ZABBIX_USER_HOME_DIR}
 
-ENTRYPOINT ["/usr/bin/tini", "--", "/usr/bin/docker-entrypoint.sh"]
-
 USER 1997
+
+ENTRYPOINT ["/usr/bin/tini", "--", "/usr/bin/docker-entrypoint.sh"]
 
 CMD ["/usr/sbin/zabbix_agent2", "--foreground", "-c", "/etc/zabbix/zabbix_agent2.conf"]
