@@ -89,7 +89,7 @@ This variable is unique, case sensitive hostname. By default, value is `hostname
 
 ### `ZBX_SERVER_HOST`
 
-This variable is IP or DNS name of Zabbix server or Zabbix proxy. By default, value is `zabbix-server`. It is ``Server`` parameter in ``zabbix_agent2.conf``. It is allowed to specify Zabbix server or Zabbix proxy port number using ``ZBX_SERVER_PORT`` variable. It make sense in case of non-default port for active checks.
+This variable is IP or DNS name of Zabbix server or Zabbix proxy. By default, value is `zabbix-server`. It is ``Server`` parameter in ``zabbix_agent2.conf``. For active checks on a non-default port, specify the port using the ``ZBX_SERVER_PORT`` variable.
 
 ### `ZBX_PASSIVE_ALLOW`
 
@@ -130,9 +130,10 @@ ZBX_ENABLEPERSISTENTBUFFER=false # Available since 5.0.0
 ZBX_PERSISTENTBUFFERPERIOD=1h # Available since 5.0.0
 ZBX_ENABLESTATUSPORT=
 ZBX_SOURCEIP=
-ZBX_ENABLEREMOTECOMMANDS=0 # Deprecated since 5.0.0
 ZBX_LOGREMOTECOMMANDS=0
-ZBX_STARTAGENTS=3
+ZBX_FORCEACTIVECHECKSONSTART=0 # Available since 6.0.2
+ZBX_HOSTINTERFACE= # Available since 4.4.0
+ZBX_HOSTINTERFACEITEM= # Available since 4.4.0
 ZBX_HOSTNAMEITEM=system.hostname
 ZBX_METADATA=
 ZBX_METADATAITEM=
@@ -140,8 +141,10 @@ ZBX_REFRESHACTIVECHECKS=120
 ZBX_BUFFERSEND=5
 ZBX_BUFFERSIZE=100
 ZBX_MAXLINESPERSECOND=20
+ZBX_EVENTLOGMAXLINESPERSECOND=20 # Windows only
 ZBX_LISTENIP=
-ZBX_LISTENPORT=10051
+ZBX_LISTENPORT=10050
+ZBX_PLUGINTIMEOUT=
 ZBX_UNSAFEUSERPARAMETERS=0
 ZBX_TLSCONNECT=unencrypted
 ZBX_TLSACCEPT=unencrypted
@@ -166,7 +169,7 @@ Default values of these variables are specified after equal sign.
 
 The allowed variables are identical of parameters in official ``zabbix_agent2.conf`` configuration file. For example, ``ZBX_REFRESHACTIVECHECKS`` = ``RefreshActiveChecks``.
 
-Please use official documentation for [``zabbix_agent2.conf``](https://www.zabbix.com/documentation/6.0/manual/appendix/config/zabbix_agent2) to get more information about the variables.
+Please use official documentation for [``zabbix_agent2.conf``](https://www.zabbix.com/documentation/6.0/en/manual/appendix/config/zabbix_agent2) to get more information about the variables.
 
 ## Allowed volumes for the Zabbix agent 2 container
 

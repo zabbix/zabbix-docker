@@ -80,7 +80,7 @@ podman run --name some-zabbix-web-nginx-mysql <span class="hljs-_">-e</span> DB_
 <h3 id="-zbx_maxinputtime-"><code>ZBX_MAXINPUTTIME</code></h3>
 <p>The varable is PHP <code>max_input_time</code> option. By default, value is <code>300</code>.</p>
 <h3 id="-zbx_session_name-"><code>ZBX_SESSION_NAME</code></h3>
-<p>The variable is Zabbix frontend <a href="https://www.zabbix.com/documentation/6.0/manual/web_interface/definitions">definition</a>. String used as the name of the Zabbix frontend session cookie. By default, value is <code>zbx_sessionid</code>.</p>
+<p>The variable is Zabbix frontend <a href="https://www.zabbix.com/documentation/6.0/en/manual/web_interface/definitions">definition</a>. String used as the name of the Zabbix frontend session cookie. By default, value is <code>zbx_sessionid</code>.</p>
 <h3 id="-zbx_deny_gui_access-"><code>ZBX_DENY_GUI_ACCESS</code></h3>
 <p>Enable (<code>true</code>) maintenance mode for Zabbix web-interface.</p>
 <h3 id="-zbx_gui_access_ip_range-"><code>ZBX_GUI_ACCESS_IP_RANGE</code></h3>
@@ -100,9 +100,9 @@ podman run --name some-zabbix-web-nginx-mysql <span class="hljs-_">-e</span> DB_
 <h3 id="-zbx_db_cipher_list-"><code>ZBX_DB_CIPHER_LIST</code></h3>
 <p>The variable allows to specify a custom list of valid ciphers. The format of the cipher list must conform to the OpenSSL standard. Available since 5.0.0.</p>
 <h3 id="-zbx_sso_sp_key-"><code>ZBX_SSO_SP_KEY</code></h3>
-<p>The variable allows to specify a custom file path to the Serivce Provider (SP) private key file.</p>
+<p>The variable allows to specify a custom file path to the Service Provider (SP) private key file.</p>
 <h3 id="-zbx_sso_sp_cert-"><code>ZBX_SSO_SP_CERT</code></h3>
-<p>The variable allows to specify a custom file path to the Serivce Provider (SP) cert file.</p>
+<p>The variable allows to specify a custom file path to the Service Provider (SP) cert file.</p>
 <h3 id="-zbx_sso_idp_cert-"><code>ZBX_SSO_IDP_CERT</code></h3>
 <p>The variable allows to specify a custom file path to the SAML Certificate provided by the Identity Provider (ID) file.</p>
 <h2 id="-zbx_sso_settings-"><code>ZBX_SSO_SETTINGS</code></h2>
@@ -113,7 +113,8 @@ podman run --name some-zabbix-web-nginx-mysql <span class="hljs-_">-e</span> DB_
     ZBX_SSO_SETTINGS: "{'baseurl': 'https://zabbix-docker.mydomain.com', 'use_proxy_headers': true, 'strict': false}"
     ....
 ....</span>
-</code></pre><h3 id="other-variables">Other variables</h3>
+</code></pre>
+<h3 id="other-variables">Other variables</h3>
 <p>Additionally the image allows to specify many other environment variables listed below:</p>
 <pre><code><span class="hljs-attr">ZBX_VAULTDBPATH=</span> <span class="hljs-comment"># Available since 5.2.0</span>
 <span class="hljs-attr">ZBX_VAULTURL=https://127.0.0.1:8200</span> <span class="hljs-comment"># Available since 5.2.0</span>
@@ -126,7 +127,8 @@ Allowed PHP-FPM configuration options:
 <span class="hljs-attr">PHP_FPM_PM_MIN_SPARE_SERVERS=5</span>
 <span class="hljs-attr">PHP_FPM_PM_MAX_SPARE_SERVERS=35</span>
 <span class="hljs-attr">PHP_FPM_PM_MAX_REQUESTS=0</span>
-</code></pre><h2 id="allowed-volumes-for-the-zabbix-web-interface-container">Allowed volumes for the Zabbix web interface container</h2>
+</code></pre>
+<h2 id="allowed-volumes-for-the-zabbix-web-interface-container">Allowed volumes for the Zabbix web interface container</h2>
 <h3 id="-etc-ssl-nginx-"><code>/etc/ssl/nginx</code></h3>
 <p>The volume allows to enable HTTPS for the Zabbix web interface. The volume must contains three files <code>ssl.crt</code>, <code>ssl.key</code> and <code>dhparam.pem</code> prepared for Nginx SSL connections.</p>
 <p>Please follow official Nginx <a href="http://nginx.org/en/docs/http/configuring_https_servers.html">documentation</a> to get more details about how to create certificate files.</p>

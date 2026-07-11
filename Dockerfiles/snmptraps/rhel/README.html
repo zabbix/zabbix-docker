@@ -24,7 +24,7 @@
 <h2 id="environment-variables">Environment Variables</h2>
 <p>When you start the <code>zabbix-snmptraps</code> image, you can adjust the configuration by passing one or more environment variables on the <code>podman run</code> command line.</p>
 <h3 id="-zbx_snmp_trap_date_format-"><code>ZBX_SNMP_TRAP_DATE_FORMAT</code></h3>
-<p>This variable is represent date and time format in the output <code>snmptraps.log</code> file. By default, value is <code>+%Y-%m-%dT%T%z</code>. Please, refer to <code>date</code> command man for more details about date and time format.</p>
+<p>This variable represents the date and time format in the output <code>snmptraps.log</code> file. By default, value is <code>+%Y%m%d.%H%M%S</code>. Please refer to the <code>date</code> command manual for more details about date and time formats.</p>
 <h3 id="-zbx_snmp_trap_format-"><code>ZBX_SNMP_TRAP_FORMAT</code></h3>
 <p>This variable is SNMP trap format in the output <code>snmptraps.log</code> file. By default, value is <code>\n</code>, in this case each new variable is placed on new line.</p>
 <h3 id="-zbx_snmp_trap_use_dns-"><code>ZBX_SNMP_TRAP_USE_DNS</code></h3>

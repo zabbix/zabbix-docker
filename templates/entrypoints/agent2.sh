@@ -60,6 +60,7 @@ update_config() {
     update_config_var "${ZBX_AGENT_CONFIG}" "LogFileSize"
     update_config_var "${ZBX_AGENT_CONFIG}" "DebugLevel" "${ZBX_DEBUGLEVEL:-}"
     update_config_var "${ZBX_AGENT_CONFIG}" "SourceIP" "${ZBX_SOURCEIP:-}"
+    update_config_var "${ZBX_AGENT_CONFIG}" "Plugins.SystemRun.LogRemoteCommands" "${ZBX_LOGREMOTECOMMANDS:-}"
 
     update_config_var "${ZBX_AGENT_CONFIG}" "ListenPort" "${ZBX_LISTENPORT:-}"
     update_config_var "${ZBX_AGENT_CONFIG}" "ListenIP" "${ZBX_LISTENIP:-}"
@@ -94,6 +95,8 @@ update_config() {
     update_config_var "${ZBX_AGENT_CONFIG}" "RefreshActiveChecks" "${ZBX_REFRESHACTIVECHECKS:-}"
     update_config_var "${ZBX_AGENT_CONFIG}" "BufferSend" "${ZBX_BUFFERSEND:-}"
     update_config_var "${ZBX_AGENT_CONFIG}" "BufferSize" "${ZBX_BUFFERSIZE:-}"
+    update_config_var "${ZBX_AGENT_CONFIG}" "Plugins.Log.MaxLinesPerSecond" "${ZBX_MAXLINESPERSECOND:-}"
+    update_config_var "${ZBX_AGENT_CONFIG}" "PluginTimeout" "${ZBX_PLUGINTIMEOUT:-}"
     update_config_var "${ZBX_AGENT_CONFIG}" "Timeout" "${ZBX_TIMEOUT:-}"
     update_config_var "${ZBX_AGENT_CONFIG}" "Include" "${ZABBIX_CONF_DIR}/zabbix_agent2.d/plugins.d/*.conf"
     update_config_var "${ZBX_AGENT_CONFIG}" "Include" "${ZABBIX_CONF_DIR}/zabbix_agentd.d/*.conf" "true"

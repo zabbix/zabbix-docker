@@ -1,8 +1,5 @@
 # shellcheck shell=bash
 
-# Internal directory for TLS related files, used when TLS*File specified as plain text values
-readonly ZABBIX_INTERNAL_ENC_DIR="${ZABBIX_USER_HOME_DIR}/enc_internal"
-
 prepare_php_config() {
     local db_server_type="${1:-}"
 
@@ -99,7 +96,4 @@ prepare_php_config() {
     export ZBX_SSO_SP_KEY="${ZBX_SSO_SP_KEY:-}"
     export ZBX_SSO_SP_CERT="${ZBX_SSO_SP_CERT:-}"
     export ZBX_SSO_IDP_CERT="${ZBX_SSO_IDP_CERT:-}"
-
-    : "${ZBX_ALLOW_HTTP_AUTH:=true}"
-    export ZBX_ALLOW_HTTP_AUTH
 }

@@ -197,9 +197,6 @@ server_config() {
         update_config_var "${ZBX_SERVER_CONFIG}" "NodeAddress" "${ZBX_NODEADDRESS:-}"
     fi
 
-    update_config_var "${ZBX_SERVER_CONFIG}" "WebDriverURL" "${ZBX_WEBDRIVERURL:-}"
-    update_config_var "${ZBX_SERVER_CONFIG}" "StartBrowserPollers" "${ZBX_STARTBROWSERPOLLERS:-}"
-
     if [ "$(id -u)" -ne 0 ]; then
         update_config_var "${ZBX_SERVER_CONFIG}" "User" "$(id -un)"
     else

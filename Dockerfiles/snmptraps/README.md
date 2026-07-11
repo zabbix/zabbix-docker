@@ -62,7 +62,7 @@ When you start the `zabbix-snmptraps` image, you can adjust the configuration by
 
 ### `ZBX_SNMP_TRAP_DATE_FORMAT`
 
-This variable is represent date and time format in the output `snmptraps.log` file. By default, value is `+%Y%m%d.%H%M%S`. Please, refer to `date` command man for more details about date and time format.
+This variable represents the date and time format in the output `snmptraps.log` file. By default, value is `+%Y%m%d.%H%M%S`. Please refer to the `date` command manual for more details about date and time formats.
 
 ### `ZBX_SNMP_TRAP_FORMAT`
 

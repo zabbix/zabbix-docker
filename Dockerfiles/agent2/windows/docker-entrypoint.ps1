@@ -196,16 +196,13 @@ function Prepare-Zbx-Agent-Config {
     Update-Config-Var $ZbxAgentConfig "LogFile"
     Update-Config-Var $ZbxAgentConfig "LogFileSize"
     Update-Config-Var $ZbxAgentConfig "DebugLevel" "$env:ZBX_DEBUGLEVEL"
-    Update-Config-Var $ZbxAgentConfig "SourceIP"
+    Update-Config-Var $ZbxAgentConfig "SourceIP" "$env:ZBX_SOURCEIP"
+    Update-Config-Var $ZbxAgentConfig "Plugins.SystemRun.LogRemoteCommands" "$env:ZBX_LOGREMOTECOMMANDS"
 
     Update-Config-Var $ZbxAgentConfig "ListenPort" "$env:ZBX_LISTENPORT"
     Update-Config-Var $ZbxAgentConfig "ListenIP" "$env:ZBX_LISTENIP"
 
     Update-Config-Var $ZbxAgentConfig "ForceActiveChecksOnStart" "$env:ZBX_FORCEACTIVECHECKSONSTART"
-
-    if ([string]::IsNullOrWhitespace($env:ZBX_ENABLEPERSISTENTBUFFER)) {
-        $env:ZBX_ENABLEPERSISTENTBUFFER="true"
-    }
 
     if ($env:ZBX_ENABLEPERSISTENTBUFFER -eq "true") {
         Update-Config-Var $ZbxAgentConfig "EnablePersistentBuffer" "1"
@@ -214,14 +211,15 @@ function Prepare-Zbx-Agent-Config {
     }
     else {
         Update-Config-Var $ZbxAgentConfig "EnablePersistentBuffer" "0"
-    }
-
-    if ([string]::IsNullOrWhitespace($env:ZBX_ENABLESTATUSPORT)) {
-        $env:ZBX_ENABLESTATUSPORT="true"
+        Update-Config-Var $ZbxAgentConfig "PersistentBufferFile"
+        Update-Config-Var $ZbxAgentConfig "PersistentBufferPeriod"
     }
 
     if ($env:ZBX_ENABLESTATUSPORT -eq "true") {
         Update-Config-Var $ZbxAgentConfig "StatusPort" "31999"
+    }
+    else {
+        Update-Config-Var $ZbxAgentConfig "StatusPort"
     }
 
     Update-Config-Var $ZbxAgentConfig "Hostname" "$env:ZBX_HOSTNAME"
@@ -233,6 +231,9 @@ function Prepare-Zbx-Agent-Config {
     Update-Config-Var $ZbxAgentConfig "RefreshActiveChecks" "$env:ZBX_REFRESHACTIVECHECKS"
     Update-Config-Var $ZbxAgentConfig "BufferSend" "$env:ZBX_BUFFERSEND"
     Update-Config-Var $ZbxAgentConfig "BufferSize" "$env:ZBX_BUFFERSIZE"
+    Update-Config-Var $ZbxAgentConfig "Plugins.Log.MaxLinesPerSecond" "$env:ZBX_MAXLINESPERSECOND"
+    Update-Config-Var $ZbxAgentConfig "Plugins.EventLog.MaxLinesPerSecond" "$env:ZBX_EVENTLOGMAXLINESPERSECOND"
+    Update-Config-Var $ZbxAgentConfig "PluginTimeout" "$env:ZBX_PLUGINTIMEOUT"
     # Please use include to enable Alias feature
 #    update_config_multiple_var $ZBX_AGENT_CONFIG "Alias" $env:ZBX_ALIAS
     # Please use include to enable Perfcounter feature
@@ -249,12 +250,6 @@ function Prepare-Zbx-Agent-Config {
     Update-Config-Var $ZbxAgentConfig "TLSServerCertIssuer" "$env:ZBX_TLSSERVERCERTISSUER"
     Update-Config-Var $ZbxAgentConfig "TLSServerCertSubject" "$env:ZBX_TLSSERVERCERTSUBJECT"
     File-Process-From-Env $ZbxAgentConfig "TLSCertFile" "$env:ZBX_TLSCERTFILE" "$env:ZBX_TLSCERT"
-    Update-Config-Var $ZbxAgentConfig "TLSCipherAll" "$env:ZBX_TLSCIPHERALL"
-    Update-Config-Var $ZbxAgentConfig "TLSCipherAll13" "$env:ZBX_TLSCIPHERALL13"
-    Update-Config-Var $ZbxAgentConfig "TLSCipherCert" "$env:ZBX_TLSCIPHERCERT"
-    Update-Config-Var $ZbxAgentConfig "TLSCipherCert13" "$env:ZBX_TLSCIPHERCERT13"
-    Update-Config-Var $ZbxAgentConfig "TLSCipherPSK" "$env:ZBX_TLSCIPHERPSK"
-    Update-Config-Var $ZbxAgentConfig "TLSCipherPSK13" "$env:ZBX_TLSCIPHERPSK13"
     File-Process-From-Env $ZbxAgentConfig "TLSKeyFile" "$env:ZBX_TLSKEYFILE" "$env:ZBX_TLSKEY"
     Update-Config-Var $ZbxAgentConfig "TLSPSKIdentity" "$env:ZBX_TLSPSKIDENTITY"
     File-Process-From-Env $ZbxAgentConfig "TLSPSKFile" "$env:ZBX_TLSPSKFILE" "$env:ZBX_TLSPSK"
@@ -274,7 +269,7 @@ function Prepare-Zbx-Agent-Plugins-Config {
 }
 
 function ClearZbxEnv() {
-    if ([string]::IsNullOrWhitespace($env:ZBX_CLEAR_ENV)) {
+    if ($env:ZBX_CLEAR_ENV -eq "false") {
         return
     }
 

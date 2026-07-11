@@ -169,7 +169,7 @@ ZBX_JAVAGATEWAY=zabbix-java-gateway
 ZBX_JAVAGATEWAYPORT=10052
 ZBX_STARTJAVAPOLLERS=5
 ZBX_STARTLLDPROCESSORS=2 # Available since 4.2.0
-ZBX_STATSALLOWEDIP= # Available since 4.0.5
+ZBX_STATSALLOWEDIP= # Available since 4.2.0
 ZBX_STARTVMWARECOLLECTORS=0
 ZBX_VMWAREFREQUENCY=60
 ZBX_VMWAREPERFFREQUENCY=60
@@ -181,7 +181,7 @@ ZBX_SMSDEVICES=
 ZBX_HOUSEKEEPINGFREQUENCY=1
 ZBX_MAXHOUSEKEEPERDELETE=5000
 ZBX_PROBLEMHOUSEKEEPINGFREQUENCY=60 # Available since 6.0.0
-ZBX_CACHESIZE=8M
+ZBX_CACHESIZE=32M
 ZBX_CACHEUPDATEFREQUENCY=60
 ZBX_STARTDBSYNCERS=4
 ZBX_EXPORTFILESIZE=1G # Available since 4.0.0
@@ -190,7 +190,7 @@ ZBX_AUTOHANODENAME=fqdn # Allowed values: fqdn, hostname. Available since 6.0.0
 ZBX_HANODENAME= # Available since 6.0.0
 ZBX_AUTONODEADDRESS=fqdn # Allowed values: fqdn, hostname. Available since 6.0.0
 ZBX_NODEADDRESSPORT=10051 # Allowed to use with ZBX_AUTONODEADDRESS variable only. Available since 6.0.0
-ZBX_NODEADDRESS=localhost # Available since 6.0.0
+ZBX_NODEADDRESS=localhost:10051 # Available since 6.0.0
 ZBX_HISTORYCACHESIZE=16M
 ZBX_HISTORYINDEXCACHESIZE=4M
 ZBX_HISTORYSTORAGEDATEINDEX=0 # Available since 4.0.0
@@ -225,7 +225,7 @@ Default values of these variables are specified after equal sign.
 
 The allowed variables are identical of parameters in official ``zabbix_server.conf``. For example, ``ZBX_LOGSLOWQUERIES`` = ``LogSlowQueries``.
 
-Please use official documentation for [``zabbix_server.conf``](https://www.zabbix.com/documentation/6.0/manual/appendix/config/zabbix_server) to get more information about the variables.
+Please use official documentation for [``zabbix_server.conf``](https://www.zabbix.com/documentation/6.0/en/manual/appendix/config/zabbix_server) to get more information about the variables.
 
 ## Allowed volumes for the Zabbix server container
 

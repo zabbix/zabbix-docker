@@ -42,7 +42,7 @@ proxy_config() {
 
     update_config_var "${ZBX_PROXY_CONFIG}" "ProxyLocalBuffer" "${ZBX_PROXYLOCALBUFFER:-}"
     update_config_var "${ZBX_PROXY_CONFIG}" "ProxyOfflineBuffer" "${ZBX_PROXYOFFLINEBUFFER:-}"
-    update_config_var "${ZBX_PROXY_CONFIG}" "ProxyHeartbeatFrequency" "${ZBX_PROXYHEARTBEATFREQUENCY:-}"
+    update_config_var "${ZBX_PROXY_CONFIG}" "HeartbeatFrequency" "${ZBX_HEARTBEATFREQUENCY:-}"
     update_config_var "${ZBX_PROXY_CONFIG}" "ConfigFrequency" "${ZBX_CONFIGFREQUENCY:-}"
     update_config_var "${ZBX_PROXY_CONFIG}" "DataSenderFrequency" "${ZBX_DATASENDERFREQUENCY:-}"
 

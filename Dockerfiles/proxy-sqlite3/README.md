@@ -86,7 +86,7 @@ When you start the `zabbix-proxy-sqlite3` image, you can adjust the configuratio
 
 ### `ZBX_PROXYMODE`
 
-The variable allows to switch Zabbix proxy mode. Bu default, value is `0` - active proxy. Allowed values are `0` - active proxy and `1` - passive proxy.
+The variable allows to switch Zabbix proxy mode. By default, value is `0` - active proxy. Allowed values are `0` - active proxy and `1` - passive proxy.
 
 ### `ZBX_HOSTNAME`
 
@@ -94,13 +94,7 @@ This variable is unique, case sensitive hostname. By default, value is `zabbix-p
 
 ### `ZBX_SERVER_HOST`
 
-This variable is IP or DNS name of Zabbix server or Zabbix proxy. By default, value is `zabbix-server`. It is ``Server`` parameter in ``zabbix_proxy.conf``. It is allowed to specify Zabbix server or Zabbix proxy port number using ``ZBX_SERVER_PORT`` variable. It make sense in case of non-default port for active checks.
-
-### `ZBX_SERVER_PORT`
-
-This variable is port Zabbix server listening on. By default, value is `10051`.
-
-**Note:** This parameter is no longer used in version 6.0 and above. Instead, add a colon ``:`` followed by the port number to the end of ``ZBX_SERVER_HOST``.
+This variable is IP or DNS name of Zabbix server. By default, value is `zabbix-server`. It is ``Server`` parameter in ``zabbix_proxy.conf``. For an active proxy using a non-default server port, append the port to the value, for example ``zabbix-server:10061``.
 
 ### `ZBX_LOADMODULE`
 
@@ -108,7 +102,7 @@ The variable is list of comma separated loadable Zabbix modules. It works with  
 
 ### `ZBX_DEBUGLEVEL`
 
-The variable is used to specify debug level. By default, value is ``3``. It is ``DebugLevel`` parameter in ``zabbix_server.conf``. Allowed values are listed below:
+The variable is used to specify debug level. By default, value is ``3``. It is ``DebugLevel`` parameter in ``zabbix_proxy.conf``. Allowed values are listed below:
 - ``0`` - basic information about starting and stopping of Zabbix processes;
 - ``1`` - critical information
 - ``2`` - error information
@@ -118,7 +112,7 @@ The variable is used to specify debug level. By default, value is ``3``. It is `
 
 ### `ZBX_TIMEOUT`
 
-The variable is used to specify timeout for processing checks. By default, value is ``4``.
+The variable is used to specify timeout for processing checks. By default, value is ``3``.
 
 ### `ZBX_JAVAGATEWAY_ENABLE`
 
@@ -135,7 +129,7 @@ ZBX_SOURCEIP=
 ZBX_HOSTNAMEITEM=system.hostname
 ZBX_PROXYLOCALBUFFER=0
 ZBX_PROXYOFFLINEBUFFER=1
-ZBX_PROXYHEARTBEATFREQUENCY=60
+ZBX_HEARTBEATFREQUENCY=60
 ZBX_CONFIGFREQUENCY=3600
 ZBX_DATASENDERFREQUENCY=1
 ZBX_STARTPOLLERS=5
@@ -151,7 +145,7 @@ ZBX_STARTODBCPOLLERS=1 # Available since 6.0.0
 ZBX_JAVAGATEWAY=zabbix-java-gateway
 ZBX_JAVAGATEWAYPORT=10052
 ZBX_STARTJAVAPOLLERS=0
-ZBX_STATSALLOWEDIP= # Available since 4.0.5
+ZBX_STATSALLOWEDIP= # Available since 4.2.0
 ZBX_STARTVMWARECOLLECTORS=0
 ZBX_VMWAREFREQUENCY=60
 ZBX_VMWAREPERFFREQUENCY=60
@@ -162,7 +156,7 @@ ZBX_LISTENIP=
 ZBX_LISTENPORT=10051
 ZBX_LISTENBACKLOG=
 ZBX_HOUSEKEEPINGFREQUENCY=1
-ZBX_CACHESIZE=8M
+ZBX_CACHESIZE=32M
 ZBX_STARTDBSYNCERS=4
 ZBX_HISTORYCACHESIZE=16M
 ZBX_HISTORYINDEXCACHESIZE=4M
@@ -198,7 +192,7 @@ Default values of these variables are specified after equal sign.
 
 The allowed variables are identical of parameters in official ``zabbix_proxy.conf``. For example, ``ZBX_LOGSLOWQUERIES`` = ``LogSlowQueries``.
 
-Please use official documentation for [``zabbix_proxy.conf``](https://www.zabbix.com/documentation/6.0/manual/appendix/config/zabbix_proxy) to get more information about the variables.
+Please use official documentation for [``zabbix_proxy.conf``](https://www.zabbix.com/documentation/6.0/en/manual/appendix/config/zabbix_proxy) to get more information about the variables.
 
 ## Allowed volumes for the Zabbix proxy container
 
