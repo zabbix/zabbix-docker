@@ -137,6 +137,7 @@ ZBX_DBTLSCERTFILE= # Available since 5.0.0
 ZBX_DBTLSKEYFILE= # Available since 5.0.0
 ZBX_DBTLSCIPHER= # Available since 5.0.0
 ZBX_DBTLSCIPHER13= # Available since 5.0.0
+ZBX_VAULT=HashiCorp # Allowed values: HashiCorp, CyberArk. Required when Vault is used. Available since 6.2.0
 ZBX_VAULTDBPATH= # Available since 5.2.0
 ZBX_VAULTPREFIX= # Available since 7.0.0
 ZBX_VAULTURL=https://127.0.0.1:8200 # Available since 5.2.0

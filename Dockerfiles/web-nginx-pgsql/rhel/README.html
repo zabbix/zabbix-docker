@@ -115,7 +115,8 @@ podman run --name some-zabbix-web-nginx-pgsql <span class="hljs-_">-e</span> DB_
 <p>The variable allows to disable user HTTP authentication.</p>
 </code></pre><h3 id="other-variables">Other variables</h3>
 <p>Additionally the image allows to specify many other environment variables listed below:</p>
-<pre><code><span class="hljs-attr">ZBX_VAULTDBPATH=</span> <span class="hljs-comment"># Available since 5.2.0</span>
+<pre><code><span class="hljs-attr">ZBX_VAULT=HashiCorp</span> <span class="hljs-comment"># Allowed values: HashiCorp, CyberArk. Required when Vault is used. Available since 6.2.0</span>
+<span class="hljs-attr">ZBX_VAULTDBPATH=</span> <span class="hljs-comment"># Available since 5.2.0</span>
 <span class="hljs-attr">ZBX_VAULTURL=https://127.0.0.1:8200</span> <span class="hljs-comment"># Available since 5.2.0</span>
 <span class="hljs-attr">VAULT_TOKEN=</span> <span class="hljs-comment"># Available since 5.2.0</span>
 <span class="hljs-attr">ZBX_VAULTPREFIX=</span> <span class="hljs-comment"># Available since 7.0.0</span>
