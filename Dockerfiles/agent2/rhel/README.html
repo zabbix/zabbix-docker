@@ -68,27 +68,42 @@
 <span class="hljs-attr">ZBX_HEARTBEAT_FREQUENCY</span>=<span class="hljs-number">60</span> # Available since <span class="hljs-number">6.2</span>.<span class="hljs-number">0</span>
 <span class="hljs-attr">ZBX_ENABLEREMOTECOMMANDS</span>=<span class="hljs-number">0</span> # Deprecated since <span class="hljs-number">5.0</span>.<span class="hljs-number">0</span>
 <span class="hljs-attr">ZBX_LOGREMOTECOMMANDS</span>=<span class="hljs-number">0</span>
-<span class="hljs-attr">ZBX_STARTAGENTS</span>=<span class="hljs-number">3</span>
+<span class="hljs-attr">ZBX_FORCEACTIVECHECKSONSTART</span>=<span class="hljs-number">0</span> # Available since <span class="hljs-number">6.0</span>.<span class="hljs-number">2</span>
+<span class="hljs-attr">ZBX_HOSTINTERFACE</span>= # Available since <span class="hljs-number">4.4</span>.<span class="hljs-number">0</span>
+<span class="hljs-attr">ZBX_HOSTINTERFACEITEM</span>= # Available since <span class="hljs-number">4.4</span>.<span class="hljs-number">0</span>
 <span class="hljs-attr">ZBX_HOSTNAMEITEM</span>=system.hostname
 <span class="hljs-attr">ZBX_METADATA</span>=
 <span class="hljs-attr">ZBX_METADATAITEM</span>=
-<span class="hljs-attr">ZBX_REFRESHACTIVECHECKS</span>=<span class="hljs-number">120</span>
+<span class="hljs-attr">ZBX_REFRESHACTIVECHECKS</span>=<span class="hljs-number">5</span>
 <span class="hljs-attr">ZBX_BUFFERSEND</span>=<span class="hljs-number">5</span>
 <span class="hljs-attr">ZBX_BUFFERSIZE</span>=<span class="hljs-number">100</span>
 <span class="hljs-attr">ZBX_MAXLINESPERSECOND</span>=<span class="hljs-number">20</span>
+<span class="hljs-attr">ZBX_EVENTLOGMAXLINESPERSECOND</span>=<span class="hljs-number">20</span> # Windows only
 <span class="hljs-attr">ZBX_LISTENIP</span>=
-<span class="hljs-attr">ZBX_LISTENPORT</span>=<span class="hljs-number">10051</span>
+<span class="hljs-attr">ZBX_LISTENPORT</span>=<span class="hljs-number">10050</span>
+<span class="hljs-attr">ZBX_PLUGINTIMEOUT</span>=
 <span class="hljs-attr">ZBX_UNSAFEUSERPARAMETERS</span>=<span class="hljs-number">0</span>
 <span class="hljs-attr">ZBX_TLSCONNECT</span>=unencrypted
 <span class="hljs-attr">ZBX_TLSACCEPT</span>=unencrypted
 <span class="hljs-attr">ZBX_TLSCAFILE</span>=
+<span class="hljs-attr">ZBX_TLSCA</span>=
 <span class="hljs-attr">ZBX_TLSCRLFILE</span>=
+<span class="hljs-attr">ZBX_TLSCRL</span>=
 <span class="hljs-attr">ZBX_TLSSERVERCERTISSUER</span>=
 <span class="hljs-attr">ZBX_TLSSERVERCERTSUBJECT</span>=
 <span class="hljs-attr">ZBX_TLSCERTFILE</span>=
+<span class="hljs-attr">ZBX_TLSCERT</span>=
 <span class="hljs-attr">ZBX_TLSKEYFILE</span>=
+<span class="hljs-attr">ZBX_TLSKEY</span>=
 <span class="hljs-attr">ZBX_TLSPSKIDENTITY</span>=
 <span class="hljs-attr">ZBX_TLSPSKFILE</span>=
+<span class="hljs-attr">ZBX_TLSPSK</span>=
+<span class="hljs-attr">ZBX_TLSCIPHERALL</span>=
+<span class="hljs-attr">ZBX_TLSCIPHERALL13</span>=
+<span class="hljs-attr">ZBX_TLSCIPHERCERT</span>=
+<span class="hljs-attr">ZBX_TLSCIPHERCERT13</span>=
+<span class="hljs-attr">ZBX_TLSCIPHERPSK</span>=
+<span class="hljs-attr">ZBX_TLSCIPHERPSK13</span>=
 <span class="hljs-attr">ZBX_DENYKEY</span>=system.run[*] # Available since <span class="hljs-number">5.0</span>.<span class="hljs-number">0</span>
 <span class="hljs-attr">ZBX_ALLOWKEY</span>= # Available since <span class="hljs-number">5.0</span>.<span class="hljs-number">0</span>
 </code></pre><p>Default values of these variables are specified after equal sign.</p>
@@ -98,7 +113,7 @@
 <h3 id="-etc-zabbix-zabbix_agentd-d-"><code>/etc/zabbix/zabbix_agentd.d</code></h3>
 <p>The volume allows include <code>*.conf</code> files and extend Zabbix agent 2 using <code>UserParameter</code> feature.</p>
 <h3 id="-var-lib-zabbix-enc-"><code>/var/lib/zabbix/enc</code></h3>
-<p>The volume is used to store TLS related files. These file names are specified using <code>ZBX_TLSCAFILE</code>, <code>ZBX_TLSCRLFILE</code>, <code>ZBX_TLSKEY_FILE</code> and <code>ZBX_TLSPSKFILE</code> variables.</p>
+<p>The volume is used to store TLS related files. These file names are specified using <code>ZBX_TLSCAFILE</code>, <code>ZBX_TLSCRLFILE</code>, <code>ZBX_TLSCERTFILE</code>, <code>ZBX_TLSKEYFILE</code> and <code>ZBX_TLSPSKFILE</code> variables. Additionally it is possible to use environment variables <code>ZBX_TLSCA</code>, <code>ZBX_TLSCRL</code>, <code>ZBX_TLSCERT</code>, <code>ZBX_TLSKEY</code> and <code>ZBX_TLSPSK</code> with plaintext values.</p>
 <h3 id="-var-lib-zabbix-buffer-"><code>/var/lib/zabbix/buffer</code></h3>
 <p>The volume is used to store the file, where Zabbix Agent2 should keep SQLite database. To enable the feature specify <code>ZBX_ENABLEPERSISTENTBUFFER=true</code>. Available since 5.0.0.</p>
 <h1 id="user-feedback">User Feedback</h1>

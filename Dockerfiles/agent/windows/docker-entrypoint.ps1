@@ -199,7 +199,7 @@ function Prepare-Zbx-Agent-Config {
 }
 
 function ClearZbxEnv() {
-    if ([string]::IsNullOrWhitespace($env:ZBX_CLEAR_ENV)) {
+    if ($env:ZBX_CLEAR_ENV -eq "false") {
         return
     }
 

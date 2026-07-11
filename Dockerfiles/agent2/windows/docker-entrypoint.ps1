@@ -190,10 +190,6 @@ function Prepare-Zbx-Agent-Config {
     Set-Item env:ZBX_SERVER_HOST -Value $null
     Set-Item env:ZBX_SERVER_PORT -Value $null
 
-    if ([string]::IsNullOrWhitespace($env:ZBX_ENABLEPERSISTENTBUFFER)) {
-        $env:ZBX_ENABLEPERSISTENTBUFFER="true"
-    }
-
     if ($env:ZBX_ENABLEPERSISTENTBUFFER -eq "true") {
         $env:ZBX_ENABLEPERSISTENTBUFFER="1"
     }
@@ -202,12 +198,11 @@ function Prepare-Zbx-Agent-Config {
         Set-Item env:ZBX_PERSISTENTBUFFERFILE -Value $null
     }
 
-    if ([string]::IsNullOrWhitespace($env:ZBX_ENABLESTATUSPORT)) {
-        $env:ZBX_ENABLESTATUSPORT="true"
-    }
-
     if ($env:ZBX_ENABLESTATUSPORT -eq "true") {
         $env:ZBX_STATUSPORT="31999"
+    }
+    else {
+        Set-Item env:ZBX_STATUSPORT -Value $null
     }
 
     Update-Config-Multiple-Var "$env:ZABBIX_CONF_DIR\zabbix_agent2_item_keys.conf" "DenyKey" "$env:ZBX_DENYKEY"
@@ -233,7 +228,7 @@ function Prepare-Zbx-Agent-Plugins-Config {
 }
 
 function ClearZbxEnv() {
-    if ([string]::IsNullOrWhitespace($env:ZBX_CLEAR_ENV)) {
+    if ($env:ZBX_CLEAR_ENV -eq "false") {
         return
     }
 

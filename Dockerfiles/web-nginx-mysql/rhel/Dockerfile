@@ -42,7 +42,7 @@ ENV DB_ENGINE=mysql \
 
 LABEL description="Zabbix web-interface based on Nginx web server with MySQL database support" \
       maintainer="alexey.pustovalov@zabbix.com" \
-      name="zabbix/zabbix-web-mysql" \
+      name="zabbix/zabbix-web-mysql-trunk" \
       release="${RELEASE}" \
       run="docker run --name zabbix-web-nginx --link mysql-server:mysql --link zabbix-server:zabbix-server -p 80:80 -d registry.connect.redhat.com/zabbix/zabbix-web-nginx-trunk:${ZBX_VERSION}" \
       summary="Zabbix web-interface based on Nginx web server with MySQL database support" \
