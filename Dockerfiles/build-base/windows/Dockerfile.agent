@@ -245,6 +245,7 @@ RUN Import-Module $env:VS_DEVSHELL; `
         no-shared `
         no-srp `
         no-module `
+        no-makedepend `
         no-tests `
         no-ui-console `
         no-winstore `
@@ -322,6 +323,7 @@ RUN Import-Module $env:VS_DEVSHELL; `
         -DBUILD_TESTING=OFF `
         -DENABLE_CURL_MANUAL=OFF `
         -DBUILD_LIBCURL_DOCS=OFF `
+        -DBUILD_MISC_DOCS=OFF `
         -DBUILD_SHARED_LIBS=OFF `
         -DBUILD_STATIC_LIBS=ON `
         -DCURL_DISABLE_LDAP=ON `
@@ -333,6 +335,7 @@ RUN Import-Module $env:VS_DEVSHELL; `
         -DENABLE_UNICODE=ON `
         -DOPENSSL_ROOT_DIR="""$env:BUILD_OUTPUT\openssl""" `
         -DOPENSSL_USE_STATIC_LIBS=ON `
+        -DCURL_DISABLE_OPENSSL_AUTO_LOAD_CONFIG=ON `
         -DUSE_WIN32_IDN=OFF `
         -DZLIB_INCLUDE_DIR="""$env:BUILD_OUTPUT\zlib\include""" `
         -DZLIB_LIBRARY="""$env:BUILD_OUTPUT\zlib\lib\zs.lib""" `

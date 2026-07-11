@@ -80,4 +80,3 @@ USER 1997
 WORKDIR ${ZABBIX_USER_HOME_DIR}
 
 ENTRYPOINT ["docker-entrypoint.sh"]
-

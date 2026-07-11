@@ -30,7 +30,7 @@ ENV TERM=xterm \
     ZABBIX_CONF_DIR=/etc/zabbix \
     ZABBIX_USER_HOME_DIR=/var/lib/zabbix \
     ZABBIX_WWW_ROOT=/usr/share/zabbix
- 
+
 ENV APACHE_BIN=/usr/sbin/httpd \
     PHP_FPM_BIN=/usr/sbin/php-fpm \
     APACHE_RUN_DIR=/tmp/httpd \
