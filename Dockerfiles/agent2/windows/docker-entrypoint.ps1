@@ -232,7 +232,6 @@ function Prepare-Zbx-Agent-Config {
     Update-Config-Var $ZbxAgentConfig "BufferSend" "$env:ZBX_BUFFERSEND"
     Update-Config-Var $ZbxAgentConfig "BufferSize" "$env:ZBX_BUFFERSIZE"
     Update-Config-Var $ZbxAgentConfig "Plugins.Log.MaxLinesPerSecond" "$env:ZBX_MAXLINESPERSECOND"
-    Update-Config-Var $ZbxAgentConfig "Plugins.EventLog.MaxLinesPerSecond" "$env:ZBX_EVENTLOGMAXLINESPERSECOND"
     Update-Config-Var $ZbxAgentConfig "PluginTimeout" "$env:ZBX_PLUGINTIMEOUT"
     # Please use include to enable Alias feature
 #    update_config_multiple_var $ZBX_AGENT_CONFIG "Alias" $env:ZBX_ALIAS
