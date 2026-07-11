@@ -141,6 +141,8 @@ ZBX_VAULTDBPATH= # Available since 5.2.0
 ZBX_VAULTPREFIX= # Available since 7.0.0
 ZBX_VAULTURL=https://127.0.0.1:8200 # Available since 5.2.0
 VAULT_TOKEN= # Available since 5.2.0
+ZBX_VAULTTLSCERTFILE= # Available since 6.2.0
+ZBX_VAULTTLSKEYFILE= # Available since 6.2.0
 ZBX_LISTENIP=
 ZBX_LISTENPORT=10051
 ZBX_LISTENBACKLOG=
@@ -150,14 +152,18 @@ ZBX_SERVICEMANAGERSYNCFREQUENCY=60 # Available since 6.0.0
 ZBX_HISTORYSTORAGEURL= # Available since 3.4.0
 ZBX_HISTORYSTORAGETYPES=uint,dbl,str,log,text # Available since 3.4.0
 ZBX_ENABLEGLOBALSCRIPTS=0 # Available since 7.0.0
+ZBX_ALLOWSOFTWAREUPDATECHECK=1 # Available since 7.0.0
+ZBX_MAXCONCURRENTCHECKSPERPOLLER=1000 # Available since 7.0.0
+ZBX_STARTAGENTPOLLERS=1 # Available since 7.0.0
+ZBX_STARTHTTPAGENTPOLLERS=1 # Available since 7.0.0
 ZBX_STARTPOLLERS=5
 ZBX_STARTIPMIPOLLERS=0
-ZBX_STARTPREPROCESSORS=3 # Available since 3.4.0
+ZBX_STARTPREPROCESSORS=16 # Available since 3.4.0
 ZBX_STARTCONNECTORS=0 # Available since 6.4.0
 ZBX_STARTPOLLERSUNREACHABLE=1
 ZBX_STARTTRAPPERS=5
 ZBX_STARTPINGERS=1
-ZBX_STARTDISCOVERERS=1
+ZBX_STARTDISCOVERERS=5
 ZBX_STARTHISTORYPOLLERS=5 # Available since 5.4.0
 ZBX_STARTHTTPPOLLERS=1
 ZBX_STARTODBCPOLLERS=1 # Available since 6.0.0
@@ -180,7 +186,7 @@ ZBX_SMSDEVICES=
 ZBX_HOUSEKEEPINGFREQUENCY=1
 ZBX_MAXHOUSEKEEPERDELETE=5000
 ZBX_PROBLEMHOUSEKEEPINGFREQUENCY=60 # Available since 6.0.0
-ZBX_CACHESIZE=8M
+ZBX_CACHESIZE=32M
 ZBX_CACHEUPDATEFREQUENCY=10
 ZBX_STARTDBSYNCERS=4
 ZBX_EXPORTFILESIZE=1G # Available since 4.0.0
@@ -301,14 +307,6 @@ This is the defacto image. If you are unsure about what your needs are, you prob
 ## `zabbix-server-mysql:ol-<version>`
 
 Oracle Linux is an open-source operating system available under the GNU General Public License (GPLv2). Suitable for general purpose or Oracle workloads, it benefits from rigorous testing of more than 128,000 hours per day with real-world workloads and includes unique innovations such as Ksplice for zero-downtime kernel patching, DTrace for real-time diagnostics, the powerful Btrfs file system, and more.
-
-# Supported Docker versions
-
-This image is officially supported on Docker version 1.12.0.
-
-Support for older versions (down to 1.6) is provided on a best-effort basis.
-
-Please see [the Docker installation documentation](https://docs.docker.com/installation/) for details on how to upgrade your Docker daemon.
 
 # User Feedback
 

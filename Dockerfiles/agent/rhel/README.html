@@ -69,11 +69,11 @@
 <span class="hljs-attr">ZBX_HEARTBEAT_FREQUENCY</span>=<span class="hljs-number">60</span> # Available since <span class="hljs-number">6.2</span>.<span class="hljs-number">0</span>
 <span class="hljs-attr">ZBX_HOSTINTERFACE</span>= # Available since <span class="hljs-number">4.4</span>.<span class="hljs-number">0</span>
 <span class="hljs-attr">ZBX_HOSTINTERFACEITEM</span>= # Available since <span class="hljs-number">4.4</span>.<span class="hljs-number">0</span>
-<span class="hljs-attr">ZBX_STARTAGENTS</span>=<span class="hljs-number">3</span>
+<span class="hljs-attr">ZBX_STARTAGENTS</span>=<span class="hljs-number">10</span>
 <span class="hljs-attr">ZBX_HOSTNAMEITEM</span>=system.hostname
 <span class="hljs-attr">ZBX_METADATA</span>=
 <span class="hljs-attr">ZBX_METADATAITEM</span>=
-<span class="hljs-attr">ZBX_REFRESHACTIVECHECKS</span>=<span class="hljs-number">120</span>
+<span class="hljs-attr">ZBX_REFRESHACTIVECHECKS</span>=<span class="hljs-number">5</span>
 <span class="hljs-attr">ZBX_BUFFERSEND</span>=<span class="hljs-number">5</span>
 <span class="hljs-attr">ZBX_BUFFERSIZE</span>=<span class="hljs-number">100</span>
 <span class="hljs-attr">ZBX_MAXLINESPERSECOND</span>=<span class="hljs-number">20</span>
@@ -84,13 +84,18 @@
 <span class="hljs-attr">ZBX_TLSCONNECT</span>=unencrypted
 <span class="hljs-attr">ZBX_TLSACCEPT</span>=unencrypted
 <span class="hljs-attr">ZBX_TLSCAFILE</span>=
+<span class="hljs-attr">ZBX_TLSCA</span>=
 <span class="hljs-attr">ZBX_TLSCRLFILE</span>=
+<span class="hljs-attr">ZBX_TLSCRL</span>=
 <span class="hljs-attr">ZBX_TLSSERVERCERTISSUER</span>=
 <span class="hljs-attr">ZBX_TLSSERVERCERTSUBJECT</span>=
 <span class="hljs-attr">ZBX_TLSCERTFILE</span>=
+<span class="hljs-attr">ZBX_TLSCERT</span>=
 <span class="hljs-attr">ZBX_TLSKEYFILE</span>=
+<span class="hljs-attr">ZBX_TLSKEY</span>=
 <span class="hljs-attr">ZBX_TLSPSKIDENTITY</span>=
 <span class="hljs-attr">ZBX_TLSPSKFILE</span>=
+<span class="hljs-attr">ZBX_TLSPSK</span>=
 <span class="hljs-attr">ZBX_TLSCIPHERALL</span>= # Available since <span class="hljs-number">4.4</span>.<span class="hljs-number">7</span>
 <span class="hljs-attr">ZBX_TLSCIPHERALL13</span>= # Available since <span class="hljs-number">4.4</span>.<span class="hljs-number">7</span>
 <span class="hljs-attr">ZBX_TLSCIPHERCERT</span>= # Available since <span class="hljs-number">4.4</span>.<span class="hljs-number">7</span>
@@ -108,7 +113,7 @@
 <h3 id="-var-lib-zabbix-modules-"><code>/var/lib/zabbix/modules</code></h3>
 <p>The volume allows load additional modules and extend Zabbix agent using <code>LoadModule</code> feature.</p>
 <h3 id="-var-lib-zabbix-enc-"><code>/var/lib/zabbix/enc</code></h3>
-<p>The volume is used to store TLS related files. These file names are specified using <code>ZBX_TLSCAFILE</code>, <code>ZBX_TLSCRLFILE</code>, <code>ZBX_TLSKEY_FILE</code> and <code>ZBX_TLSPSKFILE</code> variables.</p>
+<p>The volume is used to store TLS related files. These file names are specified using <code>ZBX_TLSCAFILE</code>, <code>ZBX_TLSCRLFILE</code>, <code>ZBX_TLSCERTFILE</code>, <code>ZBX_TLSKEYFILE</code> and <code>ZBX_TLSPSKFILE</code> variables. Additionally it is possible to use environment variables <code>ZBX_TLSCA</code>, <code>ZBX_TLSCRL</code>, <code>ZBX_TLSCERT</code>, <code>ZBX_TLSKEY</code> and <code>ZBX_TLSPSK</code> with plaintext values.</p>
 <h1 id="user-feedback">User Feedback</h1>
 <h2 id="documentation">Documentation</h2>
 <p>Documentation for this image is stored in the <a href="https://github.com/zabbix/zabbix-docker/tree/7.4/Dockerfiles/agent"><code>agent/</code> directory</a> of the <a href="https://github.com/zabbix/zabbix-docker/"><code>zabbix/zabbix-docker</code> GitHub repo</a>. Be sure to familiarize yourself with the <a href="https://github.com/zabbix/zabbix-docker/blob/7.4/README.md">repository&#39;s <code>README.md</code> file</a> before attempting a pull request.</p>

@@ -133,16 +133,20 @@ ZBX_SOURCEIP=
 ZBX_HEARTBEAT_FREQUENCY=60 # Available since 6.2.0
 ZBX_ENABLEREMOTECOMMANDS=0 # Deprecated since 5.0.0
 ZBX_LOGREMOTECOMMANDS=0
-ZBX_STARTAGENTS=3
+ZBX_FORCEACTIVECHECKSONSTART=0 # Available since 6.0.2
+ZBX_HOSTINTERFACE= # Available since 4.4.0
+ZBX_HOSTINTERFACEITEM= # Available since 4.4.0
 ZBX_HOSTNAMEITEM=system.hostname
 ZBX_METADATA=
 ZBX_METADATAITEM=
-ZBX_REFRESHACTIVECHECKS=120
+ZBX_REFRESHACTIVECHECKS=5
 ZBX_BUFFERSEND=5
-ZBX_BUFFERSIZE=100
+ZBX_BUFFERSIZE=1000
 ZBX_MAXLINESPERSECOND=20
+ZBX_EVENTLOGMAXLINESPERSECOND=20 # Windows only
 ZBX_LISTENIP=
-ZBX_LISTENPORT=10051
+ZBX_LISTENPORT=10050
+ZBX_PLUGINTIMEOUT=
 ZBX_UNSAFEUSERPARAMETERS=0
 ZBX_TLSCONNECT=unencrypted
 ZBX_TLSACCEPT=unencrypted
@@ -159,6 +163,12 @@ ZBX_TLSKEY=
 ZBX_TLSPSKIDENTITY=
 ZBX_TLSPSKFILE=
 ZBX_TLSPSK=
+ZBX_TLSCIPHERALL=
+ZBX_TLSCIPHERALL13=
+ZBX_TLSCIPHERCERT=
+ZBX_TLSCIPHERCERT13=
+ZBX_TLSCIPHERPSK=
+ZBX_TLSCIPHERPSK13=
 ZBX_DENYKEY=system.run[*] # Available since 5.0.0
 ZBX_ALLOWKEY= # Available since 5.0.0
 ```
@@ -202,14 +212,6 @@ This is the defacto image. If you are unsure about what your needs are, you prob
 ## `zabbix-agent2:ol-<version>`
 
 Oracle Linux is an open-source operating system available under the GNU General Public License (GPLv2). Suitable for general purpose or Oracle workloads, it benefits from rigorous testing of more than 128,000 hours per day with real-world workloads and includes unique innovations such as Ksplice for zero-downtime kernel patching, DTrace for real-time diagnostics, the powerful Btrfs file system, and more.
-
-# Supported Docker versions
-
-This image is officially supported on Docker version 1.12.0.
-
-Support for older versions (down to 1.6) is provided on a best-effort basis.
-
-Please see [the Docker installation documentation](https://docs.docker.com/installation/) for details on how to upgrade your Docker daemon.
 
 # User Feedback
 

@@ -94,13 +94,7 @@ This variable is unique, case sensitive hostname. By default, value is `zabbix-p
 
 ### `ZBX_SERVER_HOST`
 
-This variable is IP or DNS name of Zabbix server or Zabbix proxy. By default, value is `zabbix-server`. It is ``Server`` parameter in ``zabbix_proxy.conf``. It is allowed to specify Zabbix server or Zabbix proxy port number using ``ZBX_SERVER_PORT`` variable. It make sense in case of non-default port for active checks.
-
-### `ZBX_SERVER_PORT`
-
-This variable is port Zabbix server listening on. By default, value is `10051`.
-
-**Note:** This parameter is no longer used in version 6.0 and above. Instead, add a colon ``:`` followed by the port number to the end of ``ZBX_SERVER_HOST``.
+This variable is IP or DNS name of Zabbix server. By default, value is `zabbix-server`. It is ``Server`` parameter in ``zabbix_proxy.conf``. For a non-default port, append it to the host using ``host:port`` syntax.
 
 ### `ZBX_LOADMODULE`
 
@@ -125,24 +119,28 @@ The variable is used to specify timeout for processing checks. By default, value
 Additionally the image allows to specify many other environment variables listed below:
 
 ```
+ZBX_USE_NODE_NAME_AS_DB_NAME=false
 ZBX_ENABLEREMOTECOMMANDS=0 # Available since 3.4.0
 ZBX_LOGREMOTECOMMANDS=0 # Available since 3.4.0
 ZBX_SOURCEIP=
 ZBX_HOSTNAMEITEM=system.hostname
 ZBX_PROXYLOCALBUFFER=0
 ZBX_PROXYOFFLINEBUFFER=1
-ZBX_PROXYHEARTBEATFREQUENCY=60 # Deprecated since 6.4.0
-ZBX_CONFIGFREQUENCY=3600 # Deprecated since 6.4.0
+ZBX_PROXYBUFFERMODE=disk # Available since 7.0.0
+ZBX_PROXYMEMORYBUFFERAGE=0 # Available since 7.0.0
+ZBX_PROXYMEMORYBUFFERSIZE=0 # Available since 7.0.0
 ZBX_PROXYCONFIGFREQUENCY=10 # Available since 6.4.0
 ZBX_DATASENDERFREQUENCY=1
+ZBX_MAXCONCURRENTCHECKSPERPOLLER=1000 # Available since 7.0.0
+ZBX_STARTAGENTPOLLERS=1 # Available since 7.0.0
+ZBX_STARTHTTPAGENTPOLLERS=1 # Available since 7.0.0
 ZBX_STARTPOLLERS=5
-ZBX_STARTPREPROCESSORS=3 # Available since 4.2.0
+ZBX_STARTPREPROCESSORS=16 # Available since 4.2.0
 ZBX_STARTIPMIPOLLERS=0
 ZBX_STARTPOLLERSUNREACHABLE=1
 ZBX_STARTTRAPPERS=5
 ZBX_STARTPINGERS=1
-ZBX_STARTDISCOVERERS=1
-ZBX_STARTHISTORYPOLLERS=1 # Available since 5.4.0 till 6.0.0
+ZBX_STARTDISCOVERERS=5
 ZBX_STARTHTTPPOLLERS=1
 ZBX_STARTODBCPOLLERS=1 # Available since 6.0.0
 ZBX_JAVAGATEWAY=zabbix-java-gateway
@@ -159,7 +157,7 @@ ZBX_LISTENIP=
 ZBX_LISTENPORT=10051
 ZBX_LISTENBACKLOG=
 ZBX_HOUSEKEEPINGFREQUENCY=1
-ZBX_CACHESIZE=8M
+ZBX_CACHESIZE=32M
 ZBX_STARTDBSYNCERS=4
 ZBX_HISTORYCACHESIZE=16M
 ZBX_HISTORYINDEXCACHESIZE=4M
@@ -263,14 +261,6 @@ This is the defacto image. If you are unsure about what your needs are, you prob
 ## `zabbix-proxy-sqlite3:ol-<version>`
 
 Oracle Linux is an open-source operating system available under the GNU General Public License (GPLv2). Suitable for general purpose or Oracle workloads, it benefits from rigorous testing of more than 128,000 hours per day with real-world workloads and includes unique innovations such as Ksplice for zero-downtime kernel patching, DTrace for real-time diagnostics, the powerful Btrfs file system, and more.
-
-# Supported Docker versions
-
-This image is officially supported on Docker version 1.12.0.
-
-Support for older versions (down to 1.6) is provided on a best-effort basis.
-
-Please see [the Docker installation documentation](https://docs.docker.com/installation/) for details on how to upgrade your Docker daemon.
 
 # User Feedback
 

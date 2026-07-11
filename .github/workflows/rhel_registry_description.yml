@@ -193,12 +193,11 @@ jobs:
 
       - name: Print Red Hat Catalog URL
         env:
-          COMPONENT: ${{ matrix.component }}
-          MATRIX_FILE: ${{ env.MATRIX_FILE }}
+          PROJECT_ID: ${{ secrets[format('RHEL_{0}_{1}_PROJECT', needs.init.outputs.zabbix_release, steps.var_format.outputs.matrix_build)] }}
         run: |
           set -Eeuo pipefail
 
-          PROJECT_ID="$(jq -r ".components.\"$COMPONENT\".rhel_project" "$MATRIX_FILE")"
+          [[ -n "$PROJECT_ID" ]] || { echo "::error::Red Hat project ID is missing"; exit 1; }
 
           echo "::group::URL"
           echo "https://catalog.redhat.com/software/containers/${PROJECT_ID}"
