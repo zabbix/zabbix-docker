@@ -1,7 +1,7 @@
 <h2>What is Zabbix?</h2>
 <p>Zabbix is an enterprise-class open source distributed monitoring solution.</p>
 <p>Zabbix is software that monitors numerous parameters of a network and the health and integrity of servers. Zabbix uses a flexible notification mechanism that allows users to configure e-mail based alerts for virtually any event. This allows a fast reaction to server problems. Zabbix offers excellent reporting and data visualisation features based on the stored data. This makes Zabbix ideal for capacity planning.</p>
-<p>For more information and related downloads for Zabbix components, please visit <a href="https://hub.docker.com/u/zabbix/">Docker Hub</a> and <a href="https://zabbix.com">zabbix.com</a></p>
+<p>For more information and related downloads for Zabbix components, please visit <a href="https://zabbix.com">zabbix.com</a></p>
 <h2>What is Zabbix agent 2?</h2>
 <p>Zabbix agent 2 is deployed on a monitoring target to actively monitor local resources and applications (hard drives, memory, processor statistics etc).</p>
 <h2>Zabbix agent 2 images</h2>
@@ -140,13 +140,3 @@ ZBX_ALLOWKEY= # Available since 5.0.0
 <p>The volume is used to store TLS related files. These file names are specified using <code>ZBX_TLSCAFILE</code>, <code>ZBX_TLSCRLFILE</code>, <code>ZBX_TLSCERTFILE</code>, <code>ZBX_TLSKEYFILE</code> and <code>ZBX_TLSPSKFILE</code> variables. Additionally it is possible to use environment variables <code>ZBX_TLSCA</code>, <code>ZBX_TLSCRL</code>, <code>ZBX_TLSCERT</code>, <code>ZBX_TLSKEY</code> and <code>ZBX_TLSPSK</code> with plaintext values.</p>
 <h4><code>/var/lib/zabbix/buffer</code></h4>
 <p>The volume is used to store the file, where Zabbix Agent2 should keep SQLite database. To enable the feature specify <code>ZBX_ENABLEPERSISTENTBUFFER=true</code>. Available since 5.0.0.</p>
-<h2>User Feedback</h2>
-<h3>Documentation</h3>
-<p>Documentation for this image is stored in the <a href="https://github.com/zabbix/zabbix-docker/tree/7.4/Dockerfiles/agent2"><code>agent2/</code> directory</a> of the <a href="https://github.com/zabbix/zabbix-docker/"><code>zabbix/zabbix-docker</code> GitHub repo</a>. Be sure to familiarize yourself with the <a href="https://github.com/zabbix/zabbix-docker/blob/7.4/README.md">repository's <code>README.md</code> file</a> before attempting a pull request.</p>
-<h3>Issues</h3>
-<p>If you have any problems with or questions about this image, please contact us through a <a href="https://github.com/zabbix/zabbix-docker/issues">GitHub issue</a>.</p>
-<h4>Known issues</h4>
-<p>Currently it is not allowed to specify <code>ZBX_ALIAS</code> environment variable. Please use <code>/etc/zabbix/zabbix_agentd.d</code> volume with additional configuration files with <code>Alias</code> options.</p>
-<h3>Contributing</h3>
-<p>You are invited to contribute new features, fixes, or updates, large or small; we are always thrilled to receive pull requests, and do our best to process them as fast as we can.</p>
-<p>Before you start to code, we recommend discussing your plans through a <a href="https://github.com/zabbix/zabbix-docker/issues">GitHub issue</a>, especially for more ambitious contributions. This gives other contributors a chance to point you in the right direction, give you feedback on your design, and help you find out if someone else is working on the same thing.</p>

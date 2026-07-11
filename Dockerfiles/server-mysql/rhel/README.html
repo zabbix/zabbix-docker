@@ -1,7 +1,7 @@
 <h2>What is Zabbix?</h2>
 <p>Zabbix is an enterprise-class open source distributed monitoring solution.</p>
 <p>Zabbix is software that monitors numerous parameters of a network and the health and integrity of servers. Zabbix uses a flexible notification mechanism that allows users to configure e-mail based alerts for virtually any event. This allows a fast reaction to server problems. Zabbix offers excellent reporting and data visualisation features based on the stored data. This makes Zabbix ideal for capacity planning.</p>
-<p>For more information and related downloads for Zabbix components, please visit <a href="https://hub.docker.com/u/zabbix/">Docker Hub</a> and <a href="https://zabbix.com">zabbix.com</a></p>
+<p>For more information and related downloads for Zabbix components, please visit <a href="https://zabbix.com">zabbix.com</a></p>
 <h2>What is Zabbix server?</h2>
 <p>Zabbix server is the central process of Zabbix software.</p>
 <p>The server performs the polling and trapping of data, it calculates triggers, sends notifications to users. It is the central component to which Zabbix agents and proxies report data on availability and integrity of systems. The server can itself remotely check networked services (such as web servers and mail servers) using simple service checks.</p>
@@ -32,7 +32,7 @@ Zabbix server has possibility to execute <code>fping</code> utility to perform I
 <code>fping: Operation not permitted</code>
 or
 lost all packets to all resources
-in this case add <code>--cap-add=net_raw</code> to <code>docker run</code> or <code>podman run</code> commands.
+in this case add <code>--cap-add=net_raw</code> to <code>podman run</code> commands.
 Additionally fping executing in non-root environments can require sysctl modification:
 <code>net.ipv4.ping_group_range=0 1995</code>
 where 1995 is <code>zabbix</code> GID.</p>
@@ -51,7 +51,7 @@ where 1995 is <code>zabbix</code> GID.</p>
 <h4><code>DB_SERVER_PORT</code></h4>
 <p>This variable is port of MySQL server. By default, value is '3306'.</p>
 <h4><code>MYSQL_USER</code>, <code>MYSQL_PASSWORD</code>, <code>MYSQL_USER_FILE</code>, <code>MYSQL_PASSWORD_FILE</code></h4>
-<p>These variables are used by Zabbix server to connect to Zabbix database. With the <code>_FILE</code> variables you can instead provide the path to a file which contains the user / the password instead. Without Docker Swarm or Kubernetes you also have to map the files. Those are exclusive so you can just provide one type - either <code>MYSQL_USER</code> or <code>MYSQL_USER_FILE</code>!</p>
+<p>These variables are used by Zabbix server to connect to Zabbix database. With the <code>_FILE</code> variables you can instead provide the path to a file which contains the user / the password instead. When secrets are not managed by an orchestrator, you also have to mount the files. Those are exclusive so you can just provide one type - either <code>MYSQL_USER</code> or <code>MYSQL_USER_FILE</code>!</p>
 <pre><code>podman run \
     --name some-zabbix-server-mysql \
     -e DB_SERVER_HOST=&quot;some-mysql-server&quot; \
@@ -62,7 +62,7 @@ where 1995 is <code>zabbix</code> GID.</p>
     --init \
     -d registry.connect.redhat.com/zabbix/zabbix-server-mysql-74:tag
 </code></pre>
-<p>With Docker Swarm or Kubernetes this works with secrets. That way it is replicated in your cluster!</p>
+<p>Podman secrets can be used to avoid exposing credentials in the command line:</p>
 <pre><code>printf &quot;zabbix&quot; | podman secret create MYSQL_USER -
 printf &quot;zabbix&quot; | podman secret create MYSQL_PASSWORD -
 podman run \
@@ -225,12 +225,3 @@ SNMP traps processing feature could be enabled using shared volume and switched 
 <p>The volume allows to add new MIB files. It does not support subdirectories, all MIBs must be placed in <code>/var/lib/zabbix/mibs</code>.</p>
 <h4><code>/var/lib/zabbix/export</code></h4>
 <p>Directory for real-time export of events, history and trends in newline-delimited JSON format. Could be enabled using <code>ZBX_EXPORTFILESIZE</code> environment variable.</p>
-<h2>User Feedback</h2>
-<h3>Documentation</h3>
-<p>Documentation for this image is stored in the <a href="https://github.com/zabbix/zabbix-docker/tree/7.4/Dockerfiles/server-mysql"><code>server-mysql/</code> directory</a> of the <a href="https://github.com/zabbix/zabbix-docker/"><code>zabbix/zabbix-docker</code> GitHub repo</a>. Be sure to familiarize yourself with the <a href="https://github.com/zabbix/zabbix-docker/blob/7.4/README.md">repository's <code>README.md</code> file</a> before attempting a pull request.</p>
-<h3>Issues</h3>
-<p>If you have any problems with or questions about this image, please contact us through a <a href="https://github.com/zabbix/zabbix-docker/issues">GitHub issue</a>.</p>
-<h4>Known issues</h4>
-<h3>Contributing</h3>
-<p>You are invited to contribute new features, fixes, or updates, large or small; we are always thrilled to receive pull requests, and do our best to process them as fast as we can.</p>
-<p>Before you start to code, we recommend discussing your plans through a <a href="https://github.com/zabbix/zabbix-docker/issues">GitHub issue</a>, especially for more ambitious contributions. This gives other contributors a chance to point you in the right direction, give you feedback on your design, and help you find out if someone else is working on the same thing.</p>
