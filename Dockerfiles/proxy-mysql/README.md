@@ -127,7 +127,7 @@ With Docker Swarm or Kubernetes this works with secrets. That way it is replicat
 ```console
 printf "zabbix" | docker secret create MYSQL_USER -
 printf "zabbix" | docker secret create MYSQL_PASSWORD -
-docker run --name some-zabbix-proxy-mysql -e DB_SERVER_HOST="some-mysql-server" -e MYSQL_USER_FILE=/run/secrets/MYSQL_USER -e MYSQL_PASSWORD_FILE=/run/secrets/MYSQL_PASSWORD -e ZBX_SERVER_HOST="some-zabbix-server" -e ZBX_HOSTNAME=some-hostname -e ZBX_SERVER_HOST=some-zabbix-server --init -d zabbix/zabbix-proxy-mysql:tag
+docker run --name some-zabbix-proxy-mysql -e DB_SERVER_HOST="some-mysql-server" -e MYSQL_USER_FILE=/run/secrets/MYSQL_USER -e MYSQL_PASSWORD_FILE=/run/secrets/MYSQL_PASSWORD -e ZBX_SERVER_HOST="some-zabbix-server" -e ZBX_HOSTNAME=some-hostname --init -d zabbix/zabbix-proxy-mysql:tag
 ```
 
 This method is also applicable for `MYSQL_ROOT_PASSWORD` with `MYSQL_ROOT_PASSWORD_FILE`.
@@ -168,6 +168,7 @@ ZBX_DBTLSCERTFILE= # Available since 5.0.0
 ZBX_DBTLSKEYFILE= # Available since 5.0.0
 ZBX_DBTLSCIPHER= # Available since 5.0.0
 ZBX_DBTLSCIPHER13= # Available since 5.0.0
+ZBX_VAULT=HashiCorp # Allowed values: HashiCorp, CyberArk. Required when Vault is used. Available since 6.2.0
 ZBX_VAULTDBPATH= # Available since 5.2.0
 ZBX_VAULTPREFIX= # Available since 7.0.0
 ZBX_VAULTURL=https://127.0.0.1:8200 # Available since 5.2.0

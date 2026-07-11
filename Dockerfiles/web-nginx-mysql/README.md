@@ -238,6 +238,7 @@ The variable allows to disable user HTTP authentication.
 Additionally the image allows to specify many other environment variables listed below:
 
 ```
+ZBX_VAULT=HashiCorp # Allowed values: HashiCorp, CyberArk. Required when Vault is used. Available since 6.2.0
 ZBX_VAULTDBPATH= # Available since 5.2.0
 ZBX_VAULTURL=https://127.0.0.1:8200 # Available since 5.2.0
 VAULT_TOKEN= # Available since 5.2.0

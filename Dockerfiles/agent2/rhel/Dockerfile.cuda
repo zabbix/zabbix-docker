@@ -1,8 +1,8 @@
 # syntax=docker/dockerfile:1.6
 ARG OS_BASE_IMAGE=nvidia/cuda:12.9.0-base-ubi9
 ARG MAJOR_VERSION=7.4
-ARG RELEASE=8
-ARG ZBX_VERSION=${MAJOR_VERSION}.8
+ARG RELEASE=12
+ARG ZBX_VERSION=${MAJOR_VERSION}.12
 ARG BUILD_BASE_IMAGE=registry.connect.redhat.com/zabbix/zabbix-agent2-74:${ZBX_VERSION}
 
 FROM ${BUILD_BASE_IMAGE} AS builder
@@ -25,9 +25,9 @@ ENV ZBX_PERSISTENTBUFFERFILE=$ZABBIX_USER_HOME_DIR/buffer/agent2.db \
 
 LABEL description="Zabbix agent 2 is deployed on a monitoring target to actively monitor local resources and applications" \
       maintainer="alexey.pustovalov@zabbix.com" \
-      name="zabbix/zabbix-agent2-trunk" \
+      name="zabbix/zabbix-agent2-74" \
       release="${RELEASE}" \
-      run="docker run --name zabbix-agent2 --link zabbix-server:zabbix-server -p 10050:10050 -d registry.connect.redhat.com/zabbix/zabbix-agent2-trunk:${ZBX_VERSION}" \
+      run="docker run --name zabbix-agent2 --link zabbix-server:zabbix-server -p 10050:10050 -d registry.connect.redhat.com/zabbix/zabbix-agent2-74:${ZBX_VERSION}" \
       summary="Zabbix agent" \
       url="https://www.zabbix.com/" \
       vendor="Zabbix SIA" \
@@ -38,7 +38,7 @@ LABEL description="Zabbix agent 2 is deployed on a monitoring target to actively
       io.openshift.tags="zabbix,zabbix-agent" \
       org.label-schema.build-date="${BUILD_DATE}" \
       org.label-schema.description="Zabbix agent 2 is deployed on a monitoring target to actively monitor local resources and applications" \
-      org.label-schema.docker.cmd="docker run --name zabbix-agent2 --link zabbix-server:zabbix-server -p 10050:10050 -d registry.connect.redhat.com/zabbix/zabbix-agent2-trunk:${ZBX_VERSION}" \
+      org.label-schema.docker.cmd="docker run --name zabbix-agent2 --link zabbix-server:zabbix-server -p 10050:10050 -d registry.connect.redhat.com/zabbix/zabbix-agent2-74:${ZBX_VERSION}" \
       org.label-schema.license="AGPL v3.0" \
       org.label-schema.name="zabbix-agent2-rhel" \
       org.label-schema.schema-version="1.0" \
