@@ -18,7 +18,7 @@
 <h1 id="how-to-use-this-image">How to use this image</h1>
 <h2 id="start-zabbix-server-mysql-">Start <code>zabbix-server-mysql</code></h2>
 <p>Start a Zabbix server container as follows:</p>
-<pre><code>podman <span class="hljs-keyword">run</span><span class="bash"> --name some-zabbix-server-mysql <span class="hljs-_">-e</span> DB_SERVER_HOST=<span class="hljs-string">"some-mysql-server"</span> <span class="hljs-_">-e</span> MYSQL_USER=<span class="hljs-string">"some-user"</span> <span class="hljs-_">-e</span> MYSQL_PASSWORD=<span class="hljs-string">"some-password"</span> --init <span class="hljs-_">-d</span> zabbix/zabbix-server-mysql-70:tag</span>
+<pre><code>podman <span class="hljs-keyword">run</span><span class="bash"> --name some-zabbix-server-mysql <span class="hljs-_">-e</span> DB_SERVER_HOST=<span class="hljs-string">"some-mysql-server"</span> <span class="hljs-_">-e</span> MYSQL_USER=<span class="hljs-string">"some-user"</span> <span class="hljs-_">-e</span> MYSQL_PASSWORD=<span class="hljs-string">"some-password"</span> --init <span class="hljs-_">-d</span> zabbix/zabbix-server-mysql-74:tag</span>
 </code></pre><p>Where <code>some-zabbix-server-mysql</code> is the name you want to assign to your container, <code>some-mysql-server</code> is IP or DNS name of MySQL server, <code>some-user</code> is user to connect to Zabbix database on MySQL server, <code>some-password</code> is the password to connect to MySQL server and <code>tag</code> is the tag specifying the version you want.</p>
 <blockquote>
 <p>[!NOTE]
@@ -72,7 +72,7 @@ podman run --name some-zabbix-server-mysql <span class="hljs-_">-e</span> DB_SER
 <h3 id="-zbx_timeout-"><code>ZBX_TIMEOUT</code></h3>
 <p>The variable is used to specify timeout for processing checks. By default, value is <code>4</code>.</p>
 <h3 id="-zbx_javagateway_enable-"><code>ZBX_JAVAGATEWAY_ENABLE</code></h3>
-<p>The variable enable communication with Zabbix Java Gateway to collect Java related checks. By default, value is <code>false</code>.</p>
+<p>The variable enables communication with Zabbix Java Gateway to collect Java-related checks. By default, value is <code>false</code>.</p>
 <h3 id="other-variables">Other variables</h3>
 <p>Additionally the image allows to specify many other environment variables listed below:</p>
 <pre><code><span class="hljs-attr">ZBX_ALLOWUNSUPPORTEDDBVERSIONS</span>=<span class="hljs-number">0</span> # Available since <span class="hljs-number">6.0</span>.<span class="hljs-number">0</span>
@@ -82,11 +82,13 @@ podman run --name some-zabbix-server-mysql <span class="hljs-_">-e</span> DB_SER
 <span class="hljs-attr">ZBX_DBTLSKEYFILE</span>= # Available since <span class="hljs-number">5.0</span>.<span class="hljs-number">0</span>
 <span class="hljs-attr">ZBX_DBTLSCIPHER</span>= # Available since <span class="hljs-number">5.0</span>.<span class="hljs-number">0</span>
 <span class="hljs-attr">ZBX_DBTLSCIPHER13</span>= # Available since <span class="hljs-number">5.0</span>.<span class="hljs-number">0</span>
-<span class="hljs-attr">ZBX_VAULT</span>=HashiCorp # Allowed values: HashiCorp, CyberArk. Required when Vault is used. Available since <span class="hljs-number">6.2</span>.<span class="hljs-number">0</span>
 <span class="hljs-attr">ZBX_VAULTPREFIX</span>= # Available since <span class="hljs-number">7.0</span>.<span class="hljs-number">0</span>
+<span class="hljs-attr">ZBX_VAULT</span>=HashiCorp # Allowed values: HashiCorp, CyberArk. Required when Vault is used. Available since <span class="hljs-number">6.2</span>.<span class="hljs-number">0</span>
 <span class="hljs-attr">ZBX_VAULTDBPATH</span>= # Available since <span class="hljs-number">5.2</span>.<span class="hljs-number">0</span>
 <span class="hljs-attr">ZBX_VAULTURL</span>=https://<span class="hljs-number">127.0</span>.<span class="hljs-number">0.1</span>:<span class="hljs-number">8200</span> # Available since <span class="hljs-number">5.2</span>.<span class="hljs-number">0</span>
 <span class="hljs-attr">VAULT_TOKEN</span>= # Available since <span class="hljs-number">5.2</span>.<span class="hljs-number">0</span>
+<span class="hljs-attr">ZBX_VAULTTLSCERTFILE</span>= # Available since <span class="hljs-number">6.2</span>.<span class="hljs-number">0</span>
+<span class="hljs-attr">ZBX_VAULTTLSKEYFILE</span>= # Available since <span class="hljs-number">6.2</span>.<span class="hljs-number">0</span>
 <span class="hljs-attr">ZBX_LISTENIP</span>=
 <span class="hljs-attr">ZBX_LISTENPORT</span>=<span class="hljs-number">10051</span>
 <span class="hljs-attr">ZBX_LISTENBACKLOG</span>=
@@ -97,13 +99,16 @@ podman run --name some-zabbix-server-mysql <span class="hljs-_">-e</span> DB_SER
 <span class="hljs-attr">ZBX_HISTORYSTORAGETYPES</span>=uint,dbl,str,log,text # Available since <span class="hljs-number">3.4</span>.<span class="hljs-number">0</span>
 <span class="hljs-attr">ZBX_ENABLEGLOBALSCRIPTS</span>=0 # Available since  <span class="hljs-number">7.0.0</span>
 <span class="hljs-attr">ZBX_STARTPOLLERS</span>=<span class="hljs-number">5</span>
+<span class="hljs-attr">ZBX_MAXCONCURRENTCHECKSPERPOLLER</span>=<span class="hljs-number">1000</span> # Available since <span class="hljs-number">7.0</span>.<span class="hljs-number">0</span>
+<span class="hljs-attr">ZBX_STARTAGENTPOLLERS</span>=<span class="hljs-number">1</span> # Available since <span class="hljs-number">7.0</span>.<span class="hljs-number">0</span>
+<span class="hljs-attr">ZBX_STARTHTTPAGENTPOLLERS</span>=<span class="hljs-number">1</span> # Available since <span class="hljs-number">7.0</span>.<span class="hljs-number">0</span>
 <span class="hljs-attr">ZBX_STARTIPMIPOLLERS</span>=<span class="hljs-number">0</span>
-<span class="hljs-attr">ZBX_STARTPREPROCESSORS</span>=<span class="hljs-number">3</span> # Available since <span class="hljs-number">3.4</span>.<span class="hljs-number">0</span>
+<span class="hljs-attr">ZBX_STARTPREPROCESSORS</span>=<span class="hljs-number">16</span> # Available since <span class="hljs-number">3.4</span>.<span class="hljs-number">0</span>
 <span class="hljs-attr">ZBX_STARTCONNECTORS</span>=<span class="hljs-number">0</span> # Available since <span class="hljs-number">6.4</span>.<span class="hljs-number">0</span>
 <span class="hljs-attr">ZBX_STARTPOLLERSUNREACHABLE</span>=<span class="hljs-number">1</span>
 <span class="hljs-attr">ZBX_STARTTRAPPERS</span>=<span class="hljs-number">5</span>
 <span class="hljs-attr">ZBX_STARTPINGERS</span>=<span class="hljs-number">1</span>
-<span class="hljs-attr">ZBX_STARTDISCOVERERS</span>=<span class="hljs-number">1</span>
+<span class="hljs-attr">ZBX_STARTDISCOVERERS</span>=<span class="hljs-number">5</span>
 <span class="hljs-attr">ZBX_STARTHISTORYPOLLERS</span>=<span class="hljs-number">5</span> # Available since <span class="hljs-number">5.4</span>.<span class="hljs-number">0</span>
 <span class="hljs-attr">ZBX_STARTHTTPPOLLERS</span>=<span class="hljs-number">1</span>
 <span class="hljs-attr">ZBX_STARTODBCPOLLERS</span>=<span class="hljs-number">1</span> # Available since <span class="hljs-number">6.0</span>.<span class="hljs-number">0</span>
@@ -126,7 +131,7 @@ podman run --name some-zabbix-server-mysql <span class="hljs-_">-e</span> DB_SER
 <span class="hljs-attr">ZBX_HOUSEKEEPINGFREQUENCY</span>=<span class="hljs-number">1</span>
 <span class="hljs-attr">ZBX_MAXHOUSEKEEPERDELETE</span>=<span class="hljs-number">5000</span>
 <span class="hljs-attr">ZBX_PROBLEMHOUSEKEEPINGFREQUENCY</span>=<span class="hljs-number">60</span> # Available since <span class="hljs-number">6.0</span>.<span class="hljs-number">0</span>
-<span class="hljs-attr">ZBX_CACHESIZE</span>=<span class="hljs-number">8</span>M
+<span class="hljs-attr">ZBX_CACHESIZE</span>=<span class="hljs-number">32</span>M
 <span class="hljs-attr">ZBX_CACHEUPDATEFREQUENCY</span>=<span class="hljs-number">10</span>
 <span class="hljs-attr">ZBX_STARTDBSYNCERS</span>=<span class="hljs-number">4</span>
 <span class="hljs-attr">ZBX_EXPORTFILESIZE</span>=<span class="hljs-number">1</span>G # Available since <span class="hljs-number">4.0</span>.<span class="hljs-number">0</span>
@@ -151,9 +156,13 @@ podman run --name some-zabbix-server-mysql <span class="hljs-_">-e</span> DB_SER
 <span class="hljs-attr">ZBX_PROXYCONFIGFREQUENCY</span>=<span class="hljs-number">10</span>
 <span class="hljs-attr">ZBX_PROXYDATAFREQUENCY</span>=<span class="hljs-number">1</span>
 <span class="hljs-attr">ZBX_TLSCAFILE</span>=
+<span class="hljs-attr">ZBX_TLSCA</span>=
 <span class="hljs-attr">ZBX_TLSCRLFILE</span>=
+<span class="hljs-attr">ZBX_TLSCRL</span>=
 <span class="hljs-attr">ZBX_TLSCERTFILE</span>=
+<span class="hljs-attr">ZBX_TLSCERT</span>=
 <span class="hljs-attr">ZBX_TLSKEYFILE</span>=
+<span class="hljs-attr">ZBX_TLSKEY</span>=
 <span class="hljs-attr">ZBX_TLSCIPHERALL</span>= # Available since <span class="hljs-number">4.4</span>.<span class="hljs-number">7</span>
 <span class="hljs-attr">ZBX_TLSCIPHERALL13</span>= # Available since <span class="hljs-number">4.4</span>.<span class="hljs-number">7</span>
 <span class="hljs-attr">ZBX_TLSCIPHERCERT</span>= # Available since <span class="hljs-number">4.4</span>.<span class="hljs-number">7</span>
@@ -162,10 +171,11 @@ podman run --name some-zabbix-server-mysql <span class="hljs-_">-e</span> DB_SER
 <span class="hljs-attr">ZBX_TLSCIPHERPSK13</span>= # Available since <span class="hljs-number">4.4</span>.<span class="hljs-number">7</span>
 <span class="hljs-attr">ZBX_ALLOWSOFTWAREUPDATECHECK</span>=1 # Available since <span class="hljs-number">7.0</span>.<span class="hljs-number">0</span>
 <span class="hljs-attr">ZBX_WEBDRIVERURL</span>= # Available since <span class="hljs-number">7.0</span>.<span class="hljs-number">0</span>
-<span class="hljs-attr">ZBX_STARTBROWSERPOLLERS</span>= # Available since <span class="hljs-number">7.0</span>.<span class="hljs-number">0</span>
+<span class="hljs-attr">ZBX_STARTBROWSERPOLLERS</span>=<span class="hljs-number">1</span> # Available since <span class="hljs-number">7.0</span>.<span class="hljs-number">0</span>
+<span class="hljs-attr">ZBX_STARTSNMPPOLLERS</span>=<span class="hljs-number">1</span> # Available since <span class="hljs-number">7.0</span>.<span class="hljs-number">0</span>
 </code></pre><p>Default values of these variables are specified after equal sign.</p>
 <p>The allowed variables are identical of parameters in official <code>zabbix_server.conf</code>. For example, <code>ZBX_LOGSLOWQUERIES</code> = <code>LogSlowQueries</code>.</p>
-<p>Please use official documentation for <a href="https://www.zabbix.com/documentation/current/manual/appendix/config/zabbix_server"><code>zabbix_server.conf</code></a> to get more information about the variables.</p>
+<p>Please use official documentation for <a href="https://www.zabbix.com/documentation/7.0/en/manual/appendix/config/zabbix_server"><code>zabbix_server.conf</code></a> to get more information about the variables.</p>
 <h2 id="allowed-volumes-for-the-zabbix-server-container">Allowed volumes for the Zabbix server container</h2>
 <h3 id="-usr-lib-zabbix-alertscripts-"><code>/usr/lib/zabbix/alertscripts</code></h3>
 <p>The volume is used for custom alert scripts. It is <code>AlertScriptsPath</code> parameter in <code>zabbix_server.conf</code>.</p>
@@ -174,7 +184,7 @@ podman run --name some-zabbix-server-mysql <span class="hljs-_">-e</span> DB_SER
 <h3 id="-var-lib-zabbix-modules-"><code>/var/lib/zabbix/modules</code></h3>
 <p>The volume allows load additional modules and extend Zabbix server using <code>LoadModule</code> feature.</p>
 <h3 id="-var-lib-zabbix-enc-"><code>/var/lib/zabbix/enc</code></h3>
-<p>The volume is used to store TLS related files. These file names are specified using <code>ZBX_TLSCAFILE</code>, <code>ZBX_TLSCRLFILE</code>, <code>ZBX_TLSKEY_FILE</code> and <code>ZBX_TLSPSKFILE</code> variables.</p>
+<p>The volume is used to store TLS related files. These file names are specified using <code>ZBX_TLSCAFILE</code>, <code>ZBX_TLSCRLFILE</code>, <code>ZBX_TLSCERTFILE</code> and <code>ZBX_TLSKEYFILE</code> variables. Additionally it is possible to use environment variables <code>ZBX_TLSCA</code>, <code>ZBX_TLSCRL</code>, <code>ZBX_TLSCERT</code> and <code>ZBX_TLSKEY</code> with plaintext values.</p>
 <h3 id="-var-lib-zabbix-ssh_keys-"><code>/var/lib/zabbix/ssh_keys</code></h3>
 <p>The volume is used as location of public and private keys for SSH checks and actions. It is <code>SSHKeyLocation</code> parameter in <code>zabbix_server.conf</code>.</p>
 <h3 id="-var-lib-zabbix-ssl-certs-"><code>/var/lib/zabbix/ssl/certs</code></h3>

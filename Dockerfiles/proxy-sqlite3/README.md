@@ -94,13 +94,7 @@ This variable is unique, case sensitive hostname. By default, value is `zabbix-p
 
 ### `ZBX_SERVER_HOST`
 
-This variable is IP or DNS name of Zabbix server or Zabbix proxy. By default, value is `zabbix-server`. It is ``Server`` parameter in ``zabbix_proxy.conf``. It is allowed to specify Zabbix server or Zabbix proxy port number using ``ZBX_SERVER_PORT`` variable. It make sense in case of non-default port for active checks.
-
-### `ZBX_SERVER_PORT`
-
-This variable is port Zabbix server listening on. By default, value is `10051`.
-
-**Note:** This parameter is no longer used in version 6.0 and above. Instead, add a colon ``:`` followed by the port number to the end of ``ZBX_SERVER_HOST``.
+This variable is IP or DNS name of Zabbix server. By default, value is `zabbix-server`. It is ``Server`` parameter in ``zabbix_proxy.conf``. For a non-default port, append it to the host using ``host:port`` syntax.
 
 ### `ZBX_LOADMODULE`
 
@@ -122,31 +116,35 @@ The variable is used to specify timeout for processing checks. By default, value
 
 ### `ZBX_JAVAGATEWAY_ENABLE`
 
-The variable enable communication with Zabbix Java Gateway to collect Java related checks. By default, value is `false`.
+The variable enables communication with Zabbix Java Gateway to collect Java-related checks. By default, value is `false`.
 
 ### Other variables
 
 Additionally the image allows to specify many other environment variables listed below:
 
 ```
+ZBX_USE_NODE_NAME_AS_DB_NAME=false
 ZBX_ENABLEREMOTECOMMANDS=0 # Available since 3.4.0
 ZBX_LOGREMOTECOMMANDS=0 # Available since 3.4.0
 ZBX_SOURCEIP=
 ZBX_HOSTNAMEITEM=system.hostname
 ZBX_PROXYLOCALBUFFER=0
 ZBX_PROXYOFFLINEBUFFER=1
-ZBX_PROXYHEARTBEATFREQUENCY=60 # Deprecated since 6.4.0
-ZBX_CONFIGFREQUENCY=3600 # Deprecated since 6.4.0
+ZBX_PROXYBUFFERMODE=disk # Available since 7.0.0
+ZBX_PROXYMEMORYBUFFERAGE=0 # Available since 7.0.0
+ZBX_PROXYMEMORYBUFFERSIZE=0 # Available since 7.0.0
 ZBX_PROXYCONFIGFREQUENCY=10 # Available since 6.4.0
 ZBX_DATASENDERFREQUENCY=1
+ZBX_MAXCONCURRENTCHECKSPERPOLLER=1000 # Available since 7.0.0
+ZBX_STARTAGENTPOLLERS=1 # Available since 7.0.0
+ZBX_STARTHTTPAGENTPOLLERS=1 # Available since 7.0.0
 ZBX_STARTPOLLERS=5
-ZBX_STARTPREPROCESSORS=3 # Available since 4.2.0
+ZBX_STARTPREPROCESSORS=16 # Available since 4.2.0
 ZBX_STARTIPMIPOLLERS=0
 ZBX_STARTPOLLERSUNREACHABLE=1
 ZBX_STARTTRAPPERS=5
 ZBX_STARTPINGERS=1
-ZBX_STARTDISCOVERERS=1
-ZBX_STARTHISTORYPOLLERS=1 # Available since 5.4.0 till 6.0.0
+ZBX_STARTDISCOVERERS=5
 ZBX_STARTHTTPPOLLERS=1
 ZBX_STARTODBCPOLLERS=1 # Available since 6.0.0
 ZBX_JAVAGATEWAY=zabbix-java-gateway
@@ -163,7 +161,7 @@ ZBX_LISTENIP=
 ZBX_LISTENPORT=10051
 ZBX_LISTENBACKLOG=
 ZBX_HOUSEKEEPINGFREQUENCY=1
-ZBX_CACHESIZE=8M
+ZBX_CACHESIZE=32M
 ZBX_STARTDBSYNCERS=4
 ZBX_HISTORYCACHESIZE=16M
 ZBX_HISTORYINDEXCACHESIZE=4M
@@ -203,7 +201,7 @@ Default values of these variables are specified after equal sign.
 
 The allowed variables are identical of parameters in official ``zabbix_proxy.conf``. For example, ``ZBX_LOGSLOWQUERIES`` = ``LogSlowQueries``.
 
-Please use official documentation for [``zabbix_proxy.conf``](https://www.zabbix.com/documentation/current/manual/appendix/config/zabbix_proxy) to get more information about the variables.
+Please use official documentation for [``zabbix_proxy.conf``](https://www.zabbix.com/documentation/7.0/en/manual/appendix/config/zabbix_proxy) to get more information about the variables.
 
 ## Allowed volumes for the Zabbix proxy container
 

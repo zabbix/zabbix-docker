@@ -103,7 +103,7 @@ ZBX_IGNOREURLCERTERRORS=0
 
 Default values of these variables are specified after equal sign.
 
-Please use official documentation for [``zabbix_web_service.conf``](https://www.zabbix.com/documentation/current/manual/appendix/config/zabbix_web_service) to get more information about the variables.
+Please use official documentation for [``zabbix_web_service.conf``](https://www.zabbix.com/documentation/7.0/en/manual/appendix/config/zabbix_web_service) to get more information about the variables.
 
 ## Allowed volumes for the Zabbix web service container
 

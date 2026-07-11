@@ -89,7 +89,7 @@ This variable is unique, case sensitive hostname. By default, value is `hostname
 
 ### `ZBX_SERVER_HOST`
 
-This variable is IP or DNS name of Zabbix server or Zabbix proxy. By default, value is `zabbix-server`. It is ``Server`` parameter in ``zabbix_agentd.conf``. It is allowed to specify Zabbix server or Zabbix proxy port number using ``ZBX_SERVER_PORT`` variable. It make sense in case of non-default port for active checks.
+This variable is IP or DNS name of Zabbix server or Zabbix proxy. By default, value is `zabbix-server`. It is ``Server`` parameter in ``zabbix_agentd.conf``. For active checks on a non-default port, specify the port using the ``ZBX_SERVER_PORT`` variable.
 
 ### `ZBX_PASSIVE_ALLOW`
 
@@ -136,11 +136,11 @@ ZBX_LOGREMOTECOMMANDS=0
 ZBX_HEARTBEAT_FREQUENCY=60 # Available since 6.2.0
 ZBX_HOSTINTERFACE= # Available since 4.4.0
 ZBX_HOSTINTERFACEITEM= # Available since 4.4.0
-ZBX_STARTAGENTS=3
+ZBX_STARTAGENTS=10
 ZBX_HOSTNAMEITEM=system.hostname
 ZBX_METADATA=
 ZBX_METADATAITEM=
-ZBX_REFRESHACTIVECHECKS=120
+ZBX_REFRESHACTIVECHECKS=5
 ZBX_BUFFERSEND=5
 ZBX_BUFFERSIZE=100
 ZBX_MAXLINESPERSECOND=20
@@ -177,7 +177,7 @@ Default values of these variables are specified after equal sign.
 
 The allowed variables are identical of parameters in official ``zabbix_agentd.conf`` configuration file. For example, ``ZBX_REFRESHACTIVECHECKS`` = ``RefreshActiveChecks``.
 
-Please use official documentation for [``zabbix_agentd.conf``](https://www.zabbix.com/documentation/current/manual/appendix/config/zabbix_agentd) to get more information about the variables.
+Please use official documentation for [``zabbix_agentd.conf``](https://www.zabbix.com/documentation/7.0/en/manual/appendix/config/zabbix_agentd) to get more information about the variables.
 
 ## Allowed volumes for the Zabbix agent container
 

@@ -198,6 +198,7 @@ function Prepare-Zbx-Agent-Config {
     Update-Config-Var $ZbxAgentConfig "LogFileSize"
     Update-Config-Var $ZbxAgentConfig "DebugLevel" "$env:ZBX_DEBUGLEVEL"
     Update-Config-Var $ZbxAgentConfig "SourceIP"
+    Update-Config-Var $ZbxAgentConfig "EnableRemoteCommands" "$env:ZBX_ENABLEREMOTECOMMANDS"
     Update-Config-Var $ZbxAgentConfig "LogRemoteCommands" "$env:ZBX_LOGREMOTECOMMANDS"
 
     Update-Config-Var $ZbxAgentConfig "ListenPort" "$env:ZBX_LISTENPORT"
@@ -247,7 +248,7 @@ function Prepare-Zbx-Agent-Config {
 }
 
 function ClearZbxEnv() {
-    if ([string]::IsNullOrWhitespace($env:ZBX_CLEAR_ENV)) {
+    if ($env:ZBX_CLEAR_ENV -eq "false") {
         return
     }
 

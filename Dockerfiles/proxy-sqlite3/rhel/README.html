@@ -46,10 +46,7 @@ where 1995 is <code>zabbix</code> GID.</p>
 <h3 id="-zbx_hostname-"><code>ZBX_HOSTNAME</code></h3>
 <p>This variable is unique, case sensitive hostname. By default, value is <code>zabbix-proxy-sqlite3</code> of the container. It is <code>Hostname</code> parameter in <code>zabbix_proxy.conf</code>.</p>
 <h3 id="-zbx_server_host-"><code>ZBX_SERVER_HOST</code></h3>
-<p>This variable is IP or DNS name of Zabbix server or Zabbix proxy. By default, value is <code>zabbix-server</code>. It is <code>Server</code> parameter in <code>zabbix_proxy.conf</code>. It is allowed to specify Zabbix server or Zabbix proxy port number using <code>ZBX_SERVER_PORT</code> variable. It make sense in case of non-default port for active checks.</p>
-<h3 id="-zbx_server_port-"><code>ZBX_SERVER_PORT</code></h3>
-<p>This variable is port Zabbix server listening on. By default, value is <code>10051</code>.</p>
-<p><strong>Note:</strong> This parameter is no longer used in version 6.0 and above. Instead, add a colon <code>:</code> followed by the port number to the end of <code>ZBX_SERVER_HOST</code>.</p>
+<p>This variable is IP or DNS name of Zabbix server. By default, value is <code>zabbix-server</code>. It is <code>Server</code> parameter in <code>zabbix_proxy.conf</code>. For a non-default port, append it to the host using <code>host:port</code> syntax.</p>
 <h3 id="-zbx_loadmodule-"><code>ZBX_LOADMODULE</code></h3>
 <p>The variable is list of comma separated loadable Zabbix modules. It works with  volume <code>/var/lib/zabbix/modules</code>. The syntax of the variable is <code>dummy1.so,dummy2.so</code>.</p>
 <h3 id="-zbx_debuglevel-"><code>ZBX_DEBUGLEVEL</code></h3>
@@ -65,27 +62,31 @@ where 1995 is <code>zabbix</code> GID.</p>
 <h3 id="-zbx_timeout-"><code>ZBX_TIMEOUT</code></h3>
 <p>The variable is used to specify timeout for processing checks. By default, value is <code>4</code>.</p>
 <h3 id="-zbx_javagateway_enable-"><code>ZBX_JAVAGATEWAY_ENABLE</code></h3>
-<p>The variable enable communication with Zabbix Java Gateway to collect Java related checks. By default, value is <code>false</code>.</p>
+<p>The variable enables communication with Zabbix Java Gateway to collect Java-related checks. By default, value is <code>false</code>.</p>
 <h3 id="other-variables">Other variables</h3>
 <p>Additionally the image allows to specify many other environment variables listed below:</p>
-<pre><code><span class="hljs-attr">ZBX_ENABLEREMOTECOMMANDS</span>=<span class="hljs-number">0</span> # Available since <span class="hljs-number">3.4</span>.<span class="hljs-number">0</span>
+<pre><code><span class="hljs-attr">ZBX_USE_NODE_NAME_AS_DB_NAME</span>=<span class="hljs-literal">false</span>
+<span class="hljs-attr">ZBX_ENABLEREMOTECOMMANDS</span>=<span class="hljs-number">0</span> # Available since <span class="hljs-number">3.4</span>.<span class="hljs-number">0</span>
 <span class="hljs-attr">ZBX_LOGREMOTECOMMANDS</span>=<span class="hljs-number">0</span> # Available since <span class="hljs-number">3.4</span>.<span class="hljs-number">0</span>
 <span class="hljs-attr">ZBX_SOURCEIP</span>=
 <span class="hljs-attr">ZBX_HOSTNAMEITEM</span>=system.hostname
 <span class="hljs-attr">ZBX_PROXYLOCALBUFFER</span>=<span class="hljs-number">0</span>
 <span class="hljs-attr">ZBX_PROXYOFFLINEBUFFER</span>=<span class="hljs-number">1</span>
-<span class="hljs-attr">ZBX_PROXYHEARTBEATFREQUENCY</span>=<span class="hljs-number">60</span> # Deprecated since <span class="hljs-number">6.4</span>.<span class="hljs-number">0</span>
-<span class="hljs-attr">ZBX_CONFIGFREQUENCY</span>=<span class="hljs-number">3600</span> # Deprecated since <span class="hljs-number">6.4</span>.<span class="hljs-number">0</span>
+<span class="hljs-attr">ZBX_PROXYBUFFERMODE</span>=disk # Available since <span class="hljs-number">7.0</span>.<span class="hljs-number">0</span>
+<span class="hljs-attr">ZBX_PROXYMEMORYBUFFERAGE</span>=<span class="hljs-number">0</span> # Available since <span class="hljs-number">7.0</span>.<span class="hljs-number">0</span>
+<span class="hljs-attr">ZBX_PROXYMEMORYBUFFERSIZE</span>=<span class="hljs-number">0</span> # Available since <span class="hljs-number">7.0</span>.<span class="hljs-number">0</span>
 <span class="hljs-attr">ZBX_PROXYCONFIGFREQUENCY</span>=<span class="hljs-number">10</span> # Available since <span class="hljs-number">6.4</span>.<span class="hljs-number">0</span>
 <span class="hljs-attr">ZBX_DATASENDERFREQUENCY</span>=<span class="hljs-number">1</span>
+<span class="hljs-attr">ZBX_MAXCONCURRENTCHECKSPERPOLLER</span>=<span class="hljs-number">1000</span> # Available since <span class="hljs-number">7.0</span>.<span class="hljs-number">0</span>
+<span class="hljs-attr">ZBX_STARTAGENTPOLLERS</span>=<span class="hljs-number">1</span> # Available since <span class="hljs-number">7.0</span>.<span class="hljs-number">0</span>
+<span class="hljs-attr">ZBX_STARTHTTPAGENTPOLLERS</span>=<span class="hljs-number">1</span> # Available since <span class="hljs-number">7.0</span>.<span class="hljs-number">0</span>
 <span class="hljs-attr">ZBX_STARTPOLLERS</span>=<span class="hljs-number">5</span>
-<span class="hljs-attr">ZBX_STARTPREPROCESSORS</span>=<span class="hljs-number">3</span> # Available since <span class="hljs-number">4.2</span>.<span class="hljs-number">0</span>
+<span class="hljs-attr">ZBX_STARTPREPROCESSORS</span>=<span class="hljs-number">16</span> # Available since <span class="hljs-number">4.2</span>.<span class="hljs-number">0</span>
 <span class="hljs-attr">ZBX_STARTIPMIPOLLERS</span>=<span class="hljs-number">0</span>
 <span class="hljs-attr">ZBX_STARTPOLLERSUNREACHABLE</span>=<span class="hljs-number">1</span>
 <span class="hljs-attr">ZBX_STARTTRAPPERS</span>=<span class="hljs-number">5</span>
 <span class="hljs-attr">ZBX_STARTPINGERS</span>=<span class="hljs-number">1</span>
-<span class="hljs-attr">ZBX_STARTDISCOVERERS</span>=<span class="hljs-number">1</span>
-<span class="hljs-attr">ZBX_STARTHISTORYPOLLERS</span>=<span class="hljs-number">1</span> # Available since <span class="hljs-number">5.4</span>.<span class="hljs-number">0</span> till <span class="hljs-number">6.0</span>.<span class="hljs-number">0</span>
+<span class="hljs-attr">ZBX_STARTDISCOVERERS</span>=<span class="hljs-number">5</span>
 <span class="hljs-attr">ZBX_STARTHTTPPOLLERS</span>=<span class="hljs-number">1</span>
 <span class="hljs-attr">ZBX_STARTODBCPOLLERS</span>=<span class="hljs-number">1</span> # Available since <span class="hljs-number">6.0</span>.<span class="hljs-number">0</span>
 <span class="hljs-attr">ZBX_JAVAGATEWAY</span>=zabbix-java-gateway
@@ -102,7 +103,7 @@ where 1995 is <code>zabbix</code> GID.</p>
 <span class="hljs-attr">ZBX_LISTENPORT</span>=<span class="hljs-number">10051</span>
 <span class="hljs-attr">ZBX_LISTENBACKLOG</span>=
 <span class="hljs-attr">ZBX_HOUSEKEEPINGFREQUENCY</span>=<span class="hljs-number">1</span>
-<span class="hljs-attr">ZBX_CACHESIZE</span>=<span class="hljs-number">8</span>M
+<span class="hljs-attr">ZBX_CACHESIZE</span>=<span class="hljs-number">32</span>M
 <span class="hljs-attr">ZBX_STARTDBSYNCERS</span>=<span class="hljs-number">4</span>
 <span class="hljs-attr">ZBX_HISTORYCACHESIZE</span>=<span class="hljs-number">16</span>M
 <span class="hljs-attr">ZBX_HISTORYINDEXCACHESIZE</span>=<span class="hljs-number">4</span>M
@@ -114,13 +115,18 @@ where 1995 is <code>zabbix</code> GID.</p>
 <span class="hljs-attr">ZBX_TLSCONNECT</span>=unencrypted
 <span class="hljs-attr">ZBX_TLSACCEPT</span>=unencrypted
 <span class="hljs-attr">ZBX_TLSCAFILE</span>=
+<span class="hljs-attr">ZBX_TLSCA</span>=
 <span class="hljs-attr">ZBX_TLSCRLFILE</span>=
+<span class="hljs-attr">ZBX_TLSCRL</span>=
 <span class="hljs-attr">ZBX_TLSSERVERCERTISSUER</span>=
 <span class="hljs-attr">ZBX_TLSSERVERCERTSUBJECT</span>=
 <span class="hljs-attr">ZBX_TLSCERTFILE</span>=
+<span class="hljs-attr">ZBX_TLSCERT</span>=
 <span class="hljs-attr">ZBX_TLSKEYFILE</span>=
+<span class="hljs-attr">ZBX_TLSKEY</span>=
 <span class="hljs-attr">ZBX_TLSPSKIDENTITY</span>=
 <span class="hljs-attr">ZBX_TLSPSKFILE</span>=
+<span class="hljs-attr">ZBX_TLSPSK</span>=
 <span class="hljs-attr">ZBX_TLSCIPHERALL</span>= # Available since <span class="hljs-number">4.4</span>.<span class="hljs-number">7</span>
 <span class="hljs-attr">ZBX_TLSCIPHERALL13</span>= # Available since <span class="hljs-number">4.4</span>.<span class="hljs-number">7</span>
 <span class="hljs-attr">ZBX_TLSCIPHERCERT</span>= # Available since <span class="hljs-number">4.4</span>.<span class="hljs-number">7</span>
@@ -128,10 +134,11 @@ where 1995 is <code>zabbix</code> GID.</p>
 <span class="hljs-attr">ZBX_TLSCIPHERPSK</span>= # Available since <span class="hljs-number">4.4</span>.<span class="hljs-number">7</span>
 <span class="hljs-attr">ZBX_TLSCIPHERPSK13</span>= # Available since <span class="hljs-number">4.4</span>.<span class="hljs-number">7</span>
 <span class="hljs-attr">ZBX_WEBDRIVERURL</span>= # Available since <span class="hljs-number">7.0</span>.<span class="hljs-number">0</span>
-<span class="hljs-attr">ZBX_STARTBROWSERPOLLERS</span>= # Available since <span class="hljs-number">7.0</span>.<span class="hljs-number">0</span>
+<span class="hljs-attr">ZBX_STARTBROWSERPOLLERS</span>=<span class="hljs-number">1</span> # Available since <span class="hljs-number">7.0</span>.<span class="hljs-number">0</span>
+<span class="hljs-attr">ZBX_STARTSNMPPOLLERS</span>=<span class="hljs-number">1</span> # Available since <span class="hljs-number">7.0</span>.<span class="hljs-number">0</span>
 </code></pre><p>Default values of these variables are specified after equal sign.</p>
 <p>The allowed variables are identical of parameters in official <code>zabbix_proxy.conf</code>. For example, <code>ZBX_LOGSLOWQUERIES</code> = <code>LogSlowQueries</code>.</p>
-<p>Please use official documentation for <a href="https://www.zabbix.com/documentation/current/manual/appendix/config/zabbix_proxy"><code>zabbix_proxy.conf</code></a> to get more information about the variables.</p>
+<p>Please use official documentation for <a href="https://www.zabbix.com/documentation/7.0/en/manual/appendix/config/zabbix_proxy"><code>zabbix_proxy.conf</code></a> to get more information about the variables.</p>
 <h2 id="allowed-volumes-for-the-zabbix-proxy-container">Allowed volumes for the Zabbix proxy container</h2>
 <h3 id="-usr-lib-zabbix-externalscripts-"><code>/usr/lib/zabbix/externalscripts</code></h3>
 <p>The volume is used by External checks (type of items). It is <code>ExternalScripts</code> parameter in <code>zabbix_proxy.conf</code>.</p>
@@ -140,7 +147,7 @@ where 1995 is <code>zabbix</code> GID.</p>
 <h3 id="-var-lib-zabbix-modules-"><code>/var/lib/zabbix/modules</code></h3>
 <p>The volume allows load additional modules and extend Zabbix proxy using <code>LoadModule</code> feature.</p>
 <h3 id="-var-lib-zabbix-enc-"><code>/var/lib/zabbix/enc</code></h3>
-<p>The volume is used to store TLS related files. These file names are specified using <code>ZBX_TLSCAFILE</code>, <code>ZBX_TLSCRLFILE</code>, <code>ZBX_TLSKEY_FILE</code> and <code>ZBX_TLSPSKFILE</code> variables.</p>
+<p>The volume is used to store TLS related files. These file names are specified using <code>ZBX_TLSCAFILE</code>, <code>ZBX_TLSCRLFILE</code>, <code>ZBX_TLSCERTFILE</code>, <code>ZBX_TLSKEYFILE</code> and <code>ZBX_TLSPSKFILE</code> variables. Additionally it is possible to use environment variables <code>ZBX_TLSCA</code>, <code>ZBX_TLSCRL</code>, <code>ZBX_TLSCERT</code>, <code>ZBX_TLSKEY</code> and <code>ZBX_TLSPSK</code> with plaintext values.</p>
 <h3 id="-var-lib-zabbix-ssh_keys-"><code>/var/lib/zabbix/ssh_keys</code></h3>
 <p>The volume is used as location of public and private keys for SSH checks and actions. It is <code>SSHKeyLocation</code> parameter in <code>zabbix_proxy.conf</code>.</p>
 <h3 id="-var-lib-zabbix-ssl-certs-"><code>/var/lib/zabbix/ssl/certs</code></h3>

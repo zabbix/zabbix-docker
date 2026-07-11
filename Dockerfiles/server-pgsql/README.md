@@ -127,7 +127,7 @@ The variable is used to specify timeout for processing checks. By default, value
 
 ### ``ZBX_JAVAGATEWAY_ENABLE``
 
-The variable enable communication with Zabbix Java Gateway to collect Java related checks. By default, value is `false`.
+The variable enables communication with Zabbix Java Gateway to collect Java-related checks. By default, value is `false`.
 
 ### Other variables
 
@@ -146,6 +146,9 @@ ZBX_VAULTDBPATH= # Available since 5.2.0
 ZBX_VAULTPREFIX= # Available since 7.0.0
 ZBX_VAULTURL=https://127.0.0.1:8200 # Available since 5.2.0
 VAULT_TOKEN= # Available since 5.2.0
+ZBX_VAULTTLSCERTFILE= # Available since 6.2.0
+ZBX_VAULTTLSKEYFILE= # Available since 6.2.0
+ZBX_ALLOWSOFTWAREUPDATECHECK=1 # Available since 7.0.0
 ZBX_LISTENIP=
 ZBX_LISTENPORT=10051
 ZBX_LISTENBACKLOG=
@@ -156,13 +159,16 @@ ZBX_HISTORYSTORAGEURL= # Available since 3.4.0
 ZBX_HISTORYSTORAGETYPES=uint,dbl,str,log,text # Available since 3.4.0
 ZBX_ENABLEGLOBALSCRIPTS=0 # Available since 7.0.0
 ZBX_STARTPOLLERS=5
+ZBX_MAXCONCURRENTCHECKSPERPOLLER=1000 # Available since 7.0.0
+ZBX_STARTAGENTPOLLERS=1 # Available since 7.0.0
+ZBX_STARTHTTPAGENTPOLLERS=1 # Available since 7.0.0
 ZBX_STARTIPMIPOLLERS=0
 ZBX_STARTCONNECTORS=0 # Available since 6.4.0
-ZBX_STARTPREPROCESSORS=3 # Available since 3.4.0
+ZBX_STARTPREPROCESSORS=16 # Available since 3.4.0
 ZBX_STARTPOLLERSUNREACHABLE=1
 ZBX_STARTTRAPPERS=5
 ZBX_STARTPINGERS=1
-ZBX_STARTDISCOVERERS=1
+ZBX_STARTDISCOVERERS=5
 ZBX_STARTHISTORYPOLLERS=5 # Available since 5.4.0
 ZBX_STARTHTTPPOLLERS=1
 ZBX_STARTODBCPOLLERS=1 # Available since 6.0.0
@@ -185,7 +191,7 @@ ZBX_SMSDEVICES=
 ZBX_HOUSEKEEPINGFREQUENCY=1
 ZBX_MAXHOUSEKEEPERDELETE=5000
 ZBX_PROBLEMHOUSEKEEPINGFREQUENCY=60 # Available since 6.0.0
-ZBX_CACHESIZE=8M
+ZBX_CACHESIZE=32M
 ZBX_CACHEUPDATEFREQUENCY=10
 ZBX_STARTDBSYNCERS=4
 ZBX_EXPORTFILESIZE=1G # Available since 4.0.0
@@ -233,7 +239,7 @@ Default values of these variables are specified after equal sign.
 
 The allowed variables are identical of parameters in official ``zabbix_server.conf``. For example, ``ZBX_LOGSLOWQUERIES`` = ``LogSlowQueries``.
 
-Please use official documentation for [``zabbix_server.conf``](https://www.zabbix.com/documentation/current/manual/appendix/config/zabbix_server) to get more information about the variables.
+Please use official documentation for [``zabbix_server.conf``](https://www.zabbix.com/documentation/7.0/en/manual/appendix/config/zabbix_server) to get more information about the variables.
 
 ## Allowed volumes for the Zabbix server container
 

@@ -672,8 +672,6 @@ spec:
             value: "1"
           - name: ZBX_SERVER_HOST
             value: ""
-          - name: ZBX_SERVER_PORT
-            value: ""
           - name: ZBX_HOSTNAME
             value: "zabbix-proxy-sqlite"
           - name: ZBX_ENABLEREMOTECOMMANDS
@@ -862,8 +860,6 @@ spec:
             value: "0"
           - name: ZBX_SERVER_HOST
             value: "zabbix-server"
-          - name: ZBX_SERVER_PORT
-            value: "10051"
           - name: ZBX_HOSTNAME
             value: "zabbix-proxy-mysql"
           - name: ZBX_ENABLEREMOTECOMMANDS
@@ -1190,7 +1186,7 @@ spec:
             - name: ZBX_REFRESHACTIVECHECKS
               value: ""
             - name: DEBUG_MODE
-              value: "3"
+              value: "false"
             - name: ZBX_TLSCONNECT
               value: ""
             - name: ZBX_TLSACCEPT

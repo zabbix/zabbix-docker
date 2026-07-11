@@ -38,7 +38,7 @@
 <h3 id="-zbx_hostname-"><code>ZBX_HOSTNAME</code></h3>
 <p>This variable is unique, case sensitive hostname. By default, value is <code>hostname</code> of the container. It is <code>Hostname</code> parameter in <code>zabbix_agentd.conf</code>.</p>
 <h3 id="-zbx_server_host-"><code>ZBX_SERVER_HOST</code></h3>
-<p>This variable is IP or DNS name of Zabbix server or Zabbix proxy. By default, value is <code>zabbix-server</code>. It is <code>Server</code> parameter in <code>zabbix_agentd.conf</code>. It is allowed to specify Zabbix server or Zabbix proxy port number using <code>ZBX_SERVER_PORT</code> variable. It make sense in case of non-default port for active checks.</p>
+<p>This variable is IP or DNS name of Zabbix server or Zabbix proxy. By default, value is <code>zabbix-server</code>. It is <code>Server</code> parameter in <code>zabbix_agentd.conf</code>. For active checks on a non-default port, specify the port using the <code>ZBX_SERVER_PORT</code> variable.</p>
 <h3 id="-zbx_passive_allow-"><code>ZBX_PASSIVE_ALLOW</code></h3>
 <p>This variable is boolean (<code>true</code> or <code>false</code>) and enables or disables feature of passive checks. By default, value is <code>true</code>.</p>
 <h3 id="-zbx_passiveservers-"><code>ZBX_PASSIVESERVERS</code></h3>
@@ -69,11 +69,11 @@
 <span class="hljs-attr">ZBX_HEARTBEAT_FREQUENCY</span>=<span class="hljs-number">60</span> # Available since <span class="hljs-number">6.2</span>.<span class="hljs-number">0</span>
 <span class="hljs-attr">ZBX_HOSTINTERFACE</span>= # Available since <span class="hljs-number">4.4</span>.<span class="hljs-number">0</span>
 <span class="hljs-attr">ZBX_HOSTINTERFACEITEM</span>= # Available since <span class="hljs-number">4.4</span>.<span class="hljs-number">0</span>
-<span class="hljs-attr">ZBX_STARTAGENTS</span>=<span class="hljs-number">3</span>
+<span class="hljs-attr">ZBX_STARTAGENTS</span>=<span class="hljs-number">10</span>
 <span class="hljs-attr">ZBX_HOSTNAMEITEM</span>=system.hostname
 <span class="hljs-attr">ZBX_METADATA</span>=
 <span class="hljs-attr">ZBX_METADATAITEM</span>=
-<span class="hljs-attr">ZBX_REFRESHACTIVECHECKS</span>=<span class="hljs-number">120</span>
+<span class="hljs-attr">ZBX_REFRESHACTIVECHECKS</span>=<span class="hljs-number">5</span>
 <span class="hljs-attr">ZBX_BUFFERSEND</span>=<span class="hljs-number">5</span>
 <span class="hljs-attr">ZBX_BUFFERSIZE</span>=<span class="hljs-number">100</span>
 <span class="hljs-attr">ZBX_MAXLINESPERSECOND</span>=<span class="hljs-number">20</span>
@@ -84,13 +84,18 @@
 <span class="hljs-attr">ZBX_TLSCONNECT</span>=unencrypted
 <span class="hljs-attr">ZBX_TLSACCEPT</span>=unencrypted
 <span class="hljs-attr">ZBX_TLSCAFILE</span>=
+<span class="hljs-attr">ZBX_TLSCA</span>=
 <span class="hljs-attr">ZBX_TLSCRLFILE</span>=
+<span class="hljs-attr">ZBX_TLSCRL</span>=
 <span class="hljs-attr">ZBX_TLSSERVERCERTISSUER</span>=
 <span class="hljs-attr">ZBX_TLSSERVERCERTSUBJECT</span>=
 <span class="hljs-attr">ZBX_TLSCERTFILE</span>=
+<span class="hljs-attr">ZBX_TLSCERT</span>=
 <span class="hljs-attr">ZBX_TLSKEYFILE</span>=
+<span class="hljs-attr">ZBX_TLSKEY</span>=
 <span class="hljs-attr">ZBX_TLSPSKIDENTITY</span>=
 <span class="hljs-attr">ZBX_TLSPSKFILE</span>=
+<span class="hljs-attr">ZBX_TLSPSK</span>=
 <span class="hljs-attr">ZBX_TLSCIPHERALL</span>= # Available since <span class="hljs-number">4.4</span>.<span class="hljs-number">7</span>
 <span class="hljs-attr">ZBX_TLSCIPHERALL13</span>= # Available since <span class="hljs-number">4.4</span>.<span class="hljs-number">7</span>
 <span class="hljs-attr">ZBX_TLSCIPHERCERT</span>= # Available since <span class="hljs-number">4.4</span>.<span class="hljs-number">7</span>
@@ -101,14 +106,14 @@
 <span class="hljs-attr">ZBX_ALLOWKEY</span>= # Available since <span class="hljs-number">5.0</span>.<span class="hljs-number">0</span>
 </code></pre><p>Default values of these variables are specified after equal sign.</p>
 <p>The allowed variables are identical of parameters in official <code>zabbix_agentd.conf</code> configuration file. For example, <code>ZBX_REFRESHACTIVECHECKS</code> = <code>RefreshActiveChecks</code>.</p>
-<p>Please use official documentation for <a href="https://www.zabbix.com/documentation/current/manual/appendix/config/zabbix_agentd"><code>zabbix_agentd.conf</code></a> to get more information about the variables.</p>
+<p>Please use official documentation for <a href="https://www.zabbix.com/documentation/7.0/en/manual/appendix/config/zabbix_agentd"><code>zabbix_agentd.conf</code></a> to get more information about the variables.</p>
 <h2 id="allowed-volumes-for-the-zabbix-agent-container">Allowed volumes for the Zabbix agent container</h2>
 <h3 id="-etc-zabbix-zabbix_agentd-d-"><code>/etc/zabbix/zabbix_agentd.d</code></h3>
 <p>The volume allows include <code>*.conf</code> files and extend Zabbix agent using <code>UserParameter</code> feature.</p>
 <h3 id="-var-lib-zabbix-modules-"><code>/var/lib/zabbix/modules</code></h3>
 <p>The volume allows load additional modules and extend Zabbix agent using <code>LoadModule</code> feature.</p>
 <h3 id="-var-lib-zabbix-enc-"><code>/var/lib/zabbix/enc</code></h3>
-<p>The volume is used to store TLS related files. These file names are specified using <code>ZBX_TLSCAFILE</code>, <code>ZBX_TLSCRLFILE</code>, <code>ZBX_TLSKEY_FILE</code> and <code>ZBX_TLSPSKFILE</code> variables.</p>
+<p>The volume is used to store TLS related files. These file names are specified using <code>ZBX_TLSCAFILE</code>, <code>ZBX_TLSCRLFILE</code>, <code>ZBX_TLSCERTFILE</code>, <code>ZBX_TLSKEYFILE</code> and <code>ZBX_TLSPSKFILE</code> variables. Additionally it is possible to use environment variables <code>ZBX_TLSCA</code>, <code>ZBX_TLSCRL</code>, <code>ZBX_TLSCERT</code>, <code>ZBX_TLSKEY</code> and <code>ZBX_TLSPSK</code> with plaintext values.</p>
 <h1 id="user-feedback">User Feedback</h1>
 <h2 id="documentation">Documentation</h2>
 <p>Documentation for this image is stored in the <a href="https://github.com/zabbix/zabbix-docker/tree/7.0/Dockerfiles/agent"><code>agent/</code> directory</a> of the <a href="https://github.com/zabbix/zabbix-docker/"><code>zabbix/zabbix-docker</code> GitHub repo</a>. Be sure to familiarize yourself with the <a href="https://github.com/zabbix/zabbix-docker/blob/7.0/README.md">repository&#39;s <code>README.md</code> file</a> before attempting a pull request.</p>
