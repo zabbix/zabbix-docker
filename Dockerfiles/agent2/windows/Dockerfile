@@ -1,11 +1,28 @@
 # syntax=docker/dockerfile:1.6
 # escape=`
 ARG OS_BASE_IMAGE=mcr.microsoft.com/windows/nanoserver:ltsc2022
+ARG ENTRYPOINT_BUILD_IMAGE=golang:1.26.5-windowsservercore-ltsc2022
 
 ARG MAJOR_VERSION=8.0
 ARG ZBX_VERSION=${MAJOR_VERSION}
 
 ARG BUILD_BASE_IMAGE=zabbix-build-agent:ltsc2022-agent2-${ZBX_VERSION}
+
+FROM ${ENTRYPOINT_BUILD_IMAGE} AS entrypoint-builder
+
+COPY ["templates/entrypoints", "C:\\entrypoints"]
+
+WORKDIR C:\entrypoints
+
+SHELL ["powershell", "-Command", "$ErrorActionPreference = 'Stop'; $ProgressPreference = 'SilentlyContinue';"]
+
+RUN $env:CGO_ENABLED = '0'; `
+    go build `
+        -buildvcs=false `
+        -trimpath `
+        -ldflags='-s -w -buildid=' `
+        -o C:\docker-entrypoint.exe `
+        ./cmd/agent2;
 
 FROM ${BUILD_BASE_IMAGE} AS builder
 FROM ${OS_BASE_IMAGE}
@@ -31,8 +48,10 @@ LABEL org.opencontainers.image.title="Zabbix agent 2" `
       org.opencontainers.image.source="${ZBX_SOURCES}"
 
 COPY --from=builder ["C:\\zabbix-${ZBX_VERSION}-output", "C:\\zabbix"]
+COPY ["templates/config/agent2_windows", "C:\\zabbix\\conf"]
 COPY --from=builder ["C:\\build_deps\\pwsh", "C:\\Program Files\\PowerShell"]
-COPY [".\\docker-entrypoint.ps1", "C:\\zabbix"]
+COPY --from=entrypoint-builder ["C:\\docker-entrypoint.exe", "C:\\zabbix\\docker-entrypoint.exe"]
+COPY ["templates/entrypoints/licenses/go-THIRD-PARTY-NOTICES.txt", "C:\\licenses\\"]
 
 WORKDIR C:\zabbix\
 
@@ -69,6 +88,6 @@ USER zabbix
 
 EXPOSE 10050/tcp 31999/tcp
 
-ENTRYPOINT ["pwsh", "-File", "C:\\zabbix\\docker-entrypoint.ps1"]
+ENTRYPOINT ["C:\\zabbix\\docker-entrypoint.exe"]
 
 CMD ["C:\\zabbix\\sbin\\zabbix_agent2.exe", "-c", "C:\\zabbix\\conf\\zabbix_agent2.conf", "-f"]
