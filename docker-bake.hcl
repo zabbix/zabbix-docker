@@ -12,7 +12,13 @@ variable "OS" {
 variable "ZBX_VERSION" {
   type        = string
   default     = "7.4"
-  description = "Zabbix branch or exact version to build"
+  description = "Zabbix version used for build metadata and image layout"
+}
+
+variable "GIT_BRANCH" {
+  type        = string
+  default     = ""
+  description = "Optional Git branch or tag passed to builder Dockerfiles"
 }
 
 variable "OS_BASE_IMAGE" {
@@ -154,6 +160,7 @@ target "_builder_common" {
 
   args = {
     BUILD_BASE_IMAGE = "${ZBX_IMAGE_NAMESPACE}zabbix-build-base:${ZBX_IMAGE_TAG}"
+    GIT_BRANCH       = notequal(GIT_BRANCH, "") ? GIT_BRANCH : null
   }
 }
 
@@ -363,6 +370,7 @@ target "snmptraps" {
   context     = "Dockerfiles/snmptraps/${OS}"
   contexts = {
     config_templates = "templates/config/snmptraps"
+    entrypoints      = "templates/entrypoints"
     scripts          = "templates/scripts/snmptraps"
   }
   tags        = ["${ZBX_IMAGE_NAMESPACE}${ZBX_IMAGE_PREFIX}snmptraps:${ZBX_IMAGE_TAG}"]
