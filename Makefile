@@ -25,6 +25,7 @@ endif
 OS ?= alpine
 DB ?= mysql
 ZBX_VERSION ?= 7.0
+GIT_BRANCH ?=
 
 # Remote defaults (Official image registry)
 REMOTE_IMAGE_PREFIX ?= zabbix/
@@ -79,7 +80,7 @@ BAKE_RUNTIME_PGSQL_ALL       := runtime-pgsql-all
 BAKE_RUNTIME_PGSQL_MINIMAL   := runtime-pgsql-minimal
 
 # Export for sub-make / shells
-export OS DB MAJOR_VERSION ZBX_VERSION OS_BASE_IMAGE PLATFORMS
+export OS DB MAJOR_VERSION ZBX_VERSION GIT_BRANCH OS_BASE_IMAGE PLATFORMS
 export LOCAL_IMAGE_PREFIX LOCAL_ZBX_TAG REMOTE_IMAGE_PREFIX REMOTE_ZBX_TAG
 export COMPOSE_PROFILES CONTAINER
 
@@ -102,6 +103,7 @@ endef
 define bake_env
 OS="$(OS)" \
 ZBX_VERSION="$(ZBX_VERSION)" \
+GIT_BRANCH="$(GIT_BRANCH)" \
 OS_BASE_IMAGE="$(OS_BASE_IMAGE)" \
 ZBX_IMAGE_TAG="$(LOCAL_ZBX_TAG)" \
 PLATFORMS="$(PLATFORMS)" \
@@ -177,6 +179,7 @@ help:
 	@echo "  make build DB=mysql"
 	@echo "  make build DB=pgsql"
 	@echo "  make builders DB=sqlite3"
+	@echo "  make builders GIT_BRANCH=feature/custom-branch"
 	@echo "  make build OS=ubuntu OS_BASE_IMAGE=ubuntu:resolute"
 	@echo "  make build PLATFORMS=linux/amd64,linux/arm64"
 	@echo "  make build LOCAL_IMAGE_PREFIX=ghcr.io/zabbix/"
@@ -194,6 +197,7 @@ print-vars:
 	@echo "DB=$(DB)"
 	@echo "MAJOR_VERSION=$(MAJOR_VERSION)"
 	@echo "ZBX_VERSION=$(ZBX_VERSION)"
+	@echo "GIT_BRANCH=$(GIT_BRANCH)"
 	@echo "LOCAL_ZBX_TAG=$(LOCAL_ZBX_TAG)"
 	@echo "LOCAL_IMAGE_PREFIX=$(LOCAL_IMAGE_PREFIX)"
 	@echo "PLATFORMS=$(PLATFORMS)"
