@@ -21,7 +21,7 @@ prepare_runtime_commands() {
     PHP_FPM_BIN="${PHP_FPM_BIN:-/usr/sbin/php-fpm}"
     PHP_FPM_CONFIG="${PHP_FPM_CONFIG:-/etc/php-fpm.conf}"
 
-    NGINX_ARGS=(-g 'daemon off;error_log /var/log/nginx/error.log error;' -c /etc/nginx/nginx.conf)
+    NGINX_ARGS=(-e stderr -g 'daemon off;' -c "${NGINX_CONF_FILE}")
     PHP_FPM_ARGS=(--nodaemonize --fpm-config "${PHP_FPM_CONFIG}")
 }
 
