@@ -1,3 +1,6 @@
+// Package bootstrap provides the shared building blocks of the container
+// entrypoints: process environment handling, Zabbix configuration file
+// updates, logging and the final hand-off to the service binary.
 package bootstrap
 
 import (
@@ -8,8 +11,12 @@ import (
 	"strings"
 )
 
+// Environment is a mutable set of environment variables keyed by name.
+// The entrypoint modifies it while preparing a service and passes the
+// result to the final process.
 type Environment map[string]string
 
+// NewEnvironment parses "NAME=value" pairs as returned by os.Environ.
 func NewEnvironment(values []string) Environment {
 	env := make(Environment, len(values))
 	for _, item := range values {
@@ -21,6 +28,7 @@ func NewEnvironment(values []string) Environment {
 	return env
 }
 
+// List returns the variables as sorted "NAME=value" pairs suitable for exec.
 func (env Environment) List() []string {
 	names := make([]string, 0, len(env))
 	for name := range env {
@@ -35,6 +43,9 @@ func (env Environment) List() []string {
 	return values
 }
 
+// ValueOrDefault returns the value of name, or defaultValue when the
+// variable is not present. An empty value counts as present; use
+// ValueOrDefaultNonEmpty to treat it as missing.
 func (env Environment) ValueOrDefault(name, defaultValue string) string {
 	value, found := env[name]
 	if !found {
@@ -43,18 +54,23 @@ func (env Environment) ValueOrDefault(name, defaultValue string) string {
 	return value
 }
 
+// SetDefault stores defaultValue unless the variable is already present.
 func (env Environment) SetDefault(name, defaultValue string) {
 	if _, found := env[name]; !found {
 		env[name] = defaultValue
 	}
 }
 
+// SetDefaultNonEmpty stores defaultValue unless the variable already has a
+// non-empty value.
 func (env Environment) SetDefaultNonEmpty(name, defaultValue string) {
 	if env[name] == "" {
 		env[name] = defaultValue
 	}
 }
 
+// ValueOrDefaultNonEmpty returns the value of name, or defaultValue when
+// the variable is missing or empty.
 func (env Environment) ValueOrDefaultNonEmpty(name, defaultValue string) string {
 	if value := env[name]; value != "" {
 		return value
@@ -62,24 +78,29 @@ func (env Environment) ValueOrDefaultNonEmpty(name, defaultValue string) string 
 	return defaultValue
 }
 
+// RequiredHomeDirectory returns the Zabbix home directory,
+// verifying that it exists.
 func RequiredHomeDirectory(env Environment) (string, error) {
 	return requiredDirectory(env, "ZABBIX_USER_HOME_DIR")
 }
 
-func RequiredDirectories(env Environment) (homeDirectory, configDirectory string, err error) {
-	homeDirectory, err = RequiredHomeDirectory(env)
+// RequiredDirectories returns the Zabbix home and config directories
+// (ZABBIX_USER_HOME_DIR and ZABBIX_CONF_DIR), verifying that both exist.
+func RequiredDirectories(env Environment) (homeDir, configDir string, err error) {
+	homeDir, err = RequiredHomeDirectory(env)
 	if err != nil {
 		return "", "", err
 	}
 
-	configDirectory, err = requiredDirectory(env, "ZABBIX_CONF_DIR")
+	configDir, err = requiredDirectory(env, "ZABBIX_CONF_DIR")
 	if err != nil {
 		return "", "", err
 	}
 
-	return homeDirectory, configDirectory, nil
+	return homeDir, configDir, nil
 }
 
+// requiredDirectory returns directory from env variable.
 func requiredDirectory(env Environment, name string) (string, error) {
 	directory := env[name]
 	if directory == "" {
@@ -97,6 +118,10 @@ func requiredDirectory(env Environment, name string) (string, error) {
 	return directory, nil
 }
 
+// FileEnv resolves the NAME / NAME_FILE pair following the Docker secrets
+// convention: the plain variable wins, otherwise the value is read from the
+// file referenced by NAME_FILE. Setting both is an error. The *_FILE
+// variable is removed from the environment.
 func FileEnv(env Environment, name, defaultValue string) error {
 	fileName := name + "_FILE"
 	value := env[name]
@@ -123,6 +148,10 @@ func FileEnv(env Environment, name, defaultValue string) error {
 	return nil
 }
 
+// ProcessFileFromEnvironment persists the value of variable into a file
+// under directory and points the corresponding "<variable>FILE" variable at
+// it. The plain variable is always removed so that secrets do not stay in
+// the service environment.
 func ProcessFileFromEnvironment(env Environment, directory, variable string) error {
 	fileVariable := variable + "FILE"
 	if value := env[variable]; value != "" {
@@ -136,8 +165,11 @@ func ProcessFileFromEnvironment(env Environment, directory, variable string) err
 	return nil
 }
 
-func ProcessEncryptionFiles(env Environment, homeDirectory string, variables ...string) error {
-	directory := filepath.Join(homeDirectory, "enc_internal")
+// ProcessTLSFiles moves TLS material from the listed variables into
+// files under <home>/enc_internal, so that Zabbix reads certificates and
+// keys from disk instead of the environment.
+func ProcessTLSFiles(env Environment, homeDir string, variables ...string) error {
+	directory := filepath.Join(homeDir, "enc_internal")
 	for _, variable := range variables {
 		if err := ProcessFileFromEnvironment(env, directory, variable); err != nil {
 			return err
@@ -147,7 +179,10 @@ func ProcessEncryptionFiles(env Environment, homeDirectory string, variables ...
 	return nil
 }
 
-func ClearPrivateEnvironment(env Environment, prefixes ...string) {
+// ClearPrivateEnv removes configuration variables that the service
+// should not inherit, by default everything with the ZABBIX_, DB_, MYSQL_
+// and POSTGRES_ prefixes. ZBX_CLEAR_ENV=false disables the cleanup.
+func ClearPrivateEnv(env Environment, prefixes ...string) {
 	if env["ZBX_CLEAR_ENV"] == "false" {
 		return
 	}

@@ -1,3 +1,5 @@
+// Package agent prepares the runtime environment for Zabbix agent and
+// agent 2.
 package agent
 
 import (
@@ -7,6 +9,9 @@ import (
 	"github.com/zabbix/zabbix-docker/templates/entrypoints/internal/bootstrap"
 )
 
+// ConfigureServers merges ZBX_SERVER_HOST and ZBX_SERVER_PORT into the
+// passive and active server lists, honouring the ZBX_PASSIVE_ALLOW and
+// ZBX_ACTIVE_ALLOW switches.
 func ConfigureServers(env bootstrap.Environment) {
 	serverHost := env.ValueOrDefault("ZBX_SERVER_HOST", "zabbix-server")
 	serverPort := env.ValueOrDefault("ZBX_SERVER_PORT", "10051")
@@ -22,14 +27,14 @@ func ConfigureServers(env bootstrap.Environment) {
 		activeServers = prependServer(activeServer, activeServers)
 	}
 
-	if allowed(env["ZBX_PASSIVE_ALLOW"]) && passiveServers != "" {
+	if v := env["ZBX_PASSIVE_ALLOW"]; (v == "" || strings.EqualFold(v, "true")) && passiveServers != "" {
 		bootstrap.LogInfo("** Using '%s' servers for passive checks", passiveServers)
 		env["ZBX_PASSIVESERVERS"] = passiveServers
 	} else {
 		delete(env, "ZBX_PASSIVESERVERS")
 	}
 
-	if allowed(env["ZBX_ACTIVE_ALLOW"]) && activeServers != "" {
+	if v := env["ZBX_ACTIVE_ALLOW"]; (v == "" || strings.EqualFold(v, "true")) && activeServers != "" {
 		bootstrap.LogInfo("** Using '%s' servers for active checks", activeServers)
 		env["ZBX_ACTIVESERVERS"] = activeServers
 	} else {
@@ -40,8 +45,10 @@ func ConfigureServers(env bootstrap.Environment) {
 	delete(env, "ZBX_SERVER_PORT")
 }
 
-func ConfigureItemKeys(env bootstrap.Environment, configDirectory, fileName string) error {
-	path := filepath.Join(configDirectory, fileName)
+// ConfigureAllowDenyKeys writes ZBX_DENYKEY and ZBX_ALLOWKEY into the item key
+// configuration file.
+func ConfigureAllowDenyKeys(env bootstrap.Environment, configDir, fileName string) error {
+	path := filepath.Join(configDir, fileName)
 
 	if err := bootstrap.UpdateConfigMultiple(path, "DenyKey", env["ZBX_DENYKEY"]); err != nil {
 		return err
@@ -50,10 +57,12 @@ func ConfigureItemKeys(env bootstrap.Environment, configDirectory, fileName stri
 	return bootstrap.UpdateConfigMultiple(path, "AllowKey", env["ZBX_ALLOWKEY"])
 }
 
-func ProcessEncryptionFiles(env bootstrap.Environment, homeDirectory string) error {
-	return bootstrap.ProcessEncryptionFiles(
+// ProcessTLSFiles persists the agent TLS material from the
+// environment into files.
+func ProcessTLSFiles(env bootstrap.Environment, homeDir string) error {
+	return bootstrap.ProcessTLSFiles(
 		env,
-		homeDirectory,
+		homeDir,
 		"ZBX_TLSCA",
 		"ZBX_TLSCRL",
 		"ZBX_TLSCERT",
@@ -62,8 +71,10 @@ func ProcessEncryptionFiles(env bootstrap.Environment, homeDirectory string) err
 	)
 }
 
-func ClearPrivateEnvironment(env bootstrap.Environment) {
-	bootstrap.ClearPrivateEnvironment(env, "ZABBIX_")
+// ClearPrivateEnv drops internal ZABBIX_* variables before the
+// agent starts.
+func ClearPrivateEnv(env bootstrap.Environment) {
+	bootstrap.ClearPrivateEnv(env, "ZABBIX_")
 }
 
 func prependServer(server, servers string) string {
@@ -71,8 +82,4 @@ func prependServer(server, servers string) string {
 		return server
 	}
 	return server + "," + servers
-}
-
-func allowed(value string) bool {
-	return value == "" || strings.EqualFold(value, "true")
 }

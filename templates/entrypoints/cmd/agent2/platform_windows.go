@@ -5,11 +5,11 @@ import (
 )
 
 const (
-	agent2Binary           = `C:\zabbix\sbin\zabbix_agent2.exe`
-	nvidiaCommand          = "nvidia-smi.exe"
-	pluginExecutableSuffix = ".exe"
+	agent2Binary     = `C:\zabbix\sbin\zabbix_agent2.exe`
+	nvidiaCommand    = "nvidia-smi.exe"
+	pluginExecSuffix = ".exe"
 )
 
-func pluginBinaryDirectory(homeDirectory string) string {
-	return filepath.Join(homeDirectory, "zabbix-agent2-plugin")
+func pluginBinDir(homeDir string) string {
+	return filepath.Join(homeDir, "zabbix-agent2-plugin")
 }

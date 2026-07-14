@@ -5,9 +5,19 @@ ARG ZBX_VERSION=${MAJOR_VERSION}
 ARG BUILD_BASE_IMAGE=zabbix-build-mysql:centos-${ZBX_VERSION}
 
 FROM ${BUILD_BASE_IMAGE} AS builder
-FROM builder AS clean_builder
+
+FROM builder AS entrypoint-builder
 
 ARG ZBX_VERSION
+
+RUN --mount=from=entrypoints,target=/tmp/entrypoints,ro \
+    --mount=type=cache,target=/root/.cache/go-build,sharing=locked \
+    --mount=type=cache,target=/root/go/pkg/mod,sharing=locked \
+    set -eux && \
+    cd /tmp/entrypoints && \
+    CGO_ENABLED=0 go build -buildvcs=false -trimpath -ldflags="-s -w -buildid=" \
+            -o /tmp/docker-entrypoint \
+        ./cmd/web-apache-mysql
 
 RUN set -eux && \
     rm -rf \
@@ -20,6 +30,9 @@ RUN set -eux && \
 
 FROM ${OS_BASE_IMAGE}
 
+COPY --chmod=0755 --from=entrypoint-builder /tmp/docker-entrypoint /usr/bin/docker-entrypoint
+COPY --from=entrypoints /licenses/go-THIRD-PARTY-NOTICES.txt /licenses/mysql-THIRD-PARTY-NOTICES.txt /licenses/
+
 ARG MAJOR_VERSION
 ARG ZBX_VERSION
 ARG ZBX_SOURCES=https://git.zabbix.com/scm/zbx/zabbix.git
@@ -31,8 +44,7 @@ ENV TERM=xterm \
     ZABBIX_USER_HOME_DIR=/var/lib/zabbix \
     ZABBIX_WWW_ROOT=/usr/share/zabbix
 
-ENV DB_ENGINE=mysql \
-    APACHE_BIN=/usr/sbin/httpd \
+ENV APACHE_BIN=/usr/sbin/httpd \
     PHP_FPM_BIN=/usr/sbin/php-fpm \
     APACHE_RUN_DIR=/tmp/httpd \
     HTTPD_CONF_FILE=/etc/httpd/conf/httpd.conf \
@@ -52,17 +64,15 @@ LABEL org.opencontainers.image.authors="Alexey Pustovalov <alexey.pustovalov@zab
 
 STOPSIGNAL SIGTERM
 
-COPY --from=clean_builder /tmp/zabbix-${ZBX_VERSION}/ui ${ZABBIX_WWW_ROOT}/
-COPY --from=clean_builder /tmp/zabbix-${ZBX_VERSION}-output/web/conf ${ZABBIX_CONF_DIR}/web/
+COPY --from=entrypoint-builder /tmp/zabbix-${ZBX_VERSION}/ui ${ZABBIX_WWW_ROOT}/
+COPY --from=entrypoint-builder /tmp/zabbix-${ZBX_VERSION}-output/web/conf ${ZABBIX_CONF_DIR}/web/
 COPY conf/etc/ /etc/
 
 RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
     --mount=type=tmpfs,target=/var/cache/yum/ \
     set -eux && \
-    INSTALL_PKGS="bash \
-            curl-minimal \
+    INSTALL_PKGS="curl-minimal \
             httpd \
-            mysql8.4 \
             mod_ssl \
             php \
             php-curl \
@@ -76,9 +86,7 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             php-xml \
             findutils \
             glibc-locale-source \
-            shadow-utils \
-            gzip \
-            jq" && \
+            shadow-utils" && \
     microdnf -y install \
             --disablerepo="*" \
             --enablerepo="baseos" \
@@ -139,14 +147,7 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
     chmod -R g=u ${FIX_PERM_LIST} && \
     microdnf -y remove \
             findutils \
-            glibc-locale-source \
-            gzip
-
-RUN --mount=from=entrypoints,target=/tmp/entrypoints,ro \
-    set -eux && \
-    install -d /usr/lib/docker-entrypoint && \
-    install -m 0755 /tmp/entrypoints/web-apache-mysql.sh /usr/bin/docker-entrypoint.sh && \
-    install -m 0644 /tmp/entrypoints/lib/*.sh /usr/lib/docker-entrypoint/
+            glibc-locale-source
 
 HEALTHCHECK --interval=1m30s --timeout=3s --retries=3 --start-period=40s --start-interval=5s \
     CMD curl -f http://localhost:8080/ping || exit 1
@@ -157,4 +158,4 @@ WORKDIR ${ZABBIX_WWW_ROOT}
 
 USER 1997
 
-ENTRYPOINT ["docker-entrypoint.sh"]
+ENTRYPOINT ["/usr/bin/docker-entrypoint"]

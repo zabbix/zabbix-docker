@@ -9,6 +9,9 @@ import (
 	"strings"
 )
 
+// Hostname returns the container hostname. With fqdn it additionally tries
+// to resolve the fully qualified name via DNS, falling back to the short
+// name when resolution fails.
 func Hostname(fqdn bool) (string, error) {
 	hostname, err := os.Hostname()
 	if err != nil {
@@ -40,6 +43,9 @@ func Hostname(fqdn bool) (string, error) {
 	return hostname, nil
 }
 
+// RehashCertificateDirectory creates OpenSSL hash links for the CA
+// certificates in directory. It is best effort: a missing directory or
+// openssl binary is silently ignored.
 func RehashCertificateDirectory(directory string) error {
 	if directory == "" {
 		return nil

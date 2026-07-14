@@ -1,3 +1,5 @@
+// Package hooks runs user-provided scripts from the entrypoint.d directory
+// before the service starts.
 package hooks
 
 import (
@@ -11,13 +13,16 @@ import (
 
 const directoryName = "entrypoint.d"
 
+// Run executes the files from <home>/entrypoint.d in file name order: *.sh
+// scripts via the shell, executable files directly; everything else is
+// skipped. The first failing hook aborts the entrypoint.
 func Run(env bootstrap.Environment) error {
-	homeDirectory, err := bootstrap.RequiredHomeDirectory(env)
+	homeDir, err := bootstrap.RequiredHomeDirectory(env)
 	if err != nil {
 		return err
 	}
 
-	directory := filepath.Join(homeDirectory, directoryName)
+	directory := filepath.Join(homeDir, directoryName)
 	entries, err := os.ReadDir(directory)
 	if os.IsNotExist(err) {
 		return nil

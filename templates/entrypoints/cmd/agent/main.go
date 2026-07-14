@@ -1,7 +1,7 @@
 package main
 
 import (
-	agentconfig "github.com/zabbix/zabbix-docker/templates/entrypoints/internal/agent"
+	config "github.com/zabbix/zabbix-docker/templates/entrypoints/internal/agent"
 	"github.com/zabbix/zabbix-docker/templates/entrypoints/internal/bootstrap"
 	"github.com/zabbix/zabbix-docker/templates/entrypoints/internal/hooks"
 )
@@ -9,26 +9,26 @@ import (
 func prepareService(env bootstrap.Environment) error {
 	bootstrap.LogInfo("** Preparing Zabbix agent")
 
-	homeDirectory, configDirectory, err := bootstrap.RequiredDirectories(env)
+	homeDir, configDir, err := bootstrap.RequiredDirectories(env)
 	if err != nil {
 		return err
 	}
 
-	agentconfig.ConfigureServers(env)
+	config.ConfigureServers(env)
 
-	if err := agentconfig.ConfigureItemKeys(env, configDirectory, "zabbix_agentd_item_keys.conf"); err != nil {
+	if err := config.ConfigureAllowDenyKeys(env, configDir, "zabbix_agentd_item_keys.conf"); err != nil {
 		return err
 	}
 
-	if err := configureLoadModules(env, configDirectory); err != nil {
+	if err := configureLoadModules(env, configDir); err != nil {
 		return err
 	}
 
-	if err := agentconfig.ProcessEncryptionFiles(env, homeDirectory); err != nil {
+	if err := config.ProcessTLSFiles(env, homeDir); err != nil {
 		return err
 	}
 
-	if err := bootstrap.ConfigureIdentity(env); err != nil {
+	if err := bootstrap.ConfigureRunUser(env); err != nil {
 		return err
 	}
 
@@ -36,7 +36,7 @@ func prepareService(env bootstrap.Environment) error {
 		return err
 	}
 
-	agentconfig.ClearPrivateEnvironment(env)
+	config.ClearPrivateEnv(env)
 
 	return nil
 }

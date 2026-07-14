@@ -5,9 +5,19 @@ ARG ZBX_VERSION=${MAJOR_VERSION}
 ARG BUILD_BASE_IMAGE=zabbix-build-pgsql:alpine-${ZBX_VERSION}
 
 FROM ${BUILD_BASE_IMAGE} AS builder
-FROM builder AS clean_builder
+
+FROM builder AS entrypoint-builder
 
 ARG ZBX_VERSION
+
+RUN --mount=from=entrypoints,target=/tmp/entrypoints,ro \
+    --mount=type=cache,target=/root/.cache/go-build,sharing=locked \
+    --mount=type=cache,target=/root/go/pkg/mod,sharing=locked \
+    set -eux && \
+    cd /tmp/entrypoints && \
+    CGO_ENABLED=0 go build -buildvcs=false -trimpath -ldflags="-s -w -buildid=" \
+            -o /tmp/docker-entrypoint \
+        ./cmd/web-nginx-pgsql
 
 RUN set -eux && \
     rm -rf \
@@ -19,6 +29,9 @@ RUN set -eux && \
     find "/tmp/zabbix-${ZBX_VERSION}/ui/locale" -name '*.sh' -delete
 
 FROM ${OS_BASE_IMAGE}
+
+COPY --chmod=0755 --from=entrypoint-builder /tmp/docker-entrypoint /usr/bin/docker-entrypoint
+COPY --from=entrypoints /licenses/go-THIRD-PARTY-NOTICES.txt /licenses/postgresql-THIRD-PARTY-NOTICES.txt /licenses/
 
 ARG MAJOR_VERSION
 ARG ZBX_VERSION
@@ -49,15 +62,13 @@ LABEL org.opencontainers.image.authors="Alexey Pustovalov <alexey.pustovalov@zab
 
 STOPSIGNAL SIGTERM
 
-COPY --from=clean_builder /tmp/zabbix-${ZBX_VERSION}/ui ${ZABBIX_WWW_ROOT}/
-COPY --from=clean_builder /tmp/zabbix-${ZBX_VERSION}-output/web/conf ${ZABBIX_CONF_DIR}/web/
+COPY --from=entrypoint-builder /tmp/zabbix-${ZBX_VERSION}/ui ${ZABBIX_WWW_ROOT}/
+COPY --from=entrypoint-builder /tmp/zabbix-${ZBX_VERSION}-output/web/conf ${ZABBIX_CONF_DIR}/web/
 COPY conf/etc/ /etc/
 
 RUN set -eux && \
-    INSTALL_PKGS="bash \
-            tzdata \
+    INSTALL_PKGS="tzdata \
             curl \
-            jq \
             nginx \
             php85-bcmath \
             php85-ctype \
@@ -75,8 +86,7 @@ RUN set -eux && \
             php85-fileinfo \
             php85-xmlreader \
             php85-xmlwriter \
-            php85-openssl \
-            postgresql18-client" && \
+            php85-openssl" && \
     apk add \
             --no-cache \
             --clean-protected \
@@ -119,12 +129,6 @@ RUN set -eux && \
     chown --quiet -R zabbix:0 ${FIX_PERM_LIST} && \
     chmod -R g=u ${FIX_PERM_LIST}
 
-RUN --mount=from=entrypoints,target=/tmp/entrypoints,ro \
-    set -eux && \
-    install -d /usr/lib/docker-entrypoint && \
-    install -m 0755 /tmp/entrypoints/web-nginx-pgsql.sh /usr/bin/docker-entrypoint.sh && \
-    install -m 0644 /tmp/entrypoints/lib/*.sh /usr/lib/docker-entrypoint/
-
 HEALTHCHECK --interval=1m30s --timeout=3s --retries=3 --start-period=40s --start-interval=5s \
     CMD curl -f http://localhost:8080/ping || exit 1
 
@@ -134,4 +138,4 @@ WORKDIR ${ZABBIX_WWW_ROOT}
 
 USER 1997
 
-ENTRYPOINT ["docker-entrypoint.sh"]
+ENTRYPOINT ["/usr/bin/docker-entrypoint"]

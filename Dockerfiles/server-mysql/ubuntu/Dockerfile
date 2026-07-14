@@ -6,6 +6,16 @@ ARG BUILD_BASE_IMAGE=zabbix-build-mysql:ubuntu-${ZBX_VERSION}
 
 FROM ${BUILD_BASE_IMAGE} AS builder
 
+FROM builder AS entrypoint-builder
+
+RUN --mount=from=entrypoints,target=/tmp/entrypoints,ro \
+    --mount=type=cache,target=/root/.cache/go-build,sharing=locked \
+    --mount=type=cache,target=/root/go/pkg/mod,sharing=locked \
+    cd /tmp/entrypoints && \
+    CGO_ENABLED=0 go build -buildvcs=false -trimpath -ldflags="-s -w -buildid=" \
+            -o /tmp/docker-entrypoint \
+        ./cmd/server-mysql
+
 FROM ${OS_BASE_IMAGE}
 
 ARG MAJOR_VERSION
@@ -20,8 +30,8 @@ ENV TERM=xterm \
     ZABBIX_USER_HOME_DIR=/var/lib/zabbix \
     ZABBIX_CONF_DIR=/etc/zabbix
 
-ENV DB_ENGINE=mysql \
-    ZBX_DB_NAME=dummy_db_name \
+# Required for runtime control commands executed via container exec
+ENV ZBX_DB_NAME=dummy_db_name \
     ZBX_FPINGLOCATION=/usr/bin/fping \
     ZBX_LOADMODULEPATH=${ZABBIX_USER_HOME_DIR}/modules \
     ZBX_SNMPTRAPPERFILE=${ZABBIX_USER_HOME_DIR}/snmptraps/snmptraps.log \
@@ -76,9 +86,7 @@ RUN --mount=type=cache,target=/var/cache/apt/,sharing=locked \
             libssh-4 \
             libssl3t64 \
             libxml2-16 \
-            mysql-client \
             snmp-mibs-downloader \
-            gzip \
             unixodbc \
             zlib1g" && \
     apt-get -y update && \
@@ -138,11 +146,8 @@ RUN --mount=type=cache,target=/var/cache/apt/,sharing=locked \
     chmod g=u ${ZABBIX_CONF_DIR} && \
     /usr/sbin/zabbix_server -V
 
-RUN --mount=from=entrypoints,target=/tmp/entrypoints,ro \
-    set -eux && \
-    install -d /usr/lib/docker-entrypoint && \
-    install -m 0755 /tmp/entrypoints/server-mysql.sh /usr/bin/docker-entrypoint.sh && \
-    install -m 0644 /tmp/entrypoints/lib/*.sh /usr/lib/docker-entrypoint/
+COPY --chmod=0755 --from=entrypoint-builder /tmp/docker-entrypoint /usr/bin/docker-entrypoint
+COPY --from=entrypoints /licenses/go-THIRD-PARTY-NOTICES.txt /licenses/mysql-THIRD-PARTY-NOTICES.txt /licenses/
 
 EXPOSE 10051/tcp
 
@@ -152,6 +157,6 @@ VOLUME ["${ZABBIX_USER_HOME_DIR}/snmptraps", "${ZABBIX_USER_HOME_DIR}/export"]
 
 USER 1997
 
-ENTRYPOINT ["/usr/bin/docker-entrypoint.sh"]
+ENTRYPOINT ["/usr/bin/docker-entrypoint"]
 
 CMD ["/usr/sbin/zabbix_server", "--foreground", "-c", "/etc/zabbix/zabbix_server.conf"]

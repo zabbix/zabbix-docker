@@ -41,7 +41,7 @@ func TestProcessFileAndClearEnvironment(t *testing.T) {
 		t.Fatal("ZBX_TLSPSK was not removed")
 	}
 
-	ClearPrivateEnvironment(env)
+	ClearPrivateEnv(env)
 	if _, found := env["MYSQL_PASSWORD"]; found {
 		t.Fatal("MYSQL_PASSWORD was not removed")
 	}
@@ -50,12 +50,12 @@ func TestProcessFileAndClearEnvironment(t *testing.T) {
 	}
 }
 
-func TestClearPrivateEnvironmentWithPrefixes(t *testing.T) {
+func TestClearPrivateEnvWithPrefixes(t *testing.T) {
 	env := Environment{
 		"ZABBIX_CONF_DIR": "/etc/zabbix",
 		"MYSQL_PASSWORD":  "password",
 	}
-	ClearPrivateEnvironment(env, "ZABBIX_")
+	ClearPrivateEnv(env, "ZABBIX_")
 	if _, found := env["ZABBIX_CONF_DIR"]; found {
 		t.Fatal("ZABBIX_CONF_DIR was not removed")
 	}
@@ -82,13 +82,13 @@ func TestFileEnv(t *testing.T) {
 }
 
 func TestRequiredHomeDirectory(t *testing.T) {
-	homeDirectory := t.TempDir()
-	got, err := RequiredHomeDirectory(Environment{"ZABBIX_USER_HOME_DIR": homeDirectory})
+	homeDir := t.TempDir()
+	got, err := RequiredHomeDirectory(Environment{"ZABBIX_USER_HOME_DIR": homeDir})
 	if err != nil {
 		t.Fatal(err)
 	}
-	if got != homeDirectory {
-		t.Fatalf("RequiredHomeDirectory() = %q, want %q", got, homeDirectory)
+	if got != homeDir {
+		t.Fatalf("RequiredHomeDirectory() = %q, want %q", got, homeDir)
 	}
 }
 

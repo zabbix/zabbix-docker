@@ -9,7 +9,9 @@ import (
 	"strconv"
 )
 
-func ConfigureIdentity(env Environment) error {
+// ConfigureRunUser tells Zabbix how to run under the current UID: root
+// gets ZBX_ALLOWROOT, any other user is looked up and exported as ZBX_USER.
+func ConfigureRunUser(env Environment) error {
 	uid := os.Getuid()
 	if uid == 0 {
 		env["ZBX_ALLOWROOT"] = "1"

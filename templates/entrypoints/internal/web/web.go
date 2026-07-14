@@ -1,0 +1,127 @@
+// Package web implements the entrypoint flow shared by the web frontend
+// images: PHP and web server configuration on top of a prepared database.
+package web
+
+import (
+	"fmt"
+
+	"github.com/zabbix/zabbix-docker/templates/entrypoints/internal/bootstrap"
+	"github.com/zabbix/zabbix-docker/templates/entrypoints/internal/hooks"
+	"github.com/zabbix/zabbix-docker/templates/entrypoints/internal/vault"
+)
+
+// Database abstracts the frontend database backend, implemented by the
+// mysql and postgresql packages.
+type Database interface {
+	Configure(string, *bootstrap.DBCredentials) error
+	Wait() error
+	Name() string
+	Schema() string
+	User() string
+	Password() string
+}
+
+// DatabaseType selects the database flavour of the frontend image.
+type DatabaseType string
+
+const (
+	DatabaseMySQL      DatabaseType = "MYSQL"
+	DatabasePostgreSQL DatabaseType = "POSTGRESQL"
+)
+
+// ServerType selects the web server of the frontend image.
+type ServerType string
+
+const (
+	ServerApache ServerType = "apache"
+	ServerNginx  ServerType = "nginx"
+)
+
+const dbName = "zabbix"
+
+// Options describes the concrete frontend image flavour.
+type Options struct {
+	DatabaseType DatabaseType
+	Server       ServerType
+}
+
+// Run prepares PHP, the web server and the database connection, executes
+// the entrypoint hooks and finally starts the configured server stack.
+// Non-empty args short-circuit the preparation and are executed instead.
+func Run(env bootstrap.Environment, db Database, opts Options, args []string) error {
+	if len(args) != 0 {
+		return bootstrap.Execute(args, env)
+	}
+	if err := opts.validate(); err != nil {
+		return err
+	}
+
+	env.SetDefaultNonEmpty("ZBX_SERVER_NAME", "Zabbix docker")
+	env.SetDefaultNonEmpty("PHP_TZ", "Europe/Riga")
+
+	if opts.Server == ServerApache {
+		env.SetDefaultNonEmpty("DAEMON_USER", "apache")
+		env.SetDefaultNonEmpty("DAEMON_GROUP", "apache")
+	} else {
+		env.SetDefaultNonEmpty("DAEMON_USER", "nginx")
+		env.SetDefaultNonEmpty("DAEMON_GROUP", "nginx")
+	}
+
+	creds, err := vault.ResolveDatabaseCredentials(env)
+	if err != nil {
+		return err
+	}
+
+	if err := db.Configure(dbName, creds); err != nil {
+		return err
+	}
+
+	if err := db.Wait(); err != nil {
+		return err
+	}
+
+	setDatabaseEnvironment(env, db)
+
+	if err := preparePHP(env, opts.DatabaseType); err != nil {
+		return err
+	}
+
+	switch opts.Server {
+	case ServerApache:
+		if err := prepareApache(env); err != nil {
+			return err
+		}
+	case ServerNginx:
+		if err := prepareNginx(env); err != nil {
+			return err
+		}
+	}
+
+	if err := prepareSessionName(env); err != nil {
+		return err
+	}
+
+	if err := hooks.Run(env); err != nil {
+		return err
+	}
+
+	return startStack(env, opts.Server)
+}
+
+func (o Options) validate() error {
+	if o.DatabaseType != DatabaseMySQL && o.DatabaseType != DatabasePostgreSQL {
+		return fmt.Errorf("unsupported db type %q", o.DatabaseType)
+	}
+	if o.Server != ServerApache && o.Server != ServerNginx {
+		return fmt.Errorf("unsupported web server %q", o.Server)
+	}
+
+	return nil
+}
+
+func setDatabaseEnvironment(env bootstrap.Environment, db Database) {
+	env["DB_SERVER_DBNAME"] = db.Name()
+	env["DB_SERVER_SCHEMA"] = db.Schema()
+	env["DB_SERVER_ZBX_USER"] = db.User()
+	env["DB_SERVER_ZBX_PASS"] = db.Password()
+}

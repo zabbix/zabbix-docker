@@ -13,16 +13,16 @@ func TestPrepareServiceWindows(t *testing.T) {
 	t.Setenv("PATH", t.TempDir())
 
 	root := t.TempDir()
-	configDirectory := filepath.Join(root, "conf")
-	homeDirectory := filepath.Join(root, "home")
-	pluginDirectory := filepath.Join(configDirectory, "zabbix_agent2.d", "plugins.d")
+	configDir := filepath.Join(root, "conf")
+	homeDir := filepath.Join(root, "home")
+	pluginDirectory := filepath.Join(configDir, "zabbix_agent2.d", "plugins.d")
 	if err := os.MkdirAll(pluginDirectory, 0o700); err != nil {
 		t.Fatal(err)
 	}
-	if err := os.MkdirAll(filepath.Join(homeDirectory, "enc_internal"), 0o700); err != nil {
+	if err := os.MkdirAll(filepath.Join(homeDir, "enc_internal"), 0o700); err != nil {
 		t.Fatal(err)
 	}
-	if err := os.WriteFile(filepath.Join(configDirectory, "zabbix_agent2_item_keys.conf"), []byte("# DenyKey=system.run[*]\n"), 0o600); err != nil {
+	if err := os.WriteFile(filepath.Join(configDir, "zabbix_agent2_item_keys.conf"), []byte("# DenyKey=system.run[*]\n"), 0o600); err != nil {
 		t.Fatal(err)
 	}
 	for _, name := range []string{"mongodb.conf", "postgresql.conf", "mssql.conf", "ember.conf"} {
@@ -32,7 +32,7 @@ func TestPrepareServiceWindows(t *testing.T) {
 	}
 
 	env := bootstrap.Environment{
-		"ZABBIX_CONF_DIR": configDirectory, "ZABBIX_USER_HOME_DIR": homeDirectory,
+		"ZABBIX_CONF_DIR": configDir, "ZABBIX_USER_HOME_DIR": homeDir,
 		"ZBX_ENABLESTATUSPORT": "true", "ZBX_STATUSPORT": "12345",
 		"POSTGRES_PASSWORD": "password",
 	}
@@ -49,7 +49,7 @@ func TestPrepareServiceWindows(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	want := filepath.Join(homeDirectory, "zabbix-agent2-plugin", "mongodb.exe")
+	want := filepath.Join(homeDir, "zabbix-agent2-plugin", "mongodb.exe")
 	if !strings.Contains(string(data), "Plugins.MongoDB.System.Path="+want) {
 		t.Fatalf("MongoDB plugin path is missing from config: %s", data)
 	}

@@ -10,10 +10,9 @@ import (
 
 const agentBinary = "/usr/sbin/zabbix_agentd"
 
-func configureLoadModules(env bootstrap.Environment, configDirectory string) error {
+func configureLoadModules(env bootstrap.Environment, configDir string) error {
 	return bootstrap.UpdateConfigMultiple(
-		filepath.Join(configDirectory, "zabbix_agentd_modules.conf"),
-		"LoadModule",
-		env["ZBX_LOADMODULE"],
+		filepath.Join(configDir, "zabbix_agentd_modules.conf"),
+		"LoadModule", env["ZBX_LOADMODULE"],
 	)
 }

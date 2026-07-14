@@ -11,14 +11,14 @@ import (
 )
 
 func TestPrepareService(t *testing.T) {
-	homeDirectory := t.TempDir()
-	encryptionDirectory := filepath.Join(homeDirectory, "enc_internal")
+	homeDir := t.TempDir()
+	encryptionDirectory := filepath.Join(homeDir, "enc_internal")
 	if err := os.Mkdir(encryptionDirectory, 0o700); err != nil {
 		t.Fatal(err)
 	}
 
 	env := bootstrap.Environment{
-		"ZABBIX_USER_HOME_DIR": homeDirectory,
+		"ZABBIX_USER_HOME_DIR": homeDir,
 		"ZBX_TLSCA":            "ca-data",
 		"ZBX_TLSCERT":          "certificate-data",
 		"ZBX_TLSKEY":           "key-data",
@@ -56,12 +56,12 @@ func TestPrepareService(t *testing.T) {
 }
 
 func TestPrepareServiceKeepsExplicitAllowedIP(t *testing.T) {
-	homeDirectory := t.TempDir()
-	if err := os.Mkdir(filepath.Join(homeDirectory, "enc_internal"), 0o700); err != nil {
+	homeDir := t.TempDir()
+	if err := os.Mkdir(filepath.Join(homeDir, "enc_internal"), 0o700); err != nil {
 		t.Fatal(err)
 	}
 	env := bootstrap.Environment{
-		"ZABBIX_USER_HOME_DIR": homeDirectory,
+		"ZABBIX_USER_HOME_DIR": homeDir,
 		"ZBX_ALLOWEDIP":        "192.0.2.1",
 		"ZBX_CLEAR_ENV":        "false",
 	}
@@ -72,7 +72,7 @@ func TestPrepareServiceKeepsExplicitAllowedIP(t *testing.T) {
 	if env["ZBX_ALLOWEDIP"] != "192.0.2.1" {
 		t.Fatalf("unexpected allowed IP: %q", env["ZBX_ALLOWEDIP"])
 	}
-	if env["ZABBIX_USER_HOME_DIR"] != homeDirectory {
+	if env["ZABBIX_USER_HOME_DIR"] != homeDir {
 		t.Fatal("private environment was cleared despite ZBX_CLEAR_ENV=false")
 	}
 }

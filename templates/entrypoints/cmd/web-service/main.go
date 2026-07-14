@@ -10,14 +10,14 @@ const webServiceBinary = "/usr/sbin/zabbix_web_service"
 func prepareService(env bootstrap.Environment) error {
 	bootstrap.LogInfo("** Preparing Zabbix web service")
 
-	homeDirectory, err := bootstrap.RequiredHomeDirectory(env)
+	homeDir, err := bootstrap.RequiredHomeDirectory(env)
 	if err != nil {
 		return err
 	}
 
 	env["ZBX_ALLOWEDIP"] = env.ValueOrDefaultNonEmpty("ZBX_ALLOWEDIP", "zabbix-server")
 
-	if err := bootstrap.ProcessEncryptionFiles(env, homeDirectory, "ZBX_TLSCA", "ZBX_TLSCERT", "ZBX_TLSKEY"); err != nil {
+	if err := bootstrap.ProcessTLSFiles(env, homeDir, "ZBX_TLSCA", "ZBX_TLSCERT", "ZBX_TLSKEY"); err != nil {
 		return err
 	}
 
@@ -25,7 +25,7 @@ func prepareService(env bootstrap.Environment) error {
 		return err
 	}
 
-	bootstrap.ClearPrivateEnvironment(env)
+	bootstrap.ClearPrivateEnv(env)
 
 	return nil
 }

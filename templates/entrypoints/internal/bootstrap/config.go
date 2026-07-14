@@ -7,10 +7,13 @@ import (
 	"strings"
 )
 
-func UpdateConfigMultiple(path, name, rawValue string) error {
+// UpdateConfigMultiple replaces the name option in the configuration file
+// with one line per comma-separated item of rawValue. An empty value removes
+// the option.
+func UpdateConfigMultiple(configPath, name, rawValue string) error {
 	value := strings.Trim(strings.TrimSpace(rawValue), `"`)
 	if value == "" {
-		return rewriteConfig(path, name, nil, false)
+		return rewriteConfig(configPath, name, nil, false)
 	}
 
 	items := strings.Split(value, ",")
@@ -20,14 +23,17 @@ func UpdateConfigMultiple(path, name, rawValue string) error {
 			values = append(values, item)
 		}
 	}
-	return rewriteConfig(path, name, values, true)
+	return rewriteConfig(configPath, name, values, true)
 }
 
-func UpdateConfigValue(path, name, value string) error {
-	return rewriteConfig(path, name, []string{value}, false)
+// UpdateConfigValue sets a single-value option in the configuration file.
+func UpdateConfigValue(configPath, name, value string) error {
+	return rewriteConfig(configPath, name, []string{value}, false)
 }
 
-func UpdateConfigIndexed(env Environment, path, name, prefix string) error {
+// UpdateConfigIndexed collects the prefix_0, prefix_1, ... variables into
+// repeated name options and removes them from the environment.
+func UpdateConfigIndexed(env Environment, configPath, name, prefix string) error {
 	var values []string
 	for index := 0; ; index++ {
 		variable := fmt.Sprintf("%s_%d", prefix, index)
@@ -41,18 +47,20 @@ func UpdateConfigIndexed(env Environment, path, name, prefix string) error {
 	if len(values) == 0 {
 		return nil
 	}
-	return rewriteConfig(path, name, values, false)
+	return rewriteConfig(configPath, name, values, false)
 }
 
-func rewriteConfig(path, name string, values []string, preserveExisting bool) error {
-	data, err := os.ReadFile(path)
+func rewriteConfig(configPath, name string, values []string, preserveExisting bool) error {
+	data, err := os.ReadFile(configPath)
 	if err != nil {
-		return fmt.Errorf("missing configuration file %s: %w", path, err)
+		return fmt.Errorf("missing configuration file %s: %w", configPath, err)
 	}
 
 	lines := strings.Split(strings.TrimSuffix(string(data), "\n"), "\n")
+
 	activePrefix := name + "="
 	commentPrefixes := []string{"# " + activePrefix, "; " + activePrefix}
+
 	output := make([]string, 0, len(lines)+len(values)+1)
 	existing := make(map[string]struct{})
 	insertAt := -1
@@ -65,7 +73,9 @@ func rewriteConfig(path, name string, values []string, preserveExisting bool) er
 			}
 			continue
 		}
+
 		output = append(output, line)
+
 		if insertAt == -1 && hasAnyPrefix(line, commentPrefixes) {
 			insertAt = len(output)
 		}
@@ -76,43 +86,64 @@ func rewriteConfig(path, name string, values []string, preserveExisting bool) er
 		if value == "" {
 			continue
 		}
+
 		if _, found := existing[value]; !found {
 			newLines = append(newLines, activePrefix+value)
 		}
 	}
+
 	if insertAt >= 0 {
 		updated := make([]string, 0, len(output)+len(newLines))
 		updated = append(updated, output[:insertAt]...)
 		updated = append(updated, newLines...)
 		updated = append(updated, output[insertAt:]...)
+
 		output = updated
 	} else if len(newLines) > 0 {
 		if len(output) > 0 && output[len(output)-1] != "" {
 			output = append(output, "")
 		}
+
 		output = append(output, newLines...)
 	}
 
+	requested := false
+	for _, value := range values {
+		if value != "" {
+			requested = true
+			break
+		}
+	}
+
 	updatedData := []byte(strings.Join(output, "\n") + "\n")
-	if bytes.Equal(data, updatedData) {
+
+	changed := !bytes.Equal(data, updatedData)
+	if changed {
+		if err := os.WriteFile(configPath, updatedData, 0o644); err != nil {
+			return fmt.Errorf("update configuration file %s: %w", configPath, err)
+		}
+	}
+
+	if !requested {
+		if changed {
+			LogInfo("** Removing %s parameter '%s'", configPath, name)
+		}
 		return nil
 	}
-	if err := os.WriteFile(path, updatedData, 0o644); err != nil {
-		return fmt.Errorf("update configuration file %s: %w", path, err)
-	}
-	if len(newLines) == 0 {
-		LogInfo("** Removing %s parameter '%s'", path, name)
-		return nil
-	}
+
 	loggedValue := strings.Join(values, ",")
-	if isMaskedConfigVariable(name) && loggedValue != "" {
+	if isMaskedConfigVar(name) {
 		loggedValue = "****"
 	}
-	LogInfo("** Updating %s parameter '%s': '%s'", path, name, loggedValue)
+	if changed {
+		LogInfo("** Updating %s parameter '%s': '%s'", configPath, name, loggedValue)
+	} else {
+		LogInfo("** Updating %s parameter '%s': '%s'... exists", configPath, name, loggedValue)
+	}
 	return nil
 }
 
-func isMaskedConfigVariable(name string) bool {
+func isMaskedConfigVar(name string) bool {
 	switch name {
 	case "TLSPSKIdentity", "DBPassword", "HistoryProvider":
 		return true

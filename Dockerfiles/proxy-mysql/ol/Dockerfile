@@ -6,7 +6,21 @@ ARG BUILD_BASE_IMAGE=zabbix-build-mysql:ol-${ZBX_VERSION}
 
 FROM ${BUILD_BASE_IMAGE} AS builder
 
+FROM builder AS entrypoint-builder
+
+RUN --mount=from=entrypoints,target=/tmp/entrypoints,ro \
+    --mount=type=cache,target=/root/.cache/go-build,sharing=locked \
+    --mount=type=cache,target=/root/go/pkg/mod,sharing=locked \
+    set -eux && \
+    cd /tmp/entrypoints && \
+    CGO_ENABLED=0 go build -buildvcs=false -trimpath -ldflags="-s -w -buildid=" \
+            -o /tmp/docker-entrypoint \
+        ./cmd/proxy-mysql
+
 FROM ${OS_BASE_IMAGE}
+
+COPY --chmod=0755 --from=entrypoint-builder /tmp/docker-entrypoint /usr/bin/docker-entrypoint
+COPY --from=entrypoints /licenses/go-THIRD-PARTY-NOTICES.txt /licenses/mysql-THIRD-PARTY-NOTICES.txt /licenses/
 
 ARG MAJOR_VERSION
 ARG ZBX_VERSION
@@ -20,8 +34,8 @@ ENV TERM=xterm \
     ZABBIX_USER_HOME_DIR=/var/lib/zabbix \
     ZABBIX_CONF_DIR=/etc/zabbix
 
-ENV DB_ENGINE=mysql \
-    ZBX_DB_NAME=dummy_db_name \
+# Required for runtime control commands executed via container exec
+ENV ZBX_DB_NAME=dummy_db_name \
     ZBX_FPINGLOCATION=/usr/sbin/fping \
     ZBX_LOADMODULEPATH=${ZABBIX_USER_HOME_DIR}/modules \
     ZBX_SNMPTRAPPERFILE=${ZABBIX_USER_HOME_DIR}/snmptraps/snmptraps.log \
@@ -63,7 +77,6 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             iputils \
             libcurl \
             libxml2 \
-            mysql8.4 \
             mysql8.4-libs \
             net-snmp-libs \
             OpenIPMI-libs \
@@ -72,7 +85,6 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             openssl-libs \
             pcre2 \
             zlib \
-            gzip \
             unixODBC" && \
     microdnf -y install \
             --disablerepo="*" \
@@ -130,12 +142,6 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
     chmod g=u ${ZABBIX_CONF_DIR} && \
     /usr/sbin/zabbix_proxy -V
 
-RUN --mount=from=entrypoints,target=/tmp/entrypoints,ro \
-    set -eux && \
-    install -d /usr/lib/docker-entrypoint && \
-    install -m 0755 /tmp/entrypoints/proxy-mysql.sh /usr/bin/docker-entrypoint.sh && \
-    install -m 0644 /tmp/entrypoints/lib/*.sh /usr/lib/docker-entrypoint/
-
 EXPOSE 10051/tcp
 
 WORKDIR ${ZABBIX_USER_HOME_DIR}
@@ -144,6 +150,6 @@ VOLUME ["${ZABBIX_USER_HOME_DIR}/snmptraps"]
 
 USER 1997
 
-ENTRYPOINT ["/usr/bin/docker-entrypoint.sh"]
+ENTRYPOINT ["/usr/bin/docker-entrypoint"]
 
 CMD ["/usr/sbin/zabbix_proxy", "--foreground", "-c", "/etc/zabbix/zabbix_proxy.conf"]

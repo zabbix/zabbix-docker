@@ -15,16 +15,16 @@ func TestPrepareService(t *testing.T) {
 	t.Setenv("PATH", t.TempDir())
 
 	root := t.TempDir()
-	configDirectory := filepath.Join(root, "etc")
-	homeDirectory := filepath.Join(root, "home")
-	pluginDirectory := filepath.Join(configDirectory, "zabbix_agent2.d", "plugins.d")
+	configDir := filepath.Join(root, "etc")
+	homeDir := filepath.Join(root, "home")
+	pluginDirectory := filepath.Join(configDir, "zabbix_agent2.d", "plugins.d")
 	if err := os.MkdirAll(pluginDirectory, 0o700); err != nil {
 		t.Fatal(err)
 	}
-	if err := os.MkdirAll(filepath.Join(homeDirectory, "enc_internal"), 0o700); err != nil {
+	if err := os.MkdirAll(filepath.Join(homeDir, "enc_internal"), 0o700); err != nil {
 		t.Fatal(err)
 	}
-	if err := os.WriteFile(filepath.Join(configDirectory, "zabbix_agent2_item_keys.conf"), []byte("# DenyKey=system.run[*]\n"), 0o600); err != nil {
+	if err := os.WriteFile(filepath.Join(configDir, "zabbix_agent2_item_keys.conf"), []byte("# DenyKey=system.run[*]\n"), 0o600); err != nil {
 		t.Fatal(err)
 	}
 	for _, name := range []string{"mongodb.conf", "postgresql.conf", "mssql.conf", "ember.conf"} {
@@ -34,7 +34,7 @@ func TestPrepareService(t *testing.T) {
 	}
 
 	env := bootstrap.Environment{
-		"ZABBIX_CONF_DIR": configDirectory, "ZABBIX_USER_HOME_DIR": homeDirectory,
+		"ZABBIX_CONF_DIR": configDir, "ZABBIX_USER_HOME_DIR": homeDir,
 		"ZBX_SERVER_HOST": "server", "ZBX_ENABLEPERSISTENTBUFFER": "true",
 		"ZBX_PERSISTENTBUFFERFILE": "/buffer/agent2.db", "ZBX_ENABLESTATUSPORT": "true",
 		"ZBX_TLSPSK": "secret", "POSTGRES_PASSWORD": "password",

@@ -4,7 +4,7 @@ import (
 	"os/exec"
 	"path/filepath"
 
-	agentconfig "github.com/zabbix/zabbix-docker/templates/entrypoints/internal/agent"
+	config "github.com/zabbix/zabbix-docker/templates/entrypoints/internal/agent"
 	"github.com/zabbix/zabbix-docker/templates/entrypoints/internal/bootstrap"
 	"github.com/zabbix/zabbix-docker/templates/entrypoints/internal/hooks"
 )
@@ -12,23 +12,23 @@ import (
 func prepareService(env bootstrap.Environment) error {
 	bootstrap.LogInfo("** Preparing Zabbix agent 2")
 
-	homeDirectory, configDirectory, err := bootstrap.RequiredDirectories(env)
+	homeDir, configDir, err := bootstrap.RequiredDirectories(env)
 	if err != nil {
 		return err
 	}
 
-	agentconfig.ConfigureServers(env)
+	config.ConfigureServers(env)
 	configureFeatureSwitches(env)
 
-	if err := agentconfig.ConfigureItemKeys(env, configDirectory, "zabbix_agent2_item_keys.conf"); err != nil {
+	if err := config.ConfigureAllowDenyKeys(env, configDir, "zabbix_agent2_item_keys.conf"); err != nil {
 		return err
 	}
 
-	if err := agentconfig.ProcessEncryptionFiles(env, homeDirectory); err != nil {
+	if err := config.ProcessTLSFiles(env, homeDir); err != nil {
 		return err
 	}
 
-	if err := updatePluginConfig(homeDirectory, configDirectory); err != nil {
+	if err := updatePluginConfig(homeDir, configDir); err != nil {
 		return err
 	}
 
@@ -36,7 +36,7 @@ func prepareService(env bootstrap.Environment) error {
 		return err
 	}
 
-	agentconfig.ClearPrivateEnvironment(env)
+	config.ClearPrivateEnv(env)
 
 	return nil
 }
@@ -56,11 +56,11 @@ func configureFeatureSwitches(env bootstrap.Environment) {
 	}
 }
 
-func updatePluginConfig(homeDirectory, configDirectory string) error {
+func updatePluginConfig(homeDir, configDir string) error {
 	bootstrap.LogInfo("** Preparing Zabbix agent 2 plugin configuration files")
 
-	configDirectory = filepath.Join(configDirectory, "zabbix_agent2.d", "plugins.d")
-	binDirectory := pluginBinaryDirectory(homeDirectory)
+	configDir = filepath.Join(configDir, "zabbix_agent2.d", "plugins.d")
+	binDir := pluginBinDir(homeDir)
 
 	plugins := []struct {
 		file, parameter, binary string
@@ -79,9 +79,9 @@ func updatePluginConfig(homeDirectory, configDirectory string) error {
 
 	for _, plugin := range plugins {
 		if err := bootstrap.UpdateConfigValue(
-			filepath.Join(configDirectory, plugin.file),
+			filepath.Join(configDir, plugin.file),
 			plugin.parameter,
-			filepath.Join(binDirectory, plugin.binary+pluginExecutableSuffix),
+			filepath.Join(binDir, plugin.binary+pluginExecSuffix),
 		); err != nil {
 			return err
 		}

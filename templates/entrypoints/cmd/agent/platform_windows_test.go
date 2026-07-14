@@ -10,20 +10,20 @@ import (
 
 func TestPrepareServiceWindows(t *testing.T) {
 	root := t.TempDir()
-	configDirectory := filepath.Join(root, "conf")
-	homeDirectory := filepath.Join(root, "home")
-	if err := os.MkdirAll(filepath.Join(homeDirectory, "enc_internal"), 0o700); err != nil {
+	configDir := filepath.Join(root, "conf")
+	homeDir := filepath.Join(root, "home")
+	if err := os.MkdirAll(filepath.Join(homeDir, "enc_internal"), 0o700); err != nil {
 		t.Fatal(err)
 	}
-	if err := os.MkdirAll(configDirectory, 0o700); err != nil {
+	if err := os.MkdirAll(configDir, 0o700); err != nil {
 		t.Fatal(err)
 	}
-	if err := os.WriteFile(filepath.Join(configDirectory, "zabbix_agentd_item_keys.conf"), []byte("# DenyKey=system.run[*]\n"), 0o600); err != nil {
+	if err := os.WriteFile(filepath.Join(configDir, "zabbix_agentd_item_keys.conf"), []byte("# DenyKey=system.run[*]\n"), 0o600); err != nil {
 		t.Fatal(err)
 	}
 
 	env := bootstrap.Environment{
-		"ZABBIX_CONF_DIR": configDirectory, "ZABBIX_USER_HOME_DIR": homeDirectory,
+		"ZABBIX_CONF_DIR": configDir, "ZABBIX_USER_HOME_DIR": homeDir,
 		"MYSQL_PASSWORD": "password",
 	}
 	if err := prepareService(env); err != nil {

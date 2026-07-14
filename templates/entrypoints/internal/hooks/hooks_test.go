@@ -12,13 +12,13 @@ import (
 )
 
 func TestRunExecutesHooksInOrder(t *testing.T) {
-	homeDirectory := t.TempDir()
-	directory := filepath.Join(homeDirectory, directoryName)
+	homeDir := t.TempDir()
+	directory := filepath.Join(homeDir, directoryName)
 	if err := os.Mkdir(directory, 0o700); err != nil {
 		t.Fatal(err)
 	}
 
-	output := filepath.Join(homeDirectory, "output")
+	output := filepath.Join(homeDir, "output")
 	for name, content := range map[string]string{
 		"20-second.sh": "printf 'second:%s\\n' \"$ZABBIX_CONF_DIR\" >> \"$HOOK_OUTPUT\"\n",
 		"10-first.sh":  "printf 'first:%s\\n' \"$ZABBIX_CONF_DIR\" >> \"$HOOK_OUTPUT\"\n",
@@ -30,7 +30,7 @@ func TestRunExecutesHooksInOrder(t *testing.T) {
 	}
 
 	env := bootstrap.Environment{
-		"ZABBIX_USER_HOME_DIR": homeDirectory,
+		"ZABBIX_USER_HOME_DIR": homeDir,
 		"ZABBIX_CONF_DIR":      "/etc/zabbix",
 		"HOOK_OUTPUT":          output,
 	}
@@ -48,8 +48,8 @@ func TestRunExecutesHooksInOrder(t *testing.T) {
 }
 
 func TestRunReturnsHookFailure(t *testing.T) {
-	homeDirectory := t.TempDir()
-	directory := filepath.Join(homeDirectory, directoryName)
+	homeDir := t.TempDir()
+	directory := filepath.Join(homeDir, directoryName)
 	if err := os.Mkdir(directory, 0o700); err != nil {
 		t.Fatal(err)
 	}
@@ -59,7 +59,7 @@ func TestRunReturnsHookFailure(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	err := Run(bootstrap.Environment{"ZABBIX_USER_HOME_DIR": homeDirectory})
+	err := Run(bootstrap.Environment{"ZABBIX_USER_HOME_DIR": homeDir})
 	if err == nil || !strings.Contains(err.Error(), "10-fail.sh") {
 		t.Fatalf("unexpected error: %v", err)
 	}
