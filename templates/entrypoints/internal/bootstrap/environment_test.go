@@ -9,6 +9,9 @@ import (
 
 func TestEnvironmentDefaults(t *testing.T) {
 	env := Environment{"EMPTY": "", "VALUE": "configured"}
+	if got := env.ValueOrDefault("EMPTY", "default"); got != "" {
+		t.Fatalf("ValueOrDefault() = %q, want empty value", got)
+	}
 	if got := env.ValueOrDefaultNonEmpty("EMPTY", "default"); got != "default" {
 		t.Fatalf("ValueOrDefaultNonEmpty() = %q, want default", got)
 	}
@@ -38,9 +41,9 @@ func TestProcessFileAndClearEnvironment(t *testing.T) {
 		t.Fatal("ZBX_TLSPSK was not removed")
 	}
 
-	ClearPrivateEnvironment(env, "ZABBIX_")
-	if env["MYSQL_PASSWORD"] != "password" {
-		t.Fatal("MYSQL_PASSWORD was unexpectedly removed")
+	ClearPrivateEnvironment(env)
+	if _, found := env["MYSQL_PASSWORD"]; found {
+		t.Fatal("MYSQL_PASSWORD was not removed")
 	}
 	if !strings.Contains(strings.Join(env.List(), "\n"), "VALUE=a=b") {
 		t.Fatalf("environment list: %q", env.List())
@@ -58,6 +61,23 @@ func TestClearPrivateEnvironmentWithPrefixes(t *testing.T) {
 	}
 	if env["MYSQL_PASSWORD"] != "password" {
 		t.Fatal("MYSQL_PASSWORD was unexpectedly removed")
+	}
+}
+
+func TestFileEnv(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "password")
+	if err := os.WriteFile(path, []byte("secret\n"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	env := Environment{"MYSQL_PASSWORD_FILE": path}
+	if err := FileEnv(env, "MYSQL_PASSWORD", ""); err != nil {
+		t.Fatal(err)
+	}
+	if env["MYSQL_PASSWORD"] != "secret" {
+		t.Fatalf("MYSQL_PASSWORD = %q", env["MYSQL_PASSWORD"])
+	}
+	if _, found := env["MYSQL_PASSWORD_FILE"]; found {
+		t.Fatal("MYSQL_PASSWORD_FILE was not removed")
 	}
 }
 

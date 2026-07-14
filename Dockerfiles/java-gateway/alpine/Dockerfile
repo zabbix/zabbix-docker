@@ -68,11 +68,8 @@ RUN set -eux && \
     chown --quiet -R zabbix:0 ${FIX_PERM_LIST} && \
     chmod -R g=u ${FIX_PERM_LIST}
 
-RUN --mount=from=entrypoints,target=/tmp/entrypoints,ro \
-    set -eux && \
-    install -d /usr/lib/docker-entrypoint && \
-    install -m 0755 /tmp/entrypoints/java-gateway.sh /usr/bin/docker-entrypoint.sh && \
-    install -m 0644 /tmp/entrypoints/lib/*.sh /usr/lib/docker-entrypoint/
+COPY --chmod=0755 --from=entrypoints /shell/java-gateway.sh /usr/bin/docker-entrypoint.sh
+COPY --chmod=0644 --from=entrypoints /shell/hooks.sh /usr/lib/docker-entrypoint/hooks.sh
 
 EXPOSE 10052/tcp
 
@@ -80,4 +77,6 @@ USER 1997
 
 WORKDIR ${ZABBIX_USER_HOME_DIR}
 
-ENTRYPOINT ["docker-entrypoint.sh"]
+ENTRYPOINT ["/usr/bin/docker-entrypoint.sh"]
+
+CMD ["java-gateway"]

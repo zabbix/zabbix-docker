@@ -20,7 +20,15 @@ func prepareService(env bootstrap.Environment) error {
 		return err
 	}
 
+	if err := configureLoadModules(env, configDirectory); err != nil {
+		return err
+	}
+
 	if err := agentconfig.ProcessEncryptionFiles(env, homeDirectory); err != nil {
+		return err
+	}
+
+	if err := bootstrap.ConfigureIdentity(env); err != nil {
 		return err
 	}
 

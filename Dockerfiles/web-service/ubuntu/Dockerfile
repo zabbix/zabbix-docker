@@ -6,6 +6,15 @@ ARG BUILD_BASE_IMAGE=zabbix-build-mysql:ubuntu-${ZBX_VERSION}
 
 FROM ${BUILD_BASE_IMAGE} AS builder
 
+FROM builder AS entrypoint-builder
+
+RUN --mount=from=entrypoints,target=/tmp/entrypoints,ro \
+    --mount=type=cache,target=/root/.cache/go-build,sharing=locked \
+    cd /tmp/entrypoints && \
+    CGO_ENABLED=0 go build -buildvcs=false -trimpath -ldflags="-s -w -buildid=" \
+            -o /tmp/docker-entrypoint \
+        ./cmd/web-service
+
 FROM ${OS_BASE_IMAGE}
 
 ARG MAJOR_VERSION
@@ -32,6 +41,8 @@ STOPSIGNAL SIGTERM
 
 COPY --from=builder /tmp/zabbix-${ZBX_VERSION}-output/web_service/sbin/zabbix_web_service /usr/sbin/zabbix_web_service
 COPY --from=builder /tmp/zabbix-${ZBX_VERSION}-output/web_service/conf/ ${ZABBIX_CONF_DIR}/
+COPY --chmod=0755 --from=entrypoint-builder /tmp/docker-entrypoint /usr/bin/docker-entrypoint
+COPY --from=entrypoints /licenses/go-THIRD-PARTY-NOTICES.txt /licenses/
 COPY conf/etc/apt/preferences.d/chromium.pref /etc/apt/preferences.d/chromium.pref
 
 RUN --mount=type=cache,target=/var/cache/apt/,sharing=locked \
@@ -39,8 +50,7 @@ RUN --mount=type=cache,target=/var/cache/apt/,sharing=locked \
     set -eux && \
     printf '%s\n' '#!/bin/sh' 'exit 101' > /usr/sbin/policy-rc.d && \
     chmod +x /usr/sbin/policy-rc.d && \
-    INSTALL_PKGS="bash \
-            ca-certificates \
+    INSTALL_PKGS="ca-certificates \
             chromium \
             chromium-sandbox" && \
     INSTALL_TEMP_PKGS="gnupg dirmngr gpg gpgconf" && \
@@ -83,18 +93,12 @@ RUN --mount=type=cache,target=/var/cache/apt/,sharing=locked \
     apt-get -y autoremove && \
     /usr/sbin/zabbix_web_service -V
 
-RUN --mount=from=entrypoints,target=/tmp/entrypoints,ro \
-    set -eux && \
-    install -d /usr/lib/docker-entrypoint && \
-    install -m 0755 /tmp/entrypoints/web-service.sh /usr/bin/docker-entrypoint.sh && \
-    install -m 0644 /tmp/entrypoints/lib/*.sh /usr/lib/docker-entrypoint/
-
 EXPOSE 10053/tcp
 
 WORKDIR ${ZABBIX_USER_HOME_DIR}
 
 USER 1997
 
-ENTRYPOINT ["docker-entrypoint.sh"]
+ENTRYPOINT ["/usr/bin/docker-entrypoint"]
 
 CMD ["/usr/sbin/zabbix_web_service", "-c", "/etc/zabbix/zabbix_web_service.conf"]

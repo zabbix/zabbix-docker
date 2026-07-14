@@ -6,6 +6,15 @@ ARG BUILD_BASE_IMAGE=zabbix-build-mysql:centos-${ZBX_VERSION}
 
 FROM ${BUILD_BASE_IMAGE} AS builder
 
+FROM builder AS entrypoint-builder
+
+RUN --mount=from=entrypoints,target=/tmp/entrypoints,ro \
+    --mount=type=cache,target=/root/.cache/go-build,sharing=locked \
+    cd /tmp/entrypoints && \
+    CGO_ENABLED=0 go build -buildvcs=false -trimpath -ldflags="-s -w -buildid=" \
+            -o /tmp/docker-entrypoint \
+        ./cmd/web-service
+
 FROM ${OS_BASE_IMAGE}
 
 ARG MAJOR_VERSION
@@ -33,12 +42,13 @@ STOPSIGNAL SIGTERM
 
 COPY --from=builder /tmp/zabbix-${ZBX_VERSION}-output/web_service/sbin/zabbix_web_service /usr/sbin/zabbix_web_service
 COPY --from=builder /tmp/zabbix-${ZBX_VERSION}-output/web_service/conf/ ${ZABBIX_CONF_DIR}/
+COPY --chmod=0755 --from=entrypoint-builder /tmp/docker-entrypoint /usr/bin/docker-entrypoint
+COPY --from=entrypoints /licenses/go-THIRD-PARTY-NOTICES.txt /licenses/
 
 RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
     --mount=type=tmpfs,target=/var/cache/yum/ \
     set -eux && \
-    INSTALL_PKGS="bash \
-            chromium-headless \
+    INSTALL_PKGS="chromium-headless \
             ca-certificates \
             shadow-utils" && \
     microdnf -y install \
@@ -79,18 +89,12 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
     chmod -R g=u ${ZABBIX_USER_HOME_DIR}/ && \
     /usr/sbin/zabbix_web_service -V
 
-RUN --mount=from=entrypoints,target=/tmp/entrypoints,ro \
-    set -eux && \
-    install -d /usr/lib/docker-entrypoint && \
-    install -m 0755 /tmp/entrypoints/web-service.sh /usr/bin/docker-entrypoint.sh && \
-    install -m 0644 /tmp/entrypoints/lib/*.sh /usr/lib/docker-entrypoint/
-
 EXPOSE 10053/tcp
 
 WORKDIR ${ZABBIX_USER_HOME_DIR}
 
 USER 1997
 
-ENTRYPOINT ["docker-entrypoint.sh"]
+ENTRYPOINT ["/usr/bin/docker-entrypoint"]
 
 CMD ["/usr/sbin/zabbix_web_service", "-c", "/etc/zabbix/zabbix_web_service.conf"]

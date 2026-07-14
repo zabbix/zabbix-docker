@@ -50,8 +50,6 @@ COPY licenses /licenses/
 
 RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
     --mount=type=tmpfs,target=/var/cache/yum/ \
-    --mount=from=config_templates,target=/tmp/conf,ro \
-    --mount=from=scripts,target=/tmp/scripts,ro \
     set -eux && \
     INSTALL_PKGS="bash \
             shadow-utils \
@@ -90,10 +88,6 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
         ${ZABBIX_USER_HOME_DIR}/snmptraps \
         ${ZABBIX_USER_HOME_DIR}/mibs \
         ${SNMP_PERSISTENT_DIR} && \
-    cp /tmp/conf/logrotate.d/zabbix_snmptraps /etc/logrotate.d/ && \
-    cp /tmp/conf/snmp/snmptrapd.conf /etc/snmp/ && \
-    cp /tmp/scripts/zabbix_trap_handler.sh /usr/sbin/ && \
-    cp /tmp/scripts/snmptrapd_runner.sh /usr/sbin/ && \
     FIX_PERM_LIST="\
         /etc/snmp/ \
         ${ZABBIX_USER_HOME_DIR}/ \
@@ -103,6 +97,12 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
     chgrp -R 0 ${FIX_PERM_LIST} && \
     chmod -R g=u ${FIX_PERM_LIST}
 
+COPY --chmod=0644 --from=config_templates /logrotate.d/zabbix_snmptraps /etc/logrotate.d/
+COPY --chown=1997:0 --chmod=0664 --from=config_templates /snmp/snmptrapd.conf /etc/snmp/
+COPY --chmod=0644 --from=scripts /zabbix_trap_handler.sh /usr/sbin/
+COPY --chmod=0755 --from=entrypoints /shell/snmptraps.sh /usr/bin/docker-entrypoint.sh
+COPY --chmod=0644 --from=entrypoints /shell/hooks.sh /usr/lib/docker-entrypoint/hooks.sh
+
 EXPOSE 1162/udp
 
 WORKDIR ${ZABBIX_USER_HOME_DIR}/snmptraps/
@@ -111,4 +111,6 @@ VOLUME ["${ZABBIX_USER_HOME_DIR}/snmptraps", "${SNMP_PERSISTENT_DIR}"]
 
 USER 1997
 
-CMD ["/usr/sbin/snmptrapd_runner.sh"]
+ENTRYPOINT ["/usr/bin/docker-entrypoint.sh"]
+
+CMD ["/usr/sbin/snmptrapd"]

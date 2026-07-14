@@ -6,6 +6,15 @@ ARG BUILD_BASE_IMAGE=zabbix-build-mysql:ol-${ZBX_VERSION}
 
 FROM ${BUILD_BASE_IMAGE} AS builder
 
+FROM builder AS entrypoint-builder
+
+RUN --mount=from=entrypoints,target=/tmp/entrypoints,ro \
+    --mount=type=cache,target=/root/.cache/go-build,sharing=locked \
+    cd /tmp/entrypoints && \
+    CGO_ENABLED=0 go build -buildvcs=false -trimpath -ldflags="-s -w -buildid=" \
+            -o /tmp/docker-entrypoint \
+        ./cmd/agent2
+
 FROM ${OS_BASE_IMAGE}
 
 ARG MAJOR_VERSION
@@ -100,11 +109,8 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
     chmod g=u ${ZABBIX_CONF_DIR} && \
     /usr/sbin/zabbix_agent2 -V
 
-RUN --mount=from=entrypoints,target=/tmp/entrypoints,ro \
-    set -eux && \
-    install -d /usr/lib/docker-entrypoint && \
-    install -m 0755 /tmp/entrypoints/agent2.sh /usr/bin/docker-entrypoint.sh && \
-    install -m 0644 /tmp/entrypoints/lib/*.sh /usr/lib/docker-entrypoint/
+COPY --chmod=0755 --from=entrypoint-builder /tmp/docker-entrypoint /usr/bin/docker-entrypoint
+COPY --from=entrypoints /licenses/go-THIRD-PARTY-NOTICES.txt /licenses/
 
 EXPOSE 10050/tcp 31999/tcp
 
@@ -112,6 +118,6 @@ WORKDIR ${ZABBIX_USER_HOME_DIR}
 
 USER 1997
 
-ENTRYPOINT ["/usr/bin/docker-entrypoint.sh"]
+ENTRYPOINT ["/usr/bin/docker-entrypoint"]
 
 CMD ["/usr/sbin/zabbix_agent2", "--foreground", "-c", "/etc/zabbix/zabbix_agent2.conf"]

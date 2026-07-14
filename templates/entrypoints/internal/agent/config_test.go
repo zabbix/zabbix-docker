@@ -16,16 +16,3 @@ func TestConfigureServers(t *testing.T) {
 		t.Fatalf("unexpected servers: %#v", env)
 	}
 }
-
-func TestConfigureServersUsesDefaultsForEmptyValues(t *testing.T) {
-	env := bootstrap.Environment{
-		"ZBX_SERVER_HOST": "",
-		"ZBX_SERVER_PORT": "",
-	}
-
-	ConfigureServers(env)
-
-	if env["ZBX_PASSIVESERVERS"] != "zabbix-server" || env["ZBX_ACTIVESERVERS"] != "zabbix-server" {
-		t.Fatalf("unexpected servers: %#v", env)
-	}
-}

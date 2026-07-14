@@ -17,10 +17,7 @@ WORKDIR C:\entrypoints
 SHELL ["powershell", "-Command", "$ErrorActionPreference = 'Stop'; $ProgressPreference = 'SilentlyContinue';"]
 
 RUN $env:CGO_ENABLED = '0'; `
-    go build `
-        -buildvcs=false `
-        -trimpath `
-        -ldflags='-s -w -buildid=' `
+    go build -buildvcs=false -trimpath -ldflags="-s -w -buildid=" `
         -o C:\docker-entrypoint.exe `
         ./cmd/agent2;
 

@@ -60,7 +60,7 @@ func updatePluginConfig(homeDirectory, configDirectory string) error {
 	bootstrap.LogInfo("** Preparing Zabbix agent 2 plugin configuration files")
 
 	configDirectory = filepath.Join(configDirectory, "zabbix_agent2.d", "plugins.d")
-	binDirectory := filepath.Join(homeDirectory, "zabbix-agent2-plugin")
+	binDirectory := pluginBinaryDirectory(homeDirectory)
 
 	plugins := []struct {
 		file, parameter, binary string
@@ -81,7 +81,7 @@ func updatePluginConfig(homeDirectory, configDirectory string) error {
 		if err := bootstrap.UpdateConfigValue(
 			filepath.Join(configDirectory, plugin.file),
 			plugin.parameter,
-			filepath.Join(binDirectory, plugin.binary+".exe"),
+			filepath.Join(binDirectory, plugin.binary+pluginExecutableSuffix),
 		); err != nil {
 			return err
 		}

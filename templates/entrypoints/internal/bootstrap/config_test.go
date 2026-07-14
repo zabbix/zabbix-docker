@@ -90,3 +90,34 @@ func TestUpdateConfigMultipleDoesNotRewriteUnchangedConfig(t *testing.T) {
 		t.Fatalf("unchanged configuration was rewritten: modification time is %s", info.ModTime())
 	}
 }
+
+func TestUpdateConfigIndexed(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "server.conf")
+	if err := os.WriteFile(path, []byte("# HistoryProvider=\n"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	env := Environment{
+		"ZBX_HISTORYPROVIDER_0": "provider-one",
+		"ZBX_HISTORYPROVIDER_1": "provider-two",
+		"ZBX_HISTORYPROVIDER_3": "ignored-after-gap",
+	}
+	if err := UpdateConfigIndexed(env, path, "HistoryProvider", "ZBX_HISTORYPROVIDER"); err != nil {
+		t.Fatal(err)
+	}
+
+	data, err := os.ReadFile(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, value := range []string{"HistoryProvider=provider-one", "HistoryProvider=provider-two"} {
+		if !strings.Contains(string(data), value) {
+			t.Fatalf("configuration does not contain %q:\n%s", value, data)
+		}
+	}
+	if _, found := env["ZBX_HISTORYPROVIDER_0"]; found {
+		t.Fatal("processed indexed variable was not removed")
+	}
+	if env["ZBX_HISTORYPROVIDER_3"] != "ignored-after-gap" {
+		t.Fatal("indexed variable after a gap was unexpectedly processed")
+	}
+}

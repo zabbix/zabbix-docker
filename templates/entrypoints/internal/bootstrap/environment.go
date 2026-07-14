@@ -35,6 +35,26 @@ func (env Environment) List() []string {
 	return values
 }
 
+func (env Environment) ValueOrDefault(name, defaultValue string) string {
+	value, found := env[name]
+	if !found {
+		return defaultValue
+	}
+	return value
+}
+
+func (env Environment) SetDefault(name, defaultValue string) {
+	if _, found := env[name]; !found {
+		env[name] = defaultValue
+	}
+}
+
+func (env Environment) SetDefaultNonEmpty(name, defaultValue string) {
+	if env[name] == "" {
+		env[name] = defaultValue
+	}
+}
+
 func (env Environment) ValueOrDefaultNonEmpty(name, defaultValue string) string {
 	if value := env[name]; value != "" {
 		return value
@@ -77,6 +97,32 @@ func requiredDirectory(env Environment, name string) (string, error) {
 	return directory, nil
 }
 
+func FileEnv(env Environment, name, defaultValue string) error {
+	fileName := name + "_FILE"
+	value := env[name]
+	secretFile := env[fileName]
+	if value != "" && secretFile != "" {
+		return fmt.Errorf("both variables %s and %s are set (but are exclusive)", name, fileName)
+	}
+
+	value = defaultValue
+	if env[name] != "" {
+		value = env[name]
+		LogInfo("** Using %s variable from ENV", name)
+	} else if secretFile != "" {
+		data, err := os.ReadFile(secretFile)
+		if err != nil {
+			return fmt.Errorf("secret file %q is not found: %w", secretFile, err)
+		}
+		value = strings.TrimRight(string(data), "\n")
+		LogInfo("** Using %s variable from secret file", name)
+	}
+
+	env[name] = value
+	delete(env, fileName)
+	return nil
+}
+
 func ProcessFileFromEnvironment(env Environment, directory, variable string) error {
 	fileVariable := variable + "FILE"
 	if value := env[variable]; value != "" {
@@ -104,6 +150,9 @@ func ProcessEncryptionFiles(env Environment, homeDirectory string, variables ...
 func ClearPrivateEnvironment(env Environment, prefixes ...string) {
 	if env["ZBX_CLEAR_ENV"] == "false" {
 		return
+	}
+	if len(prefixes) == 0 {
+		prefixes = []string{"ZABBIX_", "DB_", "MYSQL_", "POSTGRES_"}
 	}
 	for name := range env {
 		if hasAnyPrefix(name, prefixes) {

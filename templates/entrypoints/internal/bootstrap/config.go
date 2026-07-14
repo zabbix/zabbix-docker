@@ -27,6 +27,23 @@ func UpdateConfigValue(path, name, value string) error {
 	return rewriteConfig(path, name, []string{value}, false)
 }
 
+func UpdateConfigIndexed(env Environment, path, name, prefix string) error {
+	var values []string
+	for index := 0; ; index++ {
+		variable := fmt.Sprintf("%s_%d", prefix, index)
+		value := env[variable]
+		if value == "" {
+			break
+		}
+		values = append(values, value)
+		delete(env, variable)
+	}
+	if len(values) == 0 {
+		return nil
+	}
+	return rewriteConfig(path, name, values, false)
+}
+
 func rewriteConfig(path, name string, values []string, preserveExisting bool) error {
 	data, err := os.ReadFile(path)
 	if err != nil {
@@ -88,6 +105,18 @@ func rewriteConfig(path, name string, values []string, preserveExisting bool) er
 		return nil
 	}
 	loggedValue := strings.Join(values, ",")
+	if isMaskedConfigVariable(name) && loggedValue != "" {
+		loggedValue = "****"
+	}
 	LogInfo("** Updating %s parameter '%s': '%s'", path, name, loggedValue)
 	return nil
+}
+
+func isMaskedConfigVariable(name string) bool {
+	switch name {
+	case "TLSPSKIdentity", "DBPassword", "HistoryProvider":
+		return true
+	default:
+		return false
+	}
 }

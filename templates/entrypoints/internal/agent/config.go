@@ -8,8 +8,8 @@ import (
 )
 
 func ConfigureServers(env bootstrap.Environment) {
-	serverHost := env.ValueOrDefaultNonEmpty("ZBX_SERVER_HOST", "zabbix-server")
-	serverPort := env.ValueOrDefaultNonEmpty("ZBX_SERVER_PORT", "10051")
+	serverHost := env.ValueOrDefault("ZBX_SERVER_HOST", "zabbix-server")
+	serverPort := env.ValueOrDefault("ZBX_SERVER_PORT", "10051")
 	passiveServers := env["ZBX_PASSIVESERVERS"]
 	activeServers := env["ZBX_ACTIVESERVERS"]
 

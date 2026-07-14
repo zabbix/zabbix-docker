@@ -10,6 +10,18 @@ func LogInfo(format string, args ...any) {
 	logMessage(os.Stdout, "info", format, args...)
 }
 
+func LogDebug(env Environment, format string, args ...any) {
+	if env["DEBUG_MODE"] != "true" {
+		return
+	}
+
+	logMessage(os.Stdout, "debug", format, args...)
+}
+
+func LogWarn(format string, args ...any) {
+	logMessage(os.Stderr, "warning", format, args...)
+}
+
 func LogError(format string, args ...any) {
 	logMessage(os.Stderr, "error", format, args...)
 }
