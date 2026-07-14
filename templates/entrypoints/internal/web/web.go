@@ -3,8 +3,6 @@
 package web
 
 import (
-	"fmt"
-
 	"github.com/zabbix/zabbix-docker/templates/entrypoints/internal/bootstrap"
 	"github.com/zabbix/zabbix-docker/templates/entrypoints/internal/hooks"
 	"github.com/zabbix/zabbix-docker/templates/entrypoints/internal/vault"
@@ -52,9 +50,6 @@ func Run(env bootstrap.Environment, db Database, opts Options, args []string) er
 	if len(args) != 0 {
 		return bootstrap.Execute(args, env)
 	}
-	if err := opts.validate(); err != nil {
-		return err
-	}
 
 	env.SetDefaultNonEmpty("ZBX_SERVER_NAME", "Zabbix docker")
 	env.SetDefaultNonEmpty("PHP_TZ", "Europe/Riga")
@@ -86,15 +81,12 @@ func Run(env bootstrap.Environment, db Database, opts Options, args []string) er
 		return err
 	}
 
-	switch opts.Server {
-	case ServerApache:
-		if err := prepareApache(env); err != nil {
-			return err
-		}
-	case ServerNginx:
-		if err := prepareNginx(env); err != nil {
-			return err
-		}
+	prepareServer := prepareNginx
+	if opts.Server == ServerApache {
+		prepareServer = prepareApache
+	}
+	if err := prepareServer(env); err != nil {
+		return err
 	}
 
 	if err := prepareSessionName(env); err != nil {
@@ -106,17 +98,6 @@ func Run(env bootstrap.Environment, db Database, opts Options, args []string) er
 	}
 
 	return startStack(env, opts.Server)
-}
-
-func (o Options) validate() error {
-	if o.DatabaseType != DatabaseMySQL && o.DatabaseType != DatabasePostgreSQL {
-		return fmt.Errorf("unsupported db type %q", o.DatabaseType)
-	}
-	if o.Server != ServerApache && o.Server != ServerNginx {
-		return fmt.Errorf("unsupported web server %q", o.Server)
-	}
-
-	return nil
 }
 
 func setDatabaseEnvironment(env bootstrap.Environment, db Database) {

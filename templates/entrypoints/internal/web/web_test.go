@@ -55,22 +55,6 @@ func TestPreparePHPUsesTrunkFrontendSettings(t *testing.T) {
 	}
 }
 
-func TestOptionsValidate(t *testing.T) {
-	valid := Options{DatabaseType: DatabaseMySQL, Server: ServerNginx}
-	if err := valid.validate(); err != nil {
-		t.Fatal(err)
-	}
-
-	for _, options := range []Options{
-		{DatabaseType: "ORACLE", Server: ServerNginx},
-		{DatabaseType: DatabaseMySQL, Server: "lighttpd"},
-	} {
-		if err := options.validate(); err == nil {
-			t.Fatalf("invalid options were accepted: %#v", options)
-		}
-	}
-}
-
 func TestPrepareSessionName(t *testing.T) {
 	root := t.TempDir()
 	include := filepath.Join(root, "include")

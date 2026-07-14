@@ -1,7 +1,6 @@
 package web
 
 import (
-	"fmt"
 	"os"
 	"os/exec"
 	"os/signal"
@@ -16,14 +15,9 @@ func startStack(env bootstrap.Environment, server ServerType) error {
 
 	php := exec.Command(phpBinary, "--nodaemonize", "--fpm-config", phpConfig)
 
-	var web *exec.Cmd
-	switch server {
-	case ServerApache:
+	web := exec.Command(env.ValueOrDefaultNonEmpty("NGINX_BIN", "/usr/sbin/nginx"), "-e", "stderr", "-g", "daemon off;", "-c", env.ValueOrDefaultNonEmpty("NGINX_CONF_FILE", "/etc/nginx/nginx.conf"))
+	if server == ServerApache {
 		web = exec.Command(env.ValueOrDefaultNonEmpty("APACHE_BIN", "/usr/sbin/httpd"), "-D", "FOREGROUND")
-	case ServerNginx:
-		web = exec.Command(env.ValueOrDefaultNonEmpty("NGINX_BIN", "/usr/sbin/nginx"), "-e", "stderr", "-g", "daemon off;", "-c", "/etc/nginx/nginx.conf")
-	default:
-		return fmt.Errorf("unsupported web server %q", server)
 	}
 
 	children := []*exec.Cmd{php, web}
