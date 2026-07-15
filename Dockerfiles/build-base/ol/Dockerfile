@@ -46,7 +46,8 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             OpenIPMI-devel \
             openldap-devel \
             sqlite-devel \
-            libpq-devel \
+            postgresql18-server-devel \
+            postgresql18-private-devel \
             java-21-openjdk-devel \
             git \
             gettext \
