@@ -10,8 +10,6 @@
 !templates/entrypoints/internal/agent/**
 !templates/entrypoints/internal/bootstrap/
 !templates/entrypoints/internal/bootstrap/**
-!templates/entrypoints/internal/hooks/
-!templates/entrypoints/internal/hooks/**
 !templates/entrypoints/licenses/
 !templates/entrypoints/licenses/go-THIRD-PARTY-NOTICES.txt
 !templates/config/

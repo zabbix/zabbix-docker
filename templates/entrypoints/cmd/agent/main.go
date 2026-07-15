@@ -5,7 +5,6 @@ package main
 import (
 	config "github.com/zabbix/zabbix-docker/templates/entrypoints/internal/agent"
 	"github.com/zabbix/zabbix-docker/templates/entrypoints/internal/bootstrap"
-	"github.com/zabbix/zabbix-docker/templates/entrypoints/internal/hooks"
 )
 
 func prepareService(env bootstrap.Environment) error {
@@ -23,10 +22,6 @@ func prepareService(env bootstrap.Environment) error {
 	}
 
 	if err := config.ProcessTLSFiles(env, homeDir); err != nil {
-		return err
-	}
-
-	if err := hooks.Run(env); err != nil {
 		return err
 	}
 
