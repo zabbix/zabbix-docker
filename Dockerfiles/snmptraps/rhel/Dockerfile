@@ -87,12 +87,14 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
     mkdir -p ${ZABBIX_USER_HOME_DIR} \
         ${ZABBIX_USER_HOME_DIR}/snmptraps \
         ${ZABBIX_USER_HOME_DIR}/mibs \
-        ${SNMP_PERSISTENT_DIR} && \
+        ${SNMP_PERSISTENT_DIR} \
+        /usr/lib/docker-entrypoint && \
     FIX_PERM_LIST="\
         /etc/snmp/ \
         ${ZABBIX_USER_HOME_DIR}/ \
         /var/tmp/ \
-        /var/run/" && \
+        /var/run/ \
+        /usr/lib/docker-entrypoint/" && \
     chown --quiet -R zabbix:root ${FIX_PERM_LIST} && \
     chgrp -R 0 ${FIX_PERM_LIST} && \
     chmod -R g=u ${FIX_PERM_LIST}

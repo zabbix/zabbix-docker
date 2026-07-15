@@ -81,12 +81,14 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             --home-dir ${ZABBIX_USER_HOME_DIR} \
         zabbix && \
     mkdir -p ${ZABBIX_CONF_DIR}/ \
-        /usr/sbin/zabbix_java/ext_lib/ && \
+        /usr/sbin/zabbix_java/ext_lib/ \
+        /usr/lib/docker-entrypoint && \
     rm -rf /usr/sbin/zabbix_java/lib/logback.xml && \
     mv /usr/sbin/zabbix_java/lib/logback-console.xml ${ZABBIX_CONF_DIR}/zabbix_java_gateway_logback.xml && \
     FIX_PERM_LIST="\
         ${ZABBIX_CONF_DIR}/ \
-        /usr/sbin/zabbix_java/ext_lib" && \
+        /usr/sbin/zabbix_java/ext_lib \
+        /usr/lib/docker-entrypoint/" && \
     chown --quiet -R zabbix:0 ${FIX_PERM_LIST} && \
     chmod -R g=u ${FIX_PERM_LIST}
 
