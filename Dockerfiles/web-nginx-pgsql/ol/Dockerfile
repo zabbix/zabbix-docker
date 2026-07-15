@@ -60,6 +60,7 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             curl \
             gzip \
             nginx \
+            postgresql18 \
             php-bcmath \
             php-curl \
             php-fpm \
@@ -69,7 +70,6 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             php-pgsql \
             php-json \
             php-xml \
-            postgresql \
             jq \
             findutils \
             glibc-locale-source" && \
