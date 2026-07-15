@@ -25,6 +25,13 @@ func TestUpdateConfigMultiple(t *testing.T) {
 	if string(data) != want {
 		t.Fatalf("config:\n%s\nwant:\n%s", data, want)
 	}
+	info, err := os.Stat(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if info.Mode().Perm() != 0o600 {
+		t.Fatalf("config mode = %o, want 600", info.Mode().Perm())
+	}
 }
 
 func TestUpdateConfigMultiplePreservesActiveValues(t *testing.T) {

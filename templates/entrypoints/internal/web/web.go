@@ -97,6 +97,8 @@ func Run(env bootstrap.Environment, db Database, opts Options, args []string) er
 		return err
 	}
 
+	bootstrap.ClearPrivateEnv(env, "MYSQL_", "POSTGRES_")
+
 	return startStack(env, opts.Server)
 }
 

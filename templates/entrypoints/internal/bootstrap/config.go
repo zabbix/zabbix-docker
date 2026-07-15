@@ -119,7 +119,7 @@ func rewriteConfig(configPath, name string, values []string, preserveExisting bo
 
 	changed := !bytes.Equal(data, updatedData)
 	if changed {
-		if err := os.WriteFile(configPath, updatedData, 0o644); err != nil {
+		if err := WriteFilePreservingMode(configPath, updatedData); err != nil {
 			return fmt.Errorf("update configuration file %s: %w", configPath, err)
 		}
 	}
