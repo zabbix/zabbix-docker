@@ -27,8 +27,6 @@ LABEL org.opencontainers.image.title="Zabbix agent build (Windows)" `
       org.opencontainers.image.version="${ZBX_VERSION}" `
       org.opencontainers.image.source="${ZBX_SOURCES}"
 
-ADD config_templates C:\config_templates
-
 SHELL ["powershell", "-Command", "$ErrorActionPreference = 'Stop'; $ProgressPreference = 'SilentlyContinue';"]
 
 RUN Set-Location -Path $env:SystemDrive\.; `
@@ -76,7 +74,6 @@ RUN Set-Location -Path $env:SystemDrive\.; `
     Copy-Item -Path $env:ZBX_SOURCES_DIR\bin\win64\zabbix_get.exe $env:ZBX_OUTPUT_DIR\bin; `
     Copy-Item -Path $env:ZBX_SOURCES_DIR\bin\win64\zabbix_sender.exe $env:ZBX_OUTPUT_DIR\bin; `
     Copy-Item -Path $env:ZBX_SOURCES_DIR\conf\zabbix_agentd.win.conf $env:ZBX_OUTPUT_DIR\conf\zabbix_agentd.conf_template; `
-    Copy-Item -Recurse -Path $env:SystemDrive\config_templates\agent\* $env:ZBX_OUTPUT_DIR\conf\; `
     nmake /S -f Makefile `
         PCRE2INCDIR=$env:SystemDrive\build_output\pcre2\include `
         PCRE2LIBDIR=$env:SystemDrive\build_output\pcre2\lib `

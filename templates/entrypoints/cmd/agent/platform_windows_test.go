@@ -1,0 +1,41 @@
+package main
+
+import (
+	"os"
+	"path/filepath"
+	"testing"
+
+	"github.com/zabbix/zabbix-docker/templates/entrypoints/internal/bootstrap"
+)
+
+func TestPrepareServiceWindows(t *testing.T) {
+	root := t.TempDir()
+	configDir := filepath.Join(root, "conf")
+	homeDir := filepath.Join(root, "home")
+	if err := os.MkdirAll(filepath.Join(homeDir, "enc_internal"), 0o700); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.MkdirAll(configDir, 0o700); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(configDir, "zabbix_agentd_item_keys.conf"), []byte("# DenyKey=system.run[*]\n"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+
+	env := bootstrap.Environment{
+		"ZABBIX_CONF_DIR": configDir, "ZABBIX_USER_HOME_DIR": homeDir,
+		"UNRELATED_VARIABLE": "value",
+	}
+	if err := prepareService(env); err != nil {
+		t.Fatal(err)
+	}
+	if env["ZBX_PASSIVESERVERS"] != "zabbix-server" || env["ZBX_ACTIVESERVERS"] != "zabbix-server" {
+		t.Fatalf("unexpected server configuration: %#v", env)
+	}
+	if env["UNRELATED_VARIABLE"] != "value" {
+		t.Fatal("Windows entrypoint removed an unrelated variable")
+	}
+	if _, found := env["ZABBIX_CONF_DIR"]; found {
+		t.Fatal("ZABBIX_CONF_DIR was not removed")
+	}
+}
