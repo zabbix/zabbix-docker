@@ -83,7 +83,7 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             openssl \
             openssl-libs \
             pcre2 \
-            libpq \
+            postgresql18-private-libs \
             zlib \
             unixODBC" && \
     microdnf -y install \
