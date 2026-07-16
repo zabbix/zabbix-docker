@@ -40,16 +40,16 @@ RUN --mount=type=cache,target=/var/cache/apt/,sharing=locked \
     set -eux && \
     echo "#!/bin/sh\nexit 101" > /usr/sbin/policy-rc.d && \
     INSTALL_PKGS="bash \
-            tzdata \
-            iputils-ping \
             ca-certificates \
+            tzdata \
             libcares2 \
-            libssl3t64 \
             libcurl4t64 \
+            libldap2 \
             libmodbus5 \
             libpcre2-8-0 \
-            libldap2 \
-            zlib1g" && \
+            libssl3t64 \
+            zlib1g \
+            iputils-ping" && \
     apt-get -y update && \
     DEBIAN_FRONTEND=noninteractive apt-get -y \
             -o Dpkg::Options::="--force-confdef" \

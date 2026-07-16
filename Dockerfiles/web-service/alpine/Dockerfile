@@ -35,8 +35,8 @@ COPY --from=builder /tmp/zabbix-${ZBX_VERSION}-output/web_service/conf/ ${ZABBIX
 
 RUN set -eux && \
     INSTALL_PKGS="bash \
-            chromium \
-            ca-certificates" && \
+            ca-certificates \
+            chromium" && \
     apk add \
             --no-cache \
             --clean-protected \

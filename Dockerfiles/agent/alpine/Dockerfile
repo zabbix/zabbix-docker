@@ -37,16 +37,16 @@ COPY --from=builder /tmp/zabbix-${ZBX_VERSION}-output/agent/conf/ ${ZABBIX_CONF_
 
 RUN set -eux && \
     INSTALL_PKGS="bash \
-            tzdata \
             coreutils \
-            iputils \
+            tzdata \
             c-ares \
-            pcre2 \
-            libgcc \
             libcurl \
-            libmodbus \
+            libgcc \
             libldap \
-            zlib" && \
+            libmodbus \
+            pcre2 \
+            zlib \
+            iputils" && \
     apk add \
             --no-cache \
             --clean-protected \

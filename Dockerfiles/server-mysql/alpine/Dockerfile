@@ -43,28 +43,28 @@ COPY --from=builder /tmp/zabbix-${ZBX_VERSION}-output/server/database/mysql/crea
 
 RUN set -eux && \
     INSTALL_PKGS="bash \
-            fping \
-            traceroute \
-            nmap \
-            krb5 \
+            gzip \
             tzdata \
-            iputils \
-            openssl \
             c-ares \
+            krb5 \
             libcap \
             libcurl \
             libevent \
             libldap \
             libssh \
             libxml2 \
-            mariadb-client \
             mariadb-connector-c \
             net-snmp-agent-libs \
             openipmi-libs \
+            openssl \
             pcre2 \
-            gzip \
             unixodbc \
-            zlib" && \
+            zlib \
+            fping \
+            iputils \
+            nmap \
+            traceroute \
+            mariadb-client" && \
     apk add \
             --no-cache \
             --clean-protected \

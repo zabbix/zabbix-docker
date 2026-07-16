@@ -58,13 +58,13 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
     --mount=type=tmpfs,target=/var/cache/yum/ \
     set -eux && \
     INSTALL_PKGS="bash \
-            iputils \
             shadow-utils \
             c-ares \
-            pcre2 \
-            libmodbus \
             libcurl-minimal \
-            zlib" && \
+            libmodbus \
+            pcre2 \
+            zlib \
+            iputils" && \
     curl --tlsv1.2 -sSf -L https://dl.fedoraproject.org/pub/epel/epel-release-latest-9.noarch.rpm -o /tmp/epel-release-latest-9.noarch.rpm && \
     rpm -ivh /tmp/epel-release-latest-9.noarch.rpm && \
     rm -rf /tmp/epel-release-latest-9.noarch.rpm && \

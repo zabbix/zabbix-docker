@@ -36,8 +36,8 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
     --mount=type=tmpfs,target=/var/cache/yum/ \
     set -eux && \
     INSTALL_PKGS="bash \
-            java-21-openjdk-headless \
-            findutils" && \
+            findutils \
+            java-21-openjdk-headless" && \
     microdnf -y install \
             --disablerepo="*" \
             --enablerepo="ol10_baseos_latest" \

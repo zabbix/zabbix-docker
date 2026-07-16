@@ -63,22 +63,22 @@ RUN --mount=type=cache,target=/var/cache/apt/,sharing=locked \
     printf '%s\n' '#!/bin/sh' 'exit 101' > /usr/sbin/policy-rc.d && \
     chmod +x /usr/sbin/policy-rc.d && \
     INSTALL_PKGS="bash \
-            tzdata \
             ca-certificates \
             curl \
-            mysql-client \
-            nginx \
+            jq \
             locales \
+            tzdata \
             libldap-common \
+            nginx \
+            php8.5-fpm \
             php8.5-bcmath \
             php8.5-curl \
-            php8.5-fpm \
             php8.5-gd \
             php8.5-ldap \
             php8.5-mbstring \
             php8.5-mysql \
             php8.5-xml \
-            jq" && \
+            mysql-client" && \
     apt-get -y update && \
     DEBIAN_FRONTEND=noninteractive apt-get -y \
             -o Dpkg::Options::="--force-confdef" \

@@ -59,12 +59,12 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
     --mount=type=tmpfs,target=/var/cache/yum/ \
     set -eux && \
     INSTALL_PKGS="bash \
-            iputils \
             shadow-utils \
+            libcurl-minimal \
             pcre2 \
+            iputils \
             smartmontools \
-            sudo \
-            libcurl-minimal" && \
+            sudo" && \
     ARCH_SUFFIX="$(arch)"; \
     microdnf -y install \
 #            --disableplugin=subscription-manager \

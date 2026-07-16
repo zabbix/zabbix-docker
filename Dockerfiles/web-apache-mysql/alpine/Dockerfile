@@ -58,30 +58,30 @@ COPY conf/etc/ /etc/
 
 RUN set -eux && \
     INSTALL_PKGS="bash \
-            tzdata \
             curl \
             jq \
-            mariadb-client \
+            tzdata \
             mariadb-connector-c \
             apache2 \
+            php85-fpm \
             apache2-proxy \
             php85-bcmath \
             php85-ctype \
             php85-curl \
-            php85-fpm \
+            php85-fileinfo \
             php85-gd \
             php85-gettext \
             php85-json \
             php85-ldap \
             php85-mbstring \
             php85-mysqli \
+            php85-openssl \
             php85-session \
             php85-simplexml \
             php85-sockets \
-            php85-fileinfo \
             php85-xmlreader \
             php85-xmlwriter \
-            php85-openssl" && \
+            mariadb-client" && \
     apk add \
             --no-cache \
             --clean-protected \

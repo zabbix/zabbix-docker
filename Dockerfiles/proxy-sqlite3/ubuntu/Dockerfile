@@ -45,21 +45,14 @@ RUN --mount=type=cache,target=/var/cache/apt/,sharing=locked \
     printf '%s\n' '#!/bin/sh' 'exit 101' > /usr/sbin/policy-rc.d && \
     chmod +x /usr/sbin/policy-rc.d && \
     INSTALL_PKGS="bash \
-            tzdata \
-            traceroute \
-            nmap \
-            krb5-user \
-            iputils-ping \
             ca-certificates \
-            fping \
-            openssl \
-            sqlite3 \
+            tzdata \
             libc6 \
             libcares2 \
             libcurl4t64 \
             libevent-2.1 \
-            libevent-pthreads-2.1 \
             libevent-extra-2.1 \
+            libevent-pthreads-2.1 \
             libopenipmi0t64 \
             libpcre2-8-0 \
             libsnmp40t64 \
@@ -67,9 +60,16 @@ RUN --mount=type=cache,target=/var/cache/apt/,sharing=locked \
             libssh-4 \
             libssl3t64 \
             libxml2-16 \
-            snmp-mibs-downloader \
+            openssl \
             unixodbc \
-            zlib1g" && \
+            zlib1g \
+            fping \
+            iputils-ping \
+            krb5-user \
+            nmap \
+            snmp-mibs-downloader \
+            traceroute \
+            sqlite3" && \
     apt-get -y update && \
     DEBIAN_FRONTEND=noninteractive apt-get -y \
             -o Dpkg::Options::="--force-confdef" \

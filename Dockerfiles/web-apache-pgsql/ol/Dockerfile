@@ -60,23 +60,23 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
     set -eux && \
     INSTALL_PKGS="bash \
             curl \
+            findutils \
+            glibc-locale-source \
             gzip \
+            jq \
             httpd \
-            mod_ssl \
             php \
-            php-curl \
             php-fpm \
+            mod_ssl \
             php-bcmath \
+            php-curl \
             php-gd \
+            php-json \
             php-ldap \
             php-mbstring \
             php-pgsql \
-            php-json \
             php-xml \
-            postgresql \
-            findutils \
-            glibc-locale-source \
-            jq" && \
+            postgresql" && \
     microdnf -y install \
             --disablerepo="*" \
             --enablerepo="ol10_baseos_latest" \
