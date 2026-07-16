@@ -51,14 +51,10 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
     --mount=type=tmpfs,target=/var/cache/yum/ \
     set -eux && \
     INSTALL_PKGS="bash \
-            fping \
-            file-libs \
+            gzip \
             hostname \
-            traceroute \
-            nmap \
-            krb5-workstation \
             c-ares \
-            iputils \
+            file-libs \
             libevent \
             libssh \
             libxml2 \
@@ -68,11 +64,15 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             openssl \
             openssl-libs \
             pcre2 \
-            postgresql18 \
             postgresql18-private-libs \
+            unixODBC \
             zlib \
-            gzip \
-            unixODBC" && \
+            fping \
+            iputils \
+            krb5-workstation \
+            nmap \
+            traceroute \
+            postgresql18" && \
     microdnf -y install \
             --disablerepo="*" \
             --enablerepo="ol10_baseos_latest" \

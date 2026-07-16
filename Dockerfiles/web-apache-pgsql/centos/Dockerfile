@@ -60,24 +60,24 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
     set -eux && \
     INSTALL_PKGS="bash \
             curl-minimal \
+            findutils \
+            glibc-locale-source \
+            gzip \
+            jq \
+            shadow-utils \
             httpd \
-            mod_ssl \
             php \
-            php-curl \
             php-fpm \
+            mod_ssl \
             php-bcmath \
+            php-curl \
             php-gd \
+            php-json \
             php-ldap \
             php-mbstring \
             php-pgsql \
-            php-json \
             php-xml \
-            postgresql18 \
-            findutils \
-            glibc-locale-source \
-            shadow-utils \
-            gzip \
-            jq" && \
+            postgresql18" && \
     microdnf -y install \
             --disablerepo="*" \
             --enablerepo="baseos" \

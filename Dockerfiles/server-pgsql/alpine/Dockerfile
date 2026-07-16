@@ -49,14 +49,10 @@ COPY --from=builder /tmp/zabbix-${ZBX_VERSION}-output/server/database/postgresql
 
 RUN set -eux && \
     INSTALL_PKGS="bash \
-            traceroute \
-            nmap \
-            krb5 \
-            fping \
+            gzip \
             tzdata \
-            iputils \
-            openssl \
             c-ares \
+            krb5 \
             libcap \
             libcurl \
             libevent \
@@ -65,11 +61,15 @@ RUN set -eux && \
             libxml2 \
             net-snmp-agent-libs \
             openipmi-libs \
+            openssl \
             pcre2 \
-            postgresql18-client \
-            gzip \
             unixodbc \
-            zlib" && \
+            zlib \
+            fping \
+            iputils \
+            nmap \
+            traceroute \
+            postgresql18-client" && \
     apk add \
             --no-cache \
             --clean-protected \

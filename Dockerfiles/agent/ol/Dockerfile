@@ -42,13 +42,13 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
     --mount=type=tmpfs,target=/var/cache/yum/ \
     set -eux && \
     INSTALL_PKGS="bash \
-            iputils \
             c-ares \
-            pcre2 \
             libcurl \
             libmodbus \
             openssl-libs \
-            zlib" && \
+            pcre2 \
+            zlib \
+            iputils" && \
     microdnf -y install \
             --disablerepo="*" \
             --enablerepo="ol10_baseos_latest" \

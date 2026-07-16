@@ -51,28 +51,28 @@ COPY --from=builder /tmp/zabbix-${ZBX_VERSION}-output/proxy/database/mysql/ /usr
 
 RUN set -eux && \
     INSTALL_PKGS="bash \
+            gzip \
             tzdata \
-            traceroute \
-            nmap \
-            krb5 \
-            iputils \
-            openssl \
             c-ares \
+            krb5 \
             libcap \
             libcurl \
             libevent \
             libldap \
             libssh \
             libxml2 \
-            mariadb-client \
             mariadb-connector-c \
             net-snmp-agent-libs \
             openipmi-libs \
+            openssl \
             pcre2 \
             unixodbc \
-            gzip \
+            zlib \
             fping \
-            zlib" && \
+            iputils \
+            nmap \
+            traceroute \
+            mariadb-client" && \
     apk add \
             --no-cache \
             --clean-protected \

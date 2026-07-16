@@ -77,22 +77,22 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
     set -eux && \
     INSTALL_PKGS="bash \
             curl-minimal \
-            jq \
-            shadow-utils \
             findutils \
             glibc-locale-source \
             gzip \
+            jq \
+            shadow-utils \
             nginx \
-            postgresql18 \
+            php-fpm \
             php-bcmath \
             php-curl \
-            php-fpm \
             php-gd \
             php-json \
             php-ldap \
             php-mbstring \
             php-pgsql \
-            php-xml" && \
+            php-xml \
+            postgresql18" && \
     ARCH_SUFFIX="$(arch)"; \
     microdnf -y install \
             --disablerepo="*" \

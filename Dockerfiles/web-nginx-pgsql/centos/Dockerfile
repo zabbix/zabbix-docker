@@ -60,20 +60,20 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             curl-minimal \
             findutils \
             glibc-locale-source \
+            gzip \
+            jq \
+            shadow-utils \
             nginx \
+            php-fpm \
             php-bcmath \
             php-curl \
-            php-fpm \
             php-gd \
             php-json \
             php-ldap \
             php-mbstring \
             php-pgsql \
             php-xml \
-            postgresql18 \
-            shadow-utils \
-            gzip \
-            jq" && \
+            postgresql18" && \
     microdnf -y install \
             --disablerepo="*" \
             --enablerepo="baseos" \

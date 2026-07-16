@@ -33,8 +33,8 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
     --mount=from=scripts,target=/tmp/scripts,ro \
     set -eux && \
     INSTALL_PKGS="bash \
-            tzdata \
             shadow-utils \
+            tzdata \
             net-snmp" && \
     microdnf -y install \
             --disablerepo="*" \

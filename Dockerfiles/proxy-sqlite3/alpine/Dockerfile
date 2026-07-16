@@ -49,13 +49,8 @@ COPY --from=builder /tmp/zabbix-${ZBX_VERSION}-output/proxy/database/sqlite3/ /u
 RUN set -eux && \
     INSTALL_PKGS="bash \
             tzdata \
-            traceroute \
-            nmap \
-            krb5 \
-            fping \
-            iputils \
-            openssl \
             c-ares \
+            krb5 \
             libcap \
             libcurl \
             libevent \
@@ -64,11 +59,16 @@ RUN set -eux && \
             libxml2 \
             net-snmp-agent-libs \
             openipmi-libs \
+            openssl \
             pcre2 \
-            sqlite \
             sqlite-libs \
             unixodbc \
-            zlib" && \
+            zlib \
+            fping \
+            iputils \
+            nmap \
+            traceroute \
+            sqlite" && \
     apk add \
             --no-cache \
             --clean-protected \
