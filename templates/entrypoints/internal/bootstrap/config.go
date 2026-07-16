@@ -13,7 +13,7 @@ import (
 func UpdateConfigMultiple(configPath, name, rawValue string) error {
 	value := strings.Trim(strings.TrimSpace(rawValue), `"`)
 	if value == "" {
-		return rewriteConfig(configPath, name, nil, false)
+		return rewriteConfig(configPath, name, nil, false, true)
 	}
 
 	items := strings.Split(value, ",")
@@ -23,34 +23,47 @@ func UpdateConfigMultiple(configPath, name, rawValue string) error {
 			values = append(values, item)
 		}
 	}
-	return rewriteConfig(configPath, name, values, true)
+	return rewriteConfig(configPath, name, values, true, true)
 }
 
 // UpdateConfigValue sets a single-value option in the configuration file.
 func UpdateConfigValue(configPath, name, value string) error {
-	return rewriteConfig(configPath, name, []string{value}, false)
+	return rewriteConfig(configPath, name, []string{value}, false, true)
 }
 
 // UpdateConfigIndexed collects the prefix_0, prefix_1, ... variables into
-// repeated name options and removes them from the environment.
+// repeated name options that reference the original environment variables.
+// The variables remain in the environment so the service can expand them
+// while reading its configuration.
 func UpdateConfigIndexed(env Environment, configPath, name, prefix string) error {
+	var variables []string
 	var values []string
+
 	for index := 0; ; index++ {
 		variable := fmt.Sprintf("%s_%d", prefix, index)
-		value := env[variable]
-		if value == "" {
+		if env[variable] == "" {
 			break
 		}
-		values = append(values, value)
-		delete(env, variable)
+		variables = append(variables, variable)
+		values = append(values, "${"+variable+"}")
 	}
+
 	if len(values) == 0 {
 		return nil
 	}
-	return rewriteConfig(configPath, name, values, false)
+
+	if err := rewriteConfig(configPath, name, values, false, false); err != nil {
+		return err
+	}
+
+	LogDebug(env, "** Configuring %s parameter '%s' from %d indexed environment variables: %s",
+		configPath,	name, len(variables), strings.Join(variables, ", "),
+	)
+
+	return nil
 }
 
-func rewriteConfig(configPath, name string, values []string, preserveExisting bool) error {
+func rewriteConfig(configPath, name string, values []string, preserveExisting, logChanges bool) error {
 	data, err := os.ReadFile(configPath)
 	if err != nil {
 		return fmt.Errorf("missing configuration file %s: %w", configPath, err)
@@ -125,9 +138,12 @@ func rewriteConfig(configPath, name string, values []string, preserveExisting bo
 	}
 
 	if !requested {
-		if changed {
+		if changed && logChanges {
 			LogInfo("** Removing %s parameter '%s'", configPath, name)
 		}
+		return nil
+	}
+	if !logChanges {
 		return nil
 	}
 

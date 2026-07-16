@@ -1127,10 +1127,8 @@ spec:
           env:
             - name: ZBX_DEBUGLEVEL
               value: "3"
-            - name: ZBX_DENYKEY
+            - name: ZBX_DENYKEY_0
               value: "system.run[*]"
-            - name: ZBX_ALLOWKEY
-              value: ""
             - name: ZBX_LOGREMOTECOMMANDS
               value: "1"
             - name: ZBX_SERVER_HOST
@@ -1163,8 +1161,12 @@ spec:
               value: ""
             - name: ZBX_MAXLINESPERSECOND
               value: ""
+            - name: ZBX_ALIAS_0
+              value: ""
             - name: ZBX_UNSAFEUSERPARAMETERS
               value: "0"
+            - name: ZBX_USERPARAMETER_0
+              value: ""
             - name: ZBX_LOADMODULE
               value: ""
             - name: ZBX_HOSTINTERFACE

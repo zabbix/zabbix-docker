@@ -147,7 +147,11 @@ ZBX_MAXLINESPERSECOND=20
 ZBX_LISTENIP=
 ZBX_LISTENPORT=10050
 ZBX_LISTENBACKLOG=
+ZBX_ALIAS_<0-N>= # Available since 8.0.0
+ZBX_PERFCOUNTER_<0-N>= # Available since 8.0.0, Windows only
+ZBX_PERFCOUNTEREN_<0-N>= # Available since 8.0.0, Windows only
 ZBX_UNSAFEUSERPARAMETERS=0
+ZBX_USERPARAMETER_<0-N>= # Available since 8.0.0
 ZBX_TLSCONNECT=unencrypted
 ZBX_TLSACCEPT=unencrypted
 ZBX_TLSCAFILE=
@@ -169,9 +173,13 @@ ZBX_TLSCIPHERCERT= # Available since 4.4.7
 ZBX_TLSCIPHERCERT13= # Available since 4.4.7
 ZBX_TLSCIPHERPSK= # Available since 4.4.7
 ZBX_TLSCIPHERPSK13= # Available since 4.4.7
-ZBX_DENYKEY=system.run[*] # Available since 5.0.0
-ZBX_ALLOWKEY= # Available since 5.0.0
+ZBX_ALLOWKEY_<0-N>= # Available since 8.0.0
+ZBX_DENYKEY_<0-N>= # Available since 8.0.0
+ZBX_ALLOWKEY_REGEXP_<0-N>= # Available since 8.0.0
+ZBX_DENYKEY_REGEXP_<0-N>= # Available since 8.0.0
 ```
+
+The indices of ``ZBX_ALLOWKEY_*``, ``ZBX_DENYKEY_*``, ``ZBX_ALLOWKEY_REGEXP_*`` and ``ZBX_DENYKEY_REGEXP_*`` form a single ordered rule sequence. Indices must start at ``0``, must not contain gaps, and each index must be used by exactly one rule variable.
 
 Default values of these variables are specified after equal sign.
 
@@ -222,10 +230,6 @@ Documentation for this image is stored in the [`agent/` directory](https://githu
 ## Issues
 
 If you have any problems with or questions about this image, please contact us through a [GitHub issue](https://github.com/zabbix/zabbix-docker/issues).
-
-### Known issues
-
-Currently it is not allowed to specify ``ZBX_ALIAS`` environment variable. Please use ``/etc/zabbix/zabbix_agentd.d`` volume with additional configuration files with ``Alias`` options.
 
 ## Contributing
 

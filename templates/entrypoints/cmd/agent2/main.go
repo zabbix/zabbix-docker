@@ -20,7 +20,19 @@ func prepareService(env bootstrap.Environment) error {
 	config.ConfigureServers(env)
 	configureFeatureSwitches(env)
 
-	if err := config.ConfigureAllowDenyKeys(env, configDir, "zabbix_agent2_item_keys.conf"); err != nil {
+	if err := config.ConfigureItemKeyRules(env, configDir, "zabbix_agent2_item_keys.conf"); err != nil {
+		return err
+	}
+
+	if err := bootstrap.UpdateConfigIndexed(env, filepath.Join(configDir, "zabbix_agent2_aliases.conf"), "Alias", "ZBX_ALIAS"); err != nil {
+		return err
+	}
+
+	if err := bootstrap.UpdateConfigIndexed(env, filepath.Join(configDir, "zabbix_agent2_user_parameters.conf"), "UserParameter", "ZBX_USERPARAMETER"); err != nil {
+		return err
+	}
+
+	if err := configurePerformanceCounters(env, configDir); err != nil {
 		return err
 	}
 

@@ -3,7 +3,6 @@
 package agent
 
 import (
-	"path/filepath"
 	"strings"
 
 	"github.com/zabbix/zabbix-docker/templates/entrypoints/internal/bootstrap"
@@ -43,18 +42,6 @@ func ConfigureServers(env bootstrap.Environment) {
 
 	delete(env, "ZBX_SERVER_HOST")
 	delete(env, "ZBX_SERVER_PORT")
-}
-
-// ConfigureAllowDenyKeys writes ZBX_DENYKEY and ZBX_ALLOWKEY into the item key
-// configuration file.
-func ConfigureAllowDenyKeys(env bootstrap.Environment, configDir, fileName string) error {
-	path := filepath.Join(configDir, fileName)
-
-	if err := bootstrap.UpdateConfigMultiple(path, "DenyKey", env["ZBX_DENYKEY"]); err != nil {
-		return err
-	}
-
-	return bootstrap.UpdateConfigMultiple(path, "AllowKey", env["ZBX_ALLOWKEY"])
 }
 
 // ProcessTLSFiles persists the agent TLS material from the

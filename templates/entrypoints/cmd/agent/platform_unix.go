@@ -10,6 +10,10 @@ import (
 
 const agentBinary = "/usr/sbin/zabbix_agentd"
 
+func configurePerformanceCounters(bootstrap.Environment, string) error {
+	return nil
+}
+
 func configureLoadModules(env bootstrap.Environment, configDir string) error {
 	return bootstrap.UpdateConfigMultiple(
 		filepath.Join(configDir, "zabbix_agentd_modules.conf"),

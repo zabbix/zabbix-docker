@@ -82,7 +82,11 @@
 <span class="hljs-attr">ZBX_LISTENIP</span>=
 <span class="hljs-attr">ZBX_LISTENPORT</span>=<span class="hljs-number">10050</span>
 <span class="hljs-attr">ZBX_PLUGINTIMEOUT</span>=
+<span class="hljs-attr">ZBX_ALIAS_&lt;0-N&gt;</span>= # Available since <span class="hljs-number">8.0</span>.<span class="hljs-number">0</span>
+<span class="hljs-attr">ZBX_PERFCOUNTER_&lt;0-N&gt;</span>= # Available since <span class="hljs-number">8.0</span>.<span class="hljs-number">0</span>, Windows only
+<span class="hljs-attr">ZBX_PERFCOUNTEREN_&lt;0-N&gt;</span>= # Available since <span class="hljs-number">8.0</span>.<span class="hljs-number">0</span>, Windows only
 <span class="hljs-attr">ZBX_UNSAFEUSERPARAMETERS</span>=<span class="hljs-number">0</span>
+<span class="hljs-attr">ZBX_USERPARAMETER_&lt;0-N&gt;</span>= # Available since <span class="hljs-number">8.0</span>.<span class="hljs-number">0</span>
 <span class="hljs-attr">ZBX_TLSCONNECT</span>=unencrypted
 <span class="hljs-attr">ZBX_TLSACCEPT</span>=unencrypted
 <span class="hljs-attr">ZBX_TLSCAFILE</span>=
@@ -104,9 +108,12 @@
 <span class="hljs-attr">ZBX_TLSCIPHERCERT13</span>=
 <span class="hljs-attr">ZBX_TLSCIPHERPSK</span>=
 <span class="hljs-attr">ZBX_TLSCIPHERPSK13</span>=
-<span class="hljs-attr">ZBX_DENYKEY</span>=system.run[*] # Available since <span class="hljs-number">5.0</span>.<span class="hljs-number">0</span>
-<span class="hljs-attr">ZBX_ALLOWKEY</span>= # Available since <span class="hljs-number">5.0</span>.<span class="hljs-number">0</span>
-</code></pre><p>Default values of these variables are specified after equal sign.</p>
+<span class="hljs-attr">ZBX_ALLOWKEY_&lt;0-N&gt;</span>= # Available since <span class="hljs-number">8.0</span>.<span class="hljs-number">0</span>
+<span class="hljs-attr">ZBX_DENYKEY_&lt;0-N&gt;</span>= # Available since <span class="hljs-number">8.0</span>.<span class="hljs-number">0</span>
+<span class="hljs-attr">ZBX_ALLOWKEY_REGEXP_&lt;0-N&gt;</span>= # Available since <span class="hljs-number">8.0</span>.<span class="hljs-number">0</span>
+<span class="hljs-attr">ZBX_DENYKEY_REGEXP_&lt;0-N&gt;</span>= # Available since <span class="hljs-number">8.0</span>.<span class="hljs-number">0</span>
+</code></pre><p>The indices of <code>ZBX_ALLOWKEY_*</code>, <code>ZBX_DENYKEY_*</code>, <code>ZBX_ALLOWKEY_REGEXP_*</code> and <code>ZBX_DENYKEY_REGEXP_*</code> form a single ordered rule sequence. Indices must start at <code>0</code>, must not contain gaps, and each index must be used by exactly one rule variable.</p>
+<p>Default values of these variables are specified after equal sign.</p>
 <p>The allowed variables are identical of parameters in official <code>zabbix_agent2.conf</code> configuration file. For example, <code>ZBX_REFRESHACTIVECHECKS</code> = <code>RefreshActiveChecks</code>.</p>
 <p>Please use official documentation for <a href="https://www.zabbix.com/documentation/current/manual/appendix/config/zabbix_agent2"><code>zabbix_agent2.conf</code></a> to get more information about the variables.</p>
 <h2 id="allowed-volumes-for-the-zabbix-agent-2-container">Allowed volumes for the Zabbix agent 2 container</h2>
@@ -121,8 +128,6 @@
 <p>Documentation for this image is stored in the <a href="https://github.com/zabbix/zabbix-docker/tree/trunk/Dockerfiles/agent2"><code>agent2/</code> directory</a> of the <a href="https://github.com/zabbix/zabbix-docker/"><code>zabbix/zabbix-docker</code> GitHub repo</a>. Be sure to familiarize yourself with the <a href="https://github.com/zabbix/zabbix-docker/blob/trunk/README.md">repository&#39;s <code>README.md</code> file</a> before attempting a pull request.</p>
 <h2 id="issues">Issues</h2>
 <p>If you have any problems with or questions about this image, please contact us through a <a href="https://github.com/zabbix/zabbix-docker/issues">GitHub issue</a>.</p>
-<h3 id="known-issues">Known issues</h3>
-<p>Currently it is not allowed to specify <code>ZBX_ALIAS</code> environment variable. Please use <code>/etc/zabbix/zabbix_agentd.d</code> volume with additional configuration files with <code>Alias</code> options.</p>
 <h2 id="contributing">Contributing</h2>
 <p>You are invited to contribute new features, fixes, or updates, large or small; we are always thrilled to receive pull requests, and do our best to process them as fast as we can.</p>
 <p>Before you start to code, we recommend discussing your plans through a <a href="https://github.com/zabbix/zabbix-docker/issues">GitHub issue</a>, especially for more ambitious contributions. This gives other contributors a chance to point you in the right direction, give you feedback on your design, and help you find out if someone else is working on the same thing.</p>

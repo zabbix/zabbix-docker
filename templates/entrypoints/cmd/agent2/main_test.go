@@ -27,6 +27,12 @@ func TestPrepareService(t *testing.T) {
 	if err := os.WriteFile(filepath.Join(configDir, "zabbix_agent2_item_keys.conf"), []byte("# DenyKey=system.run[*]\n"), 0o600); err != nil {
 		t.Fatal(err)
 	}
+	if err := os.WriteFile(filepath.Join(configDir, "zabbix_agent2_aliases.conf"), []byte("# Alias=\n"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(configDir, "zabbix_agent2_user_parameters.conf"), []byte("# UserParameter=\n"), 0o600); err != nil {
+		t.Fatal(err)
+	}
 	for _, name := range []string{"mongodb.conf", "postgresql.conf", "mssql.conf", "ember.conf"} {
 		if err := os.WriteFile(filepath.Join(pluginDirectory, name), []byte("# plugin config\n"), 0o600); err != nil {
 			t.Fatal(err)
@@ -37,7 +43,11 @@ func TestPrepareService(t *testing.T) {
 		"ZABBIX_CONF_DIR": configDir, "ZABBIX_USER_HOME_DIR": homeDir,
 		"ZBX_SERVER_HOST": "server", "ZBX_ENABLEPERSISTENTBUFFER": "true",
 		"ZBX_PERSISTENTBUFFERFILE": "/buffer/agent2.db", "ZBX_ENABLESTATUSPORT": "true",
-		"ZBX_TLSPSK": "secret", "POSTGRES_PASSWORD": "password",
+		"ZBX_ALLOWKEY_0":       "system.localtime",
+		"ZBX_DENYKEY_REGEXP_1": `^system\.run\[.*\]$`,
+		"ZBX_ALIAS_0":          "custom.echo:system.localtime",
+		"ZBX_USERPARAMETER_0":  `custom.echo[*],printf '%s,%s' "$1" "$2"`,
+		"ZBX_TLSPSK":           "secret", "POSTGRES_PASSWORD": "password",
 	}
 	if err := prepareService(env); err != nil {
 		t.Fatal(err)
@@ -54,6 +64,22 @@ func TestPrepareService(t *testing.T) {
 	data, err := os.ReadFile(filepath.Join(pluginDirectory, "mongodb.conf"))
 	if err != nil || !strings.Contains(string(data), "Plugins.MongoDB.System.Path=/usr/sbin/zabbix-agent2-plugin/mongodb") {
 		t.Fatalf("MongoDB plugin config: %s, %v", data, err)
+	}
+	itemKeys, err := os.ReadFile(filepath.Join(configDir, "zabbix_agent2_item_keys.conf"))
+	if err != nil || !strings.HasSuffix(string(itemKeys),
+		"AllowKey=${ZBX_ALLOWKEY_0}\nDenyKeyRegexp=${ZBX_DENYKEY_REGEXP_1}\n") {
+		t.Fatalf("item key config: %s, %v", itemKeys, err)
+	}
+	aliases, err := os.ReadFile(filepath.Join(configDir, "zabbix_agent2_aliases.conf"))
+	if err != nil || !strings.Contains(string(aliases), "Alias=${ZBX_ALIAS_0}") {
+		t.Fatalf("alias config: %s, %v", aliases, err)
+	}
+	userParameters, err := os.ReadFile(filepath.Join(configDir, "zabbix_agent2_user_parameters.conf"))
+	if err != nil || !strings.Contains(string(userParameters), "UserParameter=${ZBX_USERPARAMETER_0}") {
+		t.Fatalf("user parameter config: %s, %v", userParameters, err)
+	}
+	if env["ZBX_ALIAS_0"] == "" || env["ZBX_USERPARAMETER_0"] == "" {
+		t.Fatal("indexed configuration environment variable was removed")
 	}
 }
 

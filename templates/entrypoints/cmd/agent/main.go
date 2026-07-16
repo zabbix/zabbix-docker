@@ -1,6 +1,8 @@
 package main
 
 import (
+	"path/filepath"
+
 	config "github.com/zabbix/zabbix-docker/templates/entrypoints/internal/agent"
 	"github.com/zabbix/zabbix-docker/templates/entrypoints/internal/bootstrap"
 	"github.com/zabbix/zabbix-docker/templates/entrypoints/internal/hooks"
@@ -16,7 +18,19 @@ func prepareService(env bootstrap.Environment) error {
 
 	config.ConfigureServers(env)
 
-	if err := config.ConfigureAllowDenyKeys(env, configDir, "zabbix_agentd_item_keys.conf"); err != nil {
+	if err := config.ConfigureItemKeyRules(env, configDir, "zabbix_agentd_item_keys.conf"); err != nil {
+		return err
+	}
+
+	if err := bootstrap.UpdateConfigIndexed(env, filepath.Join(configDir, "zabbix_agentd_aliases.conf"), "Alias", "ZBX_ALIAS"); err != nil {
+		return err
+	}
+
+	if err := bootstrap.UpdateConfigIndexed(env, filepath.Join(configDir, "zabbix_agentd_user_parameters.conf"), "UserParameter", "ZBX_USERPARAMETER"); err != nil {
+		return err
+	}
+
+	if err := configurePerformanceCounters(env, configDir); err != nil {
 		return err
 	}
 
