@@ -38,30 +38,30 @@ COPY licenses /licenses/
 RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
     --mount=type=tmpfs,target=/var/cache/yum/ \
     set -eux && \
-    INSTALL_PKGS="autoconf \
+    INSTALL_PKGS="bash \
+            autoconf \
             automake \
-            bash \
+            make \
             gcc \
             go-toolset \
+            java-17-openjdk-devel \
+            gettext \
+            git \
             patch \
-            pcre2-devel \
             libcurl-devel \
             libevent-devel \
-            libssh-devel \
             libmodbus-devel \
+            libssh-devel \
             libxml2-devel \
-            openssl-devel \
-            make \
             mysql-devel \
             net-snmp-devel \
             OpenIPMI-devel \
             openldap-devel \
-            sqlite-devel \
-            postgresql-server-devel \
+            openssl-devel \
+            pcre2-devel \
             postgresql-private-devel \
-            java-17-openjdk-devel \
-            git \
-            gettext \
+            postgresql-server-devel \
+            sqlite-devel \
             unixODBC-devel \
             zlib-devel" && \
     curl --tlsv1.2 -sSf -L https://dl.fedoraproject.org/pub/epel/epel-release-latest-9.noarch.rpm -o /tmp/epel-release-latest-9.noarch.rpm && \

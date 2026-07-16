@@ -43,12 +43,7 @@ RUN set -eux && \
     INSTALL_PKGS="bash \
             tini \
             tzdata \
-            traceroute \
-            nmap \
             krb5 \
-            fping \
-            iputils \
-            openssl \
             libcap \
             libcurl \
             libevent \
@@ -57,11 +52,16 @@ RUN set -eux && \
             libxml2 \
             net-snmp-agent-libs \
             openipmi-libs \
+            openssl \
             pcre2 \
-            sqlite \
             sqlite-libs \
             unixodbc \
-            zlib" && \
+            zlib \
+            fping \
+            iputils \
+            nmap \
+            traceroute \
+            sqlite" && \
     apk add \
             --no-cache \
             --clean-protected \

@@ -32,30 +32,30 @@ RUN set -eux && \
         *)       openjdk_packages='openjdk17 openjdk17-jre-headless' ;; \
     esac; \
     INSTALL_PKGS="bash \
-            autoconf \
-            automake \
             coreutils \
             curl \
+            autoconf \
+            automake \
+            make \
+            g++ \
+            go \
+            $openjdk_packages \
+            gettext \
+            git \
+            patch \
             curl-dev \
             libevent-dev \
-            libssh-dev \
-            sqlite-dev \
             libmodbus-dev \
+            libpq-dev \
+            libssh-dev \
             libxml2-dev \
             mysql-dev \
             net-snmp-dev \
             openipmi-dev \
             openldap-dev \
             openssl-dev \
-            patch \
             pcre2-dev \
-            libpq-dev \
-            gettext \
-            git \
-            g++ \
-            go \
-            make \
-            $openjdk_packages \
+            sqlite-dev \
             unixodbc-dev \
             zlib-dev" && \
     apk add \

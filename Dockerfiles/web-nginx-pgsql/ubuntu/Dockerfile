@@ -62,21 +62,21 @@ RUN --mount=type=cache,target=/var/cache/apt/,sharing=locked \
     printf '%s\n' '#!/bin/sh' 'exit 101' > /usr/sbin/policy-rc.d && \
     chmod +x /usr/sbin/policy-rc.d && \
     INSTALL_PKGS="bash \
-            tzdata \
             ca-certificates \
             curl \
-            nginx \
+            jq \
             locales \
+            tzdata \
             libldap-common \
-            php8.3-bcmath \
+            nginx \
             php8.3-fpm \
+            php8.3-bcmath \
             php8.3-gd \
             php8.3-ldap \
             php8.3-mbstring \
-            php8.3-xml \
             php8.3-pgsql \
-            postgresql-client \
-            jq" && \
+            php8.3-xml \
+            postgresql-client" && \
     apt-get -y update && \
     DEBIAN_FRONTEND=noninteractive apt-get -y \
             -o Dpkg::Options::="--force-confdef" \

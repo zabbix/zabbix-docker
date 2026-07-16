@@ -42,15 +42,15 @@ RUN --mount=type=cache,target=/var/cache/apt/,sharing=locked \
     printf '%s\n' '#!/bin/sh' 'exit 101' > /usr/sbin/policy-rc.d && \
     chmod +x /usr/sbin/policy-rc.d && \
     INSTALL_PKGS="bash \
+            ca-certificates \
             tini \
             tzdata \
-            iputils-ping \
-            ca-certificates \
-            smartmontools \
-            sudo \
-            libssl3t64 \
             libcurl4t64 \
-            libpcre2-8-0" && \
+            libpcre2-8-0 \
+            libssl3t64 \
+            iputils-ping \
+            smartmontools \
+            sudo" && \
     apt-get -y update && \
     DEBIAN_FRONTEND=noninteractive apt-get -y \
             -o Dpkg::Options::="--force-confdef" \

@@ -25,31 +25,30 @@ LABEL org.opencontainers.image.authors="Alexey Pustovalov <alexey.pustovalov@zab
 RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
     --mount=type=tmpfs,target=/var/cache/yum/ \
     set -eux && \
-    INSTALL_PKGS="autoconf \
+    INSTALL_PKGS="bash \
+            autoconf \
             automake \
-            bash \
+            make \
             gcc \
             go-toolset \
+            java-21-openjdk-devel \
+            gettext \
+            git \
             patch \
-            pcre2-devel \
             libcurl-devel \
             libevent-devel \
-            libssh-devel \
             libmodbus-devel \
+            libssh-devel \
             libxml2-devel \
-            openssl-devel \
-            openldap-devel \
-            make \
             mysql8.4-devel \
             net-snmp-devel \
             OpenIPMI-devel \
             openldap-devel \
-            sqlite-devel \
-            postgresql18-server-devel \
+            openssl-devel \
+            pcre2-devel \
             postgresql18-private-devel \
-            java-21-openjdk-devel \
-            git \
-            gettext \
+            postgresql18-server-devel \
+            sqlite-devel \
             unixODBC-devel \
             zlib-devel" && \
     microdnf -y install \

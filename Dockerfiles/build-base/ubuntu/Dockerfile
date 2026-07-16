@@ -29,32 +29,32 @@ RUN --mount=type=cache,target=/var/cache/apt/,sharing=locked \
     printf '%s\n' '#!/bin/sh' 'exit 101' > /usr/sbin/policy-rc.d && \
     chmod +x /usr/sbin/policy-rc.d && \
     INSTALL_PKGS="bash \
+            curl \
             autoconf \
             automake \
+            make \
+            pkg-config \
             binutils \
-            curl \
             gcc \
+            golang-1.24 \
+            openjdk-17-jdk-headless \
+            gettext \
+            git \
+            patch \
+            unzip \
             libc6-dev \
             libcurl4-openssl-dev \
             libevent-dev \
-            libmodbus-dev \
             libldap2-dev \
+            libmodbus-dev \
             libmysqlclient-dev \
             libopenipmi-dev \
             libpcre2-dev \
+            libpq-dev \
             libsnmp-dev \
             libsqlite3-dev \
-            libpq-dev \
             libssh-dev \
             libxml2-dev \
-            make \
-            openjdk-17-jdk-headless \
-            patch \
-            pkg-config \
-            gettext \
-            git \
-            golang-1.24 \
-            unzip \
             unixodbc-dev \
             zlib1g-dev" && \
     apt-get -y update && \

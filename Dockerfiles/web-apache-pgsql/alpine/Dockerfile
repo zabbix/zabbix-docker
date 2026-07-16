@@ -57,27 +57,27 @@ COPY conf/etc/ /etc/
 
 RUN set -eux && \
     INSTALL_PKGS="bash \
-            tzdata \
             curl \
             jq \
+            tzdata \
             apache2 \
+            php83-fpm \
             apache2-proxy \
             php83-bcmath \
             php83-ctype \
-            php83-fpm \
+            php83-fileinfo \
             php83-gd \
             php83-gettext \
             php83-json \
             php83-ldap \
-            php83-pgsql \
             php83-mbstring \
+            php83-openssl \
+            php83-pgsql \
             php83-session \
             php83-simplexml \
             php83-sockets \
-            php83-fileinfo \
             php83-xmlreader \
             php83-xmlwriter \
-            php83-openssl \
             postgresql17-client" && \
     apk add \
             --no-cache \

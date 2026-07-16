@@ -39,14 +39,14 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
     --mount=type=tmpfs,target=/var/cache/yum/ \
     set -eux && \
     INSTALL_PKGS="bash \
-            iputils \
-            pcre2 \
+            shadow-utils \
             libcurl-minimal \
             libmodbus \
-            openssl-libs \
             openldap \
-            shadow-utils \
-            zlib" && \
+            openssl-libs \
+            pcre2 \
+            zlib \
+            iputils" && \
     microdnf -y install \
             --disablerepo="*" \
             --enablerepo="extras-common" \

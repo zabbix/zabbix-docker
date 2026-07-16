@@ -38,9 +38,9 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
     --mount=type=tmpfs,target=/var/cache/yum/ \
     set -eux && \
     INSTALL_PKGS="bash \
-            chromium-headless \
             ca-certificates \
-            shadow-utils" && \
+            shadow-utils \
+            chromium-headless" && \
     microdnf -y install \
             --disablerepo="*" \
             --enablerepo="extras-common" \

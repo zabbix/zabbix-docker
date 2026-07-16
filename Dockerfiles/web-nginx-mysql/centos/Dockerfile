@@ -59,20 +59,20 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
     set -eux && \
     INSTALL_PKGS="bash \
             curl-minimal \
-            mysql8.4 \
             findutils \
             glibc-locale-source \
+            jq \
+            shadow-utils \
             nginx \
-            php-bcmath \
             php-fpm \
+            php-bcmath \
             php-gd \
             php-json \
             php-ldap \
             php-mbstring \
             php-mysqlnd \
             php-xml \
-            shadow-utils \
-            jq" && \
+            mysql8.4" && \
     microdnf -y install \
             --disablerepo="*" \
             --enablerepo="baseos" \

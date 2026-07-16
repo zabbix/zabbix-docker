@@ -36,17 +36,17 @@ COPY --from=builder /tmp/zabbix-${ZBX_VERSION}-output/general/bin/zabbix_sender 
 COPY --from=builder /tmp/zabbix-${ZBX_VERSION}-output/agent/conf/ ${ZABBIX_CONF_DIR}/
 
 RUN set -eux && \
-    INSTALL_PKGS="tini \
-            bash \
-            tzdata \
+    INSTALL_PKGS="bash \
             coreutils \
-            iputils \
-            pcre2 \
-            libgcc \
+            tini \
+            tzdata \
             libcurl \
-            libmodbus \
+            libgcc \
             libldap \
-            zlib" && \
+            libmodbus \
+            pcre2 \
+            zlib \
+            iputils" && \
     apk add \
             --no-cache \
             --clean-protected \
