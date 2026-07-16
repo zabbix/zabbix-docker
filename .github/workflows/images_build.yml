@@ -16,7 +16,8 @@ on:
       - '!Dockerfiles/*/windows/*'
       - '.github/workflows/images_build.yml'
       - '.github/actions/*'
-      - 'templates/entrypoints/**'
+      - 'templates/entrypoints/*.sh'
+      - 'templates/entrypoints/lib/**'
   schedule:
     - cron:  '50 02 * * *'
   workflow_dispatch:
