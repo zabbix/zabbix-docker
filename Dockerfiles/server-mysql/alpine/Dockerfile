@@ -62,14 +62,9 @@ COPY --from=builder /tmp/zabbix-${ZBX_VERSION}-output/server/database/clickhouse
 
 RUN set -eux && \
     INSTALL_PKGS="bash \
-            fping \
-            traceroute \
-            nmap \
-            krb5 \
             tzdata \
-            iputils \
-            openssl \
             c-ares \
+            krb5 \
             libcap \
             libcurl \
             libevent \
@@ -79,9 +74,14 @@ RUN set -eux && \
             mariadb-connector-c \
             net-snmp-agent-libs \
             openipmi-libs \
+            openssl \
             pcre2 \
             unixodbc \
-            zlib" && \
+            zlib \
+            fping \
+            iputils \
+            nmap \
+            traceroute" && \
     apk add \
             --no-cache \
             --clean-protected \

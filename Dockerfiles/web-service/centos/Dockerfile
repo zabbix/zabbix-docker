@@ -48,9 +48,9 @@ COPY --from=entrypoints /licenses/go-THIRD-PARTY-NOTICES.txt /licenses/
 RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
     --mount=type=tmpfs,target=/var/cache/yum/ \
     set -eux && \
-    INSTALL_PKGS="chromium-headless \
-            ca-certificates \
-            shadow-utils" && \
+    INSTALL_PKGS="ca-certificates \
+            shadow-utils \
+            chromium-headless" && \
     microdnf -y install \
             --disablerepo="*" \
             --enablerepo="extras-common" \

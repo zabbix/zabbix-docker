@@ -65,26 +65,26 @@ COPY --from=builder /tmp/zabbix-${ZBX_VERSION}-output/server/database/clickhouse
 
 RUN set -eux && \
     INSTALL_PKGS="bash \
-            traceroute \
-            nmap \
-            krb5 \
-            fping \
             tzdata \
-            iputils \
-            openssl \
             c-ares \
+            krb5 \
             libcap \
             libcurl \
             libevent \
             libldap \
+            libpq \
             libssh \
             libxml2 \
             net-snmp-agent-libs \
             openipmi-libs \
+            openssl \
             pcre2 \
-            libpq \
             unixodbc \
-            zlib" && \
+            zlib \
+            fping \
+            iputils \
+            nmap \
+            traceroute" && \
     apk add \
             --no-cache \
             --clean-protected \

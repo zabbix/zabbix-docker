@@ -71,13 +71,13 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
     --mount=type=tmpfs,target=/var/cache/yum/ \
     set -eux && \
     INSTALL_PKGS="bash \
-            iputils \
             shadow-utils \
-            pcre2 \
-            smartmontools \
-            sudo \
             c-ares \
-            libcurl-minimal" && \
+            libcurl-minimal \
+            pcre2 \
+            iputils \
+            smartmontools \
+            sudo" && \
     curl --tlsv1.2 -sSf -L https://dl.fedoraproject.org/pub/epel/epel-release-latest-10.noarch.rpm -o /tmp/epel-release-latest-10.noarch.rpm && \
     rpm -ivh /tmp/epel-release-latest-10.noarch.rpm && \
     rm -rf /tmp/epel-release-latest-10.noarch.rpm && \

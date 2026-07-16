@@ -63,17 +63,12 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
     --mount=type=tmpfs,target=/var/cache/yum/ \
     set -eux && \
     INSTALL_PKGS="bash \
-            fping \
-            traceroute \
-            nmap \
-            krb5-workstation \
             c-ares \
             file-libs \
-            iputils \
             libcurl \
             libevent \
-            libxml2 \
             libssh \
+            libxml2 \
             mysql8.4-libs \
             net-snmp-libs \
             OpenIPMI-libs \
@@ -81,8 +76,13 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             openssl \
             openssl-libs \
             pcre2 \
+            unixODBC \
             zlib \
-            unixODBC" && \
+            fping \
+            iputils \
+            krb5-workstation \
+            nmap \
+            traceroute" && \
     microdnf -y install \
             --disablerepo="*" \
             --enablerepo="ol10_baseos_latest" \

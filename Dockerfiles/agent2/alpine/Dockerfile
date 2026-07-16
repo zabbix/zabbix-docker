@@ -50,13 +50,13 @@ COPY --from=builder /tmp/zabbix-${ZBX_VERSION}-output/agent2/conf/ ${ZABBIX_CONF
 
 RUN set -eux && \
     INSTALL_PKGS="bash \
-            tzdata \
-            pcre2 \
             coreutils \
-            smartmontools \
-            sudo \
+            tzdata \
             c-ares \
-            iputils" && \
+            pcre2 \
+            iputils \
+            smartmontools \
+            sudo" && \
     apk add \
             --no-cache \
             --clean-protected \

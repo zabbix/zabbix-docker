@@ -39,33 +39,33 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
     --mount=type=tmpfs,target=/var/cache/yum/ \
 #    --mount=type=bind,target=/run/secrets/,src=secrets/ \
     set -eux && \
-    INSTALL_PKGS="autoconf \
+    INSTALL_PKGS="bash \
+            autoconf \
             automake \
-            bash \
             cmake \
+            make \
             gcc \
             gcc-c++ \
             go-toolset \
+            java-21-openjdk-devel \
+            gettext \
+            git \
             patch \
             c-ares-devel \
-            pcre2-devel \
             libcurl-devel \
             libevent-devel \
-            libssh-devel \
             libmodbus-devel \
+            libssh-devel \
             libxml2-devel \
-            openssl-devel \
-            make \
             mysql8.4-devel \
             net-snmp-devel \
             OpenIPMI-devel \
             openldap-devel \
-            sqlite-devel \
-            postgresql18-server-devel \
+            openssl-devel \
+            pcre2-devel \
             postgresql18-private-devel \
-            java-21-openjdk-devel \
-            git \
-            gettext \
+            postgresql18-server-devel \
+            sqlite-devel \
             unixODBC-devel \
             zlib-devel" && \
     curl --tlsv1.2 -sSf -L https://dl.fedoraproject.org/pub/epel/epel-release-latest-10.noarch.rpm -o /tmp/epel-release-latest-10.noarch.rpm && \

@@ -86,26 +86,26 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
     --mount=type=tmpfs,target=/var/cache/yum/ \
     set -eux && \
     INSTALL_PKGS="bash \
-            traceroute \
-            nmap \
-            krb5-workstation \
-            c-ares \
-            fping \
             shadow-utils \
-            iputils \
-            openssl \
-            libssh \
-            libpsl \
+            c-ares \
             libbrotli \
             libevent \
-            openldap \
+            libpsl \
+            libssh \
             libxml2 \
             net-snmp-agent-libs \
             OpenIPMI-libs \
+            openldap \
+            openssl \
             pcre2 \
             postgresql18-private-libs \
             unixODBC \
-            zlib" && \
+            zlib \
+            fping \
+            iputils \
+            krb5-workstation \
+            nmap \
+            traceroute" && \
     curl --tlsv1.2 -sSf -L https://dl.fedoraproject.org/pub/epel/epel-release-latest-10.noarch.rpm -o /tmp/epel-release-latest-10.noarch.rpm && \
     rpm -ivh /tmp/epel-release-latest-10.noarch.rpm && \
     rm -rf /tmp/epel-release-latest-10.noarch.rpm && \

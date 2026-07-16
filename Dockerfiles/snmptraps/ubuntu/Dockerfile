@@ -34,8 +34,8 @@ RUN --mount=type=cache,target=/var/cache/apt/,sharing=locked \
     chmod +x /usr/sbin/policy-rc.d && \
     INSTALL_PKGS="bash \
             tzdata \
-            snmp-mibs-downloader \
-            snmptrapd" && \
+            snmptrapd \
+            snmp-mibs-downloader" && \
     apt-get -y update && \
     DEBIAN_FRONTEND=noninteractive apt-get -y \
             -o Dpkg::Options::="--force-confdef" \

@@ -45,8 +45,8 @@ COPY --chmod=0755 --from=entrypoint-builder /tmp/docker-entrypoint /usr/bin/dock
 COPY --from=entrypoints /licenses/go-THIRD-PARTY-NOTICES.txt /licenses/
 
 RUN set -eux && \
-    INSTALL_PKGS="chromium \
-            ca-certificates" && \
+    INSTALL_PKGS="ca-certificates \
+            chromium" && \
     apk add \
             --no-cache \
             --clean-protected \

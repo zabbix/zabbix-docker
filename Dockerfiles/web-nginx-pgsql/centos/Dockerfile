@@ -72,17 +72,17 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
     INSTALL_PKGS="curl-minimal \
             findutils \
             glibc-locale-source \
+            shadow-utils \
             nginx \
+            php-fpm \
             php-bcmath \
             php-curl \
-            php-fpm \
             php-gd \
             php-json \
             php-ldap \
             php-mbstring \
             php-pgsql \
-            php-xml \
-            shadow-utils" && \
+            php-xml" && \
     microdnf -y install \
             --disablerepo="*" \
             --enablerepo="baseos" \

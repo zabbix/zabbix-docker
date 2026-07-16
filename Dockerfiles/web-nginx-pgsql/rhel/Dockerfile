@@ -89,13 +89,13 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
     --mount=type=tmpfs,target=/var/cache/yum/ \
     set -eux && \
     INSTALL_PKGS="curl-minimal \
-            shadow-utils \
             findutils \
             glibc-locale-source \
+            shadow-utils \
             nginx \
+            php-fpm \
             php-bcmath \
             php-curl \
-            php-fpm \
             php-gd \
             php-json \
             php-ldap \

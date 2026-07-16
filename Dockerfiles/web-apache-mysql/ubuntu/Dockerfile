@@ -76,15 +76,15 @@ RUN --mount=type=cache,target=/var/cache/apt/,sharing=locked \
     set -eux && \
     printf '%s\n' '#!/bin/sh' 'exit 101' > /usr/sbin/policy-rc.d && \
     chmod +x /usr/sbin/policy-rc.d && \
-    INSTALL_PKGS="tzdata \
-            ca-certificates \
+    INSTALL_PKGS="ca-certificates \
             curl \
-            apache2 \
             locales \
+            tzdata \
             libldap-common \
+            apache2 \
+            php8.5-fpm \
             php8.5-bcmath \
             php8.5-curl \
-            php8.5-fpm \
             php8.5-gd \
             php8.5-ldap \
             php8.5-mbstring \

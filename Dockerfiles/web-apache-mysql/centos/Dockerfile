@@ -72,21 +72,21 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
     --mount=type=tmpfs,target=/var/cache/yum/ \
     set -eux && \
     INSTALL_PKGS="curl-minimal \
+            findutils \
+            glibc-locale-source \
+            shadow-utils \
             httpd \
-            mod_ssl \
             php \
-            php-curl \
             php-fpm \
+            mod_ssl \
             php-bcmath \
+            php-curl \
             php-gd \
+            php-json \
             php-ldap \
             php-mbstring \
             php-mysqlnd \
-            php-json \
-            php-xml \
-            findutils \
-            glibc-locale-source \
-            shadow-utils" && \
+            php-xml" && \
     microdnf -y install \
             --disablerepo="*" \
             --enablerepo="baseos" \

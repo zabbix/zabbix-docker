@@ -30,33 +30,33 @@ RUN set -eux && \
         *)       openjdk_packages='openjdk21 openjdk21-jre-headless' ;; \
     esac; \
     INSTALL_PKGS="bash \
+            coreutils \
+            curl \
             autoconf \
             automake \
             cmake \
+            make \
+            g++ \
+            go \
+            linux-headers \
+            $openjdk_packages \
+            gettext \
+            git \
+            patch \
             c-ares-dev \
-            coreutils \
-            curl \
             curl-dev \
             libevent-dev \
-            libssh-dev \
-            sqlite-dev \
             libmodbus-dev \
+            libpq-dev \
+            libssh-dev \
             libxml2-dev \
-            linux-headers \
             mysql-dev \
             net-snmp-dev \
             openipmi-dev \
             openldap-dev \
             openssl-dev \
-            patch \
             pcre2-dev \
-            libpq-dev \
-            gettext \
-            git \
-            g++ \
-            go \
-            make \
-            $openjdk_packages \
+            sqlite-dev \
             unixodbc-dev \
             zlib-dev" && \
     apk add \
