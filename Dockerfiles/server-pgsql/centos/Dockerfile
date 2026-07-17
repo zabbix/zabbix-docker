@@ -107,13 +107,6 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             --best \
             --nodocs \
         ${INSTALL_PKGS} && \
-    microdnf -y reinstall \
-            --enablerepo="baseos" \
-            --setopt=install_weak_deps=0 \
-            --setopt=keepcache=0 \
-            --best \
-            --setopt=tsflags=nodocs \
-        tzdata && \
     microdnf swap -y libcurl-minimal libcurl && \
     groupadd \
             --system \
