@@ -148,11 +148,11 @@ func FileEnv(env Environment, name, defaultValue string) error {
 	return nil
 }
 
-// ProcessFileFromEnvironment persists the value of variable into a file
+// processFileFromEnvironment persists the value of variable into a file
 // under directory and points the corresponding "<variable>FILE" variable at
 // it. The plain variable is always removed so that secrets do not stay in
 // the service environment.
-func ProcessFileFromEnvironment(env Environment, directory, variable string) error {
+func processFileFromEnvironment(env Environment, directory, variable string) error {
 	fileVariable := variable + "FILE"
 	if value := env[variable]; value != "" {
 		path := filepath.Join(directory, fileVariable)
@@ -171,7 +171,7 @@ func ProcessFileFromEnvironment(env Environment, directory, variable string) err
 func ProcessTLSFiles(env Environment, homeDir string, variables ...string) error {
 	directory := filepath.Join(homeDir, "enc_internal")
 	for _, variable := range variables {
-		if err := ProcessFileFromEnvironment(env, directory, variable); err != nil {
+		if err := processFileFromEnvironment(env, directory, variable); err != nil {
 			return err
 		}
 	}

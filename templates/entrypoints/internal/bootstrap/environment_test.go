@@ -26,7 +26,7 @@ func TestProcessFileAndClearEnvironment(t *testing.T) {
 		"ZBX_TLSPSK": "secret", "ZABBIX_CONF_DIR": "/etc/zabbix",
 		"MYSQL_PASSWORD": "password", "VALUE": "a=b",
 	}
-	if err := ProcessFileFromEnvironment(env, directory, "ZBX_TLSPSK"); err != nil {
+	if err := processFileFromEnvironment(env, directory, "ZBX_TLSPSK"); err != nil {
 		t.Fatal(err)
 	}
 

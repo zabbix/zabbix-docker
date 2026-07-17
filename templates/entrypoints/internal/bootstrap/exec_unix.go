@@ -8,9 +8,9 @@ import (
 	"syscall"
 )
 
-// Exec replaces the current process with args, resolving the binary via
+// executeProcess replaces the current process with args, resolving the binary via
 // PATH when necessary.
-func Exec(args []string, env Environment) error {
+func executeProcess(args []string, env Environment) error {
 	path := args[0]
 	if !strings.ContainsRune(path, '/') {
 		resolvedPath, err := exec.LookPath(path)

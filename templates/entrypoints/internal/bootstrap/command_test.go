@@ -21,26 +21,26 @@ func TestCommand(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			if got := Command(test.args, "component"); !reflect.DeepEqual(got, test.want) {
-				t.Fatalf("Command() = %#v, want %#v", got, test.want)
+			if got := command(test.args, "component"); !reflect.DeepEqual(got, test.want) {
+				t.Fatalf("command() = %#v, want %#v", got, test.want)
 			}
 		})
 	}
 }
 
 func TestExitCode(t *testing.T) {
-	if code := ExitCode(nil); code != 0 {
-		t.Fatalf("ExitCode(nil) = %d, want 0", code)
+	if code := exitCode(nil); code != 0 {
+		t.Fatalf("exitCode(nil) = %d, want 0", code)
 	}
-	if code := ExitCode(errors.New("failure")); code != 1 {
-		t.Fatalf("ExitCode(regular error) = %d, want 1", code)
+	if code := exitCode(errors.New("failure")); code != 1 {
+		t.Fatalf("exitCode(regular error) = %d, want 1", code)
 	}
 
 	command := exec.Command(os.Args[0], "-test.run=TestExitCodeHelperProcess")
 	command.Env = append(os.Environ(), "ENTRYPOINT_EXIT_CODE_HELPER=1")
 	err := command.Run()
-	if code := ExitCode(err); code != 23 {
-		t.Fatalf("ExitCode(child error) = %d, want 23: %v", code, err)
+	if code := exitCode(err); code != 23 {
+		t.Fatalf("exitCode(child error) = %d, want 23: %v", code, err)
 	}
 }
 

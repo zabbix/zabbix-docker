@@ -8,9 +8,9 @@ import (
 	"strings"
 )
 
-// ExitCode maps err to a process exit status, preserving the status of a
+// exitCode maps err to a process exit status, preserving the status of a
 // finished child process.
-func ExitCode(err error) int {
+func exitCode(err error) int {
 	if err == nil {
 		return 0
 	}
@@ -31,13 +31,13 @@ func ExitOnError(err error) {
 	}
 
 	LogError("**** %v", err)
-	os.Exit(ExitCode(err))
+	os.Exit(exitCode(err))
 }
 
-// Command decides what the container should execute: no arguments start the
+// command decides what the container should execute: no arguments start the
 // service binary, arguments beginning with a dash are treated as its flags,
 // anything else is a user-supplied command.
-func Command(args []string, binary string) []string {
+func command(args []string, binary string) []string {
 	if len(args) == 0 {
 		return []string{binary}
 	}
@@ -49,7 +49,7 @@ func Command(args []string, binary string) []string {
 
 // Execute hands control over to args with the given environment.
 func Execute(args []string, env Environment) error {
-	if err := Exec(args, env); err != nil {
+	if err := executeProcess(args, env); err != nil {
 		return fmt.Errorf("execute %s: %w", args[0], err)
 	}
 
@@ -61,7 +61,7 @@ func Execute(args []string, env Environment) error {
 // first; custom user commands are executed untouched.
 func RunService(binary string, prepare func(Environment) error) error {
 	env := NewEnvironment(os.Environ())
-	args := Command(os.Args[1:], binary)
+	args := command(os.Args[1:], binary)
 
 	if args[0] == binary {
 		if err := prepare(env); err != nil {
@@ -72,22 +72,22 @@ func RunService(binary string, prepare func(Environment) error) error {
 	return Execute(args, env)
 }
 
-// InitDatabaseCommand provisions the database and exits without starting
+// initDatabaseCommand provisions the database and exits without starting
 // the service.
-const InitDatabaseCommand = "init_db_only"
+const initDatabaseCommand = "init_db_only"
 
 // RunDatabaseService is RunService for images with a database: the extra
-// initDB hook implements the InitDatabaseCommand command.
+// initDB hook implements the initDatabaseCommand command.
 func RunDatabaseService(binary string, prepare, initDB func(Environment) error) error {
 	env := NewEnvironment(os.Environ())
-	args := Command(os.Args[1:], binary)
+	args := command(os.Args[1:], binary)
 
 	switch args[0] {
 	case binary:
 		if err := prepare(env); err != nil {
 			return err
 		}
-	case InitDatabaseCommand:
+	case initDatabaseCommand:
 		return initDB(env)
 	}
 

@@ -1,7 +1,9 @@
 package web
 
 import (
+	"errors"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strings"
 	"testing"
@@ -156,7 +158,11 @@ func TestStartStackReturnsFirstProcessExitCode(t *testing.T) {
 		"NGINX_BIN":   nginxBinary,
 	}
 	err := startStack(env, ServerNginx)
-	if code := bootstrap.ExitCode(err); code != 23 {
+	var exitError *exec.ExitError
+	if !errors.As(err, &exitError) {
+		t.Fatalf("startStack() error = %T, want *exec.ExitError: %v", err, err)
+	}
+	if code := exitError.ExitCode(); code != 23 {
 		t.Fatalf("startStack() exit code = %d, want 23: %v", code, err)
 	}
 }
