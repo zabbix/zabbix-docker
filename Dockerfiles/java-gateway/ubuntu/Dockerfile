@@ -39,11 +39,9 @@ RUN --mount=type=cache,target=/var/cache/apt/,sharing=locked \
     chmod +x /usr/sbin/policy-rc.d && \
     INSTALL_PKGS="bash \
             openjdk-21-jre-headless" && \
-    apt-get -y update && \
-    DEBIAN_FRONTEND=noninteractive apt-get -y \
-            -o Dpkg::Options::="--force-confdef" \
-            -o Dpkg::Options::="--force-confold" \
-            --no-install-recommends install \
+    apt-get update && \
+    DEBIAN_FRONTEND=noninteractive apt-get install -y \
+            --no-install-recommends \
         ${INSTALL_PKGS} && \
     groupadd \
             --system \
