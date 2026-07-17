@@ -50,7 +50,7 @@ RUN --mount=type=cache,target=/var/cache/apt/,sharing=locked \
     gpg -o /etc/apt/keyrings/debian.gpg --export 78DBA3BC47EF2265 && \
     echo "deb [signed-by=/etc/apt/keyrings/debian.gpg] http://deb.debian.org/debian trixie main" > /etc/apt/sources.list.d/debian.list && \
     echo "deb [signed-by=/etc/apt/keyrings/debian.gpg] http://deb.debian.org/debian trixie-updates main" >> /etc/apt/sources.list.d/debian.list && \
-    apt-get -y update && \
+    apt-get update && \
     DEBIAN_FRONTEND=noninteractive apt-get install -y \
             --no-install-recommends \
         ${INSTALL_PKGS} && \
