@@ -55,6 +55,7 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
     set -eux && \
     INSTALL_PKGS="bash \
             shadow-utils \
+            tzdata \
             net-snmp" && \
     microdnf -y install \
             --disableplugin=subscription-manager \
@@ -66,14 +67,6 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             --best \
             --setopt=tsflags=nodocs \
         ${INSTALL_PKGS} && \
-    microdnf -y update \
-            --disableplugin=subscription-manager \
-            --disablerepo="*" \
-            --enablerepo="ubi-10-baseos-rpms" \
-            --setopt=install_weak_deps=0 \
-            --best \
-            --setopt=tsflags=nodocs \
-        tzdata && \
     groupadd \
             --system \
             --gid 1995 \

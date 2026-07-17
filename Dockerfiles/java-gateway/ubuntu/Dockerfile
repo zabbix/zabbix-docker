@@ -39,7 +39,7 @@ RUN --mount=type=cache,target=/var/cache/apt/,sharing=locked \
             openjdk-21-jre-headless" && \
     apt-get update && \
     DEBIAN_FRONTEND=noninteractive apt-get install -y \
-            --no-install-recommends install \
+            --no-install-recommends \
         ${INSTALL_PKGS} && \
     groupadd \
             --system \

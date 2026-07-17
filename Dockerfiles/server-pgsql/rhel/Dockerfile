@@ -73,6 +73,7 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             gzip \
             hostname \
             shadow-utils \
+            tzdata \
             c-ares \
             libbrotli \
             libevent \
@@ -110,15 +111,6 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             --best \
             --setopt=tsflags=nodocs \
         ${INSTALL_PKGS} && \
-    microdnf -y update \
-            --disableplugin=subscription-manager \
-            --disablerepo="*" \
-            --enablerepo="ubi-10-baseos-rpms" \
-            --setopt=install_weak_deps=0 \
-            --setopt=keepcache=0 \
-            --best \
-            --setopt=tsflags=nodocs \
-        tzdata && \
     microdnf swap -y libcurl-minimal libcurl && \
     groupadd \
             --system \

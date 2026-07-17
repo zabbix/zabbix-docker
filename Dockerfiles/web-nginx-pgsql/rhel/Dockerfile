@@ -82,6 +82,7 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             gzip \
             jq \
             shadow-utils \
+            tzdata \
             nginx \
             php-fpm \
             php-bcmath \
@@ -105,14 +106,6 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             --best \
             --setopt=tsflags=nodocs \
         ${INSTALL_PKGS} && \
-    microdnf -y update \
-            --disableplugin=subscription-manager \
-            --disablerepo="*" \
-            --enablerepo="ubi-10-baseos-rpms" \
-            --setopt=install_weak_deps=0 \
-            --best \
-            --setopt=tsflags=nodocs \
-        tzdata && \
     groupadd \
             --system \
             --gid 1995 \

@@ -52,7 +52,7 @@ RUN --mount=type=cache,target=/var/cache/apt/,sharing=locked \
     echo "deb [signed-by=/etc/apt/keyrings/debian.gpg] http://deb.debian.org/debian trixie-updates main" >> /etc/apt/sources.list.d/debian.list && \
     apt-get update && \
     DEBIAN_FRONTEND=noninteractive apt-get install -y \
-            --no-install-recommends install \
+            --no-install-recommends \
         ${INSTALL_PKGS} && \
     groupadd \
             --system \
