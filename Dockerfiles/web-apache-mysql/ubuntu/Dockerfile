@@ -62,8 +62,6 @@ COPY conf/etc/ /etc/
 RUN --mount=type=cache,target=/var/cache/apt/,sharing=locked \
     --mount=type=cache,target=/var/lib/apt/,sharing=locked \
     set -eux && \
-    printf '%s\n' '#!/bin/sh' 'exit 101' > /usr/sbin/policy-rc.d && \
-    chmod +x /usr/sbin/policy-rc.d && \
     INSTALL_PKGS="bash \
             ca-certificates \
             curl \
@@ -81,7 +79,7 @@ RUN --mount=type=cache,target=/var/cache/apt/,sharing=locked \
             php8.5-mysql \
             php8.5-xml \
             mysql-client" && \
-    apt-get -y update && \
+    apt-get update && \
     DEBIAN_FRONTEND=noninteractive apt-get -y \
             -o Dpkg::Options::="--force-confdef" \
             -o Dpkg::Options::="--force-confold" \
