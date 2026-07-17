@@ -74,6 +74,7 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
     INSTALL_PKGS="curl \
             findutils \
             glibc-locale-source \
+            tzdata \
             httpd \
             php \
             php-fpm \

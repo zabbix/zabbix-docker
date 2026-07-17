@@ -65,8 +65,6 @@ COPY --from=builder /tmp/zabbix-${ZBX_VERSION}-output/proxy/database/mysql/ /usr
 RUN --mount=type=cache,target=/var/cache/apt/,sharing=locked \
     --mount=type=cache,target=/var/lib/apt/,sharing=locked \
     set -eux && \
-    printf '%s\n' '#!/bin/sh' 'exit 101' > /usr/sbin/policy-rc.d && \
-    chmod +x /usr/sbin/policy-rc.d && \
     INSTALL_PKGS="bash \
             ca-certificates \
             tzdata \
@@ -92,11 +90,9 @@ RUN --mount=type=cache,target=/var/cache/apt/,sharing=locked \
             nmap \
             snmp-mibs-downloader \
             traceroute" && \
-    apt-get -y update && \
-    DEBIAN_FRONTEND=noninteractive apt-get -y \
-            -o Dpkg::Options::="--force-confdef" \
-            -o Dpkg::Options::="--force-confold" \
-            --no-install-recommends install \
+    apt-get update && \
+    DEBIAN_FRONTEND=noninteractive apt-get install -y \
+            --no-install-recommends \
         ${INSTALL_PKGS} && \
     rm -f \
         /var/lib/mibs/ietf/VM-MIB \

@@ -74,8 +74,6 @@ COPY conf/etc/ /etc/
 RUN --mount=type=cache,target=/var/cache/apt/,sharing=locked \
     --mount=type=cache,target=/var/lib/apt/,sharing=locked \
     set -eux && \
-    printf '%s\n' '#!/bin/sh' 'exit 101' > /usr/sbin/policy-rc.d && \
-    chmod +x /usr/sbin/policy-rc.d && \
     INSTALL_PKGS="ca-certificates \
             curl \
             locales \
@@ -90,11 +88,11 @@ RUN --mount=type=cache,target=/var/cache/apt/,sharing=locked \
             php8.5-mbstring \
             php8.5-pgsql \
             php8.5-xml" && \
-    apt-get -y update && \
-    DEBIAN_FRONTEND=noninteractive apt-get -y \
+    apt-get update && \
+    DEBIAN_FRONTEND=noninteractive apt-get install -y \
             -o Dpkg::Options::="--force-confdef" \
             -o Dpkg::Options::="--force-confold" \
-            --no-install-recommends install \
+            --no-install-recommends \
         ${INSTALL_PKGS} && \
     groupadd \
             --system \

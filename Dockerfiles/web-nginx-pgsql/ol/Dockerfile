@@ -72,6 +72,7 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
     INSTALL_PKGS="curl \
             findutils \
             glibc-locale-source \
+            tzdata \
             nginx \
             php-fpm \
             php-bcmath \
