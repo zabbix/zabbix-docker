@@ -1,8 +1,6 @@
 package main
 
 import (
-	"os"
-
 	"github.com/zabbix/zabbix-docker/templates/entrypoints/internal/bootstrap"
 	"github.com/zabbix/zabbix-docker/templates/entrypoints/internal/hooks"
 	"github.com/zabbix/zabbix-docker/templates/entrypoints/internal/postgresql"
@@ -54,25 +52,9 @@ func prepareService(env bootstrap.Environment, db *postgresql.Database) error {
 	return nil
 }
 
-func run() error {
-	env := bootstrap.NewEnvironment(os.Environ())
-
-	db := postgresql.New(env)
-
-	args := bootstrap.Command(os.Args[1:], serverBinary)
-	if args[0] == serverBinary {
-		if err := prepareService(env, db); err != nil {
-			return err
-		}
-	}
-
-	if args[0] == "init_db_only" {
-		return prepareDatabase(env, db)
-	}
-
-	return bootstrap.Execute(args, env)
-}
-
 func main() {
-	bootstrap.ExitOnError(run())
+	bootstrap.ExitOnError(bootstrap.RunDatabaseService(serverBinary,
+		func(env bootstrap.Environment) error { return prepareService(env, postgresql.New(env)) },
+		func(env bootstrap.Environment) error { return prepareDatabase(env, postgresql.New(env)) },
+	))
 }

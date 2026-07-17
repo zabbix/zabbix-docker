@@ -1,8 +1,10 @@
 package bootstrap
 
 import (
+	"compress/gzip"
 	"errors"
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
 	"strings"
@@ -87,6 +89,33 @@ func ReplaceInFile(path string, replacements map[string]string) error {
 	}
 
 	return WriteFilePreservingMode(path, []byte(content))
+}
+
+// ReadSQLFile reads an SQL script, transparently decompressing it when the
+// name carries the .gz suffix.
+func ReadSQLFile(path string) ([]byte, error) {
+	file, err := os.Open(path)
+	if err != nil {
+		return nil, err
+	}
+	defer file.Close()
+
+	var reader io.Reader = file
+	if strings.HasSuffix(path, ".gz") {
+		compressed, err := gzip.NewReader(file)
+		if err != nil {
+			return nil, fmt.Errorf("open compressed file %s: %w", path, err)
+		}
+		defer compressed.Close()
+		reader = compressed
+	}
+
+	data, err := io.ReadAll(reader)
+	if err != nil {
+		return nil, fmt.Errorf("read %s: %w", path, err)
+	}
+
+	return data, nil
 }
 
 // WriteFilePreservingMode atomically replaces a file while preserving its

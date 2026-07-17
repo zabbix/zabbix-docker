@@ -1,12 +1,8 @@
 package postgresql
 
 import (
-	"compress/gzip"
 	"context"
 	"fmt"
-	"io"
-	"os"
-	"path/filepath"
 	"strings"
 
 	"github.com/zabbix/zabbix-docker/templates/entrypoints/internal/bootstrap"
@@ -48,7 +44,7 @@ func (db *Database) createSchemaNamespace(sess databaseSession) error {
 }
 
 func (db *Database) executeSQLFile(path string) error {
-	data, err := readSQLFile(path)
+	data, err := bootstrap.ReadSQLFile(path)
 	if err != nil {
 		return err
 	}
@@ -117,22 +113,7 @@ func (db *Database) createSchema(schemaFile, timescaleDBSchemaFile string) error
 		}
 	}
 
-	homeDir, err := bootstrap.RequiredHomeDirectory(db.env)
-	if err != nil {
-		return err
-	}
-	scripts, err := filepath.Glob(filepath.Join(homeDir, "dbscripts", "*.sql"))
-	if err != nil {
-		return fmt.Errorf("find additional SQL scripts: %w", err)
-	}
-	for _, script := range scripts {
-		bootstrap.LogInfo("** Processing additional '%s' SQL script", script)
-		if err := db.executeSQLFile(script); err != nil {
-			return err
-		}
-	}
-
-	return nil
+	return bootstrap.RunAdditionalSQLScripts(db.env, db.executeSQLFile)
 }
 
 // Prepare provisions the database over the administrative connection: it
@@ -156,29 +137,4 @@ func (db *Database) Prepare(schemaFile, timescaleDBSchemaFile string) error {
 
 func quoteIdentifier(value string) string {
 	return `"` + strings.ReplaceAll(value, `"`, `""`) + `"`
-}
-
-func readSQLFile(path string) ([]byte, error) {
-	file, err := os.Open(path)
-	if err != nil {
-		return nil, fmt.Errorf("open SQL script %s: %w", path, err)
-	}
-	defer file.Close()
-
-	var reader io.Reader = file
-	if strings.HasSuffix(path, ".gz") {
-		compressed, err := gzip.NewReader(file)
-		if err != nil {
-			return nil, err
-		}
-		defer compressed.Close()
-		reader = compressed
-	}
-
-	data, err := io.ReadAll(reader)
-	if err != nil {
-		return nil, fmt.Errorf("read SQL script %s: %w", path, err)
-	}
-
-	return data, nil
 }

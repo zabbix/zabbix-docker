@@ -2,14 +2,11 @@
 package sqlite
 
 import (
-	"compress/gzip"
 	"database/sql"
 	"fmt"
-	"io"
 	"net/url"
 	"os"
 	"path/filepath"
-	"strings"
 
 	_ "github.com/ncruces/go-sqlite3/driver"
 	"github.com/zabbix/zabbix-docker/templates/entrypoints/internal/bootstrap"
@@ -52,7 +49,7 @@ func Prepare(dbPath, schemaPath string) error {
 
 	if result == 0 {
 		bootstrap.LogInfo("** SQLite database '%s' does not contain Zabbix schema. Creating...", dbPath)
-		data, err := readSchema(schemaPath)
+		data, err := bootstrap.ReadSQLFile(schemaPath)
 		if err != nil {
 			return err
 		}
@@ -77,25 +74,4 @@ func dbDSN(dbPath string) string {
 	}
 
 	return dsn.String()
-}
-
-func readSchema(path string) ([]byte, error) {
-	file, err := os.Open(path)
-	if err != nil {
-		return nil, err
-	}
-	defer file.Close()
-
-	var reader io.Reader = file
-
-	if strings.HasSuffix(path, ".gz") {
-		compressed, err := gzip.NewReader(file)
-		if err != nil {
-			return nil, err
-		}
-		defer compressed.Close()
-		reader = compressed
-	}
-
-	return io.ReadAll(reader)
 }

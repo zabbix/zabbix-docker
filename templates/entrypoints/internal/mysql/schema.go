@@ -1,12 +1,8 @@
 package mysql
 
 import (
-	"compress/gzip"
 	"context"
 	"fmt"
-	"io"
-	"os"
-	"path/filepath"
 	"strings"
 
 	"github.com/zabbix/zabbix-docker/templates/entrypoints/internal/bootstrap"
@@ -38,25 +34,9 @@ func (db *Database) executeSQLFile(path string) error {
 }
 
 func readSQLStatements(path string) ([]string, error) {
-	file, err := os.Open(path)
+	data, err := bootstrap.ReadSQLFile(path)
 	if err != nil {
-		return nil, fmt.Errorf("SQL script does not exist: %s: %w", path, err)
-	}
-	defer file.Close()
-
-	var reader io.Reader = file
-	if strings.HasSuffix(path, ".gz") {
-		compressed, err := gzip.NewReader(file)
-		if err != nil {
-			return nil, fmt.Errorf("open compressed SQL script %s: %w", path, err)
-		}
-		defer compressed.Close()
-		reader = compressed
-	}
-
-	data, err := io.ReadAll(reader)
-	if err != nil {
-		return nil, fmt.Errorf("read SQL script %s: %w", path, err)
+		return nil, err
 	}
 	statements, err := splitSQLStatements(string(data))
 	if err != nil {
@@ -130,22 +110,7 @@ func (db *Database) createSchema(sess databaseSession, schemaFile string) error 
 	}
 	bootstrap.LogInfo("** Database schema successfully created!")
 
-	homeDir, err := bootstrap.RequiredHomeDirectory(db.env)
-	if err != nil {
-		return err
-	}
-	scripts, err := filepath.Glob(filepath.Join(homeDir, "dbscripts", "*.sql"))
-	if err != nil {
-		return fmt.Errorf("find additional SQL scripts: %w", err)
-	}
-	for _, script := range scripts {
-		bootstrap.LogInfo("** Processing additional '%s' SQL script", script)
-		if err := db.executeSQLFile(script); err != nil {
-			return err
-		}
-	}
-
-	return nil
+	return bootstrap.RunAdditionalSQLScripts(db.env, db.executeSQLFile)
 }
 
 // Prepare provisions the database over the administrative connection: it

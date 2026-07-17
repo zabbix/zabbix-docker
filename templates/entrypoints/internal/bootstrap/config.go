@@ -57,7 +57,7 @@ func UpdateConfigIndexed(env Environment, configPath, name, prefix string) error
 	}
 
 	LogDebug(env, "** Configuring %s parameter '%s' from %d indexed environment variables: %s",
-		configPath,	name, len(variables), strings.Join(variables, ", "),
+		configPath, name, len(variables), strings.Join(variables, ", "),
 	)
 
 	return nil

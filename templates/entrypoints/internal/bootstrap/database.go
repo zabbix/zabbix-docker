@@ -1,9 +1,36 @@
 package bootstrap
 
+import (
+	"fmt"
+	"path/filepath"
+)
+
 // DBCredentials is a database username and password pair.
 type DBCredentials struct {
 	Username string
 	Password string
+}
+
+// RunAdditionalSQLScripts executes every *.sql file from the dbscripts
+// directory under the Zabbix home, in file name order.
+func RunAdditionalSQLScripts(env Environment, execute func(path string) error) error {
+	homeDir, err := RequiredHomeDirectory(env)
+	if err != nil {
+		return err
+	}
+
+	scripts, err := filepath.Glob(filepath.Join(homeDir, "dbscripts", "*.sql"))
+	if err != nil {
+		return fmt.Errorf("find additional SQL scripts: %w", err)
+	}
+	for _, script := range scripts {
+		LogInfo("** Processing additional '%s' SQL script", script)
+		if err := execute(script); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 // ApplyDatabaseCredentials exports user and password as ZBX_DB_USER /

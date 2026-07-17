@@ -1,8 +1,6 @@
 package main
 
 import (
-	"os"
-
 	"github.com/zabbix/zabbix-docker/templates/entrypoints/internal/bootstrap"
 	"github.com/zabbix/zabbix-docker/templates/entrypoints/internal/hooks"
 	"github.com/zabbix/zabbix-docker/templates/entrypoints/internal/mysql"
@@ -53,25 +51,9 @@ func prepareService(env bootstrap.Environment, db *mysql.Database) error {
 	return nil
 }
 
-func run() error {
-	env := bootstrap.NewEnvironment(os.Environ())
-
-	db := mysql.New(env)
-
-	args := bootstrap.Command(os.Args[1:], proxyBinary)
-	if args[0] == proxyBinary {
-		if err := prepareService(env, db); err != nil {
-			return err
-		}
-	}
-
-	if args[0] == "init_db_only" {
-		return prepareDatabase(env, db)
-	}
-
-	return bootstrap.Execute(args, env)
-}
-
 func main() {
-	bootstrap.ExitOnError(run())
+	bootstrap.ExitOnError(bootstrap.RunDatabaseService(proxyBinary,
+		func(env bootstrap.Environment) error { return prepareService(env, mysql.New(env)) },
+		func(env bootstrap.Environment) error { return prepareDatabase(env, mysql.New(env)) },
+	))
 }

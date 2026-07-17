@@ -71,3 +71,25 @@ func RunService(binary string, prepare func(Environment) error) error {
 
 	return Execute(args, env)
 }
+
+// InitDatabaseCommand provisions the database and exits without starting
+// the service.
+const InitDatabaseCommand = "init_db_only"
+
+// RunDatabaseService is RunService for images with a database: the extra
+// initDB hook implements the InitDatabaseCommand command.
+func RunDatabaseService(binary string, prepare, initDB func(Environment) error) error {
+	env := NewEnvironment(os.Environ())
+	args := Command(os.Args[1:], binary)
+
+	switch args[0] {
+	case binary:
+		if err := prepare(env); err != nil {
+			return err
+		}
+	case InitDatabaseCommand:
+		return initDB(env)
+	}
+
+	return Execute(args, env)
+}
