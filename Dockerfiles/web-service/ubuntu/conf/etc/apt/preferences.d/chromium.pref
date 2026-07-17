@@ -4,11 +4,11 @@ Pin: release a=resolute
 Pin-Priority: 500
 
 Package: *
-Pin: origin "ftp.debian.org"
+Pin: origin "deb.debian.org"
 Pin-Priority: 300
 
 # Pattern includes 'chromium', 'chromium-browser' and similarly
 # named dependencies:
 Package: chromium*
-Pin: origin "ftp.debian.org"
+Pin: origin "deb.debian.org"
 Pin-Priority: 700
