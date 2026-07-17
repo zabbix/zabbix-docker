@@ -70,7 +70,6 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             smartmontools \
             sudo" && \
     microdnf -y install \
-            --disableplugin=subscription-manager \
             --disablerepo="*" \
             --enablerepo="ubi-10-baseos-rpms" \
             --setopt=install_weak_deps=0 \
