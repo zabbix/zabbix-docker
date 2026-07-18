@@ -34,13 +34,9 @@ STOPSIGNAL SIGTERM
 COPY --from=builder /tmp/zabbix-${ZBX_VERSION}-output/java_gateway/sbin/ /usr/sbin/zabbix_java/
 
 RUN set -eux && \
-    ARCH_SUFFIX="$(apk --print-arch)"; \
-    case "$ARCH_SUFFIX" in \
-        riscv64) openjdk_packages='openjdk21 openjdk21-jre-headless' ;; \
-        *)       openjdk_packages='openjdk21 openjdk21-jre-headless' ;; \
-    esac; \
     INSTALL_PKGS="bash \
-            $openjdk_packages" && \
+            openjdk21 \
+            openjdk21-jre-headless" && \
     apk add \
             --no-cache \
             --clean-protected \

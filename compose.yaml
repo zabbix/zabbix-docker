@@ -134,7 +134,6 @@ services:
    service: selenium
 
  selenium-chrome:
-  platform: linux/amd64
   extends:
    file: compose_additional_components.yaml
    service: selenium-chrome
