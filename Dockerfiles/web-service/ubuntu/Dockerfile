@@ -32,24 +32,24 @@ STOPSIGNAL SIGTERM
 
 COPY --from=builder /tmp/zabbix-${ZBX_VERSION}-output/web_service/sbin/zabbix_web_service /usr/sbin/zabbix_web_service
 COPY --from=builder /tmp/zabbix-${ZBX_VERSION}-output/web_service/conf/ ${ZABBIX_CONF_DIR}/
-COPY conf/etc/apt/preferences.d/chromium.pref /etc/apt/preferences.d/chromium.pref
 
 RUN --mount=type=cache,target=/var/cache/apt/,sharing=locked \
     --mount=type=cache,target=/var/lib/apt/,sharing=locked \
     set -eux && \
-    INSTALL_PKGS="bash \
-            ca-certificates \
-            chromium \
-            chromium-sandbox" && \
-    INSTALL_TEMP_PKGS="gnupg dirmngr gpg gpgconf" && \
+    INSTALL_SYSTEM_PKGS="ca-certificates \
+            debian-archive-keyring" && \
     apt-get update && \
     DEBIAN_FRONTEND=noninteractive apt-get install -y \
             --no-install-recommends \
-        ${INSTALL_TEMP_PKGS} && \
-    gpg --keyserver keyserver.ubuntu.com --recv-keys 0E98404D386FA1D9 && \
-    gpg -o /etc/apt/keyrings/debian.gpg --export 0E98404D386FA1D9 && \
-    echo "deb [signed-by=/etc/apt/keyrings/debian.gpg] http://deb.debian.org/debian bullseye main" > /etc/apt/sources.list.d/debian.list && \
-    echo "deb [signed-by=/etc/apt/keyrings/debian.gpg] http://deb.debian.org/debian bullseye-updates main" >> /etc/apt/sources.list.d/debian.list && \
+        ${INSTALL_SYSTEM_PKGS}
+
+COPY conf/etc/ /etc/
+
+RUN --mount=type=cache,target=/var/cache/apt/,sharing=locked \
+    --mount=type=cache,target=/var/lib/apt/,sharing=locked \
+    set -eux && \
+    INSTALL_PKGS="chromium \
+            chromium-sandbox" && \
     apt-get update && \
     DEBIAN_FRONTEND=noninteractive apt-get install -y \
             --no-install-recommends \
@@ -77,10 +77,6 @@ RUN --mount=type=cache,target=/var/cache/apt/,sharing=locked \
     chmod -R g=u ${FIX_PERM_LIST} && \
     chown --quiet zabbix:0 ${ZABBIX_CONF_DIR}/ && \
     chmod g=u ${ZABBIX_CONF_DIR} && \
-    DEBIAN_FRONTEND=noninteractive apt-get purge -y \
-        ${INSTALL_TEMP_PKGS} && \
-    rm -rf ~/.gnupg && \
-    apt-get autoremove -y && \
     /usr/sbin/zabbix_web_service -V
 
 RUN --mount=from=entrypoints,target=/tmp/entrypoints,ro \
