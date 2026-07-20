@@ -1,0 +1,54 @@
+x-db-tls-env: &db-tls-env
+ ZBX_DBTLSCONNECT: verify_full
+ ZBX_DBTLSCAFILE: /run/secrets/root-ca.pem
+
+x-web-db-tls-env: &web-db-tls-env
+ ZBX_DB_ENCRYPTION: "true"
+ ZBX_DB_VERIFY_HOST: "true"
+ ZBX_DB_CA_FILE: /run/secrets/root-ca.pem
+
+x-db-tls-secrets: &db-tls-secrets
+ - root-ca.pem
+
+services:
+ mysql-server:
+  command:
+   - mysqld
+   - --skip-mysqlx
+   - --character-set-server=utf8mb4
+   - --collation-server=utf8mb4_bin
+# Only during upgrade from versions prior 6.4 and new installations (schema deployment)
+   - --log_bin_trust_function_creators=1
+# Use TLS encryption for connections to database
+   - --require-secure-transport
+   - --ssl-ca=/run/secrets/root-ca.pem
+   - --ssl-cert=/run/secrets/server-cert.pem
+   - --ssl-key=/run/secrets/server-key.pem
+  secrets:
+   - root-ca.pem
+   - server-cert.pem
+   - server-key.pem
+
+ server-db-init:
+  environment: *db-tls-env
+  secrets: *db-tls-secrets
+
+ zabbix-server:
+  environment: *db-tls-env
+  secrets: *db-tls-secrets
+
+ zabbix-web-apache-mysql:
+  environment: *web-db-tls-env
+  secrets: *db-tls-secrets
+
+ zabbix-web-nginx-mysql:
+  environment: *web-db-tls-env
+  secrets: *db-tls-secrets
+
+secrets:
+ root-ca.pem:
+  file: ${ENV_VARS_DIRECTORY}/.ZBX_DB_CA_FILE
+ server-cert.pem:
+  file: ${ENV_VARS_DIRECTORY}/.DB_CERT_FILE
+ server-key.pem:
+  file: ${ENV_VARS_DIRECTORY}/.DB_KEY_FILE

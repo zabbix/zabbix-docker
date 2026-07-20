@@ -76,6 +76,8 @@ make down DB=pgsql
 
 Provided compose files support several [Compose  profiles](https://docs.docker.com/compose/profiles/). Minimal set of services is brought up by default, to start additional components e.g. Zabbix Agent use profile 'full' or 'all'. Additionally, it is possible to start only required components.
 
+For local TLS testing, see the [web](tools/web_tls/) and [database](tools/db_tls/) examples.
+
 ## Issues and Wiki
 
 Be sure to check [the Wiki-page](https://github.com/zabbix/zabbix-docker/wiki) on common problems and questions. If you still have problems with or questions about the images, please contact us through a [GitHub issue](https://github.com/zabbix/zabbix-docker/issues).

@@ -1,0 +1,42 @@
+x-db-tls-env: &db-tls-env
+ ZBX_DBTLSCONNECT: verify_full
+ ZBX_DBTLSCAFILE: /run/secrets/root-ca.pem
+
+x-web-db-tls-env: &web-db-tls-env
+ ZBX_DB_ENCRYPTION: "true"
+ ZBX_DB_VERIFY_HOST: "true"
+ ZBX_DB_CA_FILE: /run/secrets/root-ca.pem
+
+x-db-tls-secrets: &db-tls-secrets
+ - root-ca.pem
+
+services:
+ postgres-server:
+  command: -c ssl=on -c ssl_cert_file=/run/secrets/server-cert.pem -c ssl_key_file=/run/secrets/server-key.pem
+  secrets:
+   - server-cert.pem
+   - server-key.pem
+
+ server-db-init:
+  environment: *db-tls-env
+  secrets: *db-tls-secrets
+
+ zabbix-server:
+  environment: *db-tls-env
+  secrets: *db-tls-secrets
+
+ zabbix-web-apache-pgsql:
+  environment: *web-db-tls-env
+  secrets: *db-tls-secrets
+
+ zabbix-web-nginx-pgsql:
+  environment: *web-db-tls-env
+  secrets: *db-tls-secrets
+
+secrets:
+ root-ca.pem:
+  file: ${ENV_VARS_DIRECTORY}/.ZBX_DB_CA_FILE
+ server-cert.pem:
+  file: ${ENV_VARS_DIRECTORY}/.DB_CERT_FILE
+ server-key.pem:
+  file: ${ENV_VARS_DIRECTORY}/.DB_KEY_FILE
