@@ -3,6 +3,7 @@ package mysql
 import (
 	"compress/gzip"
 	"context"
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -19,8 +20,8 @@ type fakeDatabaseSession struct {
 	closed     bool
 }
 
-func (s *fakeDatabaseSession) Ping(context.Context) error {
-	return nil
+func (s *fakeDatabaseSession) Ping(ctx context.Context) error {
+	return ctx.Err()
 }
 
 func (s *fakeDatabaseSession) QueryString(_ context.Context, query string, args ...any) (string, error) {
@@ -117,6 +118,24 @@ func TestRequiredTLSConfiguration(t *testing.T) {
 	}
 	if config == nil || !config.InsecureSkipVerify {
 		t.Fatalf("required TLS config = %#v", config)
+	}
+}
+
+func TestWaitForConnectionIsCanceled(t *testing.T) {
+	database := New(bootstrap.Environment{"MYSQL_ALLOW_EMPTY_PASSWORD": "true"})
+	if err := database.Configure("zabbix", nil); err != nil {
+		t.Fatal(err)
+	}
+
+	database.open = func(*mysql.Config) (databaseSession, error) {
+		return &fakeDatabaseSession{}, nil
+	}
+
+	ctx, cancel := context.WithCancel(context.Background())
+	cancel()
+	_, err := database.waitForConnectionContext(ctx, database.zabbixUser, database.zabbixPassword)
+	if !errors.Is(err, context.Canceled) {
+		t.Fatalf("waitForConnectionContext() error = %v, want context.Canceled", err)
 	}
 }
 

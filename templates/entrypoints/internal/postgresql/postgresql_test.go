@@ -3,6 +3,7 @@ package postgresql
 import (
 	"compress/gzip"
 	"context"
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -66,6 +67,24 @@ func TestConfigureSocketAndDefaults(t *testing.T) {
 	}
 	if db.user != "zabbix" || db.password != "zabbix" || db.rootUser != "postgres" {
 		t.Fatalf("unexpected credentials: %#v", db)
+	}
+}
+
+func TestWaitForConnectionIsCanceled(t *testing.T) {
+	db := New(bootstrap.Environment{})
+	if err := db.Configure("zabbix", nil); err != nil {
+		t.Fatal(err)
+	}
+
+	db.connect = func(ctx context.Context, _ *pgx.ConnConfig) (databaseSession, error) {
+		return nil, ctx.Err()
+	}
+
+	ctx, cancel := context.WithCancel(context.Background())
+	cancel()
+	_, err := db.waitForConnectionContext(ctx, db.user, db.password)
+	if !errors.Is(err, context.Canceled) {
+		t.Fatalf("waitForConnectionContext() error = %v, want context.Canceled", err)
 	}
 }
 

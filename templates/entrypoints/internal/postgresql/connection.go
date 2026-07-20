@@ -106,6 +106,13 @@ func (db *Database) connectionConfig(databaseName, user, password string) (*pgx.
 }
 
 func (db *Database) waitForConnection(user, password string) (databaseSession, error) {
+	ctx, stop := bootstrap.TerminationContext()
+	defer stop()
+
+	return db.waitForConnectionContext(ctx, user, password)
+}
+
+func (db *Database) waitForConnectionContext(ctx context.Context, user, password string) (databaseSession, error) {
 	bootstrap.LogInfo("********************")
 	if db.host == "" {
 		bootstrap.LogInfo("* DB_SERVER_HOST: Using DB socket")
@@ -124,17 +131,26 @@ func (db *Database) waitForConnection(user, password string) (databaseSession, e
 			if err != nil {
 				return nil, err
 			}
-			ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-			sess, err := db.connect(ctx, config)
+			attemptCtx, cancel := context.WithTimeout(ctx, 10*time.Second)
+			sess, err := db.connect(attemptCtx, config)
 			cancel()
 			if err == nil {
 				return sess, nil
+			}
+			if ctx.Err() != nil {
+				return nil, ctx.Err()
 			}
 			bootstrap.LogDebug(db.env, "**** PostgreSQL connection to database %q failed: %v", databaseName, err)
 		}
 
 		bootstrap.LogInfo("**** PostgreSQL server is not available. Waiting 5 seconds...")
-		db.sleep(5 * time.Second)
+		timer := time.NewTimer(5 * time.Second)
+		select {
+		case <-ctx.Done():
+			timer.Stop()
+			return nil, ctx.Err()
+		case <-timer.C:
+		}
 	}
 }
 

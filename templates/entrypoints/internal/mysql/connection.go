@@ -90,6 +90,13 @@ func (db *Database) connectionConfig(databaseName, user, password string) (*mysq
 }
 
 func (db *Database) waitForConnection(user, password string) (databaseSession, error) {
+	ctx, stop := bootstrap.TerminationContext()
+	defer stop()
+
+	return db.waitForConnectionContext(ctx, user, password)
+}
+
+func (db *Database) waitForConnectionContext(ctx context.Context, user, password string) (databaseSession, error) {
 	bootstrap.LogInfo("********************")
 	if socket := db.env["DB_SERVER_SOCKET"]; socket != "" {
 		bootstrap.LogInfo("* DB_SERVER_SOCKET: %s", socket)
@@ -110,8 +117,8 @@ func (db *Database) waitForConnection(user, password string) (databaseSession, e
 	for {
 		sess, err := db.open(config)
 		if err == nil {
-			ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-			err = sess.Ping(ctx)
+			attemptCtx, cancel := context.WithTimeout(ctx, 10*time.Second)
+			err = sess.Ping(attemptCtx)
 			cancel()
 		}
 		if err == nil {
@@ -120,10 +127,19 @@ func (db *Database) waitForConnection(user, password string) (databaseSession, e
 		if sess != nil {
 			_ = sess.Close()
 		}
+		if ctx.Err() != nil {
+			return nil, ctx.Err()
+		}
 		bootstrap.LogDebug(db.env, "**** MySQL connection failed: %v", err)
 
 		bootstrap.LogInfo("**** MySQL server is not available. Waiting 5 seconds...")
-		db.sleep(5 * time.Second)
+		timer := time.NewTimer(5 * time.Second)
+		select {
+		case <-ctx.Done():
+			timer.Stop()
+			return nil, ctx.Err()
+		case <-timer.C:
+		}
 	}
 }
 

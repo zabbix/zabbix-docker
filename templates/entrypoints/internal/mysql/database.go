@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"net"
 	"strings"
-	"time"
 
 	"github.com/zabbix/zabbix-docker/templates/entrypoints/internal/bootstrap"
 )
@@ -17,7 +16,6 @@ const zabbixDatabasePrivileges = "SELECT, INSERT, UPDATE, DELETE, CREATE, DROP, 
 // administrative credentials.
 type Database struct {
 	env              bootstrap.Environment
-	sleep            func(time.Duration)
 	open             sessionOpener
 	network          string
 	address          string
@@ -35,7 +33,6 @@ type Database struct {
 func New(env bootstrap.Environment) *Database {
 	return &Database{
 		env:              env,
-		sleep:            time.Sleep,
 		open:             openDatabaseSession,
 		characterSet:     env.ValueOrDefaultNonEmpty("DB_CHARACTER_SET", "utf8mb4"),
 		characterCollate: env.ValueOrDefaultNonEmpty("DB_CHARACTER_COLLATE", "utf8mb4_bin"),

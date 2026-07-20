@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
-	"time"
 
 	"github.com/zabbix/zabbix-docker/templates/entrypoints/internal/bootstrap"
 )
@@ -16,7 +15,6 @@ import (
 type Database struct {
 	env      bootstrap.Environment
 	connect  connector
-	sleep    func(time.Duration)
 	host     string
 	port     uint16
 	rootUser string
@@ -30,7 +28,7 @@ type Database struct {
 
 // New creates an unconfigured Database; call Configure before use.
 func New(env bootstrap.Environment) *Database {
-	return &Database{env: env, connect: openDatabaseSession, sleep: time.Sleep}
+	return &Database{env: env, connect: openDatabaseSession}
 }
 
 // Configure resolves the connection target, schema and credentials from
