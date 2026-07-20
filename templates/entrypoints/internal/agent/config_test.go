@@ -91,6 +91,11 @@ func TestConfigureItemKeyRulesValidation(t *testing.T) {
 			want: "ZBX_ALLOWKEY is not supported",
 		},
 		{
+			name: "regexp variable without index",
+			env:  bootstrap.Environment{"ZBX_DENYKEY_REGEXP": "^system\\.run"},
+			want: "ZBX_DENYKEY_REGEXP is not supported",
+		},
+		{
 			name: "duplicate index",
 			env: bootstrap.Environment{
 				"ZBX_ALLOWKEY_0": "system.localtime",

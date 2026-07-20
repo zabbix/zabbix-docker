@@ -13,7 +13,13 @@ import (
 func UpdateConfigMultiple(configPath, name, rawValue string) error {
 	value := strings.Trim(strings.TrimSpace(rawValue), `"`)
 	if value == "" {
-		return rewriteConfig(configPath, name, nil, false, true)
+		changed, err := rewriteConfig(configPath, name, nil, false)
+		if err != nil {
+			return err
+		}
+		logConfigChange(configPath, name, nil, changed)
+
+		return nil
 	}
 
 	items := strings.Split(value, ",")
@@ -23,12 +29,27 @@ func UpdateConfigMultiple(configPath, name, rawValue string) error {
 			values = append(values, item)
 		}
 	}
-	return rewriteConfig(configPath, name, values, true, true)
+
+	changed, err := rewriteConfig(configPath, name, values, true)
+	if err != nil {
+		return err
+	}
+	logConfigChange(configPath, name, values, changed)
+
+	return nil
 }
 
 // UpdateConfigValue sets a single-value option in the configuration file.
 func UpdateConfigValue(configPath, name, value string) error {
-	return rewriteConfig(configPath, name, []string{value}, false, true)
+	values := []string{value}
+
+	changed, err := rewriteConfig(configPath, name, values, false)
+	if err != nil {
+		return err
+	}
+	logConfigChange(configPath, name, values, changed)
+
+	return nil
 }
 
 // UpdateConfigIndexed collects the prefix_0, prefix_1, ... variables into
@@ -52,7 +73,7 @@ func UpdateConfigIndexed(env Environment, configPath, name, prefix string) error
 		return nil
 	}
 
-	if err := rewriteConfig(configPath, name, values, false, false); err != nil {
+	if _, err := rewriteConfig(configPath, name, values, false); err != nil {
 		return err
 	}
 
@@ -63,10 +84,13 @@ func UpdateConfigIndexed(env Environment, configPath, name, prefix string) error
 	return nil
 }
 
-func rewriteConfig(configPath, name string, values []string, preserveExisting, logChanges bool) error {
+// rewriteConfig writes the name option to the configuration file and reports
+// whether the file changed. preserveExisting keeps the option lines that are
+// already in the file instead of replacing them.
+func rewriteConfig(configPath, name string, values []string, preserveExisting bool) (bool, error) {
 	data, err := os.ReadFile(configPath)
 	if err != nil {
-		return fmt.Errorf("missing configuration file %s: %w", configPath, err)
+		return false, fmt.Errorf("missing configuration file %s: %w", configPath, err)
 	}
 
 	lines := strings.Split(strings.TrimSuffix(string(data), "\n"), "\n")
@@ -120,43 +144,47 @@ func rewriteConfig(configPath, name string, values []string, preserveExisting, l
 		output = append(output, newLines...)
 	}
 
-	requested := false
+	updatedData := []byte(strings.Join(output, "\n") + "\n")
+	if bytes.Equal(data, updatedData) {
+		return false, nil
+	}
+
+	if err := WriteFilePreservingMode(configPath, updatedData); err != nil {
+		return false, fmt.Errorf("update configuration file %s: %w", configPath, err)
+	}
+
+	return true, nil
+}
+
+// logConfigChange reports what happened to the option: values without a
+// single non-empty item mean the option was removed from the file.
+func logConfigChange(configPath, name string, values []string, changed bool) {
+	written := false
 	for _, value := range values {
 		if value != "" {
-			requested = true
+			written = true
 			break
 		}
 	}
 
-	updatedData := []byte(strings.Join(output, "\n") + "\n")
-
-	changed := !bytes.Equal(data, updatedData)
-	if changed {
-		if err := WriteFilePreservingMode(configPath, updatedData); err != nil {
-			return fmt.Errorf("update configuration file %s: %w", configPath, err)
-		}
-	}
-
-	if !requested {
-		if changed && logChanges {
+	if !written {
+		if changed {
 			LogInfo("** Removing %s parameter '%s'", configPath, name)
 		}
-		return nil
-	}
-	if !logChanges {
-		return nil
+
+		return
 	}
 
 	loggedValue := strings.Join(values, ",")
 	if isMaskedConfigVar(name) {
 		loggedValue = "****"
 	}
+
 	if changed {
 		LogInfo("** Updating %s parameter '%s': '%s'", configPath, name, loggedValue)
 	} else {
 		LogInfo("** Updating %s parameter '%s': '%s'... exists", configPath, name, loggedValue)
 	}
-	return nil
 }
 
 func isMaskedConfigVar(name string) bool {

@@ -10,6 +10,47 @@ import (
 	"github.com/zabbix/zabbix-docker/templates/entrypoints/internal/bootstrap"
 )
 
+// phpDefaults are the frontend settings that get a default value when the
+// variable is missing or empty.
+var phpDefaults = []struct{ name, value string }{
+	// PHP-FPM process manager
+	{"PHP_FPM_PM", "dynamic"},
+	{"PHP_FPM_PM_MAX_CHILDREN", "50"},
+	{"PHP_FPM_PM_START_SERVERS", "5"},
+	{"PHP_FPM_PM_MIN_SPARE_SERVERS", "5"},
+	{"PHP_FPM_PM_MAX_SPARE_SERVERS", "35"},
+	{"PHP_FPM_PM_MAX_REQUESTS", "0"},
+
+	// Maintenance mode
+	{"ZBX_DENY_GUI_ACCESS", "false"},
+	{"ZBX_GUI_ACCESS_IP_RANGE", "['127.0.0.1']"},
+	{"ZBX_GUI_WARNING_MSG", "Zabbix is under maintenance."},
+
+	// PHP resource limits
+	{"ZBX_MAXEXECUTIONTIME", "600"},
+	{"ZBX_MEMORYLIMIT", "128M"},
+	{"ZBX_POSTMAXSIZE", "16M"},
+	{"ZBX_UPLOADMAXFILESIZE", "2M"},
+	{"ZBX_MAXINPUTTIME", "300"},
+	{"PHP_TZ", "Europe/Riga"},
+
+	// Database connection
+	{"ZBX_DB_ENCRYPTION", "false"},
+	{"ZBX_DB_VERIFY_HOST", "false"},
+	{"DB_DOUBLE_IEEE754", "true"},
+
+	// Frontend features
+	{"ZBX_HISTORYPROVIDERS", "[]"},
+	{"ZBX_CERT_STORAGE", "database"},
+	{"ZBX_BANNERS_ENABLED", "true"},
+	{"ZBX_HTTP_AUTH_ENABLED", "true"},
+	{"ZBX_MODULES_CONFIG_ENABLED", "true"},
+	{"ZBX_MEDIA_TYPE_DENYLIST", "[]"},
+
+	// Connection to Zabbix server
+	{"ZBX_SERVER_TLS_ACTIVE", "0"},
+}
+
 func preparePHP(env bootstrap.Environment, databaseType DatabaseType) error {
 	bootstrap.LogInfo("** Preparing PHP configuration")
 
@@ -18,39 +59,9 @@ func preparePHP(env bootstrap.Environment, databaseType DatabaseType) error {
 		return err
 	}
 
-	env.SetDefaultNonEmpty("PHP_FPM_PM", "dynamic")
-	env.SetDefaultNonEmpty("PHP_FPM_PM_MAX_CHILDREN", "50")
-	env.SetDefaultNonEmpty("PHP_FPM_PM_START_SERVERS", "5")
-	env.SetDefaultNonEmpty("PHP_FPM_PM_MIN_SPARE_SERVERS", "5")
-	env.SetDefaultNonEmpty("PHP_FPM_PM_MAX_SPARE_SERVERS", "35")
-	env.SetDefaultNonEmpty("PHP_FPM_PM_MAX_REQUESTS", "0")
-
-	env.SetDefaultNonEmpty("ZBX_DENY_GUI_ACCESS", "false")
-	env.SetDefaultNonEmpty("ZBX_GUI_ACCESS_IP_RANGE", "['127.0.0.1']")
-	env.SetDefaultNonEmpty("ZBX_GUI_WARNING_MSG", "Zabbix is under maintenance.")
-
-	env.SetDefaultNonEmpty("ZBX_MAXEXECUTIONTIME", "600")
-	env.SetDefaultNonEmpty("ZBX_MEMORYLIMIT", "128M")
-	env.SetDefaultNonEmpty("ZBX_POSTMAXSIZE", "16M")
-	env.SetDefaultNonEmpty("ZBX_UPLOADMAXFILESIZE", "2M")
-	env.SetDefaultNonEmpty("ZBX_MAXINPUTTIME", "300")
-	env.SetDefaultNonEmpty("PHP_TZ", "Europe/Riga")
-
-	env.SetDefaultNonEmpty("ZBX_DB_ENCRYPTION", "false")
-	env.SetDefaultNonEmpty("ZBX_DB_VERIFY_HOST", "false")
-
-	env.SetDefaultNonEmpty("DB_DOUBLE_IEEE754", "true")
-
-	env.SetDefaultNonEmpty("ZBX_HISTORYPROVIDERS", "[]")
-
-	env.SetDefaultNonEmpty("ZBX_CERT_STORAGE", "database")
-
-	env.SetDefaultNonEmpty("ZBX_BANNERS_ENABLED", "true")
-	env.SetDefaultNonEmpty("ZBX_HTTP_AUTH_ENABLED", "true")
-	env.SetDefaultNonEmpty("ZBX_MODULES_CONFIG_ENABLED", "true")
-	env.SetDefaultNonEmpty("ZBX_MEDIA_TYPE_DENYLIST", "[]")
-
-	env.SetDefaultNonEmpty("ZBX_SERVER_TLS_ACTIVE", "0")
+	for _, setting := range phpDefaults {
+		env.SetDefaultNonEmpty(setting.name, setting.value)
+	}
 
 	env.SetDefault("ZBX_SERVER_HOST", "zabbix-server")
 	env.SetDefault("ZBX_SERVER_PORT", "10051")
