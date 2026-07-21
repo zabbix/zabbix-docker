@@ -3,8 +3,6 @@ package web
 import (
 	"fmt"
 	"os"
-	"path/filepath"
-	"regexp"
 	"strings"
 
 	"github.com/zabbix/zabbix-docker/templates/entrypoints/internal/bootstrap"
@@ -112,22 +110,4 @@ func preparePHP(env bootstrap.Environment, databaseType DatabaseType) error {
 	}
 
 	return nil
-}
-
-func prepareSessionName(env bootstrap.Environment) error {
-	sessionName := env["ZBX_SESSION_NAME"]
-	if sessionName == "" {
-		return nil
-	}
-
-	path := filepath.Join(env["ZABBIX_WWW_ROOT"], "include", "defines.inc.php")
-	data, err := os.ReadFile(path)
-	if err != nil {
-		return fmt.Errorf("missing file %s: %w", path, err)
-	}
-
-	pattern := regexp.MustCompile(`(ZBX_SESSION_NAME',[[:space:]]*')[^']*('.*)`)
-	updated := pattern.ReplaceAllString(string(data), "${1}"+strings.ReplaceAll(sessionName, "$", "$$")+"${2}")
-
-	return bootstrap.WriteFilePreservingMode(path, []byte(updated))
 }

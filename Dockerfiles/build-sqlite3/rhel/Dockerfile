@@ -157,6 +157,7 @@ RUN set -eux && \
         "https://raw.githubusercontent.com/notofonts/noto-cjk/main/Sans/LICENSE" \
         -o ui/assets/fonts/OFL.txt && \
     sed -i -r 's/(define\(.*_FONT_NAME.*)DejaVuSans/\1NotoSansCJKjp-Regular/' ui/include/defines.inc.php && \
+    sed -i -r "s/(define\(.*ZBX_SESSION_NAME.*)'zbx_sessionid'/\1getenv('ZBX_SESSION_NAME') ?: 'zbx_sessionid'/" ui/include/defines.inc.php && \
     sed -i -r 's/\.ttf/\.otf/' ui/include/graphs.inc.php && \
     rm -f ui/assets/fonts/DejaVuSans.ttf && \
     chmod o+r ui/assets/fonts/*

@@ -89,10 +89,6 @@ func Run(env bootstrap.Environment, db Database, opts Options, args []string) er
 		return err
 	}
 
-	if err := prepareSessionName(env); err != nil {
-		return err
-	}
-
 	if err := hooks.Run(env); err != nil {
 		return err
 	}

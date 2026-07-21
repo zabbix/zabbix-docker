@@ -5,7 +5,6 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"strings"
 	"testing"
 
 	"github.com/zabbix/zabbix-docker/templates/entrypoints/internal/bootstrap"
@@ -54,29 +53,6 @@ func TestPreparePHPUsesTrunkFrontendSettings(t *testing.T) {
 		if _, found := env[obsolete]; found {
 			t.Fatalf("obsolete frontend setting %s was exported", obsolete)
 		}
-	}
-}
-
-func TestPrepareSessionName(t *testing.T) {
-	root := t.TempDir()
-	include := filepath.Join(root, "include")
-	if err := os.Mkdir(include, 0o755); err != nil {
-		t.Fatal(err)
-	}
-	path := filepath.Join(include, "defines.inc.php")
-	if err := os.WriteFile(path, []byte("define('ZBX_SESSION_NAME', 'zbx_sessionid');\n"), 0o640); err != nil {
-		t.Fatal(err)
-	}
-	env := bootstrap.Environment{"ZABBIX_WWW_ROOT": root, "ZBX_SESSION_NAME": "custom$name"}
-	if err := prepareSessionName(env); err != nil {
-		t.Fatal(err)
-	}
-	data, err := os.ReadFile(path)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if !strings.Contains(string(data), "'custom$name'") {
-		t.Fatalf("session name was not replaced: %s", data)
 	}
 }
 
