@@ -15,7 +15,7 @@ func main() {
 		bootstrap.LogInfo("** Preparing Zabbix web-interface (Nginx) with PostgreSQL database")
 	}
 
-	err := web.Run(env, postgresql.New(env), web.Options{DatabaseType: web.DatabasePostgreSQL, Server: web.ServerNginx}, os.Args[1:])
+	err := web.Run(env, postgresql.NewForFrontend(env), web.Options{DBType: web.PostgreSQL, Server: web.Nginx}, os.Args[1:])
 
 	bootstrap.ExitOnError(err)
 }

@@ -15,5 +15,5 @@ func main() {
 		bootstrap.LogInfo("** Preparing Zabbix web-interface (Apache) with MySQL database")
 	}
 
-	bootstrap.ExitOnError(web.Run(env, mysql.New(env), web.Options{DatabaseType: web.DatabaseMySQL, Server: web.ServerApache}, os.Args[1:]))
+	bootstrap.ExitOnError(web.Run(env, mysql.NewForFrontend(env), web.Options{DBType: web.MySQL, Server: web.Apache}, os.Args[1:]))
 }

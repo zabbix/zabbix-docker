@@ -16,7 +16,7 @@ func startStack(env bootstrap.Environment, server ServerType) error {
 	php := exec.Command(phpBinary, "--nodaemonize", "--fpm-config", phpConfig)
 
 	web := exec.Command(env.ValueOrDefaultNonEmpty("NGINX_BIN", "/usr/sbin/nginx"), "-e", "stderr", "-g", "daemon off;", "-c", env.ValueOrDefaultNonEmpty("NGINX_CONF_FILE", "/etc/nginx/nginx.conf"))
-	if server == ServerApache {
+	if server == Apache {
 		web = exec.Command(env.ValueOrDefaultNonEmpty("APACHE_BIN", "/usr/sbin/httpd"), "-D", "FOREGROUND")
 	}
 

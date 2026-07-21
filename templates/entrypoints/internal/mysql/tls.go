@@ -8,12 +8,8 @@ import (
 	"strings"
 )
 
-func (db *Database) tlsConfig() (*tls.Config, error) {
-	if db.env["ZBX_DB_ENCRYPTION"] == "true" {
-		db.env["ZBX_DBTLSCONNECT"] = "required"
-	}
-
-	mode := strings.ToLower(db.env["ZBX_DBTLSCONNECT"])
+func (db *DB) tlsConfig() (*tls.Config, error) {
+	mode := strings.ToLower(db.tls.ConnectMode)
 	if mode == "" {
 		return nil, nil
 	}
@@ -21,11 +17,11 @@ func (db *Database) tlsConfig() (*tls.Config, error) {
 		mode = "verify_full"
 	}
 	if mode != "required" && mode != "verify_ca" && mode != "verify_full" {
-		return nil, fmt.Errorf("unsupported ZBX_DBTLSCONNECT value %q", db.env["ZBX_DBTLSCONNECT"])
+		return nil, fmt.Errorf("unsupported database TLS connection mode %q", db.tls.ConnectMode)
 	}
 
 	config := &tls.Config{}
-	caFile := db.env["ZBX_DBTLSCAFILE"]
+	caFile := db.tls.CAFile
 	if caFile != "" || mode != "required" {
 		roots, err := loadCertificatePool(caFile)
 		if err != nil {
@@ -34,8 +30,8 @@ func (db *Database) tlsConfig() (*tls.Config, error) {
 		config.RootCAs = roots
 	}
 
-	certFile := db.env["ZBX_DBTLSCERTFILE"]
-	keyFile := db.env["ZBX_DBTLSKEYFILE"]
+	certFile := db.tls.CertFile
+	keyFile := db.tls.KeyFile
 	if (certFile == "") != (keyFile == "") {
 		return nil, fmt.Errorf("ZBX_DBTLSCERTFILE and ZBX_DBTLSKEYFILE must be set together")
 	}

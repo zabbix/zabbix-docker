@@ -19,10 +19,10 @@ import (
 // Credentials is an alias for the shared database credentials type.
 type Credentials = bootstrap.DBCredentials
 
-// ResolveDatabaseCredentials fetches the database credentials when
+// ResolveDBCredentials fetches the database credentials when
 // ZBX_VAULT is configured. It returns nil without an error when no Vault is
 // in use.
-func ResolveDatabaseCredentials(env bootstrap.Environment) (*Credentials, error) {
+func ResolveDBCredentials(env bootstrap.Environment) (*Credentials, error) {
 	if env["ZBX_VAULT"] == "" {
 		return nil, nil
 	}

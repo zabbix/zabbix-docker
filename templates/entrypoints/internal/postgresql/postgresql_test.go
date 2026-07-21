@@ -14,35 +14,35 @@ import (
 	"github.com/zabbix/zabbix-docker/templates/entrypoints/internal/bootstrap"
 )
 
-type fakeDatabaseSession struct {
+type fakeDBSession struct {
 	queries    map[string]string
 	statements []string
 	closed     bool
 }
 
-func (s *fakeDatabaseSession) QueryString(_ context.Context, query string, args ...any) (string, error) {
+func (s *fakeDBSession) QueryString(_ context.Context, query string, args ...any) (string, error) {
 	s.statements = append(s.statements, formatStatement(query, args...))
 	return s.queries[query], nil
 }
 
-func (s *fakeDatabaseSession) Exec(_ context.Context, query string, args ...any) error {
+func (s *fakeDBSession) Exec(_ context.Context, query string, args ...any) error {
 	s.statements = append(s.statements, formatStatement(query, args...))
 	return nil
 }
 
-func (s *fakeDatabaseSession) Close(context.Context) error {
+func (s *fakeDBSession) Close(context.Context) error {
 	s.closed = true
 	return nil
 }
 
 type fakeSessionFactory struct {
-	admin   *fakeDatabaseSession
-	schema  *fakeDatabaseSession
-	imports []*fakeDatabaseSession
+	admin   *fakeDBSession
+	schema  *fakeDBSession
+	imports []*fakeDBSession
 	configs []*pgx.ConnConfig
 }
 
-func (f *fakeSessionFactory) connect(_ context.Context, config *pgx.ConnConfig) (databaseSession, error) {
+func (f *fakeSessionFactory) connect(_ context.Context, config *pgx.ConnConfig) (dbSession, error) {
 	f.configs = append(f.configs, config.Copy())
 	if config.Database == "postgres" {
 		return f.admin, nil
@@ -51,7 +51,7 @@ func (f *fakeSessionFactory) connect(_ context.Context, config *pgx.ConnConfig) 
 		return f.schema, nil
 	}
 
-	s := &fakeDatabaseSession{queries: map[string]string{}}
+	s := &fakeDBSession{queries: map[string]string{}}
 	f.imports = append(f.imports, s)
 	return s, nil
 }
@@ -70,13 +70,27 @@ func TestConfigureSocketAndDefaults(t *testing.T) {
 	}
 }
 
+func TestFrontendTLSConfigurationIsExplicit(t *testing.T) {
+	env := bootstrap.Environment{"ZBX_DB_ENCRYPTION": "true"}
+
+	service := New(env)
+	if service.tls.ConnectMode != "" {
+		t.Fatalf("service used frontend TLS mode %q", service.tls.ConnectMode)
+	}
+
+	frontend := NewForFrontend(env)
+	if frontend.tls.ConnectMode != "required" {
+		t.Fatalf("frontend TLS mode = %q", frontend.tls.ConnectMode)
+	}
+}
+
 func TestWaitForConnectionIsCanceled(t *testing.T) {
 	db := New(bootstrap.Environment{})
 	if err := db.Configure("zabbix", nil); err != nil {
 		t.Fatal(err)
 	}
 
-	db.connect = func(ctx context.Context, _ *pgx.ConnConfig) (databaseSession, error) {
+	db.connect = func(ctx context.Context, _ *pgx.ConnConfig) (dbSession, error) {
 		return nil, ctx.Err()
 	}
 
@@ -120,8 +134,8 @@ func TestPrepareDatabase(t *testing.T) {
 	}
 
 	f := &fakeSessionFactory{
-		admin:  &fakeDatabaseSession{queries: map[string]string{}},
-		schema: &fakeDatabaseSession{queries: map[string]string{}},
+		admin:  &fakeDBSession{queries: map[string]string{}},
+		schema: &fakeDBSession{queries: map[string]string{}},
 	}
 	db.connect = f.connect
 	if err := db.Prepare(schemaFile, timescaleFile); err != nil {
@@ -181,17 +195,17 @@ func TestVaultCredentialsAreUsedWithoutAdministrativeCredentials(t *testing.T) {
 	}
 }
 
-func TestApplyRuntimeEnvironment(t *testing.T) {
+func TestExportEnv(t *testing.T) {
 	env := bootstrap.Environment{
 		"DB_SERVER_HOST":   "postgres-server",
 		"DB_SERVER_PORT":   "5432",
 		"DB_SERVER_SOCKET": "/run/postgresql",
 	}
-	db := &Database{
+	db := &DB{
 		env: env, name: "zabbix", schema: "monitoring", user: "zabbix", password: "secret",
 	}
 
-	db.ApplyRuntimeEnvironment()
+	db.ExportEnv()
 
 	expected := map[string]string{
 		"ZBX_DB_HOST":     "postgres-server",
@@ -237,7 +251,7 @@ func formatStatement(query string, args ...any) string {
 	return fmt.Sprintf("%s %v", query, args)
 }
 
-func importedStatements(sessions []*fakeDatabaseSession) string {
+func importedStatements(sessions []*fakeDBSession) string {
 	var statements []string
 	for _, s := range sessions {
 		statements = append(statements, s.statements...)

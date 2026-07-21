@@ -14,17 +14,17 @@ import (
 	"github.com/zabbix/zabbix-docker/templates/entrypoints/internal/bootstrap"
 )
 
-type databaseSession interface {
+type dbSession interface {
 	QueryString(context.Context, string, ...any) (string, error)
 	Exec(context.Context, string, ...any) error
 	Close(context.Context) error
 }
 
-type pgxDatabaseSession struct {
+type pgxDBSession struct {
 	conn *pgx.Conn
 }
 
-func (s *pgxDatabaseSession) QueryString(ctx context.Context, query string, args ...any) (string, error) {
+func (s *pgxDBSession) QueryString(ctx context.Context, query string, args ...any) (string, error) {
 	var value string
 	err := s.conn.QueryRow(ctx, query, args...).Scan(&value)
 	if errors.Is(err, pgx.ErrNoRows) {
@@ -34,27 +34,27 @@ func (s *pgxDatabaseSession) QueryString(ctx context.Context, query string, args
 	return value, err
 }
 
-func (s *pgxDatabaseSession) Exec(ctx context.Context, query string, args ...any) error {
+func (s *pgxDBSession) Exec(ctx context.Context, query string, args ...any) error {
 	_, err := s.conn.Exec(ctx, query, args...)
 	return err
 }
 
-func (s *pgxDatabaseSession) Close(ctx context.Context) error {
+func (s *pgxDBSession) Close(ctx context.Context) error {
 	return s.conn.Close(ctx)
 }
 
-type connector func(context.Context, *pgx.ConnConfig) (databaseSession, error)
+type connector func(context.Context, *pgx.ConnConfig) (dbSession, error)
 
-func openDatabaseSession(ctx context.Context, config *pgx.ConnConfig) (databaseSession, error) {
+func openDBSession(ctx context.Context, config *pgx.ConnConfig) (dbSession, error) {
 	conn, err := pgx.ConnectConfig(ctx, config)
 	if err != nil {
 		return nil, err
 	}
 
-	return &pgxDatabaseSession{conn: conn}, nil
+	return &pgxDBSession{conn: conn}, nil
 }
 
-func (db *Database) connectionConfig(databaseName, user, password string) (*pgx.ConnConfig, error) {
+func (db *DB) connConfig(dbName, user, password string) (*pgx.ConnConfig, error) {
 	host := db.host
 	query := url.Values{}
 	if host == "" {
@@ -62,11 +62,7 @@ func (db *Database) connectionConfig(databaseName, user, password string) (*pgx.
 		query.Set("host", "/var/run/postgresql")
 	}
 
-	mode := strings.ReplaceAll(db.env["ZBX_DBTLSCONNECT"], "_", "-")
-	if db.env["ZBX_DB_ENCRYPTION"] == "true" {
-		mode = "require"
-		db.env["ZBX_DBTLSCONNECT"] = "required"
-	}
+	mode := strings.ReplaceAll(db.tls.ConnectMode, "_", "-")
 	if mode == "required" {
 		mode = "require"
 	}
@@ -75,13 +71,13 @@ func (db *Database) connectionConfig(databaseName, user, password string) (*pgx.
 	}
 	query.Set("sslmode", mode)
 
-	for _, option := range []struct{ variable, parameter string }{
-		{"ZBX_DBTLSCAFILE", "sslrootcert"},
-		{"ZBX_DBTLSCERTFILE", "sslcert"},
-		{"ZBX_DBTLSKEYFILE", "sslkey"},
+	for _, option := range []struct{ value, parameter string }{
+		{db.tls.CAFile, "sslrootcert"},
+		{db.tls.CertFile, "sslcert"},
+		{db.tls.KeyFile, "sslkey"},
 	} {
-		if value := db.env[option.variable]; value != "" {
-			query.Set(option.parameter, value)
+		if option.value != "" {
+			query.Set(option.parameter, option.value)
 		}
 	}
 
@@ -89,7 +85,7 @@ func (db *Database) connectionConfig(databaseName, user, password string) (*pgx.
 		Scheme:   "postgres",
 		User:     url.UserPassword(user, password),
 		Host:     net.JoinHostPort(host, strconv.Itoa(int(db.port))),
-		Path:     "/" + databaseName,
+		Path:     "/" + dbName,
 		RawQuery: query.Encode(),
 	}
 	config, err := pgx.ParseConfig(connectionURL.String())
@@ -105,14 +101,14 @@ func (db *Database) connectionConfig(databaseName, user, password string) (*pgx.
 	return config, nil
 }
 
-func (db *Database) waitForConnection(user, password string) (databaseSession, error) {
+func (db *DB) waitForConnection(user, password string) (dbSession, error) {
 	ctx, stop := bootstrap.TerminationContext()
 	defer stop()
 
 	return db.waitForConnectionContext(ctx, user, password)
 }
 
-func (db *Database) waitForConnectionContext(ctx context.Context, user, password string) (databaseSession, error) {
+func (db *DB) waitForConnectionContext(ctx context.Context, user, password string) (dbSession, error) {
 	bootstrap.LogInfo("********************")
 	if db.host == "" {
 		bootstrap.LogInfo("* DB_SERVER_HOST: Using DB socket")
@@ -126,8 +122,8 @@ func (db *Database) waitForConnectionContext(ctx context.Context, user, password
 	bootstrap.LogInfo("********************")
 
 	for {
-		for _, databaseName := range []string{user, db.name} {
-			config, err := db.connectionConfig(databaseName, user, password)
+		for _, dbName := range []string{user, db.name} {
+			config, err := db.connConfig(dbName, user, password)
 			if err != nil {
 				return nil, err
 			}
@@ -140,7 +136,7 @@ func (db *Database) waitForConnectionContext(ctx context.Context, user, password
 			if ctx.Err() != nil {
 				return nil, ctx.Err()
 			}
-			bootstrap.LogDebug(db.env, "**** PostgreSQL connection to database %q failed: %v", databaseName, err)
+			bootstrap.LogDebug(db.env, "**** PostgreSQL connection to database %q failed: %v", dbName, err)
 		}
 
 		bootstrap.LogInfo("**** PostgreSQL server is not available. Waiting 5 seconds...")
@@ -154,8 +150,8 @@ func (db *Database) waitForConnectionContext(ctx context.Context, user, password
 	}
 }
 
-func (db *Database) targetConnection(user, password string) (databaseSession, error) {
-	config, err := db.connectionConfig(db.name, user, password)
+func (db *DB) connectTarget(user, password string) (dbSession, error) {
+	config, err := db.connConfig(db.name, user, password)
 	if err != nil {
 		return nil, err
 	}
@@ -165,7 +161,7 @@ func (db *Database) targetConnection(user, password string) (databaseSession, er
 
 // Wait blocks until the database accepts connections with the Zabbix
 // credentials.
-func (db *Database) Wait() error {
+func (db *DB) Wait() error {
 	sess, err := db.waitForConnection(db.user, db.password)
 	if err != nil {
 		return err

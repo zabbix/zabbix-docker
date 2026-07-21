@@ -8,13 +8,13 @@ import (
 	"github.com/zabbix/zabbix-docker/templates/entrypoints/internal/bootstrap"
 )
 
-func (db *Database) executeSQLFile(path string) error {
+func (db *DB) executeSQLFile(path string) error {
 	statements, err := readSQLStatements(path)
 	if err != nil {
 		return err
 	}
 
-	config, err := db.connectionConfig(db.name, db.rootUser, db.rootPassword)
+	config, err := db.connConfig(db.name, db.rootUser, db.rootPass)
 	if err != nil {
 		return err
 	}
@@ -46,13 +46,13 @@ func readSQLStatements(path string) ([]string, error) {
 	return statements, nil
 }
 
-func (db *Database) createDatabaseUser(sess databaseSession) error {
+func (db *DB) ensureUser(sess dbSession) error {
 	if !db.createUser {
 		return nil
 	}
 
-	bootstrap.LogInfo("** Creating '%s' user in MySQL database", db.zabbixUser)
-	exists, err := db.query(sess, "SELECT 1 FROM mysql.user WHERE user = ? AND host = '%'", db.zabbixUser)
+	bootstrap.LogInfo("** Creating '%s' user in MySQL database", db.user)
+	exists, err := db.query(sess, "SELECT 1 FROM mysql.user WHERE user = ? AND host = '%'", db.user)
 	if err != nil {
 		return err
 	}
@@ -60,14 +60,14 @@ func (db *Database) createDatabaseUser(sess databaseSession) error {
 	if exists != "" {
 		statement = "ALTER USER ?@'%' IDENTIFIED BY ?"
 	}
-	if err := db.execute(sess, statement, db.zabbixUser, db.zabbixPassword); err != nil {
+	if err := db.execute(sess, statement, db.user, db.password); err != nil {
 		return err
 	}
 
-	return db.execute(sess, "GRANT "+zabbixDatabasePrivileges+" ON "+quoteIdentifier(db.name)+".* TO ?@'%'", db.zabbixUser)
+	return db.execute(sess, "GRANT "+zabbixDBPrivileges+" ON "+quoteIdentifier(db.name)+".* TO ?@'%'", db.user)
 }
 
-func (db *Database) createDatabase(sess databaseSession) error {
+func (db *DB) createDB(sess dbSession) error {
 	exists, err := db.query(sess, "SELECT SCHEMA_NAME FROM information_schema.SCHEMATA WHERE SCHEMA_NAME = ?", db.name)
 	if err != nil {
 		return err
@@ -78,15 +78,15 @@ func (db *Database) createDatabase(sess databaseSession) error {
 	}
 
 	bootstrap.LogInfo("** Database '%s' does not exist. Creating...", db.name)
-	statement := "CREATE DATABASE " + quoteIdentifier(db.name) + " CHARACTER SET " + quoteIdentifier(db.characterSet) + " COLLATE " + quoteIdentifier(db.characterCollate)
+	statement := "CREATE DATABASE " + quoteIdentifier(db.name) + " CHARACTER SET " + quoteIdentifier(db.charset) + " COLLATE " + quoteIdentifier(db.collation)
 	if err := db.execute(sess, statement); err != nil {
 		return err
 	}
 
-	return db.execute(sess, "GRANT "+zabbixDatabasePrivileges+" ON "+quoteIdentifier(db.name)+".* TO ?@'%'", db.zabbixUser)
+	return db.execute(sess, "GRANT "+zabbixDBPrivileges+" ON "+quoteIdentifier(db.name)+".* TO ?@'%'", db.user)
 }
 
-func (db *Database) createSchema(sess databaseSession, schemaFile string) error {
+func (db *DB) createSchema(sess dbSession, schemaFile string) error {
 	exists, err := db.query(sess, "SELECT 1 FROM information_schema.tables WHERE table_schema = ? AND table_name = 'dbversion'", db.name)
 	if err != nil {
 		return err
@@ -116,8 +116,8 @@ func (db *Database) createSchema(sess databaseSession, schemaFile string) error 
 // Prepare provisions the database over the administrative connection: it
 // creates the Zabbix user and database when missing and imports the schema
 // together with the additional dbscripts.
-func (db *Database) Prepare(schemaFile string) (err error) {
-	admin, err := db.waitForConnection(db.rootUser, db.rootPassword)
+func (db *DB) Prepare(schemaFile string) (err error) {
+	admin, err := db.waitForConnection(db.rootUser, db.rootPass)
 	if err != nil {
 		return err
 	}
@@ -127,10 +127,10 @@ func (db *Database) Prepare(schemaFile string) (err error) {
 		}
 	}()
 
-	if err := db.createDatabaseUser(admin); err != nil {
+	if err := db.ensureUser(admin); err != nil {
 		return err
 	}
-	if err := db.createDatabase(admin); err != nil {
+	if err := db.createDB(admin); err != nil {
 		return err
 	}
 

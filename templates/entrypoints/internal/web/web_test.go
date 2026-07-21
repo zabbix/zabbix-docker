@@ -25,7 +25,7 @@ func TestPreparePHPUsesTrunkFrontendSettings(t *testing.T) {
 		"DAEMON_USER":          "zabbix",
 		"DAEMON_GROUP":         "zabbix",
 	}
-	if err := preparePHP(env, DatabaseMySQL); err != nil {
+	if err := preparePHP(env, MySQL); err != nil {
 		t.Fatal(err)
 	}
 	want := map[string]string{
@@ -133,7 +133,7 @@ func TestStartStackReturnsFirstProcessExitCode(t *testing.T) {
 		"PHP_FPM_BIN": phpBinary,
 		"NGINX_BIN":   nginxBinary,
 	}
-	err := startStack(env, ServerNginx)
+	err := startStack(env, Nginx)
 	var exitError *exec.ExitError
 	if !errors.As(err, &exitError) {
 		t.Fatalf("startStack() error = %T, want *exec.ExitError: %v", err, err)

@@ -10,32 +10,44 @@ import (
 	"github.com/zabbix/zabbix-docker/templates/entrypoints/internal/bootstrap"
 )
 
-const zabbixDatabasePrivileges = "SELECT, INSERT, UPDATE, DELETE, CREATE, DROP, ALTER, INDEX, CREATE TEMPORARY TABLES, TRIGGER, REFERENCES"
+const zabbixDBPrivileges = "SELECT, INSERT, UPDATE, DELETE, CREATE, DROP, ALTER, INDEX, CREATE TEMPORARY TABLES, TRIGGER, REFERENCES"
 
-// Database carries the resolved MySQL connection target and the working and
+// DB carries the resolved MySQL connection target and the working and
 // administrative credentials.
-type Database struct {
-	env              bootstrap.Environment
-	open             sessionOpener
-	network          string
-	address          string
-	characterSet     string
-	characterCollate string
-	rootUser         string
-	rootPassword     string
-	zabbixUser       string
-	zabbixPassword   string
-	name             string
-	createUser       bool
+type DB struct {
+	env        bootstrap.Environment
+	tls        bootstrap.DBTLSConfig
+	open       sessionOpener
+	network    string
+	address    string
+	charset    string
+	collation  string
+	rootUser   string
+	rootPass   string
+	user       string
+	password   string
+	name       string
+	createUser bool
 }
 
-// New creates an unconfigured Database; call Configure before use.
-func New(env bootstrap.Environment) *Database {
-	return &Database{
-		env:              env,
-		open:             openDatabaseSession,
-		characterSet:     env.ValueOrDefaultNonEmpty("DB_CHARACTER_SET", "utf8mb4"),
-		characterCollate: env.ValueOrDefaultNonEmpty("DB_CHARACTER_COLLATE", "utf8mb4_bin"),
+// New creates an unconfigured DB; call Configure before use.
+func New(env bootstrap.Environment) *DB {
+	return newDB(env, bootstrap.ServiceDBTLS(env))
+}
+
+// NewForFrontend creates a DB whose bootstrap connection uses the
+// PHP frontend's ZBX_DB_* TLS settings.
+func NewForFrontend(env bootstrap.Environment) *DB {
+	return newDB(env, bootstrap.FrontendDBTLS(env))
+}
+
+func newDB(env bootstrap.Environment, tls bootstrap.DBTLSConfig) *DB {
+	return &DB{
+		env:       env,
+		tls:       tls,
+		open:      openDBSession,
+		charset:   env.ValueOrDefaultNonEmpty("DB_CHARACTER_SET", "utf8mb4"),
+		collation: env.ValueOrDefaultNonEmpty("DB_CHARACTER_COLLATE", "utf8mb4_bin"),
 	}
 }
 
@@ -43,7 +55,7 @@ func New(env bootstrap.Environment) *Database {
 // environment, following the same rules as the shell entrypoints did:
 // MYSQL_* variables with the *_FILE secret convention, optional root
 // access and credentials coming from Vault.
-func (db *Database) Configure(defaultDBName string, creds *bootstrap.DBCredentials) error {
+func (db *DB) Configure(defaultDBName string, creds *bootstrap.DBCredentials) error {
 	if socket := db.env["DB_SERVER_SOCKET"]; socket != "" {
 		db.network = "unix"
 		db.address = socket
@@ -61,7 +73,7 @@ func (db *Database) Configure(defaultDBName string, creds *bootstrap.DBCredentia
 		credVars = append(credVars, "MYSQL_USER", "MYSQL_PASSWORD")
 	}
 	for _, name := range credVars {
-		if err := bootstrap.FileEnv(db.env, name, ""); err != nil {
+		if err := bootstrap.ResolveSecretEnv(db.env, name); err != nil {
 			return err
 		}
 	}
@@ -86,36 +98,36 @@ func (db *Database) Configure(defaultDBName string, creds *bootstrap.DBCredentia
 	useRootUser := allowEmptyPassword || mysqlRootPassword != ""
 	if useRootUser {
 		db.rootUser = db.env.ValueOrDefaultNonEmpty("MYSQL_ROOT_USER", "root")
-		db.rootPassword = mysqlRootPassword
+		db.rootPass = mysqlRootPassword
 	} else {
 		db.rootUser = db.env["DB_SERVER_ROOT_USER"]
-		db.rootPassword = db.env["DB_SERVER_ROOT_PASS"]
+		db.rootPass = db.env["DB_SERVER_ROOT_PASS"]
 	}
 
 	db.createUser = creds == nil && mysqlUser != "" && useRootUser
 	if db.rootUser == "" {
 		db.rootUser = mysqlUser
 	}
-	if !allowEmptyPassword && db.rootPassword == "" {
-		db.rootPassword = mysqlPassword
+	if !allowEmptyPassword && db.rootPass == "" {
+		db.rootPass = mysqlPassword
 	}
 
-	db.zabbixUser = mysqlUser
-	if db.zabbixUser == "" {
-		db.zabbixUser = "zabbix"
+	db.user = mysqlUser
+	if db.user == "" {
+		db.user = "zabbix"
 	}
-	db.zabbixPassword = mysqlPassword
-	if db.zabbixPassword == "" {
-		db.zabbixPassword = "zabbix"
+	db.password = mysqlPassword
+	if db.password == "" {
+		db.password = "zabbix"
 	}
 	db.name = db.env.ValueOrDefaultNonEmpty("MYSQL_DATABASE", defaultDBName)
 
 	return nil
 }
 
-// ApplyRuntimeEnvironment exports the resolved connection settings as
+// ExportEnv exports the resolved connection settings as
 // ZBX_DB_* variables for the service.
-func (db *Database) ApplyRuntimeEnvironment() {
+func (db *DB) ExportEnv() {
 	if db.env["DB_SERVER_SOCKET"] != "" {
 		db.env["ZBX_DB_SOCKET"] = db.env["DB_SERVER_SOCKET"]
 	}
@@ -127,10 +139,10 @@ func (db *Database) ApplyRuntimeEnvironment() {
 	}
 	db.env["ZBX_DB_NAME"] = db.name
 
-	bootstrap.ApplyDatabaseCredentials(db.env, db.zabbixUser, db.zabbixPassword)
+	bootstrap.ApplyDBCredentials(db.env, db.user, db.password)
 }
 
-func (db *Database) Name() string     { return db.name }
-func (db *Database) Schema() string   { return "" }
-func (db *Database) User() string     { return db.zabbixUser }
-func (db *Database) Password() string { return db.zabbixPassword }
+func (db *DB) Name() string     { return db.name }
+func (db *DB) Schema() string   { return "" }
+func (db *DB) User() string     { return db.user }
+func (db *DB) Password() string { return db.password }

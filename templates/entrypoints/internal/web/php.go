@@ -49,7 +49,7 @@ var phpDefaults = []struct{ name, value string }{
 	{"ZBX_SERVER_TLS_ACTIVE", "0"},
 }
 
-func preparePHP(env bootstrap.Environment, databaseType DatabaseType) error {
+func preparePHP(env bootstrap.Environment, dbType DBType) error {
 	bootstrap.LogInfo("** Preparing PHP configuration")
 
 	homeDir, err := bootstrap.RequiredHomeDirectory(env)
@@ -96,12 +96,12 @@ func preparePHP(env bootstrap.Environment, databaseType DatabaseType) error {
 		}
 	}
 
-	env["DB_SERVER_TYPE"] = string(databaseType)
+	env["DB_SERVER_TYPE"] = string(dbType)
 	env["DB_SERVER_USER"] = env["DB_SERVER_ZBX_USER"]
 	env["DB_SERVER_PASS"] = env["DB_SERVER_ZBX_PASS"]
 
 	// PHP-FPM expands this variable while parsing the MySQL pool configuration
-	if databaseType == DatabaseMySQL {
+	if dbType == MySQL {
 		env.SetDefault("DB_SERVER_SOCKET", "")
 	}
 

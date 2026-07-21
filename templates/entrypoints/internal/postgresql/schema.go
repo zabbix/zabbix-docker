@@ -8,7 +8,7 @@ import (
 	"github.com/zabbix/zabbix-docker/templates/entrypoints/internal/bootstrap"
 )
 
-func (db *Database) createDatabase(sess databaseSession) error {
+func (db *DB) createDB(sess dbSession) error {
 	exists, err := sess.QueryString(context.Background(), "SELECT 1::text FROM pg_database WHERE datname=$1", db.name)
 	if err != nil {
 		return err
@@ -27,7 +27,7 @@ func (db *Database) createDatabase(sess databaseSession) error {
 	return nil
 }
 
-func (db *Database) createSchemaNamespace(sess databaseSession) error {
+func (db *DB) createNamespace(sess dbSession) error {
 	if db.schema == "" {
 		return nil
 	}
@@ -43,13 +43,13 @@ func (db *Database) createSchemaNamespace(sess databaseSession) error {
 	return nil
 }
 
-func (db *Database) executeSQLFile(path string) error {
+func (db *DB) executeSQLFile(path string) error {
 	data, err := bootstrap.ReadSQLFile(path)
 	if err != nil {
 		return err
 	}
 
-	sess, err := db.targetConnection(db.user, db.password)
+	sess, err := db.connectTarget(db.user, db.password)
 	if err != nil {
 		return fmt.Errorf("connect to PostgreSQL database %s: %w", db.name, err)
 	}
@@ -61,14 +61,14 @@ func (db *Database) executeSQLFile(path string) error {
 	return nil
 }
 
-func (db *Database) createSchema(schemaFile, timescaleDBSchemaFile string) error {
-	sess, err := db.targetConnection(db.rootUser, db.rootPass)
+func (db *DB) createSchema(schemaFile, timescaleFile string) error {
+	sess, err := db.connectTarget(db.rootUser, db.rootPass)
 	if err != nil {
 		return err
 	}
 	defer sess.Close(context.Background())
 
-	if err := db.createSchemaNamespace(sess); err != nil {
+	if err := db.createNamespace(sess); err != nil {
 		return err
 	}
 
@@ -108,7 +108,7 @@ func (db *Database) createSchema(schemaFile, timescaleDBSchemaFile string) error
 		if err := sess.Exec(context.Background(), "CREATE EXTENSION IF NOT EXISTS timescaledb CASCADE"); err != nil {
 			return err
 		}
-		if err := db.executeSQLFile(timescaleDBSchemaFile); err != nil {
+		if err := db.executeSQLFile(timescaleFile); err != nil {
 			return err
 		}
 	}
@@ -119,12 +119,12 @@ func (db *Database) createSchema(schemaFile, timescaleDBSchemaFile string) error
 // Prepare provisions the database over the administrative connection: it
 // creates the Zabbix database when missing and imports the schema,
 // enabling TimescaleDB support when available.
-func (db *Database) Prepare(schemaFile, timescaleDBSchemaFile string) error {
+func (db *DB) Prepare(schemaFile, timescaleFile string) error {
 	sess, err := db.waitForConnection(db.rootUser, db.rootPass)
 	if err != nil {
 		return err
 	}
-	if err := db.createDatabase(sess); err != nil {
+	if err := db.createDB(sess); err != nil {
 		_ = sess.Close(context.Background())
 		return err
 	}
@@ -132,7 +132,7 @@ func (db *Database) Prepare(schemaFile, timescaleDBSchemaFile string) error {
 		return fmt.Errorf("close PostgreSQL connection: %w", err)
 	}
 
-	return db.createSchema(schemaFile, timescaleDBSchemaFile)
+	return db.createSchema(schemaFile, timescaleFile)
 }
 
 func quoteIdentifier(value string) string {

@@ -10,10 +10,11 @@ import (
 	"github.com/zabbix/zabbix-docker/templates/entrypoints/internal/bootstrap"
 )
 
-// Database carries the resolved PostgreSQL connection target and the
+// DB carries the resolved PostgreSQL connection target and the
 // working and administrative credentials.
-type Database struct {
+type DB struct {
 	env      bootstrap.Environment
+	tls      bootstrap.DBTLSConfig
 	connect  connector
 	host     string
 	port     uint16
@@ -26,15 +27,25 @@ type Database struct {
 	implicit bool
 }
 
-// New creates an unconfigured Database; call Configure before use.
-func New(env bootstrap.Environment) *Database {
-	return &Database{env: env, connect: openDatabaseSession}
+// New creates an unconfigured DB; call Configure before use.
+func New(env bootstrap.Environment) *DB {
+	return newDB(env, bootstrap.ServiceDBTLS(env))
+}
+
+// NewForFrontend creates a DB whose bootstrap connection uses the
+// PHP frontend's ZBX_DB_* TLS settings.
+func NewForFrontend(env bootstrap.Environment) *DB {
+	return newDB(env, bootstrap.FrontendDBTLS(env))
+}
+
+func newDB(env bootstrap.Environment, tls bootstrap.DBTLSConfig) *DB {
+	return &DB{env: env, tls: tls, connect: openDBSession}
 }
 
 // Configure resolves the connection target, schema and credentials from
 // the environment: POSTGRES_* variables with the *_FILE secret convention,
 // or credentials coming from Vault.
-func (db *Database) Configure(defaultDBName string, creds *bootstrap.DBCredentials) error {
+func (db *DB) Configure(defaultDBName string, creds *bootstrap.DBCredentials) error {
 	host, found := db.env["DB_SERVER_HOST"]
 	if !found {
 		host = "postgres-server"
@@ -55,7 +66,7 @@ func (db *Database) Configure(defaultDBName string, creds *bootstrap.DBCredentia
 	}
 
 	for _, name := range []string{"POSTGRES_USER", "POSTGRES_PASSWORD"} {
-		if err := bootstrap.FileEnv(db.env, name, ""); err != nil {
+		if err := bootstrap.ResolveSecretEnv(db.env, name); err != nil {
 			return err
 		}
 	}
@@ -81,9 +92,9 @@ func (db *Database) Configure(defaultDBName string, creds *bootstrap.DBCredentia
 	return nil
 }
 
-// ApplyRuntimeEnvironment exports the resolved connection settings as
+// ExportEnv exports the resolved connection settings as
 // ZBX_DB_* variables for the service.
-func (db *Database) ApplyRuntimeEnvironment() {
+func (db *DB) ExportEnv() {
 	if db.env["DB_SERVER_HOST"] != "" {
 		db.env["ZBX_DB_HOST"] = db.env["DB_SERVER_HOST"]
 	}
@@ -95,10 +106,10 @@ func (db *Database) ApplyRuntimeEnvironment() {
 		db.env["ZBX_DB_SCHEMA"] = db.schema
 	}
 
-	bootstrap.ApplyDatabaseCredentials(db.env, db.user, db.password)
+	bootstrap.ApplyDBCredentials(db.env, db.user, db.password)
 }
 
-func (db *Database) Name() string     { return db.name }
-func (db *Database) Schema() string   { return db.schema }
-func (db *Database) User() string     { return db.user }
-func (db *Database) Password() string { return db.password }
+func (db *DB) Name() string     { return db.name }
+func (db *DB) Schema() string   { return db.schema }
+func (db *DB) User() string     { return db.user }
+func (db *DB) Password() string { return db.password }

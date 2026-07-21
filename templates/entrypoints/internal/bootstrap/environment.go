@@ -118,11 +118,11 @@ func requiredDirectory(env Environment, name string) (string, error) {
 	return directory, nil
 }
 
-// FileEnv resolves the NAME / NAME_FILE pair following the Docker secrets
-// convention: the plain variable wins, otherwise the value is read from the
-// file referenced by NAME_FILE. Setting both is an error. The *_FILE
-// variable is removed from the environment.
-func FileEnv(env Environment, name, defaultValue string) error {
+// ResolveSecretEnv resolves the NAME / NAME_FILE pair following the Docker
+// secrets convention. The value is read from NAME_FILE when NAME is empty;
+// setting both is an error. The *_FILE variable is removed from the
+// environment.
+func ResolveSecretEnv(env Environment, name string) error {
 	fileName := name + "_FILE"
 	value := env[name]
 	secretFile := env[fileName]
@@ -130,9 +130,7 @@ func FileEnv(env Environment, name, defaultValue string) error {
 		return fmt.Errorf("both variables %s and %s are set (but are exclusive)", name, fileName)
 	}
 
-	value = defaultValue
-	if env[name] != "" {
-		value = env[name]
+	if value != "" {
 		LogInfo("** Using %s variable from ENV", name)
 	} else if secretFile != "" {
 		data, err := os.ReadFile(secretFile)
@@ -148,32 +146,21 @@ func FileEnv(env Environment, name, defaultValue string) error {
 	return nil
 }
 
-// processFileFromEnvironment persists the value of variable into a file
-// under directory and points the corresponding "<variable>FILE" variable at
-// it. The plain variable is always removed so that secrets do not stay in
-// the service environment.
-func processFileFromEnvironment(env Environment, directory, variable string) error {
-	fileVariable := variable + "FILE"
-	if value := env[variable]; value != "" {
-		path := filepath.Join(directory, fileVariable)
-		if err := os.WriteFile(path, []byte(value), 0o600); err != nil {
-			return fmt.Errorf("write %s: %w", path, err)
-		}
-		env[fileVariable] = path
-	}
-	delete(env, variable)
-	return nil
-}
-
 // ProcessTLSFiles moves TLS material from the listed variables into
 // files under <home>/enc_internal, so that Zabbix reads certificates and
 // keys from disk instead of the environment.
 func ProcessTLSFiles(env Environment, homeDir string, variables ...string) error {
 	directory := filepath.Join(homeDir, "enc_internal")
 	for _, variable := range variables {
-		if err := processFileFromEnvironment(env, directory, variable); err != nil {
-			return err
+		fileVariable := variable + "FILE"
+		if value := env[variable]; value != "" {
+			path := filepath.Join(directory, fileVariable)
+			if err := os.WriteFile(path, []byte(value), 0o600); err != nil {
+				return fmt.Errorf("write %s: %w", path, err)
+			}
+			env[fileVariable] = path
 		}
+		delete(env, variable)
 	}
 
 	return nil

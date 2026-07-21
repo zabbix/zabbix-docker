@@ -14,10 +14,10 @@ const (
 	dbName       = "zabbix"
 )
 
-func prepareDatabase(env bootstrap.Environment, db *mysql.Database) error {
+func prepareDB(env bootstrap.Environment, db *mysql.DB) error {
 	bootstrap.LogInfo("** Preparing database")
 
-	creds, err := vault.ResolveDatabaseCredentials(env)
+	creds, err := vault.ResolveDBCredentials(env)
 	if err != nil {
 		return err
 	}
@@ -29,14 +29,14 @@ func prepareDatabase(env bootstrap.Environment, db *mysql.Database) error {
 	return db.Prepare(schemaPath)
 }
 
-func prepareService(env bootstrap.Environment, db *mysql.Database) error {
+func prepareService(env bootstrap.Environment, db *mysql.DB) error {
 	bootstrap.LogInfo("** Preparing Zabbix server")
 
-	if err := prepareDatabase(env, db); err != nil {
+	if err := prepareDB(env, db); err != nil {
 		return err
 	}
 
-	db.ApplyRuntimeEnvironment()
+	db.ExportEnv()
 	if err := server.Prepare(env); err != nil {
 		return err
 	}
@@ -51,8 +51,8 @@ func prepareService(env bootstrap.Environment, db *mysql.Database) error {
 }
 
 func main() {
-	bootstrap.ExitOnError(bootstrap.RunDatabaseService(serverBinary,
+	bootstrap.ExitOnError(bootstrap.RunDBService(serverBinary,
 		func(env bootstrap.Environment) error { return prepareService(env, mysql.New(env)) },
-		func(env bootstrap.Environment) error { return prepareDatabase(env, mysql.New(env)) },
+		func(env bootstrap.Environment) error { return prepareDB(env, mysql.New(env)) },
 	))
 }

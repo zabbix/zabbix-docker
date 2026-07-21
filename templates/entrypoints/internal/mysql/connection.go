@@ -11,22 +11,22 @@ import (
 	"github.com/zabbix/zabbix-docker/templates/entrypoints/internal/bootstrap"
 )
 
-type databaseSession interface {
+type dbSession interface {
 	Ping(context.Context) error
 	QueryString(context.Context, string, ...any) (string, error)
 	Exec(context.Context, string, ...any) error
 	Close() error
 }
 
-type sqlDatabaseSession struct {
+type sqlDBSession struct {
 	db *sql.DB
 }
 
-func (s *sqlDatabaseSession) Ping(ctx context.Context) error {
+func (s *sqlDBSession) Ping(ctx context.Context) error {
 	return s.db.PingContext(ctx)
 }
 
-func (s *sqlDatabaseSession) QueryString(ctx context.Context, query string, args ...any) (string, error) {
+func (s *sqlDBSession) QueryString(ctx context.Context, query string, args ...any) (string, error) {
 	var value sql.NullString
 	err := s.db.QueryRowContext(ctx, query, args...).Scan(&value)
 	if errors.Is(err, sql.ErrNoRows) {
@@ -42,18 +42,18 @@ func (s *sqlDatabaseSession) QueryString(ctx context.Context, query string, args
 	return value.String, nil
 }
 
-func (s *sqlDatabaseSession) Exec(ctx context.Context, query string, args ...any) error {
+func (s *sqlDBSession) Exec(ctx context.Context, query string, args ...any) error {
 	_, err := s.db.ExecContext(ctx, query, args...)
 	return err
 }
 
-func (s *sqlDatabaseSession) Close() error {
+func (s *sqlDBSession) Close() error {
 	return s.db.Close()
 }
 
-type sessionOpener func(*mysql.Config) (databaseSession, error)
+type sessionOpener func(*mysql.Config) (dbSession, error)
 
-func openDatabaseSession(config *mysql.Config) (databaseSession, error) {
+func openDBSession(config *mysql.Config) (dbSession, error) {
 	connector, err := mysql.NewConnector(config)
 	if err != nil {
 		return nil, err
@@ -64,10 +64,10 @@ func openDatabaseSession(config *mysql.Config) (databaseSession, error) {
 	db.SetMaxIdleConns(1)
 	db.SetConnMaxLifetime(3 * time.Minute)
 
-	return &sqlDatabaseSession{db: db}, nil
+	return &sqlDBSession{db: db}, nil
 }
 
-func (db *Database) connectionConfig(databaseName, user, password string) (*mysql.Config, error) {
+func (db *DB) connConfig(dbName, user, password string) (*mysql.Config, error) {
 	tlsConfig, err := db.tlsConfig()
 	if err != nil {
 		return nil, err
@@ -78,25 +78,25 @@ func (db *Database) connectionConfig(databaseName, user, password string) (*mysq
 	config.Passwd = password
 	config.Net = db.network
 	config.Addr = db.address
-	config.DBName = databaseName
+	config.DBName = dbName
 	config.Timeout = 10 * time.Second
 	config.InterpolateParams = true
 	config.TLS = tlsConfig
-	if err := config.Apply(mysql.Charset(db.characterSet, "")); err != nil {
+	if err := config.Apply(mysql.Charset(db.charset, "")); err != nil {
 		return nil, fmt.Errorf("configure database character set: %w", err)
 	}
 
 	return config, nil
 }
 
-func (db *Database) waitForConnection(user, password string) (databaseSession, error) {
+func (db *DB) waitForConnection(user, password string) (dbSession, error) {
 	ctx, stop := bootstrap.TerminationContext()
 	defer stop()
 
 	return db.waitForConnectionContext(ctx, user, password)
 }
 
-func (db *Database) waitForConnectionContext(ctx context.Context, user, password string) (databaseSession, error) {
+func (db *DB) waitForConnectionContext(ctx context.Context, user, password string) (dbSession, error) {
 	bootstrap.LogInfo("********************")
 	if socket := db.env["DB_SERVER_SOCKET"]; socket != "" {
 		bootstrap.LogInfo("* DB_SERVER_SOCKET: %s", socket)
@@ -106,10 +106,10 @@ func (db *Database) waitForConnectionContext(ctx context.Context, user, password
 	}
 	bootstrap.LogInfo("* DB_SERVER_DBNAME: %s", db.name)
 	bootstrap.LogDebug(db.env, "* DB_SERVER_ROOT_USER: %s", db.rootUser)
-	bootstrap.LogDebug(db.env, "* DB_SERVER_ZBX_USER: %s", db.zabbixUser)
+	bootstrap.LogDebug(db.env, "* DB_SERVER_ZBX_USER: %s", db.user)
 	bootstrap.LogInfo("********************")
 
-	config, err := db.connectionConfig("", user, password)
+	config, err := db.connConfig("", user, password)
 	if err != nil {
 		return nil, err
 	}
@@ -145,8 +145,8 @@ func (db *Database) waitForConnectionContext(ctx context.Context, user, password
 
 // Wait blocks until the database accepts connections with the Zabbix
 // credentials.
-func (db *Database) Wait() error {
-	sess, err := db.waitForConnection(db.zabbixUser, db.zabbixPassword)
+func (db *DB) Wait() error {
+	sess, err := db.waitForConnection(db.user, db.password)
 	if err != nil {
 		return err
 	}
@@ -157,7 +157,7 @@ func (db *Database) Wait() error {
 	return nil
 }
 
-func (db *Database) query(sess databaseSession, query string, args ...any) (string, error) {
+func (db *DB) query(sess dbSession, query string, args ...any) (string, error) {
 	value, err := sess.QueryString(context.Background(), query, args...)
 	if err != nil {
 		return "", fmt.Errorf("execute database query: %w", err)
@@ -166,7 +166,7 @@ func (db *Database) query(sess databaseSession, query string, args ...any) (stri
 	return value, nil
 }
 
-func (db *Database) execute(sess databaseSession, query string, args ...any) error {
+func (db *DB) execute(sess dbSession, query string, args ...any) error {
 	if err := sess.Exec(context.Background(), query, args...); err != nil {
 		return fmt.Errorf("execute database statement: %w", err)
 	}

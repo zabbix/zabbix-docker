@@ -14,43 +14,43 @@ import (
 	"github.com/zabbix/zabbix-docker/templates/entrypoints/internal/bootstrap"
 )
 
-type fakeDatabaseSession struct {
+type fakeDBSession struct {
 	queries    map[string]string
 	statements []string
 	closed     bool
 }
 
-func (s *fakeDatabaseSession) Ping(ctx context.Context) error {
+func (s *fakeDBSession) Ping(ctx context.Context) error {
 	return ctx.Err()
 }
 
-func (s *fakeDatabaseSession) QueryString(_ context.Context, query string, args ...any) (string, error) {
+func (s *fakeDBSession) QueryString(_ context.Context, query string, args ...any) (string, error) {
 	s.statements = append(s.statements, formatStatement(query, args...))
 	return s.queries[query], nil
 }
 
-func (s *fakeDatabaseSession) Exec(_ context.Context, query string, args ...any) error {
+func (s *fakeDBSession) Exec(_ context.Context, query string, args ...any) error {
 	s.statements = append(s.statements, formatStatement(query, args...))
 	return nil
 }
 
-func (s *fakeDatabaseSession) Close() error {
+func (s *fakeDBSession) Close() error {
 	s.closed = true
 	return nil
 }
 
 type fakeSessionFactory struct {
-	admin   *fakeDatabaseSession
-	imports []*fakeDatabaseSession
+	admin   *fakeDBSession
+	imports []*fakeDBSession
 	configs []*mysql.Config
 }
 
-func (f *fakeSessionFactory) open(config *mysql.Config) (databaseSession, error) {
+func (f *fakeSessionFactory) open(config *mysql.Config) (dbSession, error) {
 	f.configs = append(f.configs, config.Clone())
 	if config.DBName == "" {
 		return f.admin, nil
 	}
-	s := &fakeDatabaseSession{queries: map[string]string{}}
+	s := &fakeDBSession{queries: map[string]string{}}
 	f.imports = append(f.imports, s)
 	return s, nil
 }
@@ -72,13 +72,13 @@ func TestPrepareDatabase(t *testing.T) {
 		"MYSQL_PASSWORD": "zabbix-password", "MYSQL_ROOT_PASSWORD": "root-password",
 		"MYSQL_DATABASE": "zabbix_test", "ZABBIX_USER_HOME_DIR": root,
 	}
-	database := New(env)
-	f := &fakeSessionFactory{admin: &fakeDatabaseSession{queries: map[string]string{}}}
-	database.open = f.open
-	if err := database.Configure("zabbix", nil); err != nil {
+	db := New(env)
+	f := &fakeSessionFactory{admin: &fakeDBSession{queries: map[string]string{}}}
+	db.open = f.open
+	if err := db.Configure("zabbix", nil); err != nil {
 		t.Fatal(err)
 	}
-	if err := database.Prepare(schemaFile); err != nil {
+	if err := db.Prepare(schemaFile); err != nil {
 		t.Fatal(err)
 	}
 
@@ -86,7 +86,7 @@ func TestPrepareDatabase(t *testing.T) {
 	for _, expected := range []string{
 		"CREATE USER ?@'%' IDENTIFIED BY ? [zabbix zabbix-password]",
 		"CREATE DATABASE `zabbix_test` CHARACTER SET `utf8mb4` COLLATE `utf8mb4_bin`",
-		"GRANT " + zabbixDatabasePrivileges + " ON `zabbix_test`.* TO ?@'%' [zabbix]",
+		"GRANT " + zabbixDBPrivileges + " ON `zabbix_test`.* TO ?@'%' [zabbix]",
 	} {
 		if !strings.Contains(adminStatements, expected) {
 			t.Fatalf("admin statements do not contain %q:\n%s", expected, adminStatements)
@@ -111,8 +111,8 @@ func TestPrepareDatabase(t *testing.T) {
 
 func TestRequiredTLSConfiguration(t *testing.T) {
 	env := bootstrap.Environment{"ZBX_DBTLSCONNECT": "required"}
-	database := New(env)
-	config, err := database.tlsConfig()
+	db := New(env)
+	config, err := db.tlsConfig()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -121,19 +121,39 @@ func TestRequiredTLSConfiguration(t *testing.T) {
 	}
 }
 
+func TestFrontendTLSConfigurationIsExplicit(t *testing.T) {
+	env := bootstrap.Environment{"ZBX_DB_ENCRYPTION": "true"}
+
+	serviceConfig, err := New(env).tlsConfig()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if serviceConfig != nil {
+		t.Fatalf("service config used frontend TLS settings: %#v", serviceConfig)
+	}
+
+	frontendConfig, err := NewForFrontend(env).tlsConfig()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if frontendConfig == nil || !frontendConfig.InsecureSkipVerify {
+		t.Fatalf("frontend TLS config = %#v", frontendConfig)
+	}
+}
+
 func TestWaitForConnectionIsCanceled(t *testing.T) {
-	database := New(bootstrap.Environment{"MYSQL_ALLOW_EMPTY_PASSWORD": "true"})
-	if err := database.Configure("zabbix", nil); err != nil {
+	db := New(bootstrap.Environment{"MYSQL_ALLOW_EMPTY_PASSWORD": "true"})
+	if err := db.Configure("zabbix", nil); err != nil {
 		t.Fatal(err)
 	}
 
-	database.open = func(*mysql.Config) (databaseSession, error) {
-		return &fakeDatabaseSession{}, nil
+	db.open = func(*mysql.Config) (dbSession, error) {
+		return &fakeDBSession{}, nil
 	}
 
 	ctx, cancel := context.WithCancel(context.Background())
 	cancel()
-	_, err := database.waitForConnectionContext(ctx, database.zabbixUser, database.zabbixPassword)
+	_, err := db.waitForConnectionContext(ctx, db.user, db.password)
 	if !errors.Is(err, context.Canceled) {
 		t.Fatalf("waitForConnectionContext() error = %v, want context.Canceled", err)
 	}
@@ -145,25 +165,25 @@ func TestVaultCredentialsAreUsedWithoutAdministrativeCredentials(t *testing.T) {
 	if err := db.Configure("zabbix", creds); err != nil {
 		t.Fatal(err)
 	}
-	if db.zabbixUser != "vault-user" || db.zabbixPassword != "vault-password" {
+	if db.user != "vault-user" || db.password != "vault-password" {
 		t.Fatal("Vault credentials were not configured for Zabbix")
 	}
-	if db.rootUser != "vault-user" || db.rootPassword != "vault-password" {
+	if db.rootUser != "vault-user" || db.rootPass != "vault-password" {
 		t.Fatal("Vault credentials were not used as administrative fallback")
 	}
 }
 
-func TestApplyRuntimeEnvironment(t *testing.T) {
+func TestExportEnv(t *testing.T) {
 	env := bootstrap.Environment{
 		"DB_SERVER_SOCKET": "/run/mysqld/mysqld.sock",
 		"DB_SERVER_HOST":   "mysql-server",
 		"DB_SERVER_PORT":   "3306",
 	}
-	database := &Database{
-		env: env, name: "zabbix", zabbixUser: "zabbix", zabbixPassword: "secret",
+	db := &DB{
+		env: env, name: "zabbix", user: "zabbix", password: "secret",
 	}
 
-	database.ApplyRuntimeEnvironment()
+	db.ExportEnv()
 
 	expected := map[string]string{
 		"ZBX_DB_SOCKET":   "/run/mysqld/mysqld.sock",
@@ -187,15 +207,15 @@ func TestVerifiedTLSConfigurations(t *testing.T) {
 		wantCustomVerify bool
 	}{
 		{mode: "verify_ca", wantCustomVerify: true},
-		{mode: "verify_full", wantServerName: "database.example.test"},
+		{mode: "verify_full", wantServerName: "db.example.test"},
 	} {
 		t.Run(test.mode, func(t *testing.T) {
 			env := bootstrap.Environment{
-				"DB_SERVER_HOST":   "database.example.test",
+				"DB_SERVER_HOST":   "db.example.test",
 				"ZBX_DBTLSCONNECT": test.mode,
 			}
-			database := New(env)
-			config, err := database.tlsConfig()
+			db := New(env)
+			config, err := db.tlsConfig()
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -214,21 +234,21 @@ func TestTLSClientCertificateRequiresBothFiles(t *testing.T) {
 		"ZBX_DBTLSCONNECT":  "required",
 		"ZBX_DBTLSCERTFILE": "/certificate.pem",
 	}
-	database := New(env)
-	if _, err := database.tlsConfig(); err == nil {
+	db := New(env)
+	if _, err := db.tlsConfig(); err == nil {
 		t.Fatal("incomplete client certificate configuration was accepted")
 	}
 }
 
 func TestExistingSchemaIsNotImported(t *testing.T) {
 	env := bootstrap.Environment{}
-	database := New(env)
-	database.name = "zabbix"
-	admin := &fakeDatabaseSession{queries: map[string]string{
+	db := New(env)
+	db.name = "zabbix"
+	admin := &fakeDBSession{queries: map[string]string{
 		"SELECT 1 FROM information_schema.tables WHERE table_schema = ? AND table_name = 'dbversion'": "1",
 		"SELECT mandatory FROM `zabbix`.dbversion":                                                    "8000000",
 	}}
-	if err := database.createSchema(admin, "/does/not/exist.sql.gz"); err != nil {
+	if err := db.createSchema(admin, "/does/not/exist.sql.gz"); err != nil {
 		t.Fatal(err)
 	}
 	if _, found := env["ZBX_DB_VERSION"]; found {
@@ -237,8 +257,8 @@ func TestExistingSchemaIsNotImported(t *testing.T) {
 }
 
 func TestAccessors(t *testing.T) {
-	database := &Database{name: "zabbix", zabbixUser: "zabbix", zabbixPassword: "password"}
-	if database.Name() != "zabbix" || database.User() != "zabbix" || database.Password() != "password" {
+	db := &DB{name: "zabbix", user: "zabbix", password: "password"}
+	if db.Name() != "zabbix" || db.User() != "zabbix" || db.Password() != "password" {
 		t.Fatal("database accessors returned unexpected values")
 	}
 }
@@ -268,7 +288,7 @@ func formatStatement(query string, args ...any) string {
 	return fmt.Sprintf("%s %v", query, args)
 }
 
-func importedStatements(sessions []*fakeDatabaseSession) string {
+func importedStatements(sessions []*fakeDBSession) string {
 	var statements []string
 	for _, s := range sessions {
 		statements = append(statements, s.statements...)

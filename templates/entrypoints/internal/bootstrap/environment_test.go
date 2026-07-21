@@ -21,12 +21,16 @@ func TestEnvironmentDefaults(t *testing.T) {
 }
 
 func TestProcessFileAndClearEnvironment(t *testing.T) {
-	directory := t.TempDir()
+	homeDir := t.TempDir()
+	directory := filepath.Join(homeDir, "enc_internal")
+	if err := os.Mkdir(directory, 0o700); err != nil {
+		t.Fatal(err)
+	}
 	env := Environment{
 		"ZBX_TLSPSK": "secret", "ZABBIX_CONF_DIR": "/etc/zabbix",
 		"MYSQL_PASSWORD": "password", "VALUE": "a=b",
 	}
-	if err := processFileFromEnvironment(env, directory, "ZBX_TLSPSK"); err != nil {
+	if err := ProcessTLSFiles(env, homeDir, "ZBX_TLSPSK"); err != nil {
 		t.Fatal(err)
 	}
 
@@ -64,13 +68,13 @@ func TestClearPrivateEnvWithPrefixes(t *testing.T) {
 	}
 }
 
-func TestFileEnv(t *testing.T) {
+func TestResolveSecretEnv(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "password")
 	if err := os.WriteFile(path, []byte("secret\n"), 0o600); err != nil {
 		t.Fatal(err)
 	}
 	env := Environment{"MYSQL_PASSWORD_FILE": path}
-	if err := FileEnv(env, "MYSQL_PASSWORD", ""); err != nil {
+	if err := ResolveSecretEnv(env, "MYSQL_PASSWORD"); err != nil {
 		t.Fatal(err)
 	}
 	if env["MYSQL_PASSWORD"] != "secret" {
