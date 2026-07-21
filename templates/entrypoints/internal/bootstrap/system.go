@@ -44,32 +44,36 @@ func Hostname(fqdn bool) (string, error) {
 }
 
 // RehashCertificateDirectory creates OpenSSL hash links for the CA
-// certificates in directory. It is best effort: a missing directory or
-// openssl binary is silently ignored.
-func RehashCertificateDirectory(directory string) error {
+// certificates in directory. It is best effort: failures are logged and do
+// not stop container startup. A missing directory is silently ignored.
+func RehashCertificateDirectory(directory string) {
 	if directory == "" {
-		return nil
+		return
 	}
 
 	info, err := os.Stat(directory)
 	if os.IsNotExist(err) {
-		return nil
+		return
 	}
-	if err != nil || !info.IsDir() {
-		return nil
+	if err != nil {
+		LogWarn("cannot inspect certificate directory '%s': %v", directory, err)
+		return
+	}
+	if !info.IsDir() {
+		LogWarn("cannot rehash certificate directory '%s': not a directory", directory)
+		return
 	}
 
 	openssl, err := exec.LookPath("openssl")
 	if err != nil {
-		return nil
+		LogWarn("cannot rehash certificate directory '%s': %v", directory, err)
+		return
 	}
 
 	command := exec.Command(openssl, "rehash", directory)
 	command.Stdout = io.Discard
 	command.Stderr = os.Stderr
 	if err := command.Run(); err != nil {
-		LogWarn("openssl rehash failed for '%s'", directory)
+		LogWarn("openssl rehash failed for '%s': %v", directory, err)
 	}
-
-	return nil
 }

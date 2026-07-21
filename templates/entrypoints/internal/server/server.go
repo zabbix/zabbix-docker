@@ -42,7 +42,9 @@ func Prepare(env bootstrap.Environment) error {
 		return err
 	}
 
-	return bootstrap.RehashCertificateDirectory(env["ZBX_SSLCALOCATION"])
+	bootstrap.RehashCertificateDirectory(env["ZBX_SSLCALOCATION"])
+
+	return nil
 }
 
 // configureHANode fills ZBX_HANODENAME and ZBX_NODEADDRESS from the host
