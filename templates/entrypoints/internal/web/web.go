@@ -5,13 +5,12 @@ package web
 import (
 	"github.com/zabbix/zabbix-docker/templates/entrypoints/internal/bootstrap"
 	"github.com/zabbix/zabbix-docker/templates/entrypoints/internal/hooks"
-	"github.com/zabbix/zabbix-docker/templates/entrypoints/internal/vault"
 )
 
 // DB abstracts the frontend database backend, implemented by the
 // mysql and postgresql packages.
 type DB interface {
-	Configure(string, *bootstrap.DBCredentials) error
+	Configure(string) error
 	Wait() error
 	Name() string
 	Schema() string
@@ -51,23 +50,22 @@ func Run(env bootstrap.Environment, db DB, opts Options, args []string) error {
 		return bootstrap.Execute(args, env)
 	}
 
+	prepareWebServer := prepareNginx
+
 	env.SetDefaultNonEmpty("ZBX_SERVER_NAME", "Zabbix docker")
 	env.SetDefaultNonEmpty("PHP_TZ", "Europe/Riga")
 
 	if opts.Server == Apache {
 		env.SetDefaultNonEmpty("DAEMON_USER", "apache")
 		env.SetDefaultNonEmpty("DAEMON_GROUP", "apache")
+
+		prepareWebServer = prepareApache
 	} else {
 		env.SetDefaultNonEmpty("DAEMON_USER", "nginx")
 		env.SetDefaultNonEmpty("DAEMON_GROUP", "nginx")
 	}
 
-	creds, err := vault.ResolveDBCredentials(env)
-	if err != nil {
-		return err
-	}
-
-	if err := db.Configure(dbName, creds); err != nil {
+	if err := db.Configure(dbName); err != nil {
 		return err
 	}
 
@@ -81,11 +79,7 @@ func Run(env bootstrap.Environment, db DB, opts Options, args []string) error {
 		return err
 	}
 
-	prepareServer := prepareNginx
-	if opts.Server == Apache {
-		prepareServer = prepareApache
-	}
-	if err := prepareServer(env); err != nil {
+	if err := prepareWebServer(env); err != nil {
 		return err
 	}
 
@@ -93,7 +87,7 @@ func Run(env bootstrap.Environment, db DB, opts Options, args []string) error {
 		return err
 	}
 
-	bootstrap.ClearPrivateEnv(env, "MYSQL_", "POSTGRES_")
+	bootstrap.ClearPrivateEnv(env, "MYSQL_", "POSTGRES_", "NGINX_")
 
 	return startStack(env, opts.Server)
 }

@@ -3,11 +3,13 @@
 package mysql
 
 import (
+	"cmp"
 	"fmt"
 	"net"
 	"strings"
 
 	"github.com/zabbix/zabbix-docker/templates/entrypoints/internal/bootstrap"
+	"github.com/zabbix/zabbix-docker/templates/entrypoints/internal/vault"
 )
 
 const zabbixDBPrivileges = "SELECT, INSERT, UPDATE, DELETE, CREATE, DROP, ALTER, INDEX, CREATE TEMPORARY TABLES, TRIGGER, REFERENCES"
@@ -22,16 +24,18 @@ type DB struct {
 	address    string
 	charset    string
 	collation  string
-	rootUser   string
-	rootPass   string
+	adminUser  string
+	adminPass  string
 	user       string
 	password   string
 	name       string
 	createUser bool
+	fromVault  bool
 }
 
-// New creates an unconfigured DB; call Configure before use.
-func New(env bootstrap.Environment) *DB {
+// NewForBackend creates an unconfigured DB for a Zabbix backend service;
+// call Configure before use.
+func NewForBackend(env bootstrap.Environment) *DB {
 	return newDB(env, bootstrap.ServiceDBTLS(env))
 }
 
@@ -51,11 +55,9 @@ func newDB(env bootstrap.Environment, tls bootstrap.DBTLSConfig) *DB {
 	}
 }
 
-// Configure resolves the connection target and the credentials from the
-// environment, following the same rules as the shell entrypoints did:
-// MYSQL_* variables with the *_FILE secret convention, optional root
-// access and credentials coming from Vault.
-func (db *DB) Configure(defaultDBName string, creds *bootstrap.DBCredentials) error {
+// Configure resolves the connection target and credentials from the
+// environment or Vault.
+func (db *DB) Configure(defaultDBName string) error {
 	if socket := db.env["DB_SERVER_SOCKET"]; socket != "" {
 		db.network = "unix"
 		db.address = socket
@@ -68,10 +70,16 @@ func (db *DB) Configure(defaultDBName string, creds *bootstrap.DBCredentials) er
 		db.address = net.JoinHostPort(strings.Trim(host, "[]"), port)
 	}
 
+	creds, err := vault.ResolveDBCredentials(db.env)
+	if err != nil {
+		return err
+	}
+
 	credVars := []string{"MYSQL_ROOT_USER", "MYSQL_ROOT_PASSWORD"}
 	if creds == nil {
 		credVars = append(credVars, "MYSQL_USER", "MYSQL_PASSWORD")
 	}
+
 	for _, name := range credVars {
 		if err := bootstrap.ResolveSecretEnv(db.env, name); err != nil {
 			return err
@@ -85,42 +93,35 @@ func (db *DB) Configure(defaultDBName string, creds *bootstrap.DBCredentials) er
 		mysqlPassword = creds.Password
 	}
 
+	mysqlRootUser := db.env["MYSQL_ROOT_USER"]
 	mysqlRootPassword := db.env["MYSQL_ROOT_PASSWORD"]
 	allowEmptyPassword := db.env["MYSQL_ALLOW_EMPTY_PASSWORD"] == "true"
 
-	if mysqlUser == "" && db.env["MYSQL_RANDOM_ROOT_PASSWORD"] == "true" {
-		return fmt.Errorf("impossible to use MySQL server because of unknown Zabbix user and random 'root' password")
-	}
 	if mysqlUser == "" && mysqlRootPassword == "" && !allowEmptyPassword {
-		return fmt.Errorf("impossible to use MySQL server because 'root' password is not defined and empty password is not allowed")
+		return fmt.Errorf("impossible to use MySQL server because MYSQL_ROOT_PASSWORD is not defined and empty password is not allowed")
 	}
 
-	useRootUser := allowEmptyPassword || mysqlRootPassword != ""
-	if useRootUser {
-		db.rootUser = db.env.ValueOrDefaultNonEmpty("MYSQL_ROOT_USER", "root")
-		db.rootPass = mysqlRootPassword
+	useMySQLRoot := allowEmptyPassword || mysqlRootPassword != ""
+	if useMySQLRoot {
+		db.adminUser = cmp.Or(mysqlRootUser, "root")
+		db.adminPass = mysqlRootPassword
 	} else {
-		db.rootUser = db.env["DB_SERVER_ROOT_USER"]
-		db.rootPass = db.env["DB_SERVER_ROOT_PASS"]
+		db.adminUser = db.env["DB_SERVER_ROOT_USER"]
+		db.adminPass = db.env["DB_SERVER_ROOT_PASS"]
 	}
 
-	db.createUser = creds == nil && mysqlUser != "" && useRootUser
-	if db.rootUser == "" {
-		db.rootUser = mysqlUser
-	}
-	if !allowEmptyPassword && db.rootPass == "" {
-		db.rootPass = mysqlPassword
+	_, externalAdminPassSet := db.env["DB_SERVER_ROOT_PASS"]
+	hasAdminCredentials := useMySQLRoot || db.adminUser != "" && externalAdminPassSet
+	db.createUser = mysqlUser != "" && hasAdminCredentials
+	if db.adminUser == "" {
+		db.adminUser = mysqlUser
+		db.adminPass = mysqlPassword
 	}
 
-	db.user = mysqlUser
-	if db.user == "" {
-		db.user = "zabbix"
-	}
-	db.password = mysqlPassword
-	if db.password == "" {
-		db.password = "zabbix"
-	}
+	db.user = cmp.Or(mysqlUser, "zabbix")
+	db.password = cmp.Or(mysqlPassword, "zabbix")
 	db.name = db.env.ValueOrDefaultNonEmpty("MYSQL_DATABASE", defaultDBName)
+	db.fromVault = creds != nil
 
 	return nil
 }
@@ -139,7 +140,13 @@ func (db *DB) ExportEnv() {
 	}
 	db.env["ZBX_DB_NAME"] = db.name
 
-	bootstrap.ApplyDBCredentials(db.env, db.user, db.password)
+	if db.fromVault {
+		delete(db.env, "ZBX_DB_USER")
+		delete(db.env, "ZBX_DB_PASSWORD")
+	} else {
+		db.env["ZBX_DB_USER"] = db.user
+		db.env["ZBX_DB_PASSWORD"] = db.password
+	}
 }
 
 func (db *DB) Name() string     { return db.name }

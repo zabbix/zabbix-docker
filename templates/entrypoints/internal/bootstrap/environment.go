@@ -153,13 +153,17 @@ func ProcessTLSFiles(env Environment, homeDir string, variables ...string) error
 	directory := filepath.Join(homeDir, "enc_internal")
 	for _, variable := range variables {
 		fileVariable := variable + "FILE"
+
 		if value := env[variable]; value != "" {
 			path := filepath.Join(directory, fileVariable)
+
 			if err := os.WriteFile(path, []byte(value), 0o600); err != nil {
 				return fmt.Errorf("write %s: %w", path, err)
 			}
+
 			env[fileVariable] = path
 		}
+
 		delete(env, variable)
 	}
 
@@ -173,6 +177,7 @@ func ClearPrivateEnv(env Environment, prefixes ...string) {
 	if env["ZBX_CLEAR_ENV"] == "false" {
 		return
 	}
+
 	if len(prefixes) == 0 {
 		prefixes = []string{"ZABBIX_", "DB_", "MYSQL_", "POSTGRES_"}
 	}

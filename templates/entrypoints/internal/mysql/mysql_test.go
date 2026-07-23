@@ -72,10 +72,10 @@ func TestPrepareDatabase(t *testing.T) {
 		"MYSQL_PASSWORD": "zabbix-password", "MYSQL_ROOT_PASSWORD": "root-password",
 		"MYSQL_DATABASE": "zabbix_test", "ZABBIX_USER_HOME_DIR": root,
 	}
-	db := New(env)
+	db := NewForBackend(env)
 	f := &fakeSessionFactory{admin: &fakeDBSession{queries: map[string]string{}}}
 	db.open = f.open
-	if err := db.Configure("zabbix", nil); err != nil {
+	if err := db.Configure("zabbix"); err != nil {
 		t.Fatal(err)
 	}
 	if err := db.Prepare(schemaFile); err != nil {
@@ -111,7 +111,7 @@ func TestPrepareDatabase(t *testing.T) {
 
 func TestRequiredTLSConfiguration(t *testing.T) {
 	env := bootstrap.Environment{"ZBX_DBTLSCONNECT": "required"}
-	db := New(env)
+	db := NewForBackend(env)
 	config, err := db.tlsConfig()
 	if err != nil {
 		t.Fatal(err)
@@ -124,7 +124,7 @@ func TestRequiredTLSConfiguration(t *testing.T) {
 func TestFrontendTLSConfigurationIsExplicit(t *testing.T) {
 	env := bootstrap.Environment{"ZBX_DB_ENCRYPTION": "true"}
 
-	serviceConfig, err := New(env).tlsConfig()
+	serviceConfig, err := NewForBackend(env).tlsConfig()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -142,8 +142,8 @@ func TestFrontendTLSConfigurationIsExplicit(t *testing.T) {
 }
 
 func TestWaitForConnectionIsCanceled(t *testing.T) {
-	db := New(bootstrap.Environment{"MYSQL_ALLOW_EMPTY_PASSWORD": "true"})
-	if err := db.Configure("zabbix", nil); err != nil {
+	db := NewForBackend(bootstrap.Environment{"MYSQL_ALLOW_EMPTY_PASSWORD": "true"})
+	if err := db.Configure("zabbix"); err != nil {
 		t.Fatal(err)
 	}
 
@@ -159,17 +159,111 @@ func TestWaitForConnectionIsCanceled(t *testing.T) {
 	}
 }
 
-func TestVaultCredentialsAreUsedWithoutAdministrativeCredentials(t *testing.T) {
-	db := New(bootstrap.Environment{})
-	creds := &bootstrap.DBCredentials{Username: "vault-user", Password: "vault-password"}
-	if err := db.Configure("zabbix", creds); err != nil {
-		t.Fatal(err)
+func TestConfigureCredentials(t *testing.T) {
+	for _, test := range []struct {
+		name           string
+		env            bootstrap.Environment
+		wantAdminUser  string
+		wantAdminPass  string
+		wantUser       string
+		wantPassword   string
+		wantCreateUser bool
+		wantError      bool
+	}{
+		{
+			name: "explicit MySQL admin",
+			env: bootstrap.Environment{
+				"MYSQL_ROOT_USER": "admin", "MYSQL_ROOT_PASSWORD": "admin-password",
+				"MYSQL_USER": "zabbix", "MYSQL_PASSWORD": "zabbix-password",
+			},
+			wantAdminUser: "admin", wantAdminPass: "admin-password",
+			wantUser: "zabbix", wantPassword: "zabbix-password", wantCreateUser: true,
+		},
+		{
+			name: "random flag does not hide explicit admin password",
+			env: bootstrap.Environment{
+				"MYSQL_RANDOM_ROOT_PASSWORD": "true", "MYSQL_ROOT_PASSWORD": "admin-password",
+			},
+			wantAdminUser: "root", wantAdminPass: "admin-password",
+			wantUser: "zabbix", wantPassword: "zabbix",
+		},
+		{
+			name: "empty MySQL admin password",
+			env: bootstrap.Environment{
+				"MYSQL_ALLOW_EMPTY_PASSWORD": "true", "MYSQL_ROOT_USER": "admin",
+				"MYSQL_USER": "zabbix", "MYSQL_PASSWORD": "zabbix-password",
+			},
+			wantAdminUser: "admin", wantAdminPass: "",
+			wantUser: "zabbix", wantPassword: "zabbix-password", wantCreateUser: true,
+		},
+		{
+			name: "external admin",
+			env: bootstrap.Environment{
+				"DB_SERVER_ROOT_USER": "admin", "DB_SERVER_ROOT_PASS": "admin-password",
+				"MYSQL_USER": "zabbix", "MYSQL_PASSWORD": "zabbix-password",
+			},
+			wantAdminUser: "admin", wantAdminPass: "admin-password",
+			wantUser: "zabbix", wantPassword: "zabbix-password", wantCreateUser: true,
+		},
+		{
+			name: "external admin with explicit empty password",
+			env: bootstrap.Environment{
+				"DB_SERVER_ROOT_USER": "admin", "DB_SERVER_ROOT_PASS": "",
+				"MYSQL_USER": "zabbix", "MYSQL_PASSWORD": "zabbix-password",
+			},
+			wantAdminUser: "admin", wantAdminPass: "",
+			wantUser: "zabbix", wantPassword: "zabbix-password", wantCreateUser: true,
+		},
+		{
+			name: "external admin without password",
+			env: bootstrap.Environment{
+				"DB_SERVER_ROOT_USER": "admin",
+				"MYSQL_USER":          "zabbix", "MYSQL_PASSWORD": "zabbix-password",
+			},
+			wantAdminUser: "admin", wantAdminPass: "",
+			wantUser: "zabbix", wantPassword: "zabbix-password",
+		},
+		{
+			name: "Zabbix credentials are the admin fallback",
+			env: bootstrap.Environment{
+				"MYSQL_USER": "zabbix", "MYSQL_PASSWORD": "zabbix-password",
+			},
+			wantAdminUser: "zabbix", wantAdminPass: "zabbix-password",
+			wantUser: "zabbix", wantPassword: "zabbix-password",
+		},
+		{name: "no usable credentials", env: bootstrap.Environment{}, wantError: true},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			db := NewForBackend(test.env)
+			err := db.Configure("zabbix")
+			if (err != nil) != test.wantError {
+				t.Fatalf("Configure() error = %v, wantError = %t", err, test.wantError)
+			}
+			if test.wantError {
+				return
+			}
+			if db.adminUser != test.wantAdminUser || db.adminPass != test.wantAdminPass ||
+				db.user != test.wantUser || db.password != test.wantPassword ||
+				db.createUser != test.wantCreateUser {
+				t.Fatalf("unexpected credentials: %#v", db)
+			}
+		})
 	}
-	if db.user != "vault-user" || db.password != "vault-password" {
-		t.Fatal("Vault credentials were not configured for Zabbix")
+}
+
+func TestExportEnvOmitsVaultCredentials(t *testing.T) {
+	env := bootstrap.Environment{
+		"ZBX_DB_USER": "old-user", "ZBX_DB_PASSWORD": "old-password",
 	}
-	if db.rootUser != "vault-user" || db.rootPass != "vault-password" {
-		t.Fatal("Vault credentials were not used as administrative fallback")
+	db := &DB{
+		env: env, name: "zabbix", user: "vault-user", password: "vault-password", fromVault: true,
+	}
+	db.ExportEnv()
+	if _, found := env["ZBX_DB_USER"]; found {
+		t.Fatalf("Vault credentials were exported: %#v", env)
+	}
+	if _, found := env["ZBX_DB_PASSWORD"]; found {
+		t.Fatalf("Vault credentials were exported: %#v", env)
 	}
 }
 
@@ -214,7 +308,7 @@ func TestVerifiedTLSConfigurations(t *testing.T) {
 				"DB_SERVER_HOST":   "db.example.test",
 				"ZBX_DBTLSCONNECT": test.mode,
 			}
-			db := New(env)
+			db := NewForBackend(env)
 			config, err := db.tlsConfig()
 			if err != nil {
 				t.Fatal(err)
@@ -234,7 +328,7 @@ func TestTLSClientCertificateRequiresBothFiles(t *testing.T) {
 		"ZBX_DBTLSCONNECT":  "required",
 		"ZBX_DBTLSCERTFILE": "/certificate.pem",
 	}
-	db := New(env)
+	db := NewForBackend(env)
 	if _, err := db.tlsConfig(); err == nil {
 		t.Fatal("incomplete client certificate configuration was accepted")
 	}
@@ -242,7 +336,7 @@ func TestTLSClientCertificateRequiresBothFiles(t *testing.T) {
 
 func TestExistingSchemaIsNotImported(t *testing.T) {
 	env := bootstrap.Environment{}
-	db := New(env)
+	db := NewForBackend(env)
 	db.name = "zabbix"
 	admin := &fakeDBSession{queries: map[string]string{
 		"SELECT 1 FROM information_schema.tables WHERE table_schema = ? AND table_name = 'dbversion'": "1",

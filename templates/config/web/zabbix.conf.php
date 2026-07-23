@@ -84,7 +84,7 @@ $DB['VAULT_KEY_FILE'] = resolve_file('/etc/zabbix/web/certs/vault.key', 'ZBX_VAU
 
 $DB['VAULT_CACHE']    = env_bool('ZBX_VAULTCACHE');
 
-$DB['DOUBLE_IEEE754'] = env_bool('DB_DOUBLE_IEEE754');
+$DB['DOUBLE_IEEE754'] = env_bool('ZBX_DB_DOUBLE_IEEE754');
 
 $IMAGE_FORMAT_DEFAULT = IMAGE_FORMAT_PNG;
 

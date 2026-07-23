@@ -58,14 +58,14 @@ func (f *fakeSessionFactory) connect(_ context.Context, config *pgx.ConnConfig) 
 
 func TestConfigureSocketAndDefaults(t *testing.T) {
 	env := bootstrap.Environment{"DB_SERVER_HOST": ""}
-	db := New(env)
-	if err := db.Configure("zabbix", nil); err != nil {
+	db := NewForBackend(env)
+	if err := db.Configure("zabbix"); err != nil {
 		t.Fatal(err)
 	}
-	if db.host != "" || db.port != 5432 || db.schema != "public" {
+	if db.host != "" || db.port != "5432" || db.schema != "public" {
 		t.Fatalf("unexpected connection settings: %#v", db)
 	}
-	if db.user != "zabbix" || db.password != "zabbix" || db.rootUser != "postgres" {
+	if db.user != "zabbix" || db.password != "zabbix" || db.adminUser != "postgres" {
 		t.Fatalf("unexpected credentials: %#v", db)
 	}
 }
@@ -73,7 +73,7 @@ func TestConfigureSocketAndDefaults(t *testing.T) {
 func TestFrontendTLSConfigurationIsExplicit(t *testing.T) {
 	env := bootstrap.Environment{"ZBX_DB_ENCRYPTION": "true"}
 
-	service := New(env)
+	service := NewForBackend(env)
 	if service.tls.ConnectMode != "" {
 		t.Fatalf("service used frontend TLS mode %q", service.tls.ConnectMode)
 	}
@@ -85,8 +85,8 @@ func TestFrontendTLSConfigurationIsExplicit(t *testing.T) {
 }
 
 func TestWaitForConnectionIsCanceled(t *testing.T) {
-	db := New(bootstrap.Environment{})
-	if err := db.Configure("zabbix", nil); err != nil {
+	db := NewForBackend(bootstrap.Environment{})
+	if err := db.Configure("zabbix"); err != nil {
 		t.Fatal(err)
 	}
 
@@ -127,11 +127,12 @@ func TestPrepareDatabase(t *testing.T) {
 		"ENABLE_TIMESCALEDB":   "true",
 		"ZABBIX_USER_HOME_DIR": root,
 	}
-	db := New(env)
-	creds := &bootstrap.DBCredentials{Username: "zabbix", Password: "zabbix-password"}
-	if err := db.Configure("zabbix", creds); err != nil {
+	db := NewForBackend(env)
+	if err := db.Configure("zabbix"); err != nil {
 		t.Fatal(err)
 	}
+	db.user = "zabbix"
+	db.password = "zabbix-password"
 
 	f := &fakeSessionFactory{
 		admin:  &fakeDBSession{queries: map[string]string{}},
@@ -181,17 +182,19 @@ func TestQuoteIdentifier(t *testing.T) {
 	}
 }
 
-func TestVaultCredentialsAreUsedWithoutAdministrativeCredentials(t *testing.T) {
-	db := New(bootstrap.Environment{})
-	creds := &bootstrap.DBCredentials{Username: "vault-user", Password: "vault-password"}
-	if err := db.Configure("zabbix", creds); err != nil {
-		t.Fatal(err)
+func TestExportEnvOmitsVaultCredentials(t *testing.T) {
+	env := bootstrap.Environment{
+		"ZBX_DB_USER": "old-user", "ZBX_DB_PASSWORD": "old-password",
 	}
-	if db.user != "vault-user" || db.password != "vault-password" {
-		t.Fatal("Vault credentials were not configured for Zabbix")
+	db := &DB{
+		env: env, name: "zabbix", user: "vault-user", password: "vault-password", fromVault: true,
 	}
-	if db.rootUser != "vault-user" || db.rootPass != "vault-password" {
-		t.Fatal("Vault credentials were not used as administrative fallback")
+	db.ExportEnv()
+	if _, found := env["ZBX_DB_USER"]; found {
+		t.Fatalf("Vault credentials were exported: %#v", env)
+	}
+	if _, found := env["ZBX_DB_PASSWORD"]; found {
+		t.Fatalf("Vault credentials were exported: %#v", env)
 	}
 }
 

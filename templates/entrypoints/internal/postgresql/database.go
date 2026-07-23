@@ -3,32 +3,34 @@
 package postgresql
 
 import (
-	"fmt"
-	"strconv"
+	"cmp"
 	"strings"
 
 	"github.com/zabbix/zabbix-docker/templates/entrypoints/internal/bootstrap"
+	"github.com/zabbix/zabbix-docker/templates/entrypoints/internal/vault"
 )
 
 // DB carries the resolved PostgreSQL connection target and the
 // working and administrative credentials.
 type DB struct {
-	env      bootstrap.Environment
-	tls      bootstrap.DBTLSConfig
-	connect  connector
-	host     string
-	port     uint16
-	rootUser string
-	rootPass string
-	user     string
-	password string
-	name     string
-	schema   string
-	implicit bool
+	env       bootstrap.Environment
+	tls       bootstrap.DBTLSConfig
+	connect   connector
+	host      string
+	port      string
+	adminUser string
+	adminPass string
+	user      string
+	password  string
+	name      string
+	schema    string
+	implicit  bool
+	fromVault bool
 }
 
-// New creates an unconfigured DB; call Configure before use.
-func New(env bootstrap.Environment) *DB {
+// NewForBackend creates an unconfigured DB for a Zabbix backend service;
+// call Configure before use.
+func NewForBackend(env bootstrap.Environment) *DB {
 	return newDB(env, bootstrap.ServiceDBTLS(env))
 }
 
@@ -42,27 +44,24 @@ func newDB(env bootstrap.Environment, tls bootstrap.DBTLSConfig) *DB {
 	return &DB{env: env, tls: tls, connect: openDBSession}
 }
 
-// Configure resolves the connection target, schema and credentials from
-// the environment: POSTGRES_* variables with the *_FILE secret convention,
-// or credentials coming from Vault.
-func (db *DB) Configure(defaultDBName string, creds *bootstrap.DBCredentials) error {
-	host, found := db.env["DB_SERVER_HOST"]
-	if !found {
-		host = "postgres-server"
-		db.env["DB_SERVER_HOST"] = host
-	}
+// Configure resolves the connection target, schema and credentials from the
+// environment or Vault.
+func (db *DB) Configure(defaultDBName string) error {
+	host := db.env.ValueOrDefault("DB_SERVER_HOST", "postgres-server")
+	port := db.env.ValueOrDefaultNonEmpty("DB_SERVER_PORT", "5432")
+	db.env["DB_SERVER_HOST"] = host
+	db.env["DB_SERVER_PORT"] = port
 
-	portValue := db.env.ValueOrDefaultNonEmpty("DB_SERVER_PORT", "5432")
-	port, err := strconv.ParseUint(portValue, 10, 16)
+	schema := db.env.ValueOrDefault("DB_SERVER_SCHEMA", "public")
+	db.env["DB_SERVER_SCHEMA"] = schema
+
+	db.host = host
+	db.port = port
+	db.schema = schema
+
+	creds, err := vault.ResolveDBCredentials(db.env)
 	if err != nil {
-		return fmt.Errorf("invalid DB_SERVER_PORT %q: %w", portValue, err)
-	}
-	db.env["DB_SERVER_PORT"] = portValue
-
-	schema, found := db.env["DB_SERVER_SCHEMA"]
-	if !found {
-		schema = "public"
-		db.env["DB_SERVER_SCHEMA"] = schema
+		return err
 	}
 
 	for _, name := range []string{"POSTGRES_USER", "POSTGRES_PASSWORD"} {
@@ -71,23 +70,23 @@ func (db *DB) Configure(defaultDBName string, creds *bootstrap.DBCredentials) er
 		}
 	}
 
-	db.host = host
-	db.port = uint16(port)
-	db.rootUser = db.env.ValueOrDefaultNonEmpty("POSTGRES_USER", "postgres")
-	db.rootPass = db.env["POSTGRES_PASSWORD"]
-	db.user = db.env.ValueOrDefaultNonEmpty("POSTGRES_USER", "zabbix")
-	db.password = db.env.ValueOrDefaultNonEmpty("POSTGRES_PASSWORD", "zabbix")
+	postgresUser := db.env["POSTGRES_USER"]
+	postgresPassword := db.env["POSTGRES_PASSWORD"]
+	db.adminUser = cmp.Or(postgresUser, "postgres")
+	db.adminPass = postgresPassword
+	db.user = cmp.Or(postgresUser, "zabbix")
+	db.password = cmp.Or(postgresPassword, "zabbix")
 	if creds != nil {
 		db.user = creds.Username
 		db.password = creds.Password
-		if db.env["POSTGRES_USER"] == "" && db.env["POSTGRES_PASSWORD"] == "" {
-			db.rootUser = creds.Username
-			db.rootPass = creds.Password
+		if postgresUser == "" && postgresPassword == "" {
+			db.adminUser = creds.Username
+			db.adminPass = creds.Password
 		}
 	}
 	db.name = db.env.ValueOrDefaultNonEmpty("POSTGRES_DB", defaultDBName)
-	db.schema = schema
 	db.implicit = strings.EqualFold(db.env.ValueOrDefaultNonEmpty("POSTGRES_USE_IMPLICIT_SEARCH_PATH", "false"), "true")
+	db.fromVault = creds != nil
 
 	return nil
 }
@@ -106,7 +105,13 @@ func (db *DB) ExportEnv() {
 		db.env["ZBX_DB_SCHEMA"] = db.schema
 	}
 
-	bootstrap.ApplyDBCredentials(db.env, db.user, db.password)
+	if db.fromVault {
+		delete(db.env, "ZBX_DB_USER")
+		delete(db.env, "ZBX_DB_PASSWORD")
+	} else {
+		db.env["ZBX_DB_USER"] = db.user
+		db.env["ZBX_DB_PASSWORD"] = db.password
+	}
 }
 
 func (db *DB) Name() string     { return db.name }

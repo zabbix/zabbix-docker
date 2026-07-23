@@ -62,7 +62,7 @@ func (db *DB) executeSQLFile(path string) error {
 }
 
 func (db *DB) createSchema(schemaFile, timescaleFile string) error {
-	sess, err := db.connectTarget(db.rootUser, db.rootPass)
+	sess, err := db.connectTarget(db.adminUser, db.adminPass)
 	if err != nil {
 		return err
 	}
@@ -120,7 +120,7 @@ func (db *DB) createSchema(schemaFile, timescaleFile string) error {
 // creates the Zabbix database when missing and imports the schema,
 // enabling TimescaleDB support when available.
 func (db *DB) Prepare(schemaFile, timescaleFile string) error {
-	sess, err := db.waitForConnection(db.rootUser, db.rootPass)
+	sess, err := db.waitForConnection(db.adminUser, db.adminPass)
 	if err != nil {
 		return err
 	}

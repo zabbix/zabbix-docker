@@ -29,7 +29,7 @@ var itemKeyRuleOptions = map[string]string{
 // AllowKeyRegexp and DenyKeyRegexp variables to the end of the item key
 // configuration file.
 func ConfigureItemKeyRules(env bootstrap.Environment, configDir, fileName string) error {
-	for _, variable := range []string{"ZBX_ALLOWKEY", "ZBX_ALLOWKEY_REGEXP", "ZBX_DENYKEY", "ZBX_DENYKEY_REGEXP"} {
+	for variable := range itemKeyRuleOptions {
 		if env[variable] != "" {
 			return fmt.Errorf("%s is not supported; use indexed variables such as %s_0", variable, variable)
 		}
@@ -129,6 +129,9 @@ func collectItemKeyRules(env bootstrap.Environment) ([]itemKeyRule, error) {
 	return rules, nil
 }
 
+// itemKeyRuleVariable parses an indexed item key rule environment variable
+// and returns its configuration option, zero-based index and whether the name
+// has the supported <prefix>_<index> format.
 func itemKeyRuleVariable(variable string) (string, int, bool) {
 	separator := strings.LastIndexByte(variable, '_')
 	if separator == -1 {

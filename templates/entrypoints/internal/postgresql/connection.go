@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"net"
 	"net/url"
-	"strconv"
 	"strings"
 	"time"
 
@@ -84,7 +83,7 @@ func (db *DB) connConfig(dbName, user, password string) (*pgx.ConnConfig, error)
 	connectionURL := &url.URL{
 		Scheme:   "postgres",
 		User:     url.UserPassword(user, password),
-		Host:     net.JoinHostPort(host, strconv.Itoa(int(db.port))),
+		Host:     net.JoinHostPort(host, db.port),
 		Path:     "/" + dbName,
 		RawQuery: query.Encode(),
 	}
@@ -115,7 +114,7 @@ func (db *DB) waitForConnectionContext(ctx context.Context, user, password strin
 	} else {
 		bootstrap.LogInfo("* DB_SERVER_HOST: %s", db.host)
 	}
-	bootstrap.LogInfo("* DB_SERVER_PORT: %d", db.port)
+	bootstrap.LogInfo("* DB_SERVER_PORT: %s", db.port)
 	bootstrap.LogInfo("* DB_SERVER_DBNAME: %s", db.name)
 	bootstrap.LogInfo("* DB_SERVER_SCHEMA: %s", db.schema)
 	bootstrap.LogDebug(db.env, "* DB_SERVER_ZBX_USER: %s", db.user)

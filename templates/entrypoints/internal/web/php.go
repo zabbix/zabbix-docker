@@ -35,7 +35,7 @@ var phpDefaults = []struct{ name, value string }{
 	// Database connection
 	{"ZBX_DB_ENCRYPTION", "false"},
 	{"ZBX_DB_VERIFY_HOST", "false"},
-	{"DB_DOUBLE_IEEE754", "true"},
+	{"ZBX_DB_DOUBLE_IEEE754", "true"},
 
 	// Frontend features
 	{"ZBX_HISTORYPROVIDERS", "[]"},
@@ -70,7 +70,7 @@ func preparePHP(env bootstrap.Environment, dbType DBType) error {
 	}
 	env["EXPOSE_WEB_SERVER_INFO"] = expose
 
-	for _, name := range []string{"ZBX_DENY_GUI_ACCESS", "ZBX_DB_ENCRYPTION", "ZBX_DB_VERIFY_HOST", "DB_DOUBLE_IEEE754"} {
+	for _, name := range []string{"ZBX_DENY_GUI_ACCESS", "ZBX_DB_ENCRYPTION", "ZBX_DB_VERIFY_HOST", "ZBX_DB_DOUBLE_IEEE754"} {
 		env[name] = strings.ToLower(env[name])
 	}
 

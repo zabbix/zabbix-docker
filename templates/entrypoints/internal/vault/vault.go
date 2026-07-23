@@ -16,8 +16,11 @@ import (
 	"github.com/zabbix/zabbix-docker/templates/entrypoints/internal/bootstrap"
 )
 
-// Credentials is an alias for the shared database credentials type.
-type Credentials = bootstrap.DBCredentials
+// Credentials contains a database username and password fetched from Vault.
+type Credentials struct {
+	Username string
+	Password string
+}
 
 // ResolveDBCredentials fetches the database credentials when
 // ZBX_VAULT is configured. It returns nil without an error when no Vault is
@@ -78,8 +81,6 @@ func fetchHashiCorp(env bootstrap.Environment, baseURL, dbPath string) (Credenti
 
 func hashicorpTLSConfig(env bootstrap.Environment) *tls.Config {
 	return &tls.Config{
-		// The shell entrypoint used curl -k, so verification stays off
-		// unless explicitly requested.
 		InsecureSkipVerify: env["ZBX_VAULT_SSL_VERIFY"] != "true",
 	}
 }
@@ -131,6 +132,7 @@ func fetchCyberArk(env bootstrap.Environment, baseURL, dbPath string) (Credentia
 	if certFile == "" {
 		return Credentials{}, fmt.Errorf("if CyberArk is used, a Vault certificate file must be set")
 	}
+
 	certPEM, err := os.ReadFile(certFile)
 	if err != nil {
 		return Credentials{}, fmt.Errorf("read CyberArk certificate: %w", err)
@@ -168,6 +170,7 @@ func fetchCyberArk(env bootstrap.Environment, baseURL, dbPath string) (Credentia
 		Timeout:   10 * time.Second,
 		Transport: vaultTransport(&tls.Config{Certificates: []tls.Certificate{cert}}),
 	}
+
 	data, err := requestWithRetry(client, reqURL, func(req *http.Request) {
 		req.Header.Set("Content-Type", "application/json")
 	})
@@ -186,6 +189,7 @@ func fetchCyberArk(env bootstrap.Environment, baseURL, dbPath string) (Credentia
 	if resp.ErrorCode != "" {
 		return Credentials{}, fmt.Errorf("error getting secrets from vault: %s", resp.ErrorCode)
 	}
+
 	return Credentials{Username: resp.Username, Password: resp.Password}, nil
 }
 
@@ -224,11 +228,13 @@ func requestWithRetry(client *http.Client, reqURL string, configure func(*http.R
 			lastErr = err
 			continue
 		}
+
 		data, readErr := io.ReadAll(resp.Body)
 		resp.Body.Close()
 		if readErr != nil {
 			return nil, readErr
 		}
+
 		if resp.StatusCode < http.StatusOK || resp.StatusCode >= http.StatusMultipleChoices {
 			return nil, fmt.Errorf("vault request failed with status %s: %s", resp.Status, strings.TrimSpace(string(data)))
 		}

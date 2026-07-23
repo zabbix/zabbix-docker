@@ -5,7 +5,6 @@ import (
 	"github.com/zabbix/zabbix-docker/templates/entrypoints/internal/hooks"
 	"github.com/zabbix/zabbix-docker/templates/entrypoints/internal/mysql"
 	"github.com/zabbix/zabbix-docker/templates/entrypoints/internal/server"
-	"github.com/zabbix/zabbix-docker/templates/entrypoints/internal/vault"
 )
 
 const (
@@ -17,12 +16,7 @@ const (
 func prepareDB(env bootstrap.Environment, db *mysql.DB) error {
 	bootstrap.LogInfo("** Preparing database")
 
-	creds, err := vault.ResolveDBCredentials(env)
-	if err != nil {
-		return err
-	}
-
-	if err := db.Configure(dbName, creds); err != nil {
+	if err := db.Configure(dbName); err != nil {
 		return err
 	}
 
@@ -52,7 +46,7 @@ func prepareService(env bootstrap.Environment, db *mysql.DB) error {
 
 func main() {
 	bootstrap.ExitOnError(bootstrap.RunDBService(serverBinary,
-		func(env bootstrap.Environment) error { return prepareService(env, mysql.New(env)) },
-		func(env bootstrap.Environment) error { return prepareDB(env, mysql.New(env)) },
+		func(env bootstrap.Environment) error { return prepareService(env, mysql.NewForBackend(env)) },
+		func(env bootstrap.Environment) error { return prepareDB(env, mysql.NewForBackend(env)) },
 	))
 }

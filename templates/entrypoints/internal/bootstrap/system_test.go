@@ -8,23 +8,23 @@ import (
 	"testing"
 )
 
-func TestRehashCertificateDirectoryLogsNonDirectory(t *testing.T) {
+func TestRehashCertDirLogsNonDirectory(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "ca.pem")
 	if err := os.WriteFile(path, nil, 0o600); err != nil {
 		t.Fatal(err)
 	}
 
 	output := captureStderr(t, func() {
-		RehashCertificateDirectory(path)
+		RehashCertDir(path)
 	})
 	if !strings.Contains(output, "not a directory") || !strings.Contains(output, path) {
 		t.Fatalf("warning = %q", output)
 	}
 }
 
-func TestRehashCertificateDirectoryIgnoresMissingDirectory(t *testing.T) {
+func TestRehashCertDirIgnoresMissingDirectory(t *testing.T) {
 	output := captureStderr(t, func() {
-		RehashCertificateDirectory(filepath.Join(t.TempDir(), "missing"))
+		RehashCertDir(filepath.Join(t.TempDir(), "missing"))
 	})
 	if output != "" {
 		t.Fatalf("warning = %q", output)

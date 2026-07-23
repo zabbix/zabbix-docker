@@ -289,7 +289,7 @@ spec:
 #            value: ""
 #          - name: ZBX_SESSION_NAME
 #            value: ""
-#          - name: DB_DOUBLE_IEEE754
+#          - name: ZBX_DB_DOUBLE_IEEE754
 #            value: "true"
           - name: ZBX_SSO_SETTINGS
             value: "[]"

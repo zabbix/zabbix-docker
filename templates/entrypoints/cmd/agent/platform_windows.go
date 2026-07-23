@@ -18,7 +18,7 @@ func configurePerformanceCounters(env bootstrap.Environment, configDir string) e
 	return bootstrap.UpdateConfigIndexed(env, configPath, "PerfCounterEn", "ZBX_PERFCOUNTEREN")
 }
 
-// The Windows agent does not support loadable modules.
+// Windows agent does not support loadable modules.
 func configureLoadModules(bootstrap.Environment, string) error {
 	return nil
 }

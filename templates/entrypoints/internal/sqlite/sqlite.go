@@ -60,7 +60,7 @@ func Prepare(dbPath, schemaPath string) error {
 			return fmt.Errorf("enable SQLite WAL: %w", err)
 		}
 	} else {
-		bootstrap.LogInfo("** SQLite database '%s' already exists.", dbPath)
+		bootstrap.LogInfo("** SQLite database '%s' already exists", dbPath)
 	}
 
 	return nil

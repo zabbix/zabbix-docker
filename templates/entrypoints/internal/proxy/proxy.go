@@ -43,7 +43,7 @@ func Prepare(env bootstrap.Environment, defaultHostname string) error {
 		return err
 	}
 
-	bootstrap.RehashCertificateDirectory(env["ZBX_SSLCALOCATION"])
+	bootstrap.RehashCertDir(env["ZBX_SSLCALOCATION"])
 
 	return nil
 }

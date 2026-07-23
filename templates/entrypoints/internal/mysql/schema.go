@@ -14,7 +14,7 @@ func (db *DB) executeSQLFile(path string) error {
 		return err
 	}
 
-	config, err := db.connConfig(db.name, db.rootUser, db.rootPass)
+	config, err := db.connConfig(db.name, db.adminUser, db.adminPass)
 	if err != nil {
 		return err
 	}
@@ -117,7 +117,7 @@ func (db *DB) createSchema(sess dbSession, schemaFile string) error {
 // creates the Zabbix user and database when missing and imports the schema
 // together with the additional dbscripts.
 func (db *DB) Prepare(schemaFile string) (err error) {
-	admin, err := db.waitForConnection(db.rootUser, db.rootPass)
+	admin, err := db.waitForConnection(db.adminUser, db.adminPass)
 	if err != nil {
 		return err
 	}

@@ -35,6 +35,7 @@ func TestPreparePHPUsesTrunkFrontendSettings(t *testing.T) {
 		"ZBX_HTTP_AUTH_ENABLED":      "true",
 		"ZBX_MODULES_CONFIG_ENABLED": "true",
 		"ZBX_MEDIA_TYPE_DENYLIST":    "[]",
+		"ZBX_DB_DOUBLE_IEEE754":      "true",
 	}
 	for name, value := range want {
 		if env[name] != value {
