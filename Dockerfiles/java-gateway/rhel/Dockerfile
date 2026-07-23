@@ -7,6 +7,15 @@ ARG BUILD_BASE_IMAGE=zabbix-build-mysql:rhel-${ZBX_VERSION}
 
 FROM ${BUILD_BASE_IMAGE} AS builder
 
+FROM builder AS entrypoint-builder
+
+RUN --mount=from=entrypoints,target=/tmp/entrypoints,ro \
+    --mount=type=cache,target=/root/.cache/go-build,sharing=locked \
+    cd /tmp/entrypoints && \
+    CGO_ENABLED=0 go build -buildvcs=false -trimpath -ldflags="-s -w -buildid=" \
+            -o /tmp/docker-entrypoint \
+        ./cmd/java-gateway
+
 FROM ${OS_BASE_IMAGE}
 
 ARG MAJOR_VERSION
@@ -50,12 +59,12 @@ STOPSIGNAL SIGTERM
 
 COPY ["licenses", "/licenses"]
 COPY --from=builder /tmp/zabbix-${ZBX_VERSION}-output/java_gateway/sbin/ /usr/sbin/zabbix_java/
+COPY --from=builder /tmp/zabbix-${ZBX_VERSION}-output/java_gateway/conf/ ${ZABBIX_CONF_DIR}/
 
 RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
     --mount=type=tmpfs,target=/var/cache/yum/ \
     set -eux && \
     INSTALL_PKGS="bash \
-            findutils \
             shadow-utils \
             java-21-openjdk-headless" && \
     microdnf -y install \
@@ -81,19 +90,14 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             --home-dir ${ZABBIX_USER_HOME_DIR} \
         zabbix && \
     mkdir -p ${ZABBIX_CONF_DIR}/ \
-        /usr/sbin/zabbix_java/ext_lib/ \
-        /usr/lib/docker-entrypoint && \
-    rm -rf /usr/sbin/zabbix_java/lib/logback.xml && \
-    mv /usr/sbin/zabbix_java/lib/logback-console.xml ${ZABBIX_CONF_DIR}/zabbix_java_gateway_logback.xml && \
+        /usr/sbin/zabbix_java/ext_lib/ && \
     FIX_PERM_LIST="\
         ${ZABBIX_CONF_DIR}/ \
-        /usr/sbin/zabbix_java/ext_lib \
-        /usr/lib/docker-entrypoint/" && \
+        /usr/sbin/zabbix_java/ext_lib" && \
     chown --quiet -R zabbix:0 ${FIX_PERM_LIST} && \
     chmod -R g=u ${FIX_PERM_LIST}
 
-COPY --chmod=0755 --from=entrypoints /shell/java-gateway.sh /usr/bin/docker-entrypoint.sh
-COPY --chmod=0644 --from=entrypoints /shell/hooks.sh /usr/lib/docker-entrypoint/hooks.sh
+COPY --chmod=0755 --from=entrypoint-builder /tmp/docker-entrypoint /usr/bin/docker-entrypoint
 
 EXPOSE 10052/tcp
 
@@ -101,6 +105,6 @@ USER 1997
 
 WORKDIR ${ZABBIX_USER_HOME_DIR}
 
-ENTRYPOINT ["/usr/bin/docker-entrypoint.sh"]
+ENTRYPOINT ["/usr/bin/docker-entrypoint"]
 
 CMD ["java-gateway"]
