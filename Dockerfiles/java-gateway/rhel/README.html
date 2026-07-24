@@ -29,6 +29,8 @@
 </code></pre>
 <h3>Environment Variables</h3>
 <p>When you start the <code>zabbix-java-gateway</code> image, you can adjust the configuration of the Zabbix Java Gateway by passing one or more environment variables on the <code>podman run</code> command line.</p>
+<h4><code>ZBX_SERVER</code></h4>
+<p>Comma-delimited list of IP addresses, CIDR networks or DNS names of Zabbix servers and proxies allowed to connect to Java Gateway. If unset or empty, connections are accepted from all hosts.</p>
 <h4><code>ZBX_START_POLLERS</code></h4>
 <p>This variable is specified amount of pollers. By default, value is <code>5</code>.</p>
 <h4><code>ZBX_TIMEOUT</code></h4>
