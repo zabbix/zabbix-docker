@@ -56,7 +56,6 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
     --mount=type=tmpfs,target=/var/cache/yum/ \
     set -eux && \
     INSTALL_PKGS="bash \
-            findutils \
             shadow-utils \
             java-21-openjdk-headless" && \
     microdnf -y install \
