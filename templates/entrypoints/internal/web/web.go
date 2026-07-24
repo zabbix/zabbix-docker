@@ -87,7 +87,7 @@ func Run(env bootstrap.Environment, db DB, opts Options, args []string) error {
 		return err
 	}
 
-	bootstrap.ClearPrivateEnv(env, "MYSQL_", "POSTGRES_", "NGINX_")
+	clearWebEnv(env)
 
 	return startStack(env, opts.Server)
 }
@@ -97,4 +97,14 @@ func setDBEnv(env bootstrap.Environment, db DB) {
 	env["DB_SERVER_SCHEMA"] = db.Schema()
 	env["DB_SERVER_ZBX_USER"] = db.User()
 	env["DB_SERVER_ZBX_PASS"] = db.Password()
+}
+
+func clearWebEnv(env bootstrap.Environment) {
+	prefixes := []string{"MYSQL_", "POSTGRES_", "NGINX_", "DB_SERVER_ZBX_"}
+
+	if env["ZBX_VAULT"] == "HashiCorp" && env["VAULT_TOKEN"] != "" && env["ZBX_VAULTURL"] != "" {
+		prefixes = append(prefixes, "DB_SERVER_USER", "DB_SERVER_PASS")
+	}
+
+	bootstrap.ClearPrivateEnv(env, prefixes...)
 }

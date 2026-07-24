@@ -57,6 +57,74 @@ func TestPreparePHPUsesTrunkFrontendSettings(t *testing.T) {
 	}
 }
 
+func TestClearWebEnv(t *testing.T) {
+	tests := []struct {
+		name            string
+		env             bootstrap.Environment
+		wantCredentials bool
+		wantPrivate     bool
+	}{
+		{
+			name:            "direct credentials",
+			env:             bootstrap.Environment{},
+			wantCredentials: true,
+		},
+		{
+			name: "HashiCorp Vault",
+			env: bootstrap.Environment{
+				"ZBX_VAULT": "HashiCorp", "VAULT_TOKEN": "token", "ZBX_VAULTURL": "https://vault",
+			},
+		},
+		{
+			name: "HashiCorp Vault without token",
+			env: bootstrap.Environment{
+				"ZBX_VAULT": "HashiCorp", "ZBX_VAULTURL": "https://vault",
+			},
+			wantCredentials: true,
+		},
+		{
+			name:            "CyberArk Vault",
+			env:             bootstrap.Environment{"ZBX_VAULT": "CyberArk"},
+			wantCredentials: true,
+		},
+		{
+			name: "cleanup disabled",
+			env: bootstrap.Environment{
+				"ZBX_VAULT": "HashiCorp", "VAULT_TOKEN": "token", "ZBX_VAULTURL": "https://vault",
+				"ZBX_CLEAR_ENV": "false",
+			},
+			wantCredentials: true,
+			wantPrivate:     true,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			test.env["DB_SERVER_ZBX_USER"] = "zabbix"
+			test.env["DB_SERVER_ZBX_PASS"] = "secret"
+			test.env["DB_SERVER_USER"] = "zabbix"
+			test.env["DB_SERVER_PASS"] = "secret"
+			test.env["MYSQL_PASSWORD"] = "mysql-secret"
+			test.env["NGINX_TEST"] = "private"
+
+			clearWebEnv(test.env)
+
+			for _, name := range []string{"DB_SERVER_ZBX_USER", "DB_SERVER_ZBX_PASS", "MYSQL_PASSWORD", "NGINX_TEST"} {
+				_, found := test.env[name]
+				if found != test.wantPrivate {
+					t.Fatalf("%s presence = %t, want %t", name, found, test.wantPrivate)
+				}
+			}
+			for _, name := range []string{"DB_SERVER_USER", "DB_SERVER_PASS"} {
+				_, found := test.env[name]
+				if found != test.wantCredentials {
+					t.Fatalf("%s presence = %t, want %t", name, found, test.wantCredentials)
+				}
+			}
+		})
+	}
+}
+
 func TestPrepareNginx(t *testing.T) {
 	root := t.TempDir()
 	includes := filepath.Join(root, "includes")
