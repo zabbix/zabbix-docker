@@ -36,6 +36,7 @@ run_service() {
         "-Dzabbix.timeout=${ZBX_TIMEOUT}"
     )
 
+    [[ -n "${ZBX_SERVER:-}" ]] && zabbix_opts+=("-Dzabbix.server=${ZBX_SERVER}")
     [[ -n "${ZBX_LISTEN_IP:-}" ]] && zabbix_opts+=("-Dzabbix.listenIP=${ZBX_LISTEN_IP}")
     [[ -n "${ZBX_START_POLLERS:-}" ]] && zabbix_opts+=("-Dzabbix.startPollers=${ZBX_START_POLLERS}")
     [[ -n "${ZBX_PROPERTIES_FILE:-}" ]] && zabbix_opts+=("-Dzabbix.propertiesFile=${ZBX_PROPERTIES_FILE}")

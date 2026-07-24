@@ -60,6 +60,10 @@ $ docker logs  some-zabbix-java-gateway
 
 When you start the `zabbix-java-gateway` image, you can adjust the configuration of the Zabbix Java Gateway by passing one or more environment variables on the `docker run` command line.
 
+### `ZBX_SERVER`
+
+Comma-delimited list of IP addresses, CIDR networks or DNS names of Zabbix servers and proxies allowed to connect to Java Gateway. If unset or empty, connections are accepted from all hosts.
+
 ### `ZBX_START_POLLERS`
 
 This variable is specified amount of pollers. By default, value is `5`.
