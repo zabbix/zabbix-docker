@@ -105,6 +105,7 @@ COPY --chmod=0644 --from=config_templates /logrotate.d/zabbix_snmptraps /etc/log
 COPY --chown=1997:0 --chmod=0664 --from=config_templates /snmp/snmptrapd.conf /etc/snmp/
 COPY --chmod=0644 --from=scripts /zabbix_trap_handler.sh /usr/sbin/
 COPY --chmod=0755 --from=entrypoint-builder /tmp/docker-entrypoint /usr/bin/docker-entrypoint
+COPY --from=entrypoints /licenses/go-THIRD-PARTY-NOTICES.txt /licenses/
 
 EXPOSE 1162/udp
 
