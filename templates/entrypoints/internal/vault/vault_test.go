@@ -53,12 +53,102 @@ func TestHashiCorpTLSConfig(t *testing.T) {
 }
 
 func TestDecodeHashiCorp(t *testing.T) {
-	creds, err := decodeHashiCorp([]byte(`{"data":{"data":{"username":"zabbix","password":"secret"}}}`))
-	if err != nil {
-		t.Fatal(err)
+	for _, test := range []struct {
+		name      string
+		response  string
+		wantPass  string
+		wantError string
+	}{
+		{
+			name:     "credentials",
+			response: `{"data":{"data":{"username":"zabbix","password":"secret"}}}`,
+			wantPass: "secret",
+		},
+		{
+			name:     "empty password",
+			response: `{"data":{"data":{"username":"zabbix","password":""}}}`,
+		},
+		{
+			name:      "missing username",
+			response:  `{"data":{"data":{"password":"secret"}}}`,
+			wantError: "database username",
+		},
+		{
+			name:      "empty username",
+			response:  `{"data":{"data":{"username":"","password":"secret"}}}`,
+			wantError: "database username",
+		},
+		{
+			name:      "missing password",
+			response:  `{"data":{"data":{"username":"zabbix"}}}`,
+			wantError: "database password",
+		},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			creds, err := decodeHashiCorp([]byte(test.response))
+			if test.wantError != "" {
+				if err == nil || !strings.Contains(err.Error(), test.wantError) {
+					t.Fatalf("decodeHashiCorp() error = %v, want error containing %q", err, test.wantError)
+				}
+				return
+			}
+			if err != nil {
+				t.Fatal(err)
+			}
+			if creds.Username != "zabbix" || creds.Password != test.wantPass {
+				t.Fatalf("unexpected credentials: %#v", creds)
+			}
+		})
 	}
-	if creds.Username != "zabbix" || creds.Password != "secret" {
-		t.Fatalf("unexpected credentials: %#v", creds)
+}
+
+func TestDecodeCyberArk(t *testing.T) {
+	for _, test := range []struct {
+		name      string
+		response  string
+		wantPass  string
+		wantError string
+	}{
+		{
+			name:     "credentials",
+			response: `{"UserName":"zabbix","Content":"secret"}`,
+			wantPass: "secret",
+		},
+		{
+			name:     "empty password",
+			response: `{"UserName":"zabbix","Content":""}`,
+		},
+		{
+			name:      "missing username",
+			response:  `{"Content":"secret"}`,
+			wantError: "database username",
+		},
+		{
+			name:      "empty username",
+			response:  `{"UserName":"","Content":"secret"}`,
+			wantError: "database username",
+		},
+		{
+			name:      "missing password",
+			response:  `{"UserName":"zabbix"}`,
+			wantError: "database password",
+		},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			creds, err := decodeCyberArk([]byte(test.response))
+			if test.wantError != "" {
+				if err == nil || !strings.Contains(err.Error(), test.wantError) {
+					t.Fatalf("decodeCyberArk() error = %v, want error containing %q", err, test.wantError)
+				}
+				return
+			}
+			if err != nil {
+				t.Fatal(err)
+			}
+			if creds.Username != "zabbix" || creds.Password != test.wantPass {
+				t.Fatalf("unexpected credentials: %#v", creds)
+			}
+		})
 	}
 }
 

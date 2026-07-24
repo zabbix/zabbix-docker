@@ -108,8 +108,8 @@ func decodeHashiCorp(data []byte) (Credentials, error) {
 		Errors []string `json:"errors"`
 		Data   struct {
 			Data struct {
-				Username string `json:"username"`
-				Password string `json:"password"`
+				Username *string `json:"username"`
+				Password *string `json:"password"`
 			} `json:"data"`
 		} `json:"data"`
 	}
@@ -120,8 +120,14 @@ func decodeHashiCorp(data []byte) (Credentials, error) {
 	if len(resp.Errors) != 0 {
 		return Credentials{}, fmt.Errorf("error getting secrets from vault: %s", strings.Join(resp.Errors, ", "))
 	}
+	if resp.Data.Data.Username == nil || *resp.Data.Data.Username == "" {
+		return Credentials{}, fmt.Errorf("vault response from HashiCorp does not contain a database username")
+	}
+	if resp.Data.Data.Password == nil {
+		return Credentials{}, fmt.Errorf("vault response from HashiCorp does not contain a database password")
+	}
 
-	return Credentials{Username: resp.Data.Data.Username, Password: resp.Data.Data.Password}, nil
+	return Credentials{Username: *resp.Data.Data.Username, Password: *resp.Data.Data.Password}, nil
 }
 
 func fetchCyberArk(env bootstrap.Environment, baseURL, dbPath string) (Credentials, error) {
@@ -178,10 +184,14 @@ func fetchCyberArk(env bootstrap.Environment, baseURL, dbPath string) (Credentia
 		return Credentials{}, err
 	}
 
+	return decodeCyberArk(data)
+}
+
+func decodeCyberArk(data []byte) (Credentials, error) {
 	var resp struct {
-		ErrorCode string `json:"ErrorCode"`
-		Username  string `json:"UserName"`
-		Password  string `json:"Content"`
+		ErrorCode string  `json:"ErrorCode"`
+		Username  *string `json:"UserName"`
+		Password  *string `json:"Content"`
 	}
 	if err := json.Unmarshal(data, &resp); err != nil {
 		return Credentials{}, fmt.Errorf("decode CyberArk response: %w", err)
@@ -189,8 +199,14 @@ func fetchCyberArk(env bootstrap.Environment, baseURL, dbPath string) (Credentia
 	if resp.ErrorCode != "" {
 		return Credentials{}, fmt.Errorf("error getting secrets from vault: %s", resp.ErrorCode)
 	}
+	if resp.Username == nil || *resp.Username == "" {
+		return Credentials{}, fmt.Errorf("vault response from CyberArk does not contain a database username")
+	}
+	if resp.Password == nil {
+		return Credentials{}, fmt.Errorf("vault response from CyberArk does not contain a database password")
+	}
 
-	return Credentials{Username: resp.Username, Password: resp.Password}, nil
+	return Credentials{Username: *resp.Username, Password: *resp.Password}, nil
 }
 
 func vaultTransport(tlsConfig *tls.Config) *http.Transport {
