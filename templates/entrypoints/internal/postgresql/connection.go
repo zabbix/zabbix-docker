@@ -42,7 +42,7 @@ func (s *pgxDBSession) Close(ctx context.Context) error {
 	return s.conn.Close(ctx)
 }
 
-type connector func(context.Context, *pgx.ConnConfig) (dbSession, error)
+type sessionOpener func(context.Context, *pgx.ConnConfig) (dbSession, error)
 
 func openDBSession(ctx context.Context, config *pgx.ConnConfig) (dbSession, error) {
 	conn, err := pgx.ConnectConfig(ctx, config)
@@ -93,7 +93,7 @@ func (db *DB) connConfig(dbName, user, password string) (*pgx.ConnConfig, error)
 	}
 	config.ConnectTimeout = 10 * time.Second
 	config.DefaultQueryExecMode = pgx.QueryExecModeSimpleProtocol
-	if !db.implicit && db.schema != "" {
+	if !db.implicitSearchPath && db.schema != "" {
 		config.RuntimeParams["search_path"] = db.schema
 	}
 
@@ -127,7 +127,7 @@ func (db *DB) waitForConnectionContext(ctx context.Context, user, password strin
 				return nil, err
 			}
 			attemptCtx, cancel := context.WithTimeout(ctx, 10*time.Second)
-			sess, err := db.connect(attemptCtx, config)
+			sess, err := db.open(attemptCtx, config)
 			cancel()
 			if err == nil {
 				return sess, nil
@@ -155,7 +155,7 @@ func (db *DB) connectTarget(user, password string) (dbSession, error) {
 		return nil, err
 	}
 
-	return db.connect(context.Background(), config)
+	return db.open(context.Background(), config)
 }
 
 // Wait blocks until the database accepts connections with the Zabbix

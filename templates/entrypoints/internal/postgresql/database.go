@@ -13,19 +13,19 @@ import (
 // DB carries the resolved PostgreSQL connection target and the
 // working and administrative credentials.
 type DB struct {
-	env       bootstrap.Environment
-	tls       bootstrap.DBTLSConfig
-	connect   connector
-	host      string
-	port      string
-	adminUser string
-	adminPass string
-	user      string
-	password  string
-	name      string
-	schema    string
-	implicit  bool
-	fromVault bool
+	env                bootstrap.Environment
+	tls                bootstrap.DBTLSConfig
+	open               sessionOpener
+	host               string
+	port               string
+	adminUser          string
+	adminPass          string
+	user               string
+	password           string
+	name               string
+	schema             string
+	implicitSearchPath bool
+	fromVault          bool
 }
 
 // NewForBackend creates an unconfigured DB for a Zabbix backend service;
@@ -41,7 +41,7 @@ func NewForFrontend(env bootstrap.Environment) *DB {
 }
 
 func newDB(env bootstrap.Environment, tls bootstrap.DBTLSConfig) *DB {
-	return &DB{env: env, tls: tls, connect: openDBSession}
+	return &DB{env: env, tls: tls, open: openDBSession}
 }
 
 // Configure resolves the connection target, schema and credentials from the
@@ -85,7 +85,9 @@ func (db *DB) Configure(defaultDBName string) error {
 		}
 	}
 	db.name = db.env.ValueOrDefaultNonEmpty("POSTGRES_DB", defaultDBName)
-	db.implicit = strings.EqualFold(db.env.ValueOrDefaultNonEmpty("POSTGRES_USE_IMPLICIT_SEARCH_PATH", "false"), "true")
+	db.implicitSearchPath = strings.EqualFold(
+		db.env.ValueOrDefaultNonEmpty("POSTGRES_USE_IMPLICIT_SEARCH_PATH", "false"), "true",
+	)
 	db.fromVault = creds != nil
 
 	return nil

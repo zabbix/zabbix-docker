@@ -42,7 +42,7 @@ type fakeSessionFactory struct {
 	configs []*pgx.ConnConfig
 }
 
-func (f *fakeSessionFactory) connect(_ context.Context, config *pgx.ConnConfig) (dbSession, error) {
+func (f *fakeSessionFactory) open(_ context.Context, config *pgx.ConnConfig) (dbSession, error) {
 	f.configs = append(f.configs, config.Copy())
 	if config.Database == "postgres" {
 		return f.admin, nil
@@ -90,7 +90,7 @@ func TestWaitForConnectionIsCanceled(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	db.connect = func(ctx context.Context, _ *pgx.ConnConfig) (dbSession, error) {
+	db.open = func(ctx context.Context, _ *pgx.ConnConfig) (dbSession, error) {
 		return nil, ctx.Err()
 	}
 
@@ -138,7 +138,7 @@ func TestPrepareDatabase(t *testing.T) {
 		admin:  &fakeDBSession{queries: map[string]string{}},
 		schema: &fakeDBSession{queries: map[string]string{}},
 	}
-	db.connect = f.connect
+	db.open = f.open
 	if err := db.Prepare(schemaFile, timescaleFile); err != nil {
 		t.Fatal(err)
 	}
