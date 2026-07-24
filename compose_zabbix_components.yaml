@@ -649,7 +649,6 @@ services:
    - snmptraps:/var/lib/zabbix/snmptraps:rwz
    - ${DATA_DIRECTORY}/var/lib/zabbix/snmptrapd_config:/var/lib/zabbix/snmptrapd_config:rw
    - ${DATA_DIRECTORY}/var/lib/zabbix/mibs:/var/lib/zabbix/mibs:ro
-  tmpfs: /tmp
   deploy:
    resources:
     limits:
