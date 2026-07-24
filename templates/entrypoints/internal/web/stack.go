@@ -31,47 +31,57 @@ func startStack(env bootstrap.Environment, server ServerType) error {
 		command.Stderr = os.Stderr
 	}
 
+	return supervise(children)
+}
+
+func supervise(children []*exec.Cmd) error {
 	signals := make(chan os.Signal, 1)
 	signal.Notify(signals, syscall.SIGTERM, syscall.SIGINT)
 	defer signal.Stop(signals)
 
-	if err := php.Start(); err != nil {
-		return err
-	}
-
-	if err := web.Start(); err != nil {
-		_ = php.Process.Signal(syscall.SIGTERM)
-		_ = php.Wait()
-		return err
-	}
-
-	type result struct {
+	type childResult struct {
 		command *exec.Cmd
 		err     error
 	}
-	results := make(chan result, len(children))
+	results := make(chan childResult, len(children))
 
-	go func() { results <- result{php, php.Wait()} }()
-	go func() { results <- result{web, web.Wait()} }()
+	for index, command := range children {
+		if err := command.Start(); err != nil {
+			for _, started := range children[:index] {
+				_ = started.Process.Signal(syscall.SIGTERM)
+			}
 
-	// One child dying (or a stop signal) takes the whole stack down.
+			for range index {
+				<-results
+			}
+
+			return err
+		}
+
+		go func(command *exec.Cmd) {
+			results <- childResult{command, command.Wait()}
+		}(command)
+	}
+
 	remaining := len(children)
-	var first result
+	var firstResult childResult
+
 	select {
-	case first = <-results:
+	case firstResult = <-results:
 		remaining--
 	case <-signals:
 	}
 
 	for _, command := range children {
-		if command != first.command && command.Process != nil {
+		if command != firstResult.command && command.Process != nil {
 			_ = command.Process.Signal(syscall.SIGTERM)
 		}
 	}
 
 	var timer *time.Timer
 	var timeout <-chan time.Time
-	if first.command != nil {
+
+	if firstResult.command != nil {
 		timer = time.NewTimer(childExitTimeout)
 		timeout = timer.C
 		defer timer.Stop()
@@ -83,14 +93,16 @@ func startStack(env bootstrap.Environment, server ServerType) error {
 			remaining--
 		case <-timeout:
 			bootstrap.LogWarn("** Web stack did not stop within %s; forcing shutdown", childExitTimeout)
+
 			for _, command := range children {
 				if command.Process != nil {
 					_ = command.Process.Kill()
 				}
 			}
+
 			timeout = nil
 		}
 	}
 
-	return first.err
+	return firstResult.err
 }
