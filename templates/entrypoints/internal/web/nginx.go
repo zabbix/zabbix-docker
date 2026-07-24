@@ -32,7 +32,7 @@ func prepareNginx(env bootstrap.Environment) error {
 
 	bootstrap.LogInfo("** Adding Zabbix virtual host (HTTP)")
 	if err := bootstrap.ReplaceSymlink(filepath.Join(configDir, "nginx.conf"), filepath.Join(confDirectory, "nginx.conf")); err != nil {
-		if !errors.Is(err, bootstrap.ErrSymlinkSourceNotExist) {
+		if !errors.Is(err, bootstrap.ErrMissingSymlinkSource) {
 			return fmt.Errorf("enable Nginx HTTP virtual host: %w", err)
 		}
 		bootstrap.LogWarn("**** Impossible to enable HTTP virtual host")
@@ -46,7 +46,7 @@ func prepareNginx(env bootstrap.Environment) error {
 	if bootstrap.RegularFile(filepath.Join(sslDirectory, "ssl.crt")) && bootstrap.RegularFile(filepath.Join(sslDirectory, "ssl.key")) && bootstrap.RegularFile(filepath.Join(sslDirectory, "dhparam.pem")) {
 		bootstrap.LogInfo("** Enable SSL support for Nginx")
 		if err := bootstrap.ReplaceSymlink(filepath.Join(configDir, "nginx_ssl.conf"), filepath.Join(confDirectory, "nginx_ssl.conf")); err != nil {
-			if !errors.Is(err, bootstrap.ErrSymlinkSourceNotExist) {
+			if !errors.Is(err, bootstrap.ErrMissingSymlinkSource) {
 				return fmt.Errorf("enable Nginx HTTPS virtual host: %w", err)
 			}
 			bootstrap.LogWarn("**** Impossible to enable HTTPS virtual host")

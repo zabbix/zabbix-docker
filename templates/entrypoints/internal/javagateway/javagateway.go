@@ -35,6 +35,7 @@ func Run(env bootstrap.Environment, args []string) error {
 
 	return bootstrap.Execute(command, env)
 }
+
 func prepare(env bootstrap.Environment, extraArgs []string) ([]string, error) {
 	bootstrap.LogInfo("** Preparing Zabbix Java Gateway")
 

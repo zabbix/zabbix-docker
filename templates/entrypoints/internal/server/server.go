@@ -22,7 +22,7 @@ func Prepare(env bootstrap.Environment) error {
 		return err
 	}
 
-	if err := bootstrap.UpdateConfigMultiple(filepath.Join(configDir, "zabbix_server_modules.conf"), "LoadModule", env["ZBX_LOADMODULE"]); err != nil {
+	if err := bootstrap.UpdateConfigValues(filepath.Join(configDir, "zabbix_server_modules.conf"), "LoadModule", env["ZBX_LOADMODULE"]); err != nil {
 		return err
 	}
 

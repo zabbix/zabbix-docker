@@ -10,9 +10,9 @@ import (
 	"strings"
 )
 
-// ErrSymlinkSourceNotExist is reported by ReplaceSymlink when the source
+// ErrMissingSymlinkSource is reported by ReplaceSymlink when the source
 // file is missing.
-var ErrSymlinkSourceNotExist = errors.New("symlink source does not exist")
+var ErrMissingSymlinkSource = errors.New("symlink source does not exist")
 
 // ReplaceSymlink links target to source, replacing an existing file or
 // link. The source must be an existing regular file.
@@ -20,7 +20,7 @@ func ReplaceSymlink(source, target string) error {
 	info, err := os.Stat(source)
 	if err != nil {
 		if errors.Is(err, os.ErrNotExist) {
-			return fmt.Errorf("%w: %s", ErrSymlinkSourceNotExist, source)
+			return fmt.Errorf("%w: %s", ErrMissingSymlinkSource, source)
 		}
 		return err
 	}

@@ -29,7 +29,7 @@ func prepareApache(env bootstrap.Environment) error {
 
 	bootstrap.LogInfo("** Adding Zabbix virtual host (HTTP)")
 	if err := bootstrap.ReplaceSymlink(filepath.Join(configDir, "apache.conf"), filepath.Join(sitesDirectory, "zabbix.conf")); err != nil {
-		if !errors.Is(err, bootstrap.ErrSymlinkSourceNotExist) {
+		if !errors.Is(err, bootstrap.ErrMissingSymlinkSource) {
 			return fmt.Errorf("enable Apache HTTP virtual host: %w", err)
 		}
 		bootstrap.LogWarn("**** Impossible to enable HTTP virtual host")
@@ -39,7 +39,7 @@ func prepareApache(env bootstrap.Environment) error {
 	if bootstrap.RegularFile(filepath.Join(sslDirectory, "ssl.crt")) && bootstrap.RegularFile(filepath.Join(sslDirectory, "ssl.key")) {
 		bootstrap.LogInfo("** Adding Zabbix virtual host (HTTPS)")
 		if err := bootstrap.ReplaceSymlink(filepath.Join(configDir, "apache_ssl.conf"), filepath.Join(sitesDirectory, "zabbix_ssl.conf")); err != nil {
-			if !errors.Is(err, bootstrap.ErrSymlinkSourceNotExist) {
+			if !errors.Is(err, bootstrap.ErrMissingSymlinkSource) {
 				return fmt.Errorf("enable Apache HTTPS virtual host: %w", err)
 			}
 			bootstrap.LogWarn("**** Impossible to enable HTTPS virtual host")
