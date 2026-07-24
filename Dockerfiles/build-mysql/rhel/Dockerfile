@@ -60,7 +60,8 @@ RUN --mount=from=sources,target=/tmp/src,z \
         ${ZBX_OUTPUT_DIR}/server/sbin \
         ${ZBX_OUTPUT_DIR}/server/conf \
         ${ZBX_OUTPUT_DIR}/server/database/${DB_TYPE} \
-        ${ZBX_OUTPUT_DIR}/java_gateway/sbin \
+        ${ZBX_OUTPUT_DIR}/java_gateway/sbin/bin \
+        ${ZBX_OUTPUT_DIR}/java_gateway/sbin/lib \
         ${ZBX_OUTPUT_DIR}/java_gateway/conf \
         ${ZBX_OUTPUT_DIR}/web_service/sbin \
         ${ZBX_OUTPUT_DIR}/web_service/conf \

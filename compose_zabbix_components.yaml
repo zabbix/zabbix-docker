@@ -605,6 +605,7 @@ services:
      protocol: tcp
   restart: "${RESTART_POLICY}"
   attach: false
+  read_only: true
   volumes:
    - ${DATA_DIRECTORY}/usr/sbin/zabbix_java/ext_lib:/usr/sbin/zabbix_java/ext_lib:ro
   deploy:
