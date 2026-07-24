@@ -23,7 +23,7 @@ const (
 // java-gateway pseudo-command and options start the service; any other command
 // is executed unchanged.
 func Run(env bootstrap.Environment, args []string) error {
-	extraArgs, startsService := serviceArgs(args)
+	extraArgs, startsService := bootstrap.ServiceArgs(args, serviceCommand)
 	if !startsService {
 		return bootstrap.Execute(args, env)
 	}
@@ -35,21 +35,6 @@ func Run(env bootstrap.Environment, args []string) error {
 
 	return bootstrap.Execute(command, env)
 }
-
-func serviceArgs(args []string) ([]string, bool) {
-	if len(args) == 0 {
-		return nil, true
-	}
-	if args[0] == serviceCommand {
-		return args[1:], true
-	}
-	if strings.HasPrefix(args[0], "-") {
-		return args, true
-	}
-
-	return nil, false
-}
-
 func prepare(env bootstrap.Environment, extraArgs []string) ([]string, error) {
 	bootstrap.LogInfo("** Preparing Zabbix Java Gateway")
 

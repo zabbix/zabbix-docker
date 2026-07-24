@@ -6,7 +6,7 @@ import (
 	"strings"
 )
 
-func command(path string, _ os.FileMode) ([]string, bool) {
+func hookCommand(path string, _ os.FileMode) ([]string, bool) {
 	switch strings.ToLower(filepath.Ext(path)) {
 	case ".ps1":
 		return []string{"pwsh.exe", "-NoLogo", "-NoProfile", "-NonInteractive", "-ExecutionPolicy", "Bypass", "-File", path}, true

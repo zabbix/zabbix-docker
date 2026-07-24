@@ -8,7 +8,7 @@ import (
 	"testing"
 )
 
-func TestCommand(t *testing.T) {
+func TestResolveCommand(t *testing.T) {
 	tests := []struct {
 		name string
 		args []string
@@ -21,8 +21,38 @@ func TestCommand(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			if got := command(test.args, "component"); !reflect.DeepEqual(got, test.want) {
-				t.Fatalf("command() = %#v, want %#v", got, test.want)
+			if got := resolveCommand(test.args, "component"); !reflect.DeepEqual(got, test.want) {
+				t.Fatalf("resolveCommand() = %#v, want %#v", got, test.want)
+			}
+		})
+	}
+}
+
+func TestServiceArgs(t *testing.T) {
+	tests := []struct {
+		name       string
+		args       []string
+		want       []string
+		wantStarts bool
+	}{
+		{name: "empty", wantStarts: true},
+		{name: "service command", args: []string{"component"}, want: []string{}, wantStarts: true},
+		{
+			name:       "service options",
+			args:       []string{"component", "--debug"},
+			want:       []string{"--debug"},
+			wantStarts: true,
+		},
+		{name: "options", args: []string{"--version"}, want: []string{"--version"}, wantStarts: true},
+		{name: "custom command", args: []string{"shell", "argument"}},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			got, starts := ServiceArgs(test.args, "component")
+			if starts != test.wantStarts || !reflect.DeepEqual(got, test.want) {
+				t.Fatalf("ServiceArgs(%q) = %q, %t; want %q, %t",
+					test.args, got, starts, test.want, test.wantStarts)
 			}
 		})
 	}

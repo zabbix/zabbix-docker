@@ -1,5 +1,16 @@
 # syntax=docker/dockerfile:1.6
 ARG OS_BASE_IMAGE=container-registry.oracle.com/os/oraclelinux:10-slim
+ARG ENTRYPOINT_BUILD_IMAGE=golang:1.26.5-alpine
+
+FROM ${ENTRYPOINT_BUILD_IMAGE} AS entrypoint-builder
+
+RUN --mount=from=entrypoints,target=/tmp/entrypoints,ro \
+    --mount=type=cache,target=/root/.cache/go-build,sharing=locked \
+    cd /tmp/entrypoints && \
+    CGO_ENABLED=0 go build -buildvcs=false -trimpath -ldflags="-s -w -buildid=" \
+            -o /tmp/docker-entrypoint \
+        ./cmd/snmptraps
+
 FROM ${OS_BASE_IMAGE}
 
 ARG MAJOR_VERSION=8.0
@@ -57,14 +68,12 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
     mkdir -p ${ZABBIX_USER_HOME_DIR} \
         ${ZABBIX_USER_HOME_DIR}/snmptraps \
         ${ZABBIX_USER_HOME_DIR}/mibs \
-        ${SNMP_PERSISTENT_DIR} \
-        /usr/lib/docker-entrypoint && \
+        ${SNMP_PERSISTENT_DIR} && \
     FIX_PERM_LIST="\
         /etc/snmp/ \
         ${ZABBIX_USER_HOME_DIR}/ \
         /var/tmp/ \
-        /var/run/ \
-        /usr/lib/docker-entrypoint/" && \
+        /var/run/" && \
     chown --quiet -R zabbix:root ${FIX_PERM_LIST} && \
     chgrp -R 0 ${FIX_PERM_LIST} && \
     chmod -R g=u ${FIX_PERM_LIST}
@@ -72,8 +81,7 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
 COPY --chmod=0644 --from=config_templates /logrotate.d/zabbix_snmptraps /etc/logrotate.d/
 COPY --chown=1997:0 --chmod=0664 --from=config_templates /snmp/snmptrapd.conf /etc/snmp/
 COPY --chmod=0644 --from=scripts /zabbix_trap_handler.sh /usr/sbin/
-COPY --chmod=0755 --from=entrypoints /shell/snmptraps.sh /usr/bin/docker-entrypoint.sh
-COPY --chmod=0644 --from=entrypoints /shell/hooks.sh /usr/lib/docker-entrypoint/hooks.sh
+COPY --chmod=0755 --from=entrypoint-builder /tmp/docker-entrypoint /usr/bin/docker-entrypoint
 
 EXPOSE 1162/udp
 
@@ -83,6 +91,6 @@ VOLUME ["${ZABBIX_USER_HOME_DIR}/snmptraps", "${SNMP_PERSISTENT_DIR}"]
 
 USER 1997
 
-ENTRYPOINT ["/usr/bin/docker-entrypoint.sh"]
+ENTRYPOINT ["/usr/bin/docker-entrypoint"]
 
 CMD ["/usr/sbin/snmptrapd"]

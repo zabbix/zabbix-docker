@@ -27,6 +27,12 @@ variable "OS_BASE_IMAGE" {
   description = "Base image for images. Passed to Dockerfiles as OS_BASE_IMAGE"
 }
 
+variable "ENTRYPOINT_BUILD_IMAGE" {
+  type        = string
+  default     = "golang:1.26.5-alpine"
+  description = "Go image used to build the Zabbix SNMP traps entrypoint"
+}
+
 variable "ZBX_IMAGE_TAG" {
   type        = string
   default     = "${OS}-${ZBX_VERSION}-local"
@@ -373,5 +379,8 @@ target "snmptraps" {
     entrypoints      = "templates/entrypoints"
     scripts          = "templates/scripts/snmptraps"
   }
-  tags        = ["${ZBX_IMAGE_NAMESPACE}${ZBX_IMAGE_PREFIX}snmptraps:${ZBX_IMAGE_TAG}"]
+  args = {
+    ENTRYPOINT_BUILD_IMAGE = ENTRYPOINT_BUILD_IMAGE
+  }
+  tags = ["${ZBX_IMAGE_NAMESPACE}${ZBX_IMAGE_PREFIX}snmptraps:${ZBX_IMAGE_TAG}"]
 }

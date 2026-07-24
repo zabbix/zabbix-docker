@@ -8,36 +8,6 @@ import (
 	"github.com/zabbix/zabbix-docker/templates/entrypoints/internal/bootstrap"
 )
 
-func TestServiceArgs(t *testing.T) {
-	tests := []struct {
-		name       string
-		args       []string
-		want       []string
-		wantStarts bool
-	}{
-		{name: "empty", wantStarts: true},
-		{name: "service command", args: []string{"java-gateway"}, want: []string{}, wantStarts: true},
-		{
-			name:       "service options",
-			args:       []string{"java-gateway", "-Dcustom=true"},
-			want:       []string{"-Dcustom=true"},
-			wantStarts: true,
-		},
-		{name: "options", args: []string{"--version"}, want: []string{"--version"}, wantStarts: true},
-		{name: "custom command", args: []string{"sh"}},
-	}
-
-	for _, test := range tests {
-		t.Run(test.name, func(t *testing.T) {
-			got, starts := serviceArgs(test.args)
-			if starts != test.wantStarts || !reflect.DeepEqual(got, test.want) {
-				t.Fatalf("serviceArgs(%q) = %q, %t; want %q, %t",
-					test.args, got, starts, test.want, test.wantStarts)
-			}
-		})
-	}
-}
-
 func TestPrepareRequiresLogConfig(t *testing.T) {
 	env := bootstrap.Environment{
 		"ZABBIX_USER_HOME_DIR": t.TempDir(),

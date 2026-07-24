@@ -35,16 +35,29 @@ func ExitOnError(err error) {
 	os.Exit(exitCode(err))
 }
 
-// command decides what the container should execute: no arguments start the
-// service binary, arguments beginning with a dash are treated as its flags,
-// anything else is a user-supplied command.
-func command(args []string, binary string) []string {
+// ServiceArgs returns arguments intended for service and whether the service
+// should be started. Empty arguments, the service command itself and options
+// beginning with a dash select the service; anything else is a custom command.
+func ServiceArgs(args []string, service string) ([]string, bool) {
 	if len(args) == 0 {
-		return []string{binary}
+		return nil, true
+	}
+	if args[0] == service {
+		return args[1:], true
 	}
 	if strings.HasPrefix(args[0], "-") {
-		return append([]string{binary}, args...)
+		return args, true
 	}
+
+	return nil, false
+}
+
+// resolveCommand decides what the container should execute.
+func resolveCommand(args []string, binary string) []string {
+	if serviceArgs, startsService := ServiceArgs(args, binary); startsService {
+		return append([]string{binary}, serviceArgs...)
+	}
+
 	return args
 }
 
@@ -62,7 +75,7 @@ func Execute(args []string, env Environment) error {
 // first; custom user commands are executed untouched.
 func RunService(binary string, prepare func(Environment) error) error {
 	env := NewEnvironment(os.Environ())
-	args := command(os.Args[1:], binary)
+	args := resolveCommand(os.Args[1:], binary)
 
 	if args[0] == binary {
 		if err := prepare(env); err != nil {
@@ -81,7 +94,7 @@ const initDBCommand = "init_db_only"
 // initDB hook implements the initDBCommand command.
 func RunDBService(binary string, prepare, initDB func(Environment) error) error {
 	env := NewEnvironment(os.Environ())
-	args := command(os.Args[1:], binary)
+	args := resolveCommand(os.Args[1:], binary)
 
 	switch args[0] {
 	case binary:

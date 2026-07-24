@@ -41,7 +41,7 @@ func Run(env bootstrap.Environment) error {
 			continue
 		}
 
-		args, supported := command(path, info.Mode())
+		args, supported := hookCommand(path, info.Mode())
 		if !supported {
 			continue
 		}
