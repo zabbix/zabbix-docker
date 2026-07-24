@@ -5,9 +5,12 @@ import (
 	"os/exec"
 	"os/signal"
 	"syscall"
+	"time"
 
 	"github.com/zabbix/zabbix-docker/templates/entrypoints/internal/bootstrap"
 )
+
+const childExitTimeout = 10 * time.Second
 
 func startStack(env bootstrap.Environment, server ServerType) error {
 	phpBinary := env.ValueOrDefaultNonEmpty("PHP_FPM_BIN", "/usr/sbin/php-fpm")
@@ -66,8 +69,27 @@ func startStack(env bootstrap.Environment, server ServerType) error {
 		}
 	}
 
-	for ; remaining > 0; remaining-- {
-		<-results
+	var timer *time.Timer
+	var timeout <-chan time.Time
+	if first.command != nil {
+		timer = time.NewTimer(childExitTimeout)
+		timeout = timer.C
+		defer timer.Stop()
+	}
+
+	for remaining > 0 {
+		select {
+		case <-results:
+			remaining--
+		case <-timeout:
+			bootstrap.LogWarn("** Web stack did not stop within %s; forcing shutdown", childExitTimeout)
+			for _, command := range children {
+				if command.Process != nil {
+					_ = command.Process.Kill()
+				}
+			}
+			timeout = nil
+		}
 	}
 
 	return first.err
