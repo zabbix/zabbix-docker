@@ -16,7 +16,6 @@ const (
 	javaDir        = "/usr/sbin/zabbix_java"
 	javaClasspath  = "lib/*:bin/*:ext_lib/*"
 	logConfigName  = "zabbix_java_gateway_logback.xml"
-	pidFile        = "/tmp/java_gateway.pid"
 )
 
 // Run implements the Java Gateway entrypoint. Empty arguments, the
@@ -79,11 +78,13 @@ func buildCommand(env bootstrap.Environment, logConfig string, extraArgs []strin
 		"-Dsun.rmi.transport.tcp.responseTimeout=" + env["ZBX_TIMEOUT"] + "000",
 		"-Dzabbix.listenPort=" + env.ValueOrDefaultNonEmpty("ZBX_LISTEN_PORT", "10052"),
 		"-Dzabbix.timeout=" + env["ZBX_TIMEOUT"],
-		"-Dzabbix.pidFile=" + pidFile,
 	}
 
 	if value := env["ZBX_LISTEN_IP"]; value != "" {
 		zabbixOpts = append(zabbixOpts, "-Dzabbix.listenIP="+value)
+	}
+	if value := env["ZBX_SERVER"]; value != "" {
+		zabbixOpts = append(zabbixOpts, "-Dzabbix.server="+value)
 	}
 	if value := env["ZBX_START_POLLERS"]; value != "" {
 		zabbixOpts = append(zabbixOpts, "-Dzabbix.startPollers="+value)

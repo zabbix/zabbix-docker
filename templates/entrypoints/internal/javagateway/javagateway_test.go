@@ -28,6 +28,7 @@ func TestCommandOptions(t *testing.T) {
 		"ZBX_LISTEN_PORT":     "10053",
 		"ZBX_JAVA_OPTS":       "-Xms64m -Xmx128m",
 		"ZBX_LISTEN_IP":       "192.0.2.1",
+		"ZBX_SERVER":          "192.0.2.0/24,zabbix.example.com",
 		"ZBX_START_POLLERS":   "7",
 		"ZBX_PROPERTIES_FILE": "/tmp/gateway.properties",
 	}
@@ -49,8 +50,8 @@ func TestCommandOptions(t *testing.T) {
 		"-Dsun.rmi.transport.tcp.responseTimeout=5000",
 		"-Dzabbix.listenPort=10053",
 		"-Dzabbix.timeout=5",
-		"-Dzabbix.pidFile=/tmp/java_gateway.pid",
 		"-Dzabbix.listenIP=192.0.2.1",
+		"-Dzabbix.server=192.0.2.0/24,zabbix.example.com",
 		"-Dzabbix.startPollers=7",
 		"-Dzabbix.propertiesFile=/tmp/gateway.properties",
 		"com.zabbix.gateway.JavaGateway",
