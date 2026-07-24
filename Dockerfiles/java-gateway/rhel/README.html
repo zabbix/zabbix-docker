@@ -31,8 +31,8 @@
 <p>This variable is used to specify log level. By default, value is <code>info</code>. The variable allows next values: <code>trace</code>, <code>debug</code>, <code>info</code>, <code>want</code>, <code>error</code>, <code>all</code>, <code>off</code></p>
 <h3 id="-zbx_properties_file-"><code>ZBX_PROPERTIES_FILE</code></h3>
 <p>Name of properties file. Can be used to set additional properties using a key-value format in such a way that they are not visible on a command line or to overwrite existing ones.</p>
-<h3 id="-zabbix_options-"><code>ZABBIX_OPTIONS</code></h3>
-<p>Additional arguments for Zabbix Java Gateway. Useful to enable additional libraries and features.</p>
+<h3 id="-zbx_java_opts-"><code>ZBX_JAVA_OPTS</code></h3>
+<p>Additional Java Virtual Machine (JVM) options for Zabbix Java Gateway, for example <code>-Xms128m -Xmx1g</code>.</p>
 <h2 id="allowed-volumes-for-the-zabbix-java-gateway-container">Allowed volumes for the Zabbix Java Gateway container</h2>
 <h3 id="-usr-sbin-zabbix_java-ext_lib-"><code>/usr/sbin/zabbix_java/ext_lib</code></h3>
 <p>The volume allows include additional JAR files to extend allowed protocols for Zabbix Java Gateway.</p>
