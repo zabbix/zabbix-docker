@@ -50,6 +50,7 @@ STOPSIGNAL SIGTERM
 
 COPY ["licenses", "/licenses"]
 COPY --from=builder /tmp/zabbix-${ZBX_VERSION}-output/java_gateway/sbin/ /usr/sbin/zabbix_java/
+COPY --from=builder /tmp/zabbix-${ZBX_VERSION}-output/java_gateway/conf/ ${ZABBIX_CONF_DIR}/
 
 RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
     --mount=type=tmpfs,target=/var/cache/yum/ \
@@ -82,8 +83,6 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
         zabbix && \
     mkdir -p ${ZABBIX_CONF_DIR}/ \
         /usr/sbin/zabbix_java/ext_lib/ && \
-    rm -rf /usr/sbin/zabbix_java/lib/logback.xml && \
-    mv /usr/sbin/zabbix_java/lib/logback-console.xml ${ZABBIX_CONF_DIR}/zabbix_java_gateway_logback.xml && \
     FIX_PERM_LIST="\
         ${ZABBIX_CONF_DIR}/ \
         /usr/sbin/zabbix_java/ext_lib" && \
