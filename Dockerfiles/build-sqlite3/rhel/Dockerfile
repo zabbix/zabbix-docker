@@ -58,6 +58,7 @@ RUN --mount=from=sources,target=/tmp/src,z \
         ${ZBX_OUTPUT_DIR}/proxy/conf \
         ${ZBX_OUTPUT_DIR}/proxy/database/${DB_TYPE} \
         ${ZBX_OUTPUT_DIR}/java_gateway/sbin \
+        ${ZBX_OUTPUT_DIR}/java_gateway/conf \
         ${ZBX_OUTPUT_DIR}/web/conf \
         ${ZBX_OUTPUT_DIR}/general/sbin \
         ${ZBX_OUTPUT_DIR}/general/bin \
@@ -138,7 +139,10 @@ RUN --mount=type=cache,target=/root/.cache/go-build \
     mv src/zabbix_proxy/zabbix_proxy "${ZBX_OUTPUT_DIR}/proxy/sbin/" && \
     cp conf/zabbix_proxy.conf ${ZBX_OUTPUT_DIR}/proxy/conf/ && \
     cp -a src/zabbix_java/bin/. "${ZBX_OUTPUT_DIR}/java_gateway/sbin/bin/" && \
-    cp -a src/zabbix_java/lib/. "${ZBX_OUTPUT_DIR}/java_gateway/sbin/lib/" && \
+    cp -a src/zabbix_java/lib/*.jar "${ZBX_OUTPUT_DIR}/java_gateway/sbin/lib/" && \
+    cp src/zabbix_java/lib/logback.xml "${ZBX_OUTPUT_DIR}/java_gateway/conf/logback.xml.dist" && \
+    cp src/zabbix_java/lib/logback-console.xml "${ZBX_OUTPUT_DIR}/java_gateway/conf/logback-console.xml.dist" && \
+    cp -a /tmp/conf/java-gateway/. "${ZBX_OUTPUT_DIR}/java_gateway/conf/" && \
     mv src/zabbix_get/zabbix_get "${ZBX_OUTPUT_DIR}/general/bin/" && \
     mv src/zabbix_sender/zabbix_sender "${ZBX_OUTPUT_DIR}/general/bin/" && \
     cp -a /tmp/conf/web/. "${ZBX_OUTPUT_DIR}/web/conf/" && \

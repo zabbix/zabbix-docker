@@ -31,6 +31,7 @@ LABEL org.opencontainers.image.authors="Alexey Pustovalov <alexey.pustovalov@zab
 STOPSIGNAL SIGTERM
 
 COPY --from=builder /tmp/zabbix-${ZBX_VERSION}-output/java_gateway/sbin/ /usr/sbin/zabbix_java/
+COPY --from=builder /tmp/zabbix-${ZBX_VERSION}-output/java_gateway/conf/ ${ZABBIX_CONF_DIR}/
 
 RUN --mount=type=cache,target=/var/cache/apt/,sharing=locked \
     --mount=type=cache,target=/var/lib/apt/,sharing=locked \
@@ -55,8 +56,6 @@ RUN --mount=type=cache,target=/var/cache/apt/,sharing=locked \
         zabbix && \
     mkdir -p ${ZABBIX_CONF_DIR}/ \
         /usr/sbin/zabbix_java/ext_lib/ && \
-    rm -rf /usr/sbin/zabbix_java/lib/logback.xml && \
-    mv /usr/sbin/zabbix_java/lib/logback-console.xml ${ZABBIX_CONF_DIR}/zabbix_java_gateway_logback.xml && \
     FIX_PERM_LIST="\
         ${ZABBIX_CONF_DIR}/ \
         /usr/sbin/zabbix_java/ext_lib" && \

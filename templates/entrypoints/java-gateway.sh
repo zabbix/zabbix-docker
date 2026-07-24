@@ -22,22 +22,13 @@ build_classpath() {
     printf '%s\n' "$classpath"
 }
 
-update_config() {
-    info "** Preparing Zabbix Java Gateway log configuration file"
-    [[ -f "$ZBX_GATEWAY_CONFIG" ]] || error "Missing configuration file: $ZBX_GATEWAY_CONFIG"
-
-    : "${ZBX_DEBUGLEVEL:=info}"
-
-    info "Updating ${ZBX_GATEWAY_CONFIG} 'DebugLevel' parameter: '${ZBX_DEBUGLEVEL}'... updated"
-    sed -i -e "/^.*<root level=/s/=.*/=\"${ZBX_DEBUGLEVEL}\">/" "$ZBX_GATEWAY_CONFIG"
-}
-
 run_service() {
     info "** Preparing Zabbix Java Gateway"
 
     : "${ZBX_TIMEOUT:=3}"
 
-    update_config
+    [[ -f "$ZBX_GATEWAY_CONFIG" ]] || error "Missing configuration file: $ZBX_GATEWAY_CONFIG"
+
     cd "$ZABBIX_JAVA_DIR"
 
     local classpath
