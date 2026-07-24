@@ -28,9 +28,6 @@ func splitSQLStatements(script string) ([]string, error) {
 		if p.canChangeDelimiter() {
 			fields := strings.Fields(strings.TrimSpace(line))
 			if len(fields) == 2 && strings.EqualFold(fields[0], "DELIMITER") {
-				if fields[1] == "" {
-					return nil, fmt.Errorf("empty DELIMITER")
-				}
 				p.delimiter = fields[1]
 				continue
 			}
