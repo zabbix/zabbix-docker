@@ -15,7 +15,7 @@ func configurePerformanceCounters(bootstrap.Environment, string) error {
 }
 
 func configureLoadModules(env bootstrap.Environment, configDir string) error {
-	return bootstrap.UpdateConfigMultiple(
+	return bootstrap.UpdateConfigValues(
 		filepath.Join(configDir, "zabbix_agentd_modules.conf"),
 		"LoadModule", env["ZBX_LOADMODULE"],
 	)

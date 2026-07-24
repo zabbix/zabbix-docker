@@ -9,12 +9,12 @@ import (
 	"time"
 )
 
-func TestUpdateConfigMultiple(t *testing.T) {
+func TestUpdateConfigValues(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "agent.conf")
 	if err := os.WriteFile(path, []byte("# DenyKey=system.run[*]\nOther=value\n"), 0o600); err != nil {
 		t.Fatal(err)
 	}
-	if err := UpdateConfigMultiple(path, "DenyKey", `"one,two"`); err != nil {
+	if err := UpdateConfigValues(path, "DenyKey", `"one,two"`); err != nil {
 		t.Fatal(err)
 	}
 
@@ -35,12 +35,12 @@ func TestUpdateConfigMultiple(t *testing.T) {
 	}
 }
 
-func TestUpdateConfigMultiplePreservesActiveValues(t *testing.T) {
+func TestUpdateConfigValuesPreservesActiveValues(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "agent.conf")
 	if err := os.WriteFile(path, []byte("DenyKey=existing\n# DenyKey=system.run[*]\n"), 0o600); err != nil {
 		t.Fatal(err)
 	}
-	if err := UpdateConfigMultiple(path, "DenyKey", "existing,new"); err != nil {
+	if err := UpdateConfigValues(path, "DenyKey", "existing,new"); err != nil {
 		t.Fatal(err)
 	}
 
@@ -57,12 +57,12 @@ func TestUpdateConfigMultiplePreservesActiveValues(t *testing.T) {
 	}
 }
 
-func TestUpdateConfigMultipleRemovesActiveValuesWhenEmpty(t *testing.T) {
+func TestUpdateConfigValuesRemovesActiveValuesWhenEmpty(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "agent.conf")
 	if err := os.WriteFile(path, []byte("DenyKey=system.run[*]\nOther=value\n"), 0o600); err != nil {
 		t.Fatal(err)
 	}
-	if err := UpdateConfigMultiple(path, "DenyKey", ""); err != nil {
+	if err := UpdateConfigValues(path, "DenyKey", ""); err != nil {
 		t.Fatal(err)
 	}
 
@@ -75,7 +75,7 @@ func TestUpdateConfigMultipleRemovesActiveValuesWhenEmpty(t *testing.T) {
 	}
 }
 
-func TestUpdateConfigMultipleDoesNotRewriteUnchangedConfig(t *testing.T) {
+func TestUpdateConfigValuesDoesNotRewriteUnchangedConfig(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "agent.conf")
 	data := []byte("# DenyKey=system.run[*]\nOther=value\n")
 	if err := os.WriteFile(path, data, 0o600); err != nil {
@@ -86,7 +86,7 @@ func TestUpdateConfigMultipleDoesNotRewriteUnchangedConfig(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if err := UpdateConfigMultiple(path, "DenyKey", ""); err != nil {
+	if err := UpdateConfigValues(path, "DenyKey", ""); err != nil {
 		t.Fatal(err)
 	}
 

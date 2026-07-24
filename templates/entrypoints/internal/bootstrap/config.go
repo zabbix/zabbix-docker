@@ -7,10 +7,9 @@ import (
 	"strings"
 )
 
-// UpdateConfigMultiple replaces the name option in the configuration file
-// with one line per comma-separated item of rawValue. An empty value removes
-// the option.
-func UpdateConfigMultiple(configPath, name, rawValue string) error {
+// UpdateConfigValues adds one name option per comma-separated item of rawValue,
+// preserving active values already present. An empty value removes the option.
+func UpdateConfigValues(configPath, name, rawValue string) error {
 	value := strings.Trim(strings.TrimSpace(rawValue), `"`)
 	if value == "" {
 		changed, err := rewriteConfig(configPath, name, nil, false)
