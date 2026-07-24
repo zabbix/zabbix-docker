@@ -106,7 +106,7 @@ func (db *DB) waitForConnectionContext(ctx context.Context, user, password strin
 	}
 	bootstrap.LogInfo("* DB_SERVER_DBNAME: %s", db.name)
 	bootstrap.LogDebug(db.env, "* DB_SERVER_ROOT_USER: %s", db.adminUser)
-	bootstrap.LogDebug(db.env, "* DB_SERVER_ZBX_USER: %s", db.user)
+	bootstrap.LogDebug(db.env, "* DB_SERVER_USER: %s", db.user)
 	bootstrap.LogInfo("********************")
 
 	config, err := db.connConfig("", user, password)

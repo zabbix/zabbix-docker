@@ -97,8 +97,6 @@ func preparePHP(env bootstrap.Environment, dbType DBType) error {
 	}
 
 	env["DB_SERVER_TYPE"] = string(dbType)
-	env["DB_SERVER_USER"] = env["DB_SERVER_ZBX_USER"]
-	env["DB_SERVER_PASS"] = env["DB_SERVER_ZBX_PASS"]
 
 	// PHP-FPM expands this variable while parsing the MySQL pool configuration
 	if dbType == MySQL {

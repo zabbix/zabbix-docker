@@ -80,12 +80,10 @@ func TestClearWebEnv(t *testing.T) {
 			env: bootstrap.Environment{
 				"ZBX_VAULT": "HashiCorp", "ZBX_VAULTURL": "https://vault",
 			},
-			wantCredentials: true,
 		},
 		{
-			name:            "CyberArk Vault",
-			env:             bootstrap.Environment{"ZBX_VAULT": "CyberArk"},
-			wantCredentials: true,
+			name: "CyberArk Vault",
+			env:  bootstrap.Environment{"ZBX_VAULT": "CyberArk"},
 		},
 		{
 			name: "cleanup disabled",
@@ -100,8 +98,6 @@ func TestClearWebEnv(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			test.env["DB_SERVER_ZBX_USER"] = "zabbix"
-			test.env["DB_SERVER_ZBX_PASS"] = "secret"
 			test.env["DB_SERVER_USER"] = "zabbix"
 			test.env["DB_SERVER_PASS"] = "secret"
 			test.env["MYSQL_PASSWORD"] = "mysql-secret"
@@ -109,7 +105,7 @@ func TestClearWebEnv(t *testing.T) {
 
 			clearWebEnv(test.env)
 
-			for _, name := range []string{"DB_SERVER_ZBX_USER", "DB_SERVER_ZBX_PASS", "MYSQL_PASSWORD", "NGINX_TEST"} {
+			for _, name := range []string{"MYSQL_PASSWORD", "NGINX_TEST"} {
 				_, found := test.env[name]
 				if found != test.wantPrivate {
 					t.Fatalf("%s presence = %t, want %t", name, found, test.wantPrivate)

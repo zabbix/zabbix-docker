@@ -73,8 +73,6 @@ func Run(env bootstrap.Environment, db DB, opts Options, args []string) error {
 		return err
 	}
 
-	setDBEnv(env, db)
-
 	if err := preparePHP(env, opts.DBType); err != nil {
 		return err
 	}
@@ -82,6 +80,8 @@ func Run(env bootstrap.Environment, db DB, opts Options, args []string) error {
 	if err := prepareWebServer(env); err != nil {
 		return err
 	}
+
+	setDBEnv(env, db)
 
 	if err := hooks.Run(env); err != nil {
 		return err
@@ -95,14 +95,14 @@ func Run(env bootstrap.Environment, db DB, opts Options, args []string) error {
 func setDBEnv(env bootstrap.Environment, db DB) {
 	env["DB_SERVER_DBNAME"] = db.Name()
 	env["DB_SERVER_SCHEMA"] = db.Schema()
-	env["DB_SERVER_ZBX_USER"] = db.User()
-	env["DB_SERVER_ZBX_PASS"] = db.Password()
+	env["DB_SERVER_USER"] = db.User()
+	env["DB_SERVER_PASS"] = db.Password()
 }
 
 func clearWebEnv(env bootstrap.Environment) {
-	prefixes := []string{"MYSQL_", "POSTGRES_", "NGINX_", "DB_SERVER_ZBX_"}
+	prefixes := []string{"MYSQL_", "POSTGRES_", "NGINX_"}
 
-	if env["ZBX_VAULT"] == "HashiCorp" && env["VAULT_TOKEN"] != "" && env["ZBX_VAULTURL"] != "" {
+	if env["ZBX_VAULT"] != "" {
 		prefixes = append(prefixes, "DB_SERVER_USER", "DB_SERVER_PASS")
 	}
 

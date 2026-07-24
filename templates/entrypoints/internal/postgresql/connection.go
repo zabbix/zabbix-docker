@@ -117,7 +117,7 @@ func (db *DB) waitForConnectionContext(ctx context.Context, user, password strin
 	bootstrap.LogInfo("* DB_SERVER_PORT: %s", db.port)
 	bootstrap.LogInfo("* DB_SERVER_DBNAME: %s", db.name)
 	bootstrap.LogInfo("* DB_SERVER_SCHEMA: %s", db.schema)
-	bootstrap.LogDebug(db.env, "* DB_SERVER_ZBX_USER: %s", db.user)
+	bootstrap.LogDebug(db.env, "* DB_SERVER_USER: %s", db.user)
 	bootstrap.LogInfo("********************")
 
 	for {

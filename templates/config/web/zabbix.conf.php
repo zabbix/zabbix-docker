@@ -50,7 +50,7 @@ $DB['PORT']     = env_int('DB_SERVER_PORT');
 $DB['DATABASE'] = env_string('DB_SERVER_DBNAME');
 $DB['SCHEMA']   = env_string('DB_SERVER_SCHEMA');
 
-if (!getenv('VAULT_TOKEN') || !getenv('ZBX_VAULTURL')) {
+if (!getenv('ZBX_VAULT')) {
     $DB['USER']     = env_string('DB_SERVER_USER');
     $DB['PASSWORD'] = env_string('DB_SERVER_PASS');
 }
