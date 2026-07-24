@@ -48,7 +48,6 @@ run_service() {
         "-Dsun.rmi.transport.tcp.responseTimeout=${ZBX_TIMEOUT}000"
         "-Dzabbix.listenPort=${ZBX_LISTEN_PORT:-10052}"
         "-Dzabbix.timeout=${ZBX_TIMEOUT}"
-        "-Dzabbix.pidFile=/tmp/java_gateway.pid"
     )
 
     [[ -n "${ZBX_LISTEN_IP:-}" ]] && zabbix_opts+=("-Dzabbix.listenIP=${ZBX_LISTEN_IP}")
