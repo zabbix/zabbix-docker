@@ -9,18 +9,7 @@ source "${ENTRYPOINT_LIBS}/logging.sh"
 : "${JAVA:=/usr/bin/java}"
 readonly ZBX_GATEWAY_CONFIG="${ZABBIX_CONF_DIR}/zabbix_java_gateway_logback.xml"
 readonly ZABBIX_JAVA_DIR="/usr/sbin/zabbix_java"
-
-build_classpath() {
-    local classpath
-    local jar
-    classpath="lib"
-
-    while IFS= read -r -d '' jar; do
-        classpath="${classpath}:$jar"
-    done < <(find lib bin ext_lib -name '*.jar' -print0)
-
-    printf '%s\n' "$classpath"
-}
+readonly JAVA_CLASSPATH="lib/*:bin/*:ext_lib/*"
 
 run_service() {
     info "** Preparing Zabbix Java Gateway"
@@ -30,9 +19,6 @@ run_service() {
     [[ -f "$ZBX_GATEWAY_CONFIG" ]] || error "Missing configuration file: $ZBX_GATEWAY_CONFIG"
 
     cd "$ZABBIX_JAVA_DIR"
-
-    local classpath
-    classpath="$(build_classpath)"
 
     local -a java_opts=(
         -server
@@ -57,7 +43,7 @@ run_service() {
     local -a cmd=(
         "$JAVA"
         "${java_opts[@]}"
-        -classpath "$classpath"
+        -classpath "$JAVA_CLASSPATH"
         "${zabbix_opts[@]}"
         com.zabbix.gateway.JavaGateway
     )
