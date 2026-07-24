@@ -41,6 +41,9 @@ func Prepare(dbPath, schemaPath string) error {
 		}
 		return err
 	}
+	if _, err := db.Exec("PRAGMA journal_mode=WAL"); err != nil {
+		return fmt.Errorf("enable SQLite WAL: %w", err)
+	}
 
 	var result int
 	if err := db.QueryRow("SELECT count(*) FROM sqlite_master WHERE type='table' AND name='dbversion'").Scan(&result); err != nil {
@@ -53,14 +56,40 @@ func Prepare(dbPath, schemaPath string) error {
 		if err != nil {
 			return err
 		}
-		if _, err := db.Exec(string(data)); err != nil {
-			return fmt.Errorf("create SQLite schema: %w", err)
-		}
-		if _, err := db.Exec("PRAGMA journal_mode=WAL"); err != nil {
-			return fmt.Errorf("enable SQLite WAL: %w", err)
+		if err := createSchema(db, data); err != nil {
+			return err
 		}
 	} else {
+		var version int
+		if err := db.QueryRow("SELECT mandatory FROM dbversion LIMIT 1").Scan(&version); err != nil {
+			return fmt.Errorf("validate SQLite schema in %q: %w", dbPath, err)
+		}
 		bootstrap.LogInfo("** SQLite database '%s' already exists", dbPath)
+	}
+
+	return nil
+}
+
+func createSchema(db *sql.DB, data []byte) error {
+	tx, err := db.Begin()
+	if err != nil {
+		return fmt.Errorf("begin SQLite schema transaction: %w", err)
+	}
+	defer func() {
+		_ = tx.Rollback()
+	}()
+
+	if _, err := tx.Exec(string(data)); err != nil {
+		return fmt.Errorf("create SQLite schema: %w", err)
+	}
+
+	var version int
+	if err := tx.QueryRow("SELECT mandatory FROM dbversion LIMIT 1").Scan(&version); err != nil {
+		return fmt.Errorf("validate created SQLite schema: %w", err)
+	}
+
+	if err := tx.Commit(); err != nil {
+		return fmt.Errorf("commit SQLite schema: %w", err)
 	}
 
 	return nil

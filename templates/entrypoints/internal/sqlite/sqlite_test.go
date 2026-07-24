@@ -60,6 +60,55 @@ func TestPrepareRejectsInvalidDatabase(t *testing.T) {
 	}
 }
 
+func TestPrepareRejectsIncompleteExistingSchema(t *testing.T) {
+	databasePath := filepath.Join(t.TempDir(), "proxy.db")
+	database, err := sql.Open("sqlite3", "file:"+databasePath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := database.Exec("CREATE TABLE dbversion (mandatory INTEGER)"); err != nil {
+		t.Fatal(err)
+	}
+	if err := database.Close(); err != nil {
+		t.Fatal(err)
+	}
+
+	if err := Prepare(databasePath, "unused.sql.gz"); err == nil {
+		t.Fatal("expected incomplete schema error")
+	}
+}
+
+func TestPrepareRollsBackFailedSchema(t *testing.T) {
+	directory := t.TempDir()
+	databasePath := filepath.Join(directory, "proxy.db")
+	schemaPath := filepath.Join(directory, "schema.sql.gz")
+	writeSQLSchema(t, schemaPath,
+		"CREATE TABLE dbversion (mandatory INTEGER); "+
+			"INSERT INTO dbversion VALUES (8000000); "+
+			"INVALID SQL;",
+	)
+
+	if err := Prepare(databasePath, schemaPath); err == nil {
+		t.Fatal("expected schema creation error")
+	}
+
+	database, err := sql.Open("sqlite3", "file:"+databasePath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer database.Close()
+
+	var tables int
+	if err := database.QueryRow(
+		"SELECT count(*) FROM sqlite_master WHERE type='table' AND name='dbversion'",
+	).Scan(&tables); err != nil {
+		t.Fatal(err)
+	}
+	if tables != 0 {
+		t.Fatal("dbversion table was not rolled back")
+	}
+}
+
 func TestPrepareEscapesDatabasePath(t *testing.T) {
 	directory := t.TempDir()
 	databasePath := filepath.Join(directory, "proxy?#.db")
@@ -77,12 +126,18 @@ func TestPrepareEscapesDatabasePath(t *testing.T) {
 func writeSchema(t *testing.T, path string) {
 	t.Helper()
 
+	writeSQLSchema(t, path, "CREATE TABLE dbversion (mandatory INTEGER); INSERT INTO dbversion VALUES (8000000);")
+}
+
+func writeSQLSchema(t *testing.T, path, schema string) {
+	t.Helper()
+
 	file, err := os.Create(path)
 	if err != nil {
 		t.Fatal(err)
 	}
 	compressed := gzip.NewWriter(file)
-	if _, err := compressed.Write([]byte("CREATE TABLE dbversion (mandatory INTEGER); INSERT INTO dbversion VALUES (8000000);")); err != nil {
+	if _, err := compressed.Write([]byte(schema)); err != nil {
 		t.Fatal(err)
 	}
 	if err := compressed.Close(); err != nil {
