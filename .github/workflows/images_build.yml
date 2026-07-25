@@ -826,6 +826,7 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           build_contexts: |
             config_templates=./templates/config/snmptraps/
+            entrypoints=./templates/entrypoints/
             scripts=./templates/scripts/snmptraps/
           labels: |
             org.opencontainers.image.revision=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.revision'] }}

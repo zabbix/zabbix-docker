@@ -615,6 +615,7 @@ jobs:
           extra-args: |
             --iidfile=${{ github.workspace }}/iidfile
             --build-context config_templates=./templates/config/snmptraps
+            --build-context entrypoints=./templates/entrypoints
             --build-context scripts=./templates/scripts/snmptraps
 
       - name: Validate registry secrets
