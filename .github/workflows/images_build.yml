@@ -697,11 +697,8 @@ jobs:
         run: |
           if [[ "$MATRIX_BUILD" == "web-service" ]]; then
             case "$MATRIX_OS" in
-              alpine|centos|ubuntu)
+              alpine|centos|ol|ubuntu)
                 platform_list="linux/amd64,linux/arm64"
-                ;;
-              ol)
-                platform_list="linux/amd64"
                 ;;
               *)
                 platform_list="$(jq -r --arg os "$MATRIX_OS" '.["os-linux"][$os] | join(",")' "$MATRIX_FILE")"
