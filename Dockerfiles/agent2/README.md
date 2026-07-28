@@ -126,7 +126,7 @@ The variable is used to specify timeout for processing checks. By default, value
 Additionally the image allows to specify many other environment variables listed below:
 
 ```
-ZBX_ENABLEPERSISTENTBUFFER=false # Available since 5.0.0
+ZBX_ENABLEPERSISTENTBUFFER=0 # Available since 5.0.0
 ZBX_PERSISTENTBUFFERPERIOD=1h # Available since 5.0.0
 ZBX_ENABLESTATUSPORT=
 ZBX_SOURCEIP=
@@ -191,7 +191,7 @@ The volume is used to store TLS related files. These file names are specified us
 
 ### ``/var/lib/zabbix/buffer``
 
-The volume is used to store the file, where Zabbix Agent2 should keep SQLite database. To enable the feature specify ``ZBX_ENABLEPERSISTENTBUFFER=true``. Available since 5.0.0.
+The volume is used to store the file, where Zabbix Agent2 should keep SQLite database. To enable the feature specify ``ZBX_ENABLEPERSISTENTBUFFER=1``. Available since 5.0.0.
 
 # The image variants
 
