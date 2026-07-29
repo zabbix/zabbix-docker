@@ -3,8 +3,8 @@ ARG OS_BASE_IMAGE=registry.access.redhat.com/ubi10/ubi-minimal:10.2
 FROM ${OS_BASE_IMAGE}
 
 ARG MAJOR_VERSION=7.4
-ARG RELEASE=12
-ARG ZBX_VERSION=${MAJOR_VERSION}.12
+ARG RELEASE=13
+ARG ZBX_VERSION=${MAJOR_VERSION}.13
 
 ARG ZBX_SOURCES=https://git.zabbix.com/scm/zbx/zabbix.git
 
