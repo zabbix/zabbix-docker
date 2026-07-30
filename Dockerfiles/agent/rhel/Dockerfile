@@ -77,7 +77,6 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
     microdnf -y install \
             --disablerepo="*" \
             --enablerepo="ubi-10-baseos-rpms" \
-            --enablerepo="rhel-10-for-$ARCH_SUFFIX-baseos-rpms" \
             --enablerepo="epel" \
             --setopt=install_weak_deps=0 \
             --setopt=keepcache=0 \

@@ -69,9 +69,11 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             iputils \
             smartmontools \
             sudo" && \
+    ARCH_SUFFIX="$(arch)"; \
     microdnf -y install \
             --disablerepo="*" \
             --enablerepo="ubi-10-baseos-rpms" \
+            --enablerepo="rhel-10-for-$ARCH_SUFFIX-baseos-rpms" \
             --setopt=install_weak_deps=0 \
             --setopt=keepcache=0 \
             --best \
