@@ -24,6 +24,9 @@ outputs:
   sha_short:
     description: Short Git commit SHA
     value: ${{ steps.branch_info.outputs.sha_short }}
+  release_version:
+    description: Version extracted from a standardized release commit subject
+    value: ${{ steps.branch_info.outputs.release_version }}
 
 runs:
   using: composite
@@ -58,9 +61,17 @@ runs:
 
         current_branch="${ref##*/}"
         is_default_branch=false
+        release_version=""
 
         if [[ "$current_branch" == "$DEFAULT_BRANCH" ]]; then
           is_default_branch=true
+        fi
+
+        commit_subject="$(git log -1 --pretty=%s)"
+
+        if [[ "$GITHUB_EVENT_NAME" == "push" &&
+              "$commit_subject" =~ ^Zabbix\ v([0-9]+\.[0-9]+\.[0-9]+)\ release$ ]]; then
+          release_version="${BASH_REMATCH[1]}"
         fi
 
         if [[ "${current_branch//.}" == "trunk" && -n "$TRUNK_MAJOR_VERSION" ]]; then
@@ -76,6 +87,7 @@ runs:
         echo "current_branch=$current_branch"
         echo "secret_prefix=$secret_prefix"
         echo "sha_short=$sha_short"
+        echo "release_version=$release_version"
         echo "::endgroup::"
 
         {
@@ -83,4 +95,5 @@ runs:
           echo "current_branch=$current_branch"
           echo "secret_prefix=$secret_prefix"
           echo "sha_short=$sha_short"
+          echo "release_version=$release_version"
         } >> "$GITHUB_OUTPUT"

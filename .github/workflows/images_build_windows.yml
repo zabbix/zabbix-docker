@@ -1,9 +1,6 @@
 name: Build images (DockerHub, Windows)
 
 on:
-  release:
-    types:
-      - published
   push:
     branches:
       - '[0-9]+.[0-9]+'
@@ -68,6 +65,7 @@ jobs:
       is_default_branch: ${{ steps.branch_info.outputs.is_default_branch }}
       current_branch: ${{ steps.branch_info.outputs.current_branch }}
       sha_short: ${{ steps.branch_info.outputs.sha_short }}
+      release_version: ${{ steps.branch_info.outputs.release_version }}
     steps:
       - name: Block egress traffic
         uses: step-security/harden-runner@9af89fc71515a100421586dfdb3dc9c984fbf411 # v2.19.4
@@ -309,8 +307,8 @@ jobs:
           images: ${{ format('{0}/{1}/{2}{3}', env.DOCKER_REGISTRY, env.DOCKER_REPOSITORY, env.IMAGES_PREFIX, env.BASE_IMAGE_NAME ) }}
           context: ${{ env.TRUNK_ONLY_EVENT == 'true' && 'git' || '' }}
           tags: |
-            type=semver,enable=${{ needs.init_build.outputs.current_branch != 'trunk' }},pattern={{version}},prefix=${{ matrix.component }}-${{ steps.base_os_tag.outputs.os_tag }}-
-            type=semver,enable=${{ needs.init_build.outputs.current_branch != 'trunk' }},pattern={{version}},suffix=-${{ steps.base_os_tag.outputs.os_tag }},prefix=${{ matrix.component }}-
+            type=semver,enable=${{ needs.init_build.outputs.release_version != '' }},value=${{ needs.init_build.outputs.release_version }},pattern={{version}},prefix=${{ matrix.component }}-${{ steps.base_os_tag.outputs.os_tag }}-
+            type=semver,enable=${{ needs.init_build.outputs.release_version != '' }},value=${{ needs.init_build.outputs.release_version }},pattern={{version}},suffix=-${{ steps.base_os_tag.outputs.os_tag }},prefix=${{ matrix.component }}-
             type=ref,enable=${{ needs.init_build.outputs.current_branch != 'trunk' }},event=branch,prefix=${{ matrix.component }}-${{ steps.base_os_tag.outputs.os_tag }}-,suffix=-latest
             type=ref,enable=${{ needs.init_build.outputs.current_branch != 'trunk' }},event=branch,suffix=-${{ steps.base_os_tag.outputs.os_tag }}-latest,prefix=${{ matrix.component }}-
             type=raw,enable=${{ needs.init_build.outputs.current_branch != 'trunk' && needs.init_build.outputs.is_default_branch == 'true' }},value=${{ matrix.component }}-${{ steps.base_os_tag.outputs.os_tag }}-latest
@@ -465,8 +463,8 @@ jobs:
           images: ${{ format('{0}/{1}/{2}{3}', env.DOCKER_REGISTRY, env.DOCKER_REPOSITORY, env.IMAGES_PREFIX, env.BASE_BUILD_IMAGE_NAME ) }}
           context: ${{ env.TRUNK_ONLY_EVENT == 'true' && 'git' || '' }}
           tags: |
-            type=semver,enable=${{ needs.init_build.outputs.current_branch != 'trunk' }},pattern={{version}},prefix=${{ matrix.component }}-${{ steps.base_os_tag.outputs.os_tag }}-
-            type=semver,enable=${{ needs.init_build.outputs.current_branch != 'trunk' }},pattern={{version}},suffix=-${{ steps.base_os_tag.outputs.os_tag }},prefix=${{ matrix.component }}-
+            type=semver,enable=${{ needs.init_build.outputs.release_version != '' }},value=${{ needs.init_build.outputs.release_version }},pattern={{version}},prefix=${{ matrix.component }}-${{ steps.base_os_tag.outputs.os_tag }}-
+            type=semver,enable=${{ needs.init_build.outputs.release_version != '' }},value=${{ needs.init_build.outputs.release_version }},pattern={{version}},suffix=-${{ steps.base_os_tag.outputs.os_tag }},prefix=${{ matrix.component }}-
             type=ref,enable=${{ needs.init_build.outputs.current_branch != 'trunk' }},event=branch,prefix=${{ matrix.component }}-${{ steps.base_os_tag.outputs.os_tag }}-,suffix=-latest
             type=ref,enable=${{ needs.init_build.outputs.current_branch != 'trunk' }},event=branch,suffix=-${{ steps.base_os_tag.outputs.os_tag }}-latest,prefix=${{ matrix.component }}-
             type=raw,enable=${{ (needs.init_build.outputs.current_branch != 'trunk') && (needs.init_build.outputs.is_default_branch == 'true') }},value=${{ matrix.component }}-${{ steps.base_os_tag.outputs.os_tag }}-latest
@@ -653,8 +651,8 @@ jobs:
           images: ${{ format('{0}/{1}/{2}{3}', env.DOCKER_REGISTRY, env.DOCKER_REPOSITORY, env.IMAGES_PREFIX, matrix.component ) }}
           context: ${{ env.TRUNK_ONLY_EVENT == 'true' && 'git' || '' }}
           tags: |
-            type=semver,enable=${{ needs.init_build.outputs.current_branch != 'trunk' }},pattern={{version}},prefix=${{ steps.base_os_tag.outputs.os_tag }}-
-            type=semver,enable=${{ needs.init_build.outputs.current_branch != 'trunk' }},pattern={{version}},suffix=-${{ steps.base_os_tag.outputs.os_tag }}
+            type=semver,enable=${{ needs.init_build.outputs.release_version != '' }},value=${{ needs.init_build.outputs.release_version }},pattern={{version}},prefix=${{ steps.base_os_tag.outputs.os_tag }}-
+            type=semver,enable=${{ needs.init_build.outputs.release_version != '' }},value=${{ needs.init_build.outputs.release_version }},pattern={{version}},suffix=-${{ steps.base_os_tag.outputs.os_tag }}
             type=ref,enable=${{ needs.init_build.outputs.current_branch != 'trunk' }},event=branch,prefix=${{ steps.base_os_tag.outputs.os_tag }}-,suffix=-latest
             type=ref,enable=${{ needs.init_build.outputs.current_branch != 'trunk' }},event=branch,suffix=-${{ steps.base_os_tag.outputs.os_tag }}-latest
             type=raw,enable=${{ (needs.init_build.outputs.current_branch != 'trunk') && (needs.init_build.outputs.is_default_branch == 'true') }},value=${{ steps.base_os_tag.outputs.os_tag }}-latest

@@ -20,6 +20,10 @@ inputs:
   event_name:
     required: true
     description: 'GitHub event name'
+  release_version:
+    required: false
+    default: ""
+    description: 'Version extracted from a standardized release commit subject'
 
 outputs:
   tags:
@@ -45,8 +49,8 @@ runs:
         images: ${{ inputs.image }}
         context: ${{ inputs.trunk_only_event == 'true' && 'git' || '' }}
         tags: |
-          type=semver,enable=${{ inputs.current_branch != 'trunk' }},pattern={{version}},prefix=${{ inputs.os }}-
-          type=semver,enable=${{ inputs.current_branch != 'trunk' }},pattern={{version}},suffix=-${{ inputs.os }}
+          type=semver,enable=${{ inputs.release_version != '' }},value=${{ inputs.release_version }},pattern={{version}},prefix=${{ inputs.os }}-
+          type=semver,enable=${{ inputs.release_version != '' }},value=${{ inputs.release_version }},pattern={{version}},suffix=-${{ inputs.os }}
           type=ref,enable=${{ inputs.current_branch != 'trunk' && inputs.event_name != 'workflow_dispatch' }},event=branch,prefix=${{ inputs.os }}-,suffix=-latest
           type=ref,enable=${{ inputs.current_branch != 'trunk' && inputs.event_name != 'workflow_dispatch' }},event=branch,suffix=-${{ inputs.os }}-latest
           type=raw,enable=${{ inputs.current_branch != 'trunk' && inputs.is_default_branch == 'true' }},value=${{ inputs.os }}-latest
