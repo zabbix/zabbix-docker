@@ -68,7 +68,7 @@ prepare_web_server() {
     if [ "${ENABLE_WEB_ACCESS_LOG,,}" = "false" ]; then
         printf 'access_log off;\n' > "${NGINX_INCLUDES_DIR}/access-log.conf"
     else
-        printf 'access_log /var/log/nginx/access.log main;\n' > "${NGINX_INCLUDES_DIR}/access-log.conf"
+        printf 'access_log /dev/stdout main;\n' > "${NGINX_INCLUDES_DIR}/access-log.conf"
     fi
 
     if [ -n "${WEB_REAL_IP_FROM:-}" ]; then
