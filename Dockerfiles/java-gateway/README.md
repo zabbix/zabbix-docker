@@ -84,6 +84,14 @@ Name of properties file. Can be used to set additional properties using a key-va
 
 Additional Java Virtual Machine (JVM) options for Zabbix Java Gateway, for example `-Xms128m -Xmx1g`.
 
+### `ZBX_LISTEN_IP`
+
+This variable is used to specify the IP address the Zabbix Java Gateway listens on. By default, the gateway listens on all available network interfaces.
+
+### `ZBX_LISTEN_PORT`
+
+This variable is used to specify the port the Zabbix Java Gateway listens on. By default, value is `10052`.
+
 ## Allowed volumes for the Zabbix Java Gateway container
 
 ### ``/usr/sbin/zabbix_java/ext_lib``
