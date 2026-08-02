@@ -1,9 +1,6 @@
 name: Build images (DockerHub)
 
 on:
-  release:
-    types:
-      - published
   push:
     branches:
       - '[0-9]+.[0-9]+'
@@ -64,6 +61,7 @@ jobs:
       is_default_branch: ${{ steps.branch_info.outputs.is_default_branch }}
       current_branch: ${{ steps.branch_info.outputs.current_branch }}
       sha_short: ${{ steps.branch_info.outputs.sha_short }}
+      release_version: ${{ steps.branch_info.outputs.release_version }}
 
     steps:
       - name: Block egress traffic
@@ -294,6 +292,7 @@ jobs:
           is_default_branch: ${{ needs.init_build.outputs.is_default_branch }}
           trunk_only_event: ${{ env.TRUNK_ONLY_EVENT }}
           event_name: ${{ github.event_name }}
+          release_version: ${{ needs.init_build.outputs.release_version }}
 
       - name: Set up Docker tooling
         uses: ./.github/actions/docker-linux-setup
@@ -445,6 +444,7 @@ jobs:
           is_default_branch: ${{ needs.init_build.outputs.is_default_branch }}
           trunk_only_event: ${{ env.TRUNK_ONLY_EVENT }}
           event_name: ${{ github.event_name }}
+          release_version: ${{ needs.init_build.outputs.release_version }}
 
       - name: Download artifact metadata of ${{ env.BASE_BUILD_NAME }}:${{ matrix.os }}
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
@@ -747,6 +747,7 @@ jobs:
           is_default_branch: ${{ needs.init_build.outputs.is_default_branch }}
           trunk_only_event: ${{ env.TRUNK_ONLY_EVENT }}
           event_name: ${{ github.event_name }}
+          release_version: ${{ needs.init_build.outputs.release_version }}
 
       - name: Download artifact metadata of ${{ steps.build_base_image.outputs.build_base }}:${{ matrix.os }}
         if: ${{ matrix.build != 'snmptraps' }}
