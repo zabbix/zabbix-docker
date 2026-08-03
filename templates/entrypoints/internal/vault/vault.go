@@ -222,15 +222,18 @@ func vaultTransport(tlsConfig *tls.Config) *http.Transport {
 
 var sleep = time.Sleep
 
-func requestWithRetry(client *http.Client, reqURL string, configure func(*http.Request)) ([]byte, error) {
-	attempts := 3
-	delay := 5 * time.Second
+const (
+	maxAttempts = 3
+	retryDelay  = 5 * time.Second
+	maxRespSize = 1 << 20
+)
 
+func requestWithRetry(client *http.Client, reqURL string, configure func(*http.Request)) ([]byte, error) {
 	var lastErr error
-	for attempt := 1; attempt <= attempts; attempt++ {
+	for attempt := 1; attempt <= maxAttempts; attempt++ {
 		if attempt > 1 {
-			bootstrap.LogInfo("**** Vault is not available. Waiting %s... ****", delay)
-			sleep(delay)
+			bootstrap.LogInfo("**** Vault is not available. Waiting %s... ****", retryDelay)
+			sleep(retryDelay)
 		}
 
 		req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, reqURL, nil)
@@ -245,18 +248,51 @@ func requestWithRetry(client *http.Client, reqURL string, configure func(*http.R
 			continue
 		}
 
-		data, readErr := io.ReadAll(resp.Body)
+		data, readErr := readVaultResponse(resp.Body)
 		resp.Body.Close()
-		if readErr != nil {
-			return nil, readErr
-		}
 
 		if resp.StatusCode < http.StatusOK || resp.StatusCode >= http.StatusMultipleChoices {
-			return nil, fmt.Errorf("vault request failed with status %s: %s", resp.Status, strings.TrimSpace(string(data)))
+			statusErr := fmt.Errorf("vault request failed with status %s", resp.Status)
+			if !retryableVaultStatus(resp.StatusCode) {
+				return nil, statusErr
+			}
+
+			lastErr = statusErr
+			continue
+		}
+
+		if readErr != nil {
+			lastErr = readErr
+			continue
 		}
 
 		return data, nil
 	}
 
-	return nil, fmt.Errorf("vault is not available after %d attempts: %w", attempts, lastErr)
+	return nil, fmt.Errorf("vault is not available after %d attempts: %w", maxAttempts, lastErr)
+}
+
+func readVaultResponse(body io.Reader) ([]byte, error) {
+	data, err := io.ReadAll(io.LimitReader(body, maxRespSize+1))
+	if err != nil {
+		return nil, fmt.Errorf("read Vault response: %w", err)
+	}
+	if len(data) > maxRespSize {
+		return nil, fmt.Errorf("Vault response exceeds %d bytes", maxRespSize)
+	}
+
+	return data, nil
+}
+
+func retryableVaultStatus(status int) bool {
+	switch status {
+	case http.StatusTooManyRequests,
+		http.StatusInternalServerError,
+		http.StatusBadGateway,
+		http.StatusServiceUnavailable,
+		http.StatusGatewayTimeout:
+		return true
+	default:
+		return false
+	}
 }

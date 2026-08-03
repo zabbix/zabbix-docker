@@ -180,7 +180,7 @@ func TestRequestWithRetryRejectsHTTPError(t *testing.T) {
 		return &http.Response{
 			StatusCode: http.StatusForbidden,
 			Status:     "403 Forbidden",
-			Body:       io.NopCloser(strings.NewReader("denied")),
+			Body:       io.NopCloser(strings.NewReader("denied: sensitive response")),
 		}, nil
 	})}
 
@@ -189,9 +189,53 @@ func TestRequestWithRetryRejectsHTTPError(t *testing.T) {
 		if !strings.Contains(err.Error(), "403 Forbidden") {
 			t.Fatalf("unexpected error: %v", err)
 		}
+		if strings.Contains(err.Error(), "sensitive response") {
+			t.Fatalf("Vault response body was exposed: %v", err)
+		}
 		return
 	}
 	t.Fatal("HTTP error was accepted")
+}
+
+func TestRequestWithRetryRetriesTemporaryHTTPError(t *testing.T) {
+	var delays []time.Duration
+	sleep = func(delay time.Duration) { delays = append(delays, delay) }
+	defer func() { sleep = time.Sleep }()
+
+	attempts := 0
+	client := &http.Client{Transport: roundTripFunc(func(*http.Request) (*http.Response, error) {
+		attempts++
+		if attempts == 1 {
+			return &http.Response{
+				StatusCode: http.StatusServiceUnavailable,
+				Status:     "503 Service Unavailable",
+				Body:       io.NopCloser(strings.NewReader("temporary failure")),
+			}, nil
+		}
+		return &http.Response{
+			StatusCode: http.StatusOK,
+			Status:     "200 OK",
+			Body:       io.NopCloser(strings.NewReader(`{"data":"ok"}`)),
+		}, nil
+	})}
+
+	data, err := requestWithRetry(client, "https://vault.example.test/secret", func(*http.Request) {})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if attempts != 2 || len(delays) != 1 || delays[0] != retryDelay {
+		t.Fatalf("attempts = %d, delays = %v", attempts, delays)
+	}
+	if string(data) != `{"data":"ok"}` {
+		t.Fatalf("response = %s", data)
+	}
+}
+
+func TestReadVaultResponseRejectsOversizedBody(t *testing.T) {
+	_, err := readVaultResponse(strings.NewReader(strings.Repeat("x", maxRespSize+1)))
+	if err == nil || !strings.Contains(err.Error(), "exceeds") {
+		t.Fatalf("oversized Vault response error = %v", err)
+	}
 }
 
 func TestRequestWithRetryGivesUp(t *testing.T) {
