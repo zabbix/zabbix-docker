@@ -79,6 +79,28 @@ func TestConfigureItemKeyRules(t *testing.T) {
 	}
 }
 
+func TestConfigureItemKeyRulesPreservesCRLF(t *testing.T) {
+	configDir := t.TempDir()
+	path := filepath.Join(configDir, "item_keys.conf")
+	if err := os.WriteFile(path, []byte("header\r\nAllowKey=old\r\n"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+
+	env := bootstrap.Environment{"ZBX_ALLOWKEY_0": "system.localtime"}
+	if err := ConfigureItemKeyRules(env, configDir, "item_keys.conf"); err != nil {
+		t.Fatal(err)
+	}
+
+	data, err := os.ReadFile(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	want := "header\r\n\r\nAllowKey=${ZBX_ALLOWKEY_0}\r\n"
+	if string(data) != want {
+		t.Fatalf("item key config:\n%q\nwant:\n%q", data, want)
+	}
+}
+
 func TestConfigureItemKeyRulesValidation(t *testing.T) {
 	tests := []struct {
 		name string

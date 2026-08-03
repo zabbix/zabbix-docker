@@ -137,7 +137,7 @@ func ResolveSecretEnv(env Environment, name string) error {
 		if err != nil {
 			return fmt.Errorf("secret file %q is not found: %w", secretFile, err)
 		}
-		value = strings.TrimRight(string(data), "\n")
+		value = strings.TrimRight(string(data), "\r\n")
 		LogInfo("** Using %s variable from secret file", name)
 	}
 

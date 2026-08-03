@@ -70,7 +70,7 @@ func TestClearPrivateEnvWithPrefixes(t *testing.T) {
 
 func TestResolveSecretEnv(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "password")
-	if err := os.WriteFile(path, []byte("secret\n"), 0o600); err != nil {
+	if err := os.WriteFile(path, []byte("secret\r\n"), 0o600); err != nil {
 		t.Fatal(err)
 	}
 	env := Environment{"MYSQL_PASSWORD_FILE": path}

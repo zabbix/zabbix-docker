@@ -47,7 +47,13 @@ func ConfigureItemKeyRules(env bootstrap.Environment, configDir, fileName string
 		return fmt.Errorf("missing configuration file %s: %w", path, err)
 	}
 
-	lines := strings.Split(strings.TrimSuffix(string(data), "\n"), "\n")
+	lineEnding := "\n"
+	content := string(data)
+	if bytes.Contains(data, []byte("\r\n")) {
+		lineEnding = "\r\n"
+		content = strings.ReplaceAll(content, "\r\n", "\n")
+	}
+	lines := strings.Split(strings.TrimSuffix(content, "\n"), "\n")
 	output := make([]string, 0, len(lines)+len(rules)+1)
 	for _, line := range lines {
 		if !isItemKeyRuleLine(line) {
@@ -67,7 +73,11 @@ func ConfigureItemKeyRules(env bootstrap.Environment, configDir, fileName string
 		}
 	}
 
-	updatedData := []byte(strings.Join(output, "\n") + "\n")
+	updated := strings.Join(output, "\n") + "\n"
+	if lineEnding == "\r\n" {
+		updated = strings.ReplaceAll(updated, "\n", lineEnding)
+	}
+	updatedData := []byte(updated)
 	if !bytes.Equal(data, updatedData) {
 		if err := bootstrap.WriteFilePreservingMode(path, updatedData); err != nil {
 			return fmt.Errorf("update configuration file %s: %w", path, err)

@@ -35,6 +35,25 @@ func TestUpdateConfigValues(t *testing.T) {
 	}
 }
 
+func TestUpdateConfigValuesPreservesCRLF(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "agent.conf")
+	if err := os.WriteFile(path, []byte("# DenyKey=system.run[*]\r\nOther=value\r\n"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	if err := UpdateConfigValues(path, "DenyKey", "one,two"); err != nil {
+		t.Fatal(err)
+	}
+
+	data, err := os.ReadFile(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	want := "# DenyKey=system.run[*]\r\nDenyKey=one\r\nDenyKey=two\r\nOther=value\r\n"
+	if string(data) != want {
+		t.Fatalf("config:\n%q\nwant:\n%q", data, want)
+	}
+}
+
 func TestUpdateConfigValuesPreservesActiveValues(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "agent.conf")
 	if err := os.WriteFile(path, []byte("DenyKey=existing\n# DenyKey=system.run[*]\n"), 0o600); err != nil {
