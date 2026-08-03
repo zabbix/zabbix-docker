@@ -4,6 +4,7 @@ import (
 	"os"
 	"os/exec"
 	"os/signal"
+	"strings"
 	"syscall"
 	"time"
 
@@ -24,8 +25,9 @@ func startStack(env bootstrap.Environment, server ServerType) error {
 	}
 
 	children := []*exec.Cmd{php, web}
+	php.Env = env.List()
+	web.Env = webServerEnvironment(env).List()
 	for _, command := range children {
-		command.Env = env.List()
 		command.Stdin = os.Stdin
 		command.Stdout = os.Stdout
 		command.Stderr = os.Stderr
@@ -34,15 +36,41 @@ func startStack(env bootstrap.Environment, server ServerType) error {
 	return supervise(children)
 }
 
+func webServerEnvironment(env bootstrap.Environment) bootstrap.Environment {
+	result := make(bootstrap.Environment, len(env))
+	for name, value := range env {
+		result[name] = value
+	}
+
+	for name := range result {
+		if name == "VAULT_TOKEN" || hasPrivateWebServerPrefix(name) {
+			delete(result, name)
+		}
+	}
+
+	return result
+}
+
+func hasPrivateWebServerPrefix(name string) bool {
+	for _, prefix := range []string{"DB_", "MYSQL_", "POSTGRES_", "ZBX_DB_", "ZBX_VAULT"} {
+		if strings.HasPrefix(name, prefix) {
+			return true
+		}
+	}
+
+	return false
+}
+
+type childResult struct {
+	command *exec.Cmd
+	err     error
+}
+
 func supervise(children []*exec.Cmd) error {
 	signals := make(chan os.Signal, 1)
 	signal.Notify(signals, syscall.SIGTERM, syscall.SIGINT)
 	defer signal.Stop(signals)
 
-	type childResult struct {
-		command *exec.Cmd
-		err     error
-	}
 	results := make(chan childResult, len(children))
 
 	for index, command := range children {
@@ -51,9 +79,7 @@ func supervise(children []*exec.Cmd) error {
 				_ = started.Process.Signal(syscall.SIGTERM)
 			}
 
-			for range index {
-				<-results
-			}
+			waitForChildren(children[:index], results, index)
 
 			return err
 		}
@@ -78,14 +104,19 @@ func supervise(children []*exec.Cmd) error {
 		}
 	}
 
-	var timer *time.Timer
-	var timeout <-chan time.Time
+	waitForChildren(children, results, remaining)
 
-	if firstResult.command != nil {
-		timer = time.NewTimer(childExitTimeout)
-		timeout = timer.C
-		defer timer.Stop()
+	return firstResult.err
+}
+
+func waitForChildren(children []*exec.Cmd, results <-chan childResult, remaining int) {
+	if remaining == 0 {
+		return
 	}
+
+	timer := time.NewTimer(childExitTimeout)
+	defer timer.Stop()
+	timeout := timer.C
 
 	for remaining > 0 {
 		select {
@@ -103,6 +134,4 @@ func supervise(children []*exec.Cmd) error {
 			timeout = nil
 		}
 	}
-
-	return firstResult.err
 }

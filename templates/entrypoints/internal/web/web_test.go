@@ -105,11 +105,12 @@ func TestClearWebEnv(t *testing.T) {
 
 			clearWebEnv(test.env)
 
-			for _, name := range []string{"MYSQL_PASSWORD", "NGINX_TEST"} {
-				_, found := test.env[name]
-				if found != test.wantPrivate {
-					t.Fatalf("%s presence = %t, want %t", name, found, test.wantPrivate)
-				}
+			_, found := test.env["MYSQL_PASSWORD"]
+			if found != test.wantPrivate {
+				t.Fatalf("MYSQL_PASSWORD presence = %t, want %t", found, test.wantPrivate)
+			}
+			if test.env["NGINX_TEST"] != "private" {
+				t.Fatal("NGINX_TEST was unexpectedly removed")
 			}
 			for _, name := range []string{"DB_SERVER_USER", "DB_SERVER_PASS"} {
 				_, found := test.env[name]
@@ -118,6 +119,39 @@ func TestClearWebEnv(t *testing.T) {
 				}
 			}
 		})
+	}
+}
+
+func TestWebServerEnvironmentRemovesDatabaseCredentials(t *testing.T) {
+	env := bootstrap.Environment{
+		"DB_SERVER_USER":    "zabbix",
+		"DB_SERVER_PASS":    "db-secret",
+		"MYSQL_PASSWORD":    "mysql-secret",
+		"POSTGRES_PASSWORD": "postgres-secret",
+		"ZBX_DB_PASSWORD":   "frontend-secret",
+		"ZBX_VAULT":         "HashiCorp",
+		"ZBX_VAULTDBPATH":   "secret/zabbix",
+		"VAULT_TOKEN":       "vault-secret",
+		"NGINX_BIN":         "/custom/nginx",
+		"PATH":              "/usr/bin",
+	}
+
+	webEnv := webServerEnvironment(env)
+	for _, name := range []string{
+		"DB_SERVER_USER", "DB_SERVER_PASS", "MYSQL_PASSWORD", "POSTGRES_PASSWORD",
+		"ZBX_DB_PASSWORD", "ZBX_VAULT", "ZBX_VAULTDBPATH", "VAULT_TOKEN",
+	} {
+		if _, found := webEnv[name]; found {
+			t.Fatalf("%s was passed to the web server", name)
+		}
+	}
+	for _, name := range []string{"NGINX_BIN", "PATH"} {
+		if webEnv[name] != env[name] {
+			t.Fatalf("%s = %q, want %q", name, webEnv[name], env[name])
+		}
+	}
+	if env["DB_SERVER_PASS"] != "db-secret" || env["VAULT_TOKEN"] != "vault-secret" {
+		t.Fatal("source PHP-FPM environment was modified")
 	}
 }
 

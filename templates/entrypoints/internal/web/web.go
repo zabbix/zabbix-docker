@@ -100,7 +100,7 @@ func setDBEnv(env bootstrap.Environment, db DB) {
 }
 
 func clearWebEnv(env bootstrap.Environment) {
-	prefixes := []string{"MYSQL_", "POSTGRES_", "NGINX_"}
+	prefixes := []string{"MYSQL_", "POSTGRES_"}
 
 	if env["ZBX_VAULT"] != "" {
 		prefixes = append(prefixes, "DB_SERVER_USER", "DB_SERVER_PASS")
