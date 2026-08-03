@@ -12,6 +12,7 @@ date_now="$(date "$ZBX_SNMP_TRAP_DATE_FORMAT")"
 
 trap_address=""
 sender_addr=""
+sender_regex='\[([^]]+)\].*->'
 vars=""
 
 # The name of the host that sent the notification, as determined by gethostbyaddr(3).
@@ -39,7 +40,7 @@ while read -r oid val; do
     fi
 done
 
-if [[ "${sender:-}" =~ \[(.*?)\].*-\> ]]; then
+if [[ "${sender:-}" =~ $sender_regex ]]; then
     sender_addr="${BASH_REMATCH[1]}"
 fi
 
@@ -47,7 +48,7 @@ if [ -n "${trap_address:-}" ]; then
     sender_addr="$trap_address"
 fi
 
-if [[ "$ZBX_SNMP_TRAP_USE_DNS" == "true" ]] && ! [[ "${host:-}" =~ \[(.*?)\].*-\> ]]; then
+if [[ "$ZBX_SNMP_TRAP_USE_DNS" == "true" ]] && ! [[ "${host:-}" =~ $sender_regex ]]; then
     sender_addr="$host"
 fi
 
