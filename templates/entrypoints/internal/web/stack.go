@@ -26,7 +26,7 @@ func startStack(env bootstrap.Environment, server ServerType) error {
 
 	children := []*exec.Cmd{php, web}
 	php.Env = env.List()
-	web.Env = webServerEnvironment(env).List()
+	web.Env = webServerEnv(env).List()
 	for _, command := range children {
 		command.Stdin = os.Stdin
 		command.Stdout = os.Stdout
@@ -36,29 +36,27 @@ func startStack(env bootstrap.Environment, server ServerType) error {
 	return supervise(children)
 }
 
-func webServerEnvironment(env bootstrap.Environment) bootstrap.Environment {
+func webServerEnv(env bootstrap.Environment) bootstrap.Environment {
 	result := make(bootstrap.Environment, len(env))
 	for name, value := range env {
 		result[name] = value
 	}
 
 	for name := range result {
-		if name == "VAULT_TOKEN" || hasPrivateWebServerPrefix(name) {
+		if name == "VAULT_TOKEN" {
 			delete(result, name)
+			continue
+		}
+
+		for _, prefix := range []string{"DB_", "MYSQL_", "POSTGRES_", "ZBX_DB_", "ZBX_VAULT"} {
+			if strings.HasPrefix(name, prefix) {
+				delete(result, name)
+				break
+			}
 		}
 	}
 
 	return result
-}
-
-func hasPrivateWebServerPrefix(name string) bool {
-	for _, prefix := range []string{"DB_", "MYSQL_", "POSTGRES_", "ZBX_DB_", "ZBX_VAULT"} {
-		if strings.HasPrefix(name, prefix) {
-			return true
-		}
-	}
-
-	return false
 }
 
 type childResult struct {

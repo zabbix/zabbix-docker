@@ -122,7 +122,7 @@ func TestClearWebEnv(t *testing.T) {
 	}
 }
 
-func TestWebServerEnvironmentRemovesDatabaseCredentials(t *testing.T) {
+func TestWebServerEnvRemovesDatabaseCredentials(t *testing.T) {
 	env := bootstrap.Environment{
 		"DB_SERVER_USER":    "zabbix",
 		"DB_SERVER_PASS":    "db-secret",
@@ -136,7 +136,7 @@ func TestWebServerEnvironmentRemovesDatabaseCredentials(t *testing.T) {
 		"PATH":              "/usr/bin",
 	}
 
-	webEnv := webServerEnvironment(env)
+	webEnv := webServerEnv(env)
 	for _, name := range []string{
 		"DB_SERVER_USER", "DB_SERVER_PASS", "MYSQL_PASSWORD", "POSTGRES_PASSWORD",
 		"ZBX_DB_PASSWORD", "ZBX_VAULT", "ZBX_VAULTDBPATH", "VAULT_TOKEN",
