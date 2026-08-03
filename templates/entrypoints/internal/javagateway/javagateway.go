@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"strings"
 
+	"github.com/mattn/go-shellwords"
 	"github.com/zabbix/zabbix-docker/templates/entrypoints/internal/bootstrap"
 	"github.com/zabbix/zabbix-docker/templates/entrypoints/internal/hooks"
 )
@@ -58,20 +58,32 @@ func prepare(env bootstrap.Environment, extraArgs []string) ([]string, error) {
 		return nil, err
 	}
 
-	command := buildCommand(env, logConfig, extraArgs)
+	command, err := buildCommand(env, logConfig, extraArgs)
+	if err != nil {
+		return nil, err
+	}
 
 	bootstrap.ClearPrivateEnv(env)
 
 	return command, nil
 }
 
-func buildCommand(env bootstrap.Environment, logConfig string, extraArgs []string) []string {
+func buildCommand(env bootstrap.Environment, logConfig string, extraArgs []string) ([]string, error) {
 	javaOpts := []string{
 		"-server",
 		"-Dlogback.configurationFile=" + logConfig,
 	}
 
-	javaOpts = append(javaOpts, strings.Fields(env["ZBX_JAVA_OPTS"])...)
+	parser := shellwords.NewParser()
+	parser.ParseEnv = false
+	parser.ParseBacktick = false
+
+	extraJavaOpts, err := parser.Parse(env["ZBX_JAVA_OPTS"])
+	if err != nil {
+		return nil, fmt.Errorf("parse ZBX_JAVA_OPTS: %w", err)
+	}
+
+	javaOpts = append(javaOpts, extraJavaOpts...)
 	javaOpts = append(javaOpts, extraArgs...)
 
 	zabbixOpts := []string{
@@ -98,5 +110,5 @@ func buildCommand(env bootstrap.Environment, logConfig string, extraArgs []strin
 	command = append(command, "-classpath", javaClasspath)
 	command = append(command, zabbixOpts...)
 
-	return append(command, "com.zabbix.gateway.JavaGateway")
+	return append(command, "com.zabbix.gateway.JavaGateway"), nil
 }
