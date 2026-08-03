@@ -55,10 +55,18 @@ func buildCommand(env bootstrap.Environment, extraArgs []string) []string {
 	command := []string{
 		snmptrapdBinary,
 		"--doNotFork=yes",
-		"-C", "-c", strings.Join(configFiles, ","), "-n", "-t",
-		"-X", "-Lo", "-A",
-		"-O" + env["SNMPTRAP_OUTPUT_OPTIONS"],
+		"-C", "-c", strings.Join(configFiles, ","),
 	}
+
+	if env["ZBX_SNMP_TRAP_USE_DNS"] != "true" {
+		command = append(command, "-n")
+	}
+
+	command = append(command,
+		"-t",
+		"-X", "-Lo", "-A",
+		"-O"+env["SNMPTRAP_OUTPUT_OPTIONS"],
+	)
 
 	return append(command, extraArgs...)
 }
