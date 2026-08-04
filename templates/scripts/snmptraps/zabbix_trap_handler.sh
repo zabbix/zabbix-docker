@@ -34,7 +34,7 @@ vars=""
 # perform reverse name lookup for the transport address (see below).
 # In case of failure it will print "<UNKNOWN>"
 IFS= read -r host
-# The transport address, like "[UDP: [172.16.10.12]:23456->[10.150.0.8]]"
+# The transport address, like "UDP: [172.16.10.12]:23456->[10.150.0.8]:1162"
 IFS= read -r sender
 # The first OID should always be SNMPv2-MIB::sysUpTime.0
 #IFS= read -r uptime
@@ -54,7 +54,7 @@ while read -r oid val; do
         vars="${vars}${ZBX_SNMP_TRAP_FORMAT}${oid} = $sanitized_val"
     fi
 
-    if [[ "$oid" =~ snmpTrapAddress\.0 ]] || [[ "$oid" =~ 1\.3\.6\.1\.6\.3\.18\.1\.3\.0 ]]; then
+    if [[ "$oid" =~ (^|::)snmpTrapAddress\.0$ ]] || [[ "$oid" =~ ^\.?1\.3\.6\.1\.6\.3\.18\.1\.3\.0$ ]]; then
         trap_address="$sanitized_val"
     fi
 done
