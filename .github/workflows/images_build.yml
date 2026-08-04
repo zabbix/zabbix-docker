@@ -62,6 +62,7 @@ jobs:
       current_branch: ${{ steps.branch_info.outputs.current_branch }}
       sha_short: ${{ steps.branch_info.outputs.sha_short }}
       release_version: ${{ steps.branch_info.outputs.release_version }}
+      need_rebuild: ${{ steps.upstream_changes.outputs.need_rebuild }}
 
     steps:
       - name: Block egress traffic
@@ -72,6 +73,7 @@ jobs:
           disable-telemetry: true
           allowed-endpoints: >
             api.github.com:443
+            git.zabbix.com:443
             github.com:443
             objects.githubusercontent.com:443
             release-assets.githubusercontent.com:443
@@ -144,10 +146,18 @@ jobs:
           trunk_version: ${{ inputs.trunk_version }}
           trunk_git_branch: ${{ env.TRUNK_GIT_BRANCH }}
 
+      - name: Check upstream changes
+        id: upstream_changes
+        uses: ./.github/actions/check-upstream-changes
+        with:
+          current_branch: ${{ steps.branch_info.outputs.current_branch }}
+          event_name: ${{ github.event_name }}
+
   build_base:
     timeout-minutes: 30
     name: Build base on ${{ matrix.os }}
     needs: init_build
+    if: needs.init_build.outputs.need_rebuild == 'true'
     strategy:
       fail-fast: false
       matrix:

@@ -66,6 +66,7 @@ jobs:
       current_branch: ${{ steps.branch_info.outputs.current_branch }}
       sha_short: ${{ steps.branch_info.outputs.sha_short }}
       release_version: ${{ steps.branch_info.outputs.release_version }}
+      need_rebuild: ${{ steps.upstream_changes.outputs.need_rebuild }}
     steps:
       - name: Block egress traffic
         uses: step-security/harden-runner@9af89fc71515a100421586dfdb3dc9c984fbf411 # v2.19.4
@@ -74,6 +75,7 @@ jobs:
           egress-policy: block
           disable-telemetry: true
           allowed-endpoints: >
+            git.zabbix.com:443
             github.com:443
             release-assets.githubusercontent.com:443
 
@@ -127,9 +129,17 @@ jobs:
           trunk_version: ${{ inputs.trunk_version }}
           trunk_git_branch: ${{ env.TRUNK_GIT_BRANCH }}
 
+      - name: Check upstream changes
+        id: upstream_changes
+        uses: ./.github/actions/check-upstream-changes
+        with:
+          current_branch: ${{ steps.branch_info.outputs.current_branch }}
+          event_name: ${{ github.event_name }}
+
   build_base:
     name: Build ${{ matrix.component }} base on ${{ matrix.os }}
     needs: init_build
+    if: needs.init_build.outputs.need_rebuild == 'true'
     runs-on: ${{ matrix.os }}
     timeout-minutes: 70
     permissions:
