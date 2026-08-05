@@ -2,6 +2,7 @@
 
 set -eo pipefail
 
+ZABBIX_USER_HOME_DIR="${ZABBIX_USER_HOME_DIR:-/var/lib/zabbix}"
 ZABBIX_TRAPS_FILE="${ZABBIX_USER_HOME_DIR}/snmptraps/snmptraps.log"
 
 ZBX_SNMP_TRAP_DATE_FORMAT="${ZBX_SNMP_TRAP_DATE_FORMAT:-+%Y-%m-%dT%T%z}"
@@ -42,7 +43,7 @@ IFS= read -r sender
 #IFS= read -r trapoid
 
 # The remaining lines will contain the payload varbind list. For SNMPv1 traps, the final OID will be SNMPv2-MIB::snmpTrapEnterprise.0.
-while read -r oid val; do
+while read -r oid val || [ -n "$oid" ]; do
     # Header in Zabbix format shouldn't exist anywhere in vars, it is injection
     # Must exit with 0
     [[ "$val" =~ $zbx_trap_regex ]] && exit 0
@@ -67,8 +68,12 @@ if [ -n "${trap_address:-}" ]; then
     sender_addr="$trap_address"
 fi
 
-if [[ "$ZBX_SNMP_TRAP_USE_DNS" == "true" ]] && ! [[ "${host:-}" =~ $sender_regex ]]; then
+if [[ "$ZBX_SNMP_TRAP_USE_DNS" == "true" ]] && [ -n "${host:-}" ] && [ "$host" != "<UNKNOWN>" ] && ! [[ "$host" =~ $sender_regex ]]; then
     sender_addr="$host"
 fi
+
+# Never emit an empty address: fall back to the host line snmptrapd provided
+# (a resolved name or "<UNKNOWN>") so the record keeps its structure.
+sender_addr="${sender_addr:-$host}"
 
 printf '%b\n' "${date_now} ZBXTRAP ${sender_addr}${ZBX_SNMP_TRAP_FORMAT}${sender}${ZBX_SNMP_TRAP_FORMAT}${vars}" >> "$ZABBIX_TRAPS_FILE"
