@@ -11,6 +11,7 @@ import (
 
 const (
 	snmptrapdBinary = "/usr/sbin/snmptrapd"
+	mainConfigFile  = "/etc/snmp/snmptrapd.conf"
 
 	// SNMP trap output options:
 	// S - display the MIB name as well as the object name;
@@ -40,7 +41,7 @@ func Run(env bootstrap.Environment, args []string) error {
 }
 
 func buildCommand(env bootstrap.Environment, extraArgs []string) []string {
-	configFiles := []string{"/etc/snmp/snmptrapd.conf"}
+	configFiles := []string{mainConfigFile}
 
 	if persistentDir := env["SNMP_PERSISTENT_DIR"]; persistentDir != "" {
 		for _, name := range []string{"snmptrapd.conf", "snmptrapd_custom.conf"} {

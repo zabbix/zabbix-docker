@@ -15,6 +15,7 @@ const (
 	serviceCommand = "java-gateway"
 	javaDir        = "/usr/sbin/zabbix_java"
 	javaClasspath  = "lib/*:bin/*:ext_lib/*"
+	javaMainClass  = "com.zabbix.gateway.JavaGateway"
 	logConfigName  = "zabbix_java_gateway_logback.xml"
 )
 
@@ -110,5 +111,5 @@ func buildCommand(env bootstrap.Environment, logConfig string, extraArgs []strin
 	command = append(command, "-classpath", javaClasspath)
 	command = append(command, zabbixOpts...)
 
-	return append(command, "com.zabbix.gateway.JavaGateway"), nil
+	return append(command, javaMainClass), nil
 }
