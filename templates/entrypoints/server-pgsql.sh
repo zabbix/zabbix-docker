@@ -9,7 +9,7 @@ source "${ENTRYPOINT_LIBS}/pgsql.sh"
 source "${ENTRYPOINT_LIBS}/server-config.sh"
 
 update_config() {
-    [ -n "${DB_SERVER_HOST:-}" ] && export ZBX_DB_HOST="${DB_SERVER_HOST}"
+    export ZBX_DB_HOST="${DB_SERVER_HOST}"
     [ -n "${DB_SERVER_PORT:-}" ] && export ZBX_DB_PORT="${DB_SERVER_PORT}"
 
     export ZBX_DB_NAME="${DB_SERVER_DBNAME}"
