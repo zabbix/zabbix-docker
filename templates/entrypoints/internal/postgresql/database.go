@@ -96,12 +96,11 @@ func (db *DB) Configure(defaultDBName string) error {
 // ExportEnv exports the resolved connection settings as
 // ZBX_DB_* variables for the service.
 func (db *DB) ExportEnv() {
-	if db.env["DB_SERVER_HOST"] != "" {
-		db.env["ZBX_DB_HOST"] = db.env["DB_SERVER_HOST"]
-	}
+    db.env["ZBX_DB_HOST"] = db.env["DB_SERVER_HOST"]
 	if db.env["DB_SERVER_PORT"] != "" {
 		db.env["ZBX_DB_PORT"] = db.env["DB_SERVER_PORT"]
 	}
+
 	db.env["ZBX_DB_NAME"] = db.name
 	if db.schema != "" {
 		db.env["ZBX_DB_SCHEMA"] = db.schema

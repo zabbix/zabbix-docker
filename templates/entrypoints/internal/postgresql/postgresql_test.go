@@ -68,6 +68,11 @@ func TestConfigureSocketAndDefaults(t *testing.T) {
 	if db.user != "zabbix" || db.password != "zabbix" || db.adminUser != "postgres" {
 		t.Fatalf("unexpected credentials: %#v", db)
 	}
+
+    db.ExportEnv()
+    if host, found := env["ZBX_DB_HOST"]; !found || host != "" {
+        t.Fatalf("ZBX_DB_HOST = %q, found = %t; want explicit empty value", host, found)
+    }
 }
 
 func TestFrontendTLSConfigurationIsExplicit(t *testing.T) {
