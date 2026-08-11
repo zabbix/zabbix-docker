@@ -15,7 +15,12 @@ update_config() {
 
     [[ -f "$ZBX_SERVER_CONFIG" ]] || error "Missing configuration file: $ZBX_SERVER_CONFIG"
 
-    update_config_var "$ZBX_SERVER_CONFIG" "DBHost" "${DB_SERVER_HOST:-}"
+    if [ -n "${DB_SERVER_HOST:-}" ]; then
+        update_config_var "$ZBX_SERVER_CONFIG" "DBHost" "${DB_SERVER_HOST}"
+    else
+        update_config_var "$ZBX_SERVER_CONFIG" "DBHost" '""'
+    fi
+
     update_config_var "$ZBX_SERVER_CONFIG" "DBPort" "${DB_SERVER_PORT:-}"
 
     server_config
