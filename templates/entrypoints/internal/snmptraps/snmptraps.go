@@ -64,6 +64,7 @@ func buildCommand(env bootstrap.Environment, extraArgs []string) []string {
 		"-t",
 		"-X",
 		"-Lo",
+		"--hexOutputLength=0",
 		"-O" + env["SNMPTRAP_OUTPUT_OPTIONS"],
 	}
 
