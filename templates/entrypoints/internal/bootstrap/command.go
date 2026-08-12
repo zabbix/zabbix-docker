@@ -9,6 +9,17 @@ import (
 	"strings"
 )
 
+// Entrypoint is the testable core of a container entrypoint. Main supplies the
+// process environment and command-line arguments.
+type Entrypoint func(Environment, []string) error
+
+// Main runs an entrypoint with the current process environment and arguments,
+// then terminates the process if it fails.
+func Main(entrypoint Entrypoint) {
+	env := NewEnvironment(os.Environ())
+	ExitOnError(entrypoint(env, os.Args[1:]))
+}
+
 // exitCode maps err to a process exit status, preserving the status of a
 // finished child process.
 func exitCode(err error) int {
@@ -63,6 +74,10 @@ func resolveCommand(args []string, binary string) []string {
 
 // Execute hands control over to args with the given environment.
 func Execute(args []string, env Environment) error {
+	if len(args) == 0 {
+		return errors.New("execute: empty command")
+	}
+
 	if err := executeProcess(args, env); err != nil {
 		return fmt.Errorf("execute %s: %w", args[0], err)
 	}
@@ -70,40 +85,42 @@ func Execute(args []string, env Environment) error {
 	return nil
 }
 
-// RunService implements the common entrypoint flow: when the container is
-// about to start the service binary (the image default), prepare is called
-// first; custom user commands are executed untouched.
-func RunService(binary string, prepare func(Environment) error) error {
-	env := NewEnvironment(os.Environ())
-	args := resolveCommand(os.Args[1:], binary)
+// Service returns an entrypoint which prepares service when the container
+// is about to start its default binary. Custom user commands are executed
+// untouched.
+func Service(binary string, prepare func(Environment) error) Entrypoint {
+	return func(env Environment, args []string) error {
+		command := resolveCommand(args, binary)
 
-	if args[0] == binary {
-		if err := prepare(env); err != nil {
-			return err
+		if command[0] == binary {
+			if err := prepare(env); err != nil {
+				return err
+			}
 		}
-	}
 
-	return Execute(args, env)
+		return Execute(command, env)
+	}
 }
 
 // initDBCommand provisions the database and exits without starting
 // the service.
 const initDBCommand = "init_db_only"
 
-// RunDBService is RunService for images with a database: the extra
-// initDB hook implements the initDBCommand command.
-func RunDBService(binary string, prepare, initDB func(Environment) error) error {
-	env := NewEnvironment(os.Environ())
-	args := resolveCommand(os.Args[1:], binary)
+// DBService is Service for images with a database. The extra initDB hook
+// implements the initDBCommand command.
+func DBService(binary string, prepare, initDB func(Environment) error) Entrypoint {
+	return func(env Environment, args []string) error {
+		command := resolveCommand(args, binary)
 
-	switch args[0] {
-	case binary:
-		if err := prepare(env); err != nil {
-			return err
+		switch command[0] {
+		case binary:
+			if err := prepare(env); err != nil {
+				return err
+			}
+		case initDBCommand:
+			return initDB(env)
 		}
-	case initDBCommand:
-		return initDB(env)
-	}
 
-	return Execute(args, env)
+		return Execute(command, env)
+	}
 }

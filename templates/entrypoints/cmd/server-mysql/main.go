@@ -45,7 +45,7 @@ func prepareService(env bootstrap.Environment, db *mysql.DB) error {
 }
 
 func main() {
-	bootstrap.ExitOnError(bootstrap.RunDBService(serverBinary,
+	bootstrap.Main(bootstrap.DBService(serverBinary,
 		func(env bootstrap.Environment) error { return prepareService(env, mysql.NewForBackend(env)) },
 		func(env bootstrap.Environment) error { return prepareDB(env, mysql.NewForBackend(env)) },
 	))

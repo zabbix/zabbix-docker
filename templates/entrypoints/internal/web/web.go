@@ -42,6 +42,14 @@ type Options struct {
 	Server ServerType
 }
 
+// Entrypoint binds a frontend database implementation and image flavour to
+// the shared web entrypoint flow.
+func Entrypoint[T DB](newDB func(bootstrap.Environment) T, opts Options) bootstrap.Entrypoint {
+	return func(env bootstrap.Environment, args []string) error {
+		return Run(env, newDB(env), opts, args)
+	}
+}
+
 // Run prepares PHP, the web server and the database connection, executes
 // the entrypoint hooks and finally starts the configured server stack.
 // Non-empty args short-circuit the preparation and are executed instead.
@@ -49,6 +57,9 @@ func Run(env bootstrap.Environment, db DB, opts Options, args []string) error {
 	if len(args) != 0 {
 		return bootstrap.Execute(args, env)
 	}
+
+	bootstrap.LogInfo("** Preparing Zabbix web-interface (%s) with %s database",
+		serverDisplayName(opts.Server), databaseDisplayName(opts.DBType))
 
 	prepareWebServer := prepareNginx
 
@@ -90,6 +101,22 @@ func Run(env bootstrap.Environment, db DB, opts Options, args []string) error {
 	clearWebEnv(env)
 
 	return startStack(env, opts.Server)
+}
+
+func serverDisplayName(server ServerType) string {
+	if server == Apache {
+		return "Apache"
+	}
+
+	return "Nginx"
+}
+
+func databaseDisplayName(database DBType) string {
+	if database == PostgreSQL {
+		return "PostgreSQL"
+	}
+
+	return "MySQL"
 }
 
 func setDBEnv(env bootstrap.Environment, db DB) {
