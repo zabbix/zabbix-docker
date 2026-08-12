@@ -17,6 +17,7 @@ func TestBuildCommand(t *testing.T) {
 		}
 	}
 	env := bootstrap.Environment{
+		"DEBUG_MODE":              "true",
 		"SNMP_PERSISTENT_DIR":     persistentDir,
 		"SNMPTRAP_OUTPUT_OPTIONS": "nq",
 	}
@@ -24,18 +25,21 @@ func TestBuildCommand(t *testing.T) {
 	got := buildCommand(env, []string{"--debug"})
 	want := []string{
 		snmptrapdBinary,
-		"--doNotFork=yes",
+		"-f",
+		"-a",
 		"-C",
 		"-c", "/etc/snmp/snmptrapd.conf," +
 			filepath.Join(persistentDir, "snmptrapd.conf") + "," +
 			filepath.Join(persistentDir, "snmptrapd_custom.conf"),
-		"-n",
 		"-t",
 		"-X",
 		"-Lo",
-		"-A",
 		"-Onq",
+		"-n",
+		"-DALL",
 		"--debug",
+		"udp:1162",
+		"udp6:1162",
 	}
 	if !reflect.DeepEqual(got, want) {
 		t.Fatalf("buildCommand() = %#v, want %#v", got, want)
@@ -46,10 +50,10 @@ func TestBuildCommandDefaults(t *testing.T) {
 	got := buildCommand(bootstrap.Environment{
 		"SNMPTRAP_OUTPUT_OPTIONS": defaultOutputOptions,
 	}, nil)
-	if got[3] != "-c" || got[4] != "/etc/snmp/snmptrapd.conf" {
+	if got[4] != "-c" || got[5] != "/etc/snmp/snmptrapd.conf" {
 		t.Fatalf("unexpected config arguments: %q", got)
 	}
-	if got[len(got)-1] != "-OSTte" {
+	if got[9] != "-OSTte" {
 		t.Fatalf("unexpected output options: %q", got)
 	}
 }

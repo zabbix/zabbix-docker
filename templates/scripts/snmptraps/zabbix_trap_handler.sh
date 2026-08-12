@@ -60,20 +60,25 @@ while read -r oid val || [ -n "$oid" ]; do
     fi
 done
 
+# Choose the sender identity written immediately after ZBXTRAP.
+# The precedence is: snmpTrapAddress.0 (the originating agent carried inside the notification),
+# the reverse-resolved transport host when DNS is enabled, the UDP transport
+# source observed by snmptrapd, and finally the host line as a structural
+# fallback. If a relay or NAT hides the source and does not supply
+# snmpTrapAddress.0, the original agent address cannot be recovered here
 if [[ "${sender:-}" =~ $sender_regex ]]; then
     sender_addr="${BASH_REMATCH[1]}"
+fi
+
+if [ -z "${trap_address:-}" ] && [[ "$ZBX_SNMP_TRAP_USE_DNS" == "true" ]] && [ -n "${host:-}" ] && [ "$host" != "<UNKNOWN>" ] && ! [[ "$host" =~ $sender_regex ]]; then
+    sender_addr="$host"
 fi
 
 if [ -n "${trap_address:-}" ]; then
     sender_addr="$trap_address"
 fi
 
-if [[ "$ZBX_SNMP_TRAP_USE_DNS" == "true" ]] && [ -n "${host:-}" ] && [ "$host" != "<UNKNOWN>" ] && ! [[ "$host" =~ $sender_regex ]]; then
-    sender_addr="$host"
-fi
-
-# Never emit an empty address: fall back to the host line snmptrapd provided
-# (a resolved name or "<UNKNOWN>") so the record keeps its structure.
+# Never emit an empty address: fall back to the host line snmptrapd provided (a resolved name or "<UNKNOWN>")
 sender_addr="${sender_addr:-$host}"
 
 printf '%b\n' "${date_now} ZBXTRAP ${sender_addr}${ZBX_SNMP_TRAP_FORMAT}${sender}${ZBX_SNMP_TRAP_FORMAT}${vars}" >> "$ZABBIX_TRAPS_FILE"

@@ -40,6 +40,9 @@ func Run(env bootstrap.Environment, args []string) error {
 	return bootstrap.Execute(command, env)
 }
 
+// buildCommand constructs the default snmptrapd pipeline. Persistent
+// configuration files are loaded after the image defaults, allowing an
+// explicitly supplied user configuration to override them.
 func buildCommand(env bootstrap.Environment, extraArgs []string) []string {
 	configFiles := []string{mainConfigFile}
 
@@ -55,19 +58,24 @@ func buildCommand(env bootstrap.Environment, extraArgs []string) []string {
 
 	command := []string{
 		snmptrapdBinary,
-		"--doNotFork=yes",
+		"-f",
+		"-a",
 		"-C", "-c", strings.Join(configFiles, ","),
+		"-t",
+		"-X",
+		"-Lo",
+		"-O" + env["SNMPTRAP_OUTPUT_OPTIONS"],
 	}
 
 	if env["ZBX_SNMP_TRAP_USE_DNS"] != "true" {
 		command = append(command, "-n")
 	}
 
-	command = append(command,
-		"-t",
-		"-X", "-Lo", "-A",
-		"-O"+env["SNMPTRAP_OUTPUT_OPTIONS"],
-	)
+	if env["DEBUG_MODE"] == "true" {
+		command = append(command, "-DALL")
+	}
 
-	return append(command, extraArgs...)
+	command = append(command, extraArgs...)
+
+	return append(command, "udp:1162", "udp6:1162")
 }
