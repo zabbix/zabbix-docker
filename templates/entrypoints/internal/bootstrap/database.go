@@ -3,6 +3,7 @@ package bootstrap
 import (
 	"fmt"
 	"path/filepath"
+	"strconv"
 	"strings"
 )
 
@@ -45,6 +46,20 @@ func FrontendDBTLS(env Environment) DBTLSConfig {
 	}
 
 	return settings
+}
+
+// ResolveDBPort returns DB_SERVER_PORT or defaultPort and validates that the
+// value is a numeric port. The resolved value is written back to env so
+// bootstrap clients and the final Zabbix process use the same setting.
+func ResolveDBPort(env Environment, defaultPort string) (string, error) {
+	value := env.ValueOrDefaultNonEmpty("DB_SERVER_PORT", defaultPort)
+	if _, err := strconv.ParseUint(value, 10, 16); err != nil {
+		return "", fmt.Errorf("invalid DB_SERVER_PORT %q: %w", value, err)
+	}
+
+	env["DB_SERVER_PORT"] = value
+
+	return value, nil
 }
 
 // RunAdditionalSQLScripts executes every *.sql file from the dbscripts

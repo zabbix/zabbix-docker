@@ -63,9 +63,11 @@ func (db *DB) Configure(defaultDBName string) error {
 		db.address = socket
 	} else {
 		host := db.env.ValueOrDefaultNonEmpty("DB_SERVER_HOST", "mysql-server")
-		port := db.env.ValueOrDefaultNonEmpty("DB_SERVER_PORT", "3306")
+		port, err := bootstrap.ResolveDBPort(db.env, "3306")
+		if err != nil {
+			return err
+		}
 		db.env["DB_SERVER_HOST"] = host
-		db.env["DB_SERVER_PORT"] = port
 		db.network = "tcp"
 		db.address = net.JoinHostPort(strings.Trim(host, "[]"), port)
 	}

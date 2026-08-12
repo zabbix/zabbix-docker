@@ -69,10 +69,10 @@ func TestConfigureSocketAndDefaults(t *testing.T) {
 		t.Fatalf("unexpected credentials: %#v", db)
 	}
 
-    db.ExportEnv()
-    if host, found := env["ZBX_DB_HOST"]; !found || host != "" {
-        t.Fatalf("ZBX_DB_HOST = %q, found = %t; want explicit empty value", host, found)
-    }
+	db.ExportEnv()
+	if host, found := env["ZBX_DB_HOST"]; !found || host != "" {
+		t.Fatalf("ZBX_DB_HOST = %q, found = %t; want explicit empty value", host, found)
+	}
 }
 
 func TestFrontendTLSConfigurationIsExplicit(t *testing.T) {
@@ -104,6 +104,13 @@ func TestWaitForConnectionIsCanceled(t *testing.T) {
 	_, err := db.waitForConnectionContext(ctx, db.user, db.password)
 	if !errors.Is(err, context.Canceled) {
 		t.Fatalf("waitForConnectionContext() error = %v, want context.Canceled", err)
+	}
+}
+
+func TestConfigureRejectsInvalidPort(t *testing.T) {
+	err := NewForBackend(bootstrap.Environment{"DB_SERVER_PORT": "postgresql"}).Configure("zabbix")
+	if err == nil || !strings.Contains(err.Error(), "DB_SERVER_PORT") {
+		t.Fatalf("Configure() error = %v, want invalid DB_SERVER_PORT", err)
 	}
 }
 

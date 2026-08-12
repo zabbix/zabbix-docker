@@ -2,6 +2,7 @@ package bootstrap
 
 import (
 	"reflect"
+	"strings"
 	"testing"
 )
 
@@ -66,6 +67,44 @@ func TestFrontendDBTLS(t *testing.T) {
 			settings := FrontendDBTLS(test.env)
 			if settings.ConnectMode != test.mode {
 				t.Fatalf("connection mode = %q, want %q", settings.ConnectMode, test.mode)
+			}
+		})
+	}
+}
+
+func TestResolveDBPort(t *testing.T) {
+	tests := []struct {
+		name      string
+		value     string
+		want      string
+		wantError bool
+	}{
+		{name: "default", want: "5432"},
+		{name: "configured", value: "15432", want: "15432"},
+		{name: "maximum", value: "65535", want: "65535"},
+		{name: "not numeric", value: "postgresql", wantError: true},
+		{name: "out of range", value: "65536", wantError: true},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			env := Environment{}
+			if test.value != "" {
+				env["DB_SERVER_PORT"] = test.value
+			}
+
+			got, err := ResolveDBPort(env, "5432")
+			if (err != nil) != test.wantError {
+				t.Fatalf("ResolveDBPort() error = %v, wantError = %t", err, test.wantError)
+			}
+			if test.wantError {
+				if !strings.Contains(err.Error(), "DB_SERVER_PORT") {
+					t.Fatalf("ResolveDBPort() error = %v, want DB_SERVER_PORT context", err)
+				}
+				return
+			}
+			if got != test.want || env["DB_SERVER_PORT"] != test.want {
+				t.Fatalf("ResolveDBPort() = %q, env value = %q, want %q", got, env["DB_SERVER_PORT"], test.want)
 			}
 		})
 	}

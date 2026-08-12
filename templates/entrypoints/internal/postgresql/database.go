@@ -48,9 +48,11 @@ func newDB(env bootstrap.Environment, tls bootstrap.DBTLSConfig) *DB {
 // environment or Vault.
 func (db *DB) Configure(defaultDBName string) error {
 	host := db.env.ValueOrDefault("DB_SERVER_HOST", "postgres-server")
-	port := db.env.ValueOrDefaultNonEmpty("DB_SERVER_PORT", "5432")
+	port, err := bootstrap.ResolveDBPort(db.env, "5432")
+	if err != nil {
+		return err
+	}
 	db.env["DB_SERVER_HOST"] = host
-	db.env["DB_SERVER_PORT"] = port
 
 	schema := db.env.ValueOrDefault("DB_SERVER_SCHEMA", "public")
 	db.env["DB_SERVER_SCHEMA"] = schema
@@ -96,7 +98,7 @@ func (db *DB) Configure(defaultDBName string) error {
 // ExportEnv exports the resolved connection settings as
 // ZBX_DB_* variables for the service.
 func (db *DB) ExportEnv() {
-    db.env["ZBX_DB_HOST"] = db.env["DB_SERVER_HOST"]
+	db.env["ZBX_DB_HOST"] = db.env["DB_SERVER_HOST"]
 	if db.env["DB_SERVER_PORT"] != "" {
 		db.env["ZBX_DB_PORT"] = db.env["DB_SERVER_PORT"]
 	}
