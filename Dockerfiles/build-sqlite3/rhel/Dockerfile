@@ -53,6 +53,7 @@ RUN --mount=from=sources,target=/tmp/src,z \
         ${ZBX_OUTPUT_DIR}/agent/sbin \
         ${ZBX_OUTPUT_DIR}/agent/conf \
         ${ZBX_OUTPUT_DIR}/agent2/sbin \
+        ${ZBX_OUTPUT_DIR}/agent2/sbin/zabbix-agent2-plugin \
         ${ZBX_OUTPUT_DIR}/agent2/conf \
         ${ZBX_OUTPUT_DIR}/agent2/conf/zabbix_agent2.d/plugins.d \
         ${ZBX_OUTPUT_DIR}/proxy/sbin \
@@ -62,9 +63,7 @@ RUN --mount=from=sources,target=/tmp/src,z \
         ${ZBX_OUTPUT_DIR}/java_gateway/sbin/lib \
         ${ZBX_OUTPUT_DIR}/java_gateway/conf \
         ${ZBX_OUTPUT_DIR}/web/conf \
-        ${ZBX_OUTPUT_DIR}/general/sbin \
-        ${ZBX_OUTPUT_DIR}/general/bin \
-        ${ZBX_OUTPUT_DIR}/general/conf && \
+        ${ZBX_OUTPUT_DIR}/general/bin && \
     if [ -f /tmp/src/bootstrap.sh ]; then \
         mkdir -p "${ZBX_SOURCES_DIR}" && \
         cp -a /tmp/src/. "${ZBX_SOURCES_DIR}/"; \
@@ -161,6 +160,8 @@ RUN set -eux && \
     curl --retry 5 --retry-all-errors --retry-delay 2 --tlsv1.2 -sSf -L \
         "https://raw.githubusercontent.com/notofonts/noto-cjk/main/Sans/LICENSE" \
         -o ui/assets/fonts/OFL.txt && \
+    echo "68a3fc98800b2a27b371f2fb79991daf3633bd89309d4ffaa6946fd587f375b5  ui/assets/fonts/NotoSansCJKjp-Regular.otf" | sha256sum -c - && \
+    echo "6a73f9541c2de74158c0e7cf6b0a58ef774f5a780bf191f2d7ec9cc53efe2bf2  ui/assets/fonts/OFL.txt" | sha256sum -c - && \
     sed -i -r 's/(define\(.*_FONT_NAME.*)DejaVuSans/\1NotoSansCJKjp-Regular/' ui/include/defines.inc.php && \
     sed -i -r "s/(define\(.*ZBX_SESSION_NAME.*)'zbx_sessionid'/\1getenv('ZBX_SESSION_NAME') ?: 'zbx_sessionid'/" ui/include/defines.inc.php && \
     sed -i -r 's/\.ttf/\.otf/' ui/include/graphs.inc.php && \
@@ -170,8 +171,6 @@ RUN set -eux && \
 RUN --mount=type=cache,target=/root/.cache/go-build \
     --mount=type=cache,target=/root/go/pkg/mod \
     set -eux && \
-    mkdir -p "${ZBX_OUTPUT_DIR}/agent2/sbin/zabbix-agent2-plugin" && \
-    mkdir -p "${ZBX_OUTPUT_DIR}/agent2/conf/zabbix_agent2.d/plugins.d" && \
     build_plugin() { \
         name="$1"; \
         repo="$2"; \
