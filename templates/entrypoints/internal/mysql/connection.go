@@ -53,6 +53,8 @@ func (s *sqlDBSession) Close() error {
 
 type sessionOpener func(*mysql.Config) (dbSession, error)
 
+const connectTimeout = 10 * time.Second
+
 func openDBSession(config *mysql.Config) (dbSession, error) {
 	connector, err := mysql.NewConnector(config)
 	if err != nil {
@@ -79,7 +81,7 @@ func (db *DB) connConfig(dbName, user, password string) (*mysql.Config, error) {
 	config.Net = db.network
 	config.Addr = db.address
 	config.DBName = dbName
-	config.Timeout = 10 * time.Second
+	config.Timeout = connectTimeout
 	config.InterpolateParams = true
 	config.TLS = tlsConfig
 	if err := config.Apply(mysql.Charset(db.charset, "")); err != nil {
@@ -117,7 +119,7 @@ func (db *DB) waitForConnectionContext(ctx context.Context, user, password strin
 	for {
 		sess, err := db.open(config)
 		if err == nil {
-			attemptCtx, cancel := context.WithTimeout(ctx, 10*time.Second)
+			attemptCtx, cancel := context.WithTimeout(ctx, connectTimeout)
 			err = sess.Ping(attemptCtx)
 			cancel()
 		}
