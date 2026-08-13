@@ -115,7 +115,7 @@ RUN --mount=type=cache,target=/root/.cache/go-build \
     make -j"${jobs}" -s && \
     make -j"${jobs}" -s gettext && \
     cat "database/${DB_TYPE}/schema.sql" > "database/${DB_TYPE}/create.sql" && \
-    gzip -c "database/${DB_TYPE}/create.sql" > "${ZBX_OUTPUT_DIR}/proxy/database/${DB_TYPE}/create.sql.gz" && \
+    gzip -c < "database/${DB_TYPE}/create.sql" > "${ZBX_OUTPUT_DIR}/proxy/database/${DB_TYPE}/create.sql.gz" && \
     strip src/zabbix_agent/zabbix_agentd && \
     strip src/zabbix_proxy/zabbix_proxy && \
     strip src/zabbix_get/zabbix_get && \

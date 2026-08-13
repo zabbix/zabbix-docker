@@ -123,10 +123,10 @@ RUN --mount=type=cache,target=/root/.cache/go-build \
     make -j"${jobs}" -s && \
     make -j"${jobs}" -s gettext && \
     cat "database/${DB_TYPE}/schema.sql" > "database/${DB_TYPE}/create.sql" && \
-    gzip -c "database/${DB_TYPE}/create.sql" > "${ZBX_OUTPUT_DIR}/proxy/database/${DB_TYPE}/create.sql.gz" && \
+    gzip -c < "database/${DB_TYPE}/create.sql" > "${ZBX_OUTPUT_DIR}/proxy/database/${DB_TYPE}/create.sql.gz" && \
     cat "database/${DB_TYPE}/images.sql" >> "database/${DB_TYPE}/create.sql" && \
     cat "database/${DB_TYPE}/data.sql" >> "database/${DB_TYPE}/create.sql" && \
-    gzip -c "database/${DB_TYPE}/create.sql" > "${ZBX_OUTPUT_DIR}/server/database/${DB_TYPE}/create.sql.gz" && \
+    gzip -c < "database/${DB_TYPE}/create.sql" > "${ZBX_OUTPUT_DIR}/server/database/${DB_TYPE}/create.sql.gz" && \
     rm -f "database/${DB_TYPE}/create.sql" && \
     cp -a database/clickhouse/. "${ZBX_OUTPUT_DIR}/server/database/clickhouse/" && \
     strip src/zabbix_agent/zabbix_agentd && \

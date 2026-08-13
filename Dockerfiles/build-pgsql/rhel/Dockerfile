@@ -136,10 +136,10 @@ RUN --mount=type=cache,target=/root/.cache/go-build \
     make -j"${jobs}" -s && \
     make -j"${jobs}" -s gettext && \
     cat "database/${DB_TYPE}/schema.sql" > "database/${DB_TYPE}/create.sql" && \
-    gzip -c "database/${DB_TYPE}/create.sql" > "${ZBX_OUTPUT_DIR}/proxy/database/${DB_TYPE}/create.sql.gz" && \
+    gzip -c < "database/${DB_TYPE}/create.sql" > "${ZBX_OUTPUT_DIR}/proxy/database/${DB_TYPE}/create.sql.gz" && \
     cat "database/${DB_TYPE}/images.sql" >> "database/${DB_TYPE}/create.sql" && \
     cat "database/${DB_TYPE}/data.sql" >> "database/${DB_TYPE}/create.sql" && \
-    gzip -c "database/${DB_TYPE}/create.sql" > "${ZBX_OUTPUT_DIR}/server/database/${DB_TYPE}/create.sql.gz" && \
+    gzip -c < "database/${DB_TYPE}/create.sql" > "${ZBX_OUTPUT_DIR}/server/database/${DB_TYPE}/create.sql.gz" && \
     rm -f "database/${DB_TYPE}/create.sql" && \
     cp "database/${DB_TYPE}/timescaledb/schema.sql" "${ZBX_OUTPUT_DIR}/server/database/${DB_TYPE}/timescaledb.sql" && \
     cp "${ZBX_SOURCES_DIR}/database/${DB_TYPE}/timescaledb/option-patches/with-compression/"*.sql "${ZBX_OUTPUT_DIR}/server/database/${DB_TYPE}/option-patches/with-compression/" && \
