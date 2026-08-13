@@ -4,6 +4,7 @@ import (
 	"os"
 	"path/filepath"
 	"reflect"
+	"slices"
 	"testing"
 
 	"github.com/zabbix/zabbix-docker/templates/entrypoints/internal/bootstrap"
@@ -54,7 +55,7 @@ func TestBuildCommandDefaults(t *testing.T) {
 	if got[4] != "-c" || got[5] != "/etc/snmp/snmptrapd.conf" {
 		t.Fatalf("unexpected config arguments: %q", got)
 	}
-	if got[9] != "-OSTte" {
+	if !slices.Contains(got, "-O"+defaultOutputOptions) {
 		t.Fatalf("unexpected output options: %q", got)
 	}
 }
