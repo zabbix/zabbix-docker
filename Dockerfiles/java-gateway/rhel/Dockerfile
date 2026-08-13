@@ -55,7 +55,6 @@ LABEL description="Zabbix Java Gateway performs native support for monitoring JM
       org.label-schema.vendor="Zabbix SIA" \
       org.label-schema.version="${ZBX_VERSION}"
 
-STOPSIGNAL SIGTERM
 
 COPY ["licenses", "/licenses"]
 COPY --from=builder /tmp/zabbix-${ZBX_VERSION}-output/java_gateway/sbin/ /usr/sbin/zabbix_java/

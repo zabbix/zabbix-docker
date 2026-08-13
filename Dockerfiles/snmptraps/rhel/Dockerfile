@@ -55,7 +55,6 @@ LABEL description="Zabbix SNMP traps receiver" \
       org.label-schema.vendor="Zabbix SIA" \
       org.label-schema.version="${ZBX_VERSION}"
 
-STOPSIGNAL SIGTERM
 
 COPY licenses /licenses/
 
