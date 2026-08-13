@@ -12,8 +12,8 @@ FROM builder AS entrypoint-builder
 ARG ZBX_VERSION
 
 RUN --mount=from=entrypoints,target=/tmp/entrypoints,ro \
-    --mount=type=cache,target=/root/.cache/go-build,sharing=locked \
-    --mount=type=cache,target=/root/go/pkg/mod,sharing=locked \
+    --mount=type=cache,target=/root/.cache/go-build \
+    --mount=type=cache,target=/root/go/pkg/mod \
     set -eux && \
     cd /tmp/entrypoints && \
     CGO_ENABLED=0 go build -buildvcs=false -trimpath -ldflags="-s -w -buildid=" \

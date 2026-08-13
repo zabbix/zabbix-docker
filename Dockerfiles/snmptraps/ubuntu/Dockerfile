@@ -5,7 +5,7 @@ ARG ENTRYPOINT_BUILD_IMAGE=golang:1.26.5-alpine
 FROM ${ENTRYPOINT_BUILD_IMAGE} AS entrypoint-builder
 
 RUN --mount=from=entrypoints,target=/tmp/entrypoints,ro \
-    --mount=type=cache,target=/root/.cache/go-build,sharing=locked \
+    --mount=type=cache,target=/root/.cache/go-build \
     cd /tmp/entrypoints && \
     CGO_ENABLED=0 go build -buildvcs=false -trimpath -ldflags="-s -w -buildid=" \
             -o /tmp/docker-entrypoint \
