@@ -47,7 +47,7 @@ func prepareService(env bootstrap.Environment, db *postgresql.DB) error {
 }
 
 func main() {
-	bootstrap.ExitOnError(bootstrap.RunDBService(serverBinary,
+	bootstrap.Main(bootstrap.DBService(serverBinary,
 		func(env bootstrap.Environment) error { return prepareService(env, postgresql.NewForBackend(env)) },
 		func(env bootstrap.Environment) error { return prepareDB(env, postgresql.NewForBackend(env)) },
 	))

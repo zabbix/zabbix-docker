@@ -251,6 +251,18 @@ func TestConfigureCredentials(t *testing.T) {
 	}
 }
 
+func TestConfigureRejectsInvalidTCPPort(t *testing.T) {
+	env := bootstrap.Environment{
+		"DB_SERVER_PORT":             "mysql",
+		"MYSQL_ALLOW_EMPTY_PASSWORD": "true",
+	}
+
+	err := NewForBackend(env).Configure("zabbix")
+	if err == nil || !strings.Contains(err.Error(), "DB_SERVER_PORT") {
+		t.Fatalf("Configure() error = %v, want invalid DB_SERVER_PORT", err)
+	}
+}
+
 func TestExportEnvOmitsVaultCredentials(t *testing.T) {
 	env := bootstrap.Environment{
 		"ZBX_DB_USER": "old-user", "ZBX_DB_PASSWORD": "old-password",

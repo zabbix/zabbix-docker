@@ -102,5 +102,5 @@ func updatePluginConfig(homeDir, configDir string) error {
 }
 
 func main() {
-	bootstrap.ExitOnError(bootstrap.RunService(agent2Binary, prepareService))
+	bootstrap.Main(bootstrap.Service(agent2Binary, prepareService))
 }

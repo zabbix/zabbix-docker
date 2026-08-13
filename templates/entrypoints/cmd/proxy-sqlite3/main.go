@@ -55,5 +55,5 @@ func prepareService(env bootstrap.Environment) error {
 }
 
 func main() {
-	bootstrap.ExitOnError(bootstrap.RunService(proxyBinary, prepareService))
+	bootstrap.Main(bootstrap.Service(proxyBinary, prepareService))
 }

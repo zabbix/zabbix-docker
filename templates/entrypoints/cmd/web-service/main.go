@@ -31,5 +31,5 @@ func prepareService(env bootstrap.Environment) error {
 }
 
 func main() {
-	bootstrap.ExitOnError(bootstrap.RunService(webServiceBinary, prepareService))
+	bootstrap.Main(bootstrap.Service(webServiceBinary, prepareService))
 }

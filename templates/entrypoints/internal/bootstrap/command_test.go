@@ -81,3 +81,57 @@ func TestExitCodeHelperProcess(t *testing.T) {
 
 	os.Exit(23)
 }
+
+func TestExecuteRejectsEmptyCommand(t *testing.T) {
+	err := Execute(nil, Environment{})
+	if err == nil || err.Error() != "execute: empty command" {
+		t.Fatalf("Execute(nil) error = %v, want empty command error", err)
+	}
+}
+
+func TestServiceReturnsPreparationError(t *testing.T) {
+	want := errors.New("prepare failed")
+	env := Environment{"TEST_VALUE": "preserved"}
+
+	err := Service("component", func(got Environment) error {
+		if got["TEST_VALUE"] != "preserved" {
+			t.Fatalf("prepare environment = %#v", got)
+		}
+		return want
+	})(env, nil)
+
+	if !errors.Is(err, want) {
+		t.Fatalf("Service() error = %v, want %v", err, want)
+	}
+}
+
+func TestDBServiceRunsInitOnly(t *testing.T) {
+	env := Environment{"TEST_VALUE": "preserved"}
+	prepareCalled := false
+	initCalled := false
+
+	err := DBService(
+		"component",
+		func(Environment) error {
+			prepareCalled = true
+			return nil
+		},
+		func(got Environment) error {
+			initCalled = true
+			if got["TEST_VALUE"] != "preserved" {
+				t.Fatalf("init environment = %#v", got)
+			}
+			return nil
+		},
+	)(env, []string{initDBCommand})
+
+	if err != nil {
+		t.Fatalf("DBService() error = %v", err)
+	}
+	if prepareCalled {
+		t.Fatal("regular preparation ran for init-only command")
+	}
+	if !initCalled {
+		t.Fatal("init-only preparation did not run")
+	}
+}

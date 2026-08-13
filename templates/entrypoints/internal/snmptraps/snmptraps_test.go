@@ -34,6 +34,7 @@ func TestBuildCommand(t *testing.T) {
 		"-t",
 		"-X",
 		"-Lo",
+		"--hexOutputLength=0",
 		"-Onq",
 		"-n",
 		"-DALL",
