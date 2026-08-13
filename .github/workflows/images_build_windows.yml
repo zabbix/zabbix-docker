@@ -68,6 +68,7 @@ jobs:
       current_branch: ${{ steps.branch_info.outputs.current_branch }}
       sha_short: ${{ steps.branch_info.outputs.sha_short }}
       release_version: ${{ steps.branch_info.outputs.release_version }}
+      need_rebuild: ${{ steps.upstream_changes.outputs.need_rebuild }}
     steps:
       - name: Block egress traffic
         uses: step-security/harden-runner@9af89fc71515a100421586dfdb3dc9c984fbf411 # v2.19.4
@@ -76,6 +77,7 @@ jobs:
           egress-policy: block
           disable-telemetry: true
           allowed-endpoints: >
+            git.zabbix.com:443
             github.com:443
             release-assets.githubusercontent.com:443
 
@@ -129,9 +131,17 @@ jobs:
           trunk_version: ${{ inputs.trunk_version }}
           trunk_git_branch: ${{ env.TRUNK_GIT_BRANCH }}
 
+      - name: Check upstream changes
+        id: upstream_changes
+        uses: ./.github/actions/check-upstream-changes
+        with:
+          current_branch: ${{ steps.branch_info.outputs.current_branch }}
+          event_name: ${{ github.event_name }}
+
   build_base:
     name: Build ${{ matrix.component }} base on ${{ matrix.os }}
     needs: init_build
+    if: needs.init_build.outputs.need_rebuild == 'true'
     runs-on: ${{ matrix.os }}
     timeout-minutes: 70
     permissions:
@@ -187,8 +197,13 @@ jobs:
           fetch-depth: 1
 
       - name: Install cosign
-        if: ${{ env.AUTO_PUSH_IMAGES == 'true' }}
         uses: ./.github/actions/cosign-install
+
+      - name: Login to DockerHub
+        uses: docker/login-action@650006c6eb7dba73a995cc03b0b2d7f5ca915bee # v4.2.0
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
 
       - name: Base Windows OS tag
         id: base_os_tag
@@ -273,33 +288,32 @@ jobs:
           Add-Content -Path $env:GITHUB_OUTPUT -Value "tag=$tag"
           Add-Content -Path $env:GITHUB_OUTPUT -Value "ref=$ref"
 
-      - name: Verify toolchain
+      - name: Verify toolchain cosign
+        id: toolchain_verify
+        continue-on-error: true
+        uses: ./.github/actions/cosign-verify
+        with:
+          image: ${{ steps.toolchain_tag.outputs.ref }}
+          oidc_issuer: ${{ env.OIDC_ISSUER }}
+          identity_regexp: ${{ env.IDENTITY_REGEX }}
+
+      - name: Detect reusable toolchain
         id: toolchain_lookup
         env:
           TOOLCHAIN_REF: ${{ steps.toolchain_tag.outputs.ref }}
+          VERIFY_OUTCOME: ${{ steps.toolchain_verify.outcome }}
         run: |
-          $ErrorActionPreference = 'Continue'
-          $PSNativeCommandUseErrorActionPreference = $false
-
           $toolchainRef = "$env:TOOLCHAIN_REF"
+          $verifyOutcome = "$env:VERIFY_OUTCOME"
 
-          if ([string]::IsNullOrWhiteSpace($toolchainRef)) {
-            throw 'TOOLCHAIN_REF is empty. Check toolchain_tag step outputs.'
-          }
-
-          docker manifest inspect "$toolchainRef" *> $null
-
-          if ($LASTEXITCODE -eq 0) {
+          if ($verifyOutcome -eq 'success') {
             Add-Content -Path $env:GITHUB_OUTPUT -Value 'reuse=true'
-            Write-Host "Toolchain '$toolchainRef' image exists, will reuse it."
+            Write-Host "Toolchain '$toolchainRef' signature is valid, will reuse it."
           }
           else {
             Add-Content -Path $env:GITHUB_OUTPUT -Value 'reuse=false'
-            Write-Host "Toolchain '$toolchainRef' image is missing, will build it."
+            Write-Warning "Toolchain '$toolchainRef' is missing or its signature is invalid, will build it."
           }
-
-          $global:LASTEXITCODE = 0
-          exit 0
 
       - name: Generate tags
         id: meta
@@ -318,13 +332,6 @@ jobs:
             type=ref,enable=${{ needs.init_build.outputs.current_branch == 'trunk' }},event=branch,suffix=-${{ steps.base_os_tag.outputs.os_tag }},prefix=${{ matrix.component }}-
           flavor: |
             latest=false
-
-      - name: Login to DockerHub
-        if: ${{ steps.toolchain_lookup.outputs.reuse != 'true' }}
-        uses: docker/login-action@650006c6eb7dba73a995cc03b0b2d7f5ca915bee # v4.2.0
-        with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
 
       - name: Build and push image
         id: docker_build
