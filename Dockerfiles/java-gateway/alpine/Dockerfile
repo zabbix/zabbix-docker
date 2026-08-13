@@ -44,7 +44,6 @@ COPY --from=builder /tmp/zabbix-${ZBX_VERSION}-output/java_gateway/conf/ ${ZABBI
 
 RUN set -eux && \
     INSTALL_PKGS="bash \
-            openjdk21 \
             openjdk21-jre-headless" && \
     apk add \
             --no-cache \

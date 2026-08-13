@@ -68,6 +68,7 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             --shell /sbin/nologin \
             --home-dir ${ZABBIX_USER_HOME_DIR} \
         zabbix && \
+    microdnf -y remove shadow-utils && \
     mkdir -p ${ZABBIX_CONF_DIR}/ \
         /usr/sbin/zabbix_java/ext_lib/ && \
     FIX_PERM_LIST="\
