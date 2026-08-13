@@ -4,8 +4,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"net"
 	"net/url"
+	"strconv"
 	"strings"
 	"time"
 
@@ -44,6 +44,8 @@ func (s *pgxDBSession) Close(ctx context.Context) error {
 
 type sessionOpener func(context.Context, *pgx.ConnConfig) (dbSession, error)
 
+const connectTimeout = 10
+
 func openDBSession(ctx context.Context, config *pgx.ConnConfig) (dbSession, error) {
 	conn, err := pgx.ConnectConfig(ctx, config)
 	if err != nil {
@@ -54,11 +56,19 @@ func openDBSession(ctx context.Context, config *pgx.ConnConfig) (dbSession, erro
 }
 
 func (db *DB) connConfig(dbName, user, password string) (*pgx.ConnConfig, error) {
-	host := db.host
-	query := url.Values{}
-	if host == "" {
-		host = "localhost"
-		query.Set("host", "/var/run/postgresql")
+	params := url.Values{}
+	hosts := make([]string, 0, len(db.endpoints))
+	ports := make([]string, 0, len(db.endpoints))
+	for _, endpoint := range db.endpoints {
+		hosts = append(hosts, endpoint.host)
+		ports = append(ports, endpoint.port)
+	}
+	params.Set("host", strings.Join(hosts, ","))
+	params.Set("port", strings.Join(ports, ","))
+
+	params.Set("connect_timeout", strconv.Itoa(connectTimeout))
+	if len(db.endpoints) > 1 {
+		params.Set("target_session_attrs", "read-write")
 	}
 
 	mode := strings.ReplaceAll(db.tls.ConnectMode, "_", "-")
@@ -68,30 +78,31 @@ func (db *DB) connConfig(dbName, user, password string) (*pgx.ConnConfig, error)
 	if mode == "" {
 		mode = "disable"
 	}
-	query.Set("sslmode", mode)
+	params.Set("sslmode", mode)
 
-	for _, option := range []struct{ value, parameter string }{
+	for _, option := range []struct{ value, key string }{
 		{db.tls.CAFile, "sslrootcert"},
 		{db.tls.CertFile, "sslcert"},
 		{db.tls.KeyFile, "sslkey"},
 	} {
 		if option.value != "" {
-			query.Set(option.parameter, option.value)
+			params.Set(option.key, option.value)
 		}
 	}
 
-	connectionURL := &url.URL{
+	// Host and port query parameters override this placeholder. Keeping the
+	// endpoint lists out of URL.Host preserves mixed default and explicit ports.
+	connURL := &url.URL{
 		Scheme:   "postgres",
 		User:     url.UserPassword(user, password),
-		Host:     net.JoinHostPort(host, db.port),
+		Host:     "localhost",
 		Path:     "/" + dbName,
-		RawQuery: query.Encode(),
+		RawQuery: params.Encode(),
 	}
-	config, err := pgx.ParseConfig(connectionURL.String())
+	config, err := pgx.ParseConfig(connURL.String())
 	if err != nil {
 		return nil, fmt.Errorf("configure PostgreSQL connection: %w", err)
 	}
-	config.ConnectTimeout = 10 * time.Second
 	config.DefaultQueryExecMode = pgx.QueryExecModeSimpleProtocol
 	if !db.implicitSearchPath && db.schema != "" {
 		config.RuntimeParams["search_path"] = db.schema
@@ -126,7 +137,11 @@ func (db *DB) waitForConnectionContext(ctx context.Context, user, password strin
 			if err != nil {
 				return nil, err
 			}
-			attemptCtx, cancel := context.WithTimeout(ctx, 10*time.Second)
+			timeout := config.ConnectTimeout + time.Second
+			if len(db.endpoints) > 1 {
+				timeout = time.Duration(len(db.endpoints))*config.ConnectTimeout + time.Second
+			}
+			attemptCtx, cancel := context.WithTimeout(ctx, timeout)
 			sess, err := db.open(attemptCtx, config)
 			cancel()
 			if err == nil {

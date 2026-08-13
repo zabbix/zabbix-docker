@@ -4,6 +4,7 @@ package postgresql
 
 import (
 	"cmp"
+	"fmt"
 	"strings"
 
 	"github.com/zabbix/zabbix-docker/templates/entrypoints/internal/bootstrap"
@@ -18,6 +19,7 @@ type DB struct {
 	open               sessionOpener
 	host               string
 	port               string
+	endpoints          []endpoint
 	adminUser          string
 	adminPass          string
 	user               string
@@ -53,12 +55,17 @@ func (db *DB) Configure(defaultDBName string) error {
 		return err
 	}
 	db.env["DB_SERVER_HOST"] = host
+	endpoints, err := parseEndpoints(host, port)
+	if err != nil {
+		return fmt.Errorf("invalid DB_SERVER_HOST %q: %w", host, err)
+	}
 
 	schema := db.env.ValueOrDefault("DB_SERVER_SCHEMA", "public")
 	db.env["DB_SERVER_SCHEMA"] = schema
 
 	db.host = host
 	db.port = port
+	db.endpoints = endpoints
 	db.schema = schema
 
 	creds, err := vault.ResolveDBCredentials(db.env)
