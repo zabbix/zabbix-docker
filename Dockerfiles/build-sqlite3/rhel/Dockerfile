@@ -29,12 +29,15 @@ LABEL description="Zabbix build base for SQLite3 based images" \
       io.k8s.display-name="Zabbix build base (SQLite3)" \
       io.openshift.expose-services="" \
       io.openshift.tags="zabbix,build,sqlite3" \
-      org.label-schema.description="Zabbix build base for SQLite3 based images" \
-      org.label-schema.license="AGPL v3.0" \
-      org.label-schema.name="zabbix-build-sqlite3-rhel" \
-      org.label-schema.url="https://zabbix.com/" \
-      org.label-schema.vcs-ref="${VCS_REF}" \
-      org.label-schema.vendor="Zabbix SIA"
+      org.opencontainers.image.authors="Alexey Pustovalov <alexey.pustovalov@zabbix.com>" \
+      org.opencontainers.image.description="Zabbix build base for SQLite3 based images" \
+      org.opencontainers.image.documentation="https://www.zabbix.com/documentation/${MAJOR_VERSION}/manual/installation/containers" \
+      org.opencontainers.image.licenses="AGPL-3.0-only" \
+      org.opencontainers.image.source="${ZBX_SOURCES}" \
+      org.opencontainers.image.title="Zabbix build base (SQLite3)" \
+      org.opencontainers.image.url="https://zabbix.com/" \
+      org.opencontainers.image.vendor="Zabbix SIA" \
+      org.opencontainers.image.version="${ZBX_VERSION}"
 
 ENV ZBX_SOURCES_DIR=/tmp/zabbix-${ZBX_VERSION} ZBX_OUTPUT_DIR=/tmp/zabbix-${ZBX_VERSION}-output \
     DB_TYPE=sqlite3 \

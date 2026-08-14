@@ -42,18 +42,15 @@ LABEL description="Zabbix Java Gateway performs native support for monitoring JM
       io.k8s.display-name="Zabbix Java Gateway" \
       io.openshift.expose-services="10052:10052" \
       io.openshift.tags="gateway,zabbix-java,java" \
-      org.label-schema.build-date="${BUILD_DATE}" \
-      org.label-schema.description="Zabbix Java Gateway performs native support for monitoring JMX applications" \
-      org.label-schema.docker.cmd="docker run --name zabbix-java-gateway -p 10052:10052 -d registry.connect.redhat.com/zabbix/zabbix-java-gateway-trunk:${ZBX_VERSION}" \
-      org.label-schema.license="AGPL v3.0" \
-      org.label-schema.name="zabbix-java-gateway-rhel" \
-      org.label-schema.schema-version="1.0" \
-      org.label-schema.url="https://zabbix.com/" \
-      org.label-schema.usage="https://www.zabbix.com/documentation/${MAJOR_VERSION}/manual/installation/containers" \
-      org.label-schema.vcs-ref="${VCS_REF}" \
-      org.label-schema.vcs-url="${ZBX_SOURCES}" \
-      org.label-schema.vendor="Zabbix SIA" \
-      org.label-schema.version="${ZBX_VERSION}"
+      org.opencontainers.image.authors="Alexey Pustovalov <alexey.pustovalov@zabbix.com>" \
+      org.opencontainers.image.description="Zabbix Java Gateway performs native support for monitoring JMX applications" \
+      org.opencontainers.image.documentation="https://www.zabbix.com/documentation/${MAJOR_VERSION}/manual/installation/containers" \
+      org.opencontainers.image.licenses="AGPL-3.0-only" \
+      org.opencontainers.image.source="${ZBX_SOURCES}" \
+      org.opencontainers.image.title="Zabbix Java Gateway" \
+      org.opencontainers.image.url="https://zabbix.com/" \
+      org.opencontainers.image.vendor="Zabbix SIA" \
+      org.opencontainers.image.version="${ZBX_VERSION}"
 
 
 COPY ["licenses", "/licenses"]

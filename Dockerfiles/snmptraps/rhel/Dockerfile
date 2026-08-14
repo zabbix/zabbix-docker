@@ -42,18 +42,15 @@ LABEL description="Zabbix SNMP traps receiver" \
       io.k8s.display-name="Zabbix SNMP traps receiver" \
       io.openshift.expose-services="162:1162" \
       io.openshift.tags="zabbix,zabbix-snmp,snmp-traps" \
-      org.label-schema.build-date="${BUILD_DATE}" \
-      org.label-schema.description="Zabbix SNMP traps receiver" \
-      org.label-schema.docker.cmd="docker run --name zabbix-snmptraps --link zabbix-server:zabbix-server -p 162:1162/udp -d registry.connect.redhat.com/zabbix/zabbix-snmptraps-trunk:${ZBX_VERSION}" \
-      org.label-schema.license="AGPL v3.0" \
-      org.label-schema.name="zabbix-snmptraps-rhel" \
-      org.label-schema.schema-version="1.0" \
-      org.label-schema.url="https://zabbix.com/" \
-      org.label-schema.usage="https://www.zabbix.com/documentation/${MAJOR_VERSION}/manual/installation/containers" \
-      org.label-schema.vcs-ref="${VCS_REF}" \
-      org.label-schema.vcs-url="${ZBX_SOURCES}" \
-      org.label-schema.vendor="Zabbix SIA" \
-      org.label-schema.version="${ZBX_VERSION}"
+      org.opencontainers.image.authors="Alexey Pustovalov <alexey.pustovalov@zabbix.com>" \
+      org.opencontainers.image.description="Zabbix SNMP traps receiver" \
+      org.opencontainers.image.documentation="https://www.zabbix.com/documentation/${MAJOR_VERSION}/manual/installation/containers" \
+      org.opencontainers.image.licenses="AGPL-3.0-only" \
+      org.opencontainers.image.source="${ZBX_SOURCES}" \
+      org.opencontainers.image.title="Zabbix SNMP traps receiver" \
+      org.opencontainers.image.url="https://zabbix.com/" \
+      org.opencontainers.image.vendor="Zabbix SIA" \
+      org.opencontainers.image.version="${ZBX_VERSION}"
 
 
 COPY licenses /licenses/
