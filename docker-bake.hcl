@@ -66,6 +66,10 @@ group "builder-mysql" {
   targets = ["build-mysql"]
 }
 
+group "builder-common" {
+  targets = ["build-common"]
+}
+
 group "builder-pgsql" {
   targets = ["build-pgsql"]
 }
@@ -76,10 +80,10 @@ group "builder-sqlite3" {
 
 group "runtime-mysql-all" {
   targets = [
-    "agent-mysql",
-    "agent2-mysql",
-    "java-gateway-mysql",
-    "web-service-mysql",
+    "agent",
+    "agent2",
+    "java-gateway",
+    "web-service",
     "server-mysql",
     "web-nginx-mysql",
     "web-apache-mysql",
@@ -90,10 +94,10 @@ group "runtime-mysql-all" {
 
 group "runtime-pgsql-all" {
   targets = [
-    "agent-pgsql",
-    "agent2-pgsql",
-    "java-gateway-pgsql",
-    "web-service-pgsql",
+    "agent",
+    "agent2",
+    "java-gateway",
+    "web-service",
     "server-pgsql",
     "web-nginx-pgsql",
     "web-apache-pgsql",
@@ -103,7 +107,7 @@ group "runtime-pgsql-all" {
 
 group "runtime-mysql-minimal" {
   targets = [
-    "agent-mysql",
+    "agent",
     "server-mysql",
     "web-nginx-mysql",
   ]
@@ -111,7 +115,7 @@ group "runtime-mysql-minimal" {
 
 group "runtime-pgsql-minimal" {
   targets = [
-    "agent-pgsql",
+    "agent",
     "server-pgsql",
     "web-nginx-pgsql",
   ]
@@ -119,7 +123,7 @@ group "runtime-pgsql-minimal" {
 
 group "runtime-mysql-apache" {
   targets = [
-    "agent-mysql",
+    "agent",
     "server-mysql",
     "web-apache-mysql",
   ]
@@ -127,7 +131,7 @@ group "runtime-mysql-apache" {
 
 group "runtime-pgsql-apache" {
   targets = [
-    "agent-pgsql",
+    "agent",
     "server-pgsql",
     "web-apache-pgsql",
   ]
@@ -135,7 +139,7 @@ group "runtime-pgsql-apache" {
 
 group "runtime-sqlite3" {
   targets = [
-    "agent-mysql",
+    "agent",
     "proxy-sqlite3",
   ]
 }
@@ -178,6 +182,19 @@ target "_runtime_common" {
   }
 }
 
+target "_runtime_build_common" {
+  inherits   = ["_runtime_common"]
+  depends_on = ["build-common"]
+
+  contexts = {
+    builder = "target:build-common"
+  }
+
+  args = {
+    BUILD_BASE_IMAGE = "${ZBX_IMAGE_NAMESPACE}${ZBX_IMAGE_PREFIX}build-common:${ZBX_IMAGE_TAG}"
+  }
+}
+
 target "_runtime_mysql" {
   inherits   = ["_runtime_common"]
   depends_on = ["build-mysql"]
@@ -211,8 +228,16 @@ target "build-base" {
 }
 
 // =========================
-// Phase 2: builders per DB
+// Phase 2: component builders
 // =========================
+target "build-common" {
+  description = "Zabbix build base for database-independent images"
+  inherits    = ["_builder_common"]
+  depends_on  = ["build-base"]
+  context     = "Dockerfiles/build-common/${OS}"
+  tags        = ["${ZBX_IMAGE_NAMESPACE}${ZBX_IMAGE_PREFIX}build-common:${ZBX_IMAGE_TAG}"]
+}
+
 target "build-mysql" {
   description = "Zabbix build base for MySQL based images"
   inherits    = ["_builder_common"]
@@ -238,60 +263,32 @@ target "build-sqlite3" {
 }
 
 // =========================
-// Phase 3: runtime (DB-flavored)
+// Phase 3: runtime images
 // =========================
-target "agent-mysql" {
+target "agent" {
   description = "Zabbix agent is deployed on a monitoring target to actively monitor local resources and applications"
-  inherits    = ["_runtime_mysql"]
+  inherits    = ["_runtime_build_common"]
   context     = "Dockerfiles/agent/${OS}"
   tags        = ["${ZBX_IMAGE_NAMESPACE}${ZBX_IMAGE_PREFIX}agent:${ZBX_IMAGE_TAG}"]
 }
 
-target "agent2-mysql" {
+target "agent2" {
   description = "Zabbix agent 2 is deployed on a monitoring target to actively monitor local resources and applications"
-  inherits    = ["_runtime_mysql"]
+  inherits    = ["_runtime_build_common"]
   context     = "Dockerfiles/agent2/${OS}"
   tags        = ["${ZBX_IMAGE_NAMESPACE}${ZBX_IMAGE_PREFIX}agent2:${ZBX_IMAGE_TAG}"]
 }
 
-target "java-gateway-mysql" {
+target "java-gateway" {
   description = "Zabbix Java Gateway performs native support for monitoring JMX applications"
-  inherits    = ["_runtime_mysql"]
+  inherits    = ["_runtime_build_common"]
   context     = "Dockerfiles/java-gateway/${OS}"
   tags        = ["${ZBX_IMAGE_NAMESPACE}${ZBX_IMAGE_PREFIX}java-gateway:${ZBX_IMAGE_TAG}"]
 }
 
-target "web-service-mysql" {
+target "web-service" {
   description = "Zabbix web service for performing various tasks using headless web browser"
-  inherits    = ["_runtime_mysql"]
-  context     = "Dockerfiles/web-service/${OS}"
-  tags        = ["${ZBX_IMAGE_NAMESPACE}${ZBX_IMAGE_PREFIX}web-service:${ZBX_IMAGE_TAG}"]
-}
-
-target "agent-pgsql" {
-  description = "Zabbix agent is deployed on a monitoring target to actively monitor local resources and applications"
-  inherits    = ["_runtime_pgsql"]
-  context     = "Dockerfiles/agent/${OS}"
-  tags        = ["${ZBX_IMAGE_NAMESPACE}${ZBX_IMAGE_PREFIX}agent:${ZBX_IMAGE_TAG}"]
-}
-
-target "agent2-pgsql" {
-  description = "Zabbix agent 2 is deployed on a monitoring target to actively monitor local resources and applications"
-  inherits    = ["_runtime_pgsql"]
-  context     = "Dockerfiles/agent2/${OS}"
-  tags        = ["${ZBX_IMAGE_NAMESPACE}${ZBX_IMAGE_PREFIX}agent2:${ZBX_IMAGE_TAG}"]
-}
-
-target "java-gateway-pgsql" {
-  description = "Zabbix Java Gateway performs native support for monitoring JMX applications"
-  inherits    = ["_runtime_pgsql"]
-  context     = "Dockerfiles/java-gateway/${OS}"
-  tags        = ["${ZBX_IMAGE_NAMESPACE}${ZBX_IMAGE_PREFIX}java-gateway:${ZBX_IMAGE_TAG}"]
-}
-
-target "web-service-pgsql" {
-  description = "Zabbix web service for performing various tasks using headless web browser"
-  inherits    = ["_runtime_pgsql"]
+  inherits    = ["_runtime_build_common"]
   context     = "Dockerfiles/web-service/${OS}"
   tags        = ["${ZBX_IMAGE_NAMESPACE}${ZBX_IMAGE_PREFIX}web-service:${ZBX_IMAGE_TAG}"]
 }
@@ -305,14 +302,14 @@ target "server-mysql" {
 
 target "web-nginx-mysql" {
   description = "Zabbix web-interface based on Nginx web server with MySQL database support"
-  inherits    = ["_runtime_mysql"]
+  inherits    = ["_runtime_build_common"]
   context     = "Dockerfiles/web-nginx-mysql/${OS}"
   tags        = ["${ZBX_IMAGE_NAMESPACE}${ZBX_IMAGE_PREFIX}web-nginx-mysql:${ZBX_IMAGE_TAG}"]
 }
 
 target "web-apache-mysql" {
   description = "Zabbix web-interface based on Apache web server with MySQL database support"
-  inherits    = ["_runtime_mysql"]
+  inherits    = ["_runtime_build_common"]
   context     = "Dockerfiles/web-apache-mysql/${OS}"
   tags        = ["${ZBX_IMAGE_NAMESPACE}${ZBX_IMAGE_PREFIX}web-apache-mysql:${ZBX_IMAGE_TAG}"]
 }
@@ -326,14 +323,14 @@ target "server-pgsql" {
 
 target "web-nginx-pgsql" {
   description = "Zabbix web-interface based on Nginx web server with PostgreSQL database support"
-  inherits    = ["_runtime_pgsql"]
+  inherits    = ["_runtime_build_common"]
   context     = "Dockerfiles/web-nginx-pgsql/${OS}"
   tags        = ["${ZBX_IMAGE_NAMESPACE}${ZBX_IMAGE_PREFIX}web-nginx-pgsql:${ZBX_IMAGE_TAG}"]
 }
 
 target "web-apache-pgsql" {
   description = "Zabbix web-interface based on Apache web server with PostgreSQL database support"
-  inherits    = ["_runtime_pgsql"]
+  inherits    = ["_runtime_build_common"]
   context     = "Dockerfiles/web-apache-pgsql/${OS}"
   tags        = ["${ZBX_IMAGE_NAMESPACE}${ZBX_IMAGE_PREFIX}web-apache-pgsql:${ZBX_IMAGE_TAG}"]
 }

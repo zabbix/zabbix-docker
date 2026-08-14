@@ -56,7 +56,7 @@ jobs:
       contents: read
     outputs:
       os: ${{ steps.os.outputs.list }}
-      database: ${{ steps.database.outputs.list }}
+      builders: ${{ steps.builders.outputs.list }}
       components: ${{ steps.components.outputs.list }}
       is_default_branch: ${{ steps.branch_info.outputs.is_default_branch }}
       current_branch: ${{ steps.branch_info.outputs.current_branch }}
@@ -109,22 +109,22 @@ jobs:
 
           echo "list=$os_list" >> "$GITHUB_OUTPUT"
 
-      - name: Prepare database list
-        id: database
+      - name: Prepare component builder list
+        id: builders
         env:
           MATRIX_FILE: ${{ env.MATRIX_FILE }}
         run: |
-          database_list="$(jq -c '
+          builder_list="$(jq -c '
             [.components | values[].base]
             | map(select(length > 0))
             | unique
           ' "$MATRIX_FILE")"
 
-          echo "::group::Database List"
-          echo "$database_list"
+          echo "::group::Component Builder List"
+          echo "$builder_list"
           echo "::endgroup::"
 
-          echo "list=$database_list" >> "$GITHUB_OUTPUT"
+          echo "list=$builder_list" >> "$GITHUB_OUTPUT"
 
       - name: Prepare component list
         id: components
@@ -367,14 +367,14 @@ jobs:
           path: ${{ env.BASE_CACHE_FILE_NAME }}
           name: ${{ env.BASE_BUILD_NAME }}-${{ matrix.os }}-${{ github.run_id }}
 
-  build_base_database:
+  build_components:
     timeout-minutes: 1240
     needs: ["build_base", "init_build"]
-    name: Build ${{ matrix.build }} base on ${{ matrix.os }}
+    name: Build ${{ matrix.build }} on ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
-        build: ${{ fromJson(needs.init_build.outputs.database) }}
+        build: ${{ fromJson(needs.init_build.outputs.builders) }}
         os: ${{ fromJson(needs.init_build.outputs.os) }}
     runs-on: ubuntu-latest
     permissions:
@@ -533,7 +533,7 @@ jobs:
 
   build_images:
     timeout-minutes: 90
-    needs: ["build_base_database", "init_build"]
+    needs: ["build_components", "init_build"]
     name: Build ${{ matrix.build }} on ${{ matrix.os }}
     strategy:
       fail-fast: false

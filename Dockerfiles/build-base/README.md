@@ -28,7 +28,7 @@ Images are updated when new releases are published. The image with ``latest`` ta
 
 # How to use this image
 
-The image is required to build Zabbix components. It is base image for [MySQL](https://github.com/zabbix/zabbix-docker/tree/trunk/Dockerfiles/build-mysql), [PostgreSQL](https://github.com/zabbix/zabbix-docker/tree/trunk/Dockerfiles/build-pgsql) and [SQLite3](https://github.com/zabbix/zabbix-docker/tree/trunk/Dockerfiles/build-sqlite3) base images. While the image contains only required packages, MySQL, PostgreSQL and SQLite3 base images compile Zabbix component and prepare them for usage.
+The image is required to build Zabbix components. It is the base image for [common](https://github.com/zabbix/zabbix-docker/tree/trunk/Dockerfiles/build-common), [MySQL](https://github.com/zabbix/zabbix-docker/tree/trunk/Dockerfiles/build-mysql), [PostgreSQL](https://github.com/zabbix/zabbix-docker/tree/trunk/Dockerfiles/build-pgsql) and [SQLite3](https://github.com/zabbix/zabbix-docker/tree/trunk/Dockerfiles/build-sqlite3) build images. The image contains only required packages, binaries and tools; its child build images compile and prepare Zabbix components for runtime images.
 
 # The image variants
 

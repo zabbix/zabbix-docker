@@ -30,18 +30,18 @@
     "windows-2022": "ltsc2022"
   },
   "components": {
-    "agent": { "base": "build-mysql", "rhel": true },
-    "agent2": { "base": "build-mysql", "rhel": true },
-    "java-gateway": { "base": "build-mysql", "rhel": true },
+    "agent": { "base": "build-common", "rhel": true },
+    "agent2": { "base": "build-common", "rhel": true },
+    "java-gateway": { "base": "build-common", "rhel": true },
     "proxy-mysql": { "base": "build-mysql", "rhel": true },
     "proxy-sqlite3": { "base": "build-sqlite3", "rhel": true },
     "server-mysql": { "base": "build-mysql", "rhel": true },
     "server-pgsql": { "base": "build-pgsql", "rhel": true },
     "snmptraps": { "base": "", "rhel": true },
-    "web-apache-mysql": { "base": "build-mysql", "rhel": false },
-    "web-apache-pgsql": { "base": "build-pgsql", "rhel": false },
-    "web-nginx-mysql": { "base": "build-mysql", "rhel": true },
-    "web-nginx-pgsql": { "base": "build-pgsql", "rhel": true },
-    "web-service": { "base": "build-mysql", "rhel": true }
+    "web-apache-mysql": { "base": "build-common", "rhel": false },
+    "web-apache-pgsql": { "base": "build-common", "rhel": false },
+    "web-nginx-mysql": { "base": "build-common", "rhel": true },
+    "web-nginx-pgsql": { "base": "build-common", "rhel": true },
+    "web-service": { "base": "build-common", "rhel": true }
   }
 }
