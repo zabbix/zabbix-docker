@@ -802,6 +802,14 @@ jobs:
             org.opencontainers.image.revision=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.revision'] }}
             org.opencontainers.image.created=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.created'] }}
 
+      - name: Scan for vulnerabilities
+        if: ${{ env.AUTO_PUSH_IMAGES == 'true' && matrix.os != 'centos' }}
+        uses: crazy-max/ghaction-container-scan@a0a3900b79d158c85ccf034e5368fae620a9233a # v4.0.0
+        with:
+          image: ${{ fromJSON(steps.meta.outputs.json).tags[0] }}@${{ matrix.build == 'snmptraps' && steps.docker_build_snmptraps.outputs.digest || steps.docker_build.outputs.digest }}
+          annotations: true
+          dockerfile: ${{ format('{0}/{1}/{2}/Dockerfile', env.DOCKERFILES_DIRECTORY, matrix.build, matrix.os) }}
+
       - name: Sign the images with GitHub OIDC Token
         if: ${{ env.AUTO_PUSH_IMAGES == 'true' }}
         uses: ./.github/actions/cosign-sign
