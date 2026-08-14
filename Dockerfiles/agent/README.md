@@ -20,8 +20,6 @@ These are the only official Zabbix agent Docker images. They are based on Alpine
     Zabbix agent 6.0.* (tags: alpine-6.0.*, ubuntu-6.0.*, ol-6.0.*, ltsc2019-6.0.*, ltsc2022-6.0.*)
     Zabbix agent 7.0 (tags: alpine-7.0-latest, ubuntu-7.0-latest, ol-7.0-latest)
     Zabbix agent 7.0.* (tags: alpine-7.0.*, ubuntu-7.0.*, ol-7.0.*, ltsc2019-7.0.*, ltsc2022-7.0.*)
-    Zabbix agent 7.2 (tags: alpine-7.2-latest, ubuntu-7.2-latest, ol-7.2-latest)
-    Zabbix agent 7.2.* (tags: alpine-7.2.*, ubuntu-7.2.*, ol-7.2.*, ltsc2019-7.2.*, ltsc2022-7.2.*)
     Zabbix agent 7.4 (tags: alpine-7.4-latest, ubuntu-7.4-latest, ol-7.4-latest, alpine-latest, ubuntu-latest, ol-latest, ltsc2019-latest, ltsc2022-latest, latest)
     Zabbix agent 7.4.* (tags: alpine-7.4.*, ubuntu-7.4.*, ol-7.4.*, ltsc2019-7.4.*, ltsc2022-7.4.*)
     Zabbix agent 8.0 (tags: alpine-trunk, ubuntu-trunk, ol-trunk, ltsc2019-trunk, ltsc2022-trunk)

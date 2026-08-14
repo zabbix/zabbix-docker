@@ -20,8 +20,6 @@ These are the only official Zabbix Java Gateway Docker images. They are based on
     Zabbix Java Gateway 6.0.* (tags: alpine-6.0.*, ubuntu-6.0.*, ol-6.0.*)
     Zabbix Java Gateway 7.0 (tags: alpine-7.0-latest, ubuntu-7.0-latest, ol-7.0-latest)
     Zabbix Java Gateway 7.0.* (tags: alpine-7.0.*, ubuntu-7.0.*, ol-7.0.*)
-    Zabbix Java Gateway 7.2 (tags: alpine-7.2-latest, ubuntu-7.2-latest, ol-7.2-latest)
-    Zabbix Java Gateway 7.2.* (tags: alpine-7.2.*, ubuntu-7.2.*, ol-7.2.*)
     Zabbix Java Gateway 7.4 (tags: alpine-7.4-latest, ubuntu-7.4-latest, ol-7.4-latest, alpine-latest, ubuntu-latest, ol-latest, latest)
     Zabbix Java Gateway 7.4.* (tags: alpine-7.4.*, ubuntu-7.4.*, ol-7.4.*)
     Zabbix Java Gateway 8.0 (tags: alpine-trunk, ubuntu-trunk, ol-trunk)
