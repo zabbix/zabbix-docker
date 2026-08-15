@@ -26,7 +26,23 @@ The Linux images are based on Alpine Linux v3.24, Ubuntu 26.04 (resolute), CentO
 
 Images are updated when new releases are published. The image with ``latest`` tag is based on Alpine Linux.
 
-Windows agent and agent 2 builders are published in the same repository with component-specific Microsoft Windows Server tags.
+Windows agent and agent 2 builders are published in the same repository with component-specific Microsoft Windows Server tags. The available versions are:
+
+    Zabbix common build base for agent 6.0 (tags: agent-ltsc2022-6.0-latest, agent-6.0-ltsc2022-latest)
+    Zabbix common build base for agent 6.0.* (tags: agent-ltsc2022-6.0.*, agent-6.0.*-ltsc2022)
+    Zabbix common build base for agent 7.0 (tags: agent-ltsc2022-7.0-latest, agent-7.0-ltsc2022-latest)
+    Zabbix common build base for agent 7.0.* (tags: agent-ltsc2022-7.0.*, agent-7.0.*-ltsc2022)
+    Zabbix common build base for agent 7.4 (tags: agent-ltsc2022-7.4-latest, agent-7.4-ltsc2022-latest, agent-ltsc2022-latest)
+    Zabbix common build base for agent 7.4.* (tags: agent-ltsc2022-7.4.*, agent-7.4.*-ltsc2022)
+    Zabbix common build base for agent 8.0 (tags: agent-ltsc2022-trunk, agent-trunk-ltsc2022)
+
+    Zabbix common build base for agent 2 6.0 (tags: agent2-ltsc2022-6.0-latest, agent2-6.0-ltsc2022-latest)
+    Zabbix common build base for agent 2 6.0.* (tags: agent2-ltsc2022-6.0.*, agent2-6.0.*-ltsc2022)
+    Zabbix common build base for agent 2 7.0 (tags: agent2-ltsc2022-7.0-latest, agent2-7.0-ltsc2022-latest)
+    Zabbix common build base for agent 2 7.0.* (tags: agent2-ltsc2022-7.0.*, agent2-7.0.*-ltsc2022)
+    Zabbix common build base for agent 2 7.4 (tags: agent2-ltsc2022-7.4-latest, agent2-7.4-ltsc2022-latest, agent2-ltsc2022-latest)
+    Zabbix common build base for agent 2 7.4.* (tags: agent2-ltsc2022-7.4.*, agent2-7.4.*-ltsc2022)
+    Zabbix common build base for agent 2 8.0 (tags: agent2-ltsc2022-trunk, agent2-trunk-ltsc2022)
 
 # How to use this image
 
