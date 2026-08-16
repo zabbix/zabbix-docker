@@ -1,11 +1,12 @@
-<h2>What is Zabbix?</h2>
+<p><img src="https://assets.zabbix.com/img/logo/zabbix_logo_500x131.png" alt="logo"></p>
+<h1 id="what-is-zabbix-">What is Zabbix?</h1>
 <p>Zabbix is an enterprise-class open source distributed monitoring solution.</p>
 <p>Zabbix is software that monitors numerous parameters of a network and the health and integrity of servers. Zabbix uses a flexible notification mechanism that allows users to configure e-mail based alerts for virtually any event. This allows a fast reaction to server problems. Zabbix offers excellent reporting and data visualisation features based on the stored data. This makes Zabbix ideal for capacity planning.</p>
-<p>For more information and related downloads for Zabbix components, please visit <a href="https://zabbix.com">zabbix.com</a></p>
-<h2>What is Zabbix web interface?</h2>
+<p>For more information and related downloads for Zabbix components, please visit <a href="https://hub.docker.com/u/zabbix/">https://hub.docker.com/u/zabbix/</a> and <a href="https://zabbix.com">https://zabbix.com</a></p>
+<h1 id="what-is-zabbix-web-interface-">What is Zabbix web interface?</h1>
 <p>Zabbix web interface is a part of Zabbix software. It is used to manage resources under monitoring and view monitoring statistics.</p>
-<h2>Zabbix web interface images</h2>
-<p>Images are updated when new releases are published.</p>
+<h1 id="zabbix-web-interface-images">Zabbix web interface images</h1>
+<p>These are the only official Zabbix web interface Podman images. Images are updated when new releases are published.</p>
 <p>Zabbix web interface available in four editions:</p>
 <ul>
 <li>Zabbix web-interface based on Apache2 web server with MySQL database support</li>
@@ -14,187 +15,156 @@
 <li>Zabbix web-interface based on Nginx web server with PostgreSQL database support</li>
 </ul>
 <p>The image based on Nginx web server with PostgreSQL database support.</p>
-<h2>How to use this image</h2>
-<h3>Start <code>zabbix-web-nginx-pgsql</code></h3>
+<h1 id="how-to-use-this-image">How to use this image</h1>
+<h2 id="start-zabbix-web-nginx-pgsql-">Start <code>zabbix-web-nginx-pgsql</code></h2>
 <p>Start a Zabbix web-interface container as follows:</p>
-<pre><code>podman run \
-    --name some-zabbix-web-nginx-pgsql \
-    -e DB_SERVER_HOST="some-postgres-server" \
-    -e POSTGRES_USER="some-user" \
-    -e POSTGRES_PASSWORD="some-password" \
-    -e ZBX_SERVER_HOST="some-zabbix-server" \
-    -e PHP_TZ="some-timezone" \
-    -d registry.connect.redhat.com/zabbix/zabbix-web-pgsql-74:tag
-</code></pre>
-<p>Where <code>some-zabbix-web-nginx-pgsql</code> is the name you want to assign to your container, <code>some-postgres-server</code> is IP or DNS name of PostgreSQL server, <code>some-user</code> is user to connect to Zabbix database on PostgreSQL server, <code>some-password</code> is the password to connect to PostgreSQL server, <code>some-zabbix-server</code> is IP or DNS name of Zabbix server or proxy, <code>some-timezone</code> is PHP like timezone name and <code>tag</code> is the tag specifying the version you want.</p>
-<h3>Linking the container to Zabbix server</h3>
-<pre><code>podman run \
-    --name some-zabbix-web-nginx-pgsql \
-    --link some-zabbix-server:zabbix-server \
-    -e DB_SERVER_HOST="some-postgres-server" \
-    -e POSTGRES_USER="some-user" \
-    -e POSTGRES_PASSWORD="some-password" \
-    -e ZBX_SERVER_HOST="some-zabbix-server" \
-    -e PHP_TZ="some-timezone" \
-    -d registry.connect.redhat.com/zabbix/zabbix-web-pgsql-74:tag
-</code></pre>
-<h3>Linking the container to PostgreSQL database</h3>
-<pre><code>podman run \
-    --name some-zabbix-web-nginx-pgsql \
-    --link some-postgres-server:postgres \
-    -e DB_SERVER_HOST="some-postgres-server" \
-    -e POSTGRES_USER="some-user" \
-    -e POSTGRES_PASSWORD="some-password" \
-    -e ZBX_SERVER_HOST="some-zabbix-server" \
-    -e PHP_TZ="some-timezone" \
-    -d registry.connect.redhat.com/zabbix/zabbix-web-pgsql-74:tag
-</code></pre>
-<h3>Container shell access and viewing Zabbix web interface logs</h3>
+<pre><code>podman <span class="hljs-keyword">run</span><span class="bash"> --name some-zabbix-web-nginx-pgsql <span class="hljs-_">-e</span> DB_SERVER_HOST=<span class="hljs-string">"some-postgres-server"</span> <span class="hljs-_">-e</span> POSTGRES_USER=<span class="hljs-string">"some-user"</span> <span class="hljs-_">-e</span> POSTGRES_PASSWORD=<span class="hljs-string">"some-password"</span> <span class="hljs-_">-e</span> ZBX_SERVER_HOST=<span class="hljs-string">"some-zabbix-server"</span> <span class="hljs-_">-e</span> PHP_TZ=<span class="hljs-string">"some-timezone"</span> <span class="hljs-_">-d</span> zabbix/zabbix-web-nginx-pgsql:tag</span>
+</code></pre><p>Where <code>some-zabbix-web-nginx-pgsql</code> is the name you want to assign to your container, <code>some-postgres-server</code> is IP or DNS name of PostgreSQL server, <code>some-user</code> is user to connect to Zabbix database on PostgreSQL server, <code>some-password</code> is the password to connect to PostgreSQL server, <code>some-zabbix-server</code> is IP or DNS name of Zabbix server or proxy, <code>some-timezone</code> is PHP like timezone name and <code>tag</code> is the tag specifying the version you want.</p>
+<h2 id="linking-the-container-to-zabbix-server">Linking the container to Zabbix server</h2>
+<pre><code>podman <span class="hljs-keyword">run</span><span class="bash"> --name some-zabbix-web-nginx-pgsql --link some-zabbix-server:zabbix-server <span class="hljs-_">-e</span> DB_SERVER_HOST=<span class="hljs-string">"some-postgres-server"</span> <span class="hljs-_">-e</span> POSTGRES_USER=<span class="hljs-string">"some-user"</span> <span class="hljs-_">-e</span> POSTGRES_PASSWORD=<span class="hljs-string">"some-password"</span> <span class="hljs-_">-e</span> ZBX_SERVER_HOST=<span class="hljs-string">"some-zabbix-server"</span> <span class="hljs-_">-e</span> PHP_TZ=<span class="hljs-string">"some-timezone"</span> <span class="hljs-_">-d</span> zabbix/zabbix-web-nginx-pgsql:tag</span>
+</code></pre><h2 id="linking-the-container-to-postgresql-database">Linking the container to PostgreSQL database</h2>
+<pre><code>podman <span class="hljs-keyword">run</span><span class="bash"> --name some-zabbix-web-nginx-pgsql --link some-postgres-server:postgres <span class="hljs-_">-e</span> DB_SERVER_HOST=<span class="hljs-string">"some-postgres-server"</span> <span class="hljs-_">-e</span> POSTGRES_USER=<span class="hljs-string">"some-user"</span> <span class="hljs-_">-e</span> POSTGRES_PASSWORD=<span class="hljs-string">"some-password"</span> <span class="hljs-_">-e</span> ZBX_SERVER_HOST=<span class="hljs-string">"some-zabbix-server"</span> <span class="hljs-_">-e</span> PHP_TZ=<span class="hljs-string">"some-timezone"</span> <span class="hljs-_">-d</span> zabbix/zabbix-web-nginx-pgsql:tag</span>
+</code></pre><h2 id="container-shell-access-and-viewing-zabbix-web-interface-logs">Container shell access and viewing Zabbix web interface logs</h2>
 <p>The <code>podman exec</code> command allows you to run commands inside a Podman container. The following command line will give you a bash shell inside your <code>zabbix-web-nginx-pgsql</code> container:</p>
-<pre><code>$ podman exec -ti some-zabbix-web-nginx-pgsql /bin/bash
+<pre><code class="lang-console">$ podman exec -ti <span class="hljs-keyword">some</span>-zabbix-web-nginx-pgsql /bin/bash
 </code></pre>
-<p>The Zabbix web interface log is available through Podman's container log:</p>
-<pre><code>$ podman logs  some-zabbix-web-nginx-pgsql
+<p>The Zabbix web interface log is available through Podman&#39;s container log:</p>
+<pre><code class="lang-console">$ podman logs  <span class="hljs-keyword">some</span>-zabbix-web-nginx-pgsql
 </code></pre>
-<h3>Environment Variables</h3>
+<h2 id="environment-variables">Environment Variables</h2>
 <p>When you start the <code>zabbix-web-nginx-pgsql</code> image, you can adjust the configuration of the Zabbix web interface by passing one or more environment variables on the <code>podman run</code> command line.</p>
-<h4><code>ZBX_SERVER_HOST</code></h4>
+<h3 id="-zbx_server_host-"><code>ZBX_SERVER_HOST</code></h3>
 <p>This variable is IP or DNS name of Zabbix server. By default, value is <code>zabbix-server</code>.</p>
-<h4><code>ZBX_SERVER_PORT</code></h4>
+<h3 id="-zbx_server_port-"><code>ZBX_SERVER_PORT</code></h3>
 <p>This variable is port Zabbix server listening on. By default, value is <code>10051</code>.</p>
-<h4><code>DB_SERVER_HOST</code></h4>
-<p>This variable is IP or DNS name of PostgreSQL server. By default, value is 'postgres-server'</p>
-<h4><code>DB_SERVER_PORT</code></h4>
-<p>This variable is port of PostgreSQL server. By default, value is '5432'.</p>
-<h4><code>POSTGRES_USER</code>, <code>POSTGRES_PASSWORD</code>, <code>POSTGRES_USER_FILE</code>, <code>POSTGRES_PASSWORD_FILE</code></h4>
-<p>These variables are used by Zabbix web interface to connect to Zabbix database. With the <code>_FILE</code> variables you can instead provide the path to a file which contains the user / the password instead. When secrets are not managed by an orchestrator, you also have to mount the files. Those are exclusive so you can just provide one type - either <code>POSTGRES_USER</code> or <code>POSTGRES_USER_FILE</code>!</p>
-<pre><code>podman run \
-    --name some-zabbix-web-nginx-pgsql \
-    -e DB_SERVER_HOST=&quot;some-postgres-server&quot; \
-    -v ./.POSTGRES_USER:/run/secrets/POSTGRES_USER \
-    -e POSTGRES_USER_FILE=/run/secrets/POSTGRES_USER \
-    -v ./.POSTGRES_PASSWORD:/run/secrets/POSTGRES_PASSWORD \
-    -e POSTGRES_PASSWORD_FILE=/var/run/secrets/POSTGRES_PASSWORD \
-    -e ZBX_SERVER_HOST=&quot;some-zabbix-server&quot; \
-    -e PHP_TZ=&quot;some-timezone&quot; \
-    -d registry.connect.redhat.com/zabbix/zabbix-web-pgsql-74:tag
+<h3 id="-db_server_host-"><code>DB_SERVER_HOST</code></h3>
+<p>This variable is IP or DNS name of PostgreSQL server. By default, value is &#39;postgres-server&#39;</p>
+<h3 id="-db_server_port-"><code>DB_SERVER_PORT</code></h3>
+<p>This variable is port of PostgreSQL server. By default, value is &#39;5432&#39;.</p>
+<h3 id="-postgres_user-postgres_password-postgres_user_file-postgres_password_file-"><code>POSTGRES_USER</code>, <code>POSTGRES_PASSWORD</code>, <code>POSTGRES_USER_FILE</code>, <code>POSTGRES_PASSWORD_FILE</code></h3>
+<p>These variables are used by Zabbix web interface to connect to Zabbix database. With the <code>_FILE</code> variables you can instead provide the path to a file which contains the user / the password instead. Without Docker Swarm or Kubernetes you also have to map the files. Those are exclusive so you can just provide one type - either <code>POSTGRES_USER</code> or <code>POSTGRES_USER_FILE</code>!</p>
+<pre><code class="lang-console">podman <span class="hljs-keyword">run</span><span class="bash"> --name some-zabbix-web-nginx-pgsql <span class="hljs-_">-e</span> DB_SERVER_HOST=<span class="hljs-string">"some-postgres-server"</span> -v ./.POSTGRES_USER:/run/secrets/POSTGRES_USER <span class="hljs-_">-e</span> POSTGRES_USER_FILE=/run/secrets/POSTGRES_USER -v ./.POSTGRES_PASSWORD:/run/secrets/POSTGRES_PASSWORD <span class="hljs-_">-e</span> POSTGRES_PASSWORD_FILE=/var/run/secrets/POSTGRES_PASSWORD <span class="hljs-_">-e</span> ZBX_SERVER_HOST=<span class="hljs-string">"some-zabbix-server"</span> <span class="hljs-_">-e</span> PHP_TZ=<span class="hljs-string">"some-timezone"</span> <span class="hljs-_">-d</span> zabbix/zabbix-web-nginx-pgsql:tag</span>
 </code></pre>
-<p>Podman secrets can be used to avoid exposing credentials in the command line:</p>
-<pre><code>printf &quot;zabbix&quot; | podman secret create POSTGRES_USER -
-printf &quot;zabbix&quot; | podman secret create POSTGRES_PASSWORD -
-podman run \
-    --name some-zabbix-web-nginx-pgsql \
-    -e DB_SERVER_HOST=&quot;some-postgres-server&quot; \
-    -e POSTGRES_USER_FILE=/run/secrets/POSTGRES_USER \
-    -e POSTGRES_PASSWORD_FILE=/run/secrets/POSTGRES_PASSWORD \
-    -e ZBX_SERVER_HOST=&quot;some-zabbix-server&quot; \
-    -e PHP_TZ=&quot;some-timezone&quot; \
-    -d registry.connect.redhat.com/zabbix/zabbix-web-pgsql-74:tag
+<p>With Docker Swarm or Kubernetes this works with secrets. That way it is replicated in your cluster!</p>
+<pre><code class="lang-console"><span class="hljs-built_in">printf</span> <span class="hljs-string">"zabbix"</span> | podman secret create POSTGRES_USER -
+<span class="hljs-built_in">printf</span> <span class="hljs-string">"zabbix"</span> | podman secret create POSTGRES_PASSWORD -
+podman run --name some-zabbix-web-nginx-pgsql <span class="hljs-_">-e</span> DB_SERVER_HOST=<span class="hljs-string">"some-postgres-server"</span> <span class="hljs-_">-e</span> POSTGRES_USER_FILE=/run/secrets/POSTGRES_USER <span class="hljs-_">-e</span> POSTGRES_PASSWORD_FILE=/run/secrets/POSTGRES_PASSWORD <span class="hljs-_">-e</span> ZBX_SERVER_HOST=<span class="hljs-string">"some-zabbix-server"</span> <span class="hljs-_">-e</span> PHP_TZ=<span class="hljs-string">"some-timezone"</span> <span class="hljs-_">-d</span> zabbix/zabbix-web-nginx-pgsql:tag
 </code></pre>
 <p>By default, values for <code>POSTGRES_USER</code> and <code>POSTGRES_PASSWORD</code> are <code>zabbix</code>, <code>zabbix</code>.</p>
-<h4><code>POSTGRES_DB</code></h4>
+<h3 id="-postgres_db-"><code>POSTGRES_DB</code></h3>
 <p>The variable is Zabbix database name. By default, value is <code>zabbix</code>.</p>
-<h4><code>POSTGRES_USE_IMPLICIT_SEARCH_PATH</code></h4>
-<p>In some setups, for example including <a href="https://www.pgbouncer.org">PgBouncer</a>, setting the <code>search_path</code> via connection parameters fails. If this variable is set to <code>"true"</code>, the image skips setting the <code>search_path</code> and trusts that the <code>search_path</code> of the Zabbix user is setup correctly in PostgreSQL database.</p>
-<h4><code>ZBX_HISTORYSTORAGEURL</code></h4>
-<p>History storage HTTP[S] URL. This parameter is used for Elasticsearch setup. Available since 3.4.5.</p>
-<h4><code>ZBX_HISTORYSTORAGETYPES</code></h4>
-<p>Array of value types to be sent to the history storage. An example: ['uint', 'dbl']. This parameter is used for Elasticsearch setup. Available since 3.4.5.</p>
-<h4><code>PHP_TZ</code></h4>
-<p>The variable is timezone in PHP format. Full list of supported timezones are available on <a href="http://php.net/manual/en/timezones.php"><code>php.net</code></a>. By default, value is 'Europe/Riga' and system timezone since Zabbix 5.2.0.</p>
-<h4><code>ZBX_SERVER_NAME</code></h4>
+<h3 id="-postgres_use_implicit_search_path-"><code>POSTGRES_USE_IMPLICIT_SEARCH_PATH</code></h3>
+<p>In some setups, for example including <a href="https://www.pgbouncer.org">PgBouncer</a>, setting the <code>search_path</code> via connection parameters fails. If this variable is set to <code>&quot;true&quot;</code>, the image skips setting the <code>search_path</code> and trusts that the <code>search_path</code> of the Zabbix user is setup correctly in PostgreSQL database.</p>
+<h3 id="-zbx_historyproviders-"><code>ZBX_HISTORYPROVIDERS</code></h3>
+<p>Configuration of history storage providers for Elasticsearch or ClickHouse. Available since 8.0.0.</p>
+<h3 id="-php_tz-"><code>PHP_TZ</code></h3>
+<p>The variable is timezone in PHP format. Full list of supported timezones are available on <a href="http://php.net/manual/en/timezones.php"><code>php.net</code></a>. By default, value is &#39;Europe/Riga&#39; and system timezone since Zabbix 5.2.0.</p>
+<h3 id="-zbx_server_name-"><code>ZBX_SERVER_NAME</code></h3>
 <p>The variable is visible Zabbix installation name in right or left top corner of the web interface.</p>
-<h4><code>DB_DOUBLE_IEEE754</code></h4>
+<h3 id="-zbx_db_double_ieee754-"><code>ZBX_DB_DOUBLE_IEEE754</code></h3>
 <p>Use IEEE754 compatible value range for 64-bit Numeric (float) history values. Available since 5.0.0. Enabled by default.</p>
-<h4><code>ENABLE_WEB_ACCESS_LOG</code></h4>
+<h3 id="-enable_web_access_log-"><code>ENABLE_WEB_ACCESS_LOG</code></h3>
 <p>The variable sets the Access Log directive for Web server. By default, value corresponds to standard output.</p>
-<h4><code>HTTP_INDEX_FILE</code></h4>
+<h3 id="-http_index_file-"><code>HTTP_INDEX_FILE</code></h3>
 <p>The variable controls default index page. By default, <code>index.php</code>.</p>
-<h4><code>EXPOSE_WEB_SERVER_INFO</code></h4>
+<h3 id="-expose_web_server_info-"><code>EXPOSE_WEB_SERVER_INFO</code></h3>
 <p>The variable allows to hide Web server and PHP versions. By default, <code>on</code>.</p>
-<h4><code>ZBX_MAXEXECUTIONTIME</code></h4>
-<p>The variable is PHP <code>max_execution_time</code> option. By default, value is <code>300</code>.</p>
-<h4><code>ZBX_MEMORYLIMIT</code></h4>
-<p>The variable is PHP <code>memory_limit</code> option. By default, value is <code>128M</code>.</p>
-<h4><code>ZBX_POSTMAXSIZE</code></h4>
-<p>The variable is PHP <code>post_max_size</code> option. By default, value is <code>16M</code>.</p>
-<h4><code>ZBX_UPLOADMAXFILESIZE</code></h4>
-<p>The variable is PHP <code>upload_max_filesize</code> option. By default, value is <code>2M</code>.</p>
-<h4><code>ZBX_MAXINPUTTIME</code></h4>
-<p>The variable is PHP <code>max_input_time</code> option. By default, value is <code>300</code>.</p>
-<h4><code>ZBX_SESSION_NAME</code></h4>
+<h3 id="-zbx_maxexecutiontime-"><code>ZBX_MAXEXECUTIONTIME</code></h3>
+<p>The varable is PHP <code>max_execution_time</code> option. By default, value is <code>300</code>.</p>
+<h3 id="-zbx_memorylimit-"><code>ZBX_MEMORYLIMIT</code></h3>
+<p>The varable is PHP <code>memory_limit</code> option. By default, value is <code>128M</code>.</p>
+<h3 id="-zbx_postmaxsize-"><code>ZBX_POSTMAXSIZE</code></h3>
+<p>The varable is PHP <code>post_max_size</code> option. By default, value is <code>16M</code>.</p>
+<h3 id="-zbx_uploadmaxfilesize-"><code>ZBX_UPLOADMAXFILESIZE</code></h3>
+<p>The varable is PHP <code>upload_max_filesize</code> option. By default, value is <code>2M</code>.</p>
+<h3 id="-zbx_maxinputtime-"><code>ZBX_MAXINPUTTIME</code></h3>
+<p>The varable is PHP <code>max_input_time</code> option. By default, value is <code>300</code>.</p>
+<h3 id="-zbx_session_name-"><code>ZBX_SESSION_NAME</code></h3>
 <p>The variable is Zabbix frontend <a href="https://www.zabbix.com/documentation/current/manual/web_interface/definitions">definition</a>. String used as the name of the Zabbix frontend session cookie. By default, value is <code>zbx_sessionid</code>.</p>
-<h4><code>ZBX_DENY_GUI_ACCESS</code></h4>
+<h3 id="-zbx_deny_gui_access-"><code>ZBX_DENY_GUI_ACCESS</code></h3>
 <p>Enable (<code>true</code>) maintenance mode for Zabbix web-interface.</p>
-<h4><code>ZBX_GUI_ACCESS_IP_RANGE</code></h4>
+<h3 id="-zbx_gui_access_ip_range-"><code>ZBX_GUI_ACCESS_IP_RANGE</code></h3>
 <p>Array of IP addresses which are allowed for accessing to Zabbix web-interface during maintenance period.</p>
-<h4><code>ZBX_GUI_WARNING_MSG</code></h4>
+<h3 id="-zbx_gui_warning_msg-"><code>ZBX_GUI_WARNING_MSG</code></h3>
 <p>Information message about maintenance period for Zabbix web-interface.</p>
-<h4><code>ZBX_DB_ENCRYPTION</code></h4>
+<h3 id="-zbx_db_encryption-"><code>ZBX_DB_ENCRYPTION</code></h3>
 <p>The variable allows to activate encryption for connections to Zabbix database. Even if no other environment variables are specified, connections will be TLS-encrypted if <code>ZBX_DB_ENCRYPTION=true</code> specified. Available since 5.0.0. Disabled by default.</p>
-<h4><code>ZBX_DB_KEY_FILE</code></h4>
+<h3 id="-zbx_db_key_file-"><code>ZBX_DB_KEY_FILE</code></h3>
 <p>The variable allows to specify the full path to a valid TLS key file. Available since 5.0.0.</p>
-<h4><code>ZBX_DB_CERT_FILE</code></h4>
+<h3 id="-zbx_db_cert_file-"><code>ZBX_DB_CERT_FILE</code></h3>
 <p>The variable allows to specify the full path to a valid TLS certificate file. Available since 5.0.0.</p>
-<h4><code>ZBX_DB_CA_FILE</code></h4>
+<h3 id="-zbx_db_ca_file-"><code>ZBX_DB_CA_FILE</code></h3>
 <p>The variable allows to specify the full path to a valid TLS certificate authority file. Available since 5.0.0.</p>
-<h4><code>ZBX_DB_VERIFY_HOST</code></h4>
+<h3 id="-zbx_db_verify_host-"><code>ZBX_DB_VERIFY_HOST</code></h3>
 <p>The variable allows to activate host verification. Available since 5.0.0.</p>
-<h4><code>ZBX_SSO_SP_KEY</code></h4>
-<p>The variable allows to specify a custom file path to the Service Provider (SP) private key file.</p>
-<h4><code>ZBX_SSO_SP_CERT</code></h4>
-<p>The variable allows to specify a custom file path to the Service Provider (SP) cert file.</p>
-<h4><code>ZBX_SSO_IDP_CERT</code></h4>
+<h3 id="-zbx_sso_sp_key-"><code>ZBX_SSO_SP_KEY</code></h3>
+<p>The variable allows to specify a custom file path to the Serivce Provider (SP) private key file.</p>
+<h3 id="-zbx_sso_sp_cert-"><code>ZBX_SSO_SP_CERT</code></h3>
+<p>The variable allows to specify a custom file path to the Serivce Provider (SP) cert file.</p>
+<h3 id="-zbx_sso_idp_cert-"><code>ZBX_SSO_IDP_CERT</code></h3>
 <p>The variable allows to specify a custom file path to the SAML Certificate provided by the Identity Provider (ID) file.</p>
-<h3><code>ZBX_SSO_SETTINGS</code></h3>
+<h2 id="-zbx_sso_settings-"><code>ZBX_SSO_SETTINGS</code></h2>
 <p>The variable allows to specify custom SSO settings in JSON format. Available since 5.0.0.</p>
 <p>Example of YAML Mapping to Sequences</p>
-<pre><code>....
+<pre><code><span class="hljs-code">....
   environment:
-    ZBX_SSO_SETTINGS: &quot;{'baseurl': 'https://zabbix.example.com', 'use_proxy_headers': true, 'strict': false}&quot;
+    ZBX_SSO_SETTINGS: "{'baseurl': 'https://zabbix-docker.mydomain.com', 'use_proxy_headers': true, 'strict': false}"
     ....
-....
+....</span>
 </code></pre>
-<h3><code>ZBX_ALLOW_HTTP_AUTH</code></h3>
+<h3 id="-zbx_http_auth_enabled-"><code>ZBX_HTTP_AUTH_ENABLED</code></h3>
 <p>The variable allows to disable user HTTP authentication.</p>
-<h4>Other variables</h4>
+<h3 id="other-variables">Other variables</h3>
 <p>Additionally the image allows to specify many other environment variables listed below:</p>
-<pre><code>ZBX_VAULT=HashiCorp # Allowed values: HashiCorp, CyberArk. Required when Vault is used. Available since 6.2.0
-ZBX_VAULTDBPATH= # Available since 5.2.0
-ZBX_VAULTURL=https://127.0.0.1:8200 # Available since 5.2.0
-VAULT_TOKEN= # Available since 5.2.0
-ZBX_VAULTPREFIX= # Available since 7.0.0
-ZBX_VAULTCERTFILE= # Available since 6.2.0
-ZBX_VAULTKEYFILE= # Available since 6.2.0
-ZBX_VAULTCACHE=false # Available since 6.2.0
+<pre><code><span class="hljs-attr">ZBX_VAULT=HashiCorp</span> <span class="hljs-comment"># Allowed values: HashiCorp, CyberArk. Required when Vault is used. Available since 6.2.0</span>
+<span class="hljs-attr">ZBX_VAULTDBPATH=</span> <span class="hljs-comment"># Available since 5.2.0</span>
+<span class="hljs-attr">ZBX_VAULTURL=https://127.0.0.1:8200</span> <span class="hljs-comment"># Available since 5.2.0</span>
+<span class="hljs-attr">VAULT_TOKEN=</span> <span class="hljs-comment"># Available since 5.2.0</span>
+<span class="hljs-attr">ZBX_VAULTPREFIX=</span> <span class="hljs-comment"># Available since 7.0.0</span>
+<span class="hljs-attr">ZBX_VAULTCERTFILE=</span> <span class="hljs-comment"># Available since 6.2.0</span>
+<span class="hljs-attr">ZBX_VAULTKEYFILE=</span> <span class="hljs-comment"># Available since 6.2.0</span>
+<span class="hljs-attr">ZBX_VAULTCACHE=false</span> <span class="hljs-comment"># Available since 6.2.0</span>
 
-ZBX_SERVER_TLS_ACTIVE=false # Available since 7.4.0
-ZBX_SERVER_TLS_CAFILE= # Available since 7.4.0
-ZBX_SERVER_TLS_CA= # Available since 7.4.0
-ZBX_SERVER_TLS_KEYFILE= # Available since 7.4.0
-ZBX_SERVER_TLS_KEY= # Available since 7.4.0
-ZBX_SERVER_TLS_CERTFILE= # Available since 7.4.0
-ZBX_SERVER_TLS_CERT= # Available since 7.4.0
-ZBX_SERVER_TLS_CERT_ISSUER= # Available since 7.4.0
-ZBX_SERVER_TLS_CERT_SUBJECT= # Available since 7.4.0
+<span class="hljs-attr">ZBX_CERT_STORAGE=database</span> <span class="hljs-comment"># Available since 8.0.0</span>
+<span class="hljs-attr">ZBX_BANNERS_ENABLED=true</span> <span class="hljs-comment"># Available since 8.0.0</span>
+<span class="hljs-attr">ZBX_MODULES_CONFIG_ENABLED=true</span> <span class="hljs-comment"># Available since 8.0.0</span>
+<span class="hljs-attr">ZBX_MEDIA_TYPE_DENYLIST=[]</span> <span class="hljs-comment"># Available since 8.0.0</span>
+
+<span class="hljs-attr">ZBX_SERVER_TLS_ACTIVE=false</span> <span class="hljs-comment"># Available since 7.4.0</span>
+<span class="hljs-attr">ZBX_SERVER_TLS_CAFILE=</span> <span class="hljs-comment"># Available since 7.4.0</span>
+<span class="hljs-attr">ZBX_SERVER_TLS_CA=</span> <span class="hljs-comment"># Available since 7.4.0</span>
+<span class="hljs-attr">ZBX_SERVER_TLS_KEYFILE=</span> <span class="hljs-comment"># Available since 7.4.0</span>
+<span class="hljs-attr">ZBX_SERVER_TLS_KEY=</span> <span class="hljs-comment"># Available since 7.4.0</span>
+<span class="hljs-attr">ZBX_SERVER_TLS_CERTFILE=</span> <span class="hljs-comment"># Available since 7.4.0</span>
+<span class="hljs-attr">ZBX_SERVER_TLS_CERT=</span> <span class="hljs-comment"># Available since 7.4.0</span>
+<span class="hljs-attr">ZBX_SERVER_TLS_CERT_ISSUER=</span> <span class="hljs-comment"># Available since 7.4.0</span>
+<span class="hljs-attr">ZBX_SERVER_TLS_CERT_SUBJECT=</span> <span class="hljs-comment"># Available since 7.4.0</span>
 
 Allowed PHP-FPM configuration options:
-PHP_FPM_PM=dynamic
-PHP_FPM_PM_MAX_CHILDREN=50
-PHP_FPM_PM_START_SERVERS=5
-PHP_FPM_PM_MIN_SPARE_SERVERS=5
-PHP_FPM_PM_MAX_SPARE_SERVERS=35
-PHP_FPM_PM_MAX_REQUESTS=0
+<span class="hljs-attr">PHP_FPM_PM=dynamic</span>
+<span class="hljs-attr">PHP_FPM_PM_MAX_CHILDREN=50</span>
+<span class="hljs-attr">PHP_FPM_PM_START_SERVERS=5</span>
+<span class="hljs-attr">PHP_FPM_PM_MIN_SPARE_SERVERS=5</span>
+<span class="hljs-attr">PHP_FPM_PM_MAX_SPARE_SERVERS=35</span>
+<span class="hljs-attr">PHP_FPM_PM_MAX_REQUESTS=0</span>
 
 Allowed Nginx configuration options:
-WEB_REAL_IP_FROM=
-WEB_REAL_IP_HEADER=
-</code></pre>
-<h3>Allowed volumes for the Zabbix web interface container</h3>
-<h4><code>/etc/ssl/nginx</code></h4>
-<p>The volume allows to enable HTTPS for the Zabbix web interface. The volume must contain three files <code>ssl.crt</code>, <code>ssl.key</code> and <code>dhparam.pem</code> prepared for Nginx SSL connections.</p>
+<span class="hljs-attr">WEB_REAL_IP_FROM=</span>
+<span class="hljs-attr">WEB_REAL_IP_HEADER=</span>
+</code></pre><h2 id="allowed-volumes-for-the-zabbix-web-interface-container">Allowed volumes for the Zabbix web interface container</h2>
+<h3 id="-etc-ssl-nginx-"><code>/etc/ssl/nginx</code></h3>
+<p>The volume allows to enable HTTPS for the Zabbix web interface. The volume must contains three files <code>ssl.crt</code>, <code>ssl.key</code> and <code>dhparam.pem</code> prepared for Nginx SSL connections.</p>
 <p>Please follow official Nginx <a href="http://nginx.org/en/docs/http/configuring_https_servers.html">documentation</a> to get more details about how to create certificate files.</p>
-<h4><code>/etc/zabbix/web/certs</code></h4>
-<p>The volume allows to use custom certificates for SAML authentication. The volume must contain three files <code>sp.key</code>, <code>sp.crt</code> and <code>idp.crt</code>. Available since 5.0.0.</p>
-<h4><code>/var/lib/zabbix/enc</code></h4>
+<h3 id="-etc-zabbix-web-certs-"><code>/etc/zabbix/web/certs</code></h3>
+<p>The volume allows to use custom certificates for SAML authentification. The volume must contains three files <code>sp.key</code>, <code>sp.crt</code> and <code>idp.crt</code>. Available since 5.0.0.</p>
+<h3 id="-var-lib-zabbix-enc-"><code>/var/lib/zabbix/enc</code></h3>
 <p>The volume is used to store TLS related files. These file names are specified using <code>ZBX_SERVER_TLS_CAFILE</code>, <code>ZBX_SERVER_TLS_KEYFILE</code> and <code>ZBX_SERVER_TLS_CERTFILE</code> variables. Additionally it is possible to use environment variables <code>ZBX_SERVER_TLS_CA</code>, <code>ZBX_SERVER_TLS_KEY</code> and <code>ZBX_SERVER_TLS_CERT</code> with plaintext values. Available since 7.4.0.</p>
+<h1 id="user-feedback">User Feedback</h1>
+<h2 id="documentation">Documentation</h2>
+<p>Documentation for this image is stored in the <a href="https://github.com/zabbix/zabbix-docker/tree/7.4/Dockerfiles/web-nginx-pgsql"><code>web-nginx-pgsql/</code> directory</a> of the <a href="https://github.com/zabbix/zabbix-docker/"><code>zabbix/zabbix-docker</code> GitHub repo</a>. Be sure to familiarize yourself with the <a href="https://github.com/zabbix/zabbix-docker/blob/7.4/README.md">repository&#39;s <code>README.md</code> file</a> before attempting a pull request.</p>
+<h2 id="issues">Issues</h2>
+<p>If you have any problems with or questions about this image, please contact us through a <a href="https://github.com/zabbix/zabbix-docker/issues">GitHub issue</a>.</p>
+<h3 id="known-issues">Known issues</h3>
+<h2 id="contributing">Contributing</h2>
+<p>You are invited to contribute new features, fixes, or updates, large or small; we are always thrilled to receive pull requests, and do our best to process them as fast as we can.</p>
+<p>Before you start to code, we recommend discussing your plans through a <a href="https://github.com/zabbix/zabbix-docker/issues">GitHub issue</a>, especially for more ambitious contributions. This gives other contributors a chance to point you in the right direction, give you feedback on your design, and help you find out if someone else is working on the same thing.</p>

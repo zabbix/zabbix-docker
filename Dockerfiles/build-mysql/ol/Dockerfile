@@ -61,9 +61,7 @@ RUN --mount=from=sources,target=/tmp/src,ro \
         ${ZBX_OUTPUT_DIR}/web_service/sbin \
         ${ZBX_OUTPUT_DIR}/web_service/conf \
         ${ZBX_OUTPUT_DIR}/web/conf \
-        ${ZBX_OUTPUT_DIR}/general/sbin \
-        ${ZBX_OUTPUT_DIR}/general/bin \
-        ${ZBX_OUTPUT_DIR}/general/conf && \
+        ${ZBX_OUTPUT_DIR}/general/bin && \
     if [ -f /tmp/src/bootstrap.sh ]; then \
         mkdir -p "${ZBX_SOURCES_DIR}" && \
         cp -a /tmp/src/. "${ZBX_SOURCES_DIR}/"; \
