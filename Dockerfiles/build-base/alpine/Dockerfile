@@ -61,6 +61,7 @@ RUN set -eux && \
             zlib-dev" && \
     apk add \
             --no-cache \
+            --no-logfile \
             --clean-protected \
         ${INSTALL_PKGS} && \
     go telemetry off
