@@ -48,6 +48,7 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
     set -eux && \
     INSTALL_PKGS="bash \
             tzdata \
+            c-ares \
             libcurl \
             openssl-libs \
             pcre2 \

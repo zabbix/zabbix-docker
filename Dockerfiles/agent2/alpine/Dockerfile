@@ -47,6 +47,7 @@ RUN set -eux && \
     INSTALL_PKGS="bash \
             coreutils \
             tzdata \
+            c-ares \
             pcre2 \
             iputils \
             smartmontools \

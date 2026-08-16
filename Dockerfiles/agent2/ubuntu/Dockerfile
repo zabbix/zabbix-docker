@@ -49,6 +49,7 @@ RUN --mount=type=cache,target=/var/cache/apt/,sharing=locked \
     INSTALL_PKGS="bash \
             ca-certificates \
             tzdata \
+            libcares2 \
             libcurl4t64 \
             libpcre2-8-0 \
             libssl3t64 \
