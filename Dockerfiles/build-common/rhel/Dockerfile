@@ -115,6 +115,7 @@ RUN --mount=type=cache,target=/root/.cache/go-build \
         --with-ares \
         --with-ldap \
         --with-libcurl \
+        --with-libmodbus \
         --with-openssl \
         --silent && \
     jobs="${BUILD_JOBS:-$(nproc)}" && \
