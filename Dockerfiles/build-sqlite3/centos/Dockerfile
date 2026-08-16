@@ -47,6 +47,7 @@ RUN --mount=from=sources,target=/tmp/src,ro \
         ${ZBX_OUTPUT_DIR}/agent/sbin \
         ${ZBX_OUTPUT_DIR}/agent/conf \
         ${ZBX_OUTPUT_DIR}/agent2/sbin \
+        ${ZBX_OUTPUT_DIR}/agent2/sbin/zabbix-agent2-plugin \
         ${ZBX_OUTPUT_DIR}/agent2/conf \
         ${ZBX_OUTPUT_DIR}/agent2/conf/zabbix_agent2.d/plugins.d \
         ${ZBX_OUTPUT_DIR}/proxy/sbin \
@@ -162,8 +163,6 @@ RUN set -eux && \
 RUN --mount=type=cache,target=/root/.cache/go-build \
     --mount=type=cache,target=/root/go/pkg/mod \
     set -eux && \
-    mkdir -p "${ZBX_OUTPUT_DIR}/agent2/sbin/zabbix-agent2-plugin" && \
-    mkdir -p "${ZBX_OUTPUT_DIR}/agent2/conf/zabbix_agent2.d/plugins.d" && \
     build_plugin() { \
         name="$1"; \
         repo="$2"; \
