@@ -3,7 +3,7 @@ ARG OS_BASE_IMAGE=registry.access.redhat.com/ubi10/ubi-minimal:10.2
 ARG MAJOR_VERSION=7.4
 ARG RELEASE=13
 ARG ZBX_VERSION=${MAJOR_VERSION}.13
-ARG BUILD_BASE_IMAGE=zabbix-build-mysql:rhel-${ZBX_VERSION}
+ARG BUILD_BASE_IMAGE=zabbix-build-common:rhel-${ZBX_VERSION}
 
 FROM ${BUILD_BASE_IMAGE} AS builder
 
