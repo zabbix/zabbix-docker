@@ -185,14 +185,14 @@ RUN --mount=type=cache,target=/root/.cache/go-build \
     cp -a /tmp/conf/web/. "${ZBX_OUTPUT_DIR}/web/conf/" && \
     make -s distclean
 
+ADD --chmod=0644 --checksum=sha256:68a3fc98800b2a27b371f2fb79991daf3633bd89309d4ffaa6946fd587f375b5 \
+    https://raw.githubusercontent.com/notofonts/noto-cjk/main/Sans/OTF/Japanese/NotoSansCJKjp-Regular.otf \
+    ui/assets/fonts/NotoSansCJKjp-Regular.otf
+ADD --chmod=0644 --checksum=sha256:6a73f9541c2de74158c0e7cf6b0a58ef774f5a780bf191f2d7ec9cc53efe2bf2 \
+    https://raw.githubusercontent.com/notofonts/noto-cjk/main/Sans/LICENSE \
+    ui/assets/fonts/OFL.txt
+
 RUN set -eux && \
-    cd "${ZBX_SOURCES_DIR}" && \
-    curl --retry 5 --retry-all-errors --retry-delay 2 --tlsv1.2 -sSf -L \
-        "https://raw.githubusercontent.com/notofonts/noto-cjk/main/Sans/OTF/Japanese/NotoSansCJKjp-Regular.otf" \
-        -o ui/assets/fonts/NotoSansCJKjp-Regular.otf && \
-    curl --retry 5 --retry-all-errors --retry-delay 2 --tlsv1.2 -sSf -L \
-        "https://raw.githubusercontent.com/notofonts/noto-cjk/main/Sans/LICENSE" \
-        -o ui/assets/fonts/OFL.txt && \
     sed -i -r 's/(define\(.*_FONT_NAME.*)DejaVuSans/\1NotoSansCJKjp-Regular/' ui/include/defines.inc.php && \
     sed -i -r 's/\.ttf/\.otf/' ui/include/graphs.inc.php && \
     rm -f ui/assets/fonts/DejaVuSans.ttf && \
