@@ -70,6 +70,7 @@ ENV_FILE ?= .env
 
 # -------- Bake group names (as in docker-bake.hcl) --------
 BAKE_BASE_GROUP              := base
+BAKE_BUILDERS_COMMON_GROUP   := builder-common
 BAKE_BUILDERS_MYSQL_GROUP    := builder-mysql
 BAKE_BUILDERS_PGSQL_GROUP    := builder-pgsql
 BAKE_BUILDERS_SQLITE3_GROUP  := builder-sqlite3
@@ -144,7 +145,7 @@ check-rhel-host:
 
 # -------- Targets --------
 .PHONY: help print-vars \
-	base builders-mysql builders-pgsql builders-sqlite3 builders \
+	base builders-common builders-mysql builders-pgsql builders-sqlite3 builders \
 	runtime-mysql-all runtime-mysql-minimal runtime-pgsql-all runtime-pgsql-minimal \
 	runtime-all runtime-minimal runtime \
 	build build-all \
@@ -152,7 +153,7 @@ check-rhel-host:
 	bake-target clean \
 	check-bake
 
-BAKE_MAKE_TARGETS := base builders-mysql builders-pgsql builders-sqlite3 builders \
+BAKE_MAKE_TARGETS := base builders-common builders-mysql builders-pgsql builders-sqlite3 builders \
 	runtime-mysql-all runtime-mysql-minimal runtime-pgsql-all runtime-pgsql-minimal \
 	runtime-all runtime-minimal bake-target
 
@@ -161,7 +162,8 @@ $(BAKE_MAKE_TARGETS): check-bake
 help:
 	@echo "Usage:"
 	@echo "  make base                       # build build-base"
-	@echo "  make builders                    # build builders for DB=$(DB) (mysql/pgsql/sqlite3)"
+	@echo "  make builders-common            # build database-independent components"
+	@echo "  make builders                    # build common + DB=$(DB) builders (mysql/pgsql/sqlite3)"
 	@echo "  make runtime-minimal             # build runtime-<db>-minimal (mysql/pgsql only)"
 	@echo "  make runtime-all                 # build runtime-<db>-all (mysql/pgsql only)"
 	@echo "  make build                       # base + builders + runtime-minimal (mysql/pgsql only)"
@@ -222,6 +224,10 @@ base: check-rhel-host
 	@echo "==> Bake group: $(BAKE_BASE_GROUP) (OS=$(OS))"
 	@$(bake_env) $(BAKE_BASE_GROUP)
 
+builders-common: check-rhel-host
+	@echo "==> Bake group: $(BAKE_BUILDERS_COMMON_GROUP) (OS=$(OS))"
+	@$(bake_env) $(BAKE_BUILDERS_COMMON_GROUP)
+
 builders-mysql: check-rhel-host
 	@echo "==> Bake group: $(BAKE_BUILDERS_MYSQL_GROUP) (OS=$(OS))"
 	@$(bake_env) $(BAKE_BUILDERS_MYSQL_GROUP)
@@ -235,8 +241,8 @@ builders-sqlite3: check-rhel-host
 	@$(bake_env) $(BAKE_BUILDERS_SQLITE3_GROUP)
 
 builders: check-rhel-host
-	@echo "==> Bake group: $(BAKE_BUILDERS_GROUP) (DB=$(DB), OS=$(OS))"
-	@$(bake_env) $(BAKE_BUILDERS_GROUP)
+	@echo "==> Bake groups: $(BAKE_BUILDERS_COMMON_GROUP) + $(BAKE_BUILDERS_GROUP) (DB=$(DB), OS=$(OS))"
+	@$(bake_env) $(BAKE_BUILDERS_COMMON_GROUP) $(BAKE_BUILDERS_GROUP)
 
 runtime-mysql-all: check-rhel-host
 	@echo "==> Bake group: $(BAKE_RUNTIME_MYSQL_ALL) (OS=$(OS))"
@@ -320,6 +326,7 @@ clean:
 	@echo "==> Removing local images for OS=$(OS) tag=$(LOCAL_ZBX_TAG) (best-effort)"
 	@$(IMAGE) rm -f \
 	  "$(LOCAL_IMAGE_PREFIX)build-base:$(LOCAL_ZBX_TAG)" \
+	  "$(LOCAL_IMAGE_PREFIX)build-common:$(LOCAL_ZBX_TAG)" \
 	  "$(LOCAL_IMAGE_PREFIX)build-mysql:$(LOCAL_ZBX_TAG)" \
 	  "$(LOCAL_IMAGE_PREFIX)build-pgsql:$(LOCAL_ZBX_TAG)" \
 	  "$(LOCAL_IMAGE_PREFIX)build-sqlite3:$(LOCAL_ZBX_TAG)" \
