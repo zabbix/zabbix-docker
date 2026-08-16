@@ -173,6 +173,7 @@ ADD --chmod=0644 --checksum=sha256:6a73f9541c2de74158c0e7cf6b0a58ef774f5a780bf19
 
 RUN set -eux && \
     sed -i -r 's/(define\(.*_FONT_NAME.*)DejaVuSans/\1NotoSansCJKjp-Regular/' ui/include/defines.inc.php && \
+    sed -i -r "s/(define\(.*ZBX_SESSION_NAME.*)'zbx_sessionid'/\1getenv('ZBX_SESSION_NAME') ?: 'zbx_sessionid'/" ui/include/defines.inc.php && \
     sed -i -r 's/\.ttf/\.otf/' ui/include/graphs.inc.php && \
     rm -f ui/assets/fonts/DejaVuSans.ttf && \
     chmod o+r ui/assets/fonts/*

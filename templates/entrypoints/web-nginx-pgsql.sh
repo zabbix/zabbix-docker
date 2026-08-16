@@ -7,7 +7,6 @@ source "${ENTRYPOINT_LIBS}/bootstrap.sh"
 
 source "${ENTRYPOINT_LIBS}/pgsql.sh"
 source "${ENTRYPOINT_LIBS}/php.sh"
-source "${ENTRYPOINT_LIBS}/web.sh"
 source "${ENTRYPOINT_LIBS}/nginx.sh"
 
 : "${ZBX_SERVER_NAME:=Zabbix docker}"
@@ -62,7 +61,6 @@ prepare_service() {
     check_db_connect "true"
     prepare_php_config "POSTGRESQL"
     prepare_web_server
-    prepare_zbx_config
 }
 
 #################################################

@@ -117,7 +117,6 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
         xargs -r -I '{}' bash -c 'echo "{}" && localedef -c -i {} -f UTF-8 {}.UTF-8 2>/dev/null' && \
     FIX_PERM_LIST="\
         ${ZABBIX_CONF_DIR}/ \
-        ${ZABBIX_WWW_ROOT}/include/defines.inc.php \
         ${ZABBIX_WWW_ROOT}/modules/ \
         ${ZABBIX_USER_HOME_DIR}/ \
         /etc/nginx/ \
