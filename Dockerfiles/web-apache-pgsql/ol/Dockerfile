@@ -68,6 +68,7 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             glibc-locale-source \
             gzip \
             jq \
+            tzdata \
             httpd \
             php \
             php-fpm \

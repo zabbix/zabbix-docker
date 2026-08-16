@@ -57,6 +57,7 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
     set -eux && \
     INSTALL_PKGS="bash \
             gzip \
+            tzdata \
             c-ares \
             file-libs \
             libcurl \
