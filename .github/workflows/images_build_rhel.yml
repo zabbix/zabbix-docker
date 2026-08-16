@@ -66,7 +66,7 @@ jobs:
       contents: read
     outputs:
       platforms: ${{ steps.platform_list.outputs.list }}
-      database: ${{ steps.database.outputs.list }}
+      builders: ${{ steps.builders.outputs.list }}
       components: ${{ steps.components.outputs.list }}
       is_default_branch: ${{ steps.branch_info.outputs.is_default_branch }}
       current_branch: ${{ steps.branch_info.outputs.current_branch }}
@@ -115,12 +115,12 @@ jobs:
 
           echo "list=$platform_list" >> "$GITHUB_OUTPUT"
 
-      - name: Prepare database engine list
-        id: database
+      - name: Prepare component builder list
+        id: builders
         env:
           MATRIX_FILE: ${{ env.MATRIX_FILE }}
         run: |
-          database_list="$(jq -c '
+          builder_list="$(jq -c '
             [.components
              | map_values(select(.rhel == true))
              | values[].base]
@@ -128,11 +128,11 @@ jobs:
             | unique
           ' "$MATRIX_FILE")"
 
-          echo "::group::Database List"
-          echo "$database_list"
+          echo "::group::Component Builder List"
+          echo "$builder_list"
           echo "::endgroup::"
 
-          echo "list=$database_list" >> "$GITHUB_OUTPUT"
+          echo "list=$builder_list" >> "$GITHUB_OUTPUT"
 
       - name: Prepare Zabbix component list
         id: components
@@ -160,7 +160,7 @@ jobs:
 
   build_base:
     timeout-minutes: 30
-    name: Build ${{ matrix.build }} base (${{ matrix.arch }})
+    name: Build ${{ matrix.build }} (${{ matrix.arch }})
     needs: ["init_build"]
     strategy:
       fail-fast: false
@@ -290,14 +290,14 @@ jobs:
           rm -rf "${IMAGE_DIR:?}/${GITHUB_RUN_ID:?}/${IMAGE_TAG_ID:?}"
           echo "::endgroup::"
 
-  build_base_database:
+  build_components:
     timeout-minutes: 90
     needs: ["build_base", "init_build"]
     name: Build ${{ matrix.build }} base (${{ matrix.arch }})
     strategy:
       fail-fast: false
       matrix:
-        build: ${{ fromJson(needs.init_build.outputs.database) }}
+        build: ${{ fromJson(needs.init_build.outputs.builders) }}
         arch: ${{ fromJson(needs.init_build.outputs.platforms) }}
     runs-on: [self-hosted, linux, "${{ matrix.arch }}"]
     permissions:
@@ -472,7 +472,7 @@ jobs:
 
   build_images:
     timeout-minutes: 30
-    needs: ["build_base_database", "init_build"]
+    needs: ["build_components", "init_build"]
     name: Build ${{ matrix.build }} image (${{ matrix.arch }})
     strategy:
       fail-fast: false
@@ -729,14 +729,14 @@ jobs:
 
   clear_artifacts:
     timeout-minutes: 10
-    needs: ["build_images", "build_base_database", "init_build"]
+    needs: ["build_images", "build_components", "init_build"]
     name: Clear images cache (${{ matrix.arch }})
     strategy:
       fail-fast: false
       matrix:
         arch: ${{ fromJson(needs.init_build.outputs.platforms) }}
     runs-on: [self-hosted, linux, "${{ matrix.arch }}"]
-    if: ${{ needs.build_base_database.result == 'success' }}
+    if: ${{ needs.build_components.result == 'success' }}
     permissions: {}
 
     steps:
