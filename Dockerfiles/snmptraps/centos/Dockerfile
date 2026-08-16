@@ -31,7 +31,6 @@ LABEL org.opencontainers.image.authors="Alexey Pustovalov <alexey.pustovalov@zab
       org.opencontainers.image.vendor="Zabbix SIA" \
       org.opencontainers.image.version="${ZBX_VERSION}"
 
-STOPSIGNAL SIGTERM
 
 RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
     --mount=type=tmpfs,target=/var/cache/yum/ \
@@ -63,6 +62,7 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             --shell /sbin/nologin \
             --home-dir ${ZABBIX_USER_HOME_DIR} \
         zabbix && \
+    microdnf -y remove shadow-utils && \
     mkdir -p ${ZABBIX_USER_HOME_DIR} \
         ${ZABBIX_USER_HOME_DIR}/snmptraps \
         ${ZABBIX_USER_HOME_DIR}/mibs \

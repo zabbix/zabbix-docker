@@ -45,7 +45,6 @@ LABEL org.opencontainers.image.authors="Alexey Pustovalov <alexey.pustovalov@zab
       org.opencontainers.image.vendor="Zabbix SIA" \
       org.opencontainers.image.version="${ZBX_VERSION}"
 
-STOPSIGNAL SIGTERM
 
 COPY --from=builder /tmp/zabbix-${ZBX_VERSION}-output/server/sbin/zabbix_server /usr/sbin/zabbix_server
 COPY --from=builder /tmp/zabbix-${ZBX_VERSION}-output/general/bin/zabbix_get /usr/bin/
@@ -115,6 +114,7 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             --shell /sbin/nologin \
             --home-dir ${ZABBIX_USER_HOME_DIR} \
         zabbix && \
+    microdnf -y remove shadow-utils && \
     chgrp zabbix /usr/bin/nmap && \
     setcap cap_net_raw+eip /usr/bin/nmap && \
     mkdir -p ${ZABBIX_CONF_DIR} \

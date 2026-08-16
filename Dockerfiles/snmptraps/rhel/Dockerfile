@@ -46,7 +46,6 @@ LABEL description="Zabbix SNMP traps receiver" \
       org.opencontainers.image.vendor="Zabbix SIA" \
       org.opencontainers.image.version="${ZBX_VERSION}"
 
-STOPSIGNAL SIGTERM
 
 COPY licenses /licenses/
 
@@ -81,6 +80,7 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             --shell /sbin/nologin \
             --home-dir ${ZABBIX_USER_HOME_DIR} \
         zabbix && \
+    microdnf -y remove shadow-utils && \
     mkdir -p ${ZABBIX_USER_HOME_DIR} \
         ${ZABBIX_USER_HOME_DIR}/snmptraps \
         ${ZABBIX_USER_HOME_DIR}/mibs \

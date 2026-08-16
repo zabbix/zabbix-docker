@@ -31,7 +31,6 @@ LABEL org.opencontainers.image.authors="Alexey Pustovalov <alexey.pustovalov@zab
       org.opencontainers.image.vendor="Zabbix SIA" \
       org.opencontainers.image.version="${ZBX_VERSION}"
 
-STOPSIGNAL SIGTERM
 
 RUN --mount=from=config_templates,target=/tmp/conf,ro \
     --mount=from=scripts,target=/tmp/scripts,ro \

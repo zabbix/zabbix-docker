@@ -51,7 +51,6 @@ LABEL description="Zabbix agent is deployed on a monitoring target to actively m
       org.opencontainers.image.vendor="Zabbix SIA" \
       org.opencontainers.image.version="${ZBX_VERSION}"
 
-STOPSIGNAL SIGTERM
 
 COPY licenses /licenses/
 COPY --from=builder /tmp/zabbix-${ZBX_VERSION}-output/agent/sbin/zabbix_agentd /usr/sbin/
@@ -97,6 +96,7 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             --shell /sbin/nologin \
             --home-dir ${ZABBIX_USER_HOME_DIR} \
         zabbix && \
+    microdnf -y remove shadow-utils && \
     mkdir -p ${ZABBIX_CONF_DIR} \
         ${ZABBIX_CONF_DIR}/zabbix_agentd.d \
         ${ZABBIX_USER_HOME_DIR} \

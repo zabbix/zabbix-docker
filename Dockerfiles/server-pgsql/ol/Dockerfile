@@ -44,7 +44,6 @@ LABEL org.opencontainers.image.title="Zabbix server (PostgreSQL)" \
       com.zabbix.product.revision="${ZBX_PRODUCT_REVISION}" \
       org.opencontainers.image.source="https://github.com/zabbix/zabbix-docker"
 
-STOPSIGNAL SIGTERM
 
 COPY --from=builder /tmp/zabbix-${ZBX_VERSION}-output/server/sbin/zabbix_server /usr/sbin/zabbix_server
 COPY --from=builder /tmp/zabbix-${ZBX_VERSION}-output/general/bin/zabbix_get /usr/bin/

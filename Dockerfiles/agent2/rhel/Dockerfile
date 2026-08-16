@@ -51,7 +51,6 @@ LABEL description="Zabbix agent 2 is deployed on a monitoring target to actively
       org.opencontainers.image.vendor="Zabbix SIA" \
       org.opencontainers.image.version="${ZBX_VERSION}"
 
-STOPSIGNAL SIGTERM
 
 COPY licenses /licenses/
 COPY --from=builder /tmp/zabbix-${ZBX_VERSION}-output/agent2/sbin/zabbix_agent2 /usr/sbin/
@@ -93,6 +92,7 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             --shell /sbin/nologin \
             --home-dir ${ZABBIX_USER_HOME_DIR} \
         zabbix && \
+    microdnf -y remove shadow-utils && \
     echo "zabbix ALL=(root) NOPASSWD: /usr/sbin/smartctl" >> /etc/sudoers.d/zabbix && \
     mkdir -p ${ZABBIX_CONF_DIR} \
         ${ZABBIX_CONF_DIR}/zabbix_agentd.d \

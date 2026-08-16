@@ -34,19 +34,13 @@ LABEL org.opencontainers.image.authors="Alexey Pustovalov <alexey.pustovalov@zab
       org.opencontainers.image.vendor="Zabbix SIA" \
       org.opencontainers.image.version="${ZBX_VERSION}"
 
-STOPSIGNAL SIGTERM
 
 COPY --from=builder /tmp/zabbix-${ZBX_VERSION}-output/java_gateway/sbin/ /usr/sbin/zabbix_java/
 COPY --from=builder /tmp/zabbix-${ZBX_VERSION}-output/java_gateway/conf/ ${ZABBIX_CONF_DIR}/
 
 RUN set -eux && \
-    ARCH_SUFFIX="$(apk --print-arch)"; \
-    case "$ARCH_SUFFIX" in \
-        riscv64) openjdk_packages='openjdk21 openjdk21-jre-headless' ;; \
-        *)       openjdk_packages='openjdk21 openjdk21-jre-headless' ;; \
-    esac; \
     INSTALL_PKGS="bash \
-            $openjdk_packages" && \
+            openjdk21-jre-headless" && \
     apk add \
             --no-cache \
             --clean-protected \

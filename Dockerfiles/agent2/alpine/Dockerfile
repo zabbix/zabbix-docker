@@ -36,7 +36,6 @@ LABEL org.opencontainers.image.authors="Alexey Pustovalov <alexey.pustovalov@zab
       org.opencontainers.image.vendor="Zabbix SIA" \
       org.opencontainers.image.version="${ZBX_VERSION}"
 
-STOPSIGNAL SIGTERM
 
 COPY --from=builder /tmp/zabbix-${ZBX_VERSION}-output/agent2/sbin/zabbix_agent2 /usr/sbin/
 COPY --from=builder /tmp/zabbix-${ZBX_VERSION}-output/agent2/sbin/zabbix-agent2-plugin/ /usr/sbin/zabbix-agent2-plugin/

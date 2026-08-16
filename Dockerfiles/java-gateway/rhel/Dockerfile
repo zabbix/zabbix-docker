@@ -48,7 +48,6 @@ LABEL description="Zabbix Java Gateway performs native support for monitoring JM
       org.opencontainers.image.vendor="Zabbix SIA" \
       org.opencontainers.image.version="${ZBX_VERSION}"
 
-STOPSIGNAL SIGTERM
 
 COPY ["licenses", "/licenses"]
 COPY --from=builder /tmp/zabbix-${ZBX_VERSION}-output/java_gateway/sbin/ /usr/sbin/zabbix_java/
@@ -82,6 +81,7 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             --shell /sbin/nologin \
             --home-dir ${ZABBIX_USER_HOME_DIR} \
         zabbix && \
+    microdnf -y remove shadow-utils && \
     mkdir -p ${ZABBIX_CONF_DIR}/ \
         /usr/sbin/zabbix_java/ext_lib/ && \
     FIX_PERM_LIST="\
