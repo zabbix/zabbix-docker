@@ -25,11 +25,6 @@ LABEL org.opencontainers.image.authors="Alexey Pustovalov <alexey.pustovalov@zab
       org.opencontainers.image.version="${ZBX_VERSION}"
 
 RUN set -eux && \
-    ARCH_SUFFIX="$(apk --print-arch)"; \
-    case "$ARCH_SUFFIX" in \
-        ppc64le) openjdk_packages='openjdk11 openjdk11-jre-headless' ;; \
-        *)       openjdk_packages='openjdk17 openjdk17-jre-headless' ;; \
-    esac; \
     INSTALL_PKGS="bash \
             coreutils \
             curl \
@@ -39,7 +34,8 @@ RUN set -eux && \
             g++ \
             go \
             linux-headers \
-            $openjdk_packages \
+            openjdk21 \
+            openjdk21-jre-headless \
             gettext \
             git \
             patch \

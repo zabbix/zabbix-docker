@@ -47,7 +47,7 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             make \
             gcc \
             go-toolset \
-            java-17-openjdk-devel \
+            java-21-openjdk-devel \
             gettext \
             git \
             patch \

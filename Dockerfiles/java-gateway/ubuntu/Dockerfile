@@ -42,7 +42,7 @@ RUN --mount=type=cache,target=/var/cache/apt/,sharing=locked \
     --mount=type=cache,target=/var/lib/apt/,sharing=locked \
     set -eux && \
     INSTALL_PKGS="bash \
-            openjdk-17-jre-headless" && \
+            openjdk-21-jre-headless" && \
     apt-get update && \
     DEBIAN_FRONTEND=noninteractive apt-get install -y \
             --no-install-recommends \

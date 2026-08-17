@@ -36,7 +36,7 @@ RUN --mount=type=cache,target=/var/cache/apt/,sharing=locked \
             binutils \
             gcc \
             golang-1.26 \
-            openjdk-17-jdk-headless \
+            openjdk-21-jdk-headless \
             gettext \
             git \
             patch \
