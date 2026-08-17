@@ -8,7 +8,6 @@ source "${ENTRYPOINT_LIBS}/bootstrap.sh"
 source "${ENTRYPOINT_LIBS}/apache.sh"
 source "${ENTRYPOINT_LIBS}/mysql.sh"
 source "${ENTRYPOINT_LIBS}/php.sh"
-source "${ENTRYPOINT_LIBS}/web.sh"
 
 : "${ZBX_SERVER_NAME:=Zabbix docker}"
 : "${PHP_TZ:=Europe/Riga}"
@@ -62,7 +61,6 @@ prepare_service() {
     check_db_connect "true"
     prepare_php_config "MYSQL"
     prepare_web_server
-    prepare_zbx_config
 }
 
 #################################################

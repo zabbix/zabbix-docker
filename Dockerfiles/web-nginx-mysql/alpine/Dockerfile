@@ -115,7 +115,6 @@ RUN set -eux && \
     ln -sf "${ZABBIX_CONF_DIR}/web/maintenance.inc.php" "${ZABBIX_WWW_ROOT}/conf/maintenance.inc.php" && \
     FIX_PERM_LIST="\
         ${ZABBIX_CONF_DIR}/ \
-        ${ZABBIX_WWW_ROOT}/include/defines.inc.php \
         ${ZABBIX_WWW_ROOT}/modules/ \
         ${ZABBIX_USER_HOME_DIR}/ \
         /etc/nginx/ \
