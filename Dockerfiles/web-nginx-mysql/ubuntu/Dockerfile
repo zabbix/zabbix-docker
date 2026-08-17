@@ -2,7 +2,7 @@
 ARG OS_BASE_IMAGE=ubuntu:resolute
 ARG MAJOR_VERSION=7.0
 ARG ZBX_VERSION=${MAJOR_VERSION}.29
-ARG BUILD_BASE_IMAGE=zabbix-build-mysql:ubuntu-${ZBX_VERSION}
+ARG BUILD_BASE_IMAGE=zabbix-build-common:ubuntu-${ZBX_VERSION}
 
 FROM ${BUILD_BASE_IMAGE} AS builder
 FROM builder AS clean_builder

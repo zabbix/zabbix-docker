@@ -43,7 +43,7 @@ env:
   ENTRYPOINT_BUILD_IMAGE_NAME: "golang:1.26.5-windowsservercore"
 
   BASE_IMAGE_NAME: "build-base"
-  BASE_BUILD_IMAGE_NAME: "build-mysql"
+  BASE_BUILD_IMAGE_NAME: "build-common"
 
   MATRIX_FILE: "build.json"
   DOCKERFILES_DIRECTORY: "Dockerfiles"
