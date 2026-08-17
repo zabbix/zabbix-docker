@@ -44,7 +44,8 @@ IFS= read -r sender
 
 # The remaining lines will contain the payload varbind list. For SNMPv1 traps, the final OID will be SNMPv2-MIB::snmpTrapEnterprise.0.
 while read -r oid val || [ -n "$oid" ]; do
-    # A Zabbix trap header in a varbind value is an injection attempt.
+    # Header in Zabbix format shouldn't exist anywhere in vars, it is injection
+    # Must exit with 0
     [[ "$val" =~ $zbx_trap_regex ]] && exit 0
     sanitized_val=${val//ZBXTRAP/\'ZBXTRAP\'}
 
@@ -59,8 +60,12 @@ while read -r oid val || [ -n "$oid" ]; do
     fi
 done
 
-# Prefer the originating agent address carried in snmpTrapAddress.0, then a
-# reverse-resolved transport host, and finally the observed UDP source.
+# Choose the sender identity written immediately after ZBXTRAP.
+# The precedence is: snmpTrapAddress.0 (the originating agent carried inside the notification),
+# the reverse-resolved transport host when DNS is enabled, the UDP transport
+# source observed by snmptrapd, and finally the host line as a structural
+# fallback. If a relay or NAT hides the source and does not supply
+# snmpTrapAddress.0, the original agent address cannot be recovered here
 if [[ "${sender:-}" =~ $sender_regex ]]; then
     sender_addr="${BASH_REMATCH[1]}"
 fi
@@ -73,6 +78,7 @@ if [ -n "${trap_address:-}" ]; then
     sender_addr="$trap_address"
 fi
 
+# Never emit an empty address: fall back to the host line snmptrapd provided (a resolved name or "<UNKNOWN>")
 sender_addr="${sender_addr:-$host}"
 
 printf '%b\n' "${date_now} ZBXTRAP ${sender_addr}${ZBX_SNMP_TRAP_FORMAT}${sender}${ZBX_SNMP_TRAP_FORMAT}${vars}" >> "$ZABBIX_TRAPS_FILE"
