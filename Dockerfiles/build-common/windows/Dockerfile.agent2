@@ -16,6 +16,8 @@ ARG POSTGRESQL_PLUGIN_SOURCES=https://git.zabbix.com/scm/ap/postgresql.git
 ARG MSSQL_PLUGIN_SOURCES=https://git.zabbix.com/scm/ap/mssql.git
 ARG EMBER_PLUS_PLUGIN_SOURCES=https://git.zabbix.com/scm/ap/ember-plus.git
 ARG GIT_BRANCH
+ARG ZBX_PRODUCT_REF=${GIT_BRANCH:-$ZBX_VERSION}
+ARG ZBX_PRODUCT_REVISION=unknown
 
 ARG ZBX_PLUGINS_VERSION=${GIT_BRANCH:-$ZBX_VERSION}
 
@@ -32,10 +34,13 @@ LABEL org.opencontainers.image.title="Zabbix agent 2 build (Windows)" `
       org.opencontainers.image.vendor="Zabbix SIA" `
       org.opencontainers.image.url="https://zabbix.com/" `
       org.opencontainers.image.description="Zabbix build for agent 2 images based on Windows" `
-      org.opencontainers.image.licenses="AGPL v3.0" `
+      org.opencontainers.image.licenses="AGPL-3.0-only" `
       org.opencontainers.image.documentation="https://www.zabbix.com/documentation/${MAJOR_VERSION}/manual/installation/containers" `
       org.opencontainers.image.version="${ZBX_VERSION}" `
-      org.opencontainers.image.source="${ZBX_SOURCES}"
+      com.zabbix.product.source="${ZBX_SOURCES}" `
+      com.zabbix.product.ref="${ZBX_PRODUCT_REF}" `
+      com.zabbix.product.revision="${ZBX_PRODUCT_REVISION}" `
+      org.opencontainers.image.source="https://github.com/zabbix/zabbix-docker"
 
 SHELL ["powershell", "-Command", "$ErrorActionPreference = 'Stop'; $ProgressPreference = 'SilentlyContinue';"]
 

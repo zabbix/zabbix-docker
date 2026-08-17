@@ -27,6 +27,8 @@ FROM ${OS_BASE_IMAGE}
 ARG MAJOR_VERSION
 ARG ZBX_VERSION
 ARG ZBX_SOURCES=https://git.zabbix.com/scm/zbx/zabbix.git
+ARG ZBX_PRODUCT_REF=${ZBX_VERSION}
+ARG ZBX_PRODUCT_REVISION=unknown
 
 ENV ZABBIX_USER_HOME_DIR="C:\zabbix" `
     ZABBIX_CONF_DIR="C:\zabbix\conf"
@@ -39,10 +41,13 @@ LABEL org.opencontainers.image.title="Zabbix agent 2" `
       org.opencontainers.image.vendor="Zabbix SIA" `
       org.opencontainers.image.url="https://zabbix.com/" `
       org.opencontainers.image.description="Zabbix agent 2 is deployed on a monitoring target to actively monitor local resources and applications" `
-      org.opencontainers.image.licenses="AGPL v3.0" `
+      org.opencontainers.image.licenses="AGPL-3.0-only" `
       org.opencontainers.image.documentation="https://www.zabbix.com/documentation/${MAJOR_VERSION}/manual/installation/containers" `
       org.opencontainers.image.version="${ZBX_VERSION}" `
-      org.opencontainers.image.source="${ZBX_SOURCES}"
+      com.zabbix.product.source="${ZBX_SOURCES}" `
+      com.zabbix.product.ref="${ZBX_PRODUCT_REF}" `
+      com.zabbix.product.revision="${ZBX_PRODUCT_REVISION}" `
+      org.opencontainers.image.source="https://github.com/zabbix/zabbix-docker"
 
 COPY --from=builder ["C:\\zabbix-${ZBX_VERSION}-output", "C:\\zabbix"]
 COPY --from=builder ["C:\\build_deps\\pwsh", "C:\\Program Files\\PowerShell"]

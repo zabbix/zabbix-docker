@@ -12,6 +12,8 @@ ARG RELEASE
 ARG ZBX_VERSION
 ARG ZBX_SOURCES=https://git.zabbix.com/scm/zbx/zabbix.git
 ARG GIT_BRANCH
+ARG ZBX_PRODUCT_REF=${GIT_BRANCH:-$ZBX_VERSION}
+ARG ZBX_PRODUCT_REVISION=unknown
 
 ARG ZBX_PLUGINS_VERSION=${GIT_BRANCH:-$ZBX_VERSION}
 ARG CFLAGS
@@ -29,12 +31,18 @@ LABEL description="Zabbix build base for MySQL based images" \
       io.k8s.display-name="Zabbix build base (MySQL)" \
       io.openshift.expose-services="" \
       io.openshift.tags="zabbix,build,mysql" \
-      org.label-schema.description="Zabbix build base for MySQL based images" \
-      org.label-schema.license="AGPL v3.0" \
-      org.label-schema.name="zabbix-build-mysql-rhel" \
-      org.label-schema.url="https://zabbix.com/" \
-      org.label-schema.vcs-ref="${VCS_REF}" \
-      org.label-schema.vendor="Zabbix SIA"
+      org.opencontainers.image.authors="Alexey Pustovalov <alexey.pustovalov@zabbix.com>" \
+      org.opencontainers.image.description="Zabbix build base for MySQL based images" \
+      org.opencontainers.image.documentation="https://www.zabbix.com/documentation/${MAJOR_VERSION}/manual/installation/containers" \
+      org.opencontainers.image.licenses="AGPL-3.0-only" \
+      com.zabbix.product.source="${ZBX_SOURCES}" \
+      com.zabbix.product.ref="${ZBX_PRODUCT_REF}" \
+      com.zabbix.product.revision="${ZBX_PRODUCT_REVISION}" \
+      org.opencontainers.image.source="https://github.com/zabbix/zabbix-docker" \
+      org.opencontainers.image.title="Zabbix build base (MySQL)" \
+      org.opencontainers.image.url="https://zabbix.com/" \
+      org.opencontainers.image.vendor="Zabbix SIA" \
+      org.opencontainers.image.version="${ZBX_VERSION}"
 
 ENV ZBX_SOURCES_DIR=/tmp/zabbix-${ZBX_VERSION} ZBX_OUTPUT_DIR=/tmp/zabbix-${ZBX_VERSION}-output \
     DB_TYPE=mysql \
