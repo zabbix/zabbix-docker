@@ -34,6 +34,7 @@ RUN --mount=from=config_templates,target=/tmp/conf,ro \
             tzdata \
             net-snmp" && \
     apk add \
+            --no-logfile \
             --no-cache \
             --clean-protected \
         ${INSTALL_PKGS} && \

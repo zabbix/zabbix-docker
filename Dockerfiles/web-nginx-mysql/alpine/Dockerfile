@@ -80,6 +80,7 @@ RUN set -eux && \
             php85-xmlwriter \
             mariadb-client" && \
     apk add \
+            --no-logfile \
             --no-cache \
             --clean-protected \
         ${INSTALL_PKGS} && \

@@ -48,6 +48,7 @@ RUN set -eux && \
             zlib \
             iputils" && \
     apk add \
+            --no-logfile \
             --no-cache \
             --clean-protected \
         ${INSTALL_PKGS} && \

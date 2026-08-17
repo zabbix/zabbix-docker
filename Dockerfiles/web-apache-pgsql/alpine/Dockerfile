@@ -81,10 +81,12 @@ RUN set -eux && \
             php85-xmlwriter \
             postgresql17-client" && \
     apk add \
+            --no-logfile \
             --no-cache \
             --clean-protected \
         ${INSTALL_PKGS} && \
     apk add \
+            --no-logfile \
             --clean-protected \
             --no-cache \
             --no-scripts \

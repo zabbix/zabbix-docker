@@ -66,6 +66,7 @@ RUN set -eux && \
             traceroute \
             mariadb-client" && \
     apk add \
+            --no-logfile \
             --no-cache \
             --clean-protected \
         ${INSTALL_PKGS} && \

@@ -43,6 +43,7 @@ RUN set -eux && \
     INSTALL_PKGS="bash \
             $openjdk_packages" && \
     apk add \
+            --no-logfile \
             --no-cache \
             --clean-protected \
         ${INSTALL_PKGS} && \

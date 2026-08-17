@@ -45,6 +45,7 @@ RUN set -eux && \
             smartmontools \
             sudo" && \
     apk add \
+            --no-logfile \
             --no-cache \
             --clean-protected \
         ${INSTALL_PKGS} && \

@@ -59,6 +59,7 @@ RUN set -eux && \
             unixodbc-dev \
             zlib-dev" && \
     apk add \
+            --no-logfile \
             --no-cache \
             --clean-protected \
         ${INSTALL_PKGS} && \

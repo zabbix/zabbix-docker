@@ -63,6 +63,7 @@ RUN set -eux && \
             traceroute \
             sqlite" && \
     apk add \
+            --no-logfile \
             --no-cache \
             --clean-protected \
         ${INSTALL_PKGS} && \
