@@ -20,6 +20,14 @@ if [ -f "${SNMP_PERSISTENT_DIR:-}/snmptrapd_custom.conf" ]; then
     conf_file_list="${conf_file_list},${SNMP_PERSISTENT_DIR}/snmptrapd_custom.conf"
 fi
 
-args=( --doNotFork=yes -C -c "$conf_file_list" -n -t -X -Lo -A "-O${SNMPTRAP_OUTPUT_OPTIONS}" )
+args=( -f -a -C -c "$conf_file_list" -t -X -Lo --hexOutputLength=0 "-O${SNMPTRAP_OUTPUT_OPTIONS}" )
+
+if [[ "${ZBX_SNMP_TRAP_USE_DNS:-false}" != "true" ]]; then
+    args+=( -n )
+fi
+
+if [[ "${DEBUG_MODE:-false}" == "true" ]]; then
+    args+=( -DALL )
+fi
 
 exec /usr/sbin/snmptrapd "${args[@]}"

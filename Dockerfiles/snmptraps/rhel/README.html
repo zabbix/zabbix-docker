@@ -28,7 +28,7 @@
 <h3 id="-zbx_snmp_trap_format-"><code>ZBX_SNMP_TRAP_FORMAT</code></h3>
 <p>This variable is SNMP trap format in the output <code>snmptraps.log</code> file. By default, value is <code>\n</code>, in this case each new variable is placed on new line.</p>
 <h3 id="-zbx_snmp_trap_use_dns-"><code>ZBX_SNMP_TRAP_USE_DNS</code></h3>
-<p>This variable manages source network address representation. It can be IP address or DNS of SNMP trap sender. The variable works only when container command is modified and &quot;-n&quot; command argument is removed from argument list. By default, value is <code>false</code>.</p>
+<p>This variable controls whether the SNMP trap sender address is resolved to a DNS name. Set it to <code>true</code> to enable reverse DNS lookup. By default, value is <code>false</code>.</p>
 <h2 id="allowed-volumes-for-the-zabbix-snmptraps-container">Allowed volumes for the Zabbix snmptraps container</h2>
 <h3 id="-var-lib-zabbix-snmptraps-"><code>/var/lib/zabbix/snmptraps</code></h3>
 <p>The volume contains log file <code>snmptraps.log</code> named with received SNMP traps.</p>

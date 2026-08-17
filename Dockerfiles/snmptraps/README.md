@@ -70,7 +70,7 @@ This variable is SNMP trap format in the output `snmptraps.log` file. By default
 
 ### `ZBX_SNMP_TRAP_USE_DNS`
 
-This variable manages source network address representation. It can be IP address or DNS of SNMP trap sender. The variable works only when container command is modified and "-n" command argument is removed from argument list. By default, value is `false`.
+This variable controls whether the SNMP trap sender address is resolved to a DNS name. Set it to `true` to enable reverse DNS lookup. By default, value is `false`.
 
 ### `SNMPTRAP_OUTPUT_OPTIONS`
 
