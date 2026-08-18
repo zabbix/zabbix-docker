@@ -67,8 +67,6 @@ LABEL description="Zabbix web-interface based on Nginx web server with PostgreSQ
       org.opencontainers.image.vendor="Zabbix SIA" \
       org.opencontainers.image.version="${ZBX_VERSION}"
 
-STOPSIGNAL SIGTERM
-
 COPY licenses /licenses/
 COPY --from=clean_builder /tmp/zabbix-${ZBX_VERSION}/ui ${ZABBIX_WWW_ROOT}/
 COPY --from=clean_builder /tmp/zabbix-${ZBX_VERSION}-output/web/conf ${ZABBIX_CONF_DIR}/web/
@@ -170,7 +168,9 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
     chmod -R g=u ${FIX_PERM_LIST} && \
     microdnf -y remove \
             findutils \
-            glibc-locale-source
+            glibc-locale-source \
+            gzip \
+            shadow-utils
 
 RUN --mount=from=entrypoints,target=/tmp/entrypoints,ro \
     set -eux && \

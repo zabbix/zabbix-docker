@@ -162,7 +162,7 @@ $(BAKE_MAKE_TARGETS): check-bake
 help:
 	@echo "Usage:"
 	@echo "  make base                       # build build-base"
-	@echo "  make builders-common             # build database-independent components"
+	@echo "  make builders-common            # build database-independent components"
 	@echo "  make builders                    # build common + DB=$(DB) builders (mysql/pgsql/sqlite3)"
 	@echo "  make runtime-minimal             # build runtime-<db>-minimal (mysql/pgsql only)"
 	@echo "  make runtime-all                 # build runtime-<db>-all (mysql/pgsql only)"
