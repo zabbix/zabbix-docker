@@ -56,8 +56,8 @@ RUN set -eux && \
             unixodbc-dev \
             zlib-dev" && \
     apk add \
-            --no-logfile \
             --no-cache \
+            --no-logfile \
             --clean-protected \
         ${INSTALL_PKGS} && \
     go telemetry off

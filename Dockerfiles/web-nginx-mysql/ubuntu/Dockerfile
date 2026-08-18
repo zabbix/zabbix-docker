@@ -81,10 +81,10 @@ RUN --mount=type=cache,target=/var/cache/apt/,sharing=locked \
             php8.5-xml \
             mysql-client" && \
     apt-get update && \
-    DEBIAN_FRONTEND=noninteractive apt-get -y \
+    DEBIAN_FRONTEND=noninteractive apt-get install -y \
             -o Dpkg::Options::="--force-confdef" \
             -o Dpkg::Options::="--force-confold" \
-            --no-install-recommends install \
+            --no-install-recommends \
         ${INSTALL_PKGS} && \
     groupadd \
             --system \

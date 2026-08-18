@@ -41,8 +41,8 @@ RUN set -eux && \
             ca-certificates \
             chromium" && \
     apk add \
-            --no-logfile \
             --no-cache \
+            --no-logfile \
             --clean-protected \
         ${INSTALL_PKGS} && \
     addgroup \

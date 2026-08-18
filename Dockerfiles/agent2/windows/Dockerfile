@@ -6,7 +6,7 @@ ARG ENTRYPOINT_BUILD_IMAGE=golang:1.26.5-windowsservercore-ltsc2022
 ARG MAJOR_VERSION=7.0
 ARG ZBX_VERSION=${MAJOR_VERSION}.29
 
-ARG BUILD_BASE_IMAGE=zabbix-build-agent:ltsc2022-agent2-${ZBX_VERSION}
+ARG BUILD_BASE_IMAGE=zabbix-build-common:ltsc2022-agent2-${ZBX_VERSION}
 
 FROM ${ENTRYPOINT_BUILD_IMAGE} AS entrypoint-builder
 

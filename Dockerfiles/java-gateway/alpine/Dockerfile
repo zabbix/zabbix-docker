@@ -41,8 +41,8 @@ RUN set -eux && \
     INSTALL_PKGS="bash \
             openjdk21-jre-headless" && \
     apk add \
-            --no-logfile \
             --no-cache \
+            --no-logfile \
             --clean-protected \
         ${INSTALL_PKGS} && \
     addgroup \
