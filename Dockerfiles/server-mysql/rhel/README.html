@@ -188,7 +188,7 @@ podman run --name some-zabbix-server-mysql <span class="hljs-_">-e</span> DB_SER
 <h3 id="-var-lib-zabbix-ssh_keys-"><code>/var/lib/zabbix/ssh_keys</code></h3>
 <p>The volume is used as location of public and private keys for SSH checks and actions. It is <code>SSHKeyLocation</code> parameter in <code>zabbix_server.conf</code>.</p>
 <h3 id="-var-lib-zabbix-ssl-certs-"><code>/var/lib/zabbix/ssl/certs</code></h3>
-<p>The volume is used as location of of SSL client certificate files for client authentication. It is <code>SSLCertLocation</code> parameter in <code>zabbix_server.conf</code>.</p>
+<p>The volume is used as location of SSL client certificate files for client authentication. It is <code>SSLCertLocation</code> parameter in <code>zabbix_server.conf</code>.</p>
 <h3 id="-var-lib-zabbix-ssl-keys-"><code>/var/lib/zabbix/ssl/keys</code></h3>
 <p>The volume is used as location of SSL private key files for client authentication. It is <code>SSLKeyLocation</code> parameter in <code>zabbix_server.conf</code>.</p>
 <h3 id="-var-lib-zabbix-ssl-ssl_ca-"><code>/var/lib/zabbix/ssl/ssl_ca</code></h3>
@@ -197,7 +197,7 @@ podman run --name some-zabbix-server-mysql <span class="hljs-_">-e</span> DB_SER
 <p>The volume is used as location of <code>snmptraps.log</code> file. It could be shared by <code>zabbix-snmptraps</code> container and inherited using <code>volumes_from</code> Podman option while creating new instance of Zabbix server.
 SNMP traps processing feature could be enabled using shared volume and switched <code>ZBX_ENABLE_SNMP_TRAPS</code> environment variable to <code>true</code>.</p>
 <h3 id="-var-lib-zabbix-mibs-"><code>/var/lib/zabbix/mibs</code></h3>
-<p>The volume allows to add new MIB files. It does not support subdirectories, all MIBs must be placed to <code>/var/lib/zabbix/mibs</code>.</p>
+<p>The volume allows to add new MIB files. It does not support subdirectories, all MIBs must be placed in <code>/var/lib/zabbix/mibs</code>.</p>
 <h3 id="-var-lib-zabbix-export-"><code>/var/lib/zabbix/export</code></h3>
 <p>Directory for real-time export of events, history and trends in newline-delimited JSON format. Could be enabled using <code>ZBX_EXPORTFILESIZE</code> environment variable.</p>
 <h1 id="user-feedback">User Feedback</h1>
