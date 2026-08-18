@@ -114,6 +114,7 @@ RUN --mount=type=cache,target=/root/.cache/go-build \
         --with-ares \
         --with-ldap \
         --with-libcurl \
+        --with-libmodbus \
         --with-libpcre2 \
         --with-openssl \
         --silent && \
