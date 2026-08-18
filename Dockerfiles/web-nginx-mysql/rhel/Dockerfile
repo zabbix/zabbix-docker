@@ -169,7 +169,6 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
     microdnf -y remove \
             findutils \
             glibc-locale-source \
-            gzip \
             shadow-utils
 
 RUN --mount=from=entrypoints,target=/tmp/entrypoints,ro \
