@@ -66,9 +66,7 @@ RUN --mount=from=sources,target=/tmp/src,z \
         ${ZBX_OUTPUT_DIR}/web_service/sbin \
         ${ZBX_OUTPUT_DIR}/web_service/conf \
         ${ZBX_OUTPUT_DIR}/web/conf \
-        ${ZBX_OUTPUT_DIR}/general/sbin \
-        ${ZBX_OUTPUT_DIR}/general/bin \
-        ${ZBX_OUTPUT_DIR}/general/conf && \
+        ${ZBX_OUTPUT_DIR}/general/bin && \
     if [ -f /tmp/src/bootstrap.sh ]; then \
         mkdir -p "${ZBX_SOURCES_DIR}" && \
         cp -a /tmp/src/. "${ZBX_SOURCES_DIR}/"; \
@@ -130,10 +128,10 @@ RUN --mount=type=cache,target=/root/.cache/go-build \
     make -j"${jobs}" -s && \
     make -j"${jobs}" -s gettext && \
     cat "database/${DB_TYPE}/schema.sql" > "database/${DB_TYPE}/create.sql" && \
-    gzip -c "database/${DB_TYPE}/create.sql" > "${ZBX_OUTPUT_DIR}/proxy/database/${DB_TYPE}/create.sql.gz" && \
+    gzip -c < "database/${DB_TYPE}/create.sql" > "${ZBX_OUTPUT_DIR}/proxy/database/${DB_TYPE}/create.sql.gz" && \
     cat "database/${DB_TYPE}/images.sql" >> "database/${DB_TYPE}/create.sql" && \
     cat "database/${DB_TYPE}/data.sql" >> "database/${DB_TYPE}/create.sql" && \
-    gzip -c "database/${DB_TYPE}/create.sql" > "${ZBX_OUTPUT_DIR}/server/database/${DB_TYPE}/create.sql.gz" && \
+    gzip -c < "database/${DB_TYPE}/create.sql" > "${ZBX_OUTPUT_DIR}/server/database/${DB_TYPE}/create.sql.gz" && \
     rm -f "database/${DB_TYPE}/create.sql" && \
     strip src/zabbix_agent/zabbix_agentd && \
     strip src/zabbix_server/zabbix_server && \
@@ -164,14 +162,14 @@ RUN --mount=type=cache,target=/root/.cache/go-build \
     cp -a /tmp/conf/web/. "${ZBX_OUTPUT_DIR}/web/conf/" && \
     make -s distclean
 
+ADD --chmod=0644 --checksum=sha256:68a3fc98800b2a27b371f2fb79991daf3633bd89309d4ffaa6946fd587f375b5 \
+    https://raw.githubusercontent.com/notofonts/noto-cjk/main/Sans/OTF/Japanese/NotoSansCJKjp-Regular.otf \
+    ui/assets/fonts/NotoSansCJKjp-Regular.otf
+ADD --chmod=0644 --checksum=sha256:6a73f9541c2de74158c0e7cf6b0a58ef774f5a780bf191f2d7ec9cc53efe2bf2 \
+    https://raw.githubusercontent.com/notofonts/noto-cjk/main/Sans/LICENSE \
+    ui/assets/fonts/OFL.txt
+
 RUN set -eux && \
-    cd "${ZBX_SOURCES_DIR}" && \
-    curl --retry 5 --retry-all-errors --retry-delay 2 --tlsv1.2 -sSf -L \
-        "https://raw.githubusercontent.com/notofonts/noto-cjk/main/Sans/OTF/Japanese/NotoSansCJKjp-Regular.otf" \
-        -o ui/assets/fonts/NotoSansCJKjp-Regular.otf && \
-    curl --retry 5 --retry-all-errors --retry-delay 2 --tlsv1.2 -sSf -L \
-        "https://raw.githubusercontent.com/notofonts/noto-cjk/main/Sans/LICENSE" \
-        -o ui/assets/fonts/OFL.txt && \
     sed -i -r 's/(define\(.*_FONT_NAME.*)DejaVuSans/\1NotoSansCJKjp-Regular/' ui/include/defines.inc.php && \
     sed -i -r 's/\.ttf/\.otf/' ui/include/graphs.inc.php && \
     rm -f ui/assets/fonts/DejaVuSans.ttf && \
@@ -201,7 +199,7 @@ RUN --mount=type=cache,target=/root/.cache/go-build \
         strip "$binary" || true; \
         mv "$binary" "${ZBX_OUTPUT_DIR}/agent2/sbin/zabbix-agent2-plugin/${outname}"; \
         cp "$conf" "${ZBX_OUTPUT_DIR}/agent2/conf/zabbix_agent2.d/plugins.d/"; \
-        make clean || true; \
+        make clean; \
     }; \
     build_plugin mongodb "${MONGODB_PLUGIN_SOURCES}" "${MONGODB_PLUGIN_VERSION}" \
         zabbix-agent2-plugin-mongodb mongodb.conf mongodb && \
