@@ -26,12 +26,15 @@ LABEL description="Prepared environment to build Zabbix components" \
       io.k8s.display-name="Zabbix build base" \
       io.openshift.expose-services="" \
       io.openshift.tags="zabbix,build" \
-      org.label-schema.description="Prepared environment to build Zabbix components" \
-      org.label-schema.license="GPL v2.0" \
-      org.label-schema.name="zabbix-build-base-rhel" \
-      org.label-schema.url="https://zabbix.com/" \
-      org.label-schema.vcs-ref="${VCS_REF}" \
-      org.label-schema.vendor="Zabbix SIA"
+      org.opencontainers.image.authors="Alexey Pustovalov <alexey.pustovalov@zabbix.com>" \
+      org.opencontainers.image.description="Prepared environment to build Zabbix components" \
+      org.opencontainers.image.documentation="https://www.zabbix.com/documentation/${MAJOR_VERSION}/manual/installation/containers" \
+      org.opencontainers.image.licenses="GPL-2.0-or-later" \
+      org.opencontainers.image.source="https://github.com/zabbix/zabbix-docker" \
+      org.opencontainers.image.title="Zabbix build base" \
+      org.opencontainers.image.url="https://zabbix.com/" \
+      org.opencontainers.image.vendor="Zabbix SIA" \
+      org.opencontainers.image.version="${ZBX_VERSION}"
 
 COPY licenses /licenses/
 
