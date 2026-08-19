@@ -32,6 +32,7 @@ jobs:
       matrix:
         component:
           - build-base
+          - build-common
           - build-mysql
           - build-pgsql
           - build-sqlite3

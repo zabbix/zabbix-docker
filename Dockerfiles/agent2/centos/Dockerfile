@@ -2,7 +2,7 @@
 ARG OS_BASE_IMAGE=quay.io/centos/centos:stream10-minimal
 ARG MAJOR_VERSION=6.0
 ARG ZBX_VERSION=${MAJOR_VERSION}.48
-ARG BUILD_BASE_IMAGE=zabbix-build-mysql:centos-${ZBX_VERSION}
+ARG BUILD_BASE_IMAGE=zabbix-build-common:centos-${ZBX_VERSION}
 
 FROM ${BUILD_BASE_IMAGE} AS builder
 

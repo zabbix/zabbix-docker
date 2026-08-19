@@ -21,6 +21,7 @@ updates:
       - "/Dockerfiles/agent/*"
       - "/Dockerfiles/agent2/*"
       - "/Dockerfiles/build-base/*"
+      - "/Dockerfiles/build-common/*"
       - "/Dockerfiles/build-mysql/*"
       - "/Dockerfiles/build-pgsql/*"
       - "/Dockerfiles/build-sqlite3/*"

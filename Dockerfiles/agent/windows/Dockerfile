@@ -5,7 +5,7 @@ ARG OS_BASE_IMAGE=mcr.microsoft.com/windows/nanoserver:ltsc2022
 ARG MAJOR_VERSION=6.0
 ARG ZBX_VERSION=${MAJOR_VERSION}.48
 
-ARG BUILD_BASE_IMAGE=zabbix-build-agent:ltsc2022-agent-${ZBX_VERSION}
+ARG BUILD_BASE_IMAGE=zabbix-build-common:ltsc2022-agent-${ZBX_VERSION}
 
 FROM ${BUILD_BASE_IMAGE} AS builder
 FROM ${OS_BASE_IMAGE}
