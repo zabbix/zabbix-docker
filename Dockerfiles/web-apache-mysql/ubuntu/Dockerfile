@@ -116,7 +116,6 @@ RUN --mount=type=cache,target=/var/cache/apt/,sharing=locked \
     dpkg-reconfigure locales && \
     FIX_PERM_LIST="\
         ${ZABBIX_CONF_DIR}/ \
-        ${ZABBIX_WWW_ROOT}/include/defines.inc.php \
         ${ZABBIX_WWW_ROOT}/modules/ \
         ${ZABBIX_USER_HOME_DIR}/ \
         /etc/apache2/ \
