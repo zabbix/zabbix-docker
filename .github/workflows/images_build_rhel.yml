@@ -13,6 +13,10 @@ on:
       - '!**/README.md'
       - '!**/README.html'
       - '.github/workflows/images_build_rhel.yml'
+      - 'templates/entrypoints/*.sh'
+      - 'templates/entrypoints/lib/**'
+      - '!templates/entrypoints/web-apache-*.sh'
+      - '!templates/entrypoints/lib/apache.sh'
   workflow_dispatch:
     inputs:
       publish_images:
