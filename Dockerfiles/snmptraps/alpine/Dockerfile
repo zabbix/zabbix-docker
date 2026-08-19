@@ -35,6 +35,7 @@ RUN --mount=from=config_templates,target=/tmp/conf,ro \
             net-snmp" && \
     apk add \
             --no-cache \
+            --no-logfile \
             --clean-protected \
         ${INSTALL_PKGS} && \
     addgroup \

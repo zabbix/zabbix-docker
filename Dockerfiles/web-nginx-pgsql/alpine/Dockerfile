@@ -78,6 +78,7 @@ RUN set -eux && \
             postgresql17-client" && \
     apk add \
             --no-cache \
+            --no-logfile \
             --clean-protected \
         ${INSTALL_PKGS} && \
     addgroup \

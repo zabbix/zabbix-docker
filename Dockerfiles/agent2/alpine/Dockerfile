@@ -47,6 +47,7 @@ RUN set -eux && \
             sudo" && \
     apk add \
             --no-cache \
+            --no-logfile \
             --clean-protected \
         ${INSTALL_PKGS} && \
     addgroup \

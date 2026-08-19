@@ -81,11 +81,13 @@ RUN set -eux && \
             postgresql17-client" && \
     apk add \
             --no-cache \
+            --no-logfile \
             --clean-protected \
         ${INSTALL_PKGS} && \
     apk add \
             --clean-protected \
             --no-cache \
+            --no-logfile \
             --no-scripts \
         apache2-ssl && \
     addgroup \
