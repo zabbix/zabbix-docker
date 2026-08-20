@@ -21,7 +21,7 @@ services:
    - ${DATA_DIRECTORY}/var/lib/zabbix/ssl/certs:/var/lib/zabbix/ssl/certs:ro
    - ${DATA_DIRECTORY}/var/lib/zabbix/ssl/keys:/var/lib/zabbix/ssl/keys:ro
    - ${DATA_DIRECTORY}/var/lib/zabbix/ssl/ssl_ca:/var/lib/zabbix/ssl/ssl_ca:rw
-   - snmptraps:/var/lib/zabbix/snmptraps:roz
+   - snmptraps:/var/lib/zabbix/snmptraps:ro
   tmpfs: /tmp
   ulimits:
    nproc: 65535
