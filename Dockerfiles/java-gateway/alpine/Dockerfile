@@ -42,8 +42,7 @@ RUN set -eux && \
     case "$ARCH_SUFFIX" in \
         x86) openjdk_packages='openjdk8-jre-base' ;; \
         armv7) openjdk_packages='openjdk8 openjdk8-jre-base' ;; \
-        riscv64) openjdk_packages='openjdk21 openjdk21-jre-headless' ;; \
-        *)       openjdk_packages='openjdk17 openjdk17-jre-headless' ;; \
+        *)       openjdk_packages='openjdk21 openjdk21-jre-headless' ;; \
     esac; \
     INSTALL_PKGS="bash \
             $openjdk_packages" && \
