@@ -79,6 +79,8 @@ services:
   env_file:
    - path: ${ENV_VARS_DIRECTORY}/.env_db_mysql
      required: true
+   - path: ${ENV_VARS_DIRECTORY}/.env_srv
+     required: true
   secrets:
    - MYSQL_USER
    - MYSQL_PASSWORD
@@ -108,6 +110,8 @@ services:
   tmpfs: /tmp
   env_file:
    - path: ${ENV_VARS_DIRECTORY}/.env_db_pgsql
+     required: true
+   - path: ${ENV_VARS_DIRECTORY}/.env_srv
      required: true
   secrets:
    - POSTGRES_USER
@@ -251,6 +255,8 @@ services:
   tmpfs: /tmp
   env_file:
    - path: ${ENV_VARS_DIRECTORY}/.env_db_mysql_proxy
+     required: true
+   - path: ${ENV_VARS_DIRECTORY}/.env_prx_mysql
      required: true
   secrets:
    - MYSQL_USER
