@@ -120,7 +120,7 @@ The variable is used to specify debug level. By default, value is ``3``. It is `
 
 ### `ZBX_TIMEOUT`
 
-The variable is used to specify timeout for processing checks. By default, value is ``4``.
+The variable is used to specify timeout for processing checks. By default, value is ``3``.
 
 ### Other variables
 
