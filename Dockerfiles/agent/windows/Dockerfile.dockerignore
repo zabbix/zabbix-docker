@@ -1,0 +1,14 @@
+**
+!templates/
+!templates/entrypoints/
+!templates/entrypoints/go.mod
+!templates/entrypoints/cmd/
+!templates/entrypoints/cmd/agent/
+!templates/entrypoints/cmd/agent/**
+!templates/entrypoints/internal/
+!templates/entrypoints/internal/agent/
+!templates/entrypoints/internal/agent/**
+!templates/entrypoints/internal/bootstrap/
+!templates/entrypoints/internal/bootstrap/**
+!templates/entrypoints/licenses/
+!templates/entrypoints/licenses/go-THIRD-PARTY-NOTICES.txt

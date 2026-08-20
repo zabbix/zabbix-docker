@@ -8,6 +8,9 @@ on:
     paths:
       - 'build.json'
       - 'Dockerfiles/*/windows/*'
+      - 'templates/entrypoints/**/*.go'
+      - 'templates/entrypoints/go.mod'
+      - 'templates/entrypoints/licenses/go-THIRD-PARTY-NOTICES.txt'
       - '!**/README.md'
       - '.github/workflows/images_build_windows.yml'
       - '.github/actions/docker-build-push-windows/*'
@@ -37,6 +40,7 @@ env:
 
   MSFT_BASE_BUILD_IMAGE: "mcr.microsoft.com/windows/servercore"
   OS_BASE_IMAGE_NAME: "mcr.microsoft.com/windows/nanoserver"
+  ENTRYPOINT_BUILD_IMAGE_NAME: "golang:1.26.5-windowsservercore"
 
   BASE_IMAGE_NAME: "build-base"
   BASE_BUILD_IMAGE_NAME: "build-common"
@@ -693,7 +697,7 @@ jobs:
         id: docker_build
         uses: ./.github/actions/docker-build-push-windows
         with:
-          context: ${{ env.DOCKERFILES_DIRECTORY }}\${{ matrix.component }}\windows
+          context: .
           dockerfile: ${{ env.DOCKERFILES_DIRECTORY }}\${{ matrix.component }}\windows\Dockerfile
           tags: ${{ steps.meta.outputs.tags }}
           label_revision: ${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.revision'] }}
@@ -701,10 +705,13 @@ jobs:
           pull_images: |
             ${{ steps.base_build.outputs.base_build_image }}
             ${{ env.OS_BASE_IMAGE_NAME }}:${{ steps.base_os_tag.outputs.os_tag }}
+            ${{ env.ENTRYPOINT_BUILD_IMAGE_NAME }}-${{ steps.base_os_tag.outputs.os_tag }}
           build_args: |
             BUILD_BASE_IMAGE=${{ steps.base_build.outputs.base_build_image }}
             OS_BASE_IMAGE=${{ env.OS_BASE_IMAGE_NAME }}:${{ steps.base_os_tag.outputs.os_tag }}
+            ENTRYPOINT_BUILD_IMAGE=${{ env.ENTRYPOINT_BUILD_IMAGE_NAME }}-${{ steps.base_os_tag.outputs.os_tag }}
           push: ${{ env.AUTO_PUSH_IMAGES }}
+          remove_readme: false
 
       - name: Sign the images with GitHub OIDC Token
         if: ${{ env.AUTO_PUSH_IMAGES == 'true' }}
