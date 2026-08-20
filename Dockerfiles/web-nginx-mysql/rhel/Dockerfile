@@ -169,7 +169,8 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
     chmod -R g=u ${FIX_PERM_LIST} && \
     microdnf -y remove \
             findutils \
-            glibc-locale-source
+            glibc-locale-source \
+            shadow-utils
 
 RUN --mount=from=entrypoints,target=/tmp/entrypoints,ro \
     set -eux && \

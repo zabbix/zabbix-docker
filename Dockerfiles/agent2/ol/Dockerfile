@@ -45,7 +45,6 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
     --mount=type=tmpfs,target=/var/cache/yum/ \
     set -eux && \
     INSTALL_PKGS="bash \
-            tzdata \
             libcurl \
             openssl-libs \
             pcre2 \

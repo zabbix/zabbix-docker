@@ -101,6 +101,7 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             --shell /sbin/nologin \
             --home-dir ${ZABBIX_USER_HOME_DIR} \
         zabbix && \
+    microdnf -y remove shadow-utils && \
     chgrp zabbix /usr/bin/nmap && \
     setcap cap_net_raw+eip /usr/bin/nmap && \
     mkdir -p ${ZABBIX_CONF_DIR} \

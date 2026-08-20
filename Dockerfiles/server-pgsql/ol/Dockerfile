@@ -50,7 +50,6 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
     INSTALL_PKGS="bash \
             gzip \
             hostname \
-            tzdata \
             file-libs \
             libevent \
             libssh \

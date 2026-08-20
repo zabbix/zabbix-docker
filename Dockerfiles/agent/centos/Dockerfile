@@ -82,6 +82,7 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             --shell /sbin/nologin \
             --home-dir ${ZABBIX_USER_HOME_DIR} \
         zabbix && \
+    microdnf -y remove shadow-utils && \
     mkdir -p ${ZABBIX_CONF_DIR} \
         ${ZABBIX_CONF_DIR}/zabbix_agentd.d \
         ${ZABBIX_USER_HOME_DIR} \
