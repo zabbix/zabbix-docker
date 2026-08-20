@@ -122,6 +122,7 @@ RUN --mount=type=cache,target=/root/.cache/go-build \
         --enable-webservice \
         --with-ldap \
         --with-libcurl \
+        --with-libmodbus \
         --with-libpcre2 \
         --with-libxml2 \
         --with-${DB_TYPE} \
@@ -208,7 +209,7 @@ RUN --mount=type=cache,target=/root/.cache/go-build \
         strip "$binary" || true; \
         mv "$binary" "${ZBX_OUTPUT_DIR}/agent2/sbin/zabbix-agent2-plugin/${outname}"; \
         cp "$conf" "${ZBX_OUTPUT_DIR}/agent2/conf/zabbix_agent2.d/plugins.d/"; \
-        make clean; \
+        make clean || true; \
     }; \
     build_plugin mongodb "${MONGODB_PLUGIN_SOURCES}" "${MONGODB_PLUGIN_VERSION}" \
         zabbix-agent2-plugin-mongodb mongodb.conf mongodb && \

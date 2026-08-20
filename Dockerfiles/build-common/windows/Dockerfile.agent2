@@ -111,6 +111,7 @@ RUN function Build-Plugin { `
         Copy-Item -Path (Join-Path $workDir $Conf) -Destination $outConfDir -Force; `
         `
         mingw32-make -s clean; `
+        $global:LASTEXITCODE = 0; `
     }; `
     `
     New-Item -ItemType Directory -Force -Path (Join-Path $env:ZBX_OUTPUT_DIR 'zabbix-agent2-plugin') | Out-Null; `

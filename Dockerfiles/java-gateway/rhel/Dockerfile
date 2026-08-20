@@ -57,7 +57,7 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
     set -eux && \
     INSTALL_PKGS="bash \
             shadow-utils \
-            java-17-openjdk-headless" && \
+            java-21-openjdk-headless" && \
     microdnf -y install \
             --disableplugin=subscription-manager \
             --disablerepo="*" \

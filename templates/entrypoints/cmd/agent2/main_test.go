@@ -79,13 +79,23 @@ func TestPrepareService(t *testing.T) {
 		t.Fatal("ZABBIX_CONF_DIR was unexpectedly removed")
 	}
 
-	data, err = os.ReadFile(filepath.Join(pluginDirectory, "mongodb.conf"))
-	if err != nil {
-		t.Fatal(err)
+	plugins := []struct {
+		file, parameter, binary string
+	}{
+		{"mongodb.conf", "Plugins.MongoDB.System.Path", "mongodb.exe"},
+		{"postgresql.conf", "Plugins.PostgreSQL.System.Path", "postgresql.exe"},
+		{"mssql.conf", "Plugins.MSSQL.System.Path", "mssql.exe"},
+		{"ember.conf", "Plugins.EmberPlus.System.Path", "ember-plus.exe"},
 	}
-	want := filepath.Join(homeDir, "zabbix-agent2-plugin", "mongodb.exe")
-	if !strings.Contains(string(data), "Plugins.MongoDB.System.Path="+want) {
-		t.Fatalf("MongoDB plugin path is missing from config: %s", data)
+	for _, plugin := range plugins {
+		data, err = os.ReadFile(filepath.Join(pluginDirectory, plugin.file))
+		if err != nil {
+			t.Fatal(err)
+		}
+		want := plugin.parameter + "=" + filepath.Join(homeDir, "zabbix-agent2-plugin", plugin.binary)
+		if !strings.Contains(string(data), want) {
+			t.Fatalf("plugin path %q is missing from %s: %s", want, plugin.file, data)
+		}
 	}
 }
 
