@@ -28,6 +28,16 @@ These are the only official Zabbix agent 2 Docker images. They are based on Alpi
 
 Images are updated when new releases are published. The image with ``latest`` tag is based on Alpine Linux.
 
+Windows images are published with Microsoft Windows Server tags in both OS-first and version-first forms. The available versions are:
+
+    Zabbix agent 2 6.0 for Windows (tags: ltsc2022-6.0-latest, 6.0-ltsc2022-latest)
+    Zabbix agent 2 6.0.* for Windows (tags: ltsc2022-6.0.*, 6.0.*-ltsc2022)
+    Zabbix agent 2 7.0 for Windows (tags: ltsc2022-7.0-latest, 7.0-ltsc2022-latest)
+    Zabbix agent 2 7.0.* for Windows (tags: ltsc2022-7.0.*, 7.0.*-ltsc2022)
+    Zabbix agent 2 7.4 for Windows (tags: ltsc2022-7.4-latest, 7.4-ltsc2022-latest, ltsc2022-latest)
+    Zabbix agent 2 7.4.* for Windows (tags: ltsc2022-7.4.*, 7.4.*-ltsc2022)
+    Zabbix agent 2 8.0 for Windows (tags: ltsc2022-trunk, trunk-ltsc2022)
+
 # How to use this image
 
 ## Start `zabbix-agent2`

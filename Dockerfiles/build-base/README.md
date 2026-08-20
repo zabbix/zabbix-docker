@@ -28,6 +28,24 @@ These are the only official Zabbix build base Docker images. They are based on A
 
 Images are updated when new releases are published. The image with ``latest`` tag is based on Alpine Linux.
 
+Windows agent and agent 2 build environments are published in the same repository with component-specific Microsoft Windows Server tags. The available versions are:
+
+    Zabbix build base for agent 6.0 (tags: agent-ltsc2022-6.0-latest, agent-6.0-ltsc2022-latest)
+    Zabbix build base for agent 6.0.* (tags: agent-ltsc2022-6.0.*, agent-6.0.*-ltsc2022)
+    Zabbix build base for agent 7.0 (tags: agent-ltsc2022-7.0-latest, agent-7.0-ltsc2022-latest)
+    Zabbix build base for agent 7.0.* (tags: agent-ltsc2022-7.0.*, agent-7.0.*-ltsc2022)
+    Zabbix build base for agent 7.4 (tags: agent-ltsc2022-7.4-latest, agent-7.4-ltsc2022-latest, agent-ltsc2022-latest)
+    Zabbix build base for agent 7.4.* (tags: agent-ltsc2022-7.4.*, agent-7.4.*-ltsc2022)
+    Zabbix build base for agent 8.0 (tags: agent-ltsc2022-trunk, agent-trunk-ltsc2022)
+
+    Zabbix build base for agent 2 6.0 (tags: agent2-ltsc2022-6.0-latest, agent2-6.0-ltsc2022-latest)
+    Zabbix build base for agent 2 6.0.* (tags: agent2-ltsc2022-6.0.*, agent2-6.0.*-ltsc2022)
+    Zabbix build base for agent 2 7.0 (tags: agent2-ltsc2022-7.0-latest, agent2-7.0-ltsc2022-latest)
+    Zabbix build base for agent 2 7.0.* (tags: agent2-ltsc2022-7.0.*, agent2-7.0.*-ltsc2022)
+    Zabbix build base for agent 2 7.4 (tags: agent2-ltsc2022-7.4-latest, agent2-7.4-ltsc2022-latest, agent2-ltsc2022-latest)
+    Zabbix build base for agent 2 7.4.* (tags: agent2-ltsc2022-7.4.*, agent2-7.4.*-ltsc2022)
+    Zabbix build base for agent 2 8.0 (tags: agent2-ltsc2022-trunk, agent2-trunk-ltsc2022)
+
 # How to use this image
 
 The image is required to build Zabbix components. It is the base image for [common](https://github.com/zabbix/zabbix-docker/tree/6.0/Dockerfiles/build-common), [MySQL](https://github.com/zabbix/zabbix-docker/tree/6.0/Dockerfiles/build-mysql), [PostgreSQL](https://github.com/zabbix/zabbix-docker/tree/6.0/Dockerfiles/build-pgsql) and [SQLite3](https://github.com/zabbix/zabbix-docker/tree/6.0/Dockerfiles/build-sqlite3) build images. The image contains only required packages, binaries and tools; its child build images compile and prepare Zabbix components for runtime images.
