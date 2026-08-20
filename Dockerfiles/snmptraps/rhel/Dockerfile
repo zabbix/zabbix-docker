@@ -46,8 +46,6 @@ LABEL description="Zabbix SNMP traps receiver" \
       org.opencontainers.image.vendor="Zabbix SIA" \
       org.opencontainers.image.version="${ZBX_VERSION}"
 
-STOPSIGNAL SIGTERM
-
 COPY licenses /licenses/
 
 RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
