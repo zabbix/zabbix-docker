@@ -41,7 +41,7 @@ server_config() {
     update_config_var "${ZBX_SERVER_CONFIG}" "DBName" "${DB_SERVER_DBNAME:-}"
     update_config_var "${ZBX_SERVER_CONFIG}" "DBSchema" "${DB_SERVER_SCHEMA:-}"
 
-    if [ -n "${ZBX_VAULT:-}" ] && [ -n "${ZBX_VAULTURL:-}" ]; then
+    if [ -n "${ZBX_VAULTURL:-}" ] && [ -n "${ZBX_VAULTDBPATH:-}" ]; then
         update_config_var "${ZBX_SERVER_CONFIG}" "VaultURL" "${ZBX_VAULTURL:-}"
         update_config_var "${ZBX_SERVER_CONFIG}" "VaultDBPath" "${ZBX_VAULTDBPATH:-}"
 

@@ -82,8 +82,8 @@ prepare_php_config() {
     export ZBX_DB_CA_FILE="${ZBX_DB_CA_FILE:-}"
     export ZBX_DB_VERIFY_HOST="${ZBX_DB_VERIFY_HOST,,}"
 
-    export ZBX_VAULT="${ZBX_VAULT:-}"
     export ZBX_VAULTURL="${ZBX_VAULTURL:-}"
+    export ZBX_VAULTDBPATH="${ZBX_VAULTDBPATH:-}"
     export VAULT_TOKEN="${VAULT_TOKEN:-}"
 
     : "${DB_DOUBLE_IEEE754:=true}"
