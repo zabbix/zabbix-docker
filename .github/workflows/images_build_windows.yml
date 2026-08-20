@@ -39,7 +39,7 @@ env:
 
   MSFT_BASE_BUILD_IMAGE: "mcr.microsoft.com/windows/servercore"
   OS_BASE_IMAGE_NAME: "mcr.microsoft.com/windows/nanoserver"
-  ENTRYPOINT_BUILD_IMAGE_NAME: "golang:1.26.5-windowsservercore"
+  ENTRYPOINT_BUILD_IMAGE_NAME: "golang:1.27.0-windowsservercore"
 
   BASE_IMAGE_NAME: "build-base"
   BASE_BUILD_IMAGE_NAME: "build-common"

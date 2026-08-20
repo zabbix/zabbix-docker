@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1.6
 ARG OS_BASE_IMAGE=alpine:3.24
-ARG ENTRYPOINT_BUILD_IMAGE=golang:1.26.5-alpine
+ARG ENTRYPOINT_BUILD_IMAGE=golang:1.27.0-alpine
 
 FROM ${ENTRYPOINT_BUILD_IMAGE} AS entrypoint-builder
 
