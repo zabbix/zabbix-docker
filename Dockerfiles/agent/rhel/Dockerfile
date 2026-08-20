@@ -62,6 +62,7 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             tini \
             libcurl-minimal \
             libmodbus \
+            openldap \
             pcre2 \
             zlib \
             iputils" && \

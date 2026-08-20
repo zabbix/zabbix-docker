@@ -205,8 +205,12 @@ function Prepare-Zbx-Agent-Config {
     Update-Config-Var $ZbxAgentConfig "ForceActiveChecksOnStart" "$env:ZBX_FORCEACTIVECHECKSONSTART"
 
     if ($env:ZBX_ENABLEPERSISTENTBUFFER -eq "true") {
+        if ([string]::IsNullOrWhitespace($env:ZBX_PERSISTENTBUFFERFILE)) {
+            $env:ZBX_PERSISTENTBUFFERFILE="$env:ZABBIX_USER_HOME_DIR\buffer\agent2.db"
+        }
+
         Update-Config-Var $ZbxAgentConfig "EnablePersistentBuffer" "1"
-        Update-Config-Var $ZbxAgentConfig "PersistentBufferFile" "$env:ZABBIX_USER_HOME_DIR\buffer\agent2.db"
+        Update-Config-Var $ZbxAgentConfig "PersistentBufferFile" "$env:ZBX_PERSISTENTBUFFERFILE"
         Update-Config-Var $ZbxAgentConfig "PersistentBufferPeriod" "$env:ZBX_PERSISTENTBUFFERPERIOD"
     }
     else {
@@ -216,7 +220,11 @@ function Prepare-Zbx-Agent-Config {
     }
 
     if ($env:ZBX_ENABLESTATUSPORT -eq "true") {
-        Update-Config-Var $ZbxAgentConfig "StatusPort" "31999"
+        if ([string]::IsNullOrWhitespace($env:ZBX_STATUSPORT)) {
+            $env:ZBX_STATUSPORT="31999"
+        }
+
+        Update-Config-Var $ZbxAgentConfig "StatusPort" "$env:ZBX_STATUSPORT"
     }
     else {
         Update-Config-Var $ZbxAgentConfig "StatusPort"

@@ -203,6 +203,7 @@ function Prepare-Zbx-Agent-Config {
 
     Update-Config-Var $ZbxAgentConfig "ListenPort" "$env:ZBX_LISTENPORT"
     Update-Config-Var $ZbxAgentConfig "ListenIP" "$env:ZBX_LISTENIP"
+    Update-Config-Var $ZbxAgentConfig "ListenBacklog" "$env:ZBX_LISTENBACKLOG"
     Update-Config-Var $ZbxAgentConfig "StartAgents" "$env:ZBX_STARTAGENTS"
 
     Update-Config-Var $ZbxAgentConfig "HostInterface" "$env:ZBX_HOSTINTERFACE"
