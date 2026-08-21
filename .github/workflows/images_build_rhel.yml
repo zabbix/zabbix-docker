@@ -74,7 +74,7 @@ jobs:
 
     steps:
       - name: Block egress traffic
-        uses: step-security/harden-runner@9af89fc71515a100421586dfdb3dc9c984fbf411 # v2.19.4
+        uses: step-security/harden-runner@05e31511f85b41b11d1cf0ef85d0992719546e2c # v2.21.0
         with:
           disable-sudo: true
           egress-policy: block
@@ -85,7 +85,7 @@ jobs:
             release-assets.githubusercontent.com:443
 
       - name: Checkout repository
-        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 1
           sparse-checkout: |
@@ -172,7 +172,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 1
 
@@ -185,7 +185,7 @@ jobs:
 
       - name: Generate tags
         id: meta
-        uses: docker/metadata-action@80c7e94dd9b9319bd5eb7a0e0fe9291e23a2a2e9 # v6.1.0
+        uses: docker/metadata-action@dc802804100637a589fabce1cb79ff13a1411302 # v6.2.0
         with:
           images: ${{ env.IMAGES_PREFIX }}${{ matrix.build }}
           tags: |
@@ -193,7 +193,7 @@ jobs:
 
       - name: Build image
         id: build_image
-        uses: redhat-actions/buildah-build@7a95fa7ee0f02d552a32753e7414641a04307056 # v2.13
+        uses: redhat-actions/buildah-build@3a51aade9afa17e5c78256bcbe2e1ee08c7b995b # v3.0.2
         with:
           context: ${{ format('{0}/{1}/rhel', env.DOCKERFILES_DIRECTORY, matrix.build) }}
           layers: false
@@ -304,7 +304,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 1
 
@@ -364,7 +364,7 @@ jobs:
 
       - name: Generate tags
         id: meta
-        uses: docker/metadata-action@80c7e94dd9b9319bd5eb7a0e0fe9291e23a2a2e9 # v6.1.0
+        uses: docker/metadata-action@dc802804100637a589fabce1cb79ff13a1411302 # v6.2.0
         with:
           images: ${{ env.IMAGES_PREFIX }}${{ matrix.build }}
           tags: |
@@ -372,7 +372,7 @@ jobs:
 
       - name: Build image
         id: build_image
-        uses: redhat-actions/buildah-build@7a95fa7ee0f02d552a32753e7414641a04307056 # v2.13
+        uses: redhat-actions/buildah-build@3a51aade9afa17e5c78256bcbe2e1ee08c7b995b # v3.0.2
         with:
           context: ${{ format('{0}/{1}/rhel', env.DOCKERFILES_DIRECTORY, matrix.build) }}
           layers: false
@@ -484,7 +484,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 1
 
@@ -585,7 +585,7 @@ jobs:
 
       - name: Generate tags
         id: meta
-        uses: docker/metadata-action@80c7e94dd9b9319bd5eb7a0e0fe9291e23a2a2e9 # v6.1.0
+        uses: docker/metadata-action@dc802804100637a589fabce1cb79ff13a1411302 # v6.2.0
         with:
           images: ${{ env.REGISTRY }}/${{ env.REGISTRY_NAMESPACE }}/${{ secrets[format('{0}_{1}_PROJECT', needs.init_build.outputs.secret_prefix, steps.var_format.outputs.matrix_build)] || matrix.build }}
           tags: |
@@ -597,7 +597,7 @@ jobs:
       - name: Build image
         id: build_image
         if: ${{ matrix.build != 'snmptraps' }}
-        uses: redhat-actions/buildah-build@7a95fa7ee0f02d552a32753e7414641a04307056 # v2.13
+        uses: redhat-actions/buildah-build@3a51aade9afa17e5c78256bcbe2e1ee08c7b995b # v3.0.2
         with:
           context: ${{ format('{0}/{1}/rhel', env.DOCKERFILES_DIRECTORY, matrix.build) }}
           layers: false
@@ -616,7 +616,7 @@ jobs:
       - name: Build snmptraps image
         id: build_image_snmptraps
         if: ${{ matrix.build == 'snmptraps' }}
-        uses: redhat-actions/buildah-build@7a95fa7ee0f02d552a32753e7414641a04307056 # v2.13
+        uses: redhat-actions/buildah-build@3a51aade9afa17e5c78256bcbe2e1ee08c7b995b # v3.0.2
         with:
           context: ${{ format('{0}/{1}/rhel', env.DOCKERFILES_DIRECTORY, matrix.build) }}
           layers: false
@@ -642,7 +642,7 @@ jobs:
           [[ -n "${PROJECT_SECRET:-}" ]] || { echo "::error::Registry robot secret is missing"; exit 1; }
 
       - name: Log in to ${{ env.REGISTRY }}
-        uses: redhat-actions/podman-login@4934294ad0449894bcd1e9f191899d7292469603 # v1.7
+        uses: redhat-actions/podman-login@50c2d9a331bb67c8fdab99b86455fad05e2e3252 # v2.0
         if: ${{ env.AUTO_PUSH_IMAGES == 'true' }}
         with:
           username: ${{ format('redhat-isv-containers+{0}-robot', secrets[format('{0}_{1}_PROJECT', needs.init_build.outputs.secret_prefix, steps.var_format.outputs.matrix_build)]) }}
@@ -652,7 +652,7 @@ jobs:
 
       - name: Push architecture image
         if: ${{ env.AUTO_PUSH_IMAGES == 'true' }}
-        uses: redhat-actions/push-to-registry@5ed88d269cf581ea9ef6dd6806d01562096bee9c # v2.8
+        uses: redhat-actions/push-to-registry@94ade333c38ecc0e60e94785125d9a52ca423b37 # v3.0.0
         with:
           tags: ${{ steps.meta.outputs.tags }}
 
@@ -736,7 +736,7 @@ jobs:
 
     steps:
       - name: Audit egress traffic
-        uses: step-security/harden-runner@9af89fc71515a100421586dfdb3dc9c984fbf411 # v2.19.4
+        uses: step-security/harden-runner@05e31511f85b41b11d1cf0ef85d0992719546e2c # v2.21.0
         with:
           disable-sudo: true
           egress-policy: audit
@@ -777,7 +777,7 @@ jobs:
 
       - name: Generate public tags
         id: meta
-        uses: docker/metadata-action@80c7e94dd9b9319bd5eb7a0e0fe9291e23a2a2e9 # v6.1.0
+        uses: docker/metadata-action@dc802804100637a589fabce1cb79ff13a1411302 # v6.2.0
         with:
           images: ${{ env.REGISTRY }}/${{ env.REGISTRY_NAMESPACE }}/${{ secrets[format('{0}_{1}_PROJECT', needs.init_build.outputs.secret_prefix, steps.var_format.outputs.matrix_build)] }}
           tags: |
@@ -788,7 +788,7 @@ jobs:
 
       - name: Generate AMD64 source tag
         id: meta_amd64
-        uses: docker/metadata-action@80c7e94dd9b9319bd5eb7a0e0fe9291e23a2a2e9 # v6.1.0
+        uses: docker/metadata-action@dc802804100637a589fabce1cb79ff13a1411302 # v6.2.0
         with:
           images: ${{ env.REGISTRY }}/${{ env.REGISTRY_NAMESPACE }}/${{ secrets[format('{0}_{1}_PROJECT', needs.init_build.outputs.secret_prefix, steps.var_format.outputs.matrix_build)] }}
           tags: |
@@ -799,7 +799,7 @@ jobs:
 
       - name: Generate ARM64 source tag
         id: meta_arm64
-        uses: docker/metadata-action@80c7e94dd9b9319bd5eb7a0e0fe9291e23a2a2e9 # v6.1.0
+        uses: docker/metadata-action@dc802804100637a589fabce1cb79ff13a1411302 # v6.2.0
         with:
           images: ${{ env.REGISTRY }}/${{ env.REGISTRY_NAMESPACE }}/${{ secrets[format('{0}_{1}_PROJECT', needs.init_build.outputs.secret_prefix, steps.var_format.outputs.matrix_build)] }}
           tags: |
@@ -809,10 +809,10 @@ jobs:
             suffix=-arm64
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@4d04d5d9486b7bd6fa91e7baf45bbb4f8b9deedd # v4.0.0
+        uses: docker/setup-buildx-action@37fe631027851001ddb9b187196cc803df7f5f0e # v4.3.0
 
       - name: Log in to ${{ env.REGISTRY }}
-        uses: docker/login-action@650006c6eb7dba73a995cc03b0b2d7f5ca915bee # v4.2.0
+        uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4.6.0
         env:
           DOCKER_CONFIG: ${{ runner.temp }}/docker-config
         with:
