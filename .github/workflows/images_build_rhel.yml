@@ -735,11 +735,11 @@ jobs:
       contents: read
 
     steps:
-      - name: Block egress traffic
+      - name: Audit egress traffic
         uses: step-security/harden-runner@9af89fc71515a100421586dfdb3dc9c984fbf411 # v2.19.4
         with:
           disable-sudo: true
-          egress-policy: block
+          egress-policy: audit
           allowed-endpoints: >
             api.github.com:443
             auth.docker.io:443
