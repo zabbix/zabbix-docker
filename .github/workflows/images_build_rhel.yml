@@ -722,10 +722,10 @@ jobs:
           echo "::endgroup::"
 
   publish_manifests:
-    timeout-minutes: 15
+    timeout-minutes: 45
     needs: ["build_images", "init_build"]
     if: ${{ (! contains(fromJSON('["push"]'), github.event_name) && vars.AUTO_PUSH_IMAGES) || (contains(fromJSON('["workflow_dispatch"]'), github.event_name) && inputs.publish_images == 'true' ) }}
-    name: Publish ${{ matrix.build }} manifest
+    name: Publish and certify ${{ matrix.build }} manifest
     strategy:
       fail-fast: false
       matrix:
@@ -765,13 +765,15 @@ jobs:
 
           echo "matrix_build=${matrix_build}" >> "$GITHUB_OUTPUT"
 
-      - name: Validate registry secrets
+      - name: Validate registry and certification secrets
         env:
           PROJECT_NAME: ${{ secrets[format('{0}_{1}_PROJECT', needs.init_build.outputs.secret_prefix, steps.var_format.outputs.matrix_build)] }}
           PROJECT_SECRET: ${{ secrets[format('{0}_{1}_SECRET', needs.init_build.outputs.secret_prefix, steps.var_format.outputs.matrix_build)] }}
+          PYXIS_API_TOKEN: ${{ secrets.REDHAT_API_TOKEN }}
         run: |
           [[ -n "${PROJECT_NAME:-}" ]] || { echo "::error::Registry project secret is missing"; exit 1; }
           [[ -n "${PROJECT_SECRET:-}" ]] || { echo "::error::Registry robot secret is missing"; exit 1; }
+          [[ -n "${PYXIS_API_TOKEN:-}" ]] || { echo "::error::Red Hat API token is missing"; exit 1; }
 
       - name: Generate public tags
         id: meta
@@ -811,6 +813,8 @@ jobs:
 
       - name: Log in to ${{ env.REGISTRY }}
         uses: docker/login-action@650006c6eb7dba73a995cc03b0b2d7f5ca915bee # v4.2.0
+        env:
+          DOCKER_CONFIG: ${{ runner.temp }}/docker-config
         with:
           username: ${{ format('redhat-isv-containers+{0}-robot', secrets[format('{0}_{1}_PROJECT', needs.init_build.outputs.secret_prefix, steps.var_format.outputs.matrix_build)]) }}
           password: ${{ secrets[format('{0}_{1}_SECRET', needs.init_build.outputs.secret_prefix, steps.var_format.outputs.matrix_build)] }}
@@ -819,105 +823,36 @@ jobs:
       - name: Create and push multiarch manifest
         id: manifest
         uses: int128/docker-manifest-create-action@1e15cac7af24af7153ff7968c09072d61bb4456b # v2.26.0
+        env:
+          DOCKER_CONFIG: ${{ runner.temp }}/docker-config
         with:
           tags: ${{ steps.meta.outputs.tags }}
           sources: |
             ${{ steps.meta_amd64.outputs.tags }}
             ${{ steps.meta_arm64.outputs.tags }}
 
-  certify_manifests:
-    timeout-minutes: 30
-    needs: ["publish_manifests", "init_build"]
-    name: Certify ${{ matrix.build }} manifest
-    strategy:
-      fail-fast: false
-      matrix:
-        build: ${{ fromJson(needs.init_build.outputs.components) }}
-    runs-on: [self-hosted, linux, X64]
-    permissions:
-      contents: read
-
-    steps:
-      - name: Format variables
-        id: var_format
-        env:
-          MATRIX_BUILD: ${{ matrix.build }}
-        run: |
-          matrix_build="${MATRIX_BUILD^^}"
-          matrix_build="${matrix_build//-/_}"
-
-          echo "::group::Result"
-          echo "matrix_build=${matrix_build}"
-          echo "::endgroup::"
-
-          echo "matrix_build=${matrix_build}" >> "$GITHUB_OUTPUT"
-
-      - name: Validate registry secrets
-        env:
-          PROJECT_NAME: ${{ secrets[format('{0}_{1}_PROJECT', needs.init_build.outputs.secret_prefix, steps.var_format.outputs.matrix_build)] }}
-          PROJECT_SECRET: ${{ secrets[format('{0}_{1}_SECRET', needs.init_build.outputs.secret_prefix, steps.var_format.outputs.matrix_build)] }}
-        run: |
-          [[ -n "${PROJECT_NAME:-}" ]] || { echo "::error::Registry project secret is missing"; exit 1; }
-          [[ -n "${PROJECT_SECRET:-}" ]] || { echo "::error::Registry robot secret is missing"; exit 1; }
-
-      - name: Generate certification tags
-        id: meta
-        uses: docker/metadata-action@80c7e94dd9b9319bd5eb7a0e0fe9291e23a2a2e9 # v6.1.0
-        with:
-          images: ${{ env.REGISTRY }}/${{ env.REGISTRY_NAMESPACE }}/${{ secrets[format('{0}_{1}_PROJECT', needs.init_build.outputs.secret_prefix, steps.var_format.outputs.matrix_build)] }}
-          tags: |
-            type=semver,pattern={{version}}
-            type=sha
-          flavor: |
-            latest=${{ github.event_name == 'release' }}
-
-      - name: Log in to ${{ env.REGISTRY }}
-        uses: redhat-actions/podman-login@4934294ad0449894bcd1e9f191899d7292469603 # v1.7
-        with:
-          username: ${{ format('redhat-isv-containers+{0}-robot', secrets[format('{0}_{1}_PROJECT', needs.init_build.outputs.secret_prefix, steps.var_format.outputs.matrix_build)]) }}
-          password: ${{ secrets[format('{0}_{1}_SECRET', needs.init_build.outputs.secret_prefix, steps.var_format.outputs.matrix_build)] }}
-          registry: ${{ env.REGISTRY }}
-          auth_file_path: /tmp/.docker_${{ matrix.build }}_manifest_${{ needs.init_build.outputs.sha_short }}
-
       - name: Preflight certification
         env:
-          PFLT_DOCKERCONFIG: /tmp/.docker_${{ matrix.build }}_manifest_${{ needs.init_build.outputs.sha_short }}
-          PFLT_CERTIFICATION_PROJECT_ID: ${{ secrets[format('{0}_{1}_PROJECT', needs.init_build.outputs.secret_prefix, steps.var_format.outputs.matrix_build)] }}
+          DOCKER_CONFIG: ${{ runner.temp }}/docker-config
+          PFLT_CERTIFICATION_COMPONENT_ID: ${{ secrets[format('{0}_{1}_PROJECT', needs.init_build.outputs.secret_prefix, steps.var_format.outputs.matrix_build)] }}
           PFLT_PYXIS_API_TOKEN: ${{ secrets.REDHAT_API_TOKEN }}
-          PFLT_ARTIFACTS: /tmp/artifacts_${{ matrix.build }}_${{ needs.init_build.outputs.sha_short }}
+          PFLT_ARTIFACTS: ${{ runner.temp }}/preflight-artifacts
           PFLT_LOGLEVEL: ${{ env.PFLT_LOGLEVEL }}
           IMAGE_TAG: ${{ fromJSON(steps.meta.outputs.json).tags[0] }}
           PREFLIGHT_IMAGE: ${{ env.PREFLIGHT_IMAGE }}
         run: |
           mkdir -p "$PFLT_ARTIFACTS"
 
-          echo "::group::Pull preflight image"
-          podman pull "$PREFLIGHT_IMAGE"
-          echo "::endgroup::"
-
           echo "::group::Perform certification tests"
-          podman run \
-            -it \
+          docker run \
             --rm \
-            --security-opt=label=disable \
-            --env PFLT_LOGLEVEL="$PFLT_LOGLEVEL" \
+            --env PFLT_LOGLEVEL \
             --env PFLT_ARTIFACTS=/artifacts \
             --env PFLT_LOGFILE=/artifacts/preflight.log \
-            --env PFLT_CERTIFICATION_COMPONENT_ID="$PFLT_CERTIFICATION_PROJECT_ID" \
-            --env PFLT_PYXIS_API_TOKEN="$PFLT_PYXIS_API_TOKEN" \
+            --env PFLT_CERTIFICATION_COMPONENT_ID \
+            --env PFLT_PYXIS_API_TOKEN \
             --env PFLT_DOCKERCONFIG=/temp-authfile.json \
             -v "$PFLT_ARTIFACTS:/artifacts" \
-            -v "$PFLT_DOCKERCONFIG:/temp-authfile.json:ro" \
+            -v "$DOCKER_CONFIG/config.json:/temp-authfile.json:ro" \
             "$PREFLIGHT_IMAGE" check container "$IMAGE_TAG" --submit
-          echo "::endgroup::"
-
-      - name: Post preflight cleanup
-        if: ${{ success() || failure() }}
-        env:
-          PREFLIGHT_IMAGE: ${{ env.PREFLIGHT_IMAGE }}
-          PFLT_ARTIFACTS: /tmp/artifacts_${{ matrix.build }}_${{ needs.init_build.outputs.sha_short }}
-        run: |
-          echo "::group::Cleanup"
-          rm -rf "$PFLT_ARTIFACTS"
-          podman rmi -i -f "$PREFLIGHT_IMAGE" 2>/dev/null || true
           echo "::endgroup::"
