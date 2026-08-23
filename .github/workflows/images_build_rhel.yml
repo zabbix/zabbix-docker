@@ -282,12 +282,7 @@ jobs:
         if: ${{ (cancelled() || failure()) && (steps.push_image.outcome == 'failure' || steps.push_image.outcome == 'cancelled') }}
         env:
           IMAGE_TAG_ID: ${{ steps.image_metadata.outputs.image_tag_id }}
-          IMAGE_DIR: ${{ env.IMAGE_DIR }}
-          GITHUB_RUN_ID: ${{ github.run_id }}
-        run: |
-          echo "::group::Removing orphaned image"
-          rm -rf "${IMAGE_DIR:?}/${GITHUB_RUN_ID:?}/${IMAGE_TAG_ID:?}"
-          echo "::endgroup::"
+        run: rm -rf "$IMAGE_DIR/$GITHUB_RUN_ID/$IMAGE_TAG_ID"
 
   build_components:
     timeout-minutes: 90
@@ -462,12 +457,7 @@ jobs:
         if: ${{ (cancelled() || failure()) && (steps.push_image.outcome == 'failure' || steps.push_image.outcome == 'cancelled') }}
         env:
           IMAGE_TAG_ID: ${{ steps.image_metadata.outputs.image_tag_id }}
-          IMAGE_DIR: ${{ env.IMAGE_DIR }}
-          GITHUB_RUN_ID: ${{ github.run_id }}
-        run: |
-          echo "::group::Removing orphaned image"
-          rm -rf "${IMAGE_DIR:?}/${GITHUB_RUN_ID:?}/${IMAGE_TAG_ID:?}"
-          echo "::endgroup::"
+        run: rm -rf "$IMAGE_DIR/$GITHUB_RUN_ID/$IMAGE_TAG_ID"
 
   build_images:
     timeout-minutes: 30
@@ -703,23 +693,7 @@ jobs:
 
     steps:
       - name: Remove local image storage for current run
-        if: ${{ always() }}
-        env:
-          IMAGE_DIR: ${{ env.IMAGE_DIR }}
-          GITHUB_RUN_ID: ${{ github.run_id }}
-        run: |
-          set -u
-
-          run_dir="${IMAGE_DIR}/${GITHUB_RUN_ID}"
-
-          echo "::group::Cleanup run storage"
-          if [[ -d "$run_dir" ]]; then
-            echo "Removing $run_dir"
-            rm -rf "${run_dir:?}"
-          else
-            echo "Run directory does not exist: $run_dir"
-          fi
-          echo "::endgroup::"
+        run: rm -rf "$IMAGE_DIR/$GITHUB_RUN_ID"
 
   publish_manifests:
     timeout-minutes: 45
@@ -735,21 +709,19 @@ jobs:
       contents: read
 
     steps:
-      - name: Audit egress traffic
+      - name: Block egress traffic
         uses: step-security/harden-runner@05e31511f85b41b11d1cf0ef85d0992719546e2c # v2.21.0
         with:
           disable-sudo: true
-          egress-policy: audit
+          egress-policy: block
           allowed-endpoints: >
             api.github.com:443
             auth.docker.io:443
-            github.com:443
-            index.docker.io:443
-            objects.githubusercontent.com:443
-            production.cloudflare.docker.com:443
+            catalog.redhat.com:443
+            cdn01.quay.io:443
+            production.cloudfront.docker.com:443
             quay.io:443
             registry-1.docker.io:443
-            release-assets.githubusercontent.com:443
 
       - name: Format variables
         id: var_format
