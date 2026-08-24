@@ -11,23 +11,23 @@ import (
 	"github.com/zabbix/zabbix-docker/templates/entrypoints/internal/bootstrap"
 )
 
-type indexedParameter struct {
-	index     int
-	parameter string
-	variable  string
+type indexedParam struct {
+	index    int
+	param    string
+	variable string
 }
 
 // MergeParameterValues adds one parameter per comma-separated item of
 // rawValue, preserving active values already present. An empty value removes
 // the parameter.
-func MergeParameterValues(configPath, parameter, rawValue string) error {
+func MergeParameterValues(configPath, param, rawValue string) error {
 	value := strings.Trim(strings.TrimSpace(rawValue), `"`)
 	if value == "" {
-		changed, err := rewriteParameter(configPath, parameter, nil, false)
+		changed, err := rewriteParameter(configPath, param, nil, false)
 		if err != nil {
 			return err
 		}
-		logParameterChange(configPath, parameter, nil, changed)
+		logParameterChange(configPath, param, nil, changed)
 
 		return nil
 	}
@@ -40,24 +40,24 @@ func MergeParameterValues(configPath, parameter, rawValue string) error {
 		}
 	}
 
-	changed, err := rewriteParameter(configPath, parameter, values, true)
+	changed, err := rewriteParameter(configPath, param, values, true)
 	if err != nil {
 		return err
 	}
-	logParameterChange(configPath, parameter, values, changed)
+	logParameterChange(configPath, param, values, changed)
 
 	return nil
 }
 
 // SetParameter sets a single-value parameter in the configuration file.
-func SetParameter(configPath, parameter, value string) error {
+func SetParameter(configPath, param, value string) error {
 	values := []string{value}
 
-	changed, err := rewriteParameter(configPath, parameter, values, false)
+	changed, err := rewriteParameter(configPath, param, values, false)
 	if err != nil {
 		return err
 	}
-	logParameterChange(configPath, parameter, values, changed)
+	logParameterChange(configPath, param, values, changed)
 
 	return nil
 }
@@ -66,42 +66,42 @@ func SetParameter(configPath, parameter, value string) error {
 // into repeated parameters that reference the original environment variables.
 // The variables remain in the environment so the service can expand them
 // while reading its configuration.
-func UpdateIndexedParameter(env bootstrap.Environment, configPath, parameter, prefix string) error {
-	parameters, err := collectIndexedParameters(env, map[string]string{prefix: parameter})
+func UpdateIndexedParameter(env bootstrap.Environment, configPath, param, prefix string) error {
+	params, err := collectIndexedParams(env, map[string]string{prefix: param})
 	if err != nil {
 		return err
 	}
-	if len(parameters) == 0 {
+	if len(params) == 0 {
 		return nil
 	}
 
-	values := make([]string, 0, len(parameters))
-	variableNames := make([]string, 0, len(parameters))
-	for _, entry := range parameters {
+	values := make([]string, 0, len(params))
+	variableNames := make([]string, 0, len(params))
+	for _, entry := range params {
 		values = append(values, "${"+entry.variable+"}")
 		variableNames = append(variableNames, entry.variable)
 	}
-	if _, err := rewriteParameter(configPath, parameter, values, false); err != nil {
+	if _, err := rewriteParameter(configPath, param, values, false); err != nil {
 		return err
 	}
 
 	bootstrap.LogDebug(env, "** Configuring %s parameter '%s' from %d indexed environment variables: %s",
-		configPath, parameter, len(variableNames), strings.Join(variableNames, ", "),
+		configPath, param, len(variableNames), strings.Join(variableNames, ", "),
 	)
 
 	return nil
 }
 
-func collectIndexedParameters(env bootstrap.Environment, parameterByPrefix map[string]string) ([]indexedParameter, error) {
-	for prefix := range parameterByPrefix {
+func collectIndexedParams(env bootstrap.Environment, paramByPrefix map[string]string) ([]indexedParam, error) {
+	for prefix := range paramByPrefix {
 		if _, exists := env[prefix]; exists {
 			return nil, fmt.Errorf("%s is not supported; use indexed variables such as %s_0", prefix, prefix)
 		}
 	}
 
-	var parameters []indexedParameter
+	var params []indexedParam
 	for variable, value := range env {
-		parameter, index, found := parseIndexedVariable(variable, parameterByPrefix)
+		param, index, found := parseIndexedVariable(variable, paramByPrefix)
 		if !found {
 			continue
 		}
@@ -109,42 +109,45 @@ func collectIndexedParameters(env bootstrap.Environment, parameterByPrefix map[s
 			return nil, fmt.Errorf("%s must not be empty", variable)
 		}
 
-		parameters = append(parameters, indexedParameter{
-			index:     index,
-			parameter: parameter,
-			variable:  variable,
+		params = append(params, indexedParam{
+			index:    index,
+			param:    param,
+			variable: variable,
 		})
 	}
 
-	sort.Slice(parameters, func(i, j int) bool {
-		if parameters[i].index == parameters[j].index {
-			return parameters[i].variable < parameters[j].variable
+	sort.Slice(params, func(i, j int) bool {
+		if params[i].index == params[j].index {
+			return params[i].variable < params[j].variable
 		}
-		return parameters[i].index < parameters[j].index
+		return params[i].index < params[j].index
 	})
 
-	for expectedIndex, entry := range parameters {
-		if expectedIndex > 0 && parameters[expectedIndex-1].index == entry.index {
+	for expectedIndex, entry := range params {
+		if expectedIndex > 0 && params[expectedIndex-1].index == entry.index {
 			return nil, fmt.Errorf(
 				"index %d is used by both %s and %s",
-				entry.index, parameters[expectedIndex-1].variable, entry.variable,
+				entry.index, params[expectedIndex-1].variable, entry.variable,
 			)
 		}
 		if entry.index != expectedIndex {
-			return nil, fmt.Errorf("index %d is missing", expectedIndex)
+			return nil, fmt.Errorf(
+				"%s uses index %d, but index %d is missing",
+				entry.variable, entry.index, expectedIndex,
+			)
 		}
 	}
 
-	return parameters, nil
+	return params, nil
 }
 
-func parseIndexedVariable(variable string, parameterByPrefix map[string]string) (string, int, bool) {
+func parseIndexedVariable(variable string, paramByPrefix map[string]string) (string, int, bool) {
 	separatorIndex := strings.LastIndexByte(variable, '_')
 	if separatorIndex == -1 {
 		return "", 0, false
 	}
 
-	parameter, found := parameterByPrefix[variable[:separatorIndex]]
+	param, found := paramByPrefix[variable[:separatorIndex]]
 	if !found {
 		return "", 0, false
 	}
@@ -155,26 +158,26 @@ func parseIndexedVariable(variable string, parameterByPrefix map[string]string) 
 		return "", 0, false
 	}
 
-	return parameter, index, true
+	return param, index, true
 }
 
-func replaceIndexedParametersAtEnd(configPath string, parameterByPrefix map[string]string, parameters []indexedParameter) error {
+func replaceIndexedParamsAtEnd(configPath string, paramByPrefix map[string]string, params []indexedParam) error {
 	original, lines, err := readLines(configPath)
 	if err != nil {
 		return err
 	}
 
-	parametersToReplace := make(map[string]struct{}, len(parameterByPrefix))
-	for _, parameter := range parameterByPrefix {
-		parametersToReplace[parameter] = struct{}{}
+	paramsToReplace := make(map[string]struct{}, len(paramByPrefix))
+	for _, param := range paramByPrefix {
+		paramsToReplace[param] = struct{}{}
 	}
 
-	updatedLines := make([]string, 0, len(lines)+len(parameters)+1)
+	updatedLines := make([]string, 0, len(lines)+len(params)+1)
 	for _, line := range lines {
 		trimmed := strings.TrimSpace(line)
 		separatorIndex := strings.IndexByte(trimmed, '=')
 		if separatorIndex >= 0 {
-			if _, found := parametersToReplace[trimmed[:separatorIndex]]; found {
+			if _, found := paramsToReplace[trimmed[:separatorIndex]]; found {
 				continue
 			}
 		}
@@ -186,12 +189,12 @@ func replaceIndexedParametersAtEnd(configPath string, parameterByPrefix map[stri
 		updatedLines = updatedLines[:len(updatedLines)-1]
 	}
 
-	if len(parameters) > 0 {
+	if len(params) > 0 {
 		if len(updatedLines) > 0 {
 			updatedLines = append(updatedLines, "")
 		}
-		for _, entry := range parameters {
-			updatedLines = append(updatedLines, entry.parameter+"=${"+entry.variable+"}")
+		for _, entry := range params {
+			updatedLines = append(updatedLines, entry.param+"=${"+entry.variable+"}")
 		}
 	}
 
@@ -202,13 +205,13 @@ func replaceIndexedParametersAtEnd(configPath string, parameterByPrefix map[stri
 // rewriteParameter writes the named parameter to the configuration file and
 // reports whether the file changed. preserveExisting keeps parameter lines
 // that are already in the file instead of replacing them.
-func rewriteParameter(configPath, parameter string, values []string, preserveExisting bool) (bool, error) {
+func rewriteParameter(configPath, param string, values []string, preserveExisting bool) (bool, error) {
 	original, lines, err := readLines(configPath)
 	if err != nil {
 		return false, err
 	}
 
-	activePrefix := parameter + "="
+	activePrefix := param + "="
 	commentPrefixes := []string{"# " + activePrefix, "; " + activePrefix}
 
 	updatedLines := make([]string, 0, len(lines)+len(values)+1)
@@ -236,30 +239,30 @@ func rewriteParameter(configPath, parameter string, values []string, preserveExi
 		}
 	}
 
-	parameterLines := make([]string, 0, len(values))
+	paramLines := make([]string, 0, len(values))
 	for _, value := range values {
 		if value == "" {
 			continue
 		}
 
 		if _, found := existingValues[value]; !found {
-			parameterLines = append(parameterLines, activePrefix+value)
+			paramLines = append(paramLines, activePrefix+value)
 		}
 	}
 
 	if insertAt >= 0 {
-		linesWithParameters := make([]string, 0, len(updatedLines)+len(parameterLines))
-		linesWithParameters = append(linesWithParameters, updatedLines[:insertAt]...)
-		linesWithParameters = append(linesWithParameters, parameterLines...)
-		linesWithParameters = append(linesWithParameters, updatedLines[insertAt:]...)
+		linesWithParams := make([]string, 0, len(updatedLines)+len(paramLines))
+		linesWithParams = append(linesWithParams, updatedLines[:insertAt]...)
+		linesWithParams = append(linesWithParams, paramLines...)
+		linesWithParams = append(linesWithParams, updatedLines[insertAt:]...)
 
-		updatedLines = linesWithParameters
-	} else if len(parameterLines) > 0 {
+		updatedLines = linesWithParams
+	} else if len(paramLines) > 0 {
 		if len(updatedLines) > 0 && updatedLines[len(updatedLines)-1] != "" {
 			updatedLines = append(updatedLines, "")
 		}
 
-		updatedLines = append(updatedLines, parameterLines...)
+		updatedLines = append(updatedLines, paramLines...)
 	}
 
 	return writeLines(configPath, original, updatedLines)
@@ -292,7 +295,7 @@ func writeLines(configPath string, original []byte, lines []string) (bool, error
 
 // logParameterChange reports what happened to the parameter: values
 // without a single non-empty item mean it was removed from the file.
-func logParameterChange(configPath, parameter string, values []string, changed bool) {
+func logParameterChange(configPath, param string, values []string, changed bool) {
 	hasValue := false
 	for _, value := range values {
 		if value != "" {
@@ -303,26 +306,26 @@ func logParameterChange(configPath, parameter string, values []string, changed b
 
 	if !hasValue {
 		if changed {
-			bootstrap.LogInfo("** Removing %s parameter '%s'", configPath, parameter)
+			bootstrap.LogInfo("** Removing %s parameter '%s'", configPath, param)
 		}
 
 		return
 	}
 
 	loggedValue := strings.Join(values, ",")
-	if isMaskedParameter(parameter) {
+	if isMaskedParameter(param) {
 		loggedValue = "****"
 	}
 
 	if changed {
-		bootstrap.LogInfo("** Updating %s parameter '%s': '%s'", configPath, parameter, loggedValue)
+		bootstrap.LogInfo("** Updating %s parameter '%s': '%s'", configPath, param, loggedValue)
 	} else {
-		bootstrap.LogInfo("** Updating %s parameter '%s': '%s'... exists", configPath, parameter, loggedValue)
+		bootstrap.LogInfo("** Updating %s parameter '%s': '%s'... exists", configPath, param, loggedValue)
 	}
 }
 
-func isMaskedParameter(parameter string) bool {
-	switch parameter {
+func isMaskedParameter(param string) bool {
+	switch param {
 	case "TLSPSKIdentity", "DBPassword", "HistoryProvider":
 		return true
 	default:

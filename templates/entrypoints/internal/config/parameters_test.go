@@ -176,7 +176,7 @@ func TestUpdateIndexedParameterValidation(t *testing.T) {
 				"ZBX_ALIAS_0": "custom.one:system.hostname",
 				"ZBX_ALIAS_2": "custom.two:system.uname",
 			},
-			want: "index 1 is missing",
+			want: "ZBX_ALIAS_2 uses index 2, but index 1 is missing",
 		},
 	}
 

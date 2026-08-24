@@ -136,7 +136,7 @@ func TestConfigureItemKeyRulesValidation(t *testing.T) {
 				"ZBX_ALLOWKEY_0": "system.localtime",
 				"ZBX_DENYKEY_2":  "system.run[*]",
 			},
-			want: "index 1 is missing",
+			want: "ZBX_DENYKEY_2 uses index 2, but index 1 is missing",
 		},
 		{
 			name: "empty rule",
@@ -155,11 +155,10 @@ func TestConfigureItemKeyRulesValidation(t *testing.T) {
 	}
 }
 
-func TestConfigureItemKeyRulesWithoutVariablesDoesNotRewrite(t *testing.T) {
+func TestConfigureItemKeyRulesWithoutVariablesRemovesExistingRules(t *testing.T) {
 	configDir := t.TempDir()
 	path := filepath.Join(configDir, "item_keys.conf")
-	original := []byte("AllowKey=custom.key\n")
-	if err := os.WriteFile(path, original, 0o600); err != nil {
+	if err := os.WriteFile(path, []byte("AllowKey=custom.key\nOther=value\n"), 0o600); err != nil {
 		t.Fatal(err)
 	}
 
@@ -171,8 +170,15 @@ func TestConfigureItemKeyRulesWithoutVariablesDoesNotRewrite(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if string(data) != string(original) {
-		t.Fatalf("config was rewritten without indexed variables:\n%s", data)
+	if string(data) != "Other=value\n" {
+		t.Fatalf("existing item key rules were not removed:\n%s", data)
+	}
+}
+
+func TestConfigureItemKeyRulesWithoutVariablesRequiresConfigFile(t *testing.T) {
+	err := ConfigureItemKeyRules(bootstrap.Environment{}, t.TempDir(), "item_keys.conf")
+	if err == nil || !strings.Contains(err.Error(), "missing configuration file") {
+		t.Fatalf("error = %v, want missing configuration file", err)
 	}
 }
 
@@ -182,7 +188,7 @@ func TestCollectIndexedParametersIgnoresUnrelatedVariables(t *testing.T) {
 		"ZBX_DENYKEY_SOMETHING":    "value",
 	}
 
-	rules, err := collectIndexedParameters(env, itemKeyRuleParameterByPrefix)
+	rules, err := collectIndexedParams(env, itemKeyRuleParamByPrefix)
 	if err != nil {
 		t.Fatal(err)
 	}

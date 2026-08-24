@@ -75,7 +75,7 @@ func updatePluginConfig(homeDir, configDir string) error {
 	binDir := pluginBinDir(homeDir)
 
 	plugins := []struct {
-		file, parameter, binary string
+		file, param, binary string
 	}{
 		{"mongodb.conf", "Plugins.MongoDB.System.Path", "mongodb"},
 		{"postgresql.conf", "Plugins.PostgreSQL.System.Path", "postgresql"},
@@ -85,14 +85,14 @@ func updatePluginConfig(homeDir, configDir string) error {
 
 	if _, err := exec.LookPath(nvidiaCommand); err == nil {
 		plugins = append(plugins, struct {
-			file, parameter, binary string
+			file, param, binary string
 		}{"nvidia.conf", "Plugins.NVIDIA.System.Path", "nvidia-gpu"})
 	}
 
 	for _, plugin := range plugins {
 		if err := config.SetParameter(
 			filepath.Join(configDir, plugin.file),
-			plugin.parameter,
+			plugin.param,
 			filepath.Join(binDir, plugin.binary+pluginExecSuffix),
 		); err != nil {
 			return err

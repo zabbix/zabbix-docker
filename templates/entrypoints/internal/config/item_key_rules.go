@@ -7,7 +7,7 @@ import (
 	"github.com/zabbix/zabbix-docker/templates/entrypoints/internal/bootstrap"
 )
 
-var itemKeyRuleParameterByPrefix = map[string]string{
+var itemKeyRuleParamByPrefix = map[string]string{
 	"ZBX_ALLOWKEY":        "AllowKey",
 	"ZBX_DENYKEY":         "DenyKey",
 	"ZBX_ALLOWKEY_REGEXP": "AllowKeyRegexp",
@@ -18,16 +18,13 @@ var itemKeyRuleParameterByPrefix = map[string]string{
 // AllowKeyRegexp and DenyKeyRegexp variables to the end of the item key
 // configuration file.
 func ConfigureItemKeyRules(env bootstrap.Environment, configDir, fileName string) error {
-	rules, err := collectIndexedParameters(env, itemKeyRuleParameterByPrefix)
+	rules, err := collectIndexedParams(env, itemKeyRuleParamByPrefix)
 	if err != nil {
 		return err
 	}
-	if len(rules) == 0 {
-		return nil
-	}
 
 	configPath := filepath.Join(configDir, fileName)
-	if err := replaceIndexedParametersAtEnd(configPath, itemKeyRuleParameterByPrefix, rules); err != nil {
+	if err := replaceIndexedParamsAtEnd(configPath, itemKeyRuleParamByPrefix, rules); err != nil {
 		return err
 	}
 
