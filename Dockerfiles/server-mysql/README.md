@@ -135,6 +135,8 @@ ZBX_DBTLSKEYFILE= # Available since 5.0.0
 ZBX_DBTLSCIPHER= # Available since 5.0.0
 ZBX_DBTLSCIPHER13= # Available since 5.0.0
 ZBX_VAULT=HashiCorp # Allowed values: HashiCorp, CyberArk. Required when Vault is used. Available since 6.2.0
+ZBX_VAULTAPPROLEID= # Available since 8.0.0
+ZBX_VAULTAPPSECRETID= # Available since 8.0.0
 ZBX_VAULTDBPATH= # Available since 5.2.0
 ZBX_VAULTPREFIX= # Available since 7.0.0
 ZBX_VAULTURL=https://127.0.0.1:8200 # Available since 5.2.0
@@ -227,6 +229,9 @@ ZBX_TLSFRONTENDCERTISSUER= # Available since 7.4.0
 ZBX_TLSFRONTENDCERTSUBJECT= # Available since 7.4.0
 ZBX_WEBDRIVERURL= # Available since 7.0.0
 ZBX_STARTBROWSERPOLLERS=1 # Available since 7.0.0
+ZBX_ENABLEMOBILEDEVICES=0 # Available since 8.0.0
+ZBX_BRIDGEADAPTERURL= # Available since 8.0.0
+ZBX_BRIDGEADAPTERCONNECTTO= # Available since 8.0.0
 ZBX_STARTSNMPPOLLERS=1 # Available since 7.0.0
 
 ```

@@ -467,6 +467,10 @@ spec:
             value: ""
           - name: ZBX_DBTLSCIPHER13
             value: ""
+          - name: ZBX_VAULTAPPROLEID
+            value: ""
+          - name: ZBX_VAULTAPPSECRETID
+            value: ""
           - name: ZBX_HISTORYPROVIDER_0
             value: ""
           - name: ZBX_STARTREPORTWRITERS
@@ -488,6 +492,12 @@ spec:
           - name: ZBX_STARTDISCOVERERS
             value: ""
           - name: ZBX_STARTHTTPPOLLERS
+            value: ""
+          - name: ZBX_ENABLEMOBILEDEVICES
+            value: "0"
+          - name: ZBX_BRIDGEADAPTERURL
+            value: ""
+          - name: ZBX_BRIDGEADAPTERCONNECTTO
             value: ""
           - name: ZBX_STARTIPMIPOLLERS
             value: ""
@@ -845,6 +855,10 @@ spec:
           - name: ZBX_DBTLSCIPHER
             value: ""
           - name: ZBX_DBTLSCIPHER13
+            value: ""
+          - name: ZBX_VAULTAPPROLEID
+            value: ""
+          - name: ZBX_VAULTAPPSECRETID
             value: ""
           - name: ZBX_PROXYMODE
             value: "0"
