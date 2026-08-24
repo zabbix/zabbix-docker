@@ -17,7 +17,7 @@ const directoryName = "entrypoint.d"
 // scripts via the shell, executable files directly; everything else is
 // skipped. The first failing hook aborts the entrypoint.
 func Run(env bootstrap.Environment) error {
-	homeDir, err := bootstrap.RequiredHomeDirectory(env)
+	homeDir, err := bootstrap.RequiredHomeDir(env)
 	if err != nil {
 		return err
 	}

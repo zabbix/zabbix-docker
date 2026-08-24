@@ -35,7 +35,7 @@ func TestUpdateConfigValues(t *testing.T) {
 	}
 }
 
-func TestUpdateConfigValuesPreservesCRLF(t *testing.T) {
+func TestUpdateConfigValuesNormalizesLineEndings(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "agent.conf")
 	if err := os.WriteFile(path, []byte("# DenyKey=system.run[*]\r\nOther=value\r\n"), 0o600); err != nil {
 		t.Fatal(err)
@@ -48,7 +48,7 @@ func TestUpdateConfigValuesPreservesCRLF(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	want := "# DenyKey=system.run[*]\r\nDenyKey=one\r\nDenyKey=two\r\nOther=value\r\n"
+	want := "# DenyKey=system.run[*]\nDenyKey=one\nDenyKey=two\nOther=value\n"
 	if string(data) != want {
 		t.Fatalf("config:\n%q\nwant:\n%q", data, want)
 	}

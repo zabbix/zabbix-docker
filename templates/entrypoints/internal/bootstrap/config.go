@@ -92,12 +92,7 @@ func rewriteConfig(configPath, name string, values []string, preserveExisting bo
 		return false, fmt.Errorf("missing configuration file %s: %w", configPath, err)
 	}
 
-	lineEnding := "\n"
-	content := string(data)
-	if bytes.Contains(data, []byte("\r\n")) {
-		lineEnding = "\r\n"
-		content = strings.ReplaceAll(content, "\r\n", "\n")
-	}
+	content := strings.ReplaceAll(string(data), "\r\n", "\n")
 	lines := strings.Split(strings.TrimSuffix(content, "\n"), "\n")
 
 	activePrefix := name + "="
@@ -150,9 +145,6 @@ func rewriteConfig(configPath, name string, values []string, preserveExisting bo
 	}
 
 	updated := strings.Join(output, "\n") + "\n"
-	if lineEnding == "\r\n" {
-		updated = strings.ReplaceAll(updated, "\n", lineEnding)
-	}
 	updatedData := []byte(updated)
 	if bytes.Equal(data, updatedData) {
 		return false, nil

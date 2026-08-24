@@ -52,7 +52,7 @@ var phpDefaults = []struct{ name, value string }{
 func preparePHP(env bootstrap.Environment, dbType DBType) error {
 	bootstrap.LogInfo("** Preparing PHP configuration")
 
-	homeDir, err := bootstrap.RequiredHomeDirectory(env)
+	homeDir, err := bootstrap.RequiredHomeDir(env)
 	if err != nil {
 		return err
 	}

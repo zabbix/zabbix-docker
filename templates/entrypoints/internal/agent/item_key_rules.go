@@ -30,10 +30,9 @@ var itemKeyRuleOptions = map[string]string{
 // configuration file.
 func ConfigureItemKeyRules(env bootstrap.Environment, configDir, fileName string) error {
 	for variable := range itemKeyRuleOptions {
-		if env[variable] != "" {
+		if _, exists := env[variable]; exists {
 			return fmt.Errorf("%s is not supported; use indexed variables such as %s_0", variable, variable)
 		}
-		delete(env, variable)
 	}
 
 	rules, err := collectItemKeyRules(env)
@@ -47,12 +46,7 @@ func ConfigureItemKeyRules(env bootstrap.Environment, configDir, fileName string
 		return fmt.Errorf("missing configuration file %s: %w", path, err)
 	}
 
-	lineEnding := "\n"
-	content := string(data)
-	if bytes.Contains(data, []byte("\r\n")) {
-		lineEnding = "\r\n"
-		content = strings.ReplaceAll(content, "\r\n", "\n")
-	}
+	content := strings.ReplaceAll(string(data), "\r\n", "\n")
 	lines := strings.Split(strings.TrimSuffix(content, "\n"), "\n")
 	output := make([]string, 0, len(lines)+len(rules)+1)
 	for _, line := range lines {
@@ -74,9 +68,6 @@ func ConfigureItemKeyRules(env bootstrap.Environment, configDir, fileName string
 	}
 
 	updated := strings.Join(output, "\n") + "\n"
-	if lineEnding == "\r\n" {
-		updated = strings.ReplaceAll(updated, "\n", lineEnding)
-	}
 	updatedData := []byte(updated)
 	if !bytes.Equal(data, updatedData) {
 		if err := bootstrap.WriteFilePreservingMode(path, updatedData); err != nil {
@@ -155,7 +146,11 @@ func itemKeyRuleVariable(variable string) (string, int, bool) {
 
 	suffix := variable[separator+1:]
 	index, err := strconv.Atoi(suffix)
-	return option, index, err == nil && index >= 0 && strconv.Itoa(index) == suffix
+	if err != nil || index < 0 || strconv.Itoa(index) != suffix {
+		return "", 0, false
+	}
+
+	return option, index, true
 }
 
 func isItemKeyRuleLine(line string) bool {

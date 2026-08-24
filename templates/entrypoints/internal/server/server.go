@@ -17,7 +17,7 @@ func Prepare(env bootstrap.Environment) error {
 	}
 	delete(env, "ZBX_ENABLE_SNMP_TRAPS")
 
-	homeDir, configDir, err := bootstrap.RequiredDirectories(env)
+	homeDir, configDir, err := bootstrap.CommonDirs(env)
 	if err != nil {
 		return err
 	}

@@ -39,7 +39,7 @@ func Run(env bootstrap.Environment, args []string) error {
 func prepare(env bootstrap.Environment, extraArgs []string) ([]string, error) {
 	bootstrap.LogInfo("** Preparing Zabbix Java Gateway")
 
-	_, configDir, err := bootstrap.RequiredDirectories(env)
+	configDir, err := bootstrap.RequiredConfigDir(env)
 	if err != nil {
 		return nil, err
 	}

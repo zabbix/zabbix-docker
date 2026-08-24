@@ -65,7 +65,7 @@ func ResolveDBPort(env Environment, defaultPort string) (string, error) {
 // RunAdditionalSQLScripts executes every *.sql file from the dbscripts
 // directory under the Zabbix home, in file name order.
 func RunAdditionalSQLScripts(env Environment, execute func(path string) error) error {
-	homeDir, err := RequiredHomeDirectory(env)
+	homeDir, err := RequiredHomeDir(env)
 	if err != nil {
 		return err
 	}

@@ -79,7 +79,7 @@ func TestConfigureItemKeyRules(t *testing.T) {
 	}
 }
 
-func TestConfigureItemKeyRulesPreservesCRLF(t *testing.T) {
+func TestConfigureItemKeyRulesNormalizesLineEndings(t *testing.T) {
 	configDir := t.TempDir()
 	path := filepath.Join(configDir, "item_keys.conf")
 	if err := os.WriteFile(path, []byte("header\r\nAllowKey=old\r\n"), 0o600); err != nil {
@@ -95,7 +95,7 @@ func TestConfigureItemKeyRulesPreservesCRLF(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	want := "header\r\n\r\nAllowKey=${ZBX_ALLOWKEY_0}\r\n"
+	want := "header\n\nAllowKey=${ZBX_ALLOWKEY_0}\n"
 	if string(data) != want {
 		t.Fatalf("item key config:\n%q\nwant:\n%q", data, want)
 	}
@@ -110,6 +110,11 @@ func TestConfigureItemKeyRulesValidation(t *testing.T) {
 		{
 			name: "legacy variable",
 			env:  bootstrap.Environment{"ZBX_ALLOWKEY": "system.localtime"},
+			want: "ZBX_ALLOWKEY is not supported",
+		},
+		{
+			name: "empty legacy variable",
+			env:  bootstrap.Environment{"ZBX_ALLOWKEY": ""},
 			want: "ZBX_ALLOWKEY is not supported",
 		},
 		{

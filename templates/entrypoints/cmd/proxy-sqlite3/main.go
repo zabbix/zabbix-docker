@@ -20,7 +20,7 @@ const (
 func prepareService(env bootstrap.Environment) error {
 	bootstrap.LogInfo("** Preparing Zabbix proxy")
 
-	homeDir, err := bootstrap.RequiredHomeDirectory(env)
+	homeDir, err := bootstrap.RequiredHomeDir(env)
 	if err != nil {
 		return err
 	}

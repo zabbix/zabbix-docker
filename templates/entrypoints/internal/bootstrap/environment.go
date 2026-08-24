@@ -4,6 +4,7 @@
 package bootstrap
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -78,21 +79,37 @@ func (env Environment) ValueOrDefaultNonEmpty(name, defaultValue string) string 
 	return defaultValue
 }
 
-// RequiredHomeDirectory returns the Zabbix home directory,
+// RequiredHomeDir returns the Zabbix home directory,
 // verifying that it exists.
-func RequiredHomeDirectory(env Environment) (string, error) {
-	return requiredDirectory(env, "ZABBIX_USER_HOME_DIR")
+func RequiredHomeDir(env Environment) (string, error) {
+	dir := env["ZABBIX_USER_HOME_DIR"]
+	if err := validateDir(dir); err != nil {
+		return "", fmt.Errorf("ZABBIX_USER_HOME_DIR: %w", err)
+	}
+
+	return dir, nil
 }
 
-// RequiredDirectories returns the Zabbix home and config directories
+// RequiredConfigDir returns the Zabbix config directory,
+// verifying that it exists.
+func RequiredConfigDir(env Environment) (string, error) {
+	dir := env["ZABBIX_CONF_DIR"]
+	if err := validateDir(dir); err != nil {
+		return "", fmt.Errorf("ZABBIX_CONF_DIR: %w", err)
+	}
+
+	return dir, nil
+}
+
+// CommonDirs returns the Zabbix home and config directories
 // (ZABBIX_USER_HOME_DIR and ZABBIX_CONF_DIR), verifying that both exist.
-func RequiredDirectories(env Environment) (homeDir, configDir string, err error) {
-	homeDir, err = RequiredHomeDirectory(env)
+func CommonDirs(env Environment) (homeDir, configDir string, err error) {
+	homeDir, err = RequiredHomeDir(env)
 	if err != nil {
 		return "", "", err
 	}
 
-	configDir, err = requiredDirectory(env, "ZABBIX_CONF_DIR")
+	configDir, err = RequiredConfigDir(env)
 	if err != nil {
 		return "", "", err
 	}
@@ -100,22 +117,21 @@ func RequiredDirectories(env Environment) (homeDir, configDir string, err error)
 	return homeDir, configDir, nil
 }
 
-// requiredDirectory returns directory from env variable.
-func requiredDirectory(env Environment, name string) (string, error) {
-	directory := env[name]
-	if directory == "" {
-		return "", fmt.Errorf("%s must be set", name)
+// validateDir verifies that dir is an existing directory.
+func validateDir(dir string) error {
+	if dir == "" {
+		return errors.New("must be set")
 	}
 
-	info, err := os.Stat(directory)
+	info, err := os.Stat(dir)
 	if err != nil {
-		return "", fmt.Errorf("access %s directory %s: %w", name, directory, err)
+		return fmt.Errorf("access %q: %w", dir, err)
 	}
 	if !info.IsDir() {
-		return "", fmt.Errorf("%s path %s is not a directory", name, directory)
+		return fmt.Errorf("%q is not a directory", dir)
 	}
 
-	return directory, nil
+	return nil
 }
 
 // ResolveSecretEnv resolves the NAME / NAME_FILE pair following the Docker

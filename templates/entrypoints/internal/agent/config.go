@@ -13,12 +13,11 @@ import (
 // ZBX_ACTIVE_ALLOW switches.
 func ConfigureServers(env bootstrap.Environment) {
 	serverHost := env.ValueOrDefault("ZBX_SERVER_HOST", "zabbix-server")
-	serverPort := env.ValueOrDefault("ZBX_SERVER_PORT", "10051")
 	passiveServers := env["ZBX_PASSIVESERVERS"]
 	activeServers := env["ZBX_ACTIVESERVERS"]
 
 	activeServer := serverHost
-	if serverPort != "" && serverPort != "10051" {
+	if serverPort := env["ZBX_SERVER_PORT"]; serverPort != "" && serverPort != "10051" {
 		activeServer += ":" + serverPort
 	}
 	if serverHost != "" {
