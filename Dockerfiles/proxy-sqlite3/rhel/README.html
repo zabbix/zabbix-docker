@@ -2,11 +2,14 @@
 <p>Zabbix is an enterprise-class open source distributed monitoring solution.</p>
 <p>Zabbix is software that monitors numerous parameters of a network and the health and integrity of servers. Zabbix uses a flexible notification mechanism that allows users to configure e-mail based alerts for virtually any event. This allows a fast reaction to server problems. Zabbix offers excellent reporting and data visualisation features based on the stored data. This makes Zabbix ideal for capacity planning.</p>
 <p>For more information and related downloads for Zabbix components, please visit <a href="https://zabbix.com">zabbix.com</a></p>
+<hr>
 <h2>What is Zabbix proxy?</h2>
 <p>Zabbix proxy is a process that may collect monitoring data from one or more monitored devices and send the information to the Zabbix server, essentially working on behalf of the server. All collected data is buffered locally and then transferred to the Zabbix server the proxy belongs to.</p>
+<hr>
 <h2>Zabbix proxy images</h2>
 <p>Images are updated when new releases are published.</p>
 <p>The image uses SQLite3 database to store collected data before sending it to Zabbix server.</p>
+<hr>
 <h2>How to use this image</h2>
 <h3>Start <code>zabbix-proxy-sqlite3</code></h3>
 <p>Start a Zabbix proxy container as follows:</p>
@@ -29,6 +32,7 @@ Additionally fping executing in non-root environments can require sysctl modific
 <code>net.ipv4.ping_group_range=0 1995</code>
 where 1995 is <code>zabbix</code> GID.</p>
 </blockquote>
+<hr>
 <h3>Connects from Zabbix server (Passive proxy)</h3>
 <p>This image exposes the standard Zabbix proxy port (10051) and can operate as Passive proxy in case <code>ZBX_PROXYMODE</code> = <code>1</code>. Start Zabbix server container like this in order to link it to the Zabbix proxy container:</p>
 <pre><code>$ podman run \
@@ -37,6 +41,7 @@ where 1995 is <code>zabbix</code> GID.</p>
     --init \
     -d zabbix/zabbix-server:latest
 </code></pre>
+<hr>
 <h3>Connect to Zabbix server (Active proxy)</h3>
 <p>This image can operate as Active proxy (<code>default</code> mode). Start your application container like this in order to link Zabbix proxy to Zabbix server containters:</p>
 <pre><code>$ podman run \
@@ -45,6 +50,7 @@ where 1995 is <code>zabbix</code> GID.</p>
     --init \
     -d registry.connect.redhat.com/zabbix/zabbix-proxy-sqlite-74:latest
 </code></pre>
+<hr>
 <h3>Container shell access and viewing Zabbix proxy logs</h3>
 <p>The <code>podman exec</code> command allows you to run commands inside a Podman container. The following command line will give you a bash shell inside your <code>zabbix-proxy-sqlite3</code> container:</p>
 <pre><code>$ podman exec -ti some-zabbix-proxy-sqlite3 /bin/bash
@@ -52,6 +58,7 @@ where 1995 is <code>zabbix</code> GID.</p>
 <p>The Zabbix proxy log is available through Podman's container log:</p>
 <pre><code>$ podman logs some-zabbix-proxy-sqlite3
 </code></pre>
+<hr>
 <h3>Environment Variables</h3>
 <p>When you start the <code>zabbix-proxy-sqlite3</code> image, you can adjust the configuration of the Zabbix proxy by passing one or more environment variables on the <code>podman run</code> command line.</p>
 <h4><code>ZBX_PROXYMODE</code></h4>
@@ -152,6 +159,7 @@ ZBX_STARTSNMPPOLLERS=1 # Available since 7.0.0
 <p>Default values of these variables are specified after equal sign.</p>
 <p>The allowed variables are identical of parameters in official <code>zabbix_proxy.conf</code>. For example, <code>ZBX_LOGSLOWQUERIES</code> = <code>LogSlowQueries</code>.</p>
 <p>Please use official documentation for <a href="https://www.zabbix.com/documentation/current/manual/appendix/config/zabbix_proxy"><code>zabbix_proxy.conf</code></a> to get more information about the variables.</p>
+<hr>
 <h3>Allowed volumes for the Zabbix proxy container</h3>
 <h4><code>/usr/lib/zabbix/externalscripts</code></h4>
 <p>The volume is used by External checks (type of items). It is <code>ExternalScripts</code> parameter in <code>zabbix_proxy.conf</code>.</p>

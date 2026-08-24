@@ -2,10 +2,13 @@
 <p>Zabbix is an enterprise-class open source distributed monitoring solution.</p>
 <p>Zabbix is software that monitors numerous parameters of a network and the health and integrity of servers. Zabbix uses a flexible notification mechanism that allows users to configure e-mail based alerts for virtually any event. This allows a fast reaction to server problems. Zabbix offers excellent reporting and data visualisation features based on the stored data. This makes Zabbix ideal for capacity planning.</p>
 <p>For more information and related downloads for Zabbix components, please visit <a href="https://zabbix.com">zabbix.com</a></p>
+<hr>
 <h2>What is the image?</h2>
 <p>The image is used to receive SNMP traps, store them to a log file and provide access to Zabbix to collected SNMP trap messsages.</p>
+<hr>
 <h2>Zabbix snmptraps images</h2>
 <p>Images are updated when new releases are published.</p>
+<hr>
 <h2>How to use this image</h2>
 <h3>Start <code>zabbix-snmptraps</code></h3>
 <p>Start a Zabbix snmptraps container as follows:</p>
@@ -15,6 +18,7 @@
     -d registry.connect.redhat.com/zabbix/zabbix-snmptraps-74:tag
 </code></pre>
 <p>Where <code>some-zabbix-snmptraps</code> is the name you want to assign to your container and <code>tag</code> is the tag specifying the version you want.</p>
+<hr>
 <h3>Linking Zabbix server or Zabbix proxy with the container</h3>
 <pre><code>podman run \
     --name some-zabbix-server \
@@ -22,6 +26,7 @@
     --volumes-from some-zabbix-snmptraps \
     -d zabbix/zabbix-server:tag
 </code></pre>
+<hr>
 <h3>Container shell access and viewing Zabbix snmptraps logs</h3>
 <p>The <code>podman exec</code> command allows you to run commands inside a Podman container. The following command line will give you a bash shell inside your <code>zabbix-snmptraps</code> container:</p>
 <pre><code>$ podman exec -ti some-zabbix-snmptraps /bin/bash
@@ -29,6 +34,7 @@
 <p>The Zabbix snmptraps log is available through Podman's container log:</p>
 <pre><code>$ podman logs  some-zabbix-snmptraps
 </code></pre>
+<hr>
 <h3>Environment Variables</h3>
 <p>When you start the <code>zabbix-snmptraps</code> image, you can adjust the configuration by passing one or more environment variables on the <code>podman run</code> command line.</p>
 <h4><code>ZBX_SNMP_TRAP_DATE_FORMAT</code></h4>
@@ -39,6 +45,7 @@
 <p>This variable controls whether the SNMP trap sender address is resolved to a DNS name. Set it to <code>true</code> to enable reverse DNS lookup. By default, value is <code>false</code>.</p>
 <h4><code>SNMPTRAP_OUTPUT_OPTIONS</code></h4>
 <p>Modify standard output options for SNMP traps. By default, value is <code>STte</code>. Corresponding to "OUTPUT OPTIONS" ("-O" command line argument).</p>
+<hr>
 <h3>Allowed volumes for the Zabbix snmptraps container</h3>
 <h4><code>/var/lib/zabbix/snmptraps</code></h4>
 <p>The volume contains log file <code>snmptraps.log</code> named with received SNMP traps.</p>

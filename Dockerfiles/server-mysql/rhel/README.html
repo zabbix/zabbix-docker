@@ -2,9 +2,11 @@
 <p>Zabbix is an enterprise-class open source distributed monitoring solution.</p>
 <p>Zabbix is software that monitors numerous parameters of a network and the health and integrity of servers. Zabbix uses a flexible notification mechanism that allows users to configure e-mail based alerts for virtually any event. This allows a fast reaction to server problems. Zabbix offers excellent reporting and data visualisation features based on the stored data. This makes Zabbix ideal for capacity planning.</p>
 <p>For more information and related downloads for Zabbix components, please visit <a href="https://zabbix.com">zabbix.com</a></p>
+<hr>
 <h2>What is Zabbix server?</h2>
 <p>Zabbix server is the central process of Zabbix software.</p>
 <p>The server performs the polling and trapping of data, it calculates triggers, sends notifications to users. It is the central component to which Zabbix agents and proxies report data on availability and integrity of systems. The server can itself remotely check networked services (such as web servers and mail servers) using simple service checks.</p>
+<hr>
 <h2>Zabbix server images</h2>
 <p>Images are updated when new releases are published.</p>
 <p>The image uses MySQL database. It uses the next procedure to start:</p>
@@ -14,6 +16,7 @@
 <li>Checking of having <code>MYSQL_DATABASE</code> database. Creating <code>MYSQL_DATABASE</code> database name if it does not exist</li>
 <li>Checking of having <code>dbversion</code> table. Creating Zabbix server database schema and upload initial data sample if no <code>dbversion</code> table</li>
 </ul>
+<hr>
 <h2>How to use this image</h2>
 <h3>Start <code>zabbix-server-mysql</code></h3>
 <p>Start a Zabbix server container as follows:</p>
@@ -37,6 +40,7 @@ Additionally fping executing in non-root environments can require sysctl modific
 <code>net.ipv4.ping_group_range=0 1995</code>
 where 1995 is <code>zabbix</code> GID.</p>
 </blockquote>
+<hr>
 <h3>Container shell access and viewing Zabbix server logs</h3>
 <p>The <code>podman exec</code> command allows you to run commands inside a Podman container. The following command line will give you a bash shell inside your <code>zabbix-server-mysql</code> container:</p>
 <pre><code>$ podman exec -ti some-zabbix-server-mysql /bin/bash
@@ -44,6 +48,7 @@ where 1995 is <code>zabbix</code> GID.</p>
 <p>The Zabbix server log is available through Podman's container log:</p>
 <pre><code>$ podman logs some-zabbix-server-mysql
 </code></pre>
+<hr>
 <h3>Environment Variables</h3>
 <p>When you start the <code>zabbix-server-mysql</code> image, you can adjust the configuration of the Zabbix server by passing one or more environment variables on the <code>podman run</code> command line.</p>
 <h4><code>DB_SERVER_HOST</code></h4>
@@ -201,6 +206,7 @@ ZBX_STARTSNMPPOLLERS=1 # Available since 7.0.0
 <p>Default values of these variables are specified after equal sign.</p>
 <p>The allowed variables are identical of parameters in official <code>zabbix_server.conf</code>. For example, <code>ZBX_LOGSLOWQUERIES</code> = <code>LogSlowQueries</code>.</p>
 <p>Please use official documentation for <a href="https://www.zabbix.com/documentation/current/manual/appendix/config/zabbix_server"><code>zabbix_server.conf</code></a> to get more information about the variables.</p>
+<hr>
 <h3>Allowed volumes for the Zabbix server container</h3>
 <h4><code>/usr/lib/zabbix/alertscripts</code></h4>
 <p>The volume is used for custom alert scripts. It is <code>AlertScriptsPath</code> parameter in <code>zabbix_server.conf</code>.</p>

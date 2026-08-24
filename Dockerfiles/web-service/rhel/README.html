@@ -2,10 +2,13 @@
 <p>Zabbix is an enterprise-class open source distributed monitoring solution.</p>
 <p>Zabbix is software that monitors numerous parameters of a network and the health and integrity of servers. Zabbix uses a flexible notification mechanism that allows users to configure e-mail based alerts for virtually any event. This allows a fast reaction to server problems. Zabbix offers excellent reporting and data visualisation features based on the stored data. This makes Zabbix ideal for capacity planning.</p>
 <p>For more information and related downloads for Zabbix components, please visit <a href="https://zabbix.com">zabbix.com</a></p>
+<hr>
 <h2>What is Zabbix web service?</h2>
 <p>Zabbix web service for performing various tasks using headless web browser (for example, reporting).</p>
+<hr>
 <h2>Zabbix web service images</h2>
 <p>Images are updated when new releases are published.</p>
+<hr>
 <h2>How to use this image</h2>
 <h3>Start <code>zabbix-web-service</code></h3>
 <p>Start a Zabbix web service container as follows:</p>
@@ -16,6 +19,7 @@
     -d registry.connect.redhat.com/zabbix/zabbix-web-service-74:tag
 </code></pre>
 <p>Where <code>some-zabbix-web-service</code> is the name you want to assign to your container, <code>some-zabbix-server</code> is IP or DNS name of Zabbix server and <code>tag</code> is the tag specifying the version you want.</p>
+<hr>
 <h3>Connects from Zabbix server in other containers</h3>
 <p>This image exposes the standard Zabbix web service port (<code>10053</code>) to perform communication, so container linking makes Zabbix web service instance available to Zabbix server containers. Start your application container like this in order to link it to the Zabbix web service container:</p>
 <pre><code>$ podman run \
@@ -25,6 +29,7 @@
     -e ZBX_WEBSERVICEURL=&quot;http://some-zabbix-web-service:10053/report&quot; \
     -d zabbix/zabbix-server:latest
 </code></pre>
+<hr>
 <h3>Container shell access and viewing Zabbix web service logs</h3>
 <p>The <code>podman exec</code> command allows you to run commands inside a Podman container. The following command line will give you a bash shell inside your <code>zabbix-web-service</code> container:</p>
 <pre><code>$ podman exec -ti some-zabbix-web-service /bin/bash
@@ -32,6 +37,7 @@
 <p>The Zabbix web service log is available through Podman's container log:</p>
 <pre><code>$ podman logs some-zabbix-web-service
 </code></pre>
+<hr>
 <h3>Environment Variables</h3>
 <p>When you start the <code>zabbix-web-service</code> image, you can adjust the configuration of the Zabbix web service by passing one or more environment variables on the <code>podman run</code> command line.</p>
 <h4><code>ZBX_ALLOWEDIP</code></h4>
@@ -63,6 +69,7 @@ ZBX_IGNOREURLCERTERRORS=0
 </code></pre>
 <p>Default values of these variables are specified after equal sign.</p>
 <p>Please use official documentation for <a href="https://www.zabbix.com/documentation/current/manual/appendix/config/zabbix_web_service"><code>zabbix_web_service.conf</code></a> to get more information about the variables.</p>
+<hr>
 <h3>Allowed volumes for the Zabbix web service container</h3>
 <h4><code>/var/lib/zabbix/enc</code></h4>
 <p>The volume is used to store TLS related files. These file names are specified using <code>ZBX_TLSCAFILE</code>, <code>ZBX_TLSCERTFILE</code> and <code>ZBX_TLSKEYFILE</code> variables. Additionally it is possible to use environment variables <code>ZBX_TLSCA</code>, <code>ZBX_TLSCERT</code> and <code>ZBX_TLSKEY</code> with plaintext values.</p>

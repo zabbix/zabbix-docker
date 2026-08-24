@@ -2,8 +2,10 @@
 <p>Zabbix is an enterprise-class open source distributed monitoring solution.</p>
 <p>Zabbix is software that monitors numerous parameters of a network and the health and integrity of servers. Zabbix uses a flexible notification mechanism that allows users to configure e-mail based alerts for virtually any event. This allows a fast reaction to server problems. Zabbix offers excellent reporting and data visualisation features based on the stored data. This makes Zabbix ideal for capacity planning.</p>
 <p>For more information and related downloads for Zabbix components, please visit <a href="https://zabbix.com">zabbix.com</a></p>
+<hr>
 <h2>What is Zabbix web interface?</h2>
 <p>Zabbix web interface is a part of Zabbix software. It is used to manage resources under monitoring and view monitoring statistics.</p>
+<hr>
 <h2>Zabbix web interface images</h2>
 <p>Images are updated when new releases are published.</p>
 <p>Zabbix web interface available in four editions:</p>
@@ -14,6 +16,7 @@
 <li>Zabbix web-interface based on Nginx web server with PostgreSQL database support</li>
 </ul>
 <p>The image based on Nginx web server with MySQL database support.</p>
+<hr>
 <h2>How to use this image</h2>
 <h3>Start <code>zabbix-web-nginx-mysql</code></h3>
 <p>Start a Zabbix web-interface container as follows:</p>
@@ -27,6 +30,7 @@
     -d registry.connect.redhat.com/zabbix/zabbix-web-mysql-74:tag
 </code></pre>
 <p>Where <code>some-zabbix-web-nginx-mysql</code> is the name you want to assign to your container, <code>some-mysql-server</code> is IP or DNS name of MySQL server, <code>some-user</code> is user to connect to Zabbix database on MySQL server, <code>some-password</code> is the password to connect to MySQL server, <code>some-zabbix-server</code> is IP or DNS name of Zabbix server or proxy, <code>some-timezone</code> is PHP like timezone name and <code>tag</code> is the tag specifying the version you want.</p>
+<hr>
 <h3>Linking the container to Zabbix server</h3>
 <pre><code>podman run \
     --name some-zabbix-web-nginx-mysql \
@@ -38,6 +42,7 @@
     -e PHP_TZ="some-timezone" \
     -d registry.connect.redhat.com/zabbix/zabbix-web-mysql-74:tag
 </code></pre>
+<hr>
 <h3>Linking the container to MySQL database</h3>
 <pre><code>podman run \
     --name some-zabbix-web-nginx-mysql \
@@ -49,6 +54,7 @@
     -e PHP_TZ="some-timezone" \
     -d registry.connect.redhat.com/zabbix/zabbix-web-mysql-74:tag
 </code></pre>
+<hr>
 <h3>Container shell access and viewing Zabbix web interface logs</h3>
 <p>The <code>podman exec</code> command allows you to run commands inside a Podman container. The following command line will give you a bash shell inside your <code>zabbix-web-nginx-mysql</code> container:</p>
 <pre><code>$ podman exec -ti some-zabbix-web-nginx-mysql /bin/bash
@@ -56,6 +62,7 @@
 <p>The Zabbix web interface log is available through Podman's container log:</p>
 <pre><code>$ podman logs  some-zabbix-web-nginx-mysql
 </code></pre>
+<hr>
 <h3>Environment Variables</h3>
 <p>When you start the <code>zabbix-web-nginx-mysql</code> image, you can adjust the configuration of the Zabbix web interface by passing one or more environment variables on the <code>podman run</code> command line.</p>
 <h4><code>ZBX_SERVER_HOST</code></h4>
@@ -145,6 +152,7 @@ podman run \
 <p>The variable allows to specify a custom file path to the Service Provider (SP) cert file.</p>
 <h4><code>ZBX_SSO_IDP_CERT</code></h4>
 <p>The variable allows to specify a custom file path to the SAML Certificate provided by the Identity Provider (ID) file.</p>
+<hr>
 <h3><code>ZBX_SSO_SETTINGS</code></h3>
 <p>The variable allows to specify custom SSO settings in JSON format. Available since 5.0.0.</p>
 <p>Example of YAML Mapping to Sequences</p>
@@ -154,6 +162,7 @@ podman run \
     ....
 ....
 </code></pre>
+<hr>
 <h3><code>ZBX_ALLOW_HTTP_AUTH</code></h3>
 <p>The variable allows to disable user HTTP authentication.</p>
 <h4>Other variables</h4>
@@ -189,6 +198,7 @@ Allowed Nginx configuration options:
 WEB_REAL_IP_FROM=
 WEB_REAL_IP_HEADER=
 </code></pre>
+<hr>
 <h3>Allowed volumes for the Zabbix web interface container</h3>
 <h4><code>/etc/ssl/nginx</code></h4>
 <p>The volume allows to enable HTTPS for the Zabbix web interface. The volume must contain three files <code>ssl.crt</code>, <code>ssl.key</code> and <code>dhparam.pem</code> prepared for Nginx SSL connections.</p>

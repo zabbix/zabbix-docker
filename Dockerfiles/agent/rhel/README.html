@@ -2,10 +2,13 @@
 <p>Zabbix is an enterprise-class open source distributed monitoring solution.</p>
 <p>Zabbix is software that monitors numerous parameters of a network and the health and integrity of servers. Zabbix uses a flexible notification mechanism that allows users to configure e-mail based alerts for virtually any event. This allows a fast reaction to server problems. Zabbix offers excellent reporting and data visualisation features based on the stored data. This makes Zabbix ideal for capacity planning.</p>
 <p>For more information and related downloads for Zabbix components, please visit <a href="https://zabbix.com">zabbix.com</a></p>
+<hr>
 <h2>What is Zabbix agent?</h2>
 <p>Zabbix agent is deployed on a monitoring target to actively monitor local resources and applications (hard drives, memory, processor statistics etc).</p>
+<hr>
 <h2>Zabbix agent images</h2>
 <p>Images are updated when new releases are published.</p>
+<hr>
 <h2>How to use this image</h2>
 <h3>Start <code>zabbix-agent</code></h3>
 <p>Start a Zabbix agent container as follows:</p>
@@ -17,6 +20,7 @@
     -d registry.connect.redhat.com/zabbix/zabbix-agent-74:tag
 </code></pre>
 <p>Where <code>some-zabbix-agent</code> is the name you want to assign to your container, <code>some-hostname</code> is the hostname, it is Hostname parameter in Zabbix agent configuration file, <code>some-zabbix-server</code> is IP or DNS name of Zabbix server or proxy and <code>tag</code> is the tag specifying the version you want.</p>
+<hr>
 <h3>Connects from Zabbix server or Zabbix proxy in other containers (Passive checks)</h3>
 <p>This image exposes the standard Zabbix agent port (<code>10050</code>) to perform passive checks, so container linking makes Zabbix agent instance available to Zabbix server and Zabbix proxy containers. Start your application container like this in order to link it to the Zabbix agent container:</p>
 <pre><code>$ podman run \
@@ -25,6 +29,7 @@
     --init \
     -d zabbix/zabbix-server:latest
 </code></pre>
+<hr>
 <h3>Connect to Zabbix server or Zabbix proxy containers (Active checks)</h3>
 <p>This image supports perform active checks, so container linking makes Zabbix server and Zabbix proxy containers available to Zabbix agent instance. Start your application container like this in order to link Zabbix agent to Zabbix server or Zabbix proxy containers:</p>
 <pre><code>$ podman run \
@@ -33,6 +38,7 @@
     --init \
     -d registry.connect.redhat.com/zabbix/zabbix-agent-74:latest
 </code></pre>
+<hr>
 <h3>Container shell access and viewing Zabbix agent logs</h3>
 <p>The <code>podman exec</code> command allows you to run commands inside a Podman container. The following command line will give you a bash shell inside your <code>zabbix-agent</code> container:</p>
 <pre><code>$ podman exec -ti some-zabbix-agent /bin/bash
@@ -40,6 +46,7 @@
 <p>The Zabbix agent log is available through Podman's container log:</p>
 <pre><code>$ podman logs some-zabbix-agent
 </code></pre>
+<hr>
 <h3>Privileged mode</h3>
 <p>By default, Podman containers are "unprivileged" and do not have access to the most of host resources. Zabbix agent is designed to monitor system resources, to do that Zabbix agent container must be privileged or you may mount some system-wide volumes. For example:</p>
 <pre><code>$ podman run \
@@ -56,6 +63,7 @@
     --init \
     -d registry.connect.redhat.com/zabbix/zabbix-agent-74:latest
 </code></pre>
+<hr>
 <h3>Environment Variables</h3>
 <p>When you start the <code>zabbix-agent</code> image, you can adjust the configuration of the Zabbix agent by passing one or more environment variables on the <code>podman run</code> command line.</p>
 <h4><code>ZBX_HOSTNAME</code></h4>
@@ -131,6 +139,7 @@ ZBX_ALLOWKEY= # Available since 5.0.0
 <p>Default values of these variables are specified after equal sign.</p>
 <p>The allowed variables are identical of parameters in official <code>zabbix_agentd.conf</code> configuration file. For example, <code>ZBX_REFRESHACTIVECHECKS</code> = <code>RefreshActiveChecks</code>.</p>
 <p>Please use official documentation for <a href="https://www.zabbix.com/documentation/current/manual/appendix/config/zabbix_agentd"><code>zabbix_agentd.conf</code></a> to get more information about the variables.</p>
+<hr>
 <h3>Allowed volumes for the Zabbix agent container</h3>
 <h4><code>/etc/zabbix/zabbix_agentd.d</code></h4>
 <p>The volume allows include <code>*.conf</code> files and extend Zabbix agent using <code>UserParameter</code> feature.</p>

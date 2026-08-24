@@ -2,10 +2,13 @@
 <p>Zabbix is an enterprise-class open source distributed monitoring solution.</p>
 <p>Zabbix is software that monitors numerous parameters of a network and the health and integrity of servers. Zabbix uses a flexible notification mechanism that allows users to configure e-mail based alerts for virtually any event. This allows a fast reaction to server problems. Zabbix offers excellent reporting and data visualisation features based on the stored data. This makes Zabbix ideal for capacity planning.</p>
 <p>For more information and related downloads for Zabbix components, please visit <a href="https://zabbix.com">zabbix.com</a></p>
+<hr>
 <h2>What is Zabbix Java Gateway?</h2>
 <p>Zabbix Java Gateway performs native support for monitoring JMX applications. Java gateway accepts incoming connection from Zabbix server or Zabbix proxy and can only be used as a "passive proxy".</p>
+<hr>
 <h2>Zabbix Java Gateway images</h2>
 <p>Images are updated when new releases are published.</p>
+<hr>
 <h2>How to use this image</h2>
 <h3>Start <code>zabbix-java-gateway</code></h3>
 <p>Start a Zabbix Java Gateway container as follows:</p>
@@ -14,12 +17,14 @@
     -d registry.connect.redhat.com/zabbix/zabbix-java-gateway-74:tag
 </code></pre>
 <p>Where <code>some-zabbix-java-gateway</code> is the name you want to assign to your container and <code>tag</code> is the tag specifying the version you want.</p>
+<hr>
 <h3>Linking the container to Zabbix server or Zabbix proxy</h3>
 <pre><code>podman run \
     --name some-zabbix-java-gateway \
     --link some-zabbix-server:zabbix-server \
     -d registry.connect.redhat.com/zabbix/zabbix-java-gateway-74:tag
 </code></pre>
+<hr>
 <h3>Container shell access and viewing Zabbix Java Gateway logs</h3>
 <p>The <code>podman exec</code> command allows you to run commands inside a Podman container. The following command line will give you a bash shell inside your <code>zabbix-java-gateway</code> container:</p>
 <pre><code>$ podman exec -ti some-zabbix-java-gateway /bin/bash
@@ -27,6 +32,7 @@
 <p>The Zabbix Java Gateway log is available through Podman's container log:</p>
 <pre><code>$ podman logs  some-zabbix-java-gateway
 </code></pre>
+<hr>
 <h3>Environment Variables</h3>
 <p>When you start the <code>zabbix-java-gateway</code> image, you can adjust the configuration of the Zabbix Java Gateway by passing one or more environment variables on the <code>podman run</code> command line.</p>
 <h4><code>ZBX_SERVER</code></h4>
@@ -41,6 +47,7 @@
 <p>Name of properties file. Can be used to set additional properties using a key-value format in such a way that they are not visible on a command line or to overwrite existing ones.</p>
 <h4><code>ZBX_JAVA_OPTS</code></h4>
 <p>Additional Java Virtual Machine (JVM) options for Zabbix Java Gateway, for example <code>-Xms128m -Xmx1g</code>.</p>
+<hr>
 <h3>Allowed volumes for the Zabbix Java Gateway container</h3>
 <h4><code>/usr/sbin/zabbix_java/ext_lib</code></h4>
 <p>The volume allows include additional JAR files to extend allowed protocols for Zabbix Java Gateway.</p>
