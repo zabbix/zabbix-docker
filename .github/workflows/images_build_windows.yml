@@ -9,7 +9,9 @@ on:
       - 'build.json'
       - 'Dockerfiles/*/windows/*'
       - 'templates/config/*_windows/**'
-      - 'templates/entrypoints/**'
+      - 'templates/entrypoints/**/*.go'
+      - 'templates/entrypoints/go.mod'
+      - 'templates/entrypoints/licenses/go-THIRD-PARTY-NOTICES.txt'
       - '!**/README.md'
       - '.github/workflows/images_build_windows.yml'
       - '.github/actions/docker-build-push-windows/*'
@@ -39,7 +41,7 @@ env:
 
   MSFT_BASE_BUILD_IMAGE: "mcr.microsoft.com/windows/servercore"
   OS_BASE_IMAGE_NAME: "mcr.microsoft.com/windows/nanoserver"
-  ENTRYPOINT_BUILD_IMAGE_NAME: "golang:1.27.0-windowsservercore"
+  ENTRYPOINT_BUILD_IMAGE_NAME: "golang:1.26.5-windowsservercore"
 
   BASE_IMAGE_NAME: "build-base"
   BASE_BUILD_IMAGE_NAME: "build-common"
@@ -69,7 +71,7 @@ jobs:
       need_rebuild: ${{ steps.upstream_changes.outputs.need_rebuild }}
     steps:
       - name: Block egress traffic
-        uses: step-security/harden-runner@9af89fc71515a100421586dfdb3dc9c984fbf411 # v2.19.4
+        uses: step-security/harden-runner@05e31511f85b41b11d1cf0ef85d0992719546e2c # v2.21.0
         with:
           disable-sudo: true
           egress-policy: block
@@ -80,7 +82,7 @@ jobs:
             release-assets.githubusercontent.com:443
 
       - name: Checkout repository
-        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ env.TRUNK_ONLY_EVENT == 'true' && env.TRUNK_GIT_BRANCH || '' }}
           fetch-depth: 1
@@ -155,7 +157,7 @@ jobs:
 
     steps:
       - name: Block egress traffic
-        uses: step-security/harden-runner@9af89fc71515a100421586dfdb3dc9c984fbf411 # v2.19.4
+        uses: step-security/harden-runner@05e31511f85b41b11d1cf0ef85d0992719546e2c # v2.21.0
         with:
           disable-sudo: true
           egress-policy: block
@@ -189,7 +191,7 @@ jobs:
             zlib.net:443
 
       - name: Checkout repository
-        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ env.TRUNK_ONLY_EVENT == 'true' && env.TRUNK_GIT_BRANCH || '' }}
           fetch-depth: 1
@@ -198,7 +200,7 @@ jobs:
         uses: ./.github/actions/cosign-install
 
       - name: Login to DockerHub
-        uses: docker/login-action@650006c6eb7dba73a995cc03b0b2d7f5ca915bee # v4.2.0
+        uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4.6.0
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
@@ -316,7 +318,7 @@ jobs:
       - name: Generate tags
         id: meta
         if: ${{ steps.toolchain_lookup.outputs.reuse != 'true' }}
-        uses: docker/metadata-action@80c7e94dd9b9319bd5eb7a0e0fe9291e23a2a2e9 # v6.1.0
+        uses: docker/metadata-action@dc802804100637a589fabce1cb79ff13a1411302 # v6.2.0
         with:
           images: ${{ format('{0}/{1}/{2}{3}', env.DOCKER_REGISTRY, env.DOCKER_REPOSITORY, env.IMAGES_PREFIX, env.BASE_IMAGE_NAME ) }}
           context: ${{ env.TRUNK_ONLY_EVENT == 'true' && 'git' || '' }}
@@ -428,7 +430,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ env.TRUNK_ONLY_EVENT == 'true' && env.TRUNK_GIT_BRANCH || '' }}
           fetch-depth: 1
@@ -437,7 +439,7 @@ jobs:
         uses: ./.github/actions/cosign-install
 
       - name: Login to DockerHub
-        uses: docker/login-action@650006c6eb7dba73a995cc03b0b2d7f5ca915bee # v4.2.0
+        uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4.6.0
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
@@ -465,7 +467,7 @@ jobs:
 
       - name: Generate tags
         id: meta
-        uses: docker/metadata-action@80c7e94dd9b9319bd5eb7a0e0fe9291e23a2a2e9 # v6.1.0
+        uses: docker/metadata-action@dc802804100637a589fabce1cb79ff13a1411302 # v6.2.0
         with:
           images: ${{ format('{0}/{1}/{2}{3}', env.DOCKER_REGISTRY, env.DOCKER_REPOSITORY, env.IMAGES_PREFIX, env.BASE_BUILD_IMAGE_NAME ) }}
           context: ${{ env.TRUNK_ONLY_EVENT == 'true' && 'git' || '' }}
@@ -591,7 +593,7 @@ jobs:
 
     steps:
       - name: Block egress traffic
-        uses: step-security/harden-runner@9af89fc71515a100421586dfdb3dc9c984fbf411 # v2.19.4
+        uses: step-security/harden-runner@05e31511f85b41b11d1cf0ef85d0992719546e2c # v2.21.0
         with:
           disable-sudo: true
           egress-policy: block
@@ -615,7 +617,7 @@ jobs:
             x1.c.lencr.org:80
 
       - name: Checkout repository
-        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ env.TRUNK_ONLY_EVENT == 'true' && env.TRUNK_GIT_BRANCH || '' }}
           fetch-depth: 1
@@ -625,7 +627,7 @@ jobs:
         uses: ./.github/actions/cosign-install
 
       - name: Login to DockerHub
-        uses: docker/login-action@650006c6eb7dba73a995cc03b0b2d7f5ca915bee # v4.2.0
+        uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4.6.0
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
@@ -653,7 +655,7 @@ jobs:
 
       - name: Generate tags
         id: meta
-        uses: docker/metadata-action@80c7e94dd9b9319bd5eb7a0e0fe9291e23a2a2e9 # v6.1.0
+        uses: docker/metadata-action@dc802804100637a589fabce1cb79ff13a1411302 # v6.2.0
         with:
           images: ${{ format('{0}/{1}/{2}{3}', env.DOCKER_REGISTRY, env.DOCKER_REPOSITORY, env.IMAGES_PREFIX, matrix.component ) }}
           context: ${{ env.TRUNK_ONLY_EVENT == 'true' && 'git' || '' }}

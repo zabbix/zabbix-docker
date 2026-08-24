@@ -13,7 +13,8 @@ on:
       - '!Dockerfiles/*/windows/*'
       - '.github/workflows/images_build.yml'
       - '.github/actions/*'
-      - 'templates/entrypoints/**'
+      - 'templates/entrypoints/*.sh'
+      - 'templates/entrypoints/lib/**'
   schedule:
     - cron:  '50 02 * * *'
   workflow_dispatch:
@@ -66,7 +67,7 @@ jobs:
 
     steps:
       - name: Block egress traffic
-        uses: step-security/harden-runner@9af89fc71515a100421586dfdb3dc9c984fbf411 # v2.19.4
+        uses: step-security/harden-runner@05e31511f85b41b11d1cf0ef85d0992719546e2c # v2.21.0
         with:
           disable-sudo: true
           egress-policy: block
@@ -79,7 +80,7 @@ jobs:
             release-assets.githubusercontent.com:443
 
       - name: Checkout repository
-        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ env.TRUNK_ONLY_EVENT == 'true' && env.TRUNK_GIT_BRANCH || '' }}
           fetch-depth: 1
@@ -172,7 +173,7 @@ jobs:
 
     steps:
       - name: Block egress traffic
-        uses: step-security/harden-runner@9af89fc71515a100421586dfdb3dc9c984fbf411 # v2.19.4
+        uses: step-security/harden-runner@05e31511f85b41b11d1cf0ef85d0992719546e2c # v2.21.0
         with:
           disable-sudo: true
           egress-policy: audit
@@ -270,7 +271,7 @@ jobs:
             ziply.mm.fcix.net:443
 
       - name: Checkout repository
-        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ env.TRUNK_ONLY_EVENT == 'true' && env.TRUNK_GIT_BRANCH || '' }}
           fetch-depth: 1
@@ -328,7 +329,7 @@ jobs:
 
       - name: Scan for vulnerabilities
         if: ${{ matrix.os != 'centos' }}
-        uses: crazy-max/ghaction-container-scan@a0a3900b79d158c85ccf034e5368fae620a9233a # v4.0.0
+        uses: crazy-max/ghaction-container-scan@ffcba8deb5cb3531954cbedbbcd0179d79edf510 # v4.1.0
         with:
           image: ${{ fromJSON(steps.meta.outputs.json).tags[0] }}
           annotations: true
@@ -385,7 +386,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ env.TRUNK_ONLY_EVENT == 'true' && env.TRUNK_GIT_BRANCH || '' }}
           fetch-depth: 1
@@ -504,7 +505,7 @@ jobs:
 
       - name: Attest images
         id: attest
-        uses: actions/attest@59d89421af93a897026c735860bf21b6eb4f7b26 # v4.1.0
+        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4.2.2
         with:
           subject-name: ${{ format('{0}/{1}/{2}{3}', env.DOCKER_REGISTRY, env.DOCKER_REPOSITORY, env.IMAGES_PREFIX, matrix.build) }}
           subject-digest: ${{ steps.docker_build.outputs.digest }}
@@ -550,7 +551,7 @@ jobs:
 
     steps:
       - name: Block egress traffic
-        uses: step-security/harden-runner@9af89fc71515a100421586dfdb3dc9c984fbf411 # v2.19.4
+        uses: step-security/harden-runner@05e31511f85b41b11d1cf0ef85d0992719546e2c # v2.21.0
         with:
           disable-sudo: true
           egress-policy: audit
@@ -652,7 +653,7 @@ jobs:
             production.cloudfront.docker.com:443
 
       - name: Checkout repository
-        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ env.TRUNK_ONLY_EVENT == 'true' && env.TRUNK_GIT_BRANCH || '' }}
           fetch-depth: 1
@@ -804,7 +805,7 @@ jobs:
 
       - name: Scan for vulnerabilities
         if: ${{ env.AUTO_PUSH_IMAGES == 'true' && matrix.os != 'centos' }}
-        uses: crazy-max/ghaction-container-scan@a0a3900b79d158c85ccf034e5368fae620a9233a # v4.0.0
+        uses: crazy-max/ghaction-container-scan@ffcba8deb5cb3531954cbedbbcd0179d79edf510 # v4.1.0
         with:
           image: ${{ fromJSON(steps.meta.outputs.json).tags[0] }}@${{ matrix.build == 'snmptraps' && steps.docker_build_snmptraps.outputs.digest || steps.docker_build.outputs.digest }}
           annotations: true
@@ -820,7 +821,7 @@ jobs:
       - name: Attest images
         if: ${{ env.AUTO_PUSH_IMAGES == 'true' }}
         id: attest
-        uses: actions/attest@59d89421af93a897026c735860bf21b6eb4f7b26 # v4.1.0
+        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4.2.2
         with:
           subject-name: ${{ format('{0}/{1}/{2}{3}', env.DOCKER_REGISTRY, env.DOCKER_REPOSITORY, env.IMAGES_PREFIX, matrix.build) }}
           subject-digest: ${{ matrix.build == 'snmptraps' && steps.docker_build_snmptraps.outputs.digest || steps.docker_build.outputs.digest }}

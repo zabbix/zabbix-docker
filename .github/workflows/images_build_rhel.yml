@@ -13,6 +13,10 @@ on:
       - '!**/README.md'
       - '!**/README.html'
       - '.github/workflows/images_build_rhel.yml'
+      - 'templates/entrypoints/*.sh'
+      - 'templates/entrypoints/lib/**'
+      - '!templates/entrypoints/web-apache-*.sh'
+      - '!templates/entrypoints/lib/apache.sh'
   workflow_dispatch:
     inputs:
       publish_images:
@@ -49,7 +53,6 @@ env:
   REGISTRY_NAMESPACE: "redhat-isv-containers"
   PREFLIGHT_IMAGE: "quay.io/opdev/preflight:stable"
   PFLT_LOGLEVEL: "warn"
-  PFLT_ARTIFACTS: "/tmp/artifacts"
   IMAGE_DIR: "/tmp/images"
 
   RHEL_BUILD: "true"
@@ -71,7 +74,7 @@ jobs:
 
     steps:
       - name: Block egress traffic
-        uses: step-security/harden-runner@9af89fc71515a100421586dfdb3dc9c984fbf411 # v2.19.4
+        uses: step-security/harden-runner@05e31511f85b41b11d1cf0ef85d0992719546e2c # v2.21.0
         with:
           disable-sudo: true
           egress-policy: block
@@ -82,7 +85,7 @@ jobs:
             release-assets.githubusercontent.com:443
 
       - name: Checkout repository
-        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 1
           sparse-checkout: |
@@ -169,7 +172,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 1
 
@@ -182,7 +185,7 @@ jobs:
 
       - name: Generate tags
         id: meta
-        uses: docker/metadata-action@80c7e94dd9b9319bd5eb7a0e0fe9291e23a2a2e9 # v6.1.0
+        uses: docker/metadata-action@dc802804100637a589fabce1cb79ff13a1411302 # v6.2.0
         with:
           images: ${{ env.IMAGES_PREFIX }}${{ matrix.build }}
           tags: |
@@ -279,12 +282,7 @@ jobs:
         if: ${{ (cancelled() || failure()) && (steps.push_image.outcome == 'failure' || steps.push_image.outcome == 'cancelled') }}
         env:
           IMAGE_TAG_ID: ${{ steps.image_metadata.outputs.image_tag_id }}
-          IMAGE_DIR: ${{ env.IMAGE_DIR }}
-          GITHUB_RUN_ID: ${{ github.run_id }}
-        run: |
-          echo "::group::Removing orphaned image"
-          rm -rf "${IMAGE_DIR:?}/${GITHUB_RUN_ID:?}/${IMAGE_TAG_ID:?}"
-          echo "::endgroup::"
+        run: rm -rf "$IMAGE_DIR/$GITHUB_RUN_ID/$IMAGE_TAG_ID"
 
   build_components:
     timeout-minutes: 90
@@ -301,7 +299,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 1
 
@@ -361,7 +359,7 @@ jobs:
 
       - name: Generate tags
         id: meta
-        uses: docker/metadata-action@80c7e94dd9b9319bd5eb7a0e0fe9291e23a2a2e9 # v6.1.0
+        uses: docker/metadata-action@dc802804100637a589fabce1cb79ff13a1411302 # v6.2.0
         with:
           images: ${{ env.IMAGES_PREFIX }}${{ matrix.build }}
           tags: |
@@ -459,12 +457,7 @@ jobs:
         if: ${{ (cancelled() || failure()) && (steps.push_image.outcome == 'failure' || steps.push_image.outcome == 'cancelled') }}
         env:
           IMAGE_TAG_ID: ${{ steps.image_metadata.outputs.image_tag_id }}
-          IMAGE_DIR: ${{ env.IMAGE_DIR }}
-          GITHUB_RUN_ID: ${{ github.run_id }}
-        run: |
-          echo "::group::Removing orphaned image"
-          rm -rf "${IMAGE_DIR:?}/${GITHUB_RUN_ID:?}/${IMAGE_TAG_ID:?}"
-          echo "::endgroup::"
+        run: rm -rf "$IMAGE_DIR/$GITHUB_RUN_ID/$IMAGE_TAG_ID"
 
   build_images:
     timeout-minutes: 30
@@ -481,7 +474,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 1
 
@@ -498,6 +491,22 @@ jobs:
           echo "::endgroup::"
 
           echo "matrix_build=${matrix_build}" >> "$GITHUB_OUTPUT"
+
+      - name: Normalize architecture
+        id: platform
+        env:
+          MATRIX_ARCH: ${{ matrix.arch }}
+        run: |
+          case "$MATRIX_ARCH" in
+            X64) arch="amd64" ;;
+            ARM64) arch="arm64" ;;
+            *)
+              echo "::error::Unsupported architecture: $MATRIX_ARCH"
+              exit 1
+              ;;
+          esac
+
+          echo "arch=$arch" >> "$GITHUB_OUTPUT"
 
       - name: Detect build base image
         id: build_base_image
@@ -566,15 +575,14 @@ jobs:
 
       - name: Generate tags
         id: meta
-        uses: docker/metadata-action@80c7e94dd9b9319bd5eb7a0e0fe9291e23a2a2e9 # v6.1.0
+        uses: docker/metadata-action@dc802804100637a589fabce1cb79ff13a1411302 # v6.2.0
         with:
           images: ${{ env.REGISTRY }}/${{ env.REGISTRY_NAMESPACE }}/${{ secrets[format('{0}_{1}_PROJECT', needs.init_build.outputs.secret_prefix, steps.var_format.outputs.matrix_build)] || matrix.build }}
           tags: |
-            type=semver,pattern={{version}}
-            type=sha
+            type=sha,format=long
           flavor: |
-            latest=${{ github.event_name == 'release' }}
-            suffix=${{ matrix.arch == 'ARM64' && '-arm64' || '' }},onlatest=true
+            latest=false
+            suffix=-${{ steps.platform.outputs.arch }}
 
       - name: Build image
         id: build_image
@@ -624,7 +632,7 @@ jobs:
           [[ -n "${PROJECT_SECRET:-}" ]] || { echo "::error::Registry robot secret is missing"; exit 1; }
 
       - name: Log in to ${{ env.REGISTRY }}
-        uses: redhat-actions/podman-login@4934294ad0449894bcd1e9f191899d7292469603 # v1.7
+        uses: redhat-actions/podman-login@50c2d9a331bb67c8fdab99b86455fad05e2e3252 # v2.0
         if: ${{ env.AUTO_PUSH_IMAGES == 'true' }}
         with:
           username: ${{ format('redhat-isv-containers+{0}-robot', secrets[format('{0}_{1}_PROJECT', needs.init_build.outputs.secret_prefix, steps.var_format.outputs.matrix_build)]) }}
@@ -632,63 +640,11 @@ jobs:
           registry: ${{ env.REGISTRY }}
           auth_file_path: /tmp/.docker_${{ matrix.build }}_${{ matrix.arch }}_${{ needs.init_build.outputs.sha_short }}
 
-      - name: Push to RedHat certification procedure (1st)
-        id: push_to_registry
+      - name: Push architecture image
         if: ${{ env.AUTO_PUSH_IMAGES == 'true' }}
-        uses: redhat-actions/push-to-registry@5ed88d269cf581ea9ef6dd6806d01562096bee9c # v2.8
+        uses: redhat-actions/push-to-registry@94ade333c38ecc0e60e94785125d9a52ca423b37 # v3.0.0
         with:
           tags: ${{ steps.meta.outputs.tags }}
-
-      - name: Preflight certification
-        if: ${{ env.AUTO_PUSH_IMAGES == 'true' }}
-        env:
-          PFLT_DOCKERCONFIG: /tmp/.docker_${{ matrix.build }}_${{ matrix.arch }}_${{ needs.init_build.outputs.sha_short }}
-          PFLT_CERTIFICATION_PROJECT_ID: ${{ secrets[format('{0}_{1}_PROJECT', needs.init_build.outputs.secret_prefix, steps.var_format.outputs.matrix_build)] }}
-          PFLT_PYXIS_API_TOKEN: ${{ secrets.REDHAT_API_TOKEN }}
-          PFLT_ARTIFACTS: ${{ env.PFLT_ARTIFACTS }}
-          PFLT_LOGLEVEL: ${{ env.PFLT_LOGLEVEL }}
-          IMAGE_TAG: ${{ matrix.build == 'snmptraps' && steps.build_image_snmptraps.outputs.image-with-tag || steps.build_image.outputs.image-with-tag }}
-          PREFLIGHT_IMAGE: ${{ env.PREFLIGHT_IMAGE }}
-        run: |
-          mkdir -p "$PFLT_ARTIFACTS"
-
-          echo "::group::Pull preflight image"
-          podman pull "$PREFLIGHT_IMAGE"
-          echo "::endgroup::"
-
-          echo "::group::Perform certification tests"
-          podman run \
-            -it \
-            --rm \
-            --security-opt=label=disable \
-            --env PFLT_LOGLEVEL="$PFLT_LOGLEVEL" \
-            --env PFLT_ARTIFACTS=/artifacts \
-            --env PFLT_LOGFILE=/artifacts/preflight.log \
-            --env PFLT_CERTIFICATION_COMPONENT_ID="$PFLT_CERTIFICATION_PROJECT_ID" \
-            --env PFLT_PYXIS_API_TOKEN="$PFLT_PYXIS_API_TOKEN" \
-            --env PFLT_DOCKERCONFIG=/temp-authfile.json \
-            -v "$PFLT_ARTIFACTS:/artifacts" \
-            -v "$PFLT_DOCKERCONFIG:/temp-authfile.json:ro" \
-            "$PREFLIGHT_IMAGE" check container "$IMAGE_TAG" --submit
-          echo "::endgroup::"
-
-      - name: Push to RedHat certification procedure (all tags)
-        id: push_to_registry_all_tags
-        if: ${{ env.AUTO_PUSH_IMAGES == 'true' }}
-        uses: redhat-actions/push-to-registry@5ed88d269cf581ea9ef6dd6806d01562096bee9c # v2.8
-        with:
-          tags: ${{ steps.meta.outputs.tags }}
-
-      - name: Post preflight cleanup
-        if: ${{ env.AUTO_PUSH_IMAGES == 'true' && (success() || failure()) }}
-        env:
-          PREFLIGHT_IMAGE: ${{ env.PREFLIGHT_IMAGE }}
-          PFLT_ARTIFACTS: ${{ env.PFLT_ARTIFACTS }}
-        run: |
-          echo "::group::Cleanup"
-          rm -rf "$PFLT_ARTIFACTS"
-          podman rmi -i -f "$PREFLIGHT_IMAGE" 2>/dev/null || true
-          echo "::endgroup::"
 
       - name: Image digest
         env:
@@ -725,32 +681,150 @@ jobs:
 
   clear_artifacts:
     timeout-minutes: 10
-    needs: ["build_images", "build_components", "init_build"]
+    needs: ["build_images", "init_build"]
     name: Clear images cache (${{ matrix.arch }})
     strategy:
       fail-fast: false
       matrix:
         arch: ${{ fromJson(needs.init_build.outputs.platforms) }}
     runs-on: [self-hosted, linux, "${{ matrix.arch }}"]
-    if: ${{ needs.build_components.result == 'success' }}
+    if: ${{ needs.build_images.result == 'success' }}
     permissions: {}
 
     steps:
       - name: Remove local image storage for current run
-        if: ${{ always() }}
+        run: rm -rf "$IMAGE_DIR/$GITHUB_RUN_ID"
+
+  publish_manifests:
+    timeout-minutes: 45
+    needs: ["build_images", "init_build"]
+    if: ${{ (! contains(fromJSON('["push"]'), github.event_name) && vars.AUTO_PUSH_IMAGES) || (contains(fromJSON('["workflow_dispatch"]'), github.event_name) && inputs.publish_images == 'true' ) }}
+    name: Publish and certify ${{ matrix.build }} manifest
+    strategy:
+      fail-fast: false
+      matrix:
+        build: ${{ fromJson(needs.init_build.outputs.components) }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Block egress traffic
+        uses: step-security/harden-runner@05e31511f85b41b11d1cf0ef85d0992719546e2c # v2.21.0
+        with:
+          disable-sudo: true
+          egress-policy: block
+          allowed-endpoints: >
+            api.github.com:443
+            auth.docker.io:443
+            catalog.redhat.com:443
+            cdn01.quay.io:443
+            production.cloudfront.docker.com:443
+            quay.io:443
+            registry-1.docker.io:443
+
+      - name: Format variables
+        id: var_format
         env:
-          IMAGE_DIR: ${{ env.IMAGE_DIR }}
-          GITHUB_RUN_ID: ${{ github.run_id }}
+          MATRIX_BUILD: ${{ matrix.build }}
         run: |
-          set -u
+          matrix_build="${MATRIX_BUILD^^}"
+          matrix_build="${matrix_build//-/_}"
 
-          run_dir="${IMAGE_DIR}/${GITHUB_RUN_ID}"
+          echo "::group::Result"
+          echo "matrix_build=${matrix_build}"
+          echo "::endgroup::"
 
-          echo "::group::Cleanup run storage"
-          if [[ -d "$run_dir" ]]; then
-            echo "Removing $run_dir"
-            rm -rf "${run_dir:?}"
-          else
-            echo "Run directory does not exist: $run_dir"
-          fi
+          echo "matrix_build=${matrix_build}" >> "$GITHUB_OUTPUT"
+
+      - name: Validate registry and certification secrets
+        env:
+          PROJECT_NAME: ${{ secrets[format('{0}_{1}_PROJECT', needs.init_build.outputs.secret_prefix, steps.var_format.outputs.matrix_build)] }}
+          PROJECT_SECRET: ${{ secrets[format('{0}_{1}_SECRET', needs.init_build.outputs.secret_prefix, steps.var_format.outputs.matrix_build)] }}
+          PYXIS_API_TOKEN: ${{ secrets.REDHAT_API_TOKEN }}
+        run: |
+          [[ -n "${PROJECT_NAME:-}" ]] || { echo "::error::Registry project secret is missing"; exit 1; }
+          [[ -n "${PROJECT_SECRET:-}" ]] || { echo "::error::Registry robot secret is missing"; exit 1; }
+          [[ -n "${PYXIS_API_TOKEN:-}" ]] || { echo "::error::Red Hat API token is missing"; exit 1; }
+
+      - name: Generate public tags
+        id: meta
+        uses: docker/metadata-action@dc802804100637a589fabce1cb79ff13a1411302 # v6.2.0
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.REGISTRY_NAMESPACE }}/${{ secrets[format('{0}_{1}_PROJECT', needs.init_build.outputs.secret_prefix, steps.var_format.outputs.matrix_build)] }}
+          tags: |
+            type=semver,pattern={{version}}
+            type=sha
+          flavor: |
+            latest=${{ github.event_name == 'release' }}
+
+      - name: Generate AMD64 source tag
+        id: meta_amd64
+        uses: docker/metadata-action@dc802804100637a589fabce1cb79ff13a1411302 # v6.2.0
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.REGISTRY_NAMESPACE }}/${{ secrets[format('{0}_{1}_PROJECT', needs.init_build.outputs.secret_prefix, steps.var_format.outputs.matrix_build)] }}
+          tags: |
+            type=sha,format=long
+          flavor: |
+            latest=false
+            suffix=-amd64
+
+      - name: Generate ARM64 source tag
+        id: meta_arm64
+        uses: docker/metadata-action@dc802804100637a589fabce1cb79ff13a1411302 # v6.2.0
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.REGISTRY_NAMESPACE }}/${{ secrets[format('{0}_{1}_PROJECT', needs.init_build.outputs.secret_prefix, steps.var_format.outputs.matrix_build)] }}
+          tags: |
+            type=sha,format=long
+          flavor: |
+            latest=false
+            suffix=-arm64
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@37fe631027851001ddb9b187196cc803df7f5f0e # v4.3.0
+
+      - name: Log in to ${{ env.REGISTRY }}
+        uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4.6.0
+        env:
+          DOCKER_CONFIG: ${{ runner.temp }}/docker-config
+        with:
+          username: ${{ format('redhat-isv-containers+{0}-robot', secrets[format('{0}_{1}_PROJECT', needs.init_build.outputs.secret_prefix, steps.var_format.outputs.matrix_build)]) }}
+          password: ${{ secrets[format('{0}_{1}_SECRET', needs.init_build.outputs.secret_prefix, steps.var_format.outputs.matrix_build)] }}
+          registry: ${{ env.REGISTRY }}
+
+      - name: Create and push multiarch manifest
+        id: manifest
+        uses: int128/docker-manifest-create-action@1e15cac7af24af7153ff7968c09072d61bb4456b # v2.26.0
+        env:
+          DOCKER_CONFIG: ${{ runner.temp }}/docker-config
+        with:
+          tags: ${{ steps.meta.outputs.tags }}
+          sources: |
+            ${{ steps.meta_amd64.outputs.tags }}
+            ${{ steps.meta_arm64.outputs.tags }}
+
+      - name: Preflight certification
+        env:
+          DOCKER_CONFIG: ${{ runner.temp }}/docker-config
+          PFLT_CERTIFICATION_COMPONENT_ID: ${{ secrets[format('{0}_{1}_PROJECT', needs.init_build.outputs.secret_prefix, steps.var_format.outputs.matrix_build)] }}
+          PFLT_PYXIS_API_TOKEN: ${{ secrets.REDHAT_API_TOKEN }}
+          PFLT_ARTIFACTS: ${{ runner.temp }}/preflight-artifacts
+          PFLT_LOGLEVEL: ${{ env.PFLT_LOGLEVEL }}
+          IMAGE_TAG: ${{ fromJSON(steps.meta.outputs.json).tags[0] }}
+          PREFLIGHT_IMAGE: ${{ env.PREFLIGHT_IMAGE }}
+        run: |
+          mkdir -p "$PFLT_ARTIFACTS"
+
+          echo "::group::Perform certification tests"
+          docker run \
+            --rm \
+            --env PFLT_LOGLEVEL \
+            --env PFLT_ARTIFACTS=/artifacts \
+            --env PFLT_LOGFILE=/artifacts/preflight.log \
+            --env PFLT_CERTIFICATION_COMPONENT_ID \
+            --env PFLT_PYXIS_API_TOKEN \
+            --env PFLT_DOCKERCONFIG=/temp-authfile.json \
+            -v "$PFLT_ARTIFACTS:/artifacts" \
+            -v "$DOCKER_CONFIG/config.json:/temp-authfile.json:ro" \
+            "$PREFLIGHT_IMAGE" check container "$IMAGE_TAG" --submit
           echo "::endgroup::"
