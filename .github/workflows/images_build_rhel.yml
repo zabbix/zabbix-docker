@@ -794,7 +794,7 @@ jobs:
 
       - name: Create and push multiarch manifest
         id: manifest
-        uses: int128/docker-manifest-create-action@1e15cac7af24af7153ff7968c09072d61bb4456b # v2.26.0
+        uses: int128/docker-manifest-create-action@5e40f15c10aaa54f5d2bc91864e2708e11ad629f # v2.27.0
         env:
           DOCKER_CONFIG: ${{ runner.temp }}/docker-config
         with:
