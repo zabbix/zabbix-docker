@@ -1,4 +1,4 @@
-package agent
+package config
 
 import (
 	"io"
@@ -128,7 +128,7 @@ func TestConfigureItemKeyRulesValidation(t *testing.T) {
 				"ZBX_ALLOWKEY_0": "system.localtime",
 				"ZBX_DENYKEY_0":  "system.run[*]",
 			},
-			want: "item key rule index 0 is used by both",
+			want: "index 0 is used by both",
 		},
 		{
 			name: "missing index",
@@ -136,7 +136,7 @@ func TestConfigureItemKeyRulesValidation(t *testing.T) {
 				"ZBX_ALLOWKEY_0": "system.localtime",
 				"ZBX_DENYKEY_2":  "system.run[*]",
 			},
-			want: "item key rule index 1 is missing",
+			want: "index 1 is missing",
 		},
 		{
 			name: "empty rule",
@@ -155,13 +155,34 @@ func TestConfigureItemKeyRulesValidation(t *testing.T) {
 	}
 }
 
-func TestCollectItemKeyRulesIgnoresUnrelatedVariables(t *testing.T) {
+func TestConfigureItemKeyRulesWithoutVariablesDoesNotRewrite(t *testing.T) {
+	configDir := t.TempDir()
+	path := filepath.Join(configDir, "item_keys.conf")
+	original := []byte("AllowKey=custom.key\n")
+	if err := os.WriteFile(path, original, 0o600); err != nil {
+		t.Fatal(err)
+	}
+
+	if err := ConfigureItemKeyRules(bootstrap.Environment{}, configDir, "item_keys.conf"); err != nil {
+		t.Fatal(err)
+	}
+
+	data, err := os.ReadFile(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if string(data) != string(original) {
+		t.Fatalf("config was rewritten without indexed variables:\n%s", data)
+	}
+}
+
+func TestCollectIndexedParametersIgnoresUnrelatedVariables(t *testing.T) {
 	env := bootstrap.Environment{
 		"ZBX_ALLOWKEY_MY_GOOD_ENV": "value",
 		"ZBX_DENYKEY_SOMETHING":    "value",
 	}
 
-	rules, err := collectItemKeyRules(env)
+	rules, err := collectIndexedParameters(env, itemKeyRuleParameterByPrefix)
 	if err != nil {
 		t.Fatal(err)
 	}

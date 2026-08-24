@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/zabbix/zabbix-docker/templates/entrypoints/internal/bootstrap"
+	"github.com/zabbix/zabbix-docker/templates/entrypoints/internal/config"
 )
 
 // Prepare performs the server-specific entrypoint steps: modules, history
@@ -22,11 +23,11 @@ func Prepare(env bootstrap.Environment) error {
 		return err
 	}
 
-	if err := bootstrap.UpdateConfigValues(filepath.Join(configDir, "zabbix_server_modules.conf"), "LoadModule", env["ZBX_LOADMODULE"]); err != nil {
+	if err := config.MergeParameterValues(filepath.Join(configDir, "zabbix_server_modules.conf"), "LoadModule", env["ZBX_LOADMODULE"]); err != nil {
 		return err
 	}
 
-	if err := bootstrap.UpdateConfigIndexed(env, filepath.Join(configDir, "zabbix_server_history_storage.conf"), "HistoryProvider", "ZBX_HISTORYPROVIDER"); err != nil {
+	if err := config.UpdateIndexedParameter(env, filepath.Join(configDir, "zabbix_server_history_storage.conf"), "HistoryProvider", "ZBX_HISTORYPROVIDER"); err != nil {
 		return err
 	}
 

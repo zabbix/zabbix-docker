@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/zabbix/zabbix-docker/templates/entrypoints/internal/bootstrap"
+	"github.com/zabbix/zabbix-docker/templates/entrypoints/internal/config"
 )
 
 // Prepare performs the proxy-specific entrypoint steps. defaultHostname is
@@ -31,7 +32,7 @@ func Prepare(env bootstrap.Environment, defaultHostname string) error {
 		return err
 	}
 
-	if err := bootstrap.UpdateConfigValues(filepath.Join(configDir, "zabbix_proxy_modules.conf"), "LoadModule", env["ZBX_LOADMODULE"]); err != nil {
+	if err := config.MergeParameterValues(filepath.Join(configDir, "zabbix_proxy_modules.conf"), "LoadModule", env["ZBX_LOADMODULE"]); err != nil {
 		return err
 	}
 

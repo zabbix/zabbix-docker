@@ -1,4 +1,4 @@
-package bootstrap
+package config
 
 import (
 	"io"
@@ -7,14 +7,16 @@ import (
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/zabbix/zabbix-docker/templates/entrypoints/internal/bootstrap"
 )
 
-func TestUpdateConfigValues(t *testing.T) {
+func TestMergeParameterValues(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "agent.conf")
 	if err := os.WriteFile(path, []byte("# DenyKey=system.run[*]\nOther=value\n"), 0o600); err != nil {
 		t.Fatal(err)
 	}
-	if err := UpdateConfigValues(path, "DenyKey", `"one,two"`); err != nil {
+	if err := MergeParameterValues(path, "DenyKey", `"one,two"`); err != nil {
 		t.Fatal(err)
 	}
 
@@ -35,12 +37,12 @@ func TestUpdateConfigValues(t *testing.T) {
 	}
 }
 
-func TestUpdateConfigValuesNormalizesLineEndings(t *testing.T) {
+func TestMergeParameterValuesNormalizesLineEndings(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "agent.conf")
 	if err := os.WriteFile(path, []byte("# DenyKey=system.run[*]\r\nOther=value\r\n"), 0o600); err != nil {
 		t.Fatal(err)
 	}
-	if err := UpdateConfigValues(path, "DenyKey", "one,two"); err != nil {
+	if err := MergeParameterValues(path, "DenyKey", "one,two"); err != nil {
 		t.Fatal(err)
 	}
 
@@ -54,12 +56,12 @@ func TestUpdateConfigValuesNormalizesLineEndings(t *testing.T) {
 	}
 }
 
-func TestUpdateConfigValuesPreservesActiveValues(t *testing.T) {
+func TestMergeParameterValuesPreservesActiveValues(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "agent.conf")
 	if err := os.WriteFile(path, []byte("DenyKey=existing\n# DenyKey=system.run[*]\n"), 0o600); err != nil {
 		t.Fatal(err)
 	}
-	if err := UpdateConfigValues(path, "DenyKey", "existing,new"); err != nil {
+	if err := MergeParameterValues(path, "DenyKey", "existing,new"); err != nil {
 		t.Fatal(err)
 	}
 
@@ -76,12 +78,12 @@ func TestUpdateConfigValuesPreservesActiveValues(t *testing.T) {
 	}
 }
 
-func TestUpdateConfigValuesRemovesActiveValuesWhenEmpty(t *testing.T) {
+func TestMergeParameterValuesRemovesActiveValuesWhenEmpty(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "agent.conf")
 	if err := os.WriteFile(path, []byte("DenyKey=system.run[*]\nOther=value\n"), 0o600); err != nil {
 		t.Fatal(err)
 	}
-	if err := UpdateConfigValues(path, "DenyKey", ""); err != nil {
+	if err := MergeParameterValues(path, "DenyKey", ""); err != nil {
 		t.Fatal(err)
 	}
 
@@ -94,7 +96,7 @@ func TestUpdateConfigValuesRemovesActiveValuesWhenEmpty(t *testing.T) {
 	}
 }
 
-func TestUpdateConfigValuesDoesNotRewriteUnchangedConfig(t *testing.T) {
+func TestMergeParameterValuesDoesNotRewriteUnchangedConfig(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "agent.conf")
 	data := []byte("# DenyKey=system.run[*]\nOther=value\n")
 	if err := os.WriteFile(path, data, 0o600); err != nil {
@@ -105,7 +107,7 @@ func TestUpdateConfigValuesDoesNotRewriteUnchangedConfig(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if err := UpdateConfigValues(path, "DenyKey", ""); err != nil {
+	if err := MergeParameterValues(path, "DenyKey", ""); err != nil {
 		t.Fatal(err)
 	}
 
@@ -118,17 +120,16 @@ func TestUpdateConfigValuesDoesNotRewriteUnchangedConfig(t *testing.T) {
 	}
 }
 
-func TestUpdateConfigIndexed(t *testing.T) {
+func TestUpdateIndexedParameter(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "server.conf")
-	if err := os.WriteFile(path, []byte("# HistoryProvider=\n"), 0o600); err != nil {
+	if err := os.WriteFile(path, []byte("# HistoryProvider=\nOther=value\n"), 0o600); err != nil {
 		t.Fatal(err)
 	}
-	env := Environment{
+	env := bootstrap.Environment{
 		"ZBX_HISTORYPROVIDER_0": "provider-one",
 		"ZBX_HISTORYPROVIDER_1": "provider-two",
-		"ZBX_HISTORYPROVIDER_3": "ignored-after-gap",
 	}
-	if err := UpdateConfigIndexed(env, path, "HistoryProvider", "ZBX_HISTORYPROVIDER"); err != nil {
+	if err := UpdateIndexedParameter(env, path, "HistoryProvider", "ZBX_HISTORYPROVIDER"); err != nil {
 		t.Fatal(err)
 	}
 
@@ -136,35 +137,72 @@ func TestUpdateConfigIndexed(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	for _, value := range []string{
-		"HistoryProvider=${ZBX_HISTORYPROVIDER_0}",
-		"HistoryProvider=${ZBX_HISTORYPROVIDER_1}",
-	} {
-		if !strings.Contains(string(data), value) {
-			t.Fatalf("configuration does not contain %q:\n%s", value, data)
-		}
+	want := "# HistoryProvider=\n" +
+		"HistoryProvider=${ZBX_HISTORYPROVIDER_0}\n" +
+		"HistoryProvider=${ZBX_HISTORYPROVIDER_1}\n" +
+		"Other=value\n"
+	if string(data) != want {
+		t.Fatalf("config:\n%s\nwant:\n%s", data, want)
 	}
 	if env["ZBX_HISTORYPROVIDER_0"] == "" || env["ZBX_HISTORYPROVIDER_1"] == "" {
 		t.Fatal("referenced indexed variables were removed")
 	}
-	if env["ZBX_HISTORYPROVIDER_3"] != "ignored-after-gap" {
-		t.Fatal("indexed variable after a gap was unexpectedly processed")
+}
+
+func TestUpdateIndexedParameterValidation(t *testing.T) {
+	tests := []struct {
+		name string
+		env  bootstrap.Environment
+		want string
+	}{
+		{
+			name: "legacy variable",
+			env:  bootstrap.Environment{"ZBX_ALIAS": "custom:system.hostname"},
+			want: "ZBX_ALIAS is not supported",
+		},
+		{
+			name: "empty legacy variable",
+			env:  bootstrap.Environment{"ZBX_ALIAS": ""},
+			want: "ZBX_ALIAS is not supported",
+		},
+		{
+			name: "empty indexed variable",
+			env:  bootstrap.Environment{"ZBX_ALIAS_0": ""},
+			want: "ZBX_ALIAS_0 must not be empty",
+		},
+		{
+			name: "missing index",
+			env: bootstrap.Environment{
+				"ZBX_ALIAS_0": "custom.one:system.hostname",
+				"ZBX_ALIAS_2": "custom.two:system.uname",
+			},
+			want: "index 1 is missing",
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			err := UpdateIndexedParameter(test.env, "unused.conf", "Alias", "ZBX_ALIAS")
+			if err == nil || !strings.Contains(err.Error(), test.want) {
+				t.Fatalf("error = %v, want containing %q", err, test.want)
+			}
+		})
 	}
 }
 
-func TestUpdateConfigIndexedLogging(t *testing.T) {
+func TestUpdateIndexedParameterLogging(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "agent.conf")
 	if err := os.WriteFile(path, []byte("# UserParameter=\n"), 0o600); err != nil {
 		t.Fatal(err)
 	}
-	env := Environment{
+	env := bootstrap.Environment{
 		"ZBX_USERPARAMETER_0": `custom.token,printf '%s' 'sensitive-token'`,
 		"ZBX_USERPARAMETER_1": `custom.password,printf '%s' 'sensitive-password'`,
 	}
 
 	var updateErr error
 	output := captureStdout(t, func() {
-		updateErr = UpdateConfigIndexed(env, path, "UserParameter", "ZBX_USERPARAMETER")
+		updateErr = UpdateIndexedParameter(env, path, "UserParameter", "ZBX_USERPARAMETER")
 	})
 	if updateErr != nil {
 		t.Fatal(updateErr)
@@ -175,7 +213,7 @@ func TestUpdateConfigIndexedLogging(t *testing.T) {
 
 	env["DEBUG_MODE"] = "true"
 	output = captureStdout(t, func() {
-		updateErr = UpdateConfigIndexed(env, path, "UserParameter", "ZBX_USERPARAMETER")
+		updateErr = UpdateIndexedParameter(env, path, "UserParameter", "ZBX_USERPARAMETER")
 	})
 	if updateErr != nil {
 		t.Fatal(updateErr)

@@ -1,6 +1,5 @@
-// Package agent prepares the runtime environment for Zabbix agent and
-// agent 2.
-package agent
+// Package config prepares Zabbix configuration from the container environment.
+package config
 
 import (
 	"strings"
@@ -25,14 +24,14 @@ func ConfigureServers(env bootstrap.Environment) {
 		activeServers = prependServer(activeServer, activeServers)
 	}
 
-	if v := env["ZBX_PASSIVE_ALLOW"]; (v == "" || strings.EqualFold(v, "true")) && passiveServers != "" {
+	if value := env["ZBX_PASSIVE_ALLOW"]; (value == "" || strings.EqualFold(value, "true")) && passiveServers != "" {
 		bootstrap.LogInfo("** Using '%s' servers for passive checks", passiveServers)
 		env["ZBX_PASSIVESERVERS"] = passiveServers
 	} else {
 		delete(env, "ZBX_PASSIVESERVERS")
 	}
 
-	if v := env["ZBX_ACTIVE_ALLOW"]; (v == "" || strings.EqualFold(v, "true")) && activeServers != "" {
+	if value := env["ZBX_ACTIVE_ALLOW"]; (value == "" || strings.EqualFold(value, "true")) && activeServers != "" {
 		bootstrap.LogInfo("** Using '%s' servers for active checks", activeServers)
 		env["ZBX_ACTIVESERVERS"] = activeServers
 	} else {

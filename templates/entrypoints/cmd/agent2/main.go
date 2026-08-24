@@ -4,8 +4,8 @@ import (
 	"os/exec"
 	"path/filepath"
 
-	config "github.com/zabbix/zabbix-docker/templates/entrypoints/internal/agent"
 	"github.com/zabbix/zabbix-docker/templates/entrypoints/internal/bootstrap"
+	"github.com/zabbix/zabbix-docker/templates/entrypoints/internal/config"
 	"github.com/zabbix/zabbix-docker/templates/entrypoints/internal/hooks"
 )
 
@@ -24,11 +24,11 @@ func prepareService(env bootstrap.Environment) error {
 		return err
 	}
 
-	if err := bootstrap.UpdateConfigIndexed(env, filepath.Join(configDir, "zabbix_agent2_aliases.conf"), "Alias", "ZBX_ALIAS"); err != nil {
+	if err := config.UpdateIndexedParameter(env, filepath.Join(configDir, "zabbix_agent2_aliases.conf"), "Alias", "ZBX_ALIAS"); err != nil {
 		return err
 	}
 
-	if err := bootstrap.UpdateConfigIndexed(env, filepath.Join(configDir, "zabbix_agent2_user_parameters.conf"), "UserParameter", "ZBX_USERPARAMETER"); err != nil {
+	if err := config.UpdateIndexedParameter(env, filepath.Join(configDir, "zabbix_agent2_user_parameters.conf"), "UserParameter", "ZBX_USERPARAMETER"); err != nil {
 		return err
 	}
 
@@ -90,7 +90,7 @@ func updatePluginConfig(homeDir, configDir string) error {
 	}
 
 	for _, plugin := range plugins {
-		if err := bootstrap.UpdateConfigValue(
+		if err := config.SetParameter(
 			filepath.Join(configDir, plugin.file),
 			plugin.parameter,
 			filepath.Join(binDir, plugin.binary+pluginExecSuffix),
