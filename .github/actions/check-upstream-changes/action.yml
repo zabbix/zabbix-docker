@@ -1,0 +1,42 @@
+name: Upstream changes
+description: Check whether scheduled master images need to be rebuilt
+
+inputs:
+  current_branch:
+    required: true
+    description: Current branch
+  event_name:
+    required: true
+    description: GitHub event name
+
+outputs:
+  need_rebuild:
+    description: Whether images need to be rebuilt
+    value: ${{ steps.check.outputs.need_rebuild }}
+
+runs:
+  using: composite
+  steps:
+    - name: Check Zabbix master changes
+      id: check
+      shell: bash
+      env:
+        CURRENT_BRANCH: ${{ inputs.current_branch }}
+        EVENT_NAME: ${{ inputs.event_name }}
+      run: |
+        need_rebuild=true
+        check_period=86400
+
+        if [[ "$EVENT_NAME" == "schedule" && "$CURRENT_BRANCH" == "trunk" ]]; then
+          commit_ms="$(curl --fail --silent --show-error \
+                              'https://git.zabbix.com/rest/api/1.0/projects/ZBX/repos/zabbix/commits?until=refs%2Fheads%2Fmaster&limit=1' \
+                          | jq -er '.values[0].committerTimestamp'
+                      )"
+
+          if (( $(date -u +%s) - commit_ms / 1000 >= check_period )); then
+            need_rebuild=false
+            echo "No changes in master branch during the last 24 hours"
+          fi
+        fi
+
+        echo "need_rebuild=$need_rebuild" >> "$GITHUB_OUTPUT"
