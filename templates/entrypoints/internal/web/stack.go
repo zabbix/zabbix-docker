@@ -97,7 +97,7 @@ func supervise(children []*exec.Cmd) error {
 	}
 
 	for _, command := range children {
-		if command != firstResult.command && command.Process != nil {
+		if command != firstResult.command {
 			_ = command.Process.Signal(syscall.SIGTERM)
 		}
 	}
@@ -124,9 +124,7 @@ func waitForChildren(children []*exec.Cmd, results <-chan childResult, remaining
 			bootstrap.LogWarn("** Web stack did not stop within %s; forcing shutdown", childExitTimeout)
 
 			for _, command := range children {
-				if command.Process != nil {
-					_ = command.Process.Kill()
-				}
+				_ = command.Process.Kill()
 			}
 
 			timeout = nil

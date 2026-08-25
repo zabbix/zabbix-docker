@@ -124,8 +124,8 @@ func loginHashiCorpAppRole(client *http.Client, baseURL, roleID, secretID string
 
 	var resp struct {
 		Errors []string `json:"errors"`
-		Auth   *struct {
-			ClientToken *string `json:"client_token"`
+		Auth   struct {
+			ClientToken string `json:"client_token"`
 		} `json:"auth"`
 	}
 	if err := json.Unmarshal(data, &resp); err != nil {
@@ -134,11 +134,11 @@ func loginHashiCorpAppRole(client *http.Client, baseURL, roleID, secretID string
 	if len(resp.Errors) != 0 {
 		return "", fmt.Errorf("HashiCorp Vault AppRole login failed: %s", strings.Join(resp.Errors, ", "))
 	}
-	if resp.Auth == nil || resp.Auth.ClientToken == nil || *resp.Auth.ClientToken == "" {
+	if resp.Auth.ClientToken == "" {
 		return "", fmt.Errorf("HashiCorp Vault AppRole response does not contain a client token")
 	}
 
-	return *resp.Auth.ClientToken, nil
+	return resp.Auth.ClientToken, nil
 }
 
 func hashicorpTLSConfig(env bootstrap.Environment) *tls.Config {
@@ -170,7 +170,7 @@ func decodeHashiCorp(data []byte) (Credentials, error) {
 		Errors []string `json:"errors"`
 		Data   struct {
 			Data struct {
-				Username *string `json:"username"`
+				Username string  `json:"username"`
 				Password *string `json:"password"`
 			} `json:"data"`
 		} `json:"data"`
@@ -182,14 +182,14 @@ func decodeHashiCorp(data []byte) (Credentials, error) {
 	if len(resp.Errors) != 0 {
 		return Credentials{}, fmt.Errorf("error getting secrets from vault: %s", strings.Join(resp.Errors, ", "))
 	}
-	if resp.Data.Data.Username == nil || *resp.Data.Data.Username == "" {
+	if resp.Data.Data.Username == "" {
 		return Credentials{}, fmt.Errorf("vault response from HashiCorp does not contain a database username")
 	}
 	if resp.Data.Data.Password == nil {
 		return Credentials{}, fmt.Errorf("vault response from HashiCorp does not contain a database password")
 	}
 
-	return Credentials{Username: *resp.Data.Data.Username, Password: *resp.Data.Data.Password}, nil
+	return Credentials{Username: resp.Data.Data.Username, Password: *resp.Data.Data.Password}, nil
 }
 
 func fetchCyberArk(env bootstrap.Environment, baseURL, dbPath string) (Credentials, error) {
@@ -255,7 +255,7 @@ func cyberArkURL(baseURL, prefix, dbPath string) string {
 func decodeCyberArk(data []byte) (Credentials, error) {
 	var resp struct {
 		ErrorCode string  `json:"ErrorCode"`
-		Username  *string `json:"UserName"`
+		Username  string  `json:"UserName"`
 		Password  *string `json:"Content"`
 	}
 	if err := json.Unmarshal(data, &resp); err != nil {
@@ -264,23 +264,18 @@ func decodeCyberArk(data []byte) (Credentials, error) {
 	if resp.ErrorCode != "" {
 		return Credentials{}, fmt.Errorf("error getting secrets from vault: %s", resp.ErrorCode)
 	}
-	if resp.Username == nil || *resp.Username == "" {
+	if resp.Username == "" {
 		return Credentials{}, fmt.Errorf("vault response from CyberArk does not contain a database username")
 	}
 	if resp.Password == nil {
 		return Credentials{}, fmt.Errorf("vault response from CyberArk does not contain a database password")
 	}
 
-	return Credentials{Username: *resp.Username, Password: *resp.Password}, nil
+	return Credentials{Username: resp.Username, Password: *resp.Password}, nil
 }
 
 func vaultTransport(tlsConfig *tls.Config) *http.Transport {
-	transport, ok := http.DefaultTransport.(*http.Transport)
-	if !ok {
-		return &http.Transport{Proxy: http.ProxyFromEnvironment, TLSClientConfig: tlsConfig}
-	}
-
-	clone := transport.Clone()
+	clone := http.DefaultTransport.(*http.Transport).Clone()
 	clone.TLSClientConfig = tlsConfig
 	return clone
 }

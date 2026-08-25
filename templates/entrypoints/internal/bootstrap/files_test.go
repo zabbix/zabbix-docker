@@ -18,12 +18,8 @@ func TestReadSQLFile(t *testing.T) {
 
 	var buffer bytes.Buffer
 	writer := gzip.NewWriter(&buffer)
-	if _, err := writer.Write([]byte("SELECT 2;")); err != nil {
-		t.Fatal(err)
-	}
-	if err := writer.Close(); err != nil {
-		t.Fatal(err)
-	}
+	writer.Write([]byte("SELECT 2;"))
+	writer.Close()
 	compressed := filepath.Join(dir, "schema.sql.gz")
 	if err := os.WriteFile(compressed, buffer.Bytes(), 0o644); err != nil {
 		t.Fatal(err)

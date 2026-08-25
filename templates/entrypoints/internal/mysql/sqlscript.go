@@ -32,9 +32,7 @@ func splitSQLStatements(script string) ([]string, error) {
 				continue
 			}
 		}
-		if err := p.write(line); err != nil {
-			return nil, err
-		}
+		p.write(line)
 	}
 	if p.quote != 0 {
 		return nil, fmt.Errorf("unterminated quoted string")
@@ -50,7 +48,7 @@ func (p *sqlStatementParser) canChangeDelimiter() bool {
 	return p.quote == 0 && !p.lineComment && !p.blockComment && strings.TrimSpace(p.statement.String()) == ""
 }
 
-func (p *sqlStatementParser) write(value string) error {
+func (p *sqlStatementParser) write(value string) {
 	for index := 0; index < len(value); {
 		character := value[index]
 		if p.lineComment {
@@ -127,7 +125,6 @@ func (p *sqlStatementParser) write(value string) error {
 		p.statement.WriteByte(character)
 		index++
 	}
-	return nil
 }
 
 func (p *sqlStatementParser) flush() {
