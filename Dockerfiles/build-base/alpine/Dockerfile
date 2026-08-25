@@ -20,7 +20,7 @@ LABEL org.opencontainers.image.authors="Alexey Pustovalov <alexey.pustovalov@zab
       org.opencontainers.image.licenses="AGPL-3.0-only" \
       org.opencontainers.image.source="https://github.com/zabbix/zabbix-docker" \
       org.opencontainers.image.title="Zabbix build base" \
-      org.opencontainers.image.url="https://zabbix.com/" \
+      org.opencontainers.image.url="https://hub.docker.com/r/zabbix/zabbix-build-base" \
       org.opencontainers.image.vendor="Zabbix SIA" \
       org.opencontainers.image.version="${ZBX_VERSION}"
 

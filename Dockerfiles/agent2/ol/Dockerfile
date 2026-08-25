@@ -41,7 +41,7 @@ LABEL org.opencontainers.image.authors="Alexey Pustovalov <alexey.pustovalov@zab
       com.zabbix.product.revision="${ZBX_PRODUCT_REVISION}" \
       org.opencontainers.image.source="https://github.com/zabbix/zabbix-docker" \
       org.opencontainers.image.title="Zabbix agent 2" \
-      org.opencontainers.image.url="https://zabbix.com/" \
+      org.opencontainers.image.url="https://hub.docker.com/r/zabbix/zabbix-agent2" \
       org.opencontainers.image.vendor="Zabbix SIA" \
       org.opencontainers.image.version="${ZBX_VERSION}"
 
