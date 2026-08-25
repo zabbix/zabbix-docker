@@ -3,6 +3,7 @@
 package vault
 
 import (
+	"bytes"
 	"context"
 	"crypto/tls"
 	"encoding/json"
@@ -69,14 +70,75 @@ func fetchHashiCorp(env bootstrap.Environment, baseURL, dbPath string) (Credenti
 		Transport: vaultTransport(hashicorpTLSConfig(env)),
 	}
 
-	data, err := requestWithRetry(client, reqURL, func(req *http.Request) {
-		req.Header.Set("X-Vault-Token", env["VAULT_TOKEN"])
+	token, err := resolveHashiCorpToken(env, baseURL, client)
+	if err != nil {
+		return Credentials{}, err
+	}
+
+	data, err := requestWithRetry(client, http.MethodGet, reqURL, nil, func(req *http.Request) {
+		req.Header.Set("X-Vault-Token", token)
 	})
 	if err != nil {
 		return Credentials{}, err
 	}
 
 	return decodeHashiCorp(data)
+}
+
+func resolveHashiCorpToken(env bootstrap.Environment, baseURL string, client *http.Client) (string, error) {
+	token := env["VAULT_TOKEN"]
+	roleID := env["ZBX_VAULTAPPROLEID"]
+	secretID := env["ZBX_VAULTAPPSECRETID"]
+
+	if token != "" {
+		return token, nil
+	}
+
+	if roleID == "" {
+		if secretID != "" {
+			return "", fmt.Errorf("ZBX_VAULTAPPSECRETID is set but ZBX_VAULTAPPROLEID is not set")
+		}
+
+		return "", fmt.Errorf("either VAULT_TOKEN or ZBX_VAULTAPPROLEID must be set when ZBX_VAULT=HashiCorp")
+	}
+	if secretID == "" {
+		return "", fmt.Errorf("ZBX_VAULTAPPROLEID is set but ZBX_VAULTAPPSECRETID is not set")
+	}
+
+	return loginHashiCorpAppRole(client, baseURL, roleID, secretID)
+}
+
+func loginHashiCorpAppRole(client *http.Client, baseURL, roleID, secretID string) (string, error) {
+	payload, _ := json.Marshal(struct {
+		RoleID   string `json:"role_id"`
+		SecretID string `json:"secret_id"`
+	}{RoleID: roleID, SecretID: secretID})
+
+	data, err := requestWithRetry(client, http.MethodPost, baseURL+"/v1/auth/approle/login", payload,
+		func(req *http.Request) {
+			req.Header.Set("Content-Type", "application/json")
+		})
+	if err != nil {
+		return "", fmt.Errorf("login to HashiCorp Vault with AppRole: %w", err)
+	}
+
+	var resp struct {
+		Errors []string `json:"errors"`
+		Auth   *struct {
+			ClientToken *string `json:"client_token"`
+		} `json:"auth"`
+	}
+	if err := json.Unmarshal(data, &resp); err != nil {
+		return "", fmt.Errorf("decode HashiCorp Vault AppRole response: %w", err)
+	}
+	if len(resp.Errors) != 0 {
+		return "", fmt.Errorf("HashiCorp Vault AppRole login failed: %s", strings.Join(resp.Errors, ", "))
+	}
+	if resp.Auth == nil || resp.Auth.ClientToken == nil || *resp.Auth.ClientToken == "" {
+		return "", fmt.Errorf("HashiCorp Vault AppRole response does not contain a client token")
+	}
+
+	return *resp.Auth.ClientToken, nil
 }
 
 func hashicorpTLSConfig(env bootstrap.Environment) *tls.Config {
@@ -161,14 +223,7 @@ func fetchCyberArk(env bootstrap.Environment, baseURL, dbPath string) (Credentia
 		return Credentials{}, fmt.Errorf("load CyberArk client certificate: %w", err)
 	}
 
-	prefix := env["ZBX_VAULTPREFIX"]
-	if prefix == "" {
-		prefix = "AIMWebService/api/Accounts?"
-	} else {
-		prefix = strings.Trim(prefix, "/") + "/"
-	}
-
-	reqURL := baseURL + "/" + prefix + dbPath
+	reqURL := cyberArkURL(baseURL, env["ZBX_VAULTPREFIX"], dbPath)
 
 	bootstrap.LogInfo("***** VAULT URL: %s", reqURL)
 
@@ -177,7 +232,7 @@ func fetchCyberArk(env bootstrap.Environment, baseURL, dbPath string) (Credentia
 		Transport: vaultTransport(&tls.Config{Certificates: []tls.Certificate{cert}}),
 	}
 
-	data, err := requestWithRetry(client, reqURL, func(req *http.Request) {
+	data, err := requestWithRetry(client, http.MethodGet, reqURL, nil, func(req *http.Request) {
 		req.Header.Set("Content-Type", "application/json")
 	})
 	if err != nil {
@@ -185,6 +240,16 @@ func fetchCyberArk(env bootstrap.Environment, baseURL, dbPath string) (Credentia
 	}
 
 	return decodeCyberArk(data)
+}
+
+func cyberArkURL(baseURL, prefix, dbPath string) string {
+	if prefix == "" {
+		prefix = "/AIMWebService/api/Accounts?"
+	} else if !strings.HasPrefix(prefix, "/") {
+		prefix = "/" + prefix
+	}
+
+	return baseURL + prefix + dbPath
 }
 
 func decodeCyberArk(data []byte) (Credentials, error) {
@@ -228,7 +293,8 @@ const (
 	maxRespSize = 1 << 20
 )
 
-func requestWithRetry(client *http.Client, reqURL string, configure func(*http.Request)) ([]byte, error) {
+func requestWithRetry(client *http.Client, method, reqURL string, body []byte,
+	configure func(*http.Request)) ([]byte, error) {
 	var lastErr error
 	for attempt := 1; attempt <= maxAttempts; attempt++ {
 		if attempt > 1 {
@@ -236,7 +302,7 @@ func requestWithRetry(client *http.Client, reqURL string, configure func(*http.R
 			sleep(retryDelay)
 		}
 
-		req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, reqURL, nil)
+		req, err := http.NewRequestWithContext(context.Background(), method, reqURL, bytes.NewReader(body))
 		if err != nil {
 			return nil, err
 		}

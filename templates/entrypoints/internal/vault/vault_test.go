@@ -2,6 +2,7 @@ package vault
 
 import (
 	"crypto/tls"
+	"encoding/json"
 	"errors"
 	"io"
 	"net/http"
@@ -102,6 +103,31 @@ func TestDecodeHashiCorp(t *testing.T) {
 	}
 }
 
+func TestCyberArkURL(t *testing.T) {
+	for _, test := range []struct {
+		name   string
+		prefix string
+		want   string
+	}{
+		{
+			name: "default prefix",
+			want: "https://vault.example/AIMWebService/api/Accounts?AppID=zabbix",
+		},
+		{
+			name:   "configured prefix",
+			prefix: "/AIMWebService/api/Accounts?",
+			want:   "https://vault.example/AIMWebService/api/Accounts?AppID=zabbix",
+		},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			got := cyberArkURL("https://vault.example", test.prefix, "AppID=zabbix")
+			if got != test.want {
+				t.Fatalf("cyberArkURL() = %q, want %q", got, test.want)
+			}
+		})
+	}
+}
+
 func TestDecodeCyberArk(t *testing.T) {
 	for _, test := range []struct {
 		name      string
@@ -152,6 +178,115 @@ func TestDecodeCyberArk(t *testing.T) {
 	}
 }
 
+func TestHashiCorpAppRoleLogin(t *testing.T) {
+	client := &http.Client{Transport: roundTripFunc(func(req *http.Request) (*http.Response, error) {
+		if req.Method != http.MethodPost {
+			t.Fatalf("request method = %s, want POST", req.Method)
+		}
+		if req.URL.String() != "https://vault.example.test/v1/auth/approle/login" {
+			t.Fatalf("request URL = %s", req.URL)
+		}
+		if req.Header.Get("Content-Type") != "application/json" {
+			t.Fatalf("content type = %q", req.Header.Get("Content-Type"))
+		}
+
+		var payload struct {
+			RoleID   string `json:"role_id"`
+			SecretID string `json:"secret_id"`
+		}
+		if err := json.NewDecoder(req.Body).Decode(&payload); err != nil {
+			t.Fatal(err)
+		}
+		if payload.RoleID != "role" || payload.SecretID != "secret" {
+			t.Fatalf("unexpected AppRole payload: %#v", payload)
+		}
+
+		return &http.Response{
+			StatusCode: http.StatusOK,
+			Status:     "200 OK",
+			Body: io.NopCloser(strings.NewReader(
+				`{"auth":{"client_token":"approle-token"}}`,
+			)),
+		}, nil
+	})}
+
+	token, err := resolveHashiCorpToken(bootstrap.Environment{
+		"ZBX_VAULTAPPROLEID":   "role",
+		"ZBX_VAULTAPPSECRETID": "secret",
+	}, "https://vault.example.test", client)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if token != "approle-token" {
+		t.Fatalf("token = %q", token)
+	}
+}
+
+func TestHashiCorpTokenAuthentication(t *testing.T) {
+	token, err := resolveHashiCorpToken(
+		bootstrap.Environment{
+			"VAULT_TOKEN":          "token",
+			"ZBX_VAULTAPPROLEID":   "unused-role",
+			"ZBX_VAULTAPPSECRETID": "unused-secret",
+		},
+		"https://vault.example.test",
+		&http.Client{},
+	)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if token != "token" {
+		t.Fatalf("token = %q", token)
+	}
+}
+
+func TestHashiCorpAuthenticationValidation(t *testing.T) {
+	tests := []struct {
+		name string
+		env  bootstrap.Environment
+		want string
+	}{
+		{
+			name: "role ID without secret ID",
+			env:  bootstrap.Environment{"ZBX_VAULTAPPROLEID": "role"},
+			want: "ZBX_VAULTAPPSECRETID is not set",
+		},
+		{
+			name: "secret ID without role ID",
+			env:  bootstrap.Environment{"ZBX_VAULTAPPSECRETID": "secret"},
+			want: "ZBX_VAULTAPPROLEID is not set",
+		},
+		{
+			name: "no authentication",
+			want: "either VAULT_TOKEN or ZBX_VAULTAPPROLEID",
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			_, err := resolveHashiCorpToken(test.env, "https://vault.example.test", &http.Client{})
+			if err == nil || !strings.Contains(err.Error(), test.want) {
+				t.Fatalf("error = %v, want containing %q", err, test.want)
+			}
+		})
+	}
+}
+
+func TestHashiCorpAppRoleLoginRequiresToken(t *testing.T) {
+	client := &http.Client{Transport: roundTripFunc(func(*http.Request) (*http.Response, error) {
+		return &http.Response{
+			StatusCode: http.StatusOK,
+			Status:     "200 OK",
+			Body:       io.NopCloser(strings.NewReader(`{"auth":{}}`)),
+		}, nil
+	})}
+
+	_, err := loginHashiCorpAppRole(client, "https://vault.example.test", "role", "secret")
+	if err == nil || !strings.Contains(err.Error(), "client token") {
+		t.Fatalf("error = %v, want missing client token", err)
+	}
+}
+
 func TestRequestWithRetry(t *testing.T) {
 	client := &http.Client{Transport: roundTripFunc(func(req *http.Request) (*http.Response, error) {
 		if req.Header.Get("X-Vault-Token") != "token" {
@@ -164,7 +299,7 @@ func TestRequestWithRetry(t *testing.T) {
 		}, nil
 	})}
 
-	data, err := requestWithRetry(client, "https://vault.example.test/secret", func(req *http.Request) {
+	data, err := requestWithRetry(client, http.MethodGet, "https://vault.example.test/secret", nil, func(req *http.Request) {
 		req.Header.Set("X-Vault-Token", "token")
 	})
 	if err != nil {
@@ -184,7 +319,7 @@ func TestRequestWithRetryRejectsHTTPError(t *testing.T) {
 		}, nil
 	})}
 
-	_, err := requestWithRetry(client, "https://vault.example.test/secret", func(*http.Request) {})
+	_, err := requestWithRetry(client, http.MethodGet, "https://vault.example.test/secret", nil, func(*http.Request) {})
 	if err != nil {
 		if !strings.Contains(err.Error(), "403 Forbidden") {
 			t.Fatalf("unexpected error: %v", err)
@@ -219,7 +354,7 @@ func TestRequestWithRetryRetriesTemporaryHTTPError(t *testing.T) {
 		}, nil
 	})}
 
-	data, err := requestWithRetry(client, "https://vault.example.test/secret", func(*http.Request) {})
+	data, err := requestWithRetry(client, http.MethodGet, "https://vault.example.test/secret", nil, func(*http.Request) {})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -249,7 +384,7 @@ func TestRequestWithRetryGivesUp(t *testing.T) {
 		return nil, errors.New("connection refused")
 	})}
 
-	_, err := requestWithRetry(client, "https://vault.example.test/secret", func(*http.Request) {})
+	_, err := requestWithRetry(client, http.MethodGet, "https://vault.example.test/secret", nil, func(*http.Request) {})
 	if err == nil {
 		t.Fatal("unavailable vault did not result in an error")
 	}
