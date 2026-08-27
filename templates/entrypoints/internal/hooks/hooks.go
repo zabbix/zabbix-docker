@@ -13,16 +13,16 @@ import (
 
 const directoryName = "entrypoint.d"
 
-// Run executes the files from <home>/entrypoint.d in file name order: *.sh
+// Run executes the files from <config>/entrypoint.d in file name order: *.sh
 // scripts via the shell, executable files directly; everything else is
 // skipped. The first failing hook aborts the entrypoint.
 func Run(env bootstrap.Environment) error {
-	homeDir, err := bootstrap.RequiredHomeDir(env)
+	configDir, err := bootstrap.RequiredConfigDir(env)
 	if err != nil {
 		return err
 	}
 
-	directory := filepath.Join(homeDir, directoryName)
+	directory := filepath.Join(configDir, directoryName)
 	entries, err := os.ReadDir(directory)
 	if os.IsNotExist(err) {
 		return nil

@@ -87,6 +87,14 @@ $ docker run --name some-zabbix-agent --link some-zabbix-server:zabbix-server --
 $ docker run --name some-zabbix-agent --link some-zabbix-server:zabbix-server -v /dev/sdc:/dev/sdc --init -d zabbix/zabbix-agent2:latest
 ```
 
+## Entrypoint hooks
+
+Before starting the service, the image runs user-provided hooks from `/etc/zabbix/entrypoint.d` in filename order. Files ending in `.sh` are run with `/bin/sh`; other regular files are run directly when executable. Unsupported files are skipped. A failing hook stops container startup. Hooks inherit the container environment.
+
+Mount the directory read-only with `-v ./entrypoint.d:/etc/zabbix/entrypoint.d:ro`.
+
+Windows images use `C:\zabbix\conf\entrypoint.d` and support `.ps1`, `.cmd`, and `.bat` hooks.
+
 ## Environment Variables
 
 When you start the `zabbix-agent2` image, you can adjust the configuration of the Zabbix agent 2 by passing one or more environment variables on the `docker run` command line.

@@ -45,6 +45,9 @@ where 1995 is <code>zabbix</code> GID.</p>
 <p>The Zabbix proxy log is available through Podman&#39;s container log:</p>
 <pre><code class="lang-console">$ podman logs <span class="hljs-keyword">some</span>-zabbix-proxy-mysql
 </code></pre>
+<h2 id="entrypoint-hooks">Entrypoint hooks</h2>
+<p>Before starting the service, the image runs user-provided hooks from <code>/etc/zabbix/entrypoint.d</code> in filename order. Files ending in <code>.sh</code> are run with <code>/bin/sh</code>; other regular files are run directly when executable. Unsupported files are skipped. A failing hook stops container startup. Hooks inherit the container environment.</p>
+<p>Mount the directory read-only with <code>-v ./entrypoint.d:/etc/zabbix/entrypoint.d:ro</code>.</p>
 <h2 id="environment-variables">Environment Variables</h2>
 <p>When you start the <code>zabbix-proxy-mysql</code> image, you can adjust the configuration of the Zabbix proxy by passing one or more environment variables on the <code>podman run</code> command line.</p>
 <h3 id="-zbx_proxymode-"><code>ZBX_PROXYMODE</code></h3>

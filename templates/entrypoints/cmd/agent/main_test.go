@@ -21,7 +21,7 @@ func TestPrepareService(t *testing.T) {
 	if err := os.MkdirAll(configDir, 0o700); err != nil {
 		t.Fatal(err)
 	}
-	hooksDirectory := filepath.Join(homeDir, "entrypoint.d")
+	hooksDirectory := filepath.Join(configDir, "entrypoint.d")
 	if err := os.Mkdir(hooksDirectory, 0o700); err != nil {
 		t.Fatal(err)
 	}

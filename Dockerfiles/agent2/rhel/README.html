@@ -33,6 +33,9 @@
 </code></pre>
 <pre><code class="lang-console">$ podman run --name some-zabbix-agent --link some-zabbix-<span class="hljs-string">server:</span>zabbix-server -v <span class="hljs-regexp">/dev/</span><span class="hljs-string">sdc:</span><span class="hljs-regexp">/dev/</span>sdc --init -d zabbix/zabbix-<span class="hljs-string">agent2:</span>latest
 </code></pre>
+<h2 id="entrypoint-hooks">Entrypoint hooks</h2>
+<p>Before starting the service, the image runs user-provided hooks from <code>/etc/zabbix/entrypoint.d</code> in filename order. Files ending in <code>.sh</code> are run with <code>/bin/sh</code>; other regular files are run directly when executable. Unsupported files are skipped. A failing hook stops container startup. Hooks inherit the container environment.</p>
+<p>Mount the directory read-only with <code>-v ./entrypoint.d:/etc/zabbix/entrypoint.d:ro</code>.</p>
 <h2 id="environment-variables">Environment Variables</h2>
 <p>When you start the <code>zabbix-agent2</code> image, you can adjust the configuration of the Zabbix agent 2 by passing one or more environment variables on the <code>podman run</code> command line.</p>
 <h3 id="-zbx_hostname-"><code>ZBX_HOSTNAME</code></h3>

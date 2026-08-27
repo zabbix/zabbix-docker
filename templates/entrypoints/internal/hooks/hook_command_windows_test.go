@@ -9,7 +9,7 @@ import (
 )
 
 func TestPowerShellCommand(t *testing.T) {
-	path := `C:\zabbix\entrypoint.d\10-custom.ps1`
+	path := `C:\zabbix\conf\entrypoint.d\10-custom.ps1`
 	args, supported := hookCommand(path, os.FileMode(0))
 	want := []string{"pwsh.exe", "-NoLogo", "-NoProfile", "-NonInteractive", "-ExecutionPolicy", "Bypass", "-File", path}
 	if !supported || !reflect.DeepEqual(args, want) {
@@ -18,7 +18,7 @@ func TestPowerShellCommand(t *testing.T) {
 }
 
 func TestCmdCommand(t *testing.T) {
-	path := `C:\zabbix\entrypoint.d\20-custom.cmd`
+	path := `C:\zabbix\conf\entrypoint.d\20-custom.cmd`
 	args, supported := hookCommand(path, os.FileMode(0))
 	want := []string{"cmd.exe", "/D", "/S", "/C", path}
 	if !supported || !reflect.DeepEqual(args, want) {

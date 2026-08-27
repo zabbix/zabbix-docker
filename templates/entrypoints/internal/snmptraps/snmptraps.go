@@ -6,7 +6,6 @@ import (
 	"strings"
 
 	"github.com/zabbix/zabbix-docker/templates/entrypoints/internal/bootstrap"
-	"github.com/zabbix/zabbix-docker/templates/entrypoints/internal/hooks"
 )
 
 const (
@@ -30,10 +29,6 @@ func Run(env bootstrap.Environment, args []string) error {
 	}
 
 	env.SetDefaultNonEmpty("SNMPTRAP_OUTPUT_OPTIONS", defaultOutputOptions)
-
-	if err := hooks.Run(env); err != nil {
-		return err
-	}
 
 	command := buildCommand(env, extraArgs)
 

@@ -66,6 +66,12 @@ The Zabbix web interface log is available through Docker's container log:
 $ docker logs  some-zabbix-web-apache-pgsql
 ```
 
+## Entrypoint hooks
+
+Before starting the service, the image runs user-provided hooks from `/etc/zabbix/entrypoint.d` in filename order. Files ending in `.sh` are run with `/bin/sh`; other regular files are run directly when executable. Unsupported files are skipped. A failing hook stops container startup. Hooks inherit the container environment.
+
+Mount the directory read-only with `-v ./entrypoint.d:/etc/zabbix/entrypoint.d:ro`.
+
 ## Environment Variables
 
 When you start the `zabbix-web-apache-pgsql` image, you can adjust the configuration of the Zabbix web interface by passing one or more environment variables on the `docker run` command line.

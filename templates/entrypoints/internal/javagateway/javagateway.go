@@ -8,7 +8,6 @@ import (
 
 	"github.com/mattn/go-shellwords"
 	"github.com/zabbix/zabbix-docker/templates/entrypoints/internal/bootstrap"
-	"github.com/zabbix/zabbix-docker/templates/entrypoints/internal/hooks"
 )
 
 const (
@@ -54,9 +53,6 @@ func prepare(env bootstrap.Environment, extraArgs []string) ([]string, error) {
 
 	if err := os.Chdir(javaDir); err != nil {
 		return nil, fmt.Errorf("change Java Gateway directory to %s: %w", javaDir, err)
-	}
-	if err := hooks.Run(env); err != nil {
-		return nil, err
 	}
 
 	command, err := buildCommand(env, logConfig, extraArgs)
