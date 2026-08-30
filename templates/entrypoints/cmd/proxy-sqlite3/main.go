@@ -6,7 +6,6 @@ import (
 	"strings"
 
 	"github.com/zabbix/zabbix-docker/templates/entrypoints/internal/bootstrap"
-	"github.com/zabbix/zabbix-docker/templates/entrypoints/internal/hooks"
 	"github.com/zabbix/zabbix-docker/templates/entrypoints/internal/proxy"
 	"github.com/zabbix/zabbix-docker/templates/entrypoints/internal/sqlite"
 )
@@ -37,19 +36,13 @@ func prepareService(env bootstrap.Environment) error {
 
 	env["ZBX_DB_NAME"] = filepath.Join(homeDir, "db_data", proxyName+".sqlite")
 
-	if err := proxy.Prepare(env, proxyName); err != nil {
-		return err
-	}
-
 	if err := sqlite.Prepare(env["ZBX_DB_NAME"], schemaPath); err != nil {
 		return err
 	}
 
-	if err := hooks.Run(env); err != nil {
+	if err := proxy.Prepare(env, defaultProxyName); err != nil {
 		return err
 	}
-
-	bootstrap.ClearPrivateEnv(env)
 
 	return nil
 }

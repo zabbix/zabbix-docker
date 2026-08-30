@@ -2,7 +2,6 @@ package main
 
 import (
 	"github.com/zabbix/zabbix-docker/templates/entrypoints/internal/bootstrap"
-	"github.com/zabbix/zabbix-docker/templates/entrypoints/internal/hooks"
 	"github.com/zabbix/zabbix-docker/templates/entrypoints/internal/mysql"
 	"github.com/zabbix/zabbix-docker/templates/entrypoints/internal/proxy"
 )
@@ -35,12 +34,6 @@ func prepareService(env bootstrap.Environment, db *mysql.DB) error {
 	if err := proxy.Prepare(env, defaultProxyName); err != nil {
 		return err
 	}
-
-	if err := hooks.Run(env); err != nil {
-		return err
-	}
-
-	bootstrap.ClearPrivateEnv(env)
 
 	return nil
 }

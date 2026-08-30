@@ -7,6 +7,7 @@ import (
 
 	"github.com/zabbix/zabbix-docker/templates/entrypoints/internal/bootstrap"
 	"github.com/zabbix/zabbix-docker/templates/entrypoints/internal/config"
+	"github.com/zabbix/zabbix-docker/templates/entrypoints/internal/hooks"
 )
 
 // Prepare performs the server-specific entrypoint steps: modules, history
@@ -44,6 +45,12 @@ func Prepare(env bootstrap.Environment) error {
 	}
 
 	bootstrap.RehashCertDir(env["ZBX_SSLCALOCATION"])
+
+	if err := hooks.Run(env); err != nil {
+		return err
+	}
+
+	bootstrap.ClearPrivateEnv(env)
 
 	return nil
 }

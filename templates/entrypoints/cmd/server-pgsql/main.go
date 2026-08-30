@@ -2,7 +2,6 @@ package main
 
 import (
 	"github.com/zabbix/zabbix-docker/templates/entrypoints/internal/bootstrap"
-	"github.com/zabbix/zabbix-docker/templates/entrypoints/internal/hooks"
 	"github.com/zabbix/zabbix-docker/templates/entrypoints/internal/postgresql"
 	"github.com/zabbix/zabbix-docker/templates/entrypoints/internal/server"
 )
@@ -36,12 +35,6 @@ func prepareService(env bootstrap.Environment, db *postgresql.DB) error {
 	if err := server.Prepare(env); err != nil {
 		return err
 	}
-
-	if err := hooks.Run(env); err != nil {
-		return err
-	}
-
-	bootstrap.ClearPrivateEnv(env)
 
 	return nil
 }
