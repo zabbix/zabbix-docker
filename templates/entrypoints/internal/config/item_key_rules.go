@@ -32,9 +32,12 @@ func ConfigureItemKeyRules(env bootstrap.Environment, configDir, fileName string
 	for _, rule := range rules {
 		variableNames = append(variableNames, rule.variable)
 	}
-	bootstrap.LogDebug(env, "** Configuring %s item key rules from %d indexed environment variables: %s",
-		configPath, len(variableNames), strings.Join(variableNames, ", "),
-	)
+
+    if len(rules) > 0 {
+		bootstrap.LogDebug(env, "** Configuring %s item key rules from %d indexed environment variables: %s",
+			configPath, len(variableNames), strings.Join(variableNames, ", "),
+		)
+	}
 
 	return nil
 }
