@@ -74,11 +74,6 @@ update_config_var() {
         return
     fi
 
-    # Use full path to a file for TLS related configuration parameters
-    if [[ $var_name =~ ^TLS.*File$ ]] && [[ ! $var_value =~ ^/.+$ ]]; then
-        var_value="${ZABBIX_USER_HOME_DIR}/enc/${var_value}"
-    fi
-
     # Escaping characters in parameter value and name
     var_value_raw=$var_value
     var_name_raw=$var_name
@@ -131,6 +126,9 @@ file_process_from_env() {
         file_name="${dir_name}/${var_name}"
         printf '%s' "$var_value" > "$file_name"
         export "$var_name=$file_name"
+    elif [ -n "$file_name" ] && [[ "$file_name" != /* ]]; then
+        # A bare file name refers to the "enc" volume, not to the working directory
+        export "$var_name=${ZABBIX_USER_HOME_DIR}/enc/${file_name}"
     fi
 
     # Remove variable with plain text data, for example ZBX_TLSCAFILE -> ZBX_TLSCA
