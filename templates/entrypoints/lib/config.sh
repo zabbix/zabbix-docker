@@ -41,6 +41,18 @@ is_masked_config_var() {
     esac
 }
 
+# TLS material is looked up in the "enc" volume when a configuration
+# parameter carries only a file name. Any other file keeps the value as it
+# was supplied.
+is_enc_volume_file_var() {
+    local var_name="${1:-}"
+    case "$var_name" in
+        ZBX_TLS*FILE) return 0 ;;
+        ZBX_SERVER_TLS_*FILE) return 0 ;;
+        *) return 1 ;;
+    esac
+}
+
 update_config_var() {
     local config_path="${1:-}"
     local var_name="${2:-}"
@@ -72,11 +84,6 @@ update_config_var() {
         fi
         info "$log_message undefined"
         return
-    fi
-
-    # Use full path to a file for TLS related configuration parameters
-    if [[ $var_name =~ ^TLS.*File$ ]] && [[ ! $var_value =~ ^/.+$ ]]; then
-        var_value="${ZABBIX_USER_HOME_DIR}/enc/${var_value}"
     fi
 
     # Escaping characters in parameter value and name
@@ -131,6 +138,9 @@ file_process_from_env() {
         file_name="${dir_name}/${var_name}"
         printf '%s' "$var_value" > "$file_name"
         export "$var_name=$file_name"
+    elif [ -n "$file_name" ] && [[ "$file_name" != /* ]] && is_enc_volume_file_var "$var_name"; then
+        # A bare file name refers to the "enc" volume, not to the working directory
+        export "$var_name=${ZABBIX_USER_HOME_DIR}/enc/${file_name}"
     fi
 
     # Remove variable with plain text data, for example ZBX_TLSCAFILE -> ZBX_TLSCA

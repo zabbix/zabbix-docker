@@ -99,3 +99,40 @@ func TestRequiredHomeDirectoryRejectsInvalidPaths(t *testing.T) {
 		})
 	}
 }
+
+func TestProcessTLSFilesResolvesBareFileNames(t *testing.T) {
+	homeDir := t.TempDir()
+	if err := os.MkdirAll(filepath.Join(homeDir, "enc_internal"), 0o700); err != nil {
+		t.Fatal(err)
+	}
+
+	env := Environment{
+		"ZBX_TLSCAFILE":   "ca.crt",
+		"ZBX_TLSCERTFILE": filepath.Join(homeDir, "custom", "agent.crt"),
+		"ZBX_TLSPSK":      "secret",
+	}
+	if err := ProcessTLSFiles(env, homeDir, "ZBX_TLSCA", "ZBX_TLSCERT", "ZBX_TLSPSK"); err != nil {
+		t.Fatal(err)
+	}
+
+	tests := []struct {
+		name string
+		want string
+	}{
+		// A bare file name refers to the "enc" volume.
+		{name: "ZBX_TLSCAFILE", want: filepath.Join(homeDir, "enc", "ca.crt")},
+		// An already rooted path is kept as supplied.
+		{name: "ZBX_TLSCERTFILE", want: filepath.Join(homeDir, "custom", "agent.crt")},
+		// A plaintext value is written out and referenced by its own path.
+		{name: "ZBX_TLSPSKFILE", want: filepath.Join(homeDir, "enc_internal", "ZBX_TLSPSKFILE")},
+	}
+	for _, test := range tests {
+		if got := env[test.name]; got != test.want {
+			t.Errorf("%s = %q, want %q", test.name, got, test.want)
+		}
+	}
+
+	if _, found := env["ZBX_TLSPSK"]; found {
+		t.Error("plaintext ZBX_TLSPSK was not removed from the environment")
+	}
+}

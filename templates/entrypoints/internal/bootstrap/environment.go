@@ -125,15 +125,37 @@ func ProcessFileFromEnvironment(env Environment, directory, variable string) err
 // ProcessTLSFiles moves TLS material from the listed variables into
 // files under <home>/enc_internal, so that Zabbix reads certificates and
 // keys from disk instead of the environment.
+//
+// Variables that already reference a file keep their value, except that a
+// bare file name is resolved against the <home>/enc volume. Zabbix would
+// otherwise resolve it against the working directory, while the images
+// document that volume as the place to put TLS files.
 func ProcessTLSFiles(env Environment, homeDir string, variables ...string) error {
-	directory := filepath.Join(homeDir, "enc_internal")
+	internalDir := filepath.Join(homeDir, "enc_internal")
+	volumeDir := filepath.Join(homeDir, "enc")
+
 	for _, variable := range variables {
-		if err := ProcessFileFromEnvironment(env, directory, variable); err != nil {
+		if err := ProcessFileFromEnvironment(env, internalDir, variable); err != nil {
 			return err
+		}
+
+		fileVariable := variable + "FILE"
+		if path := env[fileVariable]; path != "" && !isRootedPath(path) {
+			env[fileVariable] = filepath.Join(volumeDir, path)
 		}
 	}
 
 	return nil
+}
+
+// isRootedPath reports whether path already identifies a location on its
+// own and therefore must not be resolved against the "enc" volume.
+func isRootedPath(path string) bool {
+	if filepath.IsAbs(path) || filepath.VolumeName(path) != "" {
+		return true
+	}
+
+	return strings.HasPrefix(path, `\`) || strings.HasPrefix(path, "/")
 }
 
 // ClearPrivateEnv removes variables with the supplied prefixes that the
