@@ -122,14 +122,21 @@ func ProcessFileFromEnvironment(env Environment, directory, variable string) err
 	return nil
 }
 
-// ProcessTLSFiles moves TLS material from the listed variables into
-// files under <home>/enc_internal, so that Zabbix reads certificates and
-// keys from disk instead of the environment.
+// ProcessTLSFiles moves inline TLS material from the listed variables into
+// files under <home>/enc_internal. Existing relative TLS file paths are
+// resolved against <home>/enc, while absolute paths are preserved unchanged.
 func ProcessTLSFiles(env Environment, homeDir string, variables ...string) error {
-	directory := filepath.Join(homeDir, "enc_internal")
+	intEncDir := filepath.Join(homeDir, "enc_internal")
+	pubEncDir := filepath.Join(homeDir, "enc")
+
 	for _, variable := range variables {
-		if err := ProcessFileFromEnvironment(env, directory, variable); err != nil {
+		if err := ProcessFileFromEnvironment(env, intEncDir, variable); err != nil {
 			return err
+		}
+
+		fileVar := variable + "FILE"
+		if path := env[fileVar]; path != "" && !filepath.IsAbs(path) {
+			env[fileVar] = filepath.Join(pubEncDir, path)
 		}
 	}
 
