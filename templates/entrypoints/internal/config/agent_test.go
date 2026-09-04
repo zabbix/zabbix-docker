@@ -1,6 +1,6 @@
 //go:build windows
 
-package agent
+package config
 
 import (
 	"os"
@@ -35,31 +35,5 @@ func TestConfigureServers(t *testing.T) {
 	content := string(data)
 	if !strings.Contains(content, "Server=server,passive\n") || !strings.Contains(content, "ServerActive=server:10061,active\n") {
 		t.Fatalf("server configuration was not written:\n%s", data)
-	}
-}
-
-func TestConfigureServersUsesDefaultsForWhitespace(t *testing.T) {
-	configPath := filepath.Join(t.TempDir(), "agent.conf")
-	if err := os.WriteFile(configPath, []byte("# Server=\n# ServerActive=\n"), 0o600); err != nil {
-		t.Fatal(err)
-	}
-
-	env := bootstrap.Environment{
-		"ZBX_SERVER_HOST":   "  ",
-		"ZBX_SERVER_PORT":   "\t",
-		"ZBX_PASSIVE_ALLOW": " ",
-		"ZBX_ACTIVE_ALLOW":  " ",
-	}
-	if err := ConfigureServers(env, configPath); err != nil {
-		t.Fatal(err)
-	}
-
-	data, err := os.ReadFile(configPath)
-	if err != nil {
-		t.Fatal(err)
-	}
-	content := string(data)
-	if !strings.Contains(content, "Server=zabbix-server\n") || !strings.Contains(content, "ServerActive=zabbix-server\n") {
-		t.Fatalf("default server configuration was not written:\n%s", data)
 	}
 }

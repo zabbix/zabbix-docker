@@ -1,6 +1,6 @@
 //go:build windows
 
-package bootstrap
+package config
 
 import (
 	"os"
@@ -10,12 +10,12 @@ import (
 	"time"
 )
 
-func TestUpdateConfigMultiple(t *testing.T) {
+func TestMergeParameterValues(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "agent.conf")
 	if err := os.WriteFile(path, []byte("# DenyKey=system.run[*]\nOther=value\n"), 0o600); err != nil {
 		t.Fatal(err)
 	}
-	if err := UpdateConfigMultiple(path, "DenyKey", `"one,two"`); err != nil {
+	if err := MergeParameterValues(path, "DenyKey", `"one,two"`); err != nil {
 		t.Fatal(err)
 	}
 
@@ -36,12 +36,31 @@ func TestUpdateConfigMultiple(t *testing.T) {
 	}
 }
 
-func TestUpdateConfigMultiplePreservesActiveValues(t *testing.T) {
+func TestMergeParameterValuesNormalizesCRLF(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "agent.conf")
+	if err := os.WriteFile(path, []byte("# DenyKey=system.run[*]\r\nOther=value\r\n"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	if err := MergeParameterValues(path, "DenyKey", "one,two"); err != nil {
+		t.Fatal(err)
+	}
+
+	data, err := os.ReadFile(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	want := "# DenyKey=system.run[*]\nDenyKey=one\nDenyKey=two\nOther=value\n"
+	if string(data) != want {
+		t.Fatalf("config:\n%q\nwant:\n%q", data, want)
+	}
+}
+
+func TestMergeParameterValuesPreservesActiveValues(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "agent.conf")
 	if err := os.WriteFile(path, []byte("DenyKey=existing\n# DenyKey=system.run[*]\n"), 0o600); err != nil {
 		t.Fatal(err)
 	}
-	if err := UpdateConfigMultiple(path, "DenyKey", "existing,new"); err != nil {
+	if err := MergeParameterValues(path, "DenyKey", "existing,new"); err != nil {
 		t.Fatal(err)
 	}
 
@@ -58,12 +77,12 @@ func TestUpdateConfigMultiplePreservesActiveValues(t *testing.T) {
 	}
 }
 
-func TestUpdateConfigMultipleRemovesActiveValuesWhenEmpty(t *testing.T) {
+func TestMergeParameterValuesRemovesActiveValuesWhenEmpty(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "agent.conf")
 	if err := os.WriteFile(path, []byte("DenyKey=system.run[*]\nOther=value\n"), 0o600); err != nil {
 		t.Fatal(err)
 	}
-	if err := UpdateConfigMultiple(path, "DenyKey", ""); err != nil {
+	if err := MergeParameterValues(path, "DenyKey", ""); err != nil {
 		t.Fatal(err)
 	}
 
@@ -76,7 +95,7 @@ func TestUpdateConfigMultipleRemovesActiveValuesWhenEmpty(t *testing.T) {
 	}
 }
 
-func TestUpdateConfigMultipleDoesNotRewriteUnchangedConfig(t *testing.T) {
+func TestMergeParameterValuesDoesNotRewriteUnchangedConfig(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "agent.conf")
 	data := []byte("# DenyKey=system.run[*]\nOther=value\n")
 	if err := os.WriteFile(path, data, 0o600); err != nil {
@@ -87,7 +106,7 @@ func TestUpdateConfigMultipleDoesNotRewriteUnchangedConfig(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if err := UpdateConfigMultiple(path, "DenyKey", ""); err != nil {
+	if err := MergeParameterValues(path, "DenyKey", ""); err != nil {
 		t.Fatal(err)
 	}
 
@@ -100,12 +119,12 @@ func TestUpdateConfigMultipleDoesNotRewriteUnchangedConfig(t *testing.T) {
 	}
 }
 
-func TestUpdateConfigValueSetsUndefinedValue(t *testing.T) {
+func TestSetParameterSetsUndefinedValue(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "agent.conf")
 	if err := os.WriteFile(path, []byte("Hostname=configured\n"), 0o600); err != nil {
 		t.Fatal(err)
 	}
-	if err := UpdateConfigValue(path, "Hostname", `""`); err != nil {
+	if err := SetParameter(path, "Hostname", `""`); err != nil {
 		t.Fatal(err)
 	}
 
@@ -115,27 +134,5 @@ func TestUpdateConfigValueSetsUndefinedValue(t *testing.T) {
 	}
 	if string(data) != "Hostname=\n" {
 		t.Fatalf("config: %q, want an undefined Hostname", data)
-	}
-}
-
-func TestUpdateConfigMultiplePreservesCRLF(t *testing.T) {
-	path := filepath.Join(t.TempDir(), "agent.conf")
-	if err := os.WriteFile(path, []byte("DenyKey=existing\r\n# DenyKey=system.run[*]\r\n"), 0o600); err != nil {
-		t.Fatal(err)
-	}
-	if err := UpdateConfigMultiple(path, "DenyKey", "existing,new"); err != nil {
-		t.Fatal(err)
-	}
-
-	data, err := os.ReadFile(path)
-	if err != nil {
-		t.Fatal(err)
-	}
-	content := string(data)
-	if strings.Count(content, "DenyKey=existing\r\n") != 1 {
-		t.Fatalf("existing CRLF value was duplicated:\n%s", data)
-	}
-	if !strings.Contains(content, "DenyKey=new\r\n") || strings.Contains(content, "\nDenyKey=new\n") {
-		t.Fatalf("CRLF line endings were not preserved:\n%q", data)
 	}
 }

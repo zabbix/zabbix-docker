@@ -55,7 +55,7 @@ func TestPrepareService(t *testing.T) {
 		"ListenBacklog=128\n",
 		"Include=" + filepath.Join(configDir, "zabbix_agentd.d", "*.conf") + "\n",
 		"TLSPSKIdentity=identity\n",
-		"TLSPSKFile=" + filepath.Join(homeDir, "enc_internal", "TLSPSKFile") + "\n",
+		"TLSPSKFile=" + filepath.Join(homeDir, "enc_internal", "ZBX_TLSPSKFILE") + "\n",
 		"TLSCAFile=" + filepath.Join(homeDir, "enc", "ca.pem") + "\n",
 		"DenyKey=system.run[*]\n",
 		"AllowKey=system.localtime\n",
@@ -69,7 +69,7 @@ func TestPrepareService(t *testing.T) {
 		t.Fatalf("file logging parameters were not removed:\n%s", data)
 	}
 
-	tlsData, err := os.ReadFile(filepath.Join(homeDir, "enc_internal", "TLSPSKFile"))
+	tlsData, err := os.ReadFile(filepath.Join(homeDir, "enc_internal", "ZBX_TLSPSKFILE"))
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -6,6 +6,7 @@
 package bootstrap
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -65,15 +66,37 @@ func (env Environment) ValueOrDefaultNonEmpty(name, defaultValue string) string 
 	return defaultValue
 }
 
-// RequiredDirectories returns the Zabbix home and config directories
+// RequiredHomeDir returns the Zabbix home directory,
+// verifying that it exists.
+func RequiredHomeDir(env Environment) (string, error) {
+	dir := env["ZABBIX_USER_HOME_DIR"]
+	if err := validateDir(dir); err != nil {
+		return "", fmt.Errorf("ZABBIX_USER_HOME_DIR: %w", err)
+	}
+
+	return dir, nil
+}
+
+// RequiredConfigDir returns the Zabbix config directory,
+// verifying that it exists.
+func RequiredConfigDir(env Environment) (string, error) {
+	dir := env["ZABBIX_CONF_DIR"]
+	if err := validateDir(dir); err != nil {
+		return "", fmt.Errorf("ZABBIX_CONF_DIR: %w", err)
+	}
+
+	return dir, nil
+}
+
+// CommonDirs returns the Zabbix home and config directories
 // (ZABBIX_USER_HOME_DIR and ZABBIX_CONF_DIR), verifying that both exist.
-func RequiredDirectories(env Environment) (homeDir, configDir string, err error) {
-	homeDir, err = requiredDirectory(env, "ZABBIX_USER_HOME_DIR")
+func CommonDirs(env Environment) (homeDir, configDir string, err error) {
+	homeDir, err = RequiredHomeDir(env)
 	if err != nil {
 		return "", "", err
 	}
 
-	configDir, err = requiredDirectory(env, "ZABBIX_CONF_DIR")
+	configDir, err = RequiredConfigDir(env)
 	if err != nil {
 		return "", "", err
 	}
@@ -81,65 +104,47 @@ func RequiredDirectories(env Environment) (homeDir, configDir string, err error)
 	return homeDir, configDir, nil
 }
 
-// requiredDirectory returns directory from env variable.
-func requiredDirectory(env Environment, name string) (string, error) {
-	directory := env[name]
-	if directory == "" {
-		return "", fmt.Errorf("%s must be set", name)
+// validateDir verifies that dir is an existing directory.
+func validateDir(dir string) error {
+	if dir == "" {
+		return errors.New("must be set")
 	}
 
-	info, err := os.Stat(directory)
+	info, err := os.Stat(dir)
 	if err != nil {
-		return "", fmt.Errorf("access %s directory %s: %w", name, directory, err)
+		return fmt.Errorf("access %q: %w", dir, err)
 	}
 	if !info.IsDir() {
-		return "", fmt.Errorf("%s path %s is not a directory", name, directory)
+		return fmt.Errorf("%q is not a directory", dir)
 	}
-
-	return directory, nil
-}
-
-// ProcessFileFromEnvironment persists the value of variable into a file
-// under directory and points the corresponding "<variable>FILE" variable at
-// it. The plain variable is removed from the environment.
-func ProcessFileFromEnvironment(env Environment, directory, variable string) error {
-	fileVariable := variable + "FILE"
-
-	if value := env[variable]; value != "" {
-		path := filepath.Join(directory, fileVariable)
-		if err := os.WriteFile(path, []byte(value), 0o600); err != nil {
-			return fmt.Errorf("write %s: %w", path, err)
-		}
-		env[fileVariable] = path
-	}
-	delete(env, variable)
 
 	return nil
 }
 
-// ProcessTLSFiles persists inline TLS material under <home>/enc_internal,
-// resolves relative TLS file names against <home>/enc and updates configPath.
-func ProcessTLSFiles(env Environment, homeDir, configPath string, parameters ...string) error {
-	internalDirectory := filepath.Join(homeDir, "enc_internal")
+// ProcessTLSFiles moves inline TLS material from the listed variables into
+// files under <home>/enc_internal. Existing relative TLS file paths are
+// resolved against <home>/enc, while absolute paths are preserved unchanged.
+func ProcessTLSFiles(env Environment, homeDir string, variables ...string) error {
+	internalDir := filepath.Join(homeDir, "enc_internal")
+	volumeDir := filepath.Join(homeDir, "enc")
 
-	for _, parameter := range parameters {
-		variable := "ZBX_" + strings.ToUpper(strings.TrimSuffix(parameter, "File"))
+	for _, variable := range variables {
 		fileVariable := variable + "FILE"
+
 		if value := env[variable]; value != "" {
-			path := filepath.Join(internalDirectory, parameter)
+			path := filepath.Join(internalDir, fileVariable)
+
 			if err := os.WriteFile(path, []byte(value), 0o600); err != nil {
 				return fmt.Errorf("write %s: %w", path, err)
 			}
+
 			env[fileVariable] = path
 		}
+
 		delete(env, variable)
 
-		if value := env[fileVariable]; value != "" && !filepath.IsAbs(value) {
-			env[fileVariable] = filepath.Join(homeDir, "enc", value)
-		}
-
-		if err := UpdateConfigValue(configPath, parameter, env[fileVariable]); err != nil {
-			return err
+		if path := env[fileVariable]; path != "" && !filepath.IsAbs(path) {
+			env[fileVariable] = filepath.Join(volumeDir, path)
 		}
 	}
 

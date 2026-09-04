@@ -1,8 +1,7 @@
 //go:build windows
 
-// Package agent prepares the runtime environment for Zabbix agent and
-// agent 2.
-package agent
+// Package config prepares Zabbix configuration from the container environment.
+package config
 
 import (
 	"strings"
@@ -34,14 +33,14 @@ func ConfigureServers(env bootstrap.Environment, configPath string) error {
 		activeServers = prependServer(activeServer, activeServers)
 	}
 
-	if v := env["ZBX_PASSIVE_ALLOW"]; (strings.TrimSpace(v) == "" || strings.EqualFold(v, "true")) && passiveServers != "" {
+	if value := env["ZBX_PASSIVE_ALLOW"]; (strings.TrimSpace(value) == "" || strings.EqualFold(value, "true")) && passiveServers != "" {
 		bootstrap.LogInfo("** Using '%s' servers for passive checks", passiveServers)
 		env["ZBX_PASSIVESERVERS"] = passiveServers
 	} else {
 		delete(env, "ZBX_PASSIVESERVERS")
 	}
 
-	if v := env["ZBX_ACTIVE_ALLOW"]; (strings.TrimSpace(v) == "" || strings.EqualFold(v, "true")) && activeServers != "" {
+	if value := env["ZBX_ACTIVE_ALLOW"]; (strings.TrimSpace(value) == "" || strings.EqualFold(value, "true")) && activeServers != "" {
 		bootstrap.LogInfo("** Using '%s' servers for active checks", activeServers)
 		env["ZBX_ACTIVESERVERS"] = activeServers
 	} else {
@@ -51,34 +50,42 @@ func ConfigureServers(env bootstrap.Environment, configPath string) error {
 	delete(env, "ZBX_SERVER_HOST")
 	delete(env, "ZBX_SERVER_PORT")
 
-	if err := bootstrap.UpdateConfigValue(configPath, "Server", env["ZBX_PASSIVESERVERS"]); err != nil {
-		return err
-	}
-
-	return bootstrap.UpdateConfigValue(configPath, "ServerActive", env["ZBX_ACTIVESERVERS"])
+	return SetParameters(configPath,
+		Parameter{Name: "Server", Value: env["ZBX_PASSIVESERVERS"]},
+		Parameter{Name: "ServerActive", Value: env["ZBX_ACTIVESERVERS"]},
+	)
 }
 
 // ConfigureAllowDenyKeys writes ZBX_DENYKEY and ZBX_ALLOWKEY into configPath.
 func ConfigureAllowDenyKeys(env bootstrap.Environment, configPath string) error {
-	if err := bootstrap.UpdateConfigMultiple(configPath, "DenyKey", env["ZBX_DENYKEY"]); err != nil {
+	if err := MergeParameterValues(configPath, "DenyKey", env["ZBX_DENYKEY"]); err != nil {
 		return err
 	}
 
-	return bootstrap.UpdateConfigMultiple(configPath, "AllowKey", env["ZBX_ALLOWKEY"])
+	return MergeParameterValues(configPath, "AllowKey", env["ZBX_ALLOWKEY"])
 }
 
 // ProcessTLSFiles persists the agent TLS material from the environment and
 // writes the resulting file paths to configPath.
 func ProcessTLSFiles(env bootstrap.Environment, homeDir, configPath string) error {
-	return bootstrap.ProcessTLSFiles(
+	if err := bootstrap.ProcessTLSFiles(
 		env,
 		homeDir,
-		configPath,
-		"TLSCAFile",
-		"TLSCRLFile",
-		"TLSCertFile",
-		"TLSKeyFile",
-		"TLSPSKFile",
+		"ZBX_TLSCA",
+		"ZBX_TLSCRL",
+		"ZBX_TLSCERT",
+		"ZBX_TLSKEY",
+		"ZBX_TLSPSK",
+	); err != nil {
+		return err
+	}
+
+	return SetParameters(configPath,
+		Parameter{Name: "TLSCAFile", Value: env["ZBX_TLSCAFILE"]},
+		Parameter{Name: "TLSCRLFile", Value: env["ZBX_TLSCRLFILE"]},
+		Parameter{Name: "TLSCertFile", Value: env["ZBX_TLSCERTFILE"]},
+		Parameter{Name: "TLSKeyFile", Value: env["ZBX_TLSKEYFILE"]},
+		Parameter{Name: "TLSPSKFile", Value: env["ZBX_TLSPSKFILE"]},
 	)
 }
 
