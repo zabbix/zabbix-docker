@@ -5,8 +5,8 @@ package main
 import (
 	"path/filepath"
 
-	config "github.com/zabbix/zabbix-docker/templates/entrypoints/internal/agent"
 	"github.com/zabbix/zabbix-docker/templates/entrypoints/internal/bootstrap"
+	"github.com/zabbix/zabbix-docker/templates/entrypoints/internal/config"
 )
 
 const agentBinary = `C:\zabbix\sbin\zabbix_agentd.exe`
@@ -14,7 +14,7 @@ const agentBinary = `C:\zabbix\sbin\zabbix_agentd.exe`
 func prepareService(env bootstrap.Environment) error {
 	bootstrap.LogInfo("** Preparing Zabbix agent")
 
-	homeDir, configDir, err := bootstrap.RequiredDirectories(env)
+	homeDir, configDir, err := bootstrap.CommonDirs(env)
 	if err != nil {
 		return err
 	}
@@ -29,56 +29,56 @@ func prepareService(env bootstrap.Environment) error {
 		return err
 	}
 
-	if err := bootstrap.UpdateConfigValues(configPath,
-		bootstrap.ConfigValue{Name: "LogType", Value: "console"},
-		bootstrap.ConfigValue{Name: "LogFile"},
-		bootstrap.ConfigValue{Name: "LogFileSize"},
+	if err := config.SetParameters(configPath,
+		config.Parameter{Name: "LogType", Value: "console"},
+		config.Parameter{Name: "LogFile"},
+		config.Parameter{Name: "LogFileSize"},
 
-		bootstrap.ConfigValue{Name: "DebugLevel", Value: env["ZBX_DEBUGLEVEL"]},
+		config.Parameter{Name: "DebugLevel", Value: env["ZBX_DEBUGLEVEL"]},
 
-		bootstrap.ConfigValue{Name: "SourceIP", Value: env["ZBX_SOURCEIP"]},
+		config.Parameter{Name: "SourceIP", Value: env["ZBX_SOURCEIP"]},
 
-		bootstrap.ConfigValue{Name: "EnableRemoteCommands", Value: env["ZBX_ENABLEREMOTECOMMANDS"]},
-		bootstrap.ConfigValue{Name: "LogRemoteCommands", Value: env["ZBX_LOGREMOTECOMMANDS"]},
+		config.Parameter{Name: "EnableRemoteCommands", Value: env["ZBX_ENABLEREMOTECOMMANDS"]},
+		config.Parameter{Name: "LogRemoteCommands", Value: env["ZBX_LOGREMOTECOMMANDS"]},
 
-		bootstrap.ConfigValue{Name: "ListenPort", Value: env["ZBX_LISTENPORT"]},
-		bootstrap.ConfigValue{Name: "ListenIP", Value: env["ZBX_LISTENIP"]},
+		config.Parameter{Name: "ListenPort", Value: env["ZBX_LISTENPORT"]},
+		config.Parameter{Name: "ListenIP", Value: env["ZBX_LISTENIP"]},
 
-		bootstrap.ConfigValue{Name: "StartAgents", Value: env["ZBX_STARTAGENTS"]},
-		bootstrap.ConfigValue{Name: "HeartbeatFrequency", Value: env["ZBX_HEARTBEAT_FREQUENCY"]},
+		config.Parameter{Name: "StartAgents", Value: env["ZBX_STARTAGENTS"]},
+		config.Parameter{Name: "HeartbeatFrequency", Value: env["ZBX_HEARTBEAT_FREQUENCY"]},
 
-		bootstrap.ConfigValue{Name: "HostInterface", Value: env["ZBX_HOSTINTERFACE"]},
-		bootstrap.ConfigValue{Name: "HostInterfaceItem", Value: env["ZBX_HOSTINTERFACEITEM"]},
-		bootstrap.ConfigValue{Name: "Hostname", Value: env["ZBX_HOSTNAME"]},
-		bootstrap.ConfigValue{Name: "HostnameItem", Value: env["ZBX_HOSTNAMEITEM"]},
-		bootstrap.ConfigValue{Name: "HostMetadata", Value: env["ZBX_METADATA"]},
-		bootstrap.ConfigValue{Name: "HostMetadataItem", Value: env["ZBX_METADATAITEM"]},
+		config.Parameter{Name: "HostInterface", Value: env["ZBX_HOSTINTERFACE"]},
+		config.Parameter{Name: "HostInterfaceItem", Value: env["ZBX_HOSTINTERFACEITEM"]},
+		config.Parameter{Name: "Hostname", Value: env["ZBX_HOSTNAME"]},
+		config.Parameter{Name: "HostnameItem", Value: env["ZBX_HOSTNAMEITEM"]},
+		config.Parameter{Name: "HostMetadata", Value: env["ZBX_METADATA"]},
+		config.Parameter{Name: "HostMetadataItem", Value: env["ZBX_METADATAITEM"]},
 
-		bootstrap.ConfigValue{Name: "RefreshActiveChecks", Value: env["ZBX_REFRESHACTIVECHECKS"]},
+		config.Parameter{Name: "RefreshActiveChecks", Value: env["ZBX_REFRESHACTIVECHECKS"]},
 
-		bootstrap.ConfigValue{Name: "BufferSend", Value: env["ZBX_BUFFERSEND"]},
-		bootstrap.ConfigValue{Name: "BufferSize", Value: env["ZBX_BUFFERSIZE"]},
+		config.Parameter{Name: "BufferSend", Value: env["ZBX_BUFFERSEND"]},
+		config.Parameter{Name: "BufferSize", Value: env["ZBX_BUFFERSIZE"]},
 
-		bootstrap.ConfigValue{Name: "MaxLinesPerSecond", Value: env["ZBX_MAXLINESPERSECOND"]},
-		bootstrap.ConfigValue{Name: "Timeout", Value: env["ZBX_TIMEOUT"]},
-		bootstrap.ConfigValue{Name: "Include", Value: filepath.Join(configDir, "zabbix_agentd.d", "*.conf")},
+		config.Parameter{Name: "MaxLinesPerSecond", Value: env["ZBX_MAXLINESPERSECOND"]},
+		config.Parameter{Name: "Timeout", Value: env["ZBX_TIMEOUT"]},
+		config.Parameter{Name: "Include", Value: filepath.Join(configDir, "zabbix_agentd.d", "*.conf")},
 
-		bootstrap.ConfigValue{Name: "UnsafeUserParameters", Value: env["ZBX_UNSAFEUSERPARAMETERS"]},
-		bootstrap.ConfigValue{Name: "UserParameterDir", Value: env["ZBX_USERPARAMETERDIR"]},
+		config.Parameter{Name: "UnsafeUserParameters", Value: env["ZBX_UNSAFEUSERPARAMETERS"]},
+		config.Parameter{Name: "UserParameterDir", Value: env["ZBX_USERPARAMETERDIR"]},
 
-		bootstrap.ConfigValue{Name: "TLSConnect", Value: env["ZBX_TLSCONNECT"]},
-		bootstrap.ConfigValue{Name: "TLSAccept", Value: env["ZBX_TLSACCEPT"]},
-		bootstrap.ConfigValue{Name: "TLSServerCertIssuer", Value: env["ZBX_TLSSERVERCERTISSUER"]},
-		bootstrap.ConfigValue{Name: "TLSServerCertSubject", Value: env["ZBX_TLSSERVERCERTSUBJECT"]},
+		config.Parameter{Name: "TLSConnect", Value: env["ZBX_TLSCONNECT"]},
+		config.Parameter{Name: "TLSAccept", Value: env["ZBX_TLSACCEPT"]},
+		config.Parameter{Name: "TLSServerCertIssuer", Value: env["ZBX_TLSSERVERCERTISSUER"]},
+		config.Parameter{Name: "TLSServerCertSubject", Value: env["ZBX_TLSSERVERCERTSUBJECT"]},
 
-		bootstrap.ConfigValue{Name: "TLSCipherAll", Value: env["ZBX_TLSCIPHERALL"]},
-		bootstrap.ConfigValue{Name: "TLSCipherAll13", Value: env["ZBX_TLSCIPHERALL13"]},
-		bootstrap.ConfigValue{Name: "TLSCipherCert", Value: env["ZBX_TLSCIPHERCERT"]},
-		bootstrap.ConfigValue{Name: "TLSCipherCert13", Value: env["ZBX_TLSCIPHERCERT13"]},
-		bootstrap.ConfigValue{Name: "TLSCipherPSK", Value: env["ZBX_TLSCIPHERPSK"]},
-		bootstrap.ConfigValue{Name: "TLSCipherPSK13", Value: env["ZBX_TLSCIPHERPSK13"]},
+		config.Parameter{Name: "TLSCipherAll", Value: env["ZBX_TLSCIPHERALL"]},
+		config.Parameter{Name: "TLSCipherAll13", Value: env["ZBX_TLSCIPHERALL13"]},
+		config.Parameter{Name: "TLSCipherCert", Value: env["ZBX_TLSCIPHERCERT"]},
+		config.Parameter{Name: "TLSCipherCert13", Value: env["ZBX_TLSCIPHERCERT13"]},
+		config.Parameter{Name: "TLSCipherPSK", Value: env["ZBX_TLSCIPHERPSK"]},
+		config.Parameter{Name: "TLSCipherPSK13", Value: env["ZBX_TLSCIPHERPSK13"]},
 
-		bootstrap.ConfigValue{Name: "TLSPSKIdentity", Value: env["ZBX_TLSPSKIDENTITY"]},
+		config.Parameter{Name: "TLSPSKIdentity", Value: env["ZBX_TLSPSKIDENTITY"]},
 	); err != nil {
 		return err
 	}
