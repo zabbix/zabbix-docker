@@ -52,7 +52,6 @@ func TestProcessFileAndClearEnvironment(t *testing.T) {
 	}
 }
 
-
 func TestProcessTLSFilesResolvesRelativePaths(t *testing.T) {
 	homeDir := t.TempDir()
 	if err := os.MkdirAll(filepath.Join(homeDir, "enc_internal"), 0o700); err != nil {

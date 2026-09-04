@@ -126,7 +126,7 @@ file_process_from_env() {
         file_name="${dir_name}/${var_name}"
         printf '%s' "$var_value" > "$file_name"
         export "$var_name=$file_name"
-    elif [[ "$var_name" =~ ^ZBX_TLS.*FILE$ ]] && [ -n "$file_name" ] && [[ "$file_name" != /* ]]; then
+    elif [[ "$var_name" =~ ^ZBX_(SERVER_)?TLS.*FILE$ ]] && [ -n "$file_name" ] && [[ "$file_name" != /* ]]; then
         # Use full path to a file for TLS related configuration parameters, if specified only name of the file
         export "$var_name=${ZABBIX_USER_HOME_DIR}/enc/${file_name}"
     fi
