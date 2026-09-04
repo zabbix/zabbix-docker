@@ -26,6 +26,7 @@ services:
    file: compose_zabbix_components.yaml
    service: server-pgsql
   image: "${ZABBIX_SERVER_PGSQL_IMAGE}:${ZBX_IMAGE_TAG}"
+  restart: unless-stopped
   depends_on:
    server-db-init:
     condition: service_completed_successfully
@@ -39,6 +40,7 @@ services:
    file: compose_zabbix_components.yaml
    service: proxy-sqlite3
   image: "${ZABBIX_PROXY_SQLITE3_IMAGE}:${ZBX_IMAGE_TAG}"
+  restart: unless-stopped
   labels:
    com.zabbix.os: "${OS}"
 
@@ -47,6 +49,7 @@ services:
    file: compose_zabbix_components.yaml
    service: proxy-mysql
   image: "${ZABBIX_PROXY_MYSQL_IMAGE}:${ZBX_IMAGE_TAG}"
+  restart: unless-stopped
   depends_on:
    proxy-db-init:
     condition: service_completed_successfully
@@ -60,6 +63,7 @@ services:
    file: compose_zabbix_components.yaml
    service: web-apache-pgsql
   image: "${ZABBIX_WEB_APACHE_PGSQL_IMAGE}:${ZBX_IMAGE_TAG}"
+  restart: unless-stopped
   depends_on:
    server-db-init:
     condition: service_completed_successfully
@@ -73,6 +77,7 @@ services:
    file: compose_zabbix_components.yaml
    service: web-nginx-pgsql
   image: "${ZABBIX_WEB_NGINX_PGSQL_IMAGE}:${ZBX_IMAGE_TAG}"
+  restart: unless-stopped
   depends_on:
    server-db-init:
     condition: service_completed_successfully
@@ -86,6 +91,7 @@ services:
    file: compose_zabbix_components.yaml
    service: agent
   image: "${ZABBIX_AGENT_IMAGE}:${ZBX_IMAGE_TAG}"
+  restart: unless-stopped
   labels:
    com.zabbix.os: "${OS}"
 
@@ -94,6 +100,7 @@ services:
    file: compose_zabbix_components.yaml
    service: java-gateway
   image: "${ZABBIX_JAVA_GATEWAY_IMAGE}:${ZBX_IMAGE_TAG}"
+  restart: unless-stopped
   labels:
    com.zabbix.os: "${OS}"
 
@@ -102,6 +109,7 @@ services:
    file: compose_zabbix_components.yaml
    service: snmptraps
   image: "${ZABBIX_SNMPTRAPS_IMAGE}:${ZBX_IMAGE_TAG}"
+  restart: unless-stopped
   labels:
    com.zabbix.os: "${OS}"
 
@@ -110,6 +118,7 @@ services:
    file: compose_zabbix_components.yaml
    service: web-service
   image: "${ZABBIX_WEB_SERVICE_IMAGE}:${ZBX_IMAGE_TAG}"
+  restart: unless-stopped
   labels:
    com.zabbix.os: "${OS}"
 
@@ -119,32 +128,38 @@ services:
   extends:
    file: compose_databases.yaml
    service: mysql-server
+  restart: unless-stopped
 
  postgres-server:
   extends:
    file: compose_databases.yaml
    service: postgres-server
+  restart: unless-stopped
 
  elasticsearch:
   extends:
    file: compose_databases.yaml
    service: elasticsearch
+  restart: unless-stopped
 
  selenium:
   extends:
    file: compose_additional_components.yaml
    service: selenium
+  restart: unless-stopped
 
  selenium-chrome:
   platform: linux/amd64
   extends:
    file: compose_additional_components.yaml
    service: selenium-chrome
+  restart: unless-stopped
 
  selenium-firefox:
   extends:
    file: compose_additional_components.yaml
    service: selenium-firefox
+  restart: unless-stopped
 
 networks:
   frontend:

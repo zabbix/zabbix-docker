@@ -128,27 +128,32 @@ services:
   extends:
    file: compose_databases.yaml
    service: mysql-server
+  restart: unless-stopped
 
  elasticsearch:
   extends:
    file: compose_databases.yaml
    service: elasticsearch
+  restart: unless-stopped
 
  selenium:
   extends:
    file: compose_additional_components.yaml
    service: selenium
+  restart: unless-stopped
 
  selenium-chrome:
   platform: linux/amd64
   extends:
    file: compose_additional_components.yaml
    service: selenium-chrome
+  restart: unless-stopped
 
  selenium-firefox:
   extends:
    file: compose_additional_components.yaml
    service: selenium-firefox
+  restart: unless-stopped
 
 networks:
   frontend:
