@@ -6,10 +6,10 @@
 !templates/entrypoints/cmd/agent/
 !templates/entrypoints/cmd/agent/**
 !templates/entrypoints/internal/
-!templates/entrypoints/internal/agent/
-!templates/entrypoints/internal/agent/**
 !templates/entrypoints/internal/bootstrap/
 !templates/entrypoints/internal/bootstrap/**
+!templates/entrypoints/internal/config/
+!templates/entrypoints/internal/config/**
 !templates/entrypoints/licenses/
 !templates/entrypoints/licenses/go-THIRD-PARTY-NOTICES.txt
 !templates/config/

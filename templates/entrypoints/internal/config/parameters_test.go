@@ -1,6 +1,6 @@
 //go:build windows
 
-package bootstrap
+package config
 
 import (
 	"os"
@@ -10,12 +10,12 @@ import (
 	"time"
 )
 
-func TestUpdateConfigMultiple(t *testing.T) {
+func TestMergeParameterValues(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "agent.conf")
 	if err := os.WriteFile(path, []byte("# DenyKey=system.run[*]\nOther=value\n"), 0o600); err != nil {
 		t.Fatal(err)
 	}
-	if err := UpdateConfigMultiple(path, "DenyKey", `"one,two"`); err != nil {
+	if err := MergeParameterValues(path, "DenyKey", `"one,two"`); err != nil {
 		t.Fatal(err)
 	}
 
@@ -36,12 +36,12 @@ func TestUpdateConfigMultiple(t *testing.T) {
 	}
 }
 
-func TestUpdateConfigMultiplePreservesCRLF(t *testing.T) {
+func TestMergeParameterValuesNormalizesCRLF(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "agent.conf")
 	if err := os.WriteFile(path, []byte("# DenyKey=system.run[*]\r\nOther=value\r\n"), 0o600); err != nil {
 		t.Fatal(err)
 	}
-	if err := UpdateConfigMultiple(path, "DenyKey", "one,two"); err != nil {
+	if err := MergeParameterValues(path, "DenyKey", "one,two"); err != nil {
 		t.Fatal(err)
 	}
 
@@ -49,18 +49,18 @@ func TestUpdateConfigMultiplePreservesCRLF(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	want := "# DenyKey=system.run[*]\r\nDenyKey=one\r\nDenyKey=two\r\nOther=value\r\n"
+	want := "# DenyKey=system.run[*]\nDenyKey=one\nDenyKey=two\nOther=value\n"
 	if string(data) != want {
 		t.Fatalf("config:\n%q\nwant:\n%q", data, want)
 	}
 }
 
-func TestUpdateConfigMultiplePreservesActiveValues(t *testing.T) {
+func TestMergeParameterValuesPreservesActiveValues(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "agent.conf")
 	if err := os.WriteFile(path, []byte("DenyKey=existing\n# DenyKey=system.run[*]\n"), 0o600); err != nil {
 		t.Fatal(err)
 	}
-	if err := UpdateConfigMultiple(path, "DenyKey", "existing,new"); err != nil {
+	if err := MergeParameterValues(path, "DenyKey", "existing,new"); err != nil {
 		t.Fatal(err)
 	}
 
@@ -77,12 +77,12 @@ func TestUpdateConfigMultiplePreservesActiveValues(t *testing.T) {
 	}
 }
 
-func TestUpdateConfigMultipleRemovesActiveValuesWhenEmpty(t *testing.T) {
+func TestMergeParameterValuesRemovesActiveValuesWhenEmpty(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "agent.conf")
 	if err := os.WriteFile(path, []byte("DenyKey=system.run[*]\nOther=value\n"), 0o600); err != nil {
 		t.Fatal(err)
 	}
-	if err := UpdateConfigMultiple(path, "DenyKey", ""); err != nil {
+	if err := MergeParameterValues(path, "DenyKey", ""); err != nil {
 		t.Fatal(err)
 	}
 
@@ -95,7 +95,7 @@ func TestUpdateConfigMultipleRemovesActiveValuesWhenEmpty(t *testing.T) {
 	}
 }
 
-func TestUpdateConfigMultipleDoesNotRewriteUnchangedConfig(t *testing.T) {
+func TestMergeParameterValuesDoesNotRewriteUnchangedConfig(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "agent.conf")
 	data := []byte("# DenyKey=system.run[*]\nOther=value\n")
 	if err := os.WriteFile(path, data, 0o600); err != nil {
@@ -106,7 +106,7 @@ func TestUpdateConfigMultipleDoesNotRewriteUnchangedConfig(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if err := UpdateConfigMultiple(path, "DenyKey", ""); err != nil {
+	if err := MergeParameterValues(path, "DenyKey", ""); err != nil {
 		t.Fatal(err)
 	}
 

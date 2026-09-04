@@ -6,14 +6,14 @@ import (
 	"os/exec"
 	"path/filepath"
 
-	config "github.com/zabbix/zabbix-docker/templates/entrypoints/internal/agent"
 	"github.com/zabbix/zabbix-docker/templates/entrypoints/internal/bootstrap"
+	"github.com/zabbix/zabbix-docker/templates/entrypoints/internal/config"
 )
 
 func prepareService(env bootstrap.Environment) error {
 	bootstrap.LogInfo("** Preparing Zabbix agent 2")
 
-	homeDir, configDir, err := bootstrap.RequiredDirectories(env)
+	homeDir, configDir, err := bootstrap.CommonDirs(env)
 	if err != nil {
 		return err
 	}
@@ -38,6 +38,8 @@ func prepareService(env bootstrap.Environment) error {
 	return nil
 }
 
+// configureFeatureSwitches normalizes Agent 2-specific persistent buffer and
+// status listener settings.
 func configureFeatureSwitches(env bootstrap.Environment) {
 	if env["ZBX_ENABLEPERSISTENTBUFFER"] == "true" {
 		env["ZBX_ENABLEPERSISTENTBUFFER"] = "1"
@@ -53,6 +55,8 @@ func configureFeatureSwitches(env bootstrap.Environment) {
 	}
 }
 
+// updatePluginConfig writes platform-specific executable paths for Agent 2
+// external plugins.
 func updatePluginConfig(homeDir, configDir string) error {
 	bootstrap.LogInfo("** Preparing Zabbix agent 2 plugin configuration files")
 
@@ -60,7 +64,7 @@ func updatePluginConfig(homeDir, configDir string) error {
 	binDir := pluginBinDir(homeDir)
 
 	plugins := []struct {
-		file, parameter, binary string
+		file, param, binary string
 	}{
 		{"mongodb.conf", "Plugins.MongoDB.System.Path", "mongodb"},
 		{"postgresql.conf", "Plugins.PostgreSQL.System.Path", "postgresql"},
@@ -70,14 +74,14 @@ func updatePluginConfig(homeDir, configDir string) error {
 
 	if _, err := exec.LookPath(nvidiaCommand); err == nil {
 		plugins = append(plugins, struct {
-			file, parameter, binary string
+			file, param, binary string
 		}{"nvidia.conf", "Plugins.NVIDIA.System.Path", "nvidia-gpu"})
 	}
 
 	for _, plugin := range plugins {
-		if err := bootstrap.UpdateConfigValue(
+		if err := config.SetParameter(
 			filepath.Join(configDir, plugin.file),
-			plugin.parameter,
+			plugin.param,
 			filepath.Join(binDir, plugin.binary+pluginExecSuffix),
 		); err != nil {
 			return err

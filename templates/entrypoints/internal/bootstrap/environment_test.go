@@ -23,12 +23,16 @@ func TestEnvironmentDefaults(t *testing.T) {
 }
 
 func TestProcessFileAndClearEnvironment(t *testing.T) {
-	directory := t.TempDir()
+	homeDir := t.TempDir()
+	directory := filepath.Join(homeDir, "enc_internal")
+	if err := os.Mkdir(directory, 0o700); err != nil {
+		t.Fatal(err)
+	}
 	env := Environment{
 		"ZBX_TLSPSK": "secret", "ZABBIX_CONF_DIR": `C:\zabbix\conf`,
 		"UNRELATED_VARIABLE": "value", "VALUE": "a=b",
 	}
-	if err := ProcessFileFromEnvironment(env, directory, "ZBX_TLSPSK"); err != nil {
+	if err := ProcessTLSFiles(env, homeDir, "ZBX_TLSPSK"); err != nil {
 		t.Fatal(err)
 	}
 
@@ -73,18 +77,9 @@ func TestProcessTLSFilesResolvesRelativePaths(t *testing.T) {
 		name string
 		want string
 	}{
-		{
-			name: "ZBX_TLSCAFILE",
-			want: filepath.Join(homeDir, "enc", "ca.crt"),
-		},
-		{
-			name: "ZBX_TLSCERTFILE",
-			want: absoluteCertPath,
-		},
-		{
-			name: "ZBX_TLSPSKFILE",
-			want: filepath.Join(homeDir, "enc_internal", "ZBX_TLSPSKFILE"),
-		},
+		{name: "ZBX_TLSCAFILE", want: filepath.Join(homeDir, "enc", "ca.crt")},
+		{name: "ZBX_TLSCERTFILE", want: absoluteCertPath},
+		{name: "ZBX_TLSPSKFILE", want: filepath.Join(homeDir, "enc_internal", "ZBX_TLSPSKFILE")},
 	}
 	for _, test := range tests {
 		if got := env[test.name]; got != test.want {
@@ -119,18 +114,18 @@ func TestClearPrivateEnvWithPrefixes(t *testing.T) {
 	}
 }
 
-func TestRequiredHomeDirectory(t *testing.T) {
+func TestRequiredHomeDir(t *testing.T) {
 	homeDir := t.TempDir()
-	got, err := RequiredHomeDirectory(Environment{"ZABBIX_USER_HOME_DIR": homeDir})
+	got, err := RequiredHomeDir(Environment{"ZABBIX_USER_HOME_DIR": homeDir})
 	if err != nil {
 		t.Fatal(err)
 	}
 	if got != homeDir {
-		t.Fatalf("RequiredHomeDirectory() = %q, want %q", got, homeDir)
+		t.Fatalf("RequiredHomeDir() = %q, want %q", got, homeDir)
 	}
 }
 
-func TestRequiredHomeDirectoryRejectsInvalidPaths(t *testing.T) {
+func TestRequiredHomeDirRejectsInvalidPaths(t *testing.T) {
 	filePath := filepath.Join(t.TempDir(), "home")
 	if err := os.WriteFile(filePath, nil, 0o600); err != nil {
 		t.Fatal(err)
@@ -146,8 +141,8 @@ func TestRequiredHomeDirectoryRejectsInvalidPaths(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			if _, err := RequiredHomeDirectory(Environment{"ZABBIX_USER_HOME_DIR": test.path}); err == nil {
-				t.Fatal("RequiredHomeDirectory() unexpectedly succeeded")
+			if _, err := RequiredHomeDir(Environment{"ZABBIX_USER_HOME_DIR": test.path}); err == nil {
+				t.Fatal("RequiredHomeDir() unexpectedly succeeded")
 			}
 		})
 	}

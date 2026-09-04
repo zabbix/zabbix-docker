@@ -3,14 +3,14 @@
 package main
 
 import (
-	config "github.com/zabbix/zabbix-docker/templates/entrypoints/internal/agent"
 	"github.com/zabbix/zabbix-docker/templates/entrypoints/internal/bootstrap"
+	"github.com/zabbix/zabbix-docker/templates/entrypoints/internal/config"
 )
 
 func prepareService(env bootstrap.Environment) error {
 	bootstrap.LogInfo("** Preparing Zabbix agent")
 
-	homeDir, configDir, err := bootstrap.RequiredDirectories(env)
+	homeDir, configDir, err := bootstrap.CommonDirs(env)
 	if err != nil {
 		return err
 	}
