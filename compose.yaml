@@ -4,7 +4,6 @@ services:
    file: compose_zabbix_components.yaml
    service: server-mysql-db-init
   image: "${ZABBIX_SERVER_MYSQL_IMAGE}:${ZBX_IMAGE_TAG}"
-  restart: unless-stopped
   depends_on:
    mysql-server:
     condition: service_healthy
@@ -16,7 +15,6 @@ services:
    file: compose_zabbix_components.yaml
    service: proxy-mysql-db-init
   image: "${ZABBIX_PROXY_MYSQL_IMAGE}:${ZBX_IMAGE_TAG}"
-  restart: unless-stopped
   depends_on:
    mysql-server:
     condition: service_healthy
