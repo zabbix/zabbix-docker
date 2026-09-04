@@ -1,7 +1,7 @@
 services:
  selenium:
   image: "${WEBDRIVER_IMAGE}:${WEBDRIVER_IMAGE_TAG}"
-  restart: unless-stopped
+  restart: "${RESTART_POLICY}"
   profiles:
    - selenium
    - selenium-chrome
