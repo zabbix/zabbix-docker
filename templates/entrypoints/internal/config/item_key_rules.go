@@ -33,7 +33,7 @@ func ConfigureItemKeyRules(env bootstrap.Environment, configDir, fileName string
 		variableNames = append(variableNames, rule.variable)
 	}
 
-    if len(rules) > 0 {
+	if len(rules) > 0 {
 		bootstrap.LogDebug(env, "** Configuring %s item key rules from %d indexed environment variables: %s",
 			configPath, len(variableNames), strings.Join(variableNames, ", "),
 		)
