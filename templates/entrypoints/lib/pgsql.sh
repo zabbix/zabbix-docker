@@ -56,7 +56,6 @@ check_db_variables() {
 }
 
 check_db_connect() {
-    local use_vault="${1:-false}"
     local wait_timeout=5
 
     info "********************"
@@ -75,12 +74,13 @@ check_db_connect() {
     fi
     info "********************"
 
-    if [ -n "${ZBX_VAULT:-}" ] && [ "$use_vault" = "true" ]; then
+    if [ -n "${ZBX_VAULTDBPATH:-}" ]; then
         unset DB_SERVER_ZBX_USER
         unset DB_SERVER_ZBX_PASS
 
         info "***** Connecting to vault... ******"
         get_vault_secrets
+        DB_SERVER_ROOT_USER="${DB_SERVER_ZBX_USER}"
     fi
 
     set_pg_env

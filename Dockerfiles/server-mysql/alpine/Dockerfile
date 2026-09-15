@@ -46,7 +46,9 @@ COPY --from=builder /tmp/zabbix-${ZBX_VERSION}-output/server/database/mysql/crea
 
 RUN set -eux && \
     INSTALL_PKGS="bash \
+            curl \
             gzip \
+            jq \
             tzdata \
             c-ares \
             krb5 \
