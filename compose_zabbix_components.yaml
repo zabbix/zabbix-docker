@@ -20,9 +20,11 @@ services:
    - ${DATA_DIRECTORY}/var/lib/zabbix/mibs:/var/lib/zabbix/mibs:ro
    - ${DATA_DIRECTORY}/var/lib/zabbix/ssl/certs:/var/lib/zabbix/ssl/certs:ro
    - ${DATA_DIRECTORY}/var/lib/zabbix/ssl/keys:/var/lib/zabbix/ssl/keys:ro
-   - ${DATA_DIRECTORY}/var/lib/zabbix/ssl/ssl_ca:/var/lib/zabbix/ssl/ssl_ca:rw
+   - ${DATA_DIRECTORY}/var/lib/zabbix/ssl/ssl_ca:/var/lib/zabbix/ssl/ssl_ca:ro
    - snmptraps:/var/lib/zabbix/snmptraps:roz
-  tmpfs: /tmp
+  tmpfs:
+   - /tmp
+   - /var/lib/zabbix/ssl/ssl_ca_internal:mode=770,uid=1997,gid=0
   ulimits:
    nproc: 65535
    nofile:
@@ -183,9 +185,11 @@ services:
    - ${DATA_DIRECTORY}/var/lib/zabbix/mibs:/var/lib/zabbix/mibs:ro
    - ${DATA_DIRECTORY}/var/lib/zabbix/ssl/certs:/var/lib/zabbix/ssl/certs:ro
    - ${DATA_DIRECTORY}/var/lib/zabbix/ssl/keys:/var/lib/zabbix/ssl/keys:ro
-   - ${DATA_DIRECTORY}/var/lib/zabbix/ssl/ssl_ca:/var/lib/zabbix/ssl/ssl_ca:rw
+   - ${DATA_DIRECTORY}/var/lib/zabbix/ssl/ssl_ca:/var/lib/zabbix/ssl/ssl_ca:ro
    - snmptraps:/var/lib/zabbix/snmptraps:ro
-  tmpfs: /tmp
+  tmpfs:
+   - /tmp
+   - /var/lib/zabbix/ssl/ssl_ca_internal:mode=770,uid=1997,gid=0
   ulimits:
    nproc: 65535
    nofile:
