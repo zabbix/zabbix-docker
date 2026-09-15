@@ -53,6 +53,20 @@ func TestHashiCorpTLSConfig(t *testing.T) {
 	}
 }
 
+func TestResolveDBCredentialsWithoutDBPath(t *testing.T) {
+	creds, err := ResolveDBCredentials(bootstrap.Environment{
+		"ZBX_VAULT":    "HashiCorp",
+		"ZBX_VAULTURL": "https://vault.example.test",
+		"VAULT_TOKEN":  "token",
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if creds != nil {
+		t.Fatalf("credentials = %#v, want nil", creds)
+	}
+}
+
 func TestDecodeHashiCorp(t *testing.T) {
 	for _, test := range []struct {
 		name      string

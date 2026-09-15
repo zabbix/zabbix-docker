@@ -23,11 +23,11 @@ type Credentials struct {
 	Password string
 }
 
-// ResolveDBCredentials fetches the database credentials when
-// ZBX_VAULT is configured. It returns nil without an error when no Vault is
-// in use.
+// ResolveDBCredentials fetches database credentials when ZBX_VAULTDBPATH is
+// configured. It returns nil without an error when Vault is not used for the
+// database.
 func ResolveDBCredentials(env bootstrap.Environment) (*Credentials, error) {
-	if env["ZBX_VAULT"] == "" {
+	if env["ZBX_VAULTDBPATH"] == "" {
 		return nil, nil
 	}
 
