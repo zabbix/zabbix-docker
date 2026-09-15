@@ -273,7 +273,7 @@ The volume is used as location of SSL private key files for client authenticatio
 
 ### ``/var/lib/zabbix/ssl/ssl_ca``
 
-The volume is used as location of certificate authority (CA) files for SSL server certificate verification. It is `SSLCALocation` parameter in ``zabbix_server.conf``.
+The volume is used to provide certificate authority (CA) files for SSL server certificate verification. The files are copied to an internal writable directory where OpenSSL hash links are generated before Zabbix server starts. The volume should be mounted read-only.
 
 ### ``/var/lib/zabbix/snmptraps``
 

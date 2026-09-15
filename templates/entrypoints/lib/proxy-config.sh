@@ -5,6 +5,8 @@ source "${ENTRYPOINT_LIBS}/openssl.sh"
 
 # Internal directory for TLS related files, used when TLS*File specified as plain text values
 readonly ZABBIX_INTERNAL_ENC_DIR="${ZABBIX_USER_HOME_DIR}/enc_internal"
+# Directory for user-provided CA certificates
+readonly ZABBIX_SSL_CA_DIR="${ZABBIX_USER_HOME_DIR}/ssl/ssl_ca"
 
 proxy_config() {
     local default_host_name="${1:-}"
@@ -37,5 +39,5 @@ proxy_config() {
         export ZBX_ALLOWROOT=1
     fi
 
-    openssl_rehash "${ZBX_SSLCALOCATION}"
+    openssl_prepare_ca "${ZABBIX_SSL_CA_DIR}" "${ZBX_SSLCALOCATION}"
 }

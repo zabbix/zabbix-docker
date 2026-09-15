@@ -28,7 +28,7 @@ ENV ZBX_FPINGLOCATION=/usr/sbin/fping \
     ZBX_SSHKEYLOCATION=${ZABBIX_USER_HOME_DIR}/ssh_keys/ \
     ZBX_SSLCERTLOCATION=${ZABBIX_USER_HOME_DIR}/ssl/certs/ \
     ZBX_SSLKEYLOCATION=${ZABBIX_USER_HOME_DIR}/ssl/keys/ \
-    ZBX_SSLCALOCATION=${ZABBIX_USER_HOME_DIR}/ssl/ssl_ca/
+    ZBX_SSLCALOCATION=${ZABBIX_USER_HOME_DIR}/ssl/ssl_ca_internal/
 
 LABEL org.opencontainers.image.authors="Alexey Pustovalov <alexey.pustovalov@zabbix.com>" \
       org.opencontainers.image.description="Zabbix proxy with SQLite3 database support" \
@@ -122,6 +122,7 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
         ${ZABBIX_USER_HOME_DIR}/ssl/certs \
         ${ZABBIX_USER_HOME_DIR}/ssl/keys \
         ${ZABBIX_USER_HOME_DIR}/ssl/ssl_ca \
+        ${ZABBIX_USER_HOME_DIR}/ssl/ssl_ca_internal \
         /usr/lib/zabbix/externalscripts && \
     FIX_PERM_LIST="\
         ${ZABBIX_CONF_DIR}/zabbix_proxy_modules.conf \
