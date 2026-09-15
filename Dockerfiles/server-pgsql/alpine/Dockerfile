@@ -44,7 +44,9 @@ COPY --from=builder /tmp/zabbix-${ZBX_VERSION}-output/server/database/postgresql
 
 RUN set -eux && \
     INSTALL_PKGS="bash \
+            curl \
             gzip \
+            jq \
             tini \
             tzdata \
             krb5 \

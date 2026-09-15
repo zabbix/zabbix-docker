@@ -47,7 +47,9 @@ RUN --mount=type=cache,target=/var/cache/apt/,sharing=locked \
     set -eux && \
     INSTALL_PKGS="bash \
             ca-certificates \
+            curl \
             gzip \
+            jq \
             tini \
             tzdata \
             libcurl4t64 \

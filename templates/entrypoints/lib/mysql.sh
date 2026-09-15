@@ -84,11 +84,11 @@ check_db_variables() {
     file_env MYSQL_ROOT_USER
     file_env MYSQL_ROOT_PASSWORD
 
-    if [ -z "${MYSQL_USER:-}" ] && [ "${MYSQL_RANDOM_ROOT_PASSWORD:-}" = "true" ] && ! vault_requested; then
+    if [ -z "${MYSQL_USER:-}" ] && [ "${MYSQL_RANDOM_ROOT_PASSWORD:-}" = "true" ] && [ -z "${ZBX_VAULTDBPATH:-}" ]; then
         error "**** Impossible to use MySQL server because of unknown Zabbix user and random 'root' password"
     fi
 
-    if [ -z "${MYSQL_USER:-}" ] && [ -z "${MYSQL_ROOT_PASSWORD:-}" ] && [ "${MYSQL_ALLOW_EMPTY_PASSWORD:-}" != "true" ] && ! vault_requested; then
+    if [ -z "${MYSQL_USER:-}" ] && [ -z "${MYSQL_ROOT_PASSWORD:-}" ] && [ "${MYSQL_ALLOW_EMPTY_PASSWORD:-}" != "true" ] && [ -z "${ZBX_VAULTDBPATH:-}" ]; then
         error "*** Impossible to use MySQL server because 'root' password is not defined, HashiCorp Vault is not configured and empty password is not allowed"
     fi
 
@@ -114,7 +114,6 @@ check_db_variables() {
 }
 
 check_db_connect() {
-    local use_vault="${1:-false}"
     local wait_timeout=5
 
     info "********************"
@@ -136,7 +135,7 @@ check_db_connect() {
     fi
     info "********************"
 
-    if [ "$use_vault" = "true" ] && vault_requested; then
+    if [ -n "${ZBX_VAULTDBPATH:-}" ]; then
         unset DB_SERVER_ZBX_USER
         unset DB_SERVER_ZBX_PASS
 

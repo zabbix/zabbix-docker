@@ -1,11 +1,5 @@
 # shellcheck shell=bash
 
-vault_requested() {
-    [ -n "${ZBX_VAULTURL:-}" ] || \
-        [ -n "${ZBX_VAULTDBPATH:-}" ] || \
-        [ -n "${VAULT_TOKEN:-}" ]
-}
-
 get_vault_secrets() {
     local wait_timeout=5
     local vaultdata errors
