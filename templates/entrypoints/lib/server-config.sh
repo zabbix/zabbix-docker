@@ -176,7 +176,7 @@ server_config() {
 
     update_config_var "${ZBX_SERVER_CONFIG}" "SSLCertLocation" "${ZABBIX_USER_HOME_DIR}/ssl/certs/"
     update_config_var "${ZBX_SERVER_CONFIG}" "SSLKeyLocation" "${ZABBIX_USER_HOME_DIR}/ssl/keys/"
-    update_config_var "${ZBX_SERVER_CONFIG}" "SSLCALocation" "${ZABBIX_USER_HOME_DIR}/ssl/ssl_ca/"
+    update_config_var "${ZBX_SERVER_CONFIG}" "SSLCALocation" "${ZABBIX_USER_HOME_DIR}/ssl/ssl_ca_internal/"
     update_config_var "${ZBX_SERVER_CONFIG}" "LoadModulePath" "${ZABBIX_USER_HOME_DIR}/modules/"
     update_config_multiple_var "${ZBX_SERVER_CONFIG}" "LoadModule" "${ZBX_LOADMODULE:-}"
 
@@ -223,5 +223,5 @@ server_config() {
         update_config_var "${ZBX_SERVER_CONFIG}" "AllowRoot" "1"
     fi
 
-    openssl_rehash "${ZABBIX_USER_HOME_DIR}/ssl/ssl_ca/"
+    openssl_prepare_ca "${ZABBIX_USER_HOME_DIR}/ssl/ssl_ca" "${ZABBIX_USER_HOME_DIR}/ssl/ssl_ca_internal"
 }

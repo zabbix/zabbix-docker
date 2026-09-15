@@ -117,7 +117,7 @@ proxy_config() {
 
     update_config_var "${ZBX_PROXY_CONFIG}" "SSLCertLocation" "${ZABBIX_USER_HOME_DIR}/ssl/certs/"
     update_config_var "${ZBX_PROXY_CONFIG}" "SSLKeyLocation" "${ZABBIX_USER_HOME_DIR}/ssl/keys/"
-    update_config_var "${ZBX_PROXY_CONFIG}" "SSLCALocation" "${ZABBIX_USER_HOME_DIR}/ssl/ssl_ca/"
+    update_config_var "${ZBX_PROXY_CONFIG}" "SSLCALocation" "${ZABBIX_USER_HOME_DIR}/ssl/ssl_ca_internal/"
     update_config_var "${ZBX_PROXY_CONFIG}" "LoadModulePath" "${ZABBIX_USER_HOME_DIR}/modules/"
     update_config_multiple_var "${ZBX_PROXY_CONFIG}" "LoadModule" "${ZBX_LOADMODULE:-}"
 
@@ -150,5 +150,5 @@ proxy_config() {
     update_config_var "${ZBX_PROXY_CONFIG}" "WebDriverURL" "${ZBX_WEBDRIVERURL:-}"
     update_config_var "${ZBX_PROXY_CONFIG}" "StartBrowserPollers" "${ZBX_STARTBROWSERPOLLERS:-}"
 
-    openssl_rehash "${ZABBIX_USER_HOME_DIR}/ssl/ssl_ca/"
+    openssl_prepare_ca "${ZABBIX_USER_HOME_DIR}/ssl/ssl_ca" "${ZABBIX_USER_HOME_DIR}/ssl/ssl_ca_internal"
 }
