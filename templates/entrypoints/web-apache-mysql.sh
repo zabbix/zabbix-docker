@@ -58,7 +58,7 @@ prepare_service() {
     info "** Preparing Zabbix web-interface (Apache) with MySQL database"
 
     check_db_variables "zabbix"
-    check_db_connect "true"
+    check_db_connect
     prepare_php_config "MYSQL"
     prepare_web_server
 }

@@ -15,15 +15,12 @@ update_config() {
 
     export ZBX_DB_NAME="${DB_SERVER_DBNAME}"
 
-    if [ -n "${ZBX_VAULT:-}" ] && [ -n "${ZBX_VAULTURL:-}" ] && [ -z "${ZBX_VAULTDBPATH:-}" ]; then
-        export ZBX_DB_USER="${DB_SERVER_ZBX_USER}"
-        export ZBX_DB_PASSWORD="${DB_SERVER_ZBX_PASS}"
-    elif [ -z "${ZBX_VAULT:-}" ] && [ -z "${ZBX_VAULTURL:-}" ]; then
-        export ZBX_DB_USER="${DB_SERVER_ZBX_USER}"
-        export ZBX_DB_PASSWORD="${DB_SERVER_ZBX_PASS}"
-    else
+    if [ -n "${ZBX_VAULTDBPATH:-}" ]; then
         unset ZBX_DB_USER
         unset ZBX_DB_PASSWORD
+    else
+        export ZBX_DB_USER="${DB_SERVER_ZBX_USER}"
+        export ZBX_DB_PASSWORD="${DB_SERVER_ZBX_PASS}"
     fi
 
     proxy_config "zabbix-proxy-mysql"

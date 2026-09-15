@@ -4,27 +4,31 @@ get_vault_secrets() {
     local wait_timeout=5
     local vaultdata errors
     local cyberark_opts
+    local vault_base_url vault_db_path vault_prefix vault_url
+
     if [ -z "${ZBX_VAULTURL:-}" ] || [ -z "${ZBX_VAULTDBPATH:-}" ]; then
         error "Missing variables! If ZBX_VAULT is used then ZBX_VAULTURL and ZBX_VAULTDBPATH must be set"
     fi
 
-    # Sanitize input
-    ZBX_VAULTURL="${ZBX_VAULTURL%/}"
-    ZBX_VAULTDBPATH="${ZBX_VAULTDBPATH#/}"
-    ZBX_VAULTDBPATH="${ZBX_VAULTDBPATH%/}"
+    vault_base_url="${ZBX_VAULTURL%/}"
+    vault_db_path="${ZBX_VAULTDBPATH#/}"
+    vault_db_path="${vault_db_path%/}"
+    vault_prefix="${ZBX_VAULTPREFIX:-}"
 
     if [ "${ZBX_VAULT:-}" = "HashiCorp" ]; then
-        if [ -z "${ZBX_VAULTPREFIX:-}" ]; then
-            ZBX_VAULTPREFIX="v1/${ZBX_VAULTDBPATH%/*}/data"
-            ZBX_VAULTDBPATH="${ZBX_VAULTDBPATH##*/}"
+        if [ -z "$vault_prefix" ]; then
+            vault_prefix="v1/${vault_db_path%/*}/data"
+            vault_db_path="${vault_db_path##*/}"
         else
-            ZBX_VAULTPREFIX="${ZBX_VAULTPREFIX#/}"
-            ZBX_VAULTPREFIX="${ZBX_VAULTPREFIX%/}"
+            vault_prefix="${vault_prefix#/}"
+            vault_prefix="${vault_prefix%/}"
         fi
 
-        local vault_url="${ZBX_VAULTURL}/${ZBX_VAULTPREFIX}/${ZBX_VAULTDBPATH}"
+        vault_url="${vault_base_url}/${vault_prefix}/${vault_db_path}"
         local curl_opts=(-s -m 10 -k)
+
         info "***** VAULT URL: $vault_url"
+
         while ! vaultdata="$(curl "${curl_opts[@]}" -H "X-Vault-Token: $VAULT_TOKEN" "$vault_url")"; do
             info "**** Vault is not available. Waiting ${wait_timeout} seconds... ****"
             sleep "$wait_timeout"
@@ -41,16 +45,16 @@ get_vault_secrets() {
         fi
 
         cyberark_opts=(-H "Content-type: application/json" --cert "$ZBX_VAULTCERTFILE")
-        if [ -z "${ZBX_VAULTPREFIX:-}" ]; then
-            ZBX_VAULTPREFIX="AIMWebService/api/Accounts?"
+        if [ -z "$vault_prefix" ]; then
+            vault_prefix="/AIMWebService/api/Accounts?"
         else
-            ZBX_VAULTPREFIX="${ZBX_VAULTPREFIX#/}"
-            ZBX_VAULTPREFIX="${ZBX_VAULTPREFIX%/}/"
+            vault_prefix="/${vault_prefix#/}"
         fi
-        local vault_url="${ZBX_VAULTURL}${ZBX_VAULTPREFIX}${ZBX_VAULTDBPATH}"
+        vault_url="${vault_base_url}${vault_prefix}${vault_db_path}"
         local curl_opts=(-s -m 10)
+
         info "***** VAULT URL: $vault_url"
-        # if key is defined use it
+
         if [ -n "${ZBX_VAULTKEYFILE:-}" ]; then
             cyberark_opts+=(--key "$ZBX_VAULTKEYFILE")
         fi

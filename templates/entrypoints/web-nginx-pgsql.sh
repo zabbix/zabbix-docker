@@ -58,7 +58,7 @@ prepare_service() {
     info "** Preparing Zabbix web-interface (Nginx) with PostgreSQL database"
 
     check_db_variables "zabbix"
-    check_db_connect "true"
+    check_db_connect
     prepare_php_config "POSTGRESQL"
     prepare_web_server
 }

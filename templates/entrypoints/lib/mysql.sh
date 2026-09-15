@@ -88,7 +88,7 @@ check_db_variables() {
         error "**** Impossible to use MySQL server because of unknown Zabbix user and random 'root' password"
     fi
 
-    if [ -z "${MYSQL_USER:-}" ] && [ -z "${MYSQL_ROOT_PASSWORD:-}" ] && [ "${MYSQL_ALLOW_EMPTY_PASSWORD:-}" != "true" ] && [ -z "${ZBX_VAULT:-}" ]; then
+    if [ -z "${MYSQL_USER:-}" ] && [ -z "${MYSQL_ROOT_PASSWORD:-}" ] && [ "${MYSQL_ALLOW_EMPTY_PASSWORD:-}" != "true" ] && [ -z "${ZBX_VAULTDBPATH:-}" ]; then
         error "*** Impossible to use MySQL server because 'root' password is not defined, external vault is not configured and empty password is not allowed"
     fi
 
@@ -114,7 +114,6 @@ check_db_variables() {
 }
 
 check_db_connect() {
-    local use_vault="${1:-false}"
     local wait_timeout=5
 
     info "********************"
@@ -136,12 +135,14 @@ check_db_connect() {
     fi
     info "********************"
 
-    if [ -n "${ZBX_VAULT:-}" ] && [ "$use_vault" = "true" ]; then
+    if [ -n "${ZBX_VAULTDBPATH:-}" ]; then
         unset DB_SERVER_ZBX_USER
         unset DB_SERVER_ZBX_PASS
 
         info "***** Connecting to vault... ******"
         get_vault_secrets
+        DB_SERVER_ROOT_USER="${DB_SERVER_ZBX_USER}"
+        DB_SERVER_ROOT_PASS="${DB_SERVER_ZBX_PASS}"
     fi
 
     set_mysql_tls_args

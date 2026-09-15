@@ -57,7 +57,9 @@ RUN --mount=type=cache,target=/var/cache/apt/,sharing=locked \
     set -eux && \
     INSTALL_PKGS="bash \
             ca-certificates \
+            curl \
             gzip \
+            jq \
             tzdata \
             libc6 \
             libcares2 \
