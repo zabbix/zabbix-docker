@@ -4,30 +4,38 @@ import (
 	"io"
 	"os"
 	"path/filepath"
-	"strings"
 	"testing"
 )
 
-func TestRehashCertDirLogsNonDirectory(t *testing.T) {
-	path := filepath.Join(t.TempDir(), "ca.pem")
-	if err := os.WriteFile(path, nil, 0o600); err != nil {
+func TestPrepareCertDir(t *testing.T) {
+	sourceDir := t.TempDir()
+	targetDir := t.TempDir()
+
+	if err := os.WriteFile(filepath.Join(sourceDir, "ca.pem"), []byte("certificate"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.Mkdir(filepath.Join(targetDir, "stale"), 0o700); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(targetDir, "stale", "file"), nil, 0o600); err != nil {
 		t.Fatal(err)
 	}
 
-	output := captureStderr(t, func() {
-		RehashCertDir(path)
+	captureStderr(t, func() {
+		if err := PrepareCertDir(sourceDir, targetDir); err != nil {
+			t.Fatal(err)
+		}
 	})
-	if !strings.Contains(output, "not a directory") || !strings.Contains(output, path) {
-		t.Fatalf("warning = %q", output)
-	}
-}
 
-func TestRehashCertDirIgnoresMissingDirectory(t *testing.T) {
-	output := captureStderr(t, func() {
-		RehashCertDir(filepath.Join(t.TempDir(), "missing"))
-	})
-	if output != "" {
-		t.Fatalf("warning = %q", output)
+	if _, err := os.Stat(filepath.Join(targetDir, "stale")); !os.IsNotExist(err) {
+		t.Fatalf("stale directory was not removed: %v", err)
+	}
+	data, err := os.ReadFile(filepath.Join(targetDir, "ca.pem"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if string(data) != "certificate" {
+		t.Fatalf("certificate = %q", data)
 	}
 }
 

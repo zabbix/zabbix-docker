@@ -6,6 +6,7 @@ import (
 	"net"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strings"
 )
 
@@ -43,38 +44,31 @@ func Hostname(fqdn bool) (string, error) {
 	return hostname, nil
 }
 
-// RehashCertDir creates OpenSSL hash links for the CA
-// certificates in directory. It is best effort: failures are logged and do
-// not stop container startup. A missing directory is silently ignored.
-func RehashCertDir(directory string) {
-	if directory == "" {
-		return
-	}
-
-	info, err := os.Stat(directory)
-	if os.IsNotExist(err) {
-		return
-	}
+// PrepareCertDir replaces the target directory contents with the CA
+// certificates from source and creates OpenSSL hash links in target.
+func PrepareCertDir(sourceDir, targetDir string) error {
+	entries, err := os.ReadDir(targetDir)
 	if err != nil {
-		LogWarn("cannot inspect certificate directory '%s': %v", directory, err)
-		return
-	}
-	if !info.IsDir() {
-		LogWarn("cannot rehash certificate directory '%s': not a directory", directory)
-		return
+		return fmt.Errorf("read certificate directory %q: %w", targetDir, err)
 	}
 
-	openssl, err := exec.LookPath("openssl")
-	if err != nil {
-		LogWarn("cannot rehash certificate directory '%s': %v", directory, err)
-		return
+	for _, entry := range entries {
+		if err := os.RemoveAll(filepath.Join(targetDir, entry.Name())); err != nil {
+			return fmt.Errorf("clear certificate directory %q: %w", targetDir, err)
+		}
 	}
 
-	command := exec.Command(openssl, "rehash", directory)
+	if err := os.CopyFS(targetDir, os.DirFS(sourceDir)); err != nil {
+		return fmt.Errorf("copy certificates from %q to %q: %w", sourceDir, targetDir, err)
+	}
+
+	command := exec.Command("openssl", "rehash", targetDir)
 	command.Stdout = io.Discard
 	command.Stderr = os.Stderr
 
 	if err := command.Run(); err != nil {
-		LogWarn("openssl rehash failed for '%s': %v", directory, err)
+		LogWarn("openssl rehash failed for '%s': %v", targetDir, err)
 	}
+
+	return nil
 }

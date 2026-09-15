@@ -45,7 +45,9 @@ func Prepare(env bootstrap.Environment, defaultHostname string) error {
 		return err
 	}
 
-	bootstrap.RehashCertDir(env["ZBX_SSLCALOCATION"])
+	if err := bootstrap.PrepareCertDir(filepath.Join(homeDir, "ssl", "ssl_ca"), env["ZBX_SSLCALOCATION"]); err != nil {
+		return err
+	}
 
 	if err := hooks.Run(env); err != nil {
 		return err
