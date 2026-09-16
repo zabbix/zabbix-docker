@@ -1,0 +1,44 @@
+version: "2"
+
+run:
+  allow-parallel-runners: true
+
+linters:
+  default: standard
+  settings:
+    staticcheck:
+      checks:
+        - all
+        - -ST1000 # Incorrect or missing package comment.
+        - -ST1003 # Poorly chosen identifier.
+  exclusions:
+    generated: lax
+    rules:
+      - linters:
+          - errcheck
+        source: '^\s*defer (?:file|compressed|temporary|reader|sess|db|database)\.Close\('
+      - linters:
+          - errcheck
+        source: '^\s*defer os\.Remove\('
+    paths:
+      - third_party$
+      - builtin$
+      - examples$
+
+issues:
+  max-issues-per-linter: 0
+  max-same-issues: 0
+
+severity:
+  default: error
+
+formatters:
+  enable:
+    - gci
+    - gofmt
+  exclusions:
+    generated: lax
+    paths:
+      - third_party$
+      - builtin$
+      - examples$

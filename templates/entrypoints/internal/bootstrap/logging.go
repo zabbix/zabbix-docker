@@ -32,5 +32,5 @@ func LogError(format string, args ...any) {
 
 func logMessage(file *os.File, level, format string, args ...any) {
 	timestamp := time.Now().UTC().Format("2006-01-02T15:04:05Z")
-	fmt.Fprintf(file, "%s [%s]: %s\n", timestamp, level, fmt.Sprintf(format, args...))
+	_, _ = fmt.Fprintf(file, "%s [%s]: %s\n", timestamp, level, fmt.Sprintf(format, args...))
 }

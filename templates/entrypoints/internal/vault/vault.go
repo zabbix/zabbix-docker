@@ -310,7 +310,7 @@ func requestWithRetry(client *http.Client, method, reqURL string, body []byte,
 		}
 
 		data, readErr := readVaultResponse(resp.Body)
-		resp.Body.Close()
+		_ = resp.Body.Close()
 
 		if resp.StatusCode < http.StatusOK || resp.StatusCode >= http.StatusMultipleChoices {
 			statusErr := fmt.Errorf("vault request failed with status %s", resp.Status)
@@ -339,7 +339,7 @@ func readVaultResponse(body io.Reader) ([]byte, error) {
 		return nil, fmt.Errorf("read Vault response: %w", err)
 	}
 	if len(data) > maxRespSize {
-		return nil, fmt.Errorf("Vault response exceeds %d bytes", maxRespSize)
+		return nil, fmt.Errorf("vault response exceeds %d bytes", maxRespSize)
 	}
 
 	return data, nil
