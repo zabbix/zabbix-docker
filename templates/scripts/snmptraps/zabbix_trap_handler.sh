@@ -27,7 +27,8 @@ zbx_trap_regex="${date_regex} ZBXTRAP"
 
 trap_address=""
 sender_addr=""
-sender_regex='\[([^]]+)\].*->'
+# The first bracketed address is the source; Net-SNMP may omit the destination.
+sender_regex='\[([^]]+)\]'
 vars=""
 
 # The name of the host that sent the notification, as determined by gethostbyaddr(3).
@@ -35,7 +36,7 @@ vars=""
 # perform reverse name lookup for the transport address (see below).
 # In case of failure it will print "<UNKNOWN>"
 IFS= read -r host
-# The transport address, like "UDP: [172.16.10.12]:23456->[10.150.0.8]:1162"
+# The transport address, like "UDP: [172.16.10.12]:23456->[10.150.0.8]:1162" or "UDP/IPv6: [fd07:b51a:cc66:d000::1]:58260".
 IFS= read -r sender
 # The first OID should always be SNMPv2-MIB::sysUpTime.0
 #IFS= read -r uptime
