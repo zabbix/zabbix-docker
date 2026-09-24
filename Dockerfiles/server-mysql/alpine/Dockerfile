@@ -37,6 +37,7 @@ ENV TERM=xterm \
 ENV ZBX_DB_NAME=dummy_db_name \
     ZBX_FPINGLOCATION=/usr/sbin/fping \
     ZBX_LOADMODULEPATH=${ZABBIX_USER_HOME_DIR}/modules \
+    ZBX_EXPORTDIR=${ZABBIX_USER_HOME_DIR}/export/ \
     ZBX_SNMPTRAPPERFILE=${ZABBIX_USER_HOME_DIR}/snmptraps/snmptraps.log \
     ZBX_SSHKEYLOCATION=${ZABBIX_USER_HOME_DIR}/ssh_keys/ \
     ZBX_SSLCERTLOCATION=${ZABBIX_USER_HOME_DIR}/ssl/certs/ \

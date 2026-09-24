@@ -14,6 +14,10 @@ import (
 // storage providers, TLS files, HA node autoconfiguration and CA
 // certificate rehashing.
 func Prepare(env bootstrap.Environment) error {
+	if env["ZBX_EXPORTFILESIZE"] == "" {
+		delete(env, "ZBX_EXPORTDIR")
+	}
+
 	if strings.EqualFold(env.ValueOrDefaultNonEmpty("ZBX_ENABLE_SNMP_TRAPS", "false"), "true") {
 		env["ZBX_STARTSNMPTRAPPER"] = "1"
 	}
