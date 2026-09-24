@@ -46,6 +46,8 @@ update_config_var() {
     local var_name="${2:-}"
     local var_value="${3:-}"
     local is_multiple="${4:-false}"
+    local var_name_raw="$var_name"
+    local var_value_raw="$var_value"
     local log_message
 
     [[ -f "$config_path" ]] || error "Missing configuration file: $config_path"
@@ -75,12 +77,11 @@ update_config_var() {
     fi
 
     # Escaping characters in parameter value and name
-    var_value_raw=$var_value
-    var_name_raw=$var_name
     var_value="$(escape_special_chars "$var_value")"
     var_name="$(escape_special_chars "$var_name")"
 
-    if grep -qE "^${var_name}=${var_value}$" "$config_path"; then
+    local var_value_exact="${var_value_raw//$'\n'/}"
+    if grep -Fxq -- "${var_name_raw}=${var_value_exact}" "$config_path"; then
         log_message="$log_message exists"
     elif grep -qE "^${var_name}=" "$config_path" && [ "$is_multiple" != "true" ]; then
         sed -i -e "/^${var_name}=/s/=.*/=${var_value}/" "$config_path"
@@ -97,6 +98,19 @@ update_config_var() {
     fi
 
     info "$log_message"
+}
+
+update_config_run_user() {
+    local config_path="${1:-}"
+    local user
+
+    if [ "$(id -u)" -eq 0 ]; then
+        update_config_var "$config_path" "AllowRoot" "1"
+    elif user="$(id -un 2>/dev/null)"; then
+        update_config_var "$config_path" "User" "$user"
+    else
+        update_config_var "$config_path" "User" ""
+    fi
 }
 
 update_config_multiple_var() {
