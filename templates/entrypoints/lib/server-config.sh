@@ -217,11 +217,7 @@ server_config() {
     update_config_var "${ZBX_SERVER_CONFIG}" "WebDriverURL" "${ZBX_WEBDRIVERURL:-}"
     update_config_var "${ZBX_SERVER_CONFIG}" "StartBrowserPollers" "${ZBX_STARTBROWSERPOLLERS:-}"
 
-    if [ "$(id -u)" -ne 0 ]; then
-        update_config_var "${ZBX_SERVER_CONFIG}" "User" "$(id -un)"
-    else
-        update_config_var "${ZBX_SERVER_CONFIG}" "AllowRoot" "1"
-    fi
+    update_config_run_user "${ZBX_SERVER_CONFIG}"
 
     openssl_prepare_ca "${ZABBIX_USER_HOME_DIR}/ssl/ssl_ca" "${ZABBIX_USER_HOME_DIR}/ssl/ssl_ca_internal"
 }

@@ -141,11 +141,7 @@ proxy_config() {
     update_config_var "${ZBX_PROXY_CONFIG}" "TLSPSKIdentity" "${ZBX_TLSPSKIDENTITY:-}"
     file_process_from_env "${ZABBIX_INTERNAL_ENC_DIR}" "${ZBX_PROXY_CONFIG}" "TLSPSKFile" "${ZBX_TLSPSKFILE:-}" "${ZBX_TLSPSK:-}"
 
-    if [ "$(id -u)" -ne 0 ]; then
-        update_config_var "${ZBX_PROXY_CONFIG}" "User" "$(id -un)"
-    else
-        update_config_var "${ZBX_PROXY_CONFIG}" "AllowRoot" "1"
-    fi
+    update_config_run_user "${ZBX_PROXY_CONFIG}"
 
     update_config_var "${ZBX_PROXY_CONFIG}" "WebDriverURL" "${ZBX_WEBDRIVERURL:-}"
     update_config_var "${ZBX_PROXY_CONFIG}" "StartBrowserPollers" "${ZBX_STARTBROWSERPOLLERS:-}"

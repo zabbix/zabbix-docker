@@ -115,11 +115,7 @@ update_config() {
     update_config_multiple_var "${ZBX_AGENT_CONFIG}" "DenyKey" "${ZBX_DENYKEY:-}"
     update_config_multiple_var "${ZBX_AGENT_CONFIG}" "AllowKey" "${ZBX_ALLOWKEY:-}"
 
-    if [ "$(id -u)" -ne 0 ]; then
-        update_config_var "${ZBX_AGENT_CONFIG}" "User" "$(id -un)"
-    else
-        update_config_var "${ZBX_AGENT_CONFIG}" "AllowRoot" "1"
-    fi
+    update_config_run_user "${ZBX_AGENT_CONFIG}"
 }
 
 prepare_service() {
