@@ -3,7 +3,6 @@
 package bootstrap
 
 import (
-	"fmt"
 	"os"
 	"os/user"
 	"strconv"
@@ -20,7 +19,12 @@ func ConfigureRunUser(env Environment) error {
 
 	account, err := user.LookupId(strconv.Itoa(uid))
 	if err != nil {
-		return fmt.Errorf("lookup user for uid %d: %w", uid, err)
+		// Containers may run with an arbitrary UID that has no passwd entry
+		// (for example, the random UID assigned by OpenShift). Zabbix ignores
+		// User when it is already running as a non-root user, so keep the UID
+		// instead of failing startup.
+		env["ZBX_USER"] = strconv.Itoa(uid)
+		return nil
 	}
 
 	env["ZBX_USER"] = account.Username
