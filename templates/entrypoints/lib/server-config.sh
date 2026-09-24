@@ -39,12 +39,7 @@ server_config() {
     fi
     unset ZBX_AUTONODEADDRESS
 
-    if [ "$(id -u)" -ne 0 ]; then
-        ZBX_USER="$(id -un)"
-        export ZBX_USER
-    else
-        export ZBX_ALLOWROOT=1
-    fi
+    configure_zabbix_user
 
     openssl_prepare_ca "${ZABBIX_SSL_CA_DIR}" "${ZBX_SSLCALOCATION}"
 }

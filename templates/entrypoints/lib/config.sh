@@ -3,6 +3,16 @@
 source "${ENTRYPOINT_LIBS}/logging.sh"
 source "${ENTRYPOINT_LIBS}/format.sh"
 
+configure_zabbix_user() {
+    if [ "$(id -u)" -eq 0 ]; then
+        export ZBX_ALLOWROOT=1
+    elif ZBX_USER="$(id -un 2>/dev/null)"; then
+        export ZBX_USER
+    else
+        unset ZBX_USER
+    fi
+}
+
 # usage: file_env VAR [DEFAULT]
 # as example: file_env 'MYSQL_PASSWORD' 'zabbix'
 #    (will allow for "$MYSQL_PASSWORD_FILE" to fill in the value of "$MYSQL_PASSWORD" from a file)
