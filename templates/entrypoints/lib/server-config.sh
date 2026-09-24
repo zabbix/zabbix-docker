@@ -9,6 +9,10 @@ readonly ZABBIX_INTERNAL_ENC_DIR="${ZABBIX_USER_HOME_DIR}/enc_internal"
 readonly ZABBIX_SSL_CA_DIR="${ZABBIX_USER_HOME_DIR}/ssl/ssl_ca"
 
 server_config() {
+    if [ -z "${ZBX_EXPORTFILESIZE:-}" ]; then
+        unset ZBX_EXPORTDIR
+    fi
+
     : "${ZBX_ENABLE_SNMP_TRAPS:=false}"
     [[ "${ZBX_ENABLE_SNMP_TRAPS,,}" == "true" ]] && export ZBX_STARTSNMPTRAPPER=1
     unset ZBX_ENABLE_SNMP_TRAPS
