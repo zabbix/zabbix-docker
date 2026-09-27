@@ -42,9 +42,7 @@ func prepareService(env bootstrap.Environment) error {
 		return err
 	}
 
-	if err := bootstrap.ConfigureRunUser(env); err != nil {
-		return err
-	}
+	bootstrap.ConfigureRunUser(env)
 
 	if err := hooks.Run(env); err != nil {
 		return err

@@ -87,9 +87,20 @@ podman run --name some-zabbix-proxy-mysql <span class="hljs-_">-e</span> DB_SERV
 </ul>
 <h3 id="-zbx_timeout-"><code>ZBX_TIMEOUT</code></h3>
 <p>The variable is used to specify timeout for processing checks. By default, value is <code>4</code>.</p>
+<h3 id="-zbx_telemetryprovider_0-"><code>ZBX_TELEMETRYPROVIDER_0</code></h3>
+<p>ClickHouse telemetry provider configuration in JSON format.</p>
+<p>Credentials and the TLS private key password can be set with the matching <code>_USERNAME</code>, <code>_PASSWORD</code>, and <code>_SSL_KEY_PASSWORD</code> variables or their <code>_FILE</code> alternatives.</p>
+<p>Certificate and key file names are resolved in <code>/var/lib/zabbix/ssl/certs</code> and <code>/var/lib/zabbix/ssl/keys</code>. CA certificates are read from <code>/var/lib/zabbix/ssl/ssl_ca</code>.</p>
 <h3 id="other-variables">Other variables</h3>
 <p>Additionally the image allows to specify many other environment variables listed below:</p>
-<pre><code><span class="hljs-attr">ZBX_ALLOWUNSUPPORTEDDBVERSIONS</span>=<span class="hljs-number">0</span> # Available since <span class="hljs-number">6.0</span>.<span class="hljs-number">0</span>
+<pre><code><span class="hljs-attr">ZBX_TELEMETRYPROVIDER_0</span>=
+<span class="hljs-attr">ZBX_TELEMETRYPROVIDER_0_USERNAME</span>=
+<span class="hljs-attr">ZBX_TELEMETRYPROVIDER_0_USERNAME_FILE</span>=
+<span class="hljs-attr">ZBX_TELEMETRYPROVIDER_0_PASSWORD</span>=
+<span class="hljs-attr">ZBX_TELEMETRYPROVIDER_0_PASSWORD_FILE</span>=
+<span class="hljs-attr">ZBX_TELEMETRYPROVIDER_0_SSL_KEY_PASSWORD</span>=
+<span class="hljs-attr">ZBX_TELEMETRYPROVIDER_0_SSL_KEY_PASSWORD_FILE</span>=
+<span class="hljs-attr">ZBX_ALLOWUNSUPPORTEDDBVERSIONS</span>=<span class="hljs-number">0</span> # Available since <span class="hljs-number">6.0</span>.<span class="hljs-number">0</span>
 <span class="hljs-attr">ZBX_DBTLSCONNECT</span>= # Available since <span class="hljs-number">5.0</span>.<span class="hljs-number">0</span>
 <span class="hljs-attr">ZBX_DBTLSCAFILE</span>= # Available since <span class="hljs-number">5.0</span>.<span class="hljs-number">0</span>
 <span class="hljs-attr">ZBX_DBTLSCERTFILE</span>= # Available since <span class="hljs-number">5.0</span>.<span class="hljs-number">0</span>
@@ -176,6 +187,7 @@ podman run --name some-zabbix-proxy-mysql <span class="hljs-_">-e</span> DB_SERV
 <span class="hljs-attr">ZBX_WEBDRIVERURL</span>= # Available since <span class="hljs-number">7.0</span>.<span class="hljs-number">0</span>
 <span class="hljs-attr">ZBX_STARTBROWSERPOLLERS</span>=<span class="hljs-number">1</span> # Available since <span class="hljs-number">7.0</span>.<span class="hljs-number">0</span>
 <span class="hljs-attr">ZBX_STARTSNMPPOLLERS</span>=<span class="hljs-number">1</span> # Available since <span class="hljs-number">7.0</span>.<span class="hljs-number">0</span>
+<span class="hljs-attr">ZBX_STARTTELEMETRYQUERYPOLLERS</span>=<span class="hljs-number">1</span> # Available since <span class="hljs-number">8.0.0</span>
 </code></pre><p>Default values of these variables are specified after equal sign.</p>
 <p>The allowed variables are identical of parameters in official <code>zabbix_proxy.conf</code>. For example, <code>ZBX_LOGSLOWQUERIES</code> = <code>LogSlowQueries</code>.</p>
 <p>Please use official documentation for <a href="https://www.zabbix.com/documentation/current/manual/appendix/config/zabbix_proxy"><code>zabbix_proxy.conf</code></a> to get more information about the variables.</p>

@@ -30,7 +30,7 @@ func (s *fakeDBSession) Exec(_ context.Context, query string, args ...any) error
 	return nil
 }
 
-func (s *fakeDBSession) Close(context.Context) error {
+func (s *fakeDBSession) Close() error {
 	s.closed = true
 	return nil
 }

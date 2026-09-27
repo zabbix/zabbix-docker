@@ -146,6 +146,7 @@ services:
 networks:
   frontend:
     driver: bridge
+    enable_ipv4: true
     enable_ipv6: "${FRONTEND_ENABLE_IPV6}"
     ipam:
       driver: "${FRONTEND_NETWORK_DRIVER}"

@@ -118,19 +118,19 @@ The variable is Zabbix database name. By default, value is `zabbix`.
 
 In some setups, for example including [PgBouncer](https://www.pgbouncer.org), setting the `search_path` via connection parameters fails. If this variable is set to `"true"`, the image skips setting the `search_path` and trusts that the `search_path` of the Zabbix user is setup correctly in PostgreSQL database.
 
-### `ZBX_HISTORYPROVIDERS`
+### `ZBX_HISTORYPROVIDER_<0-N>`
 
-Configuration of history storage providers for Elasticsearch or ClickHouse. Available since 8.0.0.
+History storage provider configuration in JSON format. Use consecutive indices starting with `0`.
 
-Example of YAML Mapping to Sequences
+For ClickHouse, credentials can be set with the matching `_USERNAME` and `_PASSWORD` variables or their `_FILE` alternatives.
 
-```
-....
-  environment:
-    ZBX_HISTORYPROVIDERS: "{'types':['uint','dbl','str','log','text','json'],'provider':'clickhouse','url':'http://clickhouse:8123','db':'zabbix','username':'zabbix','password':'zabbix'}"
-    ....
-....
-```
+### `ZBX_TELEMETRYPROVIDER_0`
+
+ClickHouse telemetry provider configuration in JSON format.
+
+Credentials and the TLS private key password can be set with the matching `_USERNAME`, `_PASSWORD`, and `_SSL_KEY_PASSWORD` variables or their `_FILE` alternatives.
+
+Certificate and key file names are resolved in `/var/lib/zabbix/ssl/certs` and `/var/lib/zabbix/ssl/keys`. CA certificates are read from `/var/lib/zabbix/ssl/ssl_ca`.
 
 ### `PHP_TZ`
 

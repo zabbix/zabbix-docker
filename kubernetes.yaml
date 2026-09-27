@@ -275,8 +275,8 @@ spec:
             value: "false"
           - name: ZBX_DB_CIPHER_LIST
             value: ""
-#          - name: ZBX_HISTORYPROVIDERS
-#            value: ""
+#          - name: ZBX_HISTORYPROVIDER_0
+#            value: '{"provider":"elasticsearch","types":["uint","dbl","str","log","text","json"],"url":"http://elasticsearch:9200"}'
 #          - name: ZBX_MAXEXECUTIONTIME
 #            value: ""
 #          - name: ZBX_MEMORYLIMIT
@@ -471,8 +471,8 @@ spec:
             value: ""
           - name: ZBX_VAULTAPPSECRETID
             value: ""
-          - name: ZBX_HISTORYPROVIDER_0
-            value: ""
+#          - name: ZBX_HISTORYPROVIDER_0
+#            value: '{"provider":"elasticsearch","types":["uint","dbl","str","log","text","json"],"url":"http://elasticsearch:9200"}'
           - name: ZBX_STARTREPORTWRITERS
             value: "3"
           - name: ZBX_WEBSERVICEURL

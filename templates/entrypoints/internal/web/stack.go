@@ -47,6 +47,12 @@ func webServerEnv(env bootstrap.Environment) bootstrap.Environment {
 			delete(result, name)
 			continue
 		}
+		if name == "ZBX_HISTORYPROVIDERS" || strings.HasPrefix(name, "ZBX_HISTORYPROVIDERS_") ||
+			strings.HasPrefix(name, "ZBX_HISTORYPROVIDER_") || name == "ZBX_TELEMETRYPROVIDERS" ||
+			strings.HasPrefix(name, "ZBX_TELEMETRYPROVIDER_") {
+			delete(result, name)
+			continue
+		}
 
 		for _, prefix := range []string{"DB_", "MYSQL_", "POSTGRES_", "ZBX_DB_", "ZBX_VAULT"} {
 			if strings.HasPrefix(name, prefix) {

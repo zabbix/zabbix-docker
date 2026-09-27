@@ -8,6 +8,7 @@ import (
 	"github.com/zabbix/zabbix-docker/templates/entrypoints/internal/bootstrap"
 	"github.com/zabbix/zabbix-docker/templates/entrypoints/internal/config"
 	"github.com/zabbix/zabbix-docker/templates/entrypoints/internal/hooks"
+	"github.com/zabbix/zabbix-docker/templates/entrypoints/internal/provider"
 )
 
 // Prepare performs the server-specific entrypoint steps: modules, history
@@ -31,8 +32,17 @@ func Prepare(env bootstrap.Environment) error {
 	if err := config.MergeParameterValues(filepath.Join(configDir, "zabbix_server_modules.conf"), "LoadModule", env["ZBX_LOADMODULE"]); err != nil {
 		return err
 	}
+	if err := configureJSONHistoryProviders(env); err != nil {
+		return err
+	}
+	if err := provider.ConfigureNativeTelemetry(env); err != nil {
+		return err
+	}
 
 	if err := config.UpdateIndexedParameter(env, filepath.Join(configDir, "zabbix_server_history_storage.conf"), "HistoryProvider", "ZBX_HISTORYPROVIDER"); err != nil {
+		return err
+	}
+	if err := config.UpdateIndexedParameter(env, filepath.Join(configDir, "zabbix_server_telemetry.conf"), "TelemetryProvider", "ZBX_TELEMETRYPROVIDER"); err != nil {
 		return err
 	}
 
@@ -44,9 +54,7 @@ func Prepare(env bootstrap.Environment) error {
 		return err
 	}
 
-	if err := bootstrap.ConfigureRunUser(env); err != nil {
-		return err
-	}
+	bootstrap.ConfigureRunUser(env)
 
 	if err := bootstrap.PrepareCertDir(filepath.Join(homeDir, "ssl", "ssl_ca"), env["ZBX_SSLCALOCATION"]); err != nil {
 		return err

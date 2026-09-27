@@ -53,7 +53,7 @@ func (db *DB) executeSQLFile(path string) error {
 	if err != nil {
 		return fmt.Errorf("connect to PostgreSQL database %s: %w", db.name, err)
 	}
-	defer sess.Close(context.Background())
+	defer sess.Close()
 	if err := sess.Exec(context.Background(), string(data)); err != nil {
 		return fmt.Errorf("execute SQL script %s: %w", path, err)
 	}
@@ -66,7 +66,7 @@ func (db *DB) createSchema(schemaFile, timescaleFile string) error {
 	if err != nil {
 		return err
 	}
-	defer sess.Close(context.Background())
+	defer sess.Close()
 
 	if err := db.createNamespace(sess); err != nil {
 		return err
@@ -125,10 +125,10 @@ func (db *DB) Prepare(schemaFile, timescaleFile string) error {
 		return err
 	}
 	if err := db.createDB(sess); err != nil {
-		_ = sess.Close(context.Background())
+		_ = sess.Close()
 		return err
 	}
-	if err := sess.Close(context.Background()); err != nil {
+	if err := sess.Close(); err != nil {
 		return fmt.Errorf("close PostgreSQL connection: %w", err)
 	}
 

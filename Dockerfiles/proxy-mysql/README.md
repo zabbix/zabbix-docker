@@ -154,11 +154,26 @@ The variable is used to specify debug level. By default, value is ``3``. It is `
 
 The variable is used to specify timeout for processing checks. By default, value is ``3``.
 
+### `ZBX_TELEMETRYPROVIDER_0`
+
+ClickHouse telemetry provider configuration in JSON format.
+
+Credentials and the TLS private key password can be set with the matching `_USERNAME`, `_PASSWORD`, and `_SSL_KEY_PASSWORD` variables or their `_FILE` alternatives.
+
+Certificate and key file names are resolved in `/var/lib/zabbix/ssl/certs` and `/var/lib/zabbix/ssl/keys`. CA certificates are read from `/var/lib/zabbix/ssl/ssl_ca`.
+
 ### Other variables
 
 Additionally the image allows to specify many other environment variables listed below:
 
 ```
+ZBX_TELEMETRYPROVIDER_0=
+ZBX_TELEMETRYPROVIDER_0_USERNAME=
+ZBX_TELEMETRYPROVIDER_0_USERNAME_FILE=
+ZBX_TELEMETRYPROVIDER_0_PASSWORD=
+ZBX_TELEMETRYPROVIDER_0_PASSWORD_FILE=
+ZBX_TELEMETRYPROVIDER_0_SSL_KEY_PASSWORD=
+ZBX_TELEMETRYPROVIDER_0_SSL_KEY_PASSWORD_FILE=
 ZBX_ALLOWUNSUPPORTEDDBVERSIONS=0 # Available since 6.0.0
 ZBX_DBTLSCONNECT= # Available since 5.0.0
 ZBX_DBTLSCAFILE= # Available since 5.0.0
@@ -246,6 +261,7 @@ ZBX_TLSCIPHERPSK13= # Available since 4.4.7
 ZBX_WEBDRIVERURL= # Available since 7.0.0
 ZBX_STARTBROWSERPOLLERS=1 # Available since 7.0.0
 ZBX_STARTSNMPPOLLERS=1 # Available since 7.0.0
+ZBX_STARTTELEMETRYQUERYPOLLERS=1 # Available since 8.0.0
 
 ```
 

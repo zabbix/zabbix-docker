@@ -128,6 +128,22 @@ The variable is used to specify debug level. By default, value is ``3``. It is `
 
 The variable is used to specify timeout for processing checks. By default, value is ``3``.
 
+### `ZBX_HISTORYPROVIDER_<0-N>`
+
+History storage provider configuration in JSON format. Use consecutive indices starting with `0`.
+
+For ClickHouse, credentials and the TLS private key password can be set with the matching `_USERNAME`, `_PASSWORD`, and `_SSL_KEY_PASSWORD` variables or their `_FILE` alternatives.
+
+Certificate and key file names are resolved in `/var/lib/zabbix/ssl/certs` and `/var/lib/zabbix/ssl/keys`. CA certificates are read from `/var/lib/zabbix/ssl/ssl_ca`.
+
+### `ZBX_TELEMETRYPROVIDER_0`
+
+ClickHouse telemetry provider configuration in JSON format.
+
+Credentials and the TLS private key password can be set with the matching `_USERNAME`, `_PASSWORD`, and `_SSL_KEY_PASSWORD` variables or their `_FILE` alternatives.
+
+Certificate and key file names are resolved in `/var/lib/zabbix/ssl/certs` and `/var/lib/zabbix/ssl/keys`. CA certificates are read from `/var/lib/zabbix/ssl/ssl_ca`.
+
 ### Other variables
 
 Additionally the image allows to specify many other environment variables listed below:
@@ -155,7 +171,20 @@ ZBX_LISTENBACKLOG=
 ZBX_STARTREPORTWRITERS=0 # Available since 5.4.0
 ZBX_WEBSERVICEURL=http://zabbix-web-service:10053/report # Available since 5.4.0
 ZBX_SERVICEMANAGERSYNCFREQUENCY=60 # Available since 6.0.0
-ZBX_HISTORYPROVIDER_<0-N>= # Available since 8.0.0
+ZBX_HISTORYPROVIDER_<0-N>=
+ZBX_HISTORYPROVIDER_<0-N>_USERNAME=
+ZBX_HISTORYPROVIDER_<0-N>_USERNAME_FILE=
+ZBX_HISTORYPROVIDER_<0-N>_PASSWORD=
+ZBX_HISTORYPROVIDER_<0-N>_PASSWORD_FILE=
+ZBX_HISTORYPROVIDER_<0-N>_SSL_KEY_PASSWORD=
+ZBX_HISTORYPROVIDER_<0-N>_SSL_KEY_PASSWORD_FILE=
+ZBX_TELEMETRYPROVIDER_0=
+ZBX_TELEMETRYPROVIDER_0_USERNAME=
+ZBX_TELEMETRYPROVIDER_0_USERNAME_FILE=
+ZBX_TELEMETRYPROVIDER_0_PASSWORD=
+ZBX_TELEMETRYPROVIDER_0_PASSWORD_FILE=
+ZBX_TELEMETRYPROVIDER_0_SSL_KEY_PASSWORD=
+ZBX_TELEMETRYPROVIDER_0_SSL_KEY_PASSWORD_FILE=
 ZBX_ENABLEGLOBALSCRIPTS=0 # Available since 7.0.0
 ZBX_ALLOWSOFTWAREUPDATECHECK=1 # Available since 7.0.0
 ZBX_MAXCONCURRENTCHECKSPERPOLLER=1000 # Available since 7.0.0
@@ -239,6 +268,7 @@ ZBX_ENABLEMOBILEDEVICES=0 # Available since 8.0.0
 ZBX_BRIDGEADAPTERURL= # Available since 8.0.0
 ZBX_BRIDGEADAPTERCONNECTTO= # Available since 8.0.0
 ZBX_STARTSNMPPOLLERS=1 # Available since 7.0.0
+ZBX_STARTTELEMETRYQUERYPOLLERS=1 # Available since 8.0.0
 
 ```
 

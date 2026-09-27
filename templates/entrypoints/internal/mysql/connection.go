@@ -53,7 +53,10 @@ func (s *sqlDBSession) Close() error {
 
 type sessionOpener func(*mysql.Config) (dbSession, error)
 
-const connectTimeout = 10 * time.Second
+const (
+	connectTimeout    = 10 * time.Second
+	reconnectInterval = 5 * time.Second
+)
 
 func openDBSession(config *mysql.Config) (dbSession, error) {
 	connector, err := mysql.NewConnector(config)
@@ -116,44 +119,45 @@ func (db *DB) waitForConnectionContext(ctx context.Context, user, password strin
 		return nil, err
 	}
 
-	for {
-		sess, err := db.open(config)
+	var sess dbSession
+	err = bootstrap.Retry(ctx, bootstrap.RetryOptions{
+		Interval: reconnectInterval,
+		OnRetry: func(err error) {
+			bootstrap.LogDebug(db.env, "**** MySQL connection failed: %v", err)
+			bootstrap.LogInfo("**** MySQL server is not available. Waiting %s...", reconnectInterval)
+		},
+	}, func() error {
+		opened, err := db.open(config)
 		if err == nil {
 			attemptCtx, cancel := context.WithTimeout(ctx, connectTimeout)
-			err = sess.Ping(attemptCtx)
+			err = opened.Ping(attemptCtx)
 			cancel()
 		}
-		if err == nil {
-			return sess, nil
-		}
-		if sess != nil {
-			_ = sess.Close()
-		}
-		if ctx.Err() != nil {
-			return nil, ctx.Err()
-		}
-		bootstrap.LogDebug(db.env, "**** MySQL connection failed: %v", err)
+		if err != nil {
+			if opened != nil {
+				_ = opened.Close()
+			}
 
-		bootstrap.LogInfo("**** MySQL server is not available. Waiting 5 seconds...")
-		timer := time.NewTimer(5 * time.Second)
-		select {
-		case <-ctx.Done():
-			timer.Stop()
-			return nil, ctx.Err()
-		case <-timer.C:
+			return err
 		}
+		sess = opened
+
+		return nil
+	})
+	if err != nil {
+		return nil, err
 	}
+
+	return sess, nil
 }
 
-// Wait blocks until the database accepts connections with the Zabbix
-// credentials.
 func (db *DB) Wait() error {
 	sess, err := db.waitForConnection(db.user, db.password)
 	if err != nil {
 		return err
 	}
 	if err := sess.Close(); err != nil {
-		return fmt.Errorf("close database connection: %w", err)
+		return fmt.Errorf("close MySQL connection: %w", err)
 	}
 
 	return nil

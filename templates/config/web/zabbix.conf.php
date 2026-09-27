@@ -92,7 +92,12 @@ $IMAGE_FORMAT_DEFAULT = IMAGE_FORMAT_PNG;
 
 $history_providers = env_json('ZBX_HISTORYPROVIDERS');
 if ($history_providers !== []) {
-    $HISTORY_PROVIDERS[] = $history_providers;
+    $HISTORY_PROVIDERS = $history_providers;
+}
+
+$telemetry_providers = env_json('ZBX_TELEMETRYPROVIDERS');
+if ($telemetry_providers !== []) {
+    $TELEMETRY_PROVIDERS = $telemetry_providers;
 }
 
 $SSO['SP_KEY'] = resolve_file('/etc/zabbix/web/certs/sp.key', 'ZBX_SSO_SP_KEY');

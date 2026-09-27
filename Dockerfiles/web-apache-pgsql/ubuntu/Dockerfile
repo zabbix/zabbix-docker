@@ -117,6 +117,9 @@ RUN --mount=type=cache,target=/var/cache/apt/,sharing=locked \
         ${ZABBIX_USER_HOME_DIR} \
         ${ZABBIX_USER_HOME_DIR}/enc \
         ${ZABBIX_USER_HOME_DIR}/enc_internal \
+        ${ZABBIX_USER_HOME_DIR}/ssl/certs \
+        ${ZABBIX_USER_HOME_DIR}/ssl/keys \
+        ${ZABBIX_USER_HOME_DIR}/ssl/ssl_ca \
         /var/lib/php/session \
         /var/lib/locales/supported.d && \
     rm -rf /etc/apache2/sites-available/* \

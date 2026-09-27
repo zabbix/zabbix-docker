@@ -56,8 +56,13 @@ podman run --name some-zabbix-web-nginx-mysql <span class="hljs-_">-e</span> DB_
 <p>By default, values for <code>MYSQL_USER</code> and <code>MYSQL_PASSWORD</code> are <code>zabbix</code>, <code>zabbix</code>.</p>
 <h3 id="-mysql_database-"><code>MYSQL_DATABASE</code></h3>
 <p>The variable is Zabbix database name. By default, value is <code>zabbix</code>.</p>
-<h3 id="-zbx_historyproviders-"><code>ZBX_HISTORYPROVIDERS</code></h3>
-<p>Configuration of history storage providers for Elasticsearch or ClickHouse. Available since 8.0.0.</p>
+<h3 id="-zbx_historyprovider_0-n-"><code>ZBX_HISTORYPROVIDER_&lt;0-N&gt;</code></h3>
+<p>History storage provider configuration in JSON format. Use consecutive indices starting with <code>0</code>.</p>
+<p>For ClickHouse, credentials can be set with the matching <code>_USERNAME</code> and <code>_PASSWORD</code> variables or their <code>_FILE</code> alternatives.</p>
+<h3 id="-zbx_telemetryprovider_0-"><code>ZBX_TELEMETRYPROVIDER_0</code></h3>
+<p>ClickHouse telemetry provider configuration in JSON format.</p>
+<p>Credentials and the TLS private key password can be set with the matching <code>_USERNAME</code>, <code>_PASSWORD</code>, and <code>_SSL_KEY_PASSWORD</code> variables or their <code>_FILE</code> alternatives.</p>
+<p>Certificate and key file names are resolved in <code>/var/lib/zabbix/ssl/certs</code> and <code>/var/lib/zabbix/ssl/keys</code>. CA certificates are read from <code>/var/lib/zabbix/ssl/ssl_ca</code>.</p>
 <h3 id="-php_tz-"><code>PHP_TZ</code></h3>
 <p>The variable is timezone in PHP format. Full list of supported timezones are available on <a href="http://php.net/manual/en/timezones.php"><code>php.net</code></a>. By default, value is &#39;Europe/Riga&#39; and system timezone since Zabbix 5.2.0.</p>
 <h3 id="-zbx_server_name-"><code>ZBX_SERVER_NAME</code></h3>

@@ -234,6 +234,14 @@ func TestUpdateIndexedParameterLogging(t *testing.T) {
 	}
 }
 
+func TestProviderParametersAreMasked(t *testing.T) {
+	for _, parameter := range []string{"HistoryProvider", "TelemetryProvider"} {
+		if !isMaskedParameter(parameter) {
+			t.Fatalf("%s is not masked", parameter)
+		}
+	}
+}
+
 func captureStdout(t *testing.T, run func()) string {
 	t.Helper()
 

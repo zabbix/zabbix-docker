@@ -117,6 +117,9 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
         ${ZABBIX_CONF_DIR}/web/certs \
         ${ZABBIX_USER_HOME_DIR}/enc \
         ${ZABBIX_USER_HOME_DIR}/enc_internal \
+        ${ZABBIX_USER_HOME_DIR}/ssl/certs \
+        ${ZABBIX_USER_HOME_DIR}/ssl/keys \
+        ${ZABBIX_USER_HOME_DIR}/ssl/ssl_ca \
         /var/lib/php/session && \
     rm -rf /etc/httpd/conf.d/default.conf \
         /etc/httpd/conf.d/ssl.conf \

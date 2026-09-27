@@ -1,6 +1,7 @@
 package vault
 
 import (
+	"context"
 	"crypto/tls"
 	"encoding/json"
 	"errors"
@@ -227,7 +228,7 @@ func TestHashiCorpAppRoleLogin(t *testing.T) {
 	token, err := resolveHashiCorpToken(bootstrap.Environment{
 		"ZBX_VAULTAPPROLEID":   "role",
 		"ZBX_VAULTAPPSECRETID": "secret",
-	}, "https://vault.example.test", client)
+	}, "https://vault.example.test", testVaultClient(client, nil))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -244,7 +245,7 @@ func TestHashiCorpTokenAuthentication(t *testing.T) {
 			"ZBX_VAULTAPPSECRETID": "unused-secret",
 		},
 		"https://vault.example.test",
-		&http.Client{},
+		testVaultClient(&http.Client{}, nil),
 	)
 	if err != nil {
 		t.Fatal(err)
@@ -278,7 +279,7 @@ func TestHashiCorpAuthenticationValidation(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			_, err := resolveHashiCorpToken(test.env, "https://vault.example.test", &http.Client{})
+			_, err := resolveHashiCorpToken(test.env, "https://vault.example.test", testVaultClient(&http.Client{}, nil))
 			if err == nil || !strings.Contains(err.Error(), test.want) {
 				t.Fatalf("error = %v, want containing %q", err, test.want)
 			}
@@ -295,7 +296,7 @@ func TestHashiCorpAppRoleLoginRequiresToken(t *testing.T) {
 		}, nil
 	})}
 
-	_, err := loginHashiCorpAppRole(client, "https://vault.example.test", "role", "secret")
+	_, err := loginHashiCorpAppRole(testVaultClient(client, nil), "https://vault.example.test", "role", "secret")
 	if err == nil || !strings.Contains(err.Error(), "client token") {
 		t.Fatalf("error = %v, want missing client token", err)
 	}
@@ -313,7 +314,7 @@ func TestRequestWithRetry(t *testing.T) {
 		}, nil
 	})}
 
-	data, err := requestWithRetry(client, http.MethodGet, "https://vault.example.test/secret", nil, func(req *http.Request) {
+	data, err := testVaultClient(client, nil).request(http.MethodGet, "https://vault.example.test/secret", nil, func(req *http.Request) {
 		req.Header.Set("X-Vault-Token", "token")
 	})
 	if err != nil {
@@ -333,7 +334,7 @@ func TestRequestWithRetryRejectsHTTPError(t *testing.T) {
 		}, nil
 	})}
 
-	_, err := requestWithRetry(client, http.MethodGet, "https://vault.example.test/secret", nil, func(*http.Request) {})
+	_, err := testVaultClient(client, nil).request(http.MethodGet, "https://vault.example.test/secret", nil, func(*http.Request) {})
 	if err != nil {
 		if !strings.Contains(err.Error(), "403 Forbidden") {
 			t.Fatalf("unexpected error: %v", err)
@@ -348,8 +349,11 @@ func TestRequestWithRetryRejectsHTTPError(t *testing.T) {
 
 func TestRequestWithRetryRetriesTemporaryHTTPError(t *testing.T) {
 	var delays []time.Duration
-	sleep = func(delay time.Duration) { delays = append(delays, delay) }
-	defer func() { sleep = time.Sleep }()
+	recordDelay := func(_ context.Context, delay time.Duration) error {
+		delays = append(delays, delay)
+
+		return nil
+	}
 
 	attempts := 0
 	client := &http.Client{Transport: roundTripFunc(func(*http.Request) (*http.Response, error) {
@@ -368,7 +372,7 @@ func TestRequestWithRetryRetriesTemporaryHTTPError(t *testing.T) {
 		}, nil
 	})}
 
-	data, err := requestWithRetry(client, http.MethodGet, "https://vault.example.test/secret", nil, func(*http.Request) {})
+	data, err := testVaultClient(client, recordDelay).request(http.MethodGet, "https://vault.example.test/secret", nil, func(*http.Request) {})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -389,8 +393,11 @@ func TestReadVaultResponseRejectsOversizedBody(t *testing.T) {
 
 func TestRequestWithRetryGivesUp(t *testing.T) {
 	sleeps := 0
-	sleep = func(time.Duration) { sleeps++ }
-	defer func() { sleep = time.Sleep }()
+	countSleep := func(context.Context, time.Duration) error {
+		sleeps++
+
+		return nil
+	}
 
 	attempts := 0
 	client := &http.Client{Transport: roundTripFunc(func(*http.Request) (*http.Response, error) {
@@ -398,7 +405,7 @@ func TestRequestWithRetryGivesUp(t *testing.T) {
 		return nil, errors.New("connection refused")
 	})}
 
-	_, err := requestWithRetry(client, http.MethodGet, "https://vault.example.test/secret", nil, func(*http.Request) {})
+	_, err := testVaultClient(client, countSleep).request(http.MethodGet, "https://vault.example.test/secret", nil, func(*http.Request) {})
 	if err == nil {
 		t.Fatal("unavailable vault did not result in an error")
 	}
@@ -422,4 +429,14 @@ func TestVaultTransportPreservesProxySupport(t *testing.T) {
 	if transport.TLSClientConfig != tlsConfig {
 		t.Fatal("Vault TLS configuration was not applied")
 	}
+}
+
+// testVaultClient uses the production retry policy with the given wait
+// function, so that tests observe the pauses instead of sleeping.
+func testVaultClient(httpClient *http.Client, wait func(context.Context, time.Duration) error) vaultClient {
+	if wait == nil {
+		wait = func(context.Context, time.Duration) error { return nil }
+	}
+
+	return vaultClient{http: httpClient, attempts: maxAttempts, delay: retryDelay, wait: wait}
 }

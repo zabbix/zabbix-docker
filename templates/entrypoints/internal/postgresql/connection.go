@@ -16,7 +16,7 @@ import (
 type dbSession interface {
 	QueryString(context.Context, string, ...any) (string, error)
 	Exec(context.Context, string, ...any) error
-	Close(context.Context) error
+	Close() error
 }
 
 type pgxDBSession struct {
@@ -38,13 +38,26 @@ func (s *pgxDBSession) Exec(ctx context.Context, query string, args ...any) erro
 	return err
 }
 
-func (s *pgxDBSession) Close(ctx context.Context) error {
+// Close ends the session with its own deadline: the caller is usually done
+// with the connection and the terminate message must not block startup.
+func (s *pgxDBSession) Close() error {
+	ctx, cancel := context.WithTimeout(context.Background(), closeTimeout)
+	defer cancel()
+
 	return s.conn.Close(ctx)
 }
 
 type sessionOpener func(context.Context, *pgx.ConnConfig) (dbSession, error)
 
-const connectTimeout = 10
+// connectTimeoutSeconds is the libpq connect_timeout connection parameter.
+const connectTimeoutSeconds = 10
+
+// closeTimeout bounds the terminate message sent when a session is closed.
+const closeTimeout = 5 * time.Second
+
+// reconnectInterval is the pause between connection attempts while the
+// database is starting up.
+const reconnectInterval = 5 * time.Second
 
 func openDBSession(ctx context.Context, config *pgx.ConnConfig) (dbSession, error) {
 	conn, err := pgx.ConnectConfig(ctx, config)
@@ -66,7 +79,7 @@ func (db *DB) connConfig(dbName, user, password string) (*pgx.ConnConfig, error)
 	params.Set("host", strings.Join(hosts, ","))
 	params.Set("port", strings.Join(ports, ","))
 
-	params.Set("connect_timeout", strconv.Itoa(connectTimeout))
+	params.Set("connect_timeout", strconv.Itoa(connectTimeoutSeconds))
 	if len(db.endpoints) > 1 {
 		params.Set("target_session_attrs", "read-write")
 	}
@@ -131,46 +144,56 @@ func (db *DB) waitForConnectionContext(ctx context.Context, user, password strin
 	bootstrap.LogDebug(db.env, "* DB_SERVER_USER: %s", db.user)
 	bootstrap.LogInfo("********************")
 
-	for {
+	var sess dbSession
+	err := bootstrap.Retry(ctx, bootstrap.RetryOptions{
+		Interval: reconnectInterval,
+		OnRetry: func(error) {
+			bootstrap.LogInfo("**** PostgreSQL server is not available. Waiting %s...", reconnectInterval)
+		},
+	}, func() error {
+		// The Zabbix user may only be allowed to connect to its own database,
+		// so both candidates are tried before the attempt counts as failed.
+		var lastErr error
 		for _, dbName := range []string{user, db.name} {
-			config, err := db.connConfig(dbName, user, password)
-			if err != nil {
-				return nil, err
-			}
-			timeout := config.ConnectTimeout + time.Second
-			if len(db.endpoints) > 1 {
-				timeout = time.Duration(len(db.endpoints))*config.ConnectTimeout + time.Second
-			}
-			attemptCtx, cancel := context.WithTimeout(ctx, timeout)
-			sess, err := db.open(attemptCtx, config)
-			cancel()
+			opened, err := db.connect(ctx, dbName, user, password)
 			if err == nil {
-				return sess, nil
+				sess = opened
+
+				return nil
 			}
-			if ctx.Err() != nil {
-				return nil, ctx.Err()
-			}
+			lastErr = err
 			bootstrap.LogDebug(db.env, "**** PostgreSQL connection to database %q failed: %v", dbName, err)
 		}
 
-		bootstrap.LogInfo("**** PostgreSQL server is not available. Waiting 5 seconds...")
-		timer := time.NewTimer(5 * time.Second)
-		select {
-		case <-ctx.Done():
-			timer.Stop()
-			return nil, ctx.Err()
-		case <-timer.C:
-		}
-	}
-}
-
-func (db *DB) connectTarget(user, password string) (dbSession, error) {
-	config, err := db.connConfig(db.name, user, password)
+		return lastErr
+	})
 	if err != nil {
 		return nil, err
 	}
 
-	return db.open(context.Background(), config)
+	return sess, nil
+}
+
+// connect opens one session, bounded by the connect timeout of every
+// configured endpoint. A configuration error is not retried.
+func (db *DB) connect(ctx context.Context, dbName, user, password string) (dbSession, error) {
+	config, err := db.connConfig(dbName, user, password)
+	if err != nil {
+		return nil, bootstrap.Stop(err)
+	}
+
+	timeout := config.ConnectTimeout + time.Second
+	if len(db.endpoints) > 1 {
+		timeout = time.Duration(len(db.endpoints))*config.ConnectTimeout + time.Second
+	}
+	attemptCtx, cancel := context.WithTimeout(ctx, timeout)
+	defer cancel()
+
+	return db.open(attemptCtx, config)
+}
+
+func (db *DB) connectTarget(user, password string) (dbSession, error) {
+	return db.connect(context.Background(), db.name, user, password)
 }
 
 // Wait blocks until the database accepts connections with the Zabbix
@@ -180,7 +203,7 @@ func (db *DB) Wait() error {
 	if err != nil {
 		return err
 	}
-	if err := sess.Close(context.Background()); err != nil {
+	if err := sess.Close(); err != nil {
 		return fmt.Errorf("close PostgreSQL connection: %w", err)
 	}
 

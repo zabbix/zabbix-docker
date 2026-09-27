@@ -30,6 +30,7 @@ func TestPreparePHPUsesTrunkFrontendSettings(t *testing.T) {
 	}
 	want := map[string]string{
 		"ZBX_HISTORYPROVIDERS":       "[]",
+		"ZBX_TELEMETRYPROVIDERS":     "[]",
 		"ZBX_CERT_STORAGE":           "database",
 		"ZBX_BANNERS_ENABLED":        "true",
 		"ZBX_HTTP_AUTH_ENABLED":      "true",
@@ -124,22 +125,28 @@ func TestClearWebEnv(t *testing.T) {
 
 func TestWebServerEnvRemovesDatabaseCredentials(t *testing.T) {
 	env := bootstrap.Environment{
-		"DB_SERVER_USER":    "zabbix",
-		"DB_SERVER_PASS":    "db-secret",
-		"MYSQL_PASSWORD":    "mysql-secret",
-		"POSTGRES_PASSWORD": "postgres-secret",
-		"ZBX_DB_PASSWORD":   "frontend-secret",
-		"ZBX_VAULT":         "HashiCorp",
-		"ZBX_VAULTDBPATH":   "secret/zabbix",
-		"VAULT_TOKEN":       "vault-secret",
-		"NGINX_BIN":         "/custom/nginx",
-		"PATH":              "/usr/bin",
+		"DB_SERVER_USER":                           "zabbix",
+		"DB_SERVER_PASS":                           "db-secret",
+		"MYSQL_PASSWORD":                           "mysql-secret",
+		"POSTGRES_PASSWORD":                        "postgres-secret",
+		"ZBX_DB_PASSWORD":                          "frontend-secret",
+		"ZBX_VAULT":                                "HashiCorp",
+		"ZBX_VAULTDBPATH":                          "secret/zabbix",
+		"VAULT_TOKEN":                              "vault-secret",
+		"ZBX_TELEMETRYPROVIDERS":                   `[{"provider":"clickhouse","password":"telemetry-secret"}]`,
+		"ZBX_TELEMETRYPROVIDER_0_PASSWORD":         "telemetry-secret",
+		"ZBX_TELEMETRYPROVIDER_0_PASSWORD_FILE":    "/run/secrets/telemetry-password",
+		"ZBX_TELEMETRYPROVIDER_0_SSL_KEY_PASSWORD": "telemetry-key-secret",
+		"NGINX_BIN":                                "/custom/nginx",
+		"PATH":                                     "/usr/bin",
 	}
 
 	webEnv := webServerEnv(env)
 	for _, name := range []string{
 		"DB_SERVER_USER", "DB_SERVER_PASS", "MYSQL_PASSWORD", "POSTGRES_PASSWORD",
 		"ZBX_DB_PASSWORD", "ZBX_VAULT", "ZBX_VAULTDBPATH", "VAULT_TOKEN",
+		"ZBX_TELEMETRYPROVIDERS", "ZBX_TELEMETRYPROVIDER_0_PASSWORD",
+		"ZBX_TELEMETRYPROVIDER_0_PASSWORD_FILE", "ZBX_TELEMETRYPROVIDER_0_SSL_KEY_PASSWORD",
 	} {
 		if _, found := webEnv[name]; found {
 			t.Fatalf("%s was passed to the web server", name)

@@ -4,8 +4,6 @@ import (
 	"bytes"
 	"fmt"
 	"os"
-	"sort"
-	"strconv"
 	"strings"
 
 	"github.com/zabbix/zabbix-docker/templates/entrypoints/internal/bootstrap"
@@ -93,72 +91,25 @@ func UpdateIndexedParameter(env bootstrap.Environment, configPath, param, prefix
 }
 
 func collectIndexedParams(env bootstrap.Environment, paramByPrefix map[string]string) ([]indexedParam, error) {
+	prefixes := make([]string, 0, len(paramByPrefix))
 	for prefix := range paramByPrefix {
-		if _, exists := env[prefix]; exists {
-			return nil, fmt.Errorf("%s is not supported; use indexed variables such as %s_0", prefix, prefix)
-		}
+		prefixes = append(prefixes, prefix)
 	}
 
-	var params []indexedParam
-	for variable, value := range env {
-		param, index, found := parseIndexedVariable(variable, paramByPrefix)
-		if !found {
-			continue
-		}
-		if value == "" {
-			return nil, fmt.Errorf("%s must not be empty", variable)
-		}
+	variables, err := bootstrap.CollectIndexed(env, prefixes, false)
+	if err != nil {
+		return nil, err
+	}
 
+	params := make([]indexedParam, 0, len(variables))
+	for _, variable := range variables {
 		params = append(params, indexedParam{
-			index:    index,
-			param:    param,
-			variable: variable,
+			index:    variable.Index,
+			param:    paramByPrefix[variable.Prefix],
+			variable: variable.Name,
 		})
 	}
-
-	sort.Slice(params, func(i, j int) bool {
-		if params[i].index == params[j].index {
-			return params[i].variable < params[j].variable
-		}
-		return params[i].index < params[j].index
-	})
-
-	for expectedIndex, entry := range params {
-		if expectedIndex > 0 && params[expectedIndex-1].index == entry.index {
-			return nil, fmt.Errorf(
-				"index %d is used by both %s and %s",
-				entry.index, params[expectedIndex-1].variable, entry.variable,
-			)
-		}
-		if entry.index != expectedIndex {
-			return nil, fmt.Errorf(
-				"%s uses index %d, but index %d is missing",
-				entry.variable, entry.index, expectedIndex,
-			)
-		}
-	}
-
 	return params, nil
-}
-
-func parseIndexedVariable(variable string, paramByPrefix map[string]string) (string, int, bool) {
-	separatorIndex := strings.LastIndexByte(variable, '_')
-	if separatorIndex == -1 {
-		return "", 0, false
-	}
-
-	param, found := paramByPrefix[variable[:separatorIndex]]
-	if !found {
-		return "", 0, false
-	}
-
-	indexText := variable[separatorIndex+1:]
-	index, err := strconv.Atoi(indexText)
-	if err != nil || index < 0 || strconv.Itoa(index) != indexText {
-		return "", 0, false
-	}
-
-	return param, index, true
 }
 
 func replaceIndexedParamsAtEnd(configPath string, paramByPrefix map[string]string, params []indexedParam) error {
@@ -326,7 +277,7 @@ func logParameterChange(configPath, param string, values []string, changed bool)
 
 func isMaskedParameter(param string) bool {
 	switch param {
-	case "TLSPSKIdentity", "DBPassword", "HistoryProvider":
+	case "TLSPSKIdentity", "DBPassword", "HistoryProvider", "TelemetryProvider":
 		return true
 	default:
 		return false

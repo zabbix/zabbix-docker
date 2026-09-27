@@ -131,7 +131,7 @@ func TestMultipleEndpointsConnectionConfig(t *testing.T) {
 	if !reflect.DeepEqual(got, want) {
 		t.Fatalf("PostgreSQL connection targets = %#v, want %#v", got, want)
 	}
-	wantTimeout := time.Duration(connectTimeout) * time.Second
+	wantTimeout := time.Duration(connectTimeoutSeconds) * time.Second
 	if config.ConnectTimeout != wantTimeout {
 		t.Fatalf("ConnectTimeout = %s, want %s", config.ConnectTimeout, wantTimeout)
 	}
@@ -166,7 +166,7 @@ func TestSingleEndpointConnectionConfig(t *testing.T) {
 	if config.Host != "postgres-server" || config.Port != 5432 || len(config.Fallbacks) != 0 {
 		t.Fatalf("unexpected single-endpoint config: host=%q port=%d fallbacks=%d", config.Host, config.Port, len(config.Fallbacks))
 	}
-	wantTimeout := time.Duration(connectTimeout) * time.Second
+	wantTimeout := time.Duration(connectTimeoutSeconds) * time.Second
 	if config.ConnectTimeout != wantTimeout {
 		t.Fatalf("ConnectTimeout = %s, want %s", config.ConnectTimeout, wantTimeout)
 	}

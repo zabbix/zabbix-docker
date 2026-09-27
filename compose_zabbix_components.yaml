@@ -340,6 +340,9 @@ services:
    - ${DATA_DIRECTORY}/etc/ssl/apache2:/etc/ssl/apache2:ro
    - ${DATA_DIRECTORY}/usr/share/zabbix/modules/:/usr/share/zabbix/modules/:ro
    - ${DATA_DIRECTORY}/var/lib/zabbix/enc:/var/lib/zabbix/enc:ro
+   - ${DATA_DIRECTORY}/var/lib/zabbix/ssl/certs:/var/lib/zabbix/ssl/certs:ro
+   - ${DATA_DIRECTORY}/var/lib/zabbix/ssl/keys:/var/lib/zabbix/ssl/keys:ro
+   - ${DATA_DIRECTORY}/var/lib/zabbix/ssl/ssl_ca:/var/lib/zabbix/ssl/ssl_ca:ro
   tmpfs:
    - /tmp
    - /var/lib/php/session:mode=1777
@@ -434,6 +437,9 @@ services:
    - ${DATA_DIRECTORY}/etc/ssl/nginx:/etc/ssl/nginx:ro
    - ${DATA_DIRECTORY}/usr/share/zabbix/modules/:/usr/share/zabbix/modules/:ro
    - ${DATA_DIRECTORY}/var/lib/zabbix/enc:/var/lib/zabbix/enc:ro
+   - ${DATA_DIRECTORY}/var/lib/zabbix/ssl/certs:/var/lib/zabbix/ssl/certs:ro
+   - ${DATA_DIRECTORY}/var/lib/zabbix/ssl/keys:/var/lib/zabbix/ssl/keys:ro
+   - ${DATA_DIRECTORY}/var/lib/zabbix/ssl/ssl_ca:/var/lib/zabbix/ssl/ssl_ca:ro
   tmpfs:
    - /tmp
    - /var/lib/php/session:mode=1777

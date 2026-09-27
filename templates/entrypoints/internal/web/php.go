@@ -38,7 +38,6 @@ var phpDefaults = []struct{ name, value string }{
 	{"ZBX_DB_DOUBLE_IEEE754", "true"},
 
 	// Frontend features
-	{"ZBX_HISTORYPROVIDERS", "[]"},
 	{"ZBX_CERT_STORAGE", "database"},
 	{"ZBX_BANNERS_ENABLED", "true"},
 	{"ZBX_HTTP_AUTH_ENABLED", "true"},
@@ -59,6 +58,12 @@ func preparePHP(env bootstrap.Environment, dbType DBType) error {
 
 	for _, setting := range phpDefaults {
 		env.SetDefaultNonEmpty(setting.name, setting.value)
+	}
+	if err := configureWebHistoryProviders(env); err != nil {
+		return err
+	}
+	if err := configureWebTelemetryProviders(env, homeDir); err != nil {
+		return err
 	}
 
 	env.SetDefault("ZBX_SERVER_HOST", "zabbix-server")

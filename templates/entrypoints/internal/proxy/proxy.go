@@ -8,6 +8,7 @@ import (
 	"github.com/zabbix/zabbix-docker/templates/entrypoints/internal/bootstrap"
 	"github.com/zabbix/zabbix-docker/templates/entrypoints/internal/config"
 	"github.com/zabbix/zabbix-docker/templates/entrypoints/internal/hooks"
+	"github.com/zabbix/zabbix-docker/templates/entrypoints/internal/provider"
 )
 
 // Prepare performs the proxy-specific entrypoint steps. defaultHostname is
@@ -36,14 +37,18 @@ func Prepare(env bootstrap.Environment, defaultHostname string) error {
 	if err := config.MergeParameterValues(filepath.Join(configDir, "zabbix_proxy_modules.conf"), "LoadModule", env["ZBX_LOADMODULE"]); err != nil {
 		return err
 	}
+	if err := provider.ConfigureNativeTelemetry(env); err != nil {
+		return err
+	}
+	if err := config.UpdateIndexedParameter(env, filepath.Join(configDir, "zabbix_proxy_telemetry.conf"), "TelemetryProvider", "ZBX_TELEMETRYPROVIDER"); err != nil {
+		return err
+	}
 
 	if err := bootstrap.ProcessTLSFiles(env, homeDir, "ZBX_TLSCA", "ZBX_TLSCRL", "ZBX_TLSCERT", "ZBX_TLSKEY", "ZBX_TLSPSK"); err != nil {
 		return err
 	}
 
-	if err := bootstrap.ConfigureRunUser(env); err != nil {
-		return err
-	}
+	bootstrap.ConfigureRunUser(env)
 
 	if err := bootstrap.PrepareCertDir(filepath.Join(homeDir, "ssl", "ssl_ca"), env["ZBX_SSLCALOCATION"]); err != nil {
 		return err

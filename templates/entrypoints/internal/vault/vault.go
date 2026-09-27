@@ -65,17 +65,14 @@ func fetchHashiCorp(env bootstrap.Environment, baseURL, dbPath string) (Credenti
 
 	bootstrap.LogInfo("***** VAULT URL: %s", reqURL)
 
-	client := &http.Client{
-		Timeout:   10 * time.Second,
-		Transport: vaultTransport(hashicorpTLSConfig(env)),
-	}
+	client := newVaultClient(hashicorpTLSConfig(env))
 
 	token, err := resolveHashiCorpToken(env, baseURL, client)
 	if err != nil {
 		return Credentials{}, err
 	}
 
-	data, err := requestWithRetry(client, http.MethodGet, reqURL, nil, func(req *http.Request) {
+	data, err := client.request(http.MethodGet, reqURL, nil, func(req *http.Request) {
 		req.Header.Set("X-Vault-Token", token)
 	})
 	if err != nil {
@@ -85,7 +82,7 @@ func fetchHashiCorp(env bootstrap.Environment, baseURL, dbPath string) (Credenti
 	return decodeHashiCorp(data)
 }
 
-func resolveHashiCorpToken(env bootstrap.Environment, baseURL string, client *http.Client) (string, error) {
+func resolveHashiCorpToken(env bootstrap.Environment, baseURL string, client vaultClient) (string, error) {
 	token := env["VAULT_TOKEN"]
 	roleID := env["ZBX_VAULTAPPROLEID"]
 	secretID := env["ZBX_VAULTAPPSECRETID"]
@@ -108,13 +105,13 @@ func resolveHashiCorpToken(env bootstrap.Environment, baseURL string, client *ht
 	return loginHashiCorpAppRole(client, baseURL, roleID, secretID)
 }
 
-func loginHashiCorpAppRole(client *http.Client, baseURL, roleID, secretID string) (string, error) {
+func loginHashiCorpAppRole(client vaultClient, baseURL, roleID, secretID string) (string, error) {
 	payload, _ := json.Marshal(struct {
 		RoleID   string `json:"role_id"`
 		SecretID string `json:"secret_id"`
 	}{RoleID: roleID, SecretID: secretID})
 
-	data, err := requestWithRetry(client, http.MethodPost, baseURL+"/v1/auth/approle/login", payload,
+	data, err := client.request(http.MethodPost, baseURL+"/v1/auth/approle/login", payload,
 		func(req *http.Request) {
 			req.Header.Set("Content-Type", "application/json")
 		})
@@ -227,12 +224,9 @@ func fetchCyberArk(env bootstrap.Environment, baseURL, dbPath string) (Credentia
 
 	bootstrap.LogInfo("***** VAULT URL: %s", reqURL)
 
-	client := &http.Client{
-		Timeout:   10 * time.Second,
-		Transport: vaultTransport(&tls.Config{Certificates: []tls.Certificate{cert}}),
-	}
+	client := newVaultClient(&tls.Config{Certificates: []tls.Certificate{cert}})
 
-	data, err := requestWithRetry(client, http.MethodGet, reqURL, nil, func(req *http.Request) {
+	data, err := client.request(http.MethodGet, reqURL, nil, func(req *http.Request) {
 		req.Header.Set("Content-Type", "application/json")
 	})
 	if err != nil {
@@ -280,57 +274,79 @@ func vaultTransport(tlsConfig *tls.Config) *http.Transport {
 	return clone
 }
 
-var sleep = time.Sleep
-
 const (
 	maxAttempts = 3
 	retryDelay  = 5 * time.Second
 	maxRespSize = 1 << 20
 )
 
-func requestWithRetry(client *http.Client, method, reqURL string, body []byte,
-	configure func(*http.Request)) ([]byte, error) {
-	var lastErr error
-	for attempt := 1; attempt <= maxAttempts; attempt++ {
-		if attempt > 1 {
-			bootstrap.LogInfo("**** Vault is not available. Waiting %s... ****", retryDelay)
-			sleep(retryDelay)
-		}
+// vaultClient performs Vault requests, repeating them while Vault is starting
+// up or temporarily unavailable.
+type vaultClient struct {
+	http *http.Client
+	// attempts is the number of requests made before giving up.
+	attempts int
+	// delay is the pause between attempts.
+	delay time.Duration
+	// wait replaces the pause between attempts in tests.
+	wait func(context.Context, time.Duration) error
+}
 
+// newVaultClient returns a client with the standard timeout, retry policy and
+// the given TLS configuration.
+func newVaultClient(tlsConfig *tls.Config) vaultClient {
+	return vaultClient{
+		http:     &http.Client{Timeout: 10 * time.Second, Transport: vaultTransport(tlsConfig)},
+		attempts: maxAttempts,
+		delay:    retryDelay,
+	}
+}
+
+func (c vaultClient) request(method, reqURL string, body []byte,
+	configure func(*http.Request)) ([]byte, error) {
+	var data []byte
+	err := bootstrap.Retry(context.Background(), bootstrap.RetryOptions{
+		Attempts: c.attempts,
+		Interval: c.delay,
+		Wait:     c.wait,
+		OnRetry: func(error) {
+			bootstrap.LogInfo("**** Vault is not available. Waiting %s... ****", c.delay)
+		},
+	}, func() error {
 		req, err := http.NewRequestWithContext(context.Background(), method, reqURL, bytes.NewReader(body))
 		if err != nil {
-			return nil, err
+			return bootstrap.Stop(err)
 		}
 
 		configure(req)
-		resp, err := client.Do(req)
+		resp, err := c.http.Do(req)
 		if err != nil {
-			lastErr = err
-			continue
+			return err
 		}
 
-		data, readErr := readVaultResponse(resp.Body)
+		body, readErr := readVaultResponse(resp.Body)
 		_ = resp.Body.Close()
 
 		if resp.StatusCode < http.StatusOK || resp.StatusCode >= http.StatusMultipleChoices {
 			statusErr := fmt.Errorf("vault request failed with status %s", resp.Status)
 			if !retryableVaultStatus(resp.StatusCode) {
-				return nil, statusErr
+				return bootstrap.Stop(statusErr)
 			}
 
-			lastErr = statusErr
-			continue
+			return statusErr
 		}
-
 		if readErr != nil {
-			lastErr = readErr
-			continue
+			return readErr
 		}
+		data = body
 
-		return data, nil
+		return nil
+	})
+	if err != nil {
+		return nil, err
 	}
 
-	return nil, fmt.Errorf("vault is not available after %d attempts: %w", maxAttempts, lastErr)
+	return data, nil
 }
 
 func readVaultResponse(body io.Reader) ([]byte, error) {
