@@ -7,12 +7,82 @@ import (
 	"errors"
 	"io"
 	"net/http"
+	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 	"time"
 
 	"github.com/zabbix/zabbix-docker/templates/entrypoints/internal/bootstrap"
 )
+
+func TestResolveVaultFileName(t *testing.T) {
+	homeDir := t.TempDir()
+	encDir := filepath.Join(homeDir, "enc")
+	if err := os.Mkdir(encDir, 0o700); err != nil {
+		t.Fatal(err)
+	}
+	path := filepath.Join(encDir, "vault.pem")
+	if err := os.WriteFile(path, []byte("certificate"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+
+	env := bootstrap.Environment{
+		"ZABBIX_USER_HOME_DIR": homeDir,
+		"ZBX_VAULTTLSCERTFILE": "vault.pem",
+	}
+	resolved, err := resolveVaultFile(env, "ZBX_VAULTCERTFILE", "ZBX_VAULTTLSCERTFILE")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if resolved != path || env["ZBX_VAULTTLSCERTFILE"] != path {
+		t.Fatalf("resolved Vault file = %q, environment = %q", resolved, env["ZBX_VAULTTLSCERTFILE"])
+	}
+}
+
+func TestResolveVaultFilePriority(t *testing.T) {
+	homeDir := t.TempDir()
+	for _, names := range [][2]string{
+		{"ZBX_VAULTCERTFILE", "ZBX_VAULTTLSCERTFILE"},
+		{"ZBX_VAULTKEYFILE", "ZBX_VAULTTLSKEYFILE"},
+	} {
+		for _, tc := range []struct {
+			name, legacy, current, want string
+			wantError                   bool
+		}{
+			{name: "new wins", legacy: "../ignored.pem", current: "current.pem", want: filepath.Join(homeDir, "enc", "current.pem")},
+			{name: "subdirectory", current: "team/current.pem", want: filepath.Join(homeDir, "enc", "team", "current.pem")},
+			{name: "legacy fallback", legacy: "legacy.pem", want: filepath.Join(bootstrap.WebCertsDir, "legacy.pem")},
+			{name: "invalid new does not fall back", legacy: "legacy.pem", current: "../invalid.pem", wantError: true},
+			{name: "unset"},
+		} {
+			t.Run(names[1]+"/"+tc.name, func(t *testing.T) {
+				env := bootstrap.Environment{
+					"ZABBIX_USER_HOME_DIR": homeDir,
+					names[0]:               tc.legacy,
+					names[1]:               tc.current,
+				}
+				got, err := resolveVaultFile(env, names[0], names[1])
+				if (err != nil) != tc.wantError {
+					t.Fatalf("error = %v, wantError = %t", err, tc.wantError)
+				}
+				if got != tc.want {
+					t.Errorf("resolved Vault file = %q, want %q", got, tc.want)
+				}
+			})
+		}
+	}
+}
+
+func TestResolveVaultAbsolutePathWithoutHome(t *testing.T) {
+	for _, name := range []string{"ZBX_VAULTTLSCERTFILE", "ZBX_VAULTTLSKEYFILE"} {
+		env := bootstrap.Environment{name: "/custom/team/client.pem"}
+		got, err := resolveVaultFile(env, "unused_legacy", name)
+		if err != nil || got != "/custom/team/client.pem" {
+			t.Errorf("%s: path = %q, error = %v", name, got, err)
+		}
+	}
+}
 
 type roundTripFunc func(*http.Request) (*http.Response, error)
 

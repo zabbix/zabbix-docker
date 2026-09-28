@@ -28,6 +28,11 @@ func Prepare(env bootstrap.Environment) error {
 	if err != nil {
 		return err
 	}
+	for _, name := range []string{"ZBX_VAULTTLSCERTFILE", "ZBX_VAULTTLSKEYFILE"} {
+		if err := bootstrap.ResolveFileEnv(env, name, filepath.Join(homeDir, "enc")); err != nil {
+			return err
+		}
+	}
 
 	if err := config.MergeParameterValues(filepath.Join(configDir, "zabbix_server_modules.conf"), "LoadModule", env["ZBX_LOADMODULE"]); err != nil {
 		return err

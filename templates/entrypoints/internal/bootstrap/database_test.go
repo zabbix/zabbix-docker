@@ -6,36 +6,60 @@ import (
 	"testing"
 )
 
+func TestResolveDBTLS(t *testing.T) {
+	env := Environment{"ZBX_DBTLSCONNECT": "verify_ca", "ZBX_DBTLSCAFILE": "ca.pem"}
+	config, err := ResolveServiceDBTLS(env)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if want := "/run/secrets/ca.pem"; config.CAFile != want || env["ZBX_DBTLSCAFILE"] != want {
+		t.Fatalf("resolved DB TLS file = %q, environment = %q", config.CAFile, env["ZBX_DBTLSCAFILE"])
+	}
+
+	env = Environment{"ZBX_DBTLSCONNECT": "verify_ca", "ZBX_DBTLSCAFILE": "../ca.pem"}
+	if _, err := ResolveServiceDBTLS(env); err == nil {
+		t.Fatal("escaping DB TLS path was accepted")
+	}
+
+	env = Environment{"ZBX_DBTLSCAFILE": "missing.pem"}
+	if _, err := ResolveServiceDBTLS(env); err != nil {
+		t.Fatalf("disabled DB TLS validated an unused file: %v", err)
+	}
+}
+
 func TestDBTLSByComponent(t *testing.T) {
 	env := Environment{
 		"ZBX_DBTLSCONNECT":   "verify_ca",
-		"ZBX_DBTLSCAFILE":    "/service/ca.pem",
-		"ZBX_DBTLSCERTFILE":  "/service/cert.pem",
-		"ZBX_DBTLSKEYFILE":   "/service/key.pem",
+		"ZBX_DBTLSCAFILE":    "/shared/ca.pem",
+		"ZBX_DBTLSCERTFILE":  "/shared/cert.pem",
+		"ZBX_DBTLSKEYFILE":   "/shared/key.pem",
 		"ZBX_DB_ENCRYPTION":  "true",
 		"ZBX_DB_VERIFY_HOST": "true",
-		"ZBX_DB_CA_FILE":     "/frontend/ca.pem",
-		"ZBX_DB_CERT_FILE":   "/frontend/cert.pem",
-		"ZBX_DB_KEY_FILE":    "/frontend/key.pem",
 	}
 
-	service := ServiceDBTLS(env)
+	service, err := ResolveServiceDBTLS(env)
+	if err != nil {
+		t.Fatal(err)
+	}
 	wantService := DBTLSConfig{
 		ConnectMode: "verify_ca",
-		CAFile:      "/service/ca.pem",
-		CertFile:    "/service/cert.pem",
-		KeyFile:     "/service/key.pem",
+		CAFile:      "/shared/ca.pem",
+		CertFile:    "/shared/cert.pem",
+		KeyFile:     "/shared/key.pem",
 	}
 	if !reflect.DeepEqual(service, wantService) {
 		t.Fatalf("service TLS settings = %#v, want %#v", service, wantService)
 	}
 
-	frontend := FrontendDBTLS(env)
+	frontend, err := ResolveFrontendDBTLS(env)
+	if err != nil {
+		t.Fatal(err)
+	}
 	wantFrontend := DBTLSConfig{
 		ConnectMode: "verify_full",
-		CAFile:      "/frontend/ca.pem",
-		CertFile:    "/frontend/cert.pem",
-		KeyFile:     "/frontend/key.pem",
+		CAFile:      "/shared/ca.pem",
+		CertFile:    "/shared/cert.pem",
+		KeyFile:     "/shared/key.pem",
 	}
 	if !reflect.DeepEqual(frontend, wantFrontend) {
 		t.Fatalf("frontend TLS settings = %#v, want %#v", frontend, wantFrontend)
@@ -52,19 +76,22 @@ func TestFrontendDBTLS(t *testing.T) {
 		{name: "encryption only", env: Environment{"ZBX_DB_ENCRYPTION": "TRUE"}, mode: "required"},
 		{
 			name: "verify CA",
-			env:  Environment{"ZBX_DB_ENCRYPTION": "true", "ZBX_DB_CA_FILE": "/ca.pem"},
+			env:  Environment{"ZBX_DB_ENCRYPTION": "true", "ZBX_DBTLSCAFILE": "/ca.pem"},
 			mode: "verify_ca",
 		},
 		{
 			name: "verify identity",
 			env: Environment{
-				"ZBX_DB_ENCRYPTION": "true", "ZBX_DB_VERIFY_HOST": "true", "ZBX_DB_CA_FILE": "/ca.pem",
+				"ZBX_DB_ENCRYPTION": "true", "ZBX_DB_VERIFY_HOST": "true", "ZBX_DBTLSCAFILE": "/ca.pem",
 			},
 			mode: "verify_full",
 		},
 	} {
 		t.Run(test.name, func(t *testing.T) {
-			settings := FrontendDBTLS(test.env)
+			settings, err := ResolveFrontendDBTLS(test.env)
+			if err != nil {
+				t.Fatal(err)
+			}
 			if settings.ConnectMode != test.mode {
 				t.Fatalf("connection mode = %q, want %q", settings.ConnectMode, test.mode)
 			}

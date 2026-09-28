@@ -3,7 +3,6 @@ package provider
 import (
 	"encoding/json"
 	"fmt"
-	"path/filepath"
 	"strings"
 
 	"github.com/zabbix/zabbix-docker/templates/entrypoints/internal/bootstrap"
@@ -129,13 +128,16 @@ func deleteSecrets(env bootstrap.Environment, name string) {
 	}
 }
 
-func validateFileName(value any, field string) error {
+func validateFilePath(value any, field string) error {
 	name, ok := value.(string)
 	if !ok || name == "" {
-		return fmt.Errorf("%s must be a non-empty file name", field)
+		return fmt.Errorf("%s must be a non-empty file path", field)
 	}
-	if filepath.IsAbs(name) || filepath.Base(name) != name || name == "." || name == ".." || strings.ContainsAny(name, "/\\\r\n") {
-		return fmt.Errorf("%s must be a file name without a path", field)
+	if strings.ContainsAny(name, "\\\r\n\x00") {
+		return fmt.Errorf("%s contains an invalid path character", field)
+	}
+	if _, err := bootstrap.ResolveFile(name, ""); err != nil {
+		return fmt.Errorf("%s: %w", field, err)
 	}
 	return nil
 }

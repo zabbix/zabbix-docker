@@ -2,6 +2,7 @@ package provider
 
 import (
 	"fmt"
+	"path/filepath"
 	"sort"
 	"strings"
 
@@ -18,8 +19,7 @@ type schema struct {
 	// valueTypes reports that the provider takes the types array, rendered as
 	// the native value_types option.
 	valueTypes bool
-	// files are the options naming a file that the image reads from a directory
-	// it owns, so only a file name without a path is accepted.
+	// files accept absolute paths or paths relative to the image's TLS directories.
 	files []string
 	// web are the options the frontend configuration understands.
 	web []string
@@ -55,10 +55,8 @@ type parameter struct {
 	defaults func(fields map[string]any)
 }
 
-// managedLocations are the options pointing into directories the image owns:
-// it prepares the certificate and CA directories itself, so a provider cannot
-// redirect them. Every other option is passed to the service, which decides
-// whether it is valid.
+// managedLocations are configured by the image. Certificate and key locations
+// can be derived from absolute file paths when rendering native configuration.
 var managedLocations = reservedOptions("is managed by the image and must not be set",
 	"ssl_ca_file", "ssl_ca_location", "ssl_cert_location", "ssl_key_location")
 
@@ -219,7 +217,7 @@ func (p *parameter) validate(env bootstrap.Environment, name string, fields map[
 			continue
 		}
 		if current.isFile(key) {
-			if err := validateFileName(value, key); err != nil {
+			if err := validateFilePath(value, key); err != nil {
 				return "", schema{}, fmt.Errorf("%s: %w", name, err)
 			}
 		}
@@ -248,6 +246,14 @@ var leadingOptions = []string{"url", "db"}
 // image does not know are rendered as well, so that the service can accept or
 // reject them.
 func renderNative(providerName string, current schema, fields map[string]any) (string, error) {
+	// Zabbix joins each TLS location and file name, even for absolute paths.
+	for _, key := range current.files {
+		if value, _ := fields[key].(string); filepath.IsAbs(value) {
+			fields[strings.TrimSuffix(key, "_file")+"_location"] = filepath.Dir(value)
+			fields[key] = filepath.Base(value)
+		}
+	}
+
 	options := make([]string, 0, len(fields))
 	rendered := map[string]bool{"provider": true}
 	if current.valueTypes {

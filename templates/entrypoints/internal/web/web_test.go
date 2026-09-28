@@ -24,6 +24,15 @@ func TestPreparePHPUsesTrunkFrontendSettings(t *testing.T) {
 		"PHP_ZBX_CONFIG_FILE":  phpConfig,
 		"DAEMON_USER":          "zabbix",
 		"DAEMON_GROUP":         "zabbix",
+		"ZBX_DB_CA_FILE":       "ca.pem",
+		"ZBX_DB_CERT_FILE":     "cert.pem",
+		"ZBX_DB_KEY_FILE":      "key.pem",
+		"ZBX_DB_CIPHER_LIST":   "cipher",
+		"ZBX_VAULTCERTFILE":    "vault.crt",
+		"ZBX_VAULTKEYFILE":     "vault.key",
+	}
+	if err := prepareFrontendAliases(env); err != nil {
+		t.Fatal(err)
 	}
 	if err := preparePHP(env, MySQL); err != nil {
 		t.Fatal(err)
@@ -37,6 +46,12 @@ func TestPreparePHPUsesTrunkFrontendSettings(t *testing.T) {
 		"ZBX_MODULES_CONFIG_ENABLED": "true",
 		"ZBX_MEDIA_TYPE_DENYLIST":    "[]",
 		"ZBX_DB_DOUBLE_IEEE754":      "true",
+		"ZBX_DBTLSCAFILE":            filepath.Join(bootstrap.SecretsDir, "ca.pem"),
+		"ZBX_DBTLSCERTFILE":          filepath.Join(bootstrap.SecretsDir, "cert.pem"),
+		"ZBX_DBTLSKEYFILE":           filepath.Join(bootstrap.SecretsDir, "key.pem"),
+		"ZBX_DBTLSCIPHER":            "cipher",
+		"ZBX_VAULTTLSCERTFILE":       filepath.Join(bootstrap.WebCertsDir, "vault.crt"),
+		"ZBX_VAULTTLSKEYFILE":        filepath.Join(bootstrap.WebCertsDir, "vault.key"),
 	}
 	for name, value := range want {
 		if env[name] != value {
@@ -54,6 +69,42 @@ func TestPreparePHPUsesTrunkFrontendSettings(t *testing.T) {
 	for _, obsolete := range []string{"ZBX_HISTORYSTORAGEURL", "ZBX_HISTORYSTORAGETYPES", "ZBX_ALLOW_HTTP_AUTH"} {
 		if _, found := env[obsolete]; found {
 			t.Fatalf("obsolete frontend setting %s was exported", obsolete)
+		}
+	}
+	for _, legacy := range []string{
+		"ZBX_DB_CA_FILE", "ZBX_DB_CERT_FILE", "ZBX_DB_KEY_FILE", "ZBX_DB_CIPHER_LIST",
+		"ZBX_VAULTCERTFILE", "ZBX_VAULTKEYFILE",
+	} {
+		if _, found := env[legacy]; found {
+			t.Fatalf("legacy variable %s was exported", legacy)
+		}
+	}
+}
+
+func TestPrepareFrontendAliasesPriority(t *testing.T) {
+	env := bootstrap.Environment{
+		"ZBX_VAULTCERTFILE":    "../legacy/vault.crt",
+		"ZBX_VAULTTLSCERTFILE": "/current/vault.crt",
+		"ZBX_VAULTKEYFILE":     "../legacy/vault.key",
+		"ZBX_VAULTTLSKEYFILE":  "/current/vault.key",
+		"ZBX_DB_CA_FILE":       "/legacy/ca.pem",
+		"ZBX_DBTLSCAFILE":      "/current/ca.pem",
+	}
+	if err := prepareFrontendAliases(env); err != nil {
+		t.Fatal(err)
+	}
+	for name, want := range map[string]string{
+		"ZBX_VAULTTLSCERTFILE": "/current/vault.crt",
+		"ZBX_VAULTTLSKEYFILE":  "/current/vault.key",
+		"ZBX_DBTLSCAFILE":      "/current/ca.pem",
+	} {
+		if env[name] != want {
+			t.Errorf("%s = %q, want %q", name, env[name], want)
+		}
+	}
+	for _, name := range []string{"ZBX_VAULTCERTFILE", "ZBX_VAULTKEYFILE", "ZBX_DB_CA_FILE"} {
+		if _, found := env[name]; found {
+			t.Errorf("legacy variable %s was exported", name)
 		}
 	}
 }
@@ -130,6 +181,7 @@ func TestWebServerEnvRemovesDatabaseCredentials(t *testing.T) {
 		"MYSQL_PASSWORD":                           "mysql-secret",
 		"POSTGRES_PASSWORD":                        "postgres-secret",
 		"ZBX_DB_PASSWORD":                          "frontend-secret",
+		"ZBX_DBTLSKEYFILE":                         "/run/secrets/client-key.pem",
 		"ZBX_VAULT":                                "HashiCorp",
 		"ZBX_VAULTDBPATH":                          "secret/zabbix",
 		"VAULT_TOKEN":                              "vault-secret",
@@ -144,7 +196,7 @@ func TestWebServerEnvRemovesDatabaseCredentials(t *testing.T) {
 	webEnv := webServerEnv(env)
 	for _, name := range []string{
 		"DB_SERVER_USER", "DB_SERVER_PASS", "MYSQL_PASSWORD", "POSTGRES_PASSWORD",
-		"ZBX_DB_PASSWORD", "ZBX_VAULT", "ZBX_VAULTDBPATH", "VAULT_TOKEN",
+		"ZBX_DB_PASSWORD", "ZBX_DBTLSKEYFILE", "ZBX_VAULT", "ZBX_VAULTDBPATH", "VAULT_TOKEN",
 		"ZBX_TELEMETRYPROVIDERS", "ZBX_TELEMETRYPROVIDER_0_PASSWORD",
 		"ZBX_TELEMETRYPROVIDER_0_PASSWORD_FILE", "ZBX_TELEMETRYPROVIDER_0_SSL_KEY_PASSWORD",
 	} {

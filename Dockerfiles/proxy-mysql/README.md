@@ -160,7 +160,7 @@ ClickHouse telemetry provider configuration in JSON format.
 
 Credentials and the TLS private key password can be set with the matching `_USERNAME`, `_PASSWORD`, and `_SSL_KEY_PASSWORD` variables or their `_FILE` alternatives.
 
-Certificate and key file names are resolved in `/var/lib/zabbix/ssl/certs` and `/var/lib/zabbix/ssl/keys`. CA certificates are read from `/var/lib/zabbix/ssl/ssl_ca`.
+Certificate and key paths may be absolute or relative to `/var/lib/zabbix/ssl/certs` and `/var/lib/zabbix/ssl/keys`, respectively. CA certificates are read from `/var/lib/zabbix/ssl/ssl_ca`.
 
 ### Other variables
 

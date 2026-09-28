@@ -76,6 +76,10 @@ func Run(env bootstrap.Environment, db DB, opts Options, args []string) error {
 		env.SetDefaultNonEmpty("DAEMON_GROUP", "nginx")
 	}
 
+	if err := prepareFrontendAliases(env); err != nil {
+		return err
+	}
+
 	if err := db.Configure(dbName); err != nil {
 		return err
 	}

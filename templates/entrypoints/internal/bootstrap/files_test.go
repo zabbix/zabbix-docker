@@ -8,6 +8,35 @@ import (
 	"testing"
 )
 
+func TestResolveFile(t *testing.T) {
+	directory := t.TempDir()
+	path := filepath.Join(directory, "secret")
+
+	for _, value := range []string{"secret", path} {
+		resolved, err := ResolveFile(value, directory)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if resolved != path {
+			t.Fatalf("ResolveFile(%q) = %q, want %q", value, resolved, path)
+		}
+	}
+
+	nested, err := ResolveFile("nested/secret", directory)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if want := filepath.Join(directory, "nested", "secret"); nested != want {
+		t.Fatalf("ResolveFile(nested/secret) = %q, want %q", nested, want)
+	}
+
+	for _, value := range []string{"../secret", ""} {
+		if _, err := ResolveFile(value, directory); err == nil {
+			t.Fatalf("ResolveFile(%q) succeeded", value)
+		}
+	}
+}
+
 func TestReadSQLFile(t *testing.T) {
 	dir := t.TempDir()
 

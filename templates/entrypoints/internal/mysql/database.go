@@ -14,6 +14,10 @@ import (
 
 const zabbixDBPrivileges = "SELECT, INSERT, UPDATE, DELETE, CREATE, DROP, ALTER, INDEX, CREATE TEMPORARY TABLES, TRIGGER, REFERENCES"
 
+// tlsResolver resolves the TLS settings of one configuration flavour: the
+// Zabbix server and proxy variables, or the PHP frontend variables.
+type tlsResolver func(bootstrap.Environment) (bootstrap.DBTLSConfig, error)
+
 // DB carries the resolved MySQL connection target and the working and
 // administrative credentials.
 type DB struct {
@@ -31,33 +35,40 @@ type DB struct {
 	name       string
 	createUser bool
 	fromVault  bool
+	resolveTLS tlsResolver
 }
 
 // NewForBackend creates an unconfigured DB for a Zabbix backend service;
 // call Configure before use.
 func NewForBackend(env bootstrap.Environment) *DB {
-	return newDB(env, bootstrap.ServiceDBTLS(env))
+	return newDB(env, bootstrap.ResolveServiceDBTLS)
 }
 
 // NewForFrontend creates a DB whose bootstrap connection uses the
 // PHP frontend's ZBX_DB_* TLS settings.
 func NewForFrontend(env bootstrap.Environment) *DB {
-	return newDB(env, bootstrap.FrontendDBTLS(env))
+	return newDB(env, bootstrap.ResolveFrontendDBTLS)
 }
 
-func newDB(env bootstrap.Environment, tls bootstrap.DBTLSConfig) *DB {
+func newDB(env bootstrap.Environment, resolveTLS tlsResolver) *DB {
 	return &DB{
-		env:       env,
-		tls:       tls,
-		open:      openDBSession,
-		charset:   env.ValueOrDefaultNonEmpty("DB_CHARACTER_SET", "utf8mb4"),
-		collation: env.ValueOrDefaultNonEmpty("DB_CHARACTER_COLLATE", "utf8mb4_bin"),
+		env:        env,
+		open:       openDBSession,
+		charset:    env.ValueOrDefaultNonEmpty("DB_CHARACTER_SET", "utf8mb4"),
+		collation:  env.ValueOrDefaultNonEmpty("DB_CHARACTER_COLLATE", "utf8mb4_bin"),
+		resolveTLS: resolveTLS,
 	}
 }
 
 // Configure resolves the connection target and credentials from the
 // environment or Vault.
 func (db *DB) Configure(defaultDBName string) error {
+	tls, err := db.resolveTLS(db.env)
+	if err != nil {
+		return err
+	}
+	db.tls = tls
+
 	if socket := db.env["DB_SERVER_SOCKET"]; socket != "" {
 		db.network = "unix"
 		db.address = socket

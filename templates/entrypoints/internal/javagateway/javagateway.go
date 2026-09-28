@@ -50,6 +50,9 @@ func prepare(env bootstrap.Environment, extraArgs []string) ([]string, error) {
 	if !bootstrap.RegularFile(logConfig) {
 		return nil, fmt.Errorf("missing configuration file %s", logConfig)
 	}
+	if err := bootstrap.ResolveFileEnv(env, "ZBX_PROPERTIES_FILE", javaDir); err != nil {
+		return nil, err
+	}
 
 	if err := os.Chdir(javaDir); err != nil {
 		return nil, fmt.Errorf("change Java Gateway directory to %s: %w", javaDir, err)

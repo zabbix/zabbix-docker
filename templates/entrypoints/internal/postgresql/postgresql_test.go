@@ -79,11 +79,17 @@ func TestFrontendTLSConfigurationIsExplicit(t *testing.T) {
 	env := bootstrap.Environment{"ZBX_DB_ENCRYPTION": "true"}
 
 	service := NewForBackend(env)
+	if err := service.Configure("zabbix"); err != nil {
+		t.Fatal(err)
+	}
 	if service.tls.ConnectMode != "" {
 		t.Fatalf("service used frontend TLS mode %q", service.tls.ConnectMode)
 	}
 
 	frontend := NewForFrontend(env)
+	if err := frontend.Configure("zabbix"); err != nil {
+		t.Fatal(err)
+	}
 	if frontend.tls.ConnectMode != "required" {
 		t.Fatalf("frontend TLS mode = %q", frontend.tls.ConnectMode)
 	}

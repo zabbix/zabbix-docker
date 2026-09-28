@@ -5,7 +5,7 @@ x-db-tls-env: &db-tls-env
 x-web-db-tls-env: &web-db-tls-env
  ZBX_DB_ENCRYPTION: "true"
  ZBX_DB_VERIFY_HOST: "true"
- ZBX_DB_CA_FILE: /run/secrets/root-ca.pem
+ ZBX_DBTLSCAFILE: /run/secrets/root-ca.pem
 
 x-db-tls-secrets: &db-tls-secrets
  - root-ca.pem

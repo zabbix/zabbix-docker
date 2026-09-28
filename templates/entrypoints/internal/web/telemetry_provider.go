@@ -17,11 +17,14 @@ func configureWebTelemetryProviders(env bootstrap.Environment, homeDir string) e
 		return err
 	}
 	for _, fields := range providers {
-		if value, _ := fields["ssl_cert_file"].(string); value != "" {
-			fields["ssl_cert_file"] = filepath.Join(homeDir, "ssl", "certs", value)
-		}
-		if value, _ := fields["ssl_key_file"].(string); value != "" {
-			fields["ssl_key_file"] = filepath.Join(homeDir, "ssl", "keys", value)
+		for field, directory := range map[string]string{"ssl_cert_file": "certs", "ssl_key_file": "keys"} {
+			if value, _ := fields[field].(string); value != "" {
+				path, err := bootstrap.ResolveFile(value, filepath.Join(homeDir, "ssl", directory))
+				if err != nil {
+					return err
+				}
+				fields[field] = path
+			}
 		}
 		if verifyPeer, _ := fields["ssl_verify_peer"].(bool); verifyPeer {
 			fields["ssl_ca_location"] = filepath.Join(homeDir, "ssl", "ssl_ca")

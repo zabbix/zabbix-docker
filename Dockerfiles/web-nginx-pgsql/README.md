@@ -130,7 +130,7 @@ ClickHouse telemetry provider configuration in JSON format.
 
 Credentials and the TLS private key password can be set with the matching `_USERNAME`, `_PASSWORD`, and `_SSL_KEY_PASSWORD` variables or their `_FILE` alternatives.
 
-Certificate and key file names are resolved in `/var/lib/zabbix/ssl/certs` and `/var/lib/zabbix/ssl/keys`. CA certificates are read from `/var/lib/zabbix/ssl/ssl_ca`.
+Certificate and key paths may be absolute or relative to `/var/lib/zabbix/ssl/certs` and `/var/lib/zabbix/ssl/keys`, respectively. CA certificates are read from `/var/lib/zabbix/ssl/ssl_ca`.
 
 ### `PHP_TZ`
 
@@ -196,17 +196,17 @@ Information message about maintenance period for Zabbix web-interface.
 
 The variable allows to activate encryption for connections to Zabbix database. Even if no other environment variables are specified, connections will be TLS-encrypted if `ZBX_DB_ENCRYPTION=true` specified. Available since 5.0.0. Disabled by default.
 
-### `ZBX_DB_KEY_FILE`
+### `ZBX_DBTLSKEYFILE`
 
-The variable allows to specify the full path to a valid TLS key file. Available since 5.0.0.
+The variable allows to specify a TLS key file. Available since 5.0.0.
 
-### `ZBX_DB_CERT_FILE`
+### `ZBX_DBTLSCERTFILE`
 
-The variable allows to specify the full path to a valid TLS certificate file. Available since 5.0.0.
+The variable allows to specify a TLS certificate file. Available since 5.0.0.
 
-### `ZBX_DB_CA_FILE`
+### `ZBX_DBTLSCAFILE`
 
-The variable allows to specify the full path to a valid TLS certificate authority file. Available since 5.0.0.
+The variable allows to specify a TLS certificate authority file. Available since 5.0.0.
 
 ### `ZBX_DB_VERIFY_HOST`
 
@@ -254,8 +254,8 @@ VAULT_TOKEN= # Available since 5.2.0
 ZBX_VAULTAPPROLEID= # Available since 8.0.0
 ZBX_VAULTAPPSECRETID= # Available since 8.0.0
 ZBX_VAULTPREFIX= # Available since 7.0.0
-ZBX_VAULTCERTFILE= # Available since 6.2.0
-ZBX_VAULTKEYFILE= # Available since 6.2.0
+ZBX_VAULTTLSCERTFILE= # Available since 6.2.0
+ZBX_VAULTTLSKEYFILE= # Available since 6.2.0
 ZBX_VAULTCACHE=false # Available since 6.2.0
 
 ZBX_CERT_STORAGE=database # Available since 8.0.0

@@ -11,6 +11,7 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"path/filepath"
 	"strings"
 	"time"
 
@@ -190,9 +191,9 @@ func decodeHashiCorp(data []byte) (Credentials, error) {
 }
 
 func fetchCyberArk(env bootstrap.Environment, baseURL, dbPath string) (Credentials, error) {
-	certFile := env["ZBX_VAULTCERTFILE"]
-	if certFile == "" {
-		certFile = env["ZBX_VAULTTLSCERTFILE"]
+	certFile, err := resolveVaultFile(env, "ZBX_VAULTCERTFILE", "ZBX_VAULTTLSCERTFILE")
+	if err != nil {
+		return Credentials{}, err
 	}
 	if certFile == "" {
 		return Credentials{}, fmt.Errorf("if CyberArk is used, a Vault certificate file must be set")
@@ -204,9 +205,9 @@ func fetchCyberArk(env bootstrap.Environment, baseURL, dbPath string) (Credentia
 	}
 
 	keyPEM := certPEM
-	keyFile := env["ZBX_VAULTKEYFILE"]
-	if keyFile == "" {
-		keyFile = env["ZBX_VAULTTLSKEYFILE"]
+	keyFile, err := resolveVaultFile(env, "ZBX_VAULTKEYFILE", "ZBX_VAULTTLSKEYFILE")
+	if err != nil {
+		return Credentials{}, err
 	}
 	if keyFile != "" {
 		keyPEM, err = os.ReadFile(keyFile)
@@ -234,6 +235,29 @@ func fetchCyberArk(env bootstrap.Environment, baseURL, dbPath string) (Credentia
 	}
 
 	return decodeCyberArk(data)
+}
+
+func resolveVaultFile(env bootstrap.Environment, legacyName, name string) (string, error) {
+	directory := bootstrap.WebCertsDir
+	if env[name] != "" {
+		if !filepath.IsAbs(env[name]) {
+			homeDir, err := bootstrap.RequiredHomeDir(env)
+			if err != nil {
+				return "", err
+			}
+			directory = filepath.Join(homeDir, "enc")
+		}
+	} else if env[legacyName] != "" {
+		name = legacyName
+	} else {
+		return "", nil
+	}
+
+	if err := bootstrap.ResolveFileEnv(env, name, directory); err != nil {
+		return "", err
+	}
+
+	return env[name], nil
 }
 
 func cyberArkURL(baseURL, prefix, dbPath string) string {

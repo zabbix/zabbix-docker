@@ -110,8 +110,11 @@ func TestPrepareDatabase(t *testing.T) {
 }
 
 func TestRequiredTLSConfiguration(t *testing.T) {
-	env := bootstrap.Environment{"ZBX_DBTLSCONNECT": "required"}
+	env := bootstrap.Environment{"ZBX_DBTLSCONNECT": "required", "MYSQL_ALLOW_EMPTY_PASSWORD": "true"}
 	db := NewForBackend(env)
+	if err := db.Configure("zabbix"); err != nil {
+		t.Fatal(err)
+	}
 	config, err := db.tlsConfig()
 	if err != nil {
 		t.Fatal(err)
@@ -122,9 +125,13 @@ func TestRequiredTLSConfiguration(t *testing.T) {
 }
 
 func TestFrontendTLSConfigurationIsExplicit(t *testing.T) {
-	env := bootstrap.Environment{"ZBX_DB_ENCRYPTION": "true"}
+	env := bootstrap.Environment{"ZBX_DB_ENCRYPTION": "true", "MYSQL_ALLOW_EMPTY_PASSWORD": "true"}
 
-	serviceConfig, err := NewForBackend(env).tlsConfig()
+	service := NewForBackend(env)
+	if err := service.Configure("zabbix"); err != nil {
+		t.Fatal(err)
+	}
+	serviceConfig, err := service.tlsConfig()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -132,7 +139,11 @@ func TestFrontendTLSConfigurationIsExplicit(t *testing.T) {
 		t.Fatalf("service config used frontend TLS settings: %#v", serviceConfig)
 	}
 
-	frontendConfig, err := NewForFrontend(env).tlsConfig()
+	frontend := NewForFrontend(env)
+	if err := frontend.Configure("zabbix"); err != nil {
+		t.Fatal(err)
+	}
+	frontendConfig, err := frontend.tlsConfig()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -317,10 +328,14 @@ func TestVerifiedTLSConfigurations(t *testing.T) {
 	} {
 		t.Run(test.mode, func(t *testing.T) {
 			env := bootstrap.Environment{
-				"DB_SERVER_HOST":   "db.example.test",
-				"ZBX_DBTLSCONNECT": test.mode,
+				"DB_SERVER_HOST":             "db.example.test",
+				"ZBX_DBTLSCONNECT":           test.mode,
+				"MYSQL_ALLOW_EMPTY_PASSWORD": "true",
 			}
 			db := NewForBackend(env)
+			if err := db.Configure("zabbix"); err != nil {
+				t.Fatal(err)
+			}
 			config, err := db.tlsConfig()
 			if err != nil {
 				t.Fatal(err)
@@ -337,10 +352,14 @@ func TestVerifiedTLSConfigurations(t *testing.T) {
 
 func TestTLSClientCertificateRequiresBothFiles(t *testing.T) {
 	env := bootstrap.Environment{
-		"ZBX_DBTLSCONNECT":  "required",
-		"ZBX_DBTLSCERTFILE": "/certificate.pem",
+		"ZBX_DBTLSCONNECT":           "required",
+		"ZBX_DBTLSCERTFILE":          "/certificate.pem",
+		"MYSQL_ALLOW_EMPTY_PASSWORD": "true",
 	}
 	db := NewForBackend(env)
+	if err := db.Configure("zabbix"); err != nil {
+		t.Fatal(err)
+	}
 	if _, err := db.tlsConfig(); err == nil {
 		t.Fatal("incomplete client certificate configuration was accepted")
 	}

@@ -139,6 +139,10 @@ func validateDir(dir string) error {
 // setting both is an error. The *_FILE variable is removed from the
 // environment.
 func ResolveSecretEnv(env Environment, name string) error {
+	return resolveSecretEnv(env, name, SecretsDir)
+}
+
+func resolveSecretEnv(env Environment, name, secretsDir string) error {
 	fileName := name + "_FILE"
 	value := env[name]
 	secretFile := env[fileName]
@@ -149,6 +153,11 @@ func ResolveSecretEnv(env Environment, name string) error {
 	if value != "" {
 		LogInfo("** Using %s variable from ENV", name)
 	} else if secretFile != "" {
+		resolved, err := ResolveFile(secretFile, secretsDir)
+		if err != nil {
+			return fmt.Errorf("%s: %w", fileName, err)
+		}
+		secretFile = resolved
 		data, err := os.ReadFile(secretFile)
 		if err != nil {
 			return fmt.Errorf("secret file %q is not found: %w", secretFile, err)
@@ -184,8 +193,12 @@ func ProcessTLSFiles(env Environment, homeDir string, variables ...string) error
 
 		delete(env, variable)
 
-		if path := env[fileVariable]; path != "" && !filepath.IsAbs(path) {
-			env[fileVariable] = filepath.Join(volumeDir, path)
+		if path := env[fileVariable]; path != "" {
+			resolved, err := ResolveFile(path, volumeDir)
+			if err != nil {
+				return fmt.Errorf("%s: %w", fileVariable, err)
+			}
+			env[fileVariable] = resolved
 		}
 	}
 

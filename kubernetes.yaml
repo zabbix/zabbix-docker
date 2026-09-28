@@ -265,15 +265,15 @@ spec:
             value: "zabbix"
           - name: ZBX_DB_ENCRYPTION
             value: "true"
-          - name: ZBX_DB_CA_FILE
+          - name: ZBX_DBTLSCAFILE
             value: "/tmp/secrets/root-ca.pem"
-          - name: ZBX_DB_CERT_FILE
+          - name: ZBX_DBTLSCERTFILE
             value: "/tmp/secrets/client-cert.pem"
-          - name: ZBX_DB_KEY_FILE
+          - name: ZBX_DBTLSKEYFILE
             value: "/tmp/secrets/client-key.pem"
           - name: ZBX_DB_VERIFY_HOST
             value: "false"
-          - name: ZBX_DB_CIPHER_LIST
+          - name: ZBX_DBTLSCIPHER
             value: ""
 #          - name: ZBX_HISTORYPROVIDER_0
 #            value: '{"provider":"elasticsearch","types":["uint","dbl","str","log","text","json"],"url":"http://elasticsearch:9200"}'

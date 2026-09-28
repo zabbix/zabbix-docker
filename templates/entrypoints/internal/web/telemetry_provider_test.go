@@ -9,6 +9,37 @@ import (
 	"github.com/zabbix/zabbix-docker/templates/entrypoints/internal/bootstrap"
 )
 
+func TestWebTelemetryTLSPaths(t *testing.T) {
+	homeDir := t.TempDir()
+	for _, path := range []string{"team/client.pem", "/custom/team/client.pem"} {
+		t.Run(path, func(t *testing.T) {
+			raw, err := json.Marshal(map[string]any{
+				"provider": "clickhouse", "ssl_cert_file": path, "ssl_key_file": path,
+			})
+			if err != nil {
+				t.Fatal(err)
+			}
+			env := bootstrap.Environment{"ZBX_TELEMETRYPROVIDER_0": string(raw)}
+			if err := configureWebTelemetryProviders(env, homeDir); err != nil {
+				t.Fatal(err)
+			}
+			var providers []map[string]any
+			if err := json.Unmarshal([]byte(env["ZBX_TELEMETRYPROVIDERS"]), &providers); err != nil {
+				t.Fatal(err)
+			}
+			for field, directory := range map[string]string{"ssl_cert_file": "certs", "ssl_key_file": "keys"} {
+				want := path
+				if !filepath.IsAbs(path) {
+					want = filepath.Join(homeDir, "ssl", directory, path)
+				}
+				if got := providers[0][field]; got != want {
+					t.Errorf("%s = %v, want %s", field, got, want)
+				}
+			}
+		})
+	}
+}
+
 func TestConfigureWebTelemetryProviders(t *testing.T) {
 	homeDir := t.TempDir()
 	env := bootstrap.Environment{

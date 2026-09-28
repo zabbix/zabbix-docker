@@ -48,12 +48,44 @@ var phpDefaults = []struct{ name, value string }{
 	{"ZBX_SERVER_TLS_ACTIVE", "0"},
 }
 
+func prepareFrontendAliases(env bootstrap.Environment) error {
+	for _, variable := range []struct {
+		name, legacy, directory string
+	}{
+		{"ZBX_DBTLSCAFILE", "ZBX_DB_CA_FILE", bootstrap.SecretsDir},
+		{"ZBX_DBTLSCERTFILE", "ZBX_DB_CERT_FILE", bootstrap.SecretsDir},
+		{"ZBX_DBTLSKEYFILE", "ZBX_DB_KEY_FILE", bootstrap.SecretsDir},
+		{"ZBX_VAULTTLSCERTFILE", "ZBX_VAULTCERTFILE", bootstrap.WebCertsDir},
+		{"ZBX_VAULTTLSKEYFILE", "ZBX_VAULTKEYFILE", bootstrap.WebCertsDir},
+	} {
+		if env[variable.name] == "" {
+			env[variable.name] = env[variable.legacy]
+		}
+		delete(env, variable.legacy)
+		if err := bootstrap.ResolveFileEnv(env, variable.name, variable.directory); err != nil {
+			return err
+		}
+	}
+	if env["ZBX_DBTLSCIPHER"] == "" {
+		env["ZBX_DBTLSCIPHER"] = env["ZBX_DB_CIPHER_LIST"]
+	}
+	delete(env, "ZBX_DB_CIPHER_LIST")
+	return nil
+}
+
 func preparePHP(env bootstrap.Environment, dbType DBType) error {
 	bootstrap.LogInfo("** Preparing PHP configuration")
 
 	homeDir, err := bootstrap.RequiredHomeDir(env)
 	if err != nil {
 		return err
+	}
+	for _, name := range []string{
+		"ZBX_SSO_SP_KEY", "ZBX_SSO_SP_CERT", "ZBX_SSO_IDP_CERT",
+	} {
+		if err := bootstrap.ResolveFileEnv(env, name, bootstrap.WebCertsDir); err != nil {
+			return err
+		}
 	}
 
 	for _, setting := range phpDefaults {

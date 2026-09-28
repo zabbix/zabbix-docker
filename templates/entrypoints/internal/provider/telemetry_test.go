@@ -65,11 +65,11 @@ func TestTelemetryProviderValidation(t *testing.T) {
 			wantErr: "managed by the image",
 		},
 		{
-			name: "certificate path",
+			name: "certificate outside default directory",
 			env: bootstrap.Environment{
-				"ZBX_TELEMETRYPROVIDER_0": `{"provider":"clickhouse","url":"https://clickhouse:8443","db":"zabbix","ssl_cert_file":"certs/client.crt"}`,
+				"ZBX_TELEMETRYPROVIDER_0": `{"provider":"clickhouse","url":"https://clickhouse:8443","db":"zabbix","ssl_cert_file":"../client.crt"}`,
 			},
-			wantErr: "without a path",
+			wantErr: "escapes the default directory",
 		},
 	}
 	for _, test := range tests {

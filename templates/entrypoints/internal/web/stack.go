@@ -54,7 +54,7 @@ func webServerEnv(env bootstrap.Environment) bootstrap.Environment {
 			continue
 		}
 
-		for _, prefix := range []string{"DB_", "MYSQL_", "POSTGRES_", "ZBX_DB_", "ZBX_VAULT"} {
+		for _, prefix := range []string{"DB_", "MYSQL_", "POSTGRES_", "ZBX_DB_", "ZBX_DBTLS", "ZBX_VAULT"} {
 			if strings.HasPrefix(name, prefix) {
 				delete(result, name)
 				break

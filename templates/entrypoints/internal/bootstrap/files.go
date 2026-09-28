@@ -14,6 +14,49 @@ import (
 // file is missing.
 var ErrMissingSymlinkSource = errors.New("symlink source does not exist")
 
+const (
+	// SecretsDir is where container runtimes mount secret files.
+	SecretsDir = "/run/secrets"
+	// WebCertsDir holds the frontend certificates of the web images.
+	WebCertsDir = "/etc/zabbix/web/certs"
+)
+
+// ResolveFile cleans an absolute path and resolves a relative path in
+// defaultDir. Relative paths cannot escape defaultDir.
+func ResolveFile(value, defaultDir string) (string, error) {
+	if value == "" {
+		return "", fmt.Errorf("file path is empty")
+	}
+
+	if filepath.IsAbs(value) {
+		return filepath.Clean(value), nil
+	}
+
+	path := filepath.Clean(value)
+	if path == "." || path == ".." || strings.HasPrefix(path, ".."+string(filepath.Separator)) {
+		return "", fmt.Errorf("relative path %q escapes the default directory", value)
+	}
+
+	return filepath.Join(defaultDir, path), nil
+}
+
+// ResolveFileEnv resolves a non-empty file variable and writes the absolute
+// path back to the environment.
+func ResolveFileEnv(env Environment, name, defaultDir string) error {
+	value := env[name]
+	if value == "" {
+		return nil
+	}
+
+	path, err := ResolveFile(value, defaultDir)
+	if err != nil {
+		return fmt.Errorf("%s: %w", name, err)
+	}
+	env[name] = path
+
+	return nil
+}
+
 // ReplaceSymlink links target to source, replacing an existing file or
 // link. The source must be an existing regular file.
 func ReplaceSymlink(source, target string) error {

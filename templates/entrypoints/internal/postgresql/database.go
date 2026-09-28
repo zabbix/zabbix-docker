@@ -11,6 +11,10 @@ import (
 	"github.com/zabbix/zabbix-docker/templates/entrypoints/internal/vault"
 )
 
+// tlsResolver resolves the TLS settings of one configuration flavour: the
+// Zabbix server and proxy variables, or the PHP frontend variables.
+type tlsResolver func(bootstrap.Environment) (bootstrap.DBTLSConfig, error)
+
 // DB carries the resolved PostgreSQL connection target and the
 // working and administrative credentials.
 type DB struct {
@@ -28,27 +32,34 @@ type DB struct {
 	schema             string
 	implicitSearchPath bool
 	fromVault          bool
+	resolveTLS         tlsResolver
 }
 
 // NewForBackend creates an unconfigured DB for a Zabbix backend service;
 // call Configure before use.
 func NewForBackend(env bootstrap.Environment) *DB {
-	return newDB(env, bootstrap.ServiceDBTLS(env))
+	return newDB(env, bootstrap.ResolveServiceDBTLS)
 }
 
 // NewForFrontend creates a DB whose bootstrap connection uses the
 // PHP frontend's ZBX_DB_* TLS settings.
 func NewForFrontend(env bootstrap.Environment) *DB {
-	return newDB(env, bootstrap.FrontendDBTLS(env))
+	return newDB(env, bootstrap.ResolveFrontendDBTLS)
 }
 
-func newDB(env bootstrap.Environment, tls bootstrap.DBTLSConfig) *DB {
-	return &DB{env: env, tls: tls, open: openDBSession}
+func newDB(env bootstrap.Environment, resolveTLS tlsResolver) *DB {
+	return &DB{env: env, open: openDBSession, resolveTLS: resolveTLS}
 }
 
 // Configure resolves the connection target, schema and credentials from the
 // environment or Vault.
 func (db *DB) Configure(defaultDBName string) error {
+	tls, err := db.resolveTLS(db.env)
+	if err != nil {
+		return err
+	}
+	db.tls = tls
+
 	host := db.env.ValueOrDefault("DB_SERVER_HOST", "postgres-server")
 	port, err := bootstrap.ResolveDBPort(db.env, "5432")
 	if err != nil {

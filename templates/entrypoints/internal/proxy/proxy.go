@@ -33,6 +33,11 @@ func Prepare(env bootstrap.Environment, defaultHostname string) error {
 	if err != nil {
 		return err
 	}
+	for _, name := range []string{"ZBX_VAULTTLSCERTFILE", "ZBX_VAULTTLSKEYFILE"} {
+		if err := bootstrap.ResolveFileEnv(env, name, filepath.Join(homeDir, "enc")); err != nil {
+			return err
+		}
+	}
 
 	if err := config.MergeParameterValues(filepath.Join(configDir, "zabbix_proxy_modules.conf"), "LoadModule", env["ZBX_LOADMODULE"]); err != nil {
 		return err

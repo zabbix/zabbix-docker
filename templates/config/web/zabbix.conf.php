@@ -68,10 +68,10 @@ $ZBX_SERVER_NAME = env_string('ZBX_SERVER_NAME');
 
 $DB['ENCRYPTION']  = env_bool('ZBX_DB_ENCRYPTION');
 $DB['VERIFY_HOST'] = env_bool('ZBX_DB_VERIFY_HOST');
-$DB['KEY_FILE']    = env_string('ZBX_DB_KEY_FILE');
-$DB['CERT_FILE']   = env_string('ZBX_DB_CERT_FILE');
-$DB['CA_FILE']     = env_string('ZBX_DB_CA_FILE');
-$DB['CIPHER_LIST'] = env_string('ZBX_DB_CIPHER_LIST');
+$DB['KEY_FILE']    = env_string('ZBX_DBTLSKEYFILE');
+$DB['CERT_FILE']   = env_string('ZBX_DBTLSCERTFILE');
+$DB['CA_FILE']     = env_string('ZBX_DBTLSCAFILE');
+$DB['CIPHER_LIST'] = env_string('ZBX_DBTLSCIPHER');
 
 $DB['VAULT']               = env_string('ZBX_VAULT');
 $DB['VAULT_URL']           = env_string('ZBX_VAULTURL');
@@ -81,8 +81,8 @@ $DB['VAULT_TOKEN']         = env_string('VAULT_TOKEN');
 $DB['VAULT_APP_ROLE_ID']   = env_string('ZBX_VAULTAPPROLEID');
 $DB['VAULT_APP_SECRET_ID'] = env_string('ZBX_VAULTAPPSECRETID');
 
-$DB['VAULT_CERT_FILE'] = resolve_file('/etc/zabbix/web/certs/vault.crt', 'ZBX_VAULTCERTFILE');
-$DB['VAULT_KEY_FILE'] = resolve_file('/etc/zabbix/web/certs/vault.key', 'ZBX_VAULTKEYFILE');
+$DB['VAULT_CERT_FILE'] = resolve_file('/etc/zabbix/web/certs/vault.crt', 'ZBX_VAULTTLSCERTFILE');
+$DB['VAULT_KEY_FILE'] = resolve_file('/etc/zabbix/web/certs/vault.key', 'ZBX_VAULTTLSKEYFILE');
 
 $DB['VAULT_CACHE']    = env_bool('ZBX_VAULTCACHE');
 

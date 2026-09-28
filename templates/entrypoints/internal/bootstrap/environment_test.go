@@ -56,11 +56,18 @@ func TestProcessFileAndClearEnvironment(t *testing.T) {
 
 func TestProcessTLSFilesResolvesRelativePaths(t *testing.T) {
 	homeDir := t.TempDir()
-	if err := os.MkdirAll(filepath.Join(homeDir, "enc_internal"), 0o700); err != nil {
-		t.Fatal(err)
+	for _, directory := range []string{"enc", "enc_internal", "custom"} {
+		if err := os.MkdirAll(filepath.Join(homeDir, directory), 0o700); err != nil {
+			t.Fatal(err)
+		}
 	}
 
 	absoluteCertPath := filepath.Join(homeDir, "custom", "agent.crt")
+	for _, path := range []string{filepath.Join(homeDir, "enc", "ca.crt"), absoluteCertPath} {
+		if err := os.WriteFile(path, []byte("certificate"), 0o600); err != nil {
+			t.Fatal(err)
+		}
+	}
 	env := Environment{
 		"ZBX_TLSCAFILE":   "ca.crt",
 		"ZBX_TLSCERTFILE": absoluteCertPath,
@@ -113,12 +120,13 @@ func TestClearPrivateEnvWithPrefixes(t *testing.T) {
 }
 
 func TestResolveSecretEnv(t *testing.T) {
-	path := filepath.Join(t.TempDir(), "password")
+	directory := t.TempDir()
+	path := filepath.Join(directory, "password")
 	if err := os.WriteFile(path, []byte("secret\r\n"), 0o600); err != nil {
 		t.Fatal(err)
 	}
-	env := Environment{"MYSQL_PASSWORD_FILE": path}
-	if err := ResolveSecretEnv(env, "MYSQL_PASSWORD"); err != nil {
+	env := Environment{"MYSQL_PASSWORD_FILE": "password"}
+	if err := resolveSecretEnv(env, "MYSQL_PASSWORD", directory); err != nil {
 		t.Fatal(err)
 	}
 	if env["MYSQL_PASSWORD"] != "secret" {

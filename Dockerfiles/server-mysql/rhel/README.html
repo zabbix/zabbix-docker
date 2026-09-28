@@ -77,7 +77,7 @@ podman run --name some-zabbix-server-mysql <span class="hljs-_">-e</span> DB_SER
 <h3 id="-zbx_telemetryprovider_0-"><code>ZBX_TELEMETRYPROVIDER_0</code></h3>
 <p>ClickHouse telemetry provider configuration in JSON format.</p>
 <p>Credentials and the TLS private key password can be set with the matching <code>_USERNAME</code>, <code>_PASSWORD</code>, and <code>_SSL_KEY_PASSWORD</code> variables or their <code>_FILE</code> alternatives.</p>
-<p>Certificate and key file names are resolved in <code>/var/lib/zabbix/ssl/certs</code> and <code>/var/lib/zabbix/ssl/keys</code>. CA certificates are read from <code>/var/lib/zabbix/ssl/ssl_ca</code>.</p>
+<p>Certificate and key paths may be absolute or relative to <code>/var/lib/zabbix/ssl/certs</code> and <code>/var/lib/zabbix/ssl/keys</code>, respectively. CA certificates are read from <code>/var/lib/zabbix/ssl/ssl_ca</code>.</p>
 <h3 id="other-variables">Other variables</h3>
 <p>Additionally the image allows to specify many other environment variables listed below:</p>
 <pre><code><span class="hljs-attr">ZBX_HISTORYPROVIDER_&lt;0-N&gt;</span>=

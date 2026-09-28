@@ -7,6 +7,12 @@ import (
 	"strings"
 )
 
+const (
+	envDBTLSCAFile   = "ZBX_DBTLSCAFILE"
+	envDBTLSCertFile = "ZBX_DBTLSCERTFILE"
+	envDBTLSKeyFile  = "ZBX_DBTLSKEYFILE"
+)
+
 // DBTLSConfig contains TLS options for the entrypoint's database connection.
 // Server/proxy and the PHP frontend expose different environment variables.
 type DBTLSConfig struct {
@@ -16,27 +22,53 @@ type DBTLSConfig struct {
 	KeyFile     string
 }
 
-// ServiceDBTLS reads the Zabbix server/proxy DBTLS settings.
-func ServiceDBTLS(env Environment) DBTLSConfig {
+// ResolveServiceDBTLS resolves database TLS file names for Zabbix server and
+// proxy images.
+func ResolveServiceDBTLS(env Environment) (DBTLSConfig, error) {
+	return resolveDBTLS(env, serviceDBTLS(env))
+}
+
+// ResolveFrontendDBTLS resolves database TLS file names for frontend images.
+func ResolveFrontendDBTLS(env Environment) (DBTLSConfig, error) {
+	return resolveDBTLS(env, frontendDBTLS(env))
+}
+
+func resolveDBTLS(env Environment, settings DBTLSConfig) (DBTLSConfig, error) {
+	if settings.ConnectMode == "" {
+		return settings, nil
+	}
+	for _, name := range []string{envDBTLSCAFile, envDBTLSCertFile, envDBTLSKeyFile} {
+		if err := ResolveFileEnv(env, name, SecretsDir); err != nil {
+			return DBTLSConfig{}, err
+		}
+	}
+
+	settings.CAFile = env[envDBTLSCAFile]
+	settings.CertFile = env[envDBTLSCertFile]
+	settings.KeyFile = env[envDBTLSKeyFile]
+
+	return settings, nil
+}
+
+func serviceDBTLS(env Environment) DBTLSConfig {
 	return DBTLSConfig{
 		ConnectMode: env["ZBX_DBTLSCONNECT"],
-		CAFile:      env["ZBX_DBTLSCAFILE"],
-		CertFile:    env["ZBX_DBTLSCERTFILE"],
-		KeyFile:     env["ZBX_DBTLSKEYFILE"],
+		CAFile:      env[envDBTLSCAFile],
+		CertFile:    env[envDBTLSCertFile],
+		KeyFile:     env[envDBTLSKeyFile],
 	}
 }
 
-// FrontendDBTLS translates the PHP frontend DB TLS settings for Go clients.
-func FrontendDBTLS(env Environment) DBTLSConfig {
+func frontendDBTLS(env Environment) DBTLSConfig {
 	if !strings.EqualFold(env["ZBX_DB_ENCRYPTION"], "true") {
 		return DBTLSConfig{}
 	}
 
 	settings := DBTLSConfig{
 		ConnectMode: "required",
-		CAFile:      env["ZBX_DB_CA_FILE"],
-		CertFile:    env["ZBX_DB_CERT_FILE"],
-		KeyFile:     env["ZBX_DB_KEY_FILE"],
+		CAFile:      env[envDBTLSCAFile],
+		CertFile:    env[envDBTLSCertFile],
+		KeyFile:     env[envDBTLSKeyFile],
 	}
 	if settings.CAFile != "" {
 		settings.ConnectMode = "verify_ca"
