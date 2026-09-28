@@ -1,0 +1,236 @@
+version: '3.8'
+services:
+ zabbix-build-base:
+  build:
+   context: ./Dockerfiles/build-base/${RHEL_OS_TAG_SHORT}
+   cache_from:
+    - "${RHEL_CACHE_FROM}"
+  image: ${BUILD_BASE_IMAGE}:${ZABBIX_RHEL_IMAGE_TAG}${ZABBIX_LOCAL_IMAGE_TAG_POSTFIX}
+
+ zabbix-build-mysql:
+  build:
+   context: ./Dockerfiles/build-mysql/${RHEL_OS_TAG_SHORT}
+   cache_from:
+    - "${RHEL_CACHE_FROM}"
+   args:
+    BUILD_BASE_IMAGE: ${BUILD_BASE_IMAGE}:${ZABBIX_RHEL_IMAGE_TAG}${ZABBIX_LOCAL_IMAGE_TAG_POSTFIX}
+  image: ${BUILD_BASE_MYSQL_IMAGE}:${ZABBIX_RHEL_IMAGE_TAG}${ZABBIX_LOCAL_IMAGE_TAG_POSTFIX}
+  depends_on:
+   - zabbix-build-base
+
+ zabbix-build-sqlite3:
+  build:
+   context: ./Dockerfiles/build-sqlite3/${RHEL_OS_TAG_SHORT}
+   cache_from:
+    - "${RHEL_CACHE_FROM}"
+   args:
+    BUILD_BASE_IMAGE: ${BUILD_BASE_IMAGE}:${ZABBIX_RHEL_IMAGE_TAG}${ZABBIX_LOCAL_IMAGE_TAG_POSTFIX}
+  image: ${BUILD_BASE_SQLITE3_IMAGE}:${ZABBIX_RHEL_IMAGE_TAG}${ZABBIX_LOCAL_IMAGE_TAG_POSTFIX}
+  profiles:
+   - all
+  depends_on:
+   - zabbix-build-base
+
+ zabbix-server:
+  extends:
+   file: compose_zabbix_components.yaml
+   service: server-mysql
+  build:
+   context: ./Dockerfiles/server-mysql/${RHEL_OS_TAG_SHORT}
+   cache_from:
+    - "${RHEL_CACHE_FROM}"
+   args:
+    BUILD_BASE_IMAGE: ${BUILD_BASE_MYSQL_IMAGE}:${ZABBIX_RHEL_IMAGE_TAG}${ZABBIX_LOCAL_IMAGE_TAG_POSTFIX}
+  image: zabbix-server-mysql:${ZABBIX_RHEL_IMAGE_TAG}${ZABBIX_LOCAL_IMAGE_TAG_POSTFIX}
+  volumes:
+   - /etc/timezone:/etc/timezone:ro
+  depends_on:
+   - mysql-server
+   - zabbix-build-mysql
+  labels:
+   com.zabbix.os: "${RHEL_OS_TAG}"
+
+ zabbix-proxy-sqlite3:
+  extends:
+   file: compose_zabbix_components.yaml
+   service: proxy-sqlite3
+  build:
+   context: ./Dockerfiles/proxy-sqlite3/${RHEL_OS_TAG_SHORT}
+   cache_from:
+    - "${RHEL_CACHE_FROM}"
+   args:
+    BUILD_BASE_IMAGE: ${BUILD_BASE_SQLITE3_IMAGE}:${ZABBIX_RHEL_IMAGE_TAG}${ZABBIX_LOCAL_IMAGE_TAG_POSTFIX}
+  image: zabbix-proxy-sqlite3:${ZABBIX_RHEL_IMAGE_TAG}${ZABBIX_LOCAL_IMAGE_TAG_POSTFIX}
+  volumes:
+   - /etc/timezone:/etc/timezone:ro
+  depends_on:
+   - zabbix-build-sqlite3
+  labels:
+   com.zabbix.os: "${RHEL_OS_TAG}"
+
+ zabbix-proxy-mysql:
+  extends:
+   file: compose_zabbix_components.yaml
+   service: proxy-mysql
+  build:
+   context: ./Dockerfiles/proxy-mysql/${RHEL_OS_TAG_SHORT}
+   cache_from:
+    - "${RHEL_CACHE_FROM}"
+   args:
+    BUILD_BASE_IMAGE: ${BUILD_BASE_MYSQL_IMAGE}:${ZABBIX_RHEL_IMAGE_TAG}${ZABBIX_LOCAL_IMAGE_TAG_POSTFIX}
+  image: zabbix-proxy-mysql:${ZABBIX_RHEL_IMAGE_TAG}${ZABBIX_LOCAL_IMAGE_TAG_POSTFIX}
+  volumes:
+   - /etc/timezone:/etc/timezone:ro
+  depends_on:
+   - mysql-server
+   - zabbix-build-mysql
+  labels:
+   com.zabbix.os: "${RHEL_OS_TAG}"
+
+ zabbix-web-nginx-mysql:
+  extends:
+   file: compose_zabbix_components.yaml
+   service: web-nginx-mysql
+  build:
+   context: ./Dockerfiles/web-nginx-mysql/${RHEL_OS_TAG_SHORT}
+   cache_from:
+    - "${RHEL_CACHE_FROM}"
+   args:
+    BUILD_BASE_IMAGE: ${BUILD_BASE_MYSQL_IMAGE}:${ZABBIX_RHEL_IMAGE_TAG}${ZABBIX_LOCAL_IMAGE_TAG_POSTFIX}
+  image: zabbix-web-nginx-mysql:${ZABBIX_RHEL_IMAGE_TAG}${ZABBIX_LOCAL_IMAGE_TAG_POSTFIX}
+  volumes:
+   - /etc/timezone:/etc/timezone:ro
+  depends_on:
+   - mysql-server
+   - zabbix-build-mysql
+  labels:
+   com.zabbix.os: "${RHEL_OS_TAG}"
+
+ zabbix-agent:
+  extends:
+   file: compose_zabbix_components.yaml
+   service: agent
+  build:
+   context: ./Dockerfiles/agent/${RHEL_OS_TAG_SHORT}
+   cache_from:
+    - "${RHEL_CACHE_FROM}"
+   args:
+    BUILD_BASE_IMAGE: ${BUILD_BASE_MYSQL_IMAGE}:${ZABBIX_RHEL_IMAGE_TAG}${ZABBIX_LOCAL_IMAGE_TAG_POSTFIX}
+  image: zabbix-agent:${ZABBIX_RHEL_IMAGE_TAG}${ZABBIX_LOCAL_IMAGE_TAG_POSTFIX}
+  volumes:
+   - /etc/timezone:/etc/timezone:ro
+  depends_on:
+   - zabbix-build-mysql
+  labels:
+   com.zabbix.os: "${RHEL_OS_TAG}"
+
+ zabbix-java-gateway:
+  extends:
+   file: compose_zabbix_components.yaml
+   service: java-gateway
+  build:
+   context: ./Dockerfiles/java-gateway/${RHEL_OS_TAG_SHORT}
+   cache_from:
+    - "${RHEL_CACHE_FROM}"
+   args:
+    BUILD_BASE_IMAGE: ${BUILD_BASE_MYSQL_IMAGE}:${ZABBIX_RHEL_IMAGE_TAG}${ZABBIX_LOCAL_IMAGE_TAG_POSTFIX}
+  image: zabbix-java-gateway:${ZABBIX_RHEL_IMAGE_TAG}${ZABBIX_LOCAL_IMAGE_TAG_POSTFIX}
+  depends_on:
+   - zabbix-build-mysql
+  labels:
+   com.zabbix.os: "${RHEL_OS_TAG}"
+
+ zabbix-snmptraps:
+  extends:
+   file: compose_zabbix_components.yaml
+   service: snmptraps
+  build:
+   context: ./Dockerfiles/snmptraps/${RHEL_OS_TAG_SHORT}
+   cache_from:
+    - "${RHEL_CACHE_FROM}"
+  image: zabbix-snmptraps:${ZABBIX_RHEL_IMAGE_TAG}${ZABBIX_LOCAL_IMAGE_TAG_POSTFIX}
+  depends_on:
+   - zabbix-build-mysql
+  labels:
+   com.zabbix.os: "${RHEL_OS_TAG}"
+
+ zabbix-web-service:
+  extends:
+   file: compose_zabbix_components.yaml
+   service: web-service
+  build:
+   context: ./Dockerfiles/web-service/${RHEL_OS_TAG_SHORT}
+   cache_from:
+    - "${RHEL_CACHE_FROM}"
+   args:
+    BUILD_BASE_IMAGE: ${BUILD_BASE_MYSQL_IMAGE}:${ZABBIX_RHEL_IMAGE_TAG}${ZABBIX_LOCAL_IMAGE_TAG_POSTFIX}
+  image: zabbix-web-service:${ZABBIX_RHEL_IMAGE_TAG}${ZABBIX_LOCAL_IMAGE_TAG_POSTFIX}
+  depends_on:
+   - zabbix-build-mysql
+  labels:
+   com.zabbix.os: "${RHEL_OS_TAG}"
+
+ mysql-server:
+  extends:
+   file: compose_databases.yaml
+   service: mysql-server
+
+ db-data-mysql:
+  extends:
+   file: compose_databases.yaml
+   service: db-data-mysql
+
+# elasticsearch:
+#  extends:
+#   file: compose_databases.yaml
+#   service: elasticsearch
+
+networks:
+  zbx_net_frontend:
+    driver: bridge
+    driver_opts:
+      com.docker.network.enable_ipv6: "${FRONTEND_ENABLE_IPV6}"
+    ipam:
+      driver: "${FRONTEND_NETWORK_DRIVER}"
+      config:
+      - subnet: "${FRONTEND_SUBNET}"
+  zbx_net_backend:
+    driver: bridge
+    driver_opts:
+      com.docker.network.enable_ipv6: "${BACKEND_ENABLE_IPV6}"
+    internal: true
+    ipam:
+      driver: "${BACKEND_NETWORK_DRIVER}"
+      config:
+      - subnet: "${BACKEND_SUBNET}"
+  zbx_net_database:
+    driver: bridge
+    driver_opts:
+      com.docker.network.enable_ipv6: "${DATABASE_NETWORK_ENABLE_IPV6}"
+    internal: true
+    ipam:
+      driver: "${DATABASE_NETWORK_DRIVER}"
+
+volumes:
+  snmptraps:
+#  dbsocket:
+
+secrets:
+  MYSQL_USER:
+    file: ${ENV_VARS_DIRECTORY}/.MYSQL_USER
+  MYSQL_PASSWORD:
+    file: ${ENV_VARS_DIRECTORY}/.MYSQL_PASSWORD
+  MYSQL_ROOT_USER:
+    file: ${ENV_VARS_DIRECTORY}/.MYSQL_ROOT_USER
+  MYSQL_ROOT_PASSWORD:
+    file: ${ENV_VARS_DIRECTORY}/.MYSQL_ROOT_PASSWORD
+#  client-key.pem:
+#    file: ${ENV_VARS_DIRECTORY}/.ZBX_DB_KEY_FILE
+#  client-cert.pem:
+#    file: ${ENV_VARS_DIRECTORY}/.ZBX_DB_CERT_FILE
+#  root-ca.pem:
+#    file: ${ENV_VARS_DIRECTORY}/.ZBX_DB_CA_FILE
+#  server-cert.pem:
+#    file: ${ENV_VARS_DIRECTORY}/.DB_CERT_FILE
+#  server-key.pem:
+#    file: ${ENV_VARS_DIRECTORY}/.DB_KEY_FILE
