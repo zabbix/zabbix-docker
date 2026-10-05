@@ -78,6 +78,7 @@ RUN --mount=type=cache,target=/var/cache/apt/,sharing=locked \
             libevent-2.1 \
             libevent-extra-2.1 \
             libevent-pthreads-2.1 \
+            libgrpc++1.51t64 \
             libmysqlclient24 \
             libopenipmi0t64 \
             libpcre2-8-0 \

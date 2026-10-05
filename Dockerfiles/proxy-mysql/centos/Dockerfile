@@ -73,6 +73,7 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             shadow-utils \
             c-ares \
             file-libs \
+            grpc-cpp \
             libevent \
             libssh \
             libxml2 \
@@ -83,6 +84,7 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             openssl \
             openssl-libs \
             pcre2 \
+            protobuf \
             unixODBC \
             zlib \
             fping \

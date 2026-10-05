@@ -71,6 +71,7 @@ RUN set -eux && \
     INSTALL_PKGS="bash \
             tzdata \
             c-ares \
+            grpc-cpp \
             krb5 \
             libcap \
             libcurl \

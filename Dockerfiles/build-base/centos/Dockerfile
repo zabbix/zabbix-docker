@@ -39,6 +39,7 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             git \
             patch \
             c-ares-devel \
+            grpc-devel \
             libcurl-devel \
             libevent-devel \
             libmodbus-devel \
@@ -52,6 +53,7 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             pcre2-devel \
             postgresql18-private-devel \
             postgresql18-server-devel \
+            protobuf-devel \
             sqlite-devel \
             unixODBC-devel \
             zlib-devel" && \

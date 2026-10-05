@@ -47,12 +47,14 @@ RUN --mount=type=cache,target=/var/cache/apt/,sharing=locked \
             libc6-dev \
             libcurl4-openssl-dev \
             libevent-dev \
+            libgrpc++-dev \
             libldap2-dev \
             libmodbus-dev \
             libmysqlclient-dev \
             libopenipmi-dev \
             libpcre2-dev \
             libpq-dev \
+            libprotobuf-dev \
             libsnmp-dev \
             libsqlite3-dev \
             libssh-dev \

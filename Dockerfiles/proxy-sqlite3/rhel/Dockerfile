@@ -87,6 +87,7 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             shadow-utils \
             tzdata \
             c-ares \
+            grpc-cpp \
             libcurl-minimal \
             libevent \
             libssh \
@@ -96,6 +97,7 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             openldap \
             openssl \
             pcre2 \
+            protobuf \
             sqlite-libs \
             unixODBC \
             zlib \

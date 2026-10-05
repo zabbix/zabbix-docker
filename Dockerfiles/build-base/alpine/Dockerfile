@@ -42,6 +42,7 @@ RUN set -eux && \
             patch \
             c-ares-dev \
             curl-dev \
+            grpc-dev \
             libevent-dev \
             libmodbus-dev \
             libpq-dev \
@@ -53,6 +54,7 @@ RUN set -eux && \
             openldap-dev \
             openssl-dev \
             pcre2-dev \
+            protobuf-dev \
             sqlite-dev \
             unixodbc-dev \
             zlib-dev" && \
