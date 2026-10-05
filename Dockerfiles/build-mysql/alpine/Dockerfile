@@ -15,6 +15,7 @@ ARG ZBX_PRODUCT_REVISION=unknown
 
 ARG ZBX_PLUGINS_VERSION=${GIT_BRANCH:-$ZBX_VERSION}
 ARG CFLAGS
+ARG CXXFLAGS
 ARG LDFLAGS
 
 LABEL org.opencontainers.image.authors="Alexey Pustovalov <alexey.pustovalov@zabbix.com>" \
@@ -33,6 +34,7 @@ LABEL org.opencontainers.image.authors="Alexey Pustovalov <alexey.pustovalov@zab
 ENV ZBX_SOURCES_DIR=/tmp/zabbix-${ZBX_VERSION} ZBX_OUTPUT_DIR=/tmp/zabbix-${ZBX_VERSION}-output \
     DB_TYPE=mysql \
     CFLAGS=${CFLAGS:-"-O2 -fPIE -fstack-protector-strong -D_FORTIFY_SOURCE=2 -Wformat -Wformat-security -pipe"} \
+    CXXFLAGS=${CXXFLAGS:-"-O2 -fPIE -fstack-protector-strong -D_FORTIFY_SOURCE=2 -Wformat -Wformat-security -pipe"} \
     LDFLAGS=${LDFLAGS:-"-pie -Wl,-z,relro,-z,now,-z,defs -Wl,--as-needed"} \
     MONGODB_PLUGIN_SOURCES=https://git.zabbix.com/scm/ap/mongodb.git MONGODB_PLUGIN_VERSION=${ZBX_PLUGINS_VERSION} \
     POSTGRESQL_PLUGIN_SOURCES=https://git.zabbix.com/scm/ap/postgresql.git POSTGRESQL_PLUGIN_VERSION=${ZBX_PLUGINS_VERSION} \

@@ -42,6 +42,7 @@ RUN --mount=type=cache,target=/var/cache/apt/,sharing=locked \
             gettext \
             git \
             patch \
+            protobuf-compiler-grpc \
             unzip \
             libc-ares-dev \
             libc6-dev \
