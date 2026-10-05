@@ -110,6 +110,7 @@ RUN --mount=type=cache,target=/root/.cache/go-build \
         --enable-server \
         --enable-webservice \
         --with-ares \
+        --with-apm \
         --with-ldap \
         --with-libcurl \
         --with-libmodbus \
