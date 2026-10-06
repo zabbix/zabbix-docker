@@ -13,15 +13,7 @@ import (
 )
 
 func prepareApache(env bootstrap.Environment) error {
-	if os.Getuid() == 0 {
-		env["APACHE_RUN_USER"] = env["DAEMON_USER"]
-	} else {
-		account, err := user.LookupId(strconv.Itoa(os.Getuid()))
-		if err != nil {
-			return err
-		}
-		env["APACHE_RUN_USER"] = account.Username
-	}
+	env["APACHE_RUN_USER"] = apacheRunUser(os.Getuid(), env["DAEMON_USER"], user.LookupId)
 	env["APACHE_RUN_GROUP"] = env["DAEMON_GROUP"]
 
 	configDir := env.ValueOrDefaultNonEmpty("ZABBIX_CONF_DIR", "/etc/zabbix")
@@ -75,4 +67,18 @@ func prepareApache(env bootstrap.Environment) error {
 	}
 
 	return os.MkdirAll(env.ValueOrDefaultNonEmpty("APACHE_RUN_DIR", "/tmp/apache2"), 0o755)
+}
+
+// apacheRunUser falls back to "#uid" for a UID without a passwd entry.
+func apacheRunUser(uid int, daemonUser string, lookup func(string) (*user.User, error)) string {
+	if uid == 0 {
+		return daemonUser
+	}
+
+	account, err := lookup(strconv.Itoa(uid))
+	if err != nil {
+		return "#" + strconv.Itoa(uid)
+	}
+
+	return account.Username
 }
