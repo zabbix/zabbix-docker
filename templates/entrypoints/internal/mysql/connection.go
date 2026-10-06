@@ -3,6 +3,7 @@ package mysql
 import (
 	"context"
 	"database/sql"
+	"database/sql/driver"
 	"errors"
 	"fmt"
 	"time"
@@ -19,16 +20,17 @@ type dbSession interface {
 }
 
 type sqlDBSession struct {
-	db *sql.DB
+	db   *sql.DB
+	conn *sql.Conn
 }
 
 func (s *sqlDBSession) Ping(ctx context.Context) error {
-	return s.db.PingContext(ctx)
+	return s.conn.PingContext(ctx)
 }
 
 func (s *sqlDBSession) QueryString(ctx context.Context, query string, args ...any) (string, error) {
 	var value sql.NullString
-	err := s.db.QueryRowContext(ctx, query, args...).Scan(&value)
+	err := s.conn.QueryRowContext(ctx, query, args...).Scan(&value)
 	if errors.Is(err, sql.ErrNoRows) {
 		return "", nil
 	}
@@ -43,33 +45,45 @@ func (s *sqlDBSession) QueryString(ctx context.Context, query string, args ...an
 }
 
 func (s *sqlDBSession) Exec(ctx context.Context, query string, args ...any) error {
-	_, err := s.db.ExecContext(ctx, query, args...)
+	_, err := s.conn.ExecContext(ctx, query, args...)
 	return err
 }
 
 func (s *sqlDBSession) Close() error {
-	return s.db.Close()
+	return errors.Join(s.conn.Close(), s.db.Close())
 }
 
-type sessionOpener func(*mysql.Config) (dbSession, error)
+type sessionOpener func(context.Context, *mysql.Config) (dbSession, error)
 
 const (
 	connectTimeout    = 10 * time.Second
 	reconnectInterval = 5 * time.Second
 )
 
-func openDBSession(config *mysql.Config) (dbSession, error) {
+func openDBSession(ctx context.Context, config *mysql.Config) (dbSession, error) {
 	connector, err := mysql.NewConnector(config)
 	if err != nil {
 		return nil, err
 	}
 
+	return openSQLDBSession(ctx, connector)
+}
+
+func openSQLDBSession(ctx context.Context, connector driver.Connector) (*sqlDBSession, error) {
 	db := sql.OpenDB(connector)
 	db.SetMaxOpenConns(1)
 	db.SetMaxIdleConns(1)
 	db.SetConnMaxLifetime(3 * time.Minute)
 
-	return &sqlDBSession{db: db}, nil
+	// SQL scripts may contain START TRANSACTION and session settings. Keep their physical connection reserved until the session is closed:
+	// even a one-connection pool can otherwise replace it between statements.
+	conn, err := db.Conn(ctx)
+	if err != nil {
+		_ = db.Close()
+		return nil, err
+	}
+
+	return &sqlDBSession{db: db, conn: conn}, nil
 }
 
 func (db *DB) connConfig(dbName, user, password string) (*mysql.Config, error) {
@@ -127,11 +141,11 @@ func (db *DB) waitForConnectionContext(ctx context.Context, user, password strin
 			bootstrap.LogInfo("**** MySQL server is not available. Waiting %s...", reconnectInterval)
 		},
 	}, func() error {
-		opened, err := db.open(config)
+		attemptCtx, cancel := context.WithTimeout(ctx, connectTimeout)
+		defer cancel()
+		opened, err := db.open(attemptCtx, config)
 		if err == nil {
-			attemptCtx, cancel := context.WithTimeout(ctx, connectTimeout)
 			err = opened.Ping(attemptCtx)
-			cancel()
 		}
 		if err != nil {
 			if opened != nil {

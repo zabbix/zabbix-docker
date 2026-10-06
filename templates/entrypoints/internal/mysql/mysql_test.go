@@ -45,7 +45,7 @@ type fakeSessionFactory struct {
 	configs []*mysql.Config
 }
 
-func (f *fakeSessionFactory) open(config *mysql.Config) (dbSession, error) {
+func (f *fakeSessionFactory) open(_ context.Context, config *mysql.Config) (dbSession, error) {
 	f.configs = append(f.configs, config.Clone())
 	if config.DBName == "" {
 		return f.admin, nil
@@ -158,7 +158,7 @@ func TestWaitForConnectionIsCanceled(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	db.open = func(*mysql.Config) (dbSession, error) {
+	db.open = func(context.Context, *mysql.Config) (dbSession, error) {
 		return &fakeDBSession{}, nil
 	}
 

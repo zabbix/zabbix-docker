@@ -18,7 +18,7 @@ func (db *DB) executeSQLFile(path string) error {
 	if err != nil {
 		return err
 	}
-	sess, err := db.open(config)
+	sess, err := db.open(context.Background(), config)
 	if err != nil {
 		return fmt.Errorf("connect to database %s: %w", db.name, err)
 	}
