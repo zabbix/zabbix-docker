@@ -10,7 +10,11 @@ For more information and related downloads for Zabbix components, please visit h
 
 # What is Zabbix MCP server?
 
-Zabbix MCP server connects AI agents that use the [Model Context Protocol](https://modelcontextprotocol.io/) (MCP) to the [Zabbix API](https://www.zabbix.com/documentation/current/en/manual/api). Every request must contain a Zabbix API token in an `Authorization: Bearer` header; the token is forwarded to Zabbix, which applies the permissions of its owner.
+Zabbix MCP server gives AI agents access to Zabbix over the [Model Context Protocol](https://modelcontextprotocol.io/) (MCP). An agent can browse hosts, triggers, problems and other monitoring data, and act on incidents: acknowledge, suppress or close problems and manage maintenance periods.
+
+The server keeps no credentials of its own. Every request carries the Zabbix API token of the user, so the agent sees and changes only what that user may, and its actions appear in the Zabbix audit log under that user.
+
+For the list of tools, security recommendations and other details, see the [Zabbix MCP server documentation](https://git.zabbix.com/projects/ZT/repos/mcp-server/browse).
 
 # Zabbix MCP server images
 
@@ -151,6 +155,8 @@ $ docker run --name some-zabbix-mcp-server \
 ```
 
 By default, the image denies `item_get`, `lld_get`, `interface_get`, `macro_get` and `history_get`. Indexed environment rules replace this default policy entirely. On each start, the entrypoint recreates `/tmp/zabbix_mcp_server_tool_access.conf` from the read-only template in `/etc/zabbix` and applies any environment rules. Removing the environment rules restores the default policy on the next start. `/tmp` must be writable; `/etc/zabbix` can be read-only.
+
+Write tools (`problem_*` and `maintenance_*`) are enabled by default; if the MCP client does not support form elicitation, changes are applied without user approval.
 
 ### TLS variables
 

@@ -5,7 +5,9 @@
 <p>For more information and related downloads for Zabbix components, please visit <a href="https://hub.docker.com/u/zabbix/">https://hub.docker.com/u/zabbix/</a> and <a href="https://zabbix.com">https://zabbix.com</a></p>
 
 <h1 id="what-is-zabbix-mcp-server">What is Zabbix MCP server?</h1>
-<p>Zabbix MCP server connects AI agents that use the <a href="https://modelcontextprotocol.io/">Model Context Protocol</a> (MCP) to the <a href="https://www.zabbix.com/documentation/current/en/manual/api">Zabbix API</a>. Every request must contain a Zabbix API token in an <code>Authorization: Bearer</code> header; the token is forwarded to Zabbix, which applies the permissions of its owner.</p>
+<p>Zabbix MCP server gives AI agents access to Zabbix over the <a href="https://modelcontextprotocol.io/">Model Context Protocol</a> (MCP). An agent can browse hosts, triggers, problems and other monitoring data, and act on incidents: acknowledge, suppress or close problems and manage maintenance periods.</p>
+<p>The server keeps no credentials of its own. Every request carries the Zabbix API token of the user, so the agent sees and changes only what that user may, and its actions appear in the Zabbix audit log under that user.</p>
+<p>For the list of tools, security recommendations and other details, see the <a href="https://git.zabbix.com/projects/ZT/repos/mcp-server/browse">Zabbix MCP server documentation</a>.</p>
 
 <h1 id="zabbix-mcp-server-images">Zabbix MCP server images</h1>
 <p>These are the only official Zabbix MCP server Docker images. They are based on Alpine Linux v3.24, Ubuntu 26.04 (resolute), CentOS Stream 10 and Oracle Linux 10 images. The available versions of Zabbix MCP server are:</p>
@@ -98,6 +100,7 @@ ZBX_DENYTOOL_REGEXP_&lt;0-N&gt;=</code></pre>
     -p 8443:8443 \
     -d zabbix/zabbix-mcp-server:tag</code></pre>
 <p>By default, the image denies <code>item_get</code>, <code>lld_get</code>, <code>interface_get</code>, <code>macro_get</code> and <code>history_get</code>. Indexed environment rules replace this default policy entirely. On each start, the entrypoint recreates <code>/tmp/zabbix_mcp_server_tool_access.conf</code> from the read-only template in <code>/etc/zabbix</code> and applies any environment rules. Removing the environment rules restores the default policy on the next start. <code>/tmp</code> must be writable; <code>/etc/zabbix</code> can be read-only.</p>
+<p>Write tools (<code>problem_*</code> and <code>maintenance_*</code>) are enabled by default; if the MCP client does not support form elicitation, changes are applied without user approval.</p>
 
 <h3 id="tls-variables">TLS variables</h3>
 <p>Additionally the image allows the following TLS variables:</p>
