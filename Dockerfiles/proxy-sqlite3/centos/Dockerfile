@@ -102,6 +102,7 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             --disablerepo="*" \
             --enablerepo="baseos" \
             --enablerepo="appstream" \
+            --enablerepo="crb" \
             --enablerepo="epel" \
             --setopt=install_weak_deps=0 \
             --setopt=keepcache=0 \

@@ -102,6 +102,7 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             --disablerepo="*" \
             --enablerepo="ol10_baseos_latest" \
             --enablerepo="ol10_appstream" \
+            --enablerepo="ol10_codeready_builder" \
             --enablerepo="ol10_u2_developer_EPEL" \
             --setopt=install_weak_deps=0 \
             --setopt=keepcache=0 \
