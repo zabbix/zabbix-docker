@@ -1,7 +1,9 @@
 package bootstrap
 
 import (
+	"context"
 	"errors"
+	"fmt"
 	"os"
 	"os/exec"
 	"reflect"
@@ -80,6 +82,57 @@ func TestExitCodeHelperProcess(t *testing.T) {
 	}
 
 	os.Exit(23)
+}
+
+func TestInitDBExitStatus(t *testing.T) {
+	for _, test := range []struct {
+		name string
+		want int
+	}{
+		{name: "success", want: 0},
+		{name: "failure", want: 1},
+		{name: "canceled", want: 1},
+		{name: "wrapped canceled", want: 1},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			command := exec.Command(os.Args[0], "-test.run=^TestInitDBExitStatusHelperProcess$")
+			command.Env = append(os.Environ(), "ENTRYPOINT_INIT_DB_EXIT_HELPER="+test.name)
+			output, err := command.CombinedOutput()
+			if command.ProcessState == nil {
+				t.Fatalf("start init-only helper: %v", err)
+			}
+			if got := command.ProcessState.ExitCode(); got != test.want {
+				t.Fatalf("init-only exit code = %d, want %d: %v\n%s", got, test.want, err, output)
+			}
+		})
+	}
+}
+
+func TestInitDBExitStatusHelperProcess(t *testing.T) {
+	mode := os.Getenv("ENTRYPOINT_INIT_DB_EXIT_HELPER")
+	if mode == "" {
+		return
+	}
+
+	var err error
+	switch mode {
+	case "success":
+	case "failure":
+		err = errors.New("initialization failed")
+	case "canceled":
+		err = context.Canceled
+	case "wrapped canceled":
+		err = fmt.Errorf("wait for database: %w", context.Canceled)
+	default:
+		t.Fatalf("unknown helper mode %q", mode)
+	}
+
+	os.Args = []string{os.Args[0], initDBCommand}
+	Main(DBService("component",
+		func(Environment) error { return errors.New("unexpected regular preparation") },
+		func(Environment) error { return err },
+	))
+	os.Exit(0)
 }
 
 func TestExecuteRejectsEmptyCommand(t *testing.T) {

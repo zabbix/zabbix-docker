@@ -1,7 +1,6 @@
 package bootstrap
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"os"
@@ -38,7 +37,7 @@ func exitCode(err error) int {
 // ExitOnError logs err and terminates the process with a matching exit
 // status. A nil error is ignored.
 func ExitOnError(err error) {
-	if err == nil || errors.Is(err, context.Canceled) {
+	if err == nil {
 		return
 	}
 

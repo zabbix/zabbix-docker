@@ -66,7 +66,11 @@ func openDBSession(ctx context.Context, config *mysql.Config) (dbSession, error)
 		return nil, err
 	}
 
-	return openSQLDBSession(ctx, connector)
+	sess, err := openSQLDBSession(ctx, connector)
+	if err != nil {
+		return nil, err
+	}
+	return sess, nil
 }
 
 func openSQLDBSession(ctx context.Context, connector driver.Connector) (*sqlDBSession, error) {

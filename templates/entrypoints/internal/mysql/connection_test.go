@@ -4,9 +4,33 @@ import (
 	"context"
 	"database/sql/driver"
 	"errors"
+	"net"
 	"testing"
 	"time"
+
+	"github.com/go-sql-driver/mysql"
 )
+
+func TestOpenDBSessionConnectionFailure(t *testing.T) {
+	const network = "test_open_db_session_connection_failure"
+	want := errors.New("database unavailable")
+	mysql.RegisterDialContext(network, func(context.Context, string) (net.Conn, error) {
+		return nil, want
+	})
+	t.Cleanup(func() { mysql.DeregisterDialContext(network) })
+
+	config := mysql.NewConfig()
+	config.Net = network
+	config.Addr = "database:3306"
+
+	sess, err := openDBSession(context.Background(), config)
+	if !errors.Is(err, want) {
+		t.Fatalf("openDBSession() error = %v, want %v", err, want)
+	}
+	if sess != nil {
+		t.Fatalf("openDBSession() returned a non-nil session on connection failure: %#v", sess)
+	}
+}
 
 func TestSQLDBSessionKeepsTransactionPastConnectionLifetime(t *testing.T) {
 	connector := &sessionTestConnector{}
