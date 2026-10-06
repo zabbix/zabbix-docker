@@ -56,7 +56,7 @@ ENV ZBX_SOURCES_DIR=/tmp/zabbix-${ZBX_VERSION} ZBX_OUTPUT_DIR=/tmp/zabbix-${ZBX_
     MCP_SERVER_SOURCES=https://git.zabbix.com/scm/zt/mcp-server.git MCP_SERVER_VERSION=${MCP_SERVER_VERSION}
 
 RUN --mount=from=sources,target=/tmp/src,z \
-    --mount=type=bind,source=patches/,target=/tmp/patches,z \
+    --mount=from=patches,target=/tmp/patches,z \
     set -eux && \
     mkdir -p \
         ${ZBX_OUTPUT_DIR}/agent/sbin \

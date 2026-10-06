@@ -57,7 +57,7 @@ ENV ZBX_SOURCES_DIR=/tmp/zabbix-${ZBX_VERSION} ZBX_OUTPUT_DIR=/tmp/zabbix-${ZBX_
     NVIDIA_GPU_PLUGIN_SOURCES=https://git.zabbix.com/scm/ap/nvidia-gpu.git NVIDIA_GPU_PLUGIN_VERSION=${ZBX_PLUGINS_VERSION}
 
 RUN --mount=from=sources,target=/tmp/src,z \
-    --mount=type=bind,source=patches/,target=/tmp/patches,z \
+    --mount=from=patches,target=/tmp/patches,z \
     set -eux && \
     mkdir -p \
         ${ZBX_OUTPUT_DIR}/agent/sbin \
