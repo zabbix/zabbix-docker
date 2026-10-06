@@ -32,7 +32,7 @@ RUN set -eux && \
 FROM ${OS_BASE_IMAGE}
 
 COPY --chmod=0755 --from=entrypoint-builder /tmp/docker-entrypoint /usr/bin/docker-entrypoint
-COPY --from=entrypoints /licenses/go-THIRD-PARTY-NOTICES.txt /licenses/postgresql-THIRD-PARTY-NOTICES.txt /licenses/
+COPY --from=entrypoints /licenses/AGPL-v3.0.txt /licenses/go-THIRD-PARTY-NOTICES.txt /licenses/postgresql-THIRD-PARTY-NOTICES.txt /licenses/
 
 ARG MAJOR_VERSION
 ARG RELEASE
@@ -81,7 +81,6 @@ LABEL description="Zabbix web-interface based on Nginx web server with PostgreSQ
       org.opencontainers.image.version="${ZBX_VERSION}"
 
 
-COPY licenses /licenses/
 COPY --from=entrypoint-builder /tmp/zabbix-${ZBX_VERSION}/ui ${ZABBIX_WWW_ROOT}/
 COPY --from=entrypoint-builder /tmp/zabbix-${ZBX_VERSION}-output/web/conf ${ZABBIX_CONF_DIR}/web/
 COPY conf/etc/ /etc/

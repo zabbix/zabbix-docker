@@ -58,8 +58,6 @@ LABEL description="Zabbix SNMP traps receiver" \
       org.opencontainers.image.version="${ZBX_VERSION}"
 
 
-COPY licenses /licenses/
-
 RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
     --mount=type=tmpfs,target=/var/cache/yum/ \
     set -eux && \
@@ -107,7 +105,7 @@ COPY --chmod=0644 --from=config_templates /logrotate.d/zabbix_snmptraps /etc/log
 COPY --chown=1997:0 --chmod=0664 --from=config_templates /snmp/snmptrapd.conf /etc/snmp/
 COPY --chmod=0644 --from=scripts /zabbix_trap_handler.sh /usr/sbin/
 COPY --chmod=0755 --from=entrypoint-builder /tmp/docker-entrypoint /usr/bin/docker-entrypoint
-COPY --from=entrypoints /licenses/go-THIRD-PARTY-NOTICES.txt /licenses/
+COPY --from=entrypoints /licenses/AGPL-v3.0.txt /licenses/go-THIRD-PARTY-NOTICES.txt /licenses/
 
 EXPOSE 1162/udp
 

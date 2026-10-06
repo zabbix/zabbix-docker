@@ -21,7 +21,7 @@ RUN --mount=from=entrypoints,target=/tmp/entrypoints,ro \
 FROM ${OS_BASE_IMAGE}
 
 COPY --chmod=0755 --from=entrypoint-builder /tmp/docker-entrypoint /usr/bin/docker-entrypoint
-COPY --from=entrypoints /licenses/go-THIRD-PARTY-NOTICES.txt /licenses/mysql-THIRD-PARTY-NOTICES.txt /licenses/
+COPY --from=entrypoints /licenses/AGPL-v3.0.txt /licenses/go-THIRD-PARTY-NOTICES.txt /licenses/mysql-THIRD-PARTY-NOTICES.txt /licenses/
 
 ARG MAJOR_VERSION
 ARG RELEASE
@@ -74,7 +74,6 @@ LABEL description="Zabbix proxy with MySQL database support" \
       org.opencontainers.image.version="${ZBX_VERSION}"
 
 
-COPY licenses /licenses/
 COPY --from=builder /tmp/zabbix-${ZBX_VERSION}-output/proxy/sbin/zabbix_proxy /usr/sbin/zabbix_proxy
 COPY --from=builder /tmp/zabbix-${ZBX_VERSION}-output/general/bin/zabbix_get /usr/bin/
 COPY --from=builder /tmp/zabbix-${ZBX_VERSION}-output/general/bin/zabbix_sender /usr/bin/

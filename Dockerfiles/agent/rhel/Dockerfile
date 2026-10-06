@@ -61,13 +61,12 @@ LABEL description="Zabbix agent is deployed on a monitoring target to actively m
       org.opencontainers.image.version="${ZBX_VERSION}"
 
 
-COPY licenses /licenses/
 COPY --from=builder /tmp/zabbix-${ZBX_VERSION}-output/agent/sbin/zabbix_agentd /usr/sbin/
 COPY --from=builder /tmp/zabbix-${ZBX_VERSION}-output/general/bin/zabbix_get /usr/bin/
 COPY --from=builder /tmp/zabbix-${ZBX_VERSION}-output/general/bin/zabbix_sender /usr/bin/
 COPY --from=builder /tmp/zabbix-${ZBX_VERSION}-output/agent/conf/ ${ZABBIX_CONF_DIR}/
 COPY --chmod=0755 --from=entrypoint-builder /tmp/docker-entrypoint /usr/bin/docker-entrypoint
-COPY --from=entrypoints /licenses/go-THIRD-PARTY-NOTICES.txt /licenses/
+COPY --from=entrypoints /licenses/AGPL-v3.0.txt /licenses/go-THIRD-PARTY-NOTICES.txt /licenses/
 
 RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
     --mount=type=tmpfs,target=/var/cache/yum/ \

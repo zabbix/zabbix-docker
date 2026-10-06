@@ -72,7 +72,6 @@ LABEL description="Zabbix server with MySQL database support" \
       org.opencontainers.image.version="${ZBX_VERSION}"
 
 
-COPY licenses /licenses/
 COPY --from=builder /tmp/zabbix-${ZBX_VERSION}-output/server/sbin/zabbix_server /usr/sbin/zabbix_server
 COPY --from=builder /tmp/zabbix-${ZBX_VERSION}-output/general/bin/zabbix_get /usr/bin/
 COPY --from=builder /tmp/zabbix-${ZBX_VERSION}-output/general/bin/zabbix_sender /usr/bin/
@@ -167,7 +166,7 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
     /usr/sbin/zabbix_server -V
 
 COPY --chmod=0755 --from=entrypoint-builder /tmp/docker-entrypoint /usr/bin/docker-entrypoint
-COPY --from=entrypoints /licenses/go-THIRD-PARTY-NOTICES.txt /licenses/mysql-THIRD-PARTY-NOTICES.txt /licenses/
+COPY --from=entrypoints /licenses/AGPL-v3.0.txt /licenses/go-THIRD-PARTY-NOTICES.txt /licenses/mysql-THIRD-PARTY-NOTICES.txt /licenses/
 
 EXPOSE 10051/tcp
 

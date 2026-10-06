@@ -61,7 +61,6 @@ LABEL description="Zabbix agent 2 is deployed on a monitoring target to actively
       org.opencontainers.image.version="${ZBX_VERSION}"
 
 
-COPY licenses /licenses/
 COPY --from=builder /tmp/zabbix-${ZBX_VERSION}-output/agent2/sbin/zabbix_agent2 /usr/sbin/
 COPY --from=builder /tmp/zabbix-${ZBX_VERSION}-output/agent2/sbin/zabbix-agent2-plugin/ /usr/sbin/zabbix-agent2-plugin/
 COPY --from=builder /tmp/zabbix-${ZBX_VERSION}-output/general/bin/zabbix_get /usr/bin/
@@ -124,7 +123,7 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
     /usr/sbin/zabbix_agent2 -V
 
 COPY --chmod=0755 --from=entrypoint-builder /tmp/docker-entrypoint /usr/bin/docker-entrypoint
-COPY --from=entrypoints /licenses/go-THIRD-PARTY-NOTICES.txt /licenses/
+COPY --from=entrypoints /licenses/AGPL-v3.0.txt /licenses/go-THIRD-PARTY-NOTICES.txt /licenses/
 
 EXPOSE 10050/tcp 31999/tcp
 
