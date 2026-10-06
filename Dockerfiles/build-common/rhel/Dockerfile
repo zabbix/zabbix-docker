@@ -16,6 +16,7 @@ ARG ZBX_PRODUCT_REF=${GIT_BRANCH:-$ZBX_VERSION}
 ARG ZBX_PRODUCT_REVISION=unknown
 
 ARG ZBX_PLUGINS_VERSION=${GIT_BRANCH:-$ZBX_VERSION}
+ARG MCP_SERVER_VERSION=${GIT_BRANCH:-$ZBX_VERSION}
 ARG CFLAGS
 ARG LDFLAGS
 
@@ -51,7 +52,8 @@ ENV ZBX_SOURCES_DIR=/tmp/zabbix-${ZBX_VERSION} ZBX_OUTPUT_DIR=/tmp/zabbix-${ZBX_
     POSTGRESQL_PLUGIN_SOURCES=https://git.zabbix.com/scm/ap/postgresql.git POSTGRESQL_PLUGIN_VERSION=${ZBX_PLUGINS_VERSION} \
     MSSQL_PLUGIN_SOURCES=https://git.zabbix.com/scm/ap/mssql.git MSSQL_PLUGIN_VERSION=${ZBX_PLUGINS_VERSION} \
     EMBER_PLUS_PLUGIN_SOURCES=https://git.zabbix.com/scm/ap/ember-plus.git EMBER_PLUS_PLUGIN_VERSION=${ZBX_PLUGINS_VERSION} \
-    NVIDIA_GPU_PLUGIN_SOURCES=https://git.zabbix.com/scm/ap/nvidia-gpu.git NVIDIA_GPU_PLUGIN_VERSION=${ZBX_PLUGINS_VERSION}
+    NVIDIA_GPU_PLUGIN_SOURCES=https://git.zabbix.com/scm/ap/nvidia-gpu.git NVIDIA_GPU_PLUGIN_VERSION=${ZBX_PLUGINS_VERSION} \
+    MCP_SERVER_SOURCES=https://git.zabbix.com/scm/zt/mcp-server.git MCP_SERVER_VERSION=${MCP_SERVER_VERSION}
 
 RUN --mount=from=sources,target=/tmp/src,z \
     --mount=type=bind,source=patches/,target=/tmp/patches,z \
@@ -66,6 +68,8 @@ RUN --mount=from=sources,target=/tmp/src,z \
         ${ZBX_OUTPUT_DIR}/java_gateway/sbin/bin \
         ${ZBX_OUTPUT_DIR}/java_gateway/sbin/lib \
         ${ZBX_OUTPUT_DIR}/java_gateway/conf \
+        ${ZBX_OUTPUT_DIR}/mcp_server/sbin \
+        ${ZBX_OUTPUT_DIR}/mcp_server/conf \
         ${ZBX_OUTPUT_DIR}/web_service/sbin \
         ${ZBX_OUTPUT_DIR}/web_service/conf \
         ${ZBX_OUTPUT_DIR}/web/conf \
@@ -196,3 +200,20 @@ RUN --mount=type=cache,target=/root/.cache/go-build \
         zabbix-agent2-plugin-ember-plus ember.conf ember-plus && \
     build_plugin nvidia-gpu "${NVIDIA_GPU_PLUGIN_SOURCES}" "${NVIDIA_GPU_PLUGIN_VERSION}" \
         zabbix-agent2-plugin-nvidia-gpu nvidia.conf nvidia-gpu
+
+RUN --mount=type=cache,target=/root/.cache/go-build \
+    --mount=type=cache,target=/root/go/pkg/mod \
+    --mount=from=config_templates,target=/tmp/conf,z \
+    set -eux && \
+    git -c advice.detachedHead=false clone "${MCP_SERVER_SOURCES}" \
+            --branch "${MCP_SERVER_VERSION}" \
+            --depth 1 \
+            --single-branch \
+            "/tmp/mcp-server-${ZBX_VERSION}" && \
+    cd "/tmp/mcp-server-${ZBX_VERSION}" && \
+    make && \
+    strip "/tmp/mcp-server-${ZBX_VERSION}/zabbix_mcp_server" && \
+    mv "/tmp/mcp-server-${ZBX_VERSION}/zabbix_mcp_server" "${ZBX_OUTPUT_DIR}/mcp_server/sbin/zabbix_mcp_server" && \
+    cp "/tmp/mcp-server-${ZBX_VERSION}/zabbix_mcp_server.conf" "${ZBX_OUTPUT_DIR}/mcp_server/conf/zabbix_mcp_server.conf.dist" && \
+    cp -a /tmp/conf/mcp_server/. "${ZBX_OUTPUT_DIR}/mcp_server/conf/" && \
+    make clean

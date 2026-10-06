@@ -65,7 +65,7 @@ func SetParameter(configPath, param, value string) error {
 // The variables remain in the environment so the service can expand them
 // while reading its configuration.
 func UpdateIndexedParameter(env bootstrap.Environment, configPath, param, prefix string) error {
-	params, err := collectIndexedParams(env, map[string]string{prefix: param})
+	params, err := collectIndexedParams(env, map[string]string{prefix: param}, false)
 	if err != nil {
 		return err
 	}
@@ -90,13 +90,13 @@ func UpdateIndexedParameter(env bootstrap.Environment, configPath, param, prefix
 	return nil
 }
 
-func collectIndexedParams(env bootstrap.Environment, paramByPrefix map[string]string) ([]indexedParam, error) {
+func collectIndexedParams(env bootstrap.Environment, paramByPrefix map[string]string, strict bool) ([]indexedParam, error) {
 	prefixes := make([]string, 0, len(paramByPrefix))
 	for prefix := range paramByPrefix {
 		prefixes = append(prefixes, prefix)
 	}
 
-	variables, err := bootstrap.CollectIndexed(env, prefixes, false)
+	variables, err := bootstrap.CollectIndexed(env, prefixes, strict)
 	if err != nil {
 		return nil, err
 	}

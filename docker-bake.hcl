@@ -21,6 +21,12 @@ variable "GIT_BRANCH" {
   description = "Optional Git branch or tag passed to builder Dockerfiles"
 }
 
+variable "MCP_SERVER_VERSION" {
+  type        = string
+  default     = ""
+  description = "Optional Git branch or tag of the MCP server, which has its own release cycle"
+}
+
 variable "OS_BASE_IMAGE" {
   type        = string
   default     = "alpine:3.24"
@@ -89,6 +95,7 @@ group "runtime-mysql-all" {
     "web-apache-mysql",
     "proxy-mysql",
     "snmptraps",
+    "mcp-server",
   ]
 }
 
@@ -102,6 +109,7 @@ group "runtime-pgsql-all" {
     "web-nginx-pgsql",
     "web-apache-pgsql",
     "snmptraps",
+    "mcp-server",
   ]
 }
 
@@ -153,6 +161,7 @@ group "default" {
 target "_common" {
   args = {
     OS_BASE_IMAGE         = OS_BASE_IMAGE
+    ZBX_VERSION           = ZBX_VERSION
     BUILDKIT_INLINE_CACHE = "1"
   }
 
@@ -169,8 +178,9 @@ target "_builder_common" {
   }
 
   args = {
-    BUILD_BASE_IMAGE = "${ZBX_IMAGE_NAMESPACE}zabbix-build-base:${ZBX_IMAGE_TAG}"
-    GIT_BRANCH       = notequal(GIT_BRANCH, "") ? GIT_BRANCH : null
+    BUILD_BASE_IMAGE   = "${ZBX_IMAGE_NAMESPACE}zabbix-build-base:${ZBX_IMAGE_TAG}"
+    GIT_BRANCH         = notequal(GIT_BRANCH, "") ? GIT_BRANCH : null
+    MCP_SERVER_VERSION = notequal(MCP_SERVER_VERSION, "") ? MCP_SERVER_VERSION : null
   }
 }
 
@@ -291,6 +301,13 @@ target "web-service" {
   inherits    = ["_runtime_build_common"]
   context     = "Dockerfiles/web-service/${OS}"
   tags        = ["${ZBX_IMAGE_NAMESPACE}${ZBX_IMAGE_PREFIX}web-service:${ZBX_IMAGE_TAG}"]
+}
+
+target "mcp-server" {
+  description = "Zabbix MCP server speaks the Model Context Protocol (MCP) on one side and the Zabbix API on the other, so that an AI agent can work incidents in Zabbix"
+  inherits    = ["_runtime_build_common"]
+  context     = "Dockerfiles/mcp-server/${OS}"
+  tags        = ["${ZBX_IMAGE_NAMESPACE}${ZBX_IMAGE_PREFIX}mcp-server:${ZBX_IMAGE_TAG}"]
 }
 
 target "server-mysql" {

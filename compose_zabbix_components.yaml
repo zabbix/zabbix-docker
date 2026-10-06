@@ -369,6 +369,8 @@ services:
   networks:
    database:
    backend:
+    aliases:
+     - zabbix-web
    frontend:
   stop_grace_period: 10s
   sysctls:
@@ -466,6 +468,8 @@ services:
   networks:
    database:
    backend:
+    aliases:
+     - zabbix-web
    frontend:
   stop_grace_period: 10s
   sysctls:
@@ -739,3 +743,45 @@ services:
    com.zabbix.description: "Zabbix web service"
    com.zabbix.company: "Zabbix SIA"
    com.zabbix.component: "web-service"
+
+ mcp-server:
+  profiles:
+   - full
+   - all
+  ports:
+   - name: zabbix-mcp-server
+     target: 8443
+     published: "${ZABBIX_MCP_SERVER_PORT}"
+     protocol: tcp
+     app_protocol: http
+  restart: "${RESTART_POLICY}"
+  attach: false
+  read_only: true
+  volumes:
+   - ${DATA_DIRECTORY}/var/lib/zabbix/enc:/var/lib/zabbix/enc:ro
+  tmpfs:
+   - /tmp
+   - /var/lib/zabbix/enc_internal:mode=0700,uid=1997,gid=0
+  deploy:
+   resources:
+    limits:
+      cpus: '0.5'
+      memory: 512M
+    reservations:
+      cpus: '0.25'
+      memory: 256M
+  env_file:
+   - path: ${ENV_VARS_DIRECTORY}/.env_mcp_server
+     required: true
+   - path: ${ENV_VARS_DIRECTORY}/.env_mcp_server_override
+     required: false
+  networks:
+   frontend:
+    aliases:
+     - zabbix-mcp-server
+   backend:
+  stop_grace_period: 5s
+  labels:
+   com.zabbix.description: "Zabbix MCP server"
+   com.zabbix.company: "Zabbix SIA"
+   com.zabbix.component: "mcp-server"

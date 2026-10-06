@@ -33,6 +33,7 @@
     "agent": { "base": "build-common", "rhel": true },
     "agent2": { "base": "build-common", "rhel": true },
     "java-gateway": { "base": "build-common", "rhel": true },
+    "mcp-server": { "base": "build-common", "rhel": true },
     "proxy-mysql": { "base": "build-mysql", "rhel": true },
     "proxy-sqlite3": { "base": "build-sqlite3", "rhel": true },
     "server-mysql": { "base": "build-mysql", "rhel": true },

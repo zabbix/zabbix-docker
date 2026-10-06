@@ -113,6 +113,14 @@ services:
   labels:
    com.zabbix.os: "${OS}"
 
+ zabbix-mcp-server:
+  extends:
+   file: compose_zabbix_components.yaml
+   service: mcp-server
+  image: "${ZABBIX_MCP_SERVER_IMAGE}:${ZBX_IMAGE_TAG}"
+  labels:
+   com.zabbix.os: "${OS}"
+
  mysql-server:
   extends:
    file: compose_databases.yaml

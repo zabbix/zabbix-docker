@@ -39,6 +39,7 @@ jobs:
           - agent
           - agent2
           - java-gateway
+          - mcp-server
           - proxy-mysql
           - proxy-sqlite3
           - server-mysql

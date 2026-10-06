@@ -188,7 +188,7 @@ func TestCollectIndexedParametersIgnoresUnrelatedVariables(t *testing.T) {
 		"ZBX_DENYKEY_SOMETHING":    "value",
 	}
 
-	rules, err := collectIndexedParams(env, itemKeyRuleParamByPrefix)
+	rules, err := collectIndexedParams(env, itemKeyRuleParamByPrefix, false)
 	if err != nil {
 		t.Fatal(err)
 	}

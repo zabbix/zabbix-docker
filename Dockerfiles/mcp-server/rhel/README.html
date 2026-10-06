@@ -1,0 +1,144 @@
+<p><img src="https://assets.zabbix.com/img/logo/zabbix_logo_500x131.png" alt="logo"></p>
+<h1 id="what-is-zabbix">What is Zabbix?</h1>
+<p>Zabbix is an enterprise-class open source distributed monitoring solution.</p>
+<p>Zabbix is software that monitors numerous parameters of a network and the health and integrity of servers. Zabbix uses a flexible notification mechanism that allows users to configure e-mail based alerts for virtually any event. This allows a fast reaction to server problems. Zabbix offers excellent reporting and data visualisation features based on the stored data. This makes Zabbix ideal for capacity planning.</p>
+<p>For more information and related downloads for Zabbix components, please visit <a href="https://hub.docker.com/u/zabbix/">https://hub.docker.com/u/zabbix/</a> and <a href="https://zabbix.com">https://zabbix.com</a></p>
+
+<h1 id="what-is-zabbix-mcp-server">What is Zabbix MCP server?</h1>
+<p>Zabbix MCP server connects AI agents that use the <a href="https://modelcontextprotocol.io/">Model Context Protocol</a> (MCP) to the <a href="https://www.zabbix.com/documentation/current/en/manual/api">Zabbix API</a>. Every request must contain a Zabbix API token in an <code>Authorization: Bearer</code> header; the token is forwarded to Zabbix, which applies the permissions of its owner.</p>
+
+<h1 id="zabbix-mcp-server-images">Zabbix MCP server images</h1>
+<p>These are the only official Zabbix MCP server Docker images. They are based on Alpine Linux v3.24, Ubuntu 26.04 (resolute), CentOS Stream 10 and Oracle Linux 10 images. The available versions of Zabbix MCP server are:</p>
+<pre><code>Zabbix MCP server 8.0 (tags: alpine-trunk, ubuntu-trunk, ol-trunk)</code></pre>
+<p>Images are updated when new releases are published. The image with <code>latest</code> tag is based on Alpine Linux.</p>
+
+<h1 id="how-to-use-this-image">How to use this image</h1>
+<h2 id="start-zabbix-mcp-server">Start <code>zabbix-mcp-server</code></h2>
+<p>Start a Zabbix MCP server container as follows:</p>
+<pre><code>$ docker run --name some-zabbix-mcp-server -e ZBX_FRONTEND_URL="https://zabbix.example.com/api_jsonrpc.php" -e ZBX_ALLOWEDIP="192.0.2.0/24" -p 8443:8443 -d zabbix/zabbix-mcp-server:tag</code></pre>
+<p>Where <code>some-zabbix-mcp-server</code> is the name you want to assign to your container, <code>zabbix.example.com</code> is the Zabbix frontend, <code>192.0.2.0/24</code> is the network from which MCP clients may connect and <code>tag</code> is the tag specifying the version you want. See the list above for relevant tags, or look at the <a href="https://hub.docker.com/r/zabbix/zabbix-mcp-server/tags/">full list of tags</a>.</p>
+
+<h2 id="connect-an-mcp-client">Connect an MCP client</h2>
+<p>Configure the client to use the MCP Streamable HTTP transport and connect to:</p>
+<pre><code>http://host:8443/mcp</code></pre>
+<p>Every request must include the following header:</p>
+<pre><code>Authorization: Bearer &lt;Zabbix API token&gt;</code></pre>
+<p>The token must belong to the user on whose behalf the agent operates. The server is stateless and can run behind a load balancer without session affinity.</p>
+<p>The endpoint can be checked with a single request:</p>
+<pre><code>$ curl -sS http://host:8443/mcp \
+    -H "Authorization: Bearer $ZABBIX_API_TOKEN" \
+    -H "Content-Type: application/json" \
+    -H "Accept: application/json, text/event-stream" \
+    -d '{"jsonrpc":"2.0","id":1,"method":"tools/list"}'</code></pre>
+<p>or</p>
+<pre><code>$ npx @modelcontextprotocol/inspector \
+    --cli http://host:8443/mcp \
+    --transport http \
+    --header "Authorization: Bearer $ZABBIX_API_TOKEN" \
+    --method tools/list</code></pre>
+<p>A successful response lists the tools exposed to the client.</p>
+
+<h2 id="container-shell-access-and-viewing-zabbix-mcp-server-logs">Container shell access and viewing Zabbix MCP server logs</h2>
+<p>The <code>docker exec</code> command allows you to run commands inside a Docker container. The following command line will give you a shell inside your <code>zabbix-mcp-server</code> container:</p>
+<pre><code>$ docker exec -ti some-zabbix-mcp-server /bin/sh</code></pre>
+<p>The Zabbix MCP server log is available through Docker's container log:</p>
+<pre><code>$ docker logs some-zabbix-mcp-server</code></pre>
+
+<h2 id="environment-variables">Environment Variables</h2>
+<p>When you start the <code>zabbix-mcp-server</code> image, you can adjust the configuration of Zabbix MCP server by passing one or more environment variables on the <code>docker run</code> command line.</p>
+
+<h3 id="zbx-frontend-url"><code>ZBX_FRONTEND_URL</code></h3>
+<p>Zabbix API endpoint URL ending with <code>api_jsonrpc.php</code>, for example <code>https://zabbix.example.com/api_jsonrpc.php</code>. This variable is required.</p>
+
+<h3 id="zbx-allowedip"><code>ZBX_ALLOWEDIP</code></h3>
+<p>Comma-delimited list of IP addresses, CIDR networks or DNS names from which MCP client connections are accepted. By default, value is <code>127.0.0.1,::1</code>.</p>
+
+<h3 id="zbx-listenip"><code>ZBX_LISTENIP</code></h3>
+<p>IP address the MCP server listens on. By default, value is <code>0.0.0.0</code>.</p>
+
+<h3 id="zbx-listenport"><code>ZBX_LISTENPORT</code></h3>
+<p>Port the MCP server listens on. Allowed values are from <code>1024</code> to <code>32767</code>. By default, value is <code>8443</code>. The MCP endpoint is available at <code>/mcp</code>.</p>
+
+<h3 id="zbx-debuglevel"><code>ZBX_DEBUGLEVEL</code></h3>
+<p>The variable is used to specify debug level. By default, value is <code>3</code>. Allowed values are listed below:</p>
+<ul>
+<li><code>0</code> - basic information about starting and stopping of Zabbix processes</li>
+<li><code>1</code> - critical information</li>
+<li><code>2</code> - error information</li>
+<li><code>3</code> - warnings</li>
+<li><code>4</code> - for debugging (produces lots of information)</li>
+<li><code>5</code> - extended debugging (produces even more information)</li>
+</ul>
+
+<h3 id="zbx-timeout"><code>ZBX_TIMEOUT</code></h3>
+<p>Full timeout for Zabbix API requests, in seconds. Allowed values are from <code>3</code> to <code>30</code>. By default, value is <code>10</code>.</p>
+
+<h3 id="zbx-ignoreurlcerterrors"><code>ZBX_IGNOREURLCERTERRORS</code></h3>
+<p>Disables TLS certificate validation for requests to the Zabbix API. By default, value is <code>false</code>. This should only be enabled in a development environment.</p>
+
+<h3 id="zbx-max-response-size"><code>ZBX_MAX_RESPONSE_SIZE</code></h3>
+<p>Maximum size of the text of a read tool result, not the entire HTTP/MCP message. Allowed values are from <code>16K</code> to <code>256K</code>. By default, value is <code>64K</code>.</p>
+
+<h3 id="zbx-tool-prefix"><code>ZBX_TOOL_PREFIX</code></h3>
+<p>Prefix prepended to every exposed MCP tool name. By default, no prefix is used. Tool access rules always match the original tool names without this prefix.</p>
+
+<h3 id="tool-access-variables">Tool access variables</h3>
+<p>The image supports an ordered sequence of tool access rules through the following indexed variables:</p>
+<pre><code>ZBX_ALLOWTOOL_&lt;0-N&gt;=
+ZBX_DENYTOOL_&lt;0-N&gt;=
+ZBX_ALLOWTOOL_REGEXP_&lt;0-N&gt;=
+ZBX_DENYTOOL_REGEXP_&lt;0-N&gt;=</code></pre>
+<p>The indices form one sequence shared by all four variable types. They must start at <code>0</code>, must not contain gaps and each index must be used by exactly one variable. Rules are evaluated in order and the first matching rule decides. Wildcard rules support <code>*</code>; regular expression rules use RE2 syntax.</p>
+<p>For example, expose only read tools used for incident triage:</p>
+<pre><code>$ docker run --name some-zabbix-mcp-server \
+    -e ZBX_FRONTEND_URL="https://zabbix.example.com/api_jsonrpc.php" \
+    -e ZBX_ALLOWEDIP="192.0.2.0/24" \
+    -e ZBX_ALLOWTOOL_REGEXP_0='^(host|hostgroup|trigger|problem)_get$' \
+    -e ZBX_DENYTOOL_1='*' \
+    -p 8443:8443 \
+    -d zabbix/zabbix-mcp-server:tag</code></pre>
+<p>By default, the image denies <code>item_get</code>, <code>lld_get</code>, <code>interface_get</code>, <code>macro_get</code> and <code>history_get</code>. Indexed environment rules replace this default policy entirely. On each start, the entrypoint recreates <code>/tmp/zabbix_mcp_server_tool_access.conf</code> from the read-only template in <code>/etc/zabbix</code> and applies any environment rules. Removing the environment rules restores the default policy on the next start. <code>/tmp</code> must be writable; <code>/etc/zabbix</code> can be read-only.</p>
+
+<h3 id="tls-variables">TLS variables</h3>
+<p>Additionally the image allows the following TLS variables:</p>
+<pre><code>ZBX_TLSACCEPT=unencrypted
+ZBX_TLSCERTFILE=
+ZBX_TLSCERT=
+ZBX_TLSKEYFILE=
+ZBX_TLSKEY=</code></pre>
+<p>Set <code>ZBX_TLSACCEPT=cert</code> and specify the server certificate and private key using <code>ZBX_TLSCERTFILE</code> and <code>ZBX_TLSKEYFILE</code>. Relative file names are resolved under <code>/var/lib/zabbix/enc</code>. Alternatively, the certificate and key contents may be passed directly through <code>ZBX_TLSCERT</code> and <code>ZBX_TLSKEY</code>.</p>
+<p>With a read-only root filesystem, inline TLS values require a writable tmpfs at <code>/var/lib/zabbix/enc_internal</code> owned by UID <code>1997</code>, for example <code>--tmpfs /var/lib/zabbix/enc_internal:mode=0700,uid=1997,gid=0</code>. The generated files have mode <code>0600</code>.</p>
+
+<h2 id="allowed-volumes-for-the-zabbix-mcp-server-container">Allowed volumes for the Zabbix MCP server container</h2>
+<h3 id="var-lib-zabbix-enc"><code>/var/lib/zabbix/enc</code></h3>
+<p>The volume is used to store the TLS certificate and private key specified with <code>ZBX_TLSCERTFILE</code> and <code>ZBX_TLSKEYFILE</code>. Mount the volume read-only.</p>
+
+<h1 id="the-image-variants">The image variants</h1>
+<p>The <code>zabbix-mcp-server</code> images come in many flavors, each designed for a specific use case.</p>
+
+<h2 id="zabbix-mcp-server-alpine-version"><code>zabbix-mcp-server:alpine-&lt;version&gt;</code></h2>
+<p>This image is based on the popular <a href="http://alpinelinux.org">Alpine Linux project</a>, available in the <a href="https://hub.docker.com/_/alpine"><code>alpine</code> official image</a>. Alpine Linux is much smaller than most distribution base images and thus leads to much slimmer images in general.</p>
+<p>To minimize image size, it is uncommon for additional related tools (such as <code>git</code> or <code>bash</code>) to be included in Alpine-based images. Using this image as a base, add the tools you need in your own Dockerfile.</p>
+
+<h2 id="zabbix-mcp-server-ubuntu-version"><code>zabbix-mcp-server:ubuntu-&lt;version&gt;</code></h2>
+<p>This is the defacto image. If you are unsure about what your needs are, you probably want to use this one.</p>
+
+<h2 id="zabbix-mcp-server-ol-version"><code>zabbix-mcp-server:ol-&lt;version&gt;</code></h2>
+<p>Oracle Linux is an open-source operating system available under the GNU General Public License (GPLv2). It is suitable for general purpose or Oracle workloads.</p>
+
+<h1 id="user-feedback">User Feedback</h1>
+<h2 id="documentation">Documentation</h2>
+<p>Documentation for this image is stored in the <a href="https://github.com/zabbix/zabbix-docker/tree/trunk/Dockerfiles/mcp-server"><code>mcp-server/</code> directory</a> of the <a href="https://github.com/zabbix/zabbix-docker/"><code>zabbix/zabbix-docker</code> GitHub repo</a>. Be sure to familiarize yourself with the <a href="https://github.com/zabbix/zabbix-docker/blob/trunk/README.md">repository's <code>README.md</code> file</a> before attempting a pull request.</p>
+
+<h2 id="issues">Issues</h2>
+<p>If you have any problems with or questions about this image, please contact us through a <a href="https://github.com/zabbix/zabbix-docker/issues">GitHub issue</a>.</p>
+
+<h2 id="contributing">Contributing</h2>
+<p>You are invited to contribute new features, fixes or updates, large or small; we are always thrilled to receive pull requests and do our best to process them as fast as we can.</p>
+<p>Before you start to code, we recommend discussing your plans through a <a href="https://github.com/zabbix/zabbix-docker/issues">GitHub issue</a>, especially for more ambitious contributions. This gives other contributors a chance to point you in the right direction, give you feedback on your design and help you find out if someone else is working on the same thing.</p>
+
+<h2 id="license">License</h2>
+<p>Zabbix MCP server is released under the GNU Affero General Public License version 3 (AGPLv3).</p>
+<p>You can modify it and propagate such a modified version under the terms of the AGPLv3 as published by the Free Software Foundation.</p>
+<p>For additional details, including answers to common questions about the AGPLv3, see the generic FAQ from the <a href="http://www.fsf.org/licenses/gpl-faq.html">Free Software Foundation</a>.</p>
+<p>Zabbix is Open Source Software; however, if you use Zabbix in a commercial context, we kindly ask you to support the development of Zabbix by purchasing some level of technical support.</p>
