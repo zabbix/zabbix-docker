@@ -36,8 +36,6 @@ LABEL description="Prepared environment to build Zabbix components" \
       org.opencontainers.image.vendor="Zabbix SIA" \
       org.opencontainers.image.version="${ZBX_VERSION}"
 
-COPY licenses /licenses/
-
 RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
     --mount=type=tmpfs,target=/var/cache/yum/ \
 #    --mount=type=bind,target=/run/secrets/,src=secrets/ \
