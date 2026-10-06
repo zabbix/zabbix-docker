@@ -154,7 +154,7 @@ $ docker run --name some-zabbix-mcp-server \
     -d zabbix/zabbix-mcp-server:tag
 ```
 
-By default, the image denies `item_get`, `lld_get`, `interface_get`, `macro_get` and `history_get`. Indexed environment rules replace this default policy entirely. On each start, the entrypoint recreates `/tmp/zabbix_mcp_server_tool_access.conf` from the read-only template in `/etc/zabbix` and applies any environment rules. Removing the environment rules restores the default policy on the next start. `/tmp` must be writable; `/etc/zabbix` can be read-only.
+By default, the image denies `item_get`, `lld_get`, `interface_get`, `macro_get` and `history_get`. Indexed environment rules replace this default policy entirely. Removing these variables restores the default policy on the next container start.
 
 Write tools (`problem_*` and `maintenance_*`) are enabled by default; if the MCP client does not support form elicitation, changes are applied without user approval.
 
@@ -171,8 +171,6 @@ ZBX_TLSKEY=
 ```
 
 Set `ZBX_TLSACCEPT=cert` and specify the server certificate and private key using `ZBX_TLSCERTFILE` and `ZBX_TLSKEYFILE`. Relative file names are resolved under `/var/lib/zabbix/enc`. Alternatively, the certificate and key contents may be passed directly through `ZBX_TLSCERT` and `ZBX_TLSKEY`.
-
-With a read-only root filesystem, inline TLS values require a writable tmpfs at `/var/lib/zabbix/enc_internal` owned by UID `1997`, for example `--tmpfs /var/lib/zabbix/enc_internal:mode=0700,uid=1997,gid=0`. The generated files have mode `0600`.
 
 ## Allowed volumes for the Zabbix MCP server container
 

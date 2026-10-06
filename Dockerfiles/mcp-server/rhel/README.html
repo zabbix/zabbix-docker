@@ -99,7 +99,7 @@ ZBX_DENYTOOL_REGEXP_&lt;0-N&gt;=</code></pre>
     -e ZBX_DENYTOOL_1='*' \
     -p 8443:8443 \
     -d zabbix/zabbix-mcp-server:tag</code></pre>
-<p>By default, the image denies <code>item_get</code>, <code>lld_get</code>, <code>interface_get</code>, <code>macro_get</code> and <code>history_get</code>. Indexed environment rules replace this default policy entirely. On each start, the entrypoint recreates <code>/tmp/zabbix_mcp_server_tool_access.conf</code> from the read-only template in <code>/etc/zabbix</code> and applies any environment rules. Removing the environment rules restores the default policy on the next start. <code>/tmp</code> must be writable; <code>/etc/zabbix</code> can be read-only.</p>
+<p>By default, the image denies <code>item_get</code>, <code>lld_get</code>, <code>interface_get</code>, <code>macro_get</code> and <code>history_get</code>. Indexed environment rules replace this default policy entirely. Removing these variables restores the default policy on the next container start.</p>
 <p>Write tools (<code>problem_*</code> and <code>maintenance_*</code>) are enabled by default; if the MCP client does not support form elicitation, changes are applied without user approval.</p>
 
 <h3 id="tls-variables">TLS variables</h3>
@@ -110,7 +110,6 @@ ZBX_TLSCERT=
 ZBX_TLSKEYFILE=
 ZBX_TLSKEY=</code></pre>
 <p>Set <code>ZBX_TLSACCEPT=cert</code> and specify the server certificate and private key using <code>ZBX_TLSCERTFILE</code> and <code>ZBX_TLSKEYFILE</code>. Relative file names are resolved under <code>/var/lib/zabbix/enc</code>. Alternatively, the certificate and key contents may be passed directly through <code>ZBX_TLSCERT</code> and <code>ZBX_TLSKEY</code>.</p>
-<p>With a read-only root filesystem, inline TLS values require a writable tmpfs at <code>/var/lib/zabbix/enc_internal</code> owned by UID <code>1997</code>, for example <code>--tmpfs /var/lib/zabbix/enc_internal:mode=0700,uid=1997,gid=0</code>. The generated files have mode <code>0600</code>.</p>
 
 <h2 id="allowed-volumes-for-the-zabbix-mcp-server-container">Allowed volumes for the Zabbix MCP server container</h2>
 <h3 id="var-lib-zabbix-enc"><code>/var/lib/zabbix/enc</code></h3>
