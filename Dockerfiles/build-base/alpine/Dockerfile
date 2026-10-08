@@ -31,6 +31,7 @@ RUN set -eux && \
             autoconf \
             automake \
             make \
+            fortify-headers \
             g++ \
             go \
             linux-headers \

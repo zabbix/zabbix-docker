@@ -49,7 +49,7 @@ LABEL description="Zabbix Java Gateway performs native support for monitoring JM
       org.opencontainers.image.version="${ZBX_VERSION}"
 
 
-COPY ["licenses", "/licenses"]
+COPY --from=entrypoints /licenses/AGPL-v3.0.txt /licenses/
 COPY --from=builder /tmp/zabbix-${ZBX_VERSION}-output/java_gateway/sbin/ /usr/sbin/zabbix_java/
 COPY --from=builder /tmp/zabbix-${ZBX_VERSION}-output/java_gateway/conf/ ${ZABBIX_CONF_DIR}/
 
