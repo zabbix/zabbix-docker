@@ -106,6 +106,27 @@ func TestProcessTLSFilesResolvesRelativePaths(t *testing.T) {
 	}
 }
 
+func TestProcessTLSFilesRejectsInlineAndFileValues(t *testing.T) {
+	directory := t.TempDir()
+	if err := os.Mkdir(directory+"_internal", 0o700); err != nil {
+		t.Fatal(err)
+	}
+	env := Environment{
+		"ZBX_SSO_SP_CERT":    "certificate",
+		"ZBX_SSO_SP_KEY":     "private-key",
+		"ZBX_SSO_SP_KEYFILE": "sp.key",
+	}
+
+	err := ProcessTLSFiles(env, directory, "ZBX_SSO_SP_CERT", "ZBX_SSO_SP_KEY")
+	if err == nil || !strings.Contains(err.Error(), "both variables ZBX_SSO_SP_KEY and ZBX_SSO_SP_KEYFILE are set") {
+		t.Fatalf("ProcessTLSFiles() error = %v", err)
+	}
+	if env["ZBX_SSO_SP_CERT"] != "certificate" || env["ZBX_SSO_SP_CERTFILE"] != "" ||
+		env["ZBX_SSO_SP_KEY"] != "private-key" || env["ZBX_SSO_SP_KEYFILE"] != "sp.key" {
+		t.Fatal("ProcessTLSFiles() modified conflicting variables")
+	}
+}
+
 func TestClearPrivateEnvWithPrefixes(t *testing.T) {
 	env := Environment{
 		"ZABBIX_CONF_DIR": "/etc/zabbix",

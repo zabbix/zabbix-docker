@@ -44,6 +44,8 @@ function resolve_file(string $default_path, string $env_name): string {
     return ($path && file_exists($path)) ? $path : '';
 }
 
+$web_certs_dir = '/etc/zabbix/web/certs';
+
 $DB['TYPE']     = env_string('DB_SERVER_TYPE');
 $DB['SERVER']   = env_string('DB_SERVER_HOST');
 $DB['PORT']     = env_int('DB_SERVER_PORT');
@@ -81,8 +83,8 @@ $DB['VAULT_TOKEN']         = env_string('VAULT_TOKEN');
 $DB['VAULT_APP_ROLE_ID']   = env_string('ZBX_VAULTAPPROLEID');
 $DB['VAULT_APP_SECRET_ID'] = env_string('ZBX_VAULTAPPSECRETID');
 
-$DB['VAULT_CERT_FILE'] = resolve_file('/etc/zabbix/web/certs/vault.crt', 'ZBX_VAULTTLSCERTFILE');
-$DB['VAULT_KEY_FILE'] = resolve_file('/etc/zabbix/web/certs/vault.key', 'ZBX_VAULTTLSKEYFILE');
+$DB['VAULT_CERT_FILE'] = resolve_file($web_certs_dir.'/vault.crt', 'ZBX_VAULTTLSCERTFILE');
+$DB['VAULT_KEY_FILE'] = resolve_file($web_certs_dir.'/vault.key', 'ZBX_VAULTTLSKEYFILE');
 
 $DB['VAULT_CACHE']    = env_bool('ZBX_VAULTCACHE');
 
@@ -103,9 +105,9 @@ if ($telemetry_providers !== []) {
 $APM_CA_LOCATION = env_string('ZBX_APM_CA_LOCATION');
 $APM_CA_FILE = resolve_file('', 'ZBX_APM_CAFILE');
 
-$SSO['SP_KEY'] = resolve_file('/etc/zabbix/web/certs/sp.key', 'ZBX_SSO_SP_KEY');
-$SSO['SP_CERT'] = resolve_file('/etc/zabbix/web/certs/sp.crt', 'ZBX_SSO_SP_CERT');
-$SSO['IDP_CERT'] = resolve_file('/etc/zabbix/web/certs/idp.crt', 'ZBX_SSO_IDP_CERT');
+$SSO['SP_KEY'] = resolve_file($web_certs_dir.'/sp.key', 'ZBX_SSO_SP_KEYFILE');
+$SSO['SP_CERT'] = resolve_file($web_certs_dir.'/sp.crt', 'ZBX_SSO_SP_CERTFILE');
+$SSO['IDP_CERT'] = resolve_file($web_certs_dir.'/idp.crt', 'ZBX_SSO_IDP_CERTFILE');
 
 $SSO['SETTINGS'] = env_json('ZBX_SSO_SETTINGS');
 $SSO['CERT_STORAGE'] = env_string('ZBX_CERT_STORAGE', 'database');

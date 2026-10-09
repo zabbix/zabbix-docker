@@ -179,6 +179,13 @@ func ProcessTLSFiles(env Environment, directory string, variables ...string) err
 
 	for _, variable := range variables {
 		fileVariable := variable + "FILE"
+		if env[variable] != "" && env[fileVariable] != "" {
+			return fmt.Errorf("both variables %s and %s are set (but are exclusive)", variable, fileVariable)
+		}
+	}
+
+	for _, variable := range variables {
+		fileVariable := variable + "FILE"
 
 		if value := env[variable]; value != "" {
 			path := filepath.Join(internalDir, fileVariable)

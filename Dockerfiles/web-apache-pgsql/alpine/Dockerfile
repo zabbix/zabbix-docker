@@ -122,6 +122,7 @@ RUN set -eux && \
     mkdir -p ${ZABBIX_CONF_DIR} \
         ${ZABBIX_CONF_DIR}/web \
         ${ZABBIX_CONF_DIR}/web/certs \
+        ${ZABBIX_CONF_DIR}/web/certs_internal \
         ${ZABBIX_USER_HOME_DIR}/enc \
         ${ZABBIX_USER_HOME_DIR}/enc_internal \
         ${ZABBIX_USER_HOME_DIR}/ssl/certs \

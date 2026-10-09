@@ -115,6 +115,7 @@ RUN --mount=type=cache,target=/var/cache/apt/,sharing=locked \
         ${ZABBIX_CONF_DIR} \
         ${ZABBIX_CONF_DIR}/web \
         ${ZABBIX_CONF_DIR}/web/certs \
+        ${ZABBIX_CONF_DIR}/web/certs_internal \
         ${ZABBIX_USER_HOME_DIR} \
         ${ZABBIX_USER_HOME_DIR}/enc \
         ${ZABBIX_USER_HOME_DIR}/enc_internal \

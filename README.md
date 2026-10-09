@@ -28,6 +28,11 @@ This repository contains **Dockerfile** of [Zabbix](https://zabbix.com/) for [Do
 * [oracle linux](https://hub.docker.com/_/oraclelinux/)
 * [ubuntu](https://hub.docker.com/_/ubuntu/)
 
+### Compatibility notes
+
+> [!IMPORTANT]
+> Starting with Zabbix 8.0, `ZBX_SSO_SP_KEY`, `ZBX_SSO_SP_CERT` and `ZBX_SSO_IDP_CERT` contain inline key or certificate data instead of file paths. Use `ZBX_SSO_SP_KEYFILE`, `ZBX_SSO_SP_CERTFILE` and `ZBX_SSO_IDP_CERTFILE` to specify file paths.
+
 ### Usage
 
 There is some documentation and examples in the [official Zabbix Documentation](https://www.zabbix.com/documentation/current/manual/installation/containers)!

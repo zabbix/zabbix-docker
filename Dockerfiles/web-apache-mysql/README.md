@@ -216,17 +216,17 @@ The variable allows to activate host verification. Available since 5.0.0.
 
 The variable allows to specify a custom list of valid ciphers. The format of the cipher list must conform to the OpenSSL standard. Available since 5.0.0.
 
-### `ZBX_SSO_SP_KEY`
+### `ZBX_SSO_SP_KEYFILE`, `ZBX_SSO_SP_KEY`
 
-The variable allows to specify a custom file path to the Service Provider (SP) private key file.
+`ZBX_SSO_SP_KEYFILE` specifies the Service Provider (SP) private key file. A relative path is resolved against `/etc/zabbix/web/certs`. Alternatively, `ZBX_SSO_SP_KEY` provides the private key content directly. Available since 8.0.0.
 
-### `ZBX_SSO_SP_CERT`
+### `ZBX_SSO_SP_CERTFILE`, `ZBX_SSO_SP_CERT`
 
-The variable allows to specify a custom file path to the Service Provider (SP) cert file.
+`ZBX_SSO_SP_CERTFILE` specifies the Service Provider (SP) certificate file. A relative path is resolved against `/etc/zabbix/web/certs`. Alternatively, `ZBX_SSO_SP_CERT` provides the certificate content directly. Available since 8.0.0.
 
-### `ZBX_SSO_IDP_CERT`
+### `ZBX_SSO_IDP_CERTFILE`, `ZBX_SSO_IDP_CERT`
 
-The variable allows to specify a custom file path to the SAML Certificate provided by the Identity Provider (ID) file.
+`ZBX_SSO_IDP_CERTFILE` specifies the Identity Provider (IdP) certificate file. A relative path is resolved against `/etc/zabbix/web/certs`. Alternatively, `ZBX_SSO_IDP_CERT` provides the certificate content directly. Available since 8.0.0.
 
 ## `ZBX_SSO_SETTINGS`
 
@@ -269,6 +269,13 @@ ZBX_MEDIA_TYPE_DENYLIST=[] # Available since 8.0.0
 
 ZBX_APM_CAFILE= # Available since 8.0.0
 ZBX_APM_CA= # Available since 8.0.0
+
+ZBX_SSO_SP_KEYFILE= # Available since 8.0.0
+ZBX_SSO_SP_KEY= # Available since 8.0.0
+ZBX_SSO_SP_CERTFILE= # Available since 8.0.0
+ZBX_SSO_SP_CERT= # Available since 8.0.0
+ZBX_SSO_IDP_CERTFILE= # Available since 8.0.0
+ZBX_SSO_IDP_CERT= # Available since 8.0.0
 
 ZBX_SERVER_TLS_ACTIVE=false # Available since 7.4.0
 ZBX_SERVER_TLS_CAFILE= # Available since 7.4.0

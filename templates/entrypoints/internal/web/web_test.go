@@ -42,6 +42,9 @@ func TestPreparePHPUsesTrunkFrontendSettings(t *testing.T) {
 		"ZBX_VAULTKEYFILE":     "vault.key",
 		"ZBX_APM_CA_LOCATION":  "/custom/ca",
 		"ZBX_APM_CA":           "apm-ca",
+		"ZBX_SSO_SP_KEYFILE":   "/run/secrets/sp.key",
+		"ZBX_SSO_SP_CERTFILE":  "/run/secrets/sp.crt",
+		"ZBX_SSO_IDP_CERTFILE": "/run/secrets/idp.crt",
 	}
 	if err := prepareFrontendAliases(env); err != nil {
 		t.Fatal(err)
@@ -69,6 +72,9 @@ func TestPreparePHPUsesTrunkFrontendSettings(t *testing.T) {
 		"ZBX_VAULTTLSKEYFILE":        filepath.Join(bootstrap.WebCertsDir, "vault.key"),
 		"ZBX_APM_CA_LOCATION":        filepath.Join(root, "ssl", "ssl_ca_internal"),
 		"ZBX_APM_CAFILE":             filepath.Join(root, "ssl", "ssl_ca_internal", "ZBX_APM_CAFILE"),
+		"ZBX_SSO_SP_KEYFILE":         "/run/secrets/sp.key",
+		"ZBX_SSO_SP_CERTFILE":        "/run/secrets/sp.crt",
+		"ZBX_SSO_IDP_CERTFILE":       "/run/secrets/idp.crt",
 	}
 	for name, value := range want {
 		if env[name] != value {

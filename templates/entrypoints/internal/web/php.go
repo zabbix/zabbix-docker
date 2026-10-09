@@ -90,12 +90,14 @@ func preparePHP(env bootstrap.Environment, dbType DBType) error {
 	if err := bootstrap.ProcessTLSFiles(env, apmCASourceDir, "ZBX_APM_CA"); err != nil {
 		return err
 	}
-	for _, name := range []string{
-		"ZBX_SSO_SP_KEY", "ZBX_SSO_SP_CERT", "ZBX_SSO_IDP_CERT",
-	} {
-		if err := bootstrap.ResolveFileEnv(env, name, bootstrap.WebCertsDir); err != nil {
-			return err
-		}
+	if err := bootstrap.ProcessTLSFiles(
+		env,
+		bootstrap.WebCertsDir,
+		"ZBX_SSO_SP_KEY",
+		"ZBX_SSO_SP_CERT",
+		"ZBX_SSO_IDP_CERT",
+	); err != nil {
+		return err
 	}
 
 	for _, setting := range phpDefaults {
