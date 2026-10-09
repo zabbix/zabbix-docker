@@ -31,7 +31,7 @@ This repository contains **Dockerfile** of [Zabbix](https://zabbix.com/) for [Do
 ### Compatibility notes
 
 > [!IMPORTANT]
-> Starting with Zabbix 8.0, `ZBX_SSO_SP_KEY`, `ZBX_SSO_SP_CERT` and `ZBX_SSO_IDP_CERT` contain inline key or certificate data instead of file paths. Use `ZBX_SSO_SP_KEYFILE`, `ZBX_SSO_SP_CERTFILE` and `ZBX_SSO_IDP_CERTFILE` to specify file paths.
+> Starting with Zabbix 8.0, `ZBX_SSO_SP_KEY`, `ZBX_SSO_SP_CERT` and `ZBX_SSO_IDP_CERT` contain inline key or certificate data instead of file paths. Use `ZBX_SSO_SP_KEYFILE`, `ZBX_SSO_SP_CERTFILE` and `ZBX_SSO_IDP_CERTFILE` to specify file paths. Files with the previously recognized fixed names (`sp.key`, `sp.crt`, `idp.crt`, `vault.crt` and `vault.key`) are no longer detected automatically; specify them explicitly using the corresponding `*FILE` variables.
 
 ### Usage
 

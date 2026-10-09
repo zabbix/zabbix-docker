@@ -310,7 +310,7 @@ Please follow official Apache2 [documentation](https://httpd.apache.org/docs/2.4
 
 ### ``/etc/zabbix/web/certs``
 
-The volume allows to use custom certificates for SAML authentication. The volume must contain three files ``sp.key``, ``sp.crt`` and ``idp.crt``. Available since 5.0.0.
+The volume provides certificate and key files referenced by ``ZBX_SSO_SP_KEYFILE``, ``ZBX_SSO_SP_CERTFILE``, ``ZBX_SSO_IDP_CERTFILE``, ``ZBX_VAULTTLSCERTFILE`` and ``ZBX_VAULTTLSKEYFILE``. Relative paths are resolved against this directory. Available since 5.0.0.
 
 ### ``/var/lib/zabbix/enc``
 

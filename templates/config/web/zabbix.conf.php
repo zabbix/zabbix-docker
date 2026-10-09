@@ -34,17 +34,11 @@ function env_json(string $name, array $default = []): array {
     return is_array($decoded) ? $decoded : $default;
 }
 
-function resolve_file(string $default_path, string $env_name): string {
-    if (file_exists($default_path)) {
-        return $default_path;
-    }
-
+function resolve_file(string $env_name): string {
     $path = getenv($env_name);
 
     return ($path && file_exists($path)) ? $path : '';
 }
-
-$web_certs_dir = '/etc/zabbix/web/certs';
 
 $DB['TYPE']     = env_string('DB_SERVER_TYPE');
 $DB['SERVER']   = env_string('DB_SERVER_HOST');
@@ -83,8 +77,8 @@ $DB['VAULT_TOKEN']         = env_string('VAULT_TOKEN');
 $DB['VAULT_APP_ROLE_ID']   = env_string('ZBX_VAULTAPPROLEID');
 $DB['VAULT_APP_SECRET_ID'] = env_string('ZBX_VAULTAPPSECRETID');
 
-$DB['VAULT_CERT_FILE'] = resolve_file($web_certs_dir.'/vault.crt', 'ZBX_VAULTTLSCERTFILE');
-$DB['VAULT_KEY_FILE'] = resolve_file($web_certs_dir.'/vault.key', 'ZBX_VAULTTLSKEYFILE');
+$DB['VAULT_CERT_FILE'] = resolve_file('ZBX_VAULTTLSCERTFILE');
+$DB['VAULT_KEY_FILE'] = resolve_file('ZBX_VAULTTLSKEYFILE');
 
 $DB['VAULT_CACHE']    = env_bool('ZBX_VAULTCACHE');
 
@@ -103,11 +97,11 @@ if ($telemetry_providers !== []) {
 }
 
 $APM_CA_LOCATION = env_string('ZBX_APM_CA_LOCATION');
-$APM_CA_FILE = resolve_file('', 'ZBX_APM_CAFILE');
+$APM_CA_FILE = resolve_file('ZBX_APM_CAFILE');
 
-$SSO['SP_KEY'] = resolve_file($web_certs_dir.'/sp.key', 'ZBX_SSO_SP_KEYFILE');
-$SSO['SP_CERT'] = resolve_file($web_certs_dir.'/sp.crt', 'ZBX_SSO_SP_CERTFILE');
-$SSO['IDP_CERT'] = resolve_file($web_certs_dir.'/idp.crt', 'ZBX_SSO_IDP_CERTFILE');
+$SSO['SP_KEY'] = resolve_file('ZBX_SSO_SP_KEYFILE');
+$SSO['SP_CERT'] = resolve_file('ZBX_SSO_SP_CERTFILE');
+$SSO['IDP_CERT'] = resolve_file('ZBX_SSO_IDP_CERTFILE');
 
 $SSO['SETTINGS'] = env_json('ZBX_SSO_SETTINGS');
 $SSO['CERT_STORAGE'] = env_string('ZBX_CERT_STORAGE', 'database');
@@ -118,8 +112,8 @@ $ZBX_FEATURE_FLAGS['modules_config_enabled'] = env_bool('ZBX_MODULES_CONFIG_ENAB
 $ZBX_FEATURE_FLAGS['media_type_denylist'] = env_json('ZBX_MEDIA_TYPE_DENYLIST');
 
 $ZBX_SERVER_TLS['ACTIVE'] = env_bool('ZBX_SERVER_TLS_ACTIVE');
-$ZBX_SERVER_TLS['CA_FILE'] = resolve_file('', 'ZBX_SERVER_TLS_CAFILE');
-$ZBX_SERVER_TLS['KEY_FILE'] = resolve_file('', 'ZBX_SERVER_TLS_KEYFILE');
-$ZBX_SERVER_TLS['CERT_FILE'] = resolve_file('', 'ZBX_SERVER_TLS_CERTFILE');
+$ZBX_SERVER_TLS['CA_FILE'] = resolve_file('ZBX_SERVER_TLS_CAFILE');
+$ZBX_SERVER_TLS['KEY_FILE'] = resolve_file('ZBX_SERVER_TLS_KEYFILE');
+$ZBX_SERVER_TLS['CERT_FILE'] = resolve_file('ZBX_SERVER_TLS_CERTFILE');
 $ZBX_SERVER_TLS['CERTIFICATE_ISSUER'] = env_string('ZBX_SERVER_TLS_CERT_ISSUER');
 $ZBX_SERVER_TLS['CERTIFICATE_SUBJECT'] = env_string('ZBX_SERVER_TLS_CERT_SUBJECT');
