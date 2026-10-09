@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1.6
 # escape=`
 ARG OS_BASE_IMAGE=mcr.microsoft.com/windows/nanoserver:ltsc2022
-ARG ENTRYPOINT_BUILD_IMAGE=golang:1.26.5-windowsservercore-ltsc2022
+ARG ENTRYPOINT_BUILD_IMAGE=golang:1.27.1-windowsservercore-ltsc2022
 
 ARG MAJOR_VERSION=7.0
 ARG ZBX_VERSION=${MAJOR_VERSION}.31
@@ -38,7 +38,7 @@ ENV ZBX_USERPARAMETERDIR="${ZABBIX_USER_HOME_DIR}\user_scripts"
 LABEL org.opencontainers.image.title="Zabbix agent" `
       org.opencontainers.image.authors="Alexey Pustovalov <alexey.pustovalov@zabbix.com>" `
       org.opencontainers.image.vendor="Zabbix SIA" `
-      org.opencontainers.image.url="https://zabbix.com/" `
+      org.opencontainers.image.url="https://hub.docker.com/r/zabbix/zabbix-agent" `
       org.opencontainers.image.description="Zabbix agent is deployed on a monitoring target to actively monitor local resources and applications" `
       org.opencontainers.image.licenses="AGPL-3.0-only" `
       org.opencontainers.image.documentation="https://www.zabbix.com/documentation/${MAJOR_VERSION}/manual/installation/containers" `

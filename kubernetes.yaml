@@ -1016,7 +1016,7 @@ spec:
             value: "3"
           - name: ZBX_DEBUGLEVEL
             value: "info"
-          - name: ZBX_JAVA_OPTS
+          - name: JDK_JAVA_OPTIONS
             value: ""
           - name: DEBUG_MODE
             value: "false"

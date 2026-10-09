@@ -48,7 +48,7 @@ LABEL description="Zabbix agent is deployed on a monitoring target to actively m
       org.opencontainers.image.vendor="Zabbix SIA" \
       org.opencontainers.image.version="${ZBX_VERSION}"
 
-COPY licenses /licenses/
+COPY --from=entrypoints /licenses/AGPL-v3.0.txt /licenses/
 COPY --from=builder /tmp/zabbix-${ZBX_VERSION}-output/agent/sbin/zabbix_agentd /usr/sbin/
 COPY --from=builder /tmp/zabbix-${ZBX_VERSION}-output/general/bin/zabbix_get /usr/bin/
 COPY --from=builder /tmp/zabbix-${ZBX_VERSION}-output/general/bin/zabbix_sender /usr/bin/

@@ -72,6 +72,7 @@ build_image() {
         -t "$image_tag" \
         --build-context sources="../../../sources" \
         --build-context config_templates="../../../templates/config" \
+        --build-context patches="../../../templates/patches" \
         --build-context entrypoints="../../../templates/entrypoints" \
         --build-arg "VCS_REF=$vcs_ref" \
         --build-arg "BUILD_DATE=$(date -u '+%Y-%m-%dT%H:%M:%SZ')" \

@@ -15,6 +15,7 @@ ARG ZBX_PRODUCT_REF=${ZBX_VERSION}
 ARG ZBX_PRODUCT_REVISION=unknown
 
 ENV TERM=xterm \
+    CHROME_CONFIG_HOME=/tmp/chromium-config \
     ZBX_VERSION=${ZBX_VERSION} \
     ZBX_SOURCES=${ZBX_SOURCES} \
     ZABBIX_USER_HOME_DIR=/var/lib/zabbix \
@@ -29,7 +30,7 @@ LABEL org.opencontainers.image.authors="Alexey Pustovalov <alexey.pustovalov@zab
       com.zabbix.product.revision="${ZBX_PRODUCT_REVISION}" \
       org.opencontainers.image.source="https://github.com/zabbix/zabbix-docker" \
       org.opencontainers.image.title="Zabbix web service" \
-      org.opencontainers.image.url="https://zabbix.com/" \
+      org.opencontainers.image.url="https://hub.docker.com/r/zabbix/zabbix-web-service" \
       org.opencontainers.image.vendor="Zabbix SIA" \
       org.opencontainers.image.version="${ZBX_VERSION}"
 
