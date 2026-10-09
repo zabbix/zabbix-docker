@@ -78,6 +78,7 @@ RUN --mount=type=cache,target=/var/cache/apt/,sharing=locked \
     set -eux && \
     INSTALL_PKGS="ca-certificates \
             curl \
+            openssl \
             locales \
             tzdata \
             libldap-common \
@@ -118,6 +119,7 @@ RUN --mount=type=cache,target=/var/cache/apt/,sharing=locked \
         ${ZABBIX_USER_HOME_DIR}/ssl/certs \
         ${ZABBIX_USER_HOME_DIR}/ssl/keys \
         ${ZABBIX_USER_HOME_DIR}/ssl/ssl_ca \
+        ${ZABBIX_USER_HOME_DIR}/ssl/ssl_ca_internal \
         /var/lib/php/session \
         /var/lib/locales/supported.d && \
     rm -rf \

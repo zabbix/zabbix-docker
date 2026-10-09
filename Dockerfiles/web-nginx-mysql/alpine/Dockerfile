@@ -72,6 +72,7 @@ COPY conf/etc/ /etc/
 
 RUN set -eux && \
     INSTALL_PKGS="curl \
+            openssl \
             tzdata \
             mariadb-connector-c \
             nginx \
@@ -118,6 +119,7 @@ RUN set -eux && \
         ${ZABBIX_USER_HOME_DIR}/ssl/certs \
         ${ZABBIX_USER_HOME_DIR}/ssl/keys \
         ${ZABBIX_USER_HOME_DIR}/ssl/ssl_ca \
+        ${ZABBIX_USER_HOME_DIR}/ssl/ssl_ca_internal \
         /var/lib/php/session && \
     rm -rf /etc/php85/php-fpm.d/www.conf \
         /etc/nginx/http.d/*.conf && \

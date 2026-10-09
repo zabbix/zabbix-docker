@@ -309,6 +309,10 @@ The volume allows to use custom certificates for SAML authentication. The volume
 
 The volume is used to store TLS related files. These file names are specified using ``ZBX_SERVER_TLS_CAFILE``, ``ZBX_SERVER_TLS_KEYFILE`` and ``ZBX_SERVER_TLS_CERTFILE`` variables. Additionally it is possible to use environment variables ``ZBX_SERVER_TLS_CA``, ``ZBX_SERVER_TLS_KEY`` and ``ZBX_SERVER_TLS_CERT`` with plaintext values. Available since 7.4.0.
 
+### ``/var/lib/zabbix/ssl/ssl_ca``
+
+The volume is used to provide certificate authority (CA) files for APM server certificate verification. The files are copied to an internal writable directory where OpenSSL hash links are generated before Zabbix frontend starts. The volume should be mounted read-only.
+
 # The image variants
 
 The `zabbix-web-nginx-mysql` images come in many flavors, each designed for a specific use case.

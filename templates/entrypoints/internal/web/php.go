@@ -81,9 +81,13 @@ func preparePHP(env bootstrap.Environment, dbType DBType) error {
 	if err != nil {
 		return err
 	}
-	apmCADir := filepath.Join(homeDir, "ssl", "ssl_ca")
+	apmCASourceDir := filepath.Join(homeDir, "ssl", "ssl_ca")
+	apmCADir := filepath.Join(homeDir, "ssl", "ssl_ca_internal")
+	if err := bootstrap.PrepareCertDir(apmCASourceDir, apmCADir); err != nil {
+		return err
+	}
 	env["ZBX_APM_CA_LOCATION"] = apmCADir
-	if err := bootstrap.ResolveFileEnv(env, "ZBX_APM_CA_FILE", apmCADir); err != nil {
+	if err := bootstrap.ResolveFileEnv(env, "ZBX_APM_CA_FILE", apmCASourceDir); err != nil {
 		return err
 	}
 	for _, name := range []string{

@@ -12,7 +12,17 @@ import (
 
 func TestPreparePHPUsesTrunkFrontendSettings(t *testing.T) {
 	root := t.TempDir()
-	if err := os.Mkdir(filepath.Join(root, "enc_internal"), 0o700); err != nil {
+	for _, dir := range []string{
+		filepath.Join(root, "enc_internal"),
+		filepath.Join(root, "ssl", "ssl_ca"),
+		filepath.Join(root, "ssl", "ssl_ca_internal"),
+	} {
+		if err := os.MkdirAll(dir, 0o700); err != nil {
+			t.Fatal(err)
+		}
+	}
+	staleCA := filepath.Join(root, "ssl", "ssl_ca_internal", "stale.pem")
+	if err := os.WriteFile(staleCA, nil, 0o600); err != nil {
 		t.Fatal(err)
 	}
 	phpConfig := filepath.Join(root, "php-fpm.conf")
@@ -39,6 +49,9 @@ func TestPreparePHPUsesTrunkFrontendSettings(t *testing.T) {
 	if err := preparePHP(env, MySQL); err != nil {
 		t.Fatal(err)
 	}
+	if _, err := os.Stat(staleCA); !os.IsNotExist(err) {
+		t.Fatalf("stale CA was not removed: %v", err)
+	}
 	want := map[string]string{
 		"ZBX_HISTORYPROVIDERS":       "[]",
 		"ZBX_TELEMETRYPROVIDERS":     "[]",
@@ -54,7 +67,7 @@ func TestPreparePHPUsesTrunkFrontendSettings(t *testing.T) {
 		"ZBX_DBTLSCIPHER":            "cipher",
 		"ZBX_VAULTTLSCERTFILE":       filepath.Join(bootstrap.WebCertsDir, "vault.crt"),
 		"ZBX_VAULTTLSKEYFILE":        filepath.Join(bootstrap.WebCertsDir, "vault.key"),
-		"ZBX_APM_CA_LOCATION":        filepath.Join(root, "ssl", "ssl_ca"),
+		"ZBX_APM_CA_LOCATION":        filepath.Join(root, "ssl", "ssl_ca_internal"),
 		"ZBX_APM_CA_FILE":            filepath.Join(root, "ssl", "ssl_ca", "apm-ca.pem"),
 	}
 	for name, value := range want {

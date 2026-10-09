@@ -74,6 +74,7 @@ COPY conf/etc/ /etc/
 
 RUN set -eux && \
     INSTALL_PKGS="curl \
+            openssl \
             tzdata \
             mariadb-connector-c \
             apache2 \
@@ -127,6 +128,7 @@ RUN set -eux && \
         ${ZABBIX_USER_HOME_DIR}/ssl/certs \
         ${ZABBIX_USER_HOME_DIR}/ssl/keys \
         ${ZABBIX_USER_HOME_DIR}/ssl/ssl_ca \
+        ${ZABBIX_USER_HOME_DIR}/ssl/ssl_ca_internal \
         /var/lib/php/session && \
     rm -rf /etc/apache2/conf.d/default.conf \
         /etc/apache2/conf.d/ssl.conf \
