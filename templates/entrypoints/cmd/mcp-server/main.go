@@ -25,7 +25,7 @@ func prepareService(env bootstrap.Environment, runtimeRulePath string) error {
 		return err
 	}
 
-	if err := bootstrap.ProcessTLSFiles(env, homeDir, "ZBX_TLSCERT", "ZBX_TLSKEY"); err != nil {
+	if err := bootstrap.ProcessTLSFiles(env, filepath.Join(homeDir, "enc"), "ZBX_TLSCERT", "ZBX_TLSKEY"); err != nil {
 		return err
 	}
 

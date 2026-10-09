@@ -22,23 +22,24 @@ func TestEnvironmentDefaults(t *testing.T) {
 
 func TestProcessFileAndClearEnvironment(t *testing.T) {
 	homeDir := t.TempDir()
-	directory := filepath.Join(homeDir, "enc_internal")
-	if err := os.Mkdir(directory, 0o700); err != nil {
+	directory := filepath.Join(homeDir, "ssl", "ssl_ca")
+	internalDir := directory + "_internal"
+	if err := os.MkdirAll(internalDir, 0o700); err != nil {
 		t.Fatal(err)
 	}
 	env := Environment{
 		"ZBX_TLSPSK": "secret", "ZABBIX_CONF_DIR": "/etc/zabbix",
 		"MYSQL_PASSWORD": "password", "VALUE": "a=b",
 	}
-	if err := ProcessTLSFiles(env, homeDir, "ZBX_TLSPSK"); err != nil {
+	if err := ProcessTLSFiles(env, directory, "ZBX_TLSPSK"); err != nil {
 		t.Fatal(err)
 	}
 
-	data, err := os.ReadFile(filepath.Join(directory, "ZBX_TLSPSKFILE"))
+	data, err := os.ReadFile(filepath.Join(internalDir, "ZBX_TLSPSKFILE"))
 	if err != nil || string(data) != "secret" {
 		t.Fatalf("TLS file: %q, %v", data, err)
 	}
-	if env["ZBX_TLSPSKFILE"] != filepath.Join(directory, "ZBX_TLSPSKFILE") {
+	if env["ZBX_TLSPSKFILE"] != filepath.Join(internalDir, "ZBX_TLSPSKFILE") {
 		t.Fatalf("unexpected TLS file path: %q", env["ZBX_TLSPSKFILE"])
 	}
 	if _, found := env["ZBX_TLSPSK"]; found {
@@ -74,7 +75,7 @@ func TestProcessTLSFilesResolvesRelativePaths(t *testing.T) {
 		"ZBX_TLSPSK":      "secret",
 	}
 
-	if err := ProcessTLSFiles(env, homeDir, "ZBX_TLSCA", "ZBX_TLSCERT", "ZBX_TLSPSK"); err != nil {
+	if err := ProcessTLSFiles(env, filepath.Join(homeDir, "enc"), "ZBX_TLSCA", "ZBX_TLSCERT", "ZBX_TLSPSK"); err != nil {
 		t.Fatal(err)
 	}
 

@@ -41,7 +41,7 @@ func TestPreparePHPUsesTrunkFrontendSettings(t *testing.T) {
 		"ZBX_VAULTCERTFILE":    "vault.crt",
 		"ZBX_VAULTKEYFILE":     "vault.key",
 		"ZBX_APM_CA_LOCATION":  "/custom/ca",
-		"ZBX_APM_CA_FILE":      "apm-ca.pem",
+		"ZBX_APM_CA":           "apm-ca",
 	}
 	if err := prepareFrontendAliases(env); err != nil {
 		t.Fatal(err)
@@ -68,12 +68,22 @@ func TestPreparePHPUsesTrunkFrontendSettings(t *testing.T) {
 		"ZBX_VAULTTLSCERTFILE":       filepath.Join(bootstrap.WebCertsDir, "vault.crt"),
 		"ZBX_VAULTTLSKEYFILE":        filepath.Join(bootstrap.WebCertsDir, "vault.key"),
 		"ZBX_APM_CA_LOCATION":        filepath.Join(root, "ssl", "ssl_ca_internal"),
-		"ZBX_APM_CA_FILE":            filepath.Join(root, "ssl", "ssl_ca", "apm-ca.pem"),
+		"ZBX_APM_CAFILE":             filepath.Join(root, "ssl", "ssl_ca_internal", "ZBX_APM_CAFILE"),
 	}
 	for name, value := range want {
 		if env[name] != value {
 			t.Fatalf("%s = %q, want %q", name, env[name], value)
 		}
+	}
+	if _, found := env["ZBX_APM_CA"]; found {
+		t.Fatal("plaintext ZBX_APM_CA was not removed")
+	}
+	apmCA, err := os.ReadFile(env["ZBX_APM_CAFILE"])
+	if err != nil {
+		t.Fatal(err)
+	}
+	if string(apmCA) != "apm-ca" {
+		t.Fatalf("ZBX_APM_CAFILE content = %q, want %q", apmCA, "apm-ca")
 	}
 	if value, found := env["DB_SERVER_SOCKET"]; !found || value != "" {
 		t.Fatalf("DB_SERVER_SOCKET = %q, found = %t", value, found)

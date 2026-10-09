@@ -128,9 +128,9 @@ Credentials and the TLS private key password can be set with the matching `_USER
 
 Certificate and key paths may be absolute or relative to `/var/lib/zabbix/ssl/certs` and `/var/lib/zabbix/ssl/keys`, respectively. CA certificates are read from `/var/lib/zabbix/ssl/ssl_ca`.
 
-### `ZBX_APM_CA_FILE`
+### `ZBX_APM_CAFILE`, `ZBX_APM_CA`
 
-The variable specifies the CA file used as the default for APM providers. A relative path is resolved against `/var/lib/zabbix/ssl/ssl_ca`.
+`ZBX_APM_CAFILE` specifies the CA file used as the default for APM providers. A relative path is resolved against `/var/lib/zabbix/ssl/ssl_ca`. Alternatively, `ZBX_APM_CA` provides the CA certificate content directly.
 
 ### `PHP_TZ`
 
@@ -268,7 +268,8 @@ ZBX_BANNERS_ENABLED=true # Available since 8.0.0
 ZBX_MODULES_CONFIG_ENABLED=true # Available since 8.0.0
 ZBX_MEDIA_TYPE_DENYLIST=[] # Available since 8.0.0
 
-ZBX_APM_CA_FILE= # Available since 8.0.0
+ZBX_APM_CAFILE= # Available since 8.0.0
+ZBX_APM_CA= # Available since 8.0.0
 
 ZBX_SERVER_TLS_ACTIVE=false # Available since 7.4.0
 ZBX_SERVER_TLS_CAFILE= # Available since 7.4.0

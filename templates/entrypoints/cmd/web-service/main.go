@@ -1,6 +1,10 @@
 package main
 
-import "github.com/zabbix/zabbix-docker/templates/entrypoints/internal/bootstrap"
+import (
+	"path/filepath"
+
+	"github.com/zabbix/zabbix-docker/templates/entrypoints/internal/bootstrap"
+)
 
 const webServiceBinary = "/usr/sbin/zabbix_web_service"
 
@@ -14,7 +18,7 @@ func prepareService(env bootstrap.Environment) error {
 
 	env["ZBX_ALLOWEDIP"] = env.ValueOrDefaultNonEmpty("ZBX_ALLOWEDIP", "zabbix-server")
 
-	if err := bootstrap.ProcessTLSFiles(env, homeDir, "ZBX_TLSCA", "ZBX_TLSCERT", "ZBX_TLSKEY"); err != nil {
+	if err := bootstrap.ProcessTLSFiles(env, filepath.Join(homeDir, "enc"), "ZBX_TLSCA", "ZBX_TLSCERT", "ZBX_TLSKEY"); err != nil {
 		return err
 	}
 

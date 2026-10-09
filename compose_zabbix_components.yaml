@@ -717,6 +717,7 @@ services:
   volumes:
    - ${DATA_DIRECTORY}/var/lib/zabbix/enc:/var/lib/zabbix/enc:ro
   tmpfs:
+   - /var/lib/zabbix/enc_internal
    - /var/lib/zabbix/.config
    - /tmp
   security_opt:

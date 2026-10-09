@@ -172,11 +172,10 @@ func resolveSecretEnv(env Environment, name, secretsDir string) error {
 }
 
 // ProcessTLSFiles moves inline TLS material from the listed variables into
-// files under <home>/enc_internal. Existing relative TLS file paths are
-// resolved against <home>/enc, while absolute paths are preserved unchanged.
-func ProcessTLSFiles(env Environment, homeDir string, variables ...string) error {
-	internalDir := filepath.Join(homeDir, "enc_internal")
-	volumeDir := filepath.Join(homeDir, "enc")
+// files under <directory>_internal. Existing relative TLS file paths are
+// resolved against directory, while absolute paths are preserved unchanged.
+func ProcessTLSFiles(env Environment, directory string, variables ...string) error {
+	internalDir := directory + "_internal"
 
 	for _, variable := range variables {
 		fileVariable := variable + "FILE"
@@ -194,7 +193,7 @@ func ProcessTLSFiles(env Environment, homeDir string, variables ...string) error
 		delete(env, variable)
 
 		if path := env[fileVariable]; path != "" {
-			resolved, err := ResolveFile(path, volumeDir)
+			resolved, err := ResolveFile(path, directory)
 			if err != nil {
 				return fmt.Errorf("%s: %w", fileVariable, err)
 			}

@@ -87,7 +87,7 @@ func preparePHP(env bootstrap.Environment, dbType DBType) error {
 		return err
 	}
 	env["ZBX_APM_CA_LOCATION"] = apmCADir
-	if err := bootstrap.ResolveFileEnv(env, "ZBX_APM_CA_FILE", apmCASourceDir); err != nil {
+	if err := bootstrap.ProcessTLSFiles(env, apmCASourceDir, "ZBX_APM_CA"); err != nil {
 		return err
 	}
 	for _, name := range []string{
@@ -150,7 +150,7 @@ func preparePHP(env bootstrap.Environment, dbType DBType) error {
 		env.SetDefault("DB_SERVER_SOCKET", "")
 	}
 
-	if err := bootstrap.ProcessTLSFiles(env, homeDir, "ZBX_SERVER_TLS_CA", "ZBX_SERVER_TLS_KEY", "ZBX_SERVER_TLS_CERT"); err != nil {
+	if err := bootstrap.ProcessTLSFiles(env, filepath.Join(homeDir, "enc"), "ZBX_SERVER_TLS_CA", "ZBX_SERVER_TLS_KEY", "ZBX_SERVER_TLS_CERT"); err != nil {
 		return err
 	}
 

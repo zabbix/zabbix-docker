@@ -2,6 +2,7 @@
 package config
 
 import (
+	"path/filepath"
 	"strings"
 
 	"github.com/zabbix/zabbix-docker/templates/entrypoints/internal/bootstrap"
@@ -47,7 +48,7 @@ func ConfigureServers(env bootstrap.Environment) {
 func ProcessTLSFiles(env bootstrap.Environment, homeDir string) error {
 	return bootstrap.ProcessTLSFiles(
 		env,
-		homeDir,
+		filepath.Join(homeDir, "enc"),
 		"ZBX_TLSCA",
 		"ZBX_TLSCRL",
 		"ZBX_TLSCERT",
