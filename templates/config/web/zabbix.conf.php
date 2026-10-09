@@ -100,6 +100,9 @@ if ($telemetry_providers !== []) {
     $TELEMETRY_PROVIDERS = $telemetry_providers;
 }
 
+$APM_CA_LOCATION = env_string('ZBX_APM_CA_LOCATION');
+$APM_CA_FILE = resolve_file('', 'ZBX_APM_CA_FILE');
+
 $SSO['SP_KEY'] = resolve_file('/etc/zabbix/web/certs/sp.key', 'ZBX_SSO_SP_KEY');
 $SSO['SP_CERT'] = resolve_file('/etc/zabbix/web/certs/sp.crt', 'ZBX_SSO_SP_CERT');
 $SSO['IDP_CERT'] = resolve_file('/etc/zabbix/web/certs/idp.crt', 'ZBX_SSO_IDP_CERT');

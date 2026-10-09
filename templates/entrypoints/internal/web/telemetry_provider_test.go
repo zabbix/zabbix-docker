@@ -63,7 +63,7 @@ func TestConfigureWebTelemetryProviders(t *testing.T) {
 	want := map[string]any{
 		"ssl_cert_file":    filepath.Join(homeDir, "ssl", "certs", "client.crt"),
 		"ssl_key_file":     filepath.Join(homeDir, "ssl", "keys", "client.key"),
-		"ssl_ca_location":  filepath.Join(homeDir, "ssl", "ssl_ca"),
+		"ssl_ca_location":  "",
 		"ssl_key_password": "key-secret",
 		"ssl_verify_peer":  true,
 		"ssl_verify_host":  true,

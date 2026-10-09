@@ -30,6 +30,8 @@ func TestPreparePHPUsesTrunkFrontendSettings(t *testing.T) {
 		"ZBX_DB_CIPHER_LIST":   "cipher",
 		"ZBX_VAULTCERTFILE":    "vault.crt",
 		"ZBX_VAULTKEYFILE":     "vault.key",
+		"ZBX_APM_CA_LOCATION":  "/custom/ca",
+		"ZBX_APM_CA_FILE":      "apm-ca.pem",
 	}
 	if err := prepareFrontendAliases(env); err != nil {
 		t.Fatal(err)
@@ -52,6 +54,8 @@ func TestPreparePHPUsesTrunkFrontendSettings(t *testing.T) {
 		"ZBX_DBTLSCIPHER":            "cipher",
 		"ZBX_VAULTTLSCERTFILE":       filepath.Join(bootstrap.WebCertsDir, "vault.crt"),
 		"ZBX_VAULTTLSKEYFILE":        filepath.Join(bootstrap.WebCertsDir, "vault.key"),
+		"ZBX_APM_CA_LOCATION":        filepath.Join(root, "ssl", "ssl_ca"),
+		"ZBX_APM_CA_FILE":            filepath.Join(root, "ssl", "ssl_ca", "apm-ca.pem"),
 	}
 	for name, value := range want {
 		if env[name] != value {

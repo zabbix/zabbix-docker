@@ -26,9 +26,6 @@ func configureWebTelemetryProviders(env bootstrap.Environment, homeDir string) e
 				fields[field] = path
 			}
 		}
-		if verifyPeer, _ := fields["ssl_verify_peer"].(bool); verifyPeer {
-			fields["ssl_ca_location"] = filepath.Join(homeDir, "ssl", "ssl_ca")
-		}
 	}
 	return setWebProviders(env, provider.Telemetry.Plural, providers)
 }

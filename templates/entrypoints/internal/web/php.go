@@ -3,6 +3,7 @@ package web
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/zabbix/zabbix-docker/templates/entrypoints/internal/bootstrap"
@@ -78,6 +79,11 @@ func preparePHP(env bootstrap.Environment, dbType DBType) error {
 
 	homeDir, err := bootstrap.RequiredHomeDir(env)
 	if err != nil {
+		return err
+	}
+	apmCADir := filepath.Join(homeDir, "ssl", "ssl_ca")
+	env["ZBX_APM_CA_LOCATION"] = apmCADir
+	if err := bootstrap.ResolveFileEnv(env, "ZBX_APM_CA_FILE", apmCADir); err != nil {
 		return err
 	}
 	for _, name := range []string{

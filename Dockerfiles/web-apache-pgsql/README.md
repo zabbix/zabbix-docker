@@ -132,6 +132,10 @@ Credentials and the TLS private key password can be set with the matching `_USER
 
 Certificate and key paths may be absolute or relative to `/var/lib/zabbix/ssl/certs` and `/var/lib/zabbix/ssl/keys`, respectively. CA certificates are read from `/var/lib/zabbix/ssl/ssl_ca`.
 
+### `ZBX_APM_CA_FILE`
+
+The variable specifies the CA file used as the default for APM providers. A relative path is resolved against `/var/lib/zabbix/ssl/ssl_ca`.
+
 ### `PHP_TZ`
 
 The variable is timezone in PHP format. Full list of supported timezones are available on [`php.net`](http://php.net/manual/en/timezones.php). By default, value is 'Europe/Riga' and system timezone since Zabbix 5.2.0.
@@ -262,6 +266,8 @@ ZBX_CERT_STORAGE=database # Available since 8.0.0
 ZBX_BANNERS_ENABLED=true # Available since 8.0.0
 ZBX_MODULES_CONFIG_ENABLED=true # Available since 8.0.0
 ZBX_MEDIA_TYPE_DENYLIST=[] # Available since 8.0.0
+
+ZBX_APM_CA_FILE= # Available since 8.0.0
 
 ZBX_SERVER_TLS_ACTIVE=false # Available since 7.4.0
 ZBX_SERVER_TLS_CAFILE= # Available since 7.4.0
