@@ -1,7 +1,6 @@
 package config
 
 import (
-	"io"
 	"os"
 	"path/filepath"
 	"strings"
@@ -30,19 +29,14 @@ func TestConfigureItemKeyRules(t *testing.T) {
 	}
 
 	env := bootstrap.Environment{
-		"DEBUG_MODE":            "true",
 		"ZBX_ALLOWKEY_0":        "sensitive-allow",
 		"ZBX_DENYKEY_1":         "sensitive-deny",
 		"ZBX_ALLOWKEY_REGEXP_2": "sensitive-allow-regexp",
 		"ZBX_DENYKEY_REGEXP_3":  "sensitive-deny-regexp",
 	}
 
-	var configureErr error
-	logOutput := captureAgentStdout(t, func() {
-		configureErr = ConfigureItemKeyRules(env, configDir, "item_keys.conf")
-	})
-	if configureErr != nil {
-		t.Fatal(configureErr)
+	if err := ConfigureItemKeyRules(env, configDir, "item_keys.conf"); err != nil {
+		t.Fatal(err)
 	}
 
 	data, err := os.ReadFile(path)
@@ -62,19 +56,8 @@ func TestConfigureItemKeyRules(t *testing.T) {
 		"ZBX_ALLOWKEY_0", "ZBX_DENYKEY_1",
 		"ZBX_ALLOWKEY_REGEXP_2", "ZBX_DENYKEY_REGEXP_3",
 	} {
-		if !strings.Contains(logOutput, variable) {
-			t.Fatalf("debug output does not contain %s: %s", variable, logOutput)
-		}
 		if env[variable] == "" {
 			t.Fatalf("%s was removed from the environment", variable)
-		}
-	}
-	for _, sensitive := range []string{
-		"sensitive-allow", "sensitive-deny",
-		"sensitive-allow-regexp", "sensitive-deny-regexp",
-	} {
-		if strings.Contains(logOutput, sensitive) {
-			t.Fatalf("debug output contains sensitive value %q: %s", sensitive, logOutput)
 		}
 	}
 }
@@ -195,31 +178,4 @@ func TestCollectIndexedParametersIgnoresUnrelatedVariables(t *testing.T) {
 	if len(rules) != 0 {
 		t.Fatalf("unrelated variables were parsed as item key rules: %#v", rules)
 	}
-}
-
-func captureAgentStdout(t *testing.T, run func()) string {
-	t.Helper()
-
-	reader, writer, err := os.Pipe()
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer reader.Close()
-
-	stdout := os.Stdout
-	os.Stdout = writer
-	defer func() {
-		os.Stdout = stdout
-	}()
-
-	run()
-	if err := writer.Close(); err != nil {
-		t.Fatal(err)
-	}
-
-	output, err := io.ReadAll(reader)
-	if err != nil {
-		t.Fatal(err)
-	}
-	return string(output)
 }

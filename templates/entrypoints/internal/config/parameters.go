@@ -21,11 +21,9 @@ type indexedParam struct {
 func MergeParameterValues(configPath, param, rawValue string) error {
 	value := strings.Trim(strings.TrimSpace(rawValue), `"`)
 	if value == "" {
-		changed, err := rewriteParameter(configPath, param, nil, false)
-		if err != nil {
+		if err := rewriteParameter(configPath, param, nil, false); err != nil {
 			return err
 		}
-		logParameterChange(configPath, param, nil, changed)
 
 		return nil
 	}
@@ -38,11 +36,9 @@ func MergeParameterValues(configPath, param, rawValue string) error {
 		}
 	}
 
-	changed, err := rewriteParameter(configPath, param, values, true)
-	if err != nil {
+	if err := rewriteParameter(configPath, param, values, true); err != nil {
 		return err
 	}
-	logParameterChange(configPath, param, values, changed)
 
 	return nil
 }
@@ -51,11 +47,9 @@ func MergeParameterValues(configPath, param, rawValue string) error {
 func SetParameter(configPath, param, value string) error {
 	values := []string{value}
 
-	changed, err := rewriteParameter(configPath, param, values, false)
-	if err != nil {
+	if err := rewriteParameter(configPath, param, values, false); err != nil {
 		return err
 	}
-	logParameterChange(configPath, param, values, changed)
 
 	return nil
 }
@@ -74,18 +68,12 @@ func UpdateIndexedParameter(env bootstrap.Environment, configPath, param, prefix
 	}
 
 	values := make([]string, 0, len(params))
-	variableNames := make([]string, 0, len(params))
 	for _, entry := range params {
 		values = append(values, "${"+entry.variable+"}")
-		variableNames = append(variableNames, entry.variable)
 	}
-	if _, err := rewriteParameter(configPath, param, values, false); err != nil {
+	if err := rewriteParameter(configPath, param, values, false); err != nil {
 		return err
 	}
-
-	bootstrap.LogDebug(env, "** Configuring %s parameter '%s' from %d indexed environment variables: %s",
-		configPath, param, len(variableNames), strings.Join(variableNames, ", "),
-	)
 
 	return nil
 }
@@ -149,17 +137,16 @@ func replaceIndexedParamsAtEnd(configPath string, paramByPrefix map[string]strin
 		}
 	}
 
-	_, err = writeLines(configPath, original, updatedLines)
-	return err
+	return writeLines(configPath, original, updatedLines)
 }
 
-// rewriteParameter writes the named parameter to the configuration file and
-// reports whether the file changed. preserveExisting keeps parameter lines
-// that are already in the file instead of replacing them.
-func rewriteParameter(configPath, param string, values []string, preserveExisting bool) (bool, error) {
+// rewriteParameter writes the named parameter to the configuration file.
+// preserveExisting keeps parameter lines that are already in the file instead
+// of replacing them.
+func rewriteParameter(configPath, param string, values []string, preserveExisting bool) error {
 	original, lines, err := readLines(configPath)
 	if err != nil {
-		return false, err
+		return err
 	}
 
 	activePrefix := param + "="
@@ -231,55 +218,15 @@ func readLines(configPath string) ([]byte, []string, error) {
 	return original, lines, nil
 }
 
-func writeLines(configPath string, original []byte, lines []string) (bool, error) {
+func writeLines(configPath string, original []byte, lines []string) error {
 	updatedData := []byte(strings.Join(lines, "\n") + "\n")
 	if bytes.Equal(original, updatedData) {
-		return false, nil
+		return nil
 	}
 
 	if err := bootstrap.WriteFilePreservingMode(configPath, updatedData); err != nil {
-		return false, fmt.Errorf("update configuration file %s: %w", configPath, err)
+		return fmt.Errorf("update configuration file %s: %w", configPath, err)
 	}
 
-	return true, nil
-}
-
-// logParameterChange reports what happened to the parameter: values
-// without a single non-empty item mean it was removed from the file.
-func logParameterChange(configPath, param string, values []string, changed bool) {
-	hasValue := false
-	for _, value := range values {
-		if value != "" {
-			hasValue = true
-			break
-		}
-	}
-
-	if !hasValue {
-		if changed {
-			bootstrap.LogInfo("** Removing %s parameter '%s'", configPath, param)
-		}
-
-		return
-	}
-
-	loggedValue := strings.Join(values, ",")
-	if isMaskedParameter(param) {
-		loggedValue = "****"
-	}
-
-	if changed {
-		bootstrap.LogInfo("** Updating %s parameter '%s': '%s'", configPath, param, loggedValue)
-	} else {
-		bootstrap.LogInfo("** Updating %s parameter '%s': '%s'... exists", configPath, param, loggedValue)
-	}
-}
-
-func isMaskedParameter(param string) bool {
-	switch param {
-	case "TLSPSKIdentity", "DBPassword", "HistoryProvider", "TelemetryProvider":
-		return true
-	default:
-		return false
-	}
+	return nil
 }

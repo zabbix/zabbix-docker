@@ -1,7 +1,6 @@
 package config
 
 import (
-	"io"
 	"os"
 	"path/filepath"
 	"strings"
@@ -188,84 +187,4 @@ func TestUpdateIndexedParameterValidation(t *testing.T) {
 			}
 		})
 	}
-}
-
-func TestUpdateIndexedParameterLogging(t *testing.T) {
-	path := filepath.Join(t.TempDir(), "agent.conf")
-	if err := os.WriteFile(path, []byte("# UserParameter=\n"), 0o600); err != nil {
-		t.Fatal(err)
-	}
-	env := bootstrap.Environment{
-		"ZBX_USERPARAMETER_0": `custom.token,printf '%s' 'sensitive-token'`,
-		"ZBX_USERPARAMETER_1": `custom.password,printf '%s' 'sensitive-password'`,
-	}
-
-	var updateErr error
-	output := captureStdout(t, func() {
-		updateErr = UpdateIndexedParameter(env, path, "UserParameter", "ZBX_USERPARAMETER")
-	})
-	if updateErr != nil {
-		t.Fatal(updateErr)
-	}
-	if output != "" {
-		t.Fatalf("indexed update logged at info level: %s", output)
-	}
-
-	env["DEBUG_MODE"] = "true"
-	output = captureStdout(t, func() {
-		updateErr = UpdateIndexedParameter(env, path, "UserParameter", "ZBX_USERPARAMETER")
-	})
-	if updateErr != nil {
-		t.Fatal(updateErr)
-	}
-	for _, expected := range []string{
-		"[debug]",
-		"2 indexed environment variables",
-		"ZBX_USERPARAMETER_0, ZBX_USERPARAMETER_1",
-	} {
-		if !strings.Contains(output, expected) {
-			t.Fatalf("debug output does not contain %q: %s", expected, output)
-		}
-	}
-	for _, sensitive := range []string{"sensitive-token", "sensitive-password"} {
-		if strings.Contains(output, sensitive) {
-			t.Fatalf("debug output contains sensitive value %q: %s", sensitive, output)
-		}
-	}
-}
-
-func TestProviderParametersAreMasked(t *testing.T) {
-	for _, parameter := range []string{"HistoryProvider", "TelemetryProvider"} {
-		if !isMaskedParameter(parameter) {
-			t.Fatalf("%s is not masked", parameter)
-		}
-	}
-}
-
-func captureStdout(t *testing.T, run func()) string {
-	t.Helper()
-
-	reader, writer, err := os.Pipe()
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer reader.Close()
-
-	stdout := os.Stdout
-	os.Stdout = writer
-	defer func() {
-		os.Stdout = stdout
-	}()
-
-	run()
-	if err := writer.Close(); err != nil {
-		t.Fatal(err)
-	}
-
-	output, err := io.ReadAll(reader)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	return string(output)
 }

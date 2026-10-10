@@ -3,7 +3,6 @@ package config
 import (
 	"fmt"
 	"os"
-	"strings"
 
 	"github.com/zabbix/zabbix-docker/templates/entrypoints/internal/bootstrap"
 )
@@ -36,15 +35,6 @@ func ConfigureToolAccessRules(env bootstrap.Environment, templatePath, runtimePa
 	if err := replaceIndexedParamsAtEnd(runtimePath, toolAccessRuleParamByPrefix, rules); err != nil {
 		return err
 	}
-
-	variableNames := make([]string, 0, len(rules))
-	for _, rule := range rules {
-		variableNames = append(variableNames, rule.variable)
-	}
-
-	bootstrap.LogDebug(env, "** Configuring %s tool access rules from %d indexed environment variables: %s",
-		runtimePath, len(variableNames), strings.Join(variableNames, ", "),
-	)
 
 	return nil
 }
