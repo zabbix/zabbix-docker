@@ -56,6 +56,7 @@ func TestPreparePHPUsesTrunkFrontendSettings(t *testing.T) {
 		t.Fatalf("stale CA was not removed: %v", err)
 	}
 	want := map[string]string{
+		"ZBX_MAXEXECUTIONTIME":       "300",
 		"ZBX_HISTORYPROVIDERS":       "[]",
 		"ZBX_TELEMETRYPROVIDERS":     "[]",
 		"ZBX_CERT_STORAGE":           "database",

@@ -64,7 +64,6 @@ func Run(env bootstrap.Environment, db DB, opts Options, args []string) error {
 	prepareWebServer := prepareNginx
 
 	env.SetDefaultNonEmpty("ZBX_SERVER_NAME", "Zabbix docker")
-	env.SetDefaultNonEmpty("PHP_TZ", "Europe/Riga")
 
 	if opts.Server == Apache {
 		env.SetDefaultNonEmpty("DAEMON_USER", "apache")

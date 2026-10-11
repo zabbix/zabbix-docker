@@ -26,7 +26,7 @@ var phpDefaults = []struct{ name, value string }{
 	{"ZBX_GUI_WARNING_MSG", "Zabbix is under maintenance."},
 
 	// PHP resource limits
-	{"ZBX_MAXEXECUTIONTIME", "600"},
+	{"ZBX_MAXEXECUTIONTIME", "300"},
 	{"ZBX_MEMORYLIMIT", "128M"},
 	{"ZBX_POSTMAXSIZE", "16M"},
 	{"ZBX_UPLOADMAXFILESIZE", "2M"},

@@ -59,7 +59,7 @@ func prepareNginx(env bootstrap.Environment) error {
 		bootstrap.LogWarn("**** Impossible to enable SSL support for Nginx. Certificates are missing.")
 	}
 
-	maxExecutionTime, err := strconv.Atoi(env.ValueOrDefaultNonEmpty("ZBX_MAXEXECUTIONTIME", "3"))
+	maxExecutionTime, err := strconv.Atoi(env["ZBX_MAXEXECUTIONTIME"])
 	if err != nil {
 		return fmt.Errorf("invalid ZBX_MAXEXECUTIONTIME: %w", err)
 	}
