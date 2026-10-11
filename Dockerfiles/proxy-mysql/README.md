@@ -117,15 +117,15 @@ This variable is port of MySQL server. By default, value is '3306'.
 These variables are used by Zabbix proxy to connect to Zabbix database. With the `_FILE` variables you can instead provide the path to a file which contains the user / the password instead. Without Docker Swarm or Kubernetes you also have to map the files. Those are exclusive so you can just provide one type - either `MYSQL_USER` or `MYSQL_USER_FILE`!
 
 ```console
-docker run --name some-zabbix-proxy-mysql -e DB_SERVER_HOST="some-mysql-server" -v ./.MYSQL_USER:/run/secrets/MYSQL_USER -e MYSQL_USER_FILE=/run/secrets/MYSQL_USER -v ./.MYSQL_PASSWORD:/run/secrets/MYSQL_PASSWORD -e MYSQL_PASSWORD_FILE=/var/run/secrets/MYSQL_PASSWORD -e ZBX_HOSTNAME=some-hostname -e ZBX_SERVER_HOST=some-zabbix-server --init -d zabbix/zabbix-proxy-mysql:tag
+docker run --name some-zabbix-proxy-mysql -e DB_SERVER_HOST="some-mysql-server" -v ./.MYSQL_USER:/run/secrets/MYSQL_USER -e MYSQL_USER_FILE=/run/secrets/MYSQL_USER -v ./.MYSQL_PASSWORD:/run/secrets/MYSQL_PASSWORD -e MYSQL_PASSWORD_FILE=/run/secrets/MYSQL_PASSWORD -e ZBX_HOSTNAME=some-hostname -e ZBX_SERVER_HOST=some-zabbix-server --init -d zabbix/zabbix-proxy-mysql:tag
 ```
 
-With Docker Swarm or Kubernetes this works with secrets. That way it is replicated in your cluster!
+With Docker Swarm, use secrets and deploy the container as a service:
 
 ```console
 printf "zabbix" | docker secret create MYSQL_USER -
 printf "zabbix" | docker secret create MYSQL_PASSWORD -
-docker run --name some-zabbix-proxy-mysql -e DB_SERVER_HOST="some-mysql-server" -e MYSQL_USER_FILE=/run/secrets/MYSQL_USER -e MYSQL_PASSWORD_FILE=/run/secrets/MYSQL_PASSWORD -e ZBX_SERVER_HOST="some-zabbix-server" -e ZBX_HOSTNAME=some-hostname --init -d zabbix/zabbix-proxy-mysql:tag
+docker service create --name some-zabbix-proxy-mysql --secret MYSQL_USER --secret MYSQL_PASSWORD -e DB_SERVER_HOST="some-mysql-server" -e MYSQL_USER_FILE=/run/secrets/MYSQL_USER -e MYSQL_PASSWORD_FILE=/run/secrets/MYSQL_PASSWORD -e ZBX_SERVER_HOST="some-zabbix-server" -e ZBX_HOSTNAME=some-hostname --init -d zabbix/zabbix-proxy-mysql:tag
 ```
 
 This method is also applicable for `MYSQL_ROOT_PASSWORD` with `MYSQL_ROOT_PASSWORD_FILE`.
