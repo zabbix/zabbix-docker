@@ -110,7 +110,6 @@ func preparePHP(env bootstrap.Environment, dbType DBType) error {
 		return err
 	}
 
-	env.SetDefault("ZBX_SERVER_HOST", "zabbix-server")
 	env.SetDefault("ZBX_SERVER_PORT", "10051")
 
 	expose := strings.ToLower(env.ValueOrDefaultNonEmpty("EXPOSE_WEB_SERVER_INFO", "on"))

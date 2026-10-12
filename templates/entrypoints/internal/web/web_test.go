@@ -52,6 +52,9 @@ func TestPreparePHPUsesTrunkFrontendSettings(t *testing.T) {
 	if err := preparePHP(env, MySQL); err != nil {
 		t.Fatal(err)
 	}
+	if value, found := env["ZBX_SERVER_HOST"]; found {
+		t.Fatalf("ZBX_SERVER_HOST got default %q; unset must keep the address from the database", value)
+	}
 	if _, err := os.Stat(staleCA); !os.IsNotExist(err) {
 		t.Fatalf("stale CA was not removed: %v", err)
 	}

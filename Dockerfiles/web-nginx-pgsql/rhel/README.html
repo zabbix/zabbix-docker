@@ -37,7 +37,7 @@
 <h2 id="environment-variables">Environment Variables</h2>
 <p>When you start the <code>zabbix-web-nginx-pgsql</code> image, you can adjust the configuration of the Zabbix web interface by passing one or more environment variables on the <code>podman run</code> command line.</p>
 <h3 id="-zbx_server_host-"><code>ZBX_SERVER_HOST</code></h3>
-<p>This variable is IP or DNS name of Zabbix server. By default, value is <code>zabbix-server</code>.</p>
+<p>This variable is IP or DNS name of Zabbix server. By default, the variable is not set and the web interface uses the address of the active Zabbix server node stored in the database (see <code>ZBX_NODEADDRESS</code> of Zabbix server image). Keep it unset for Zabbix server HA clusters; set it to always connect to one specific Zabbix server.</p>
 <h3 id="-zbx_server_port-"><code>ZBX_SERVER_PORT</code></h3>
 <p>This variable is port Zabbix server listening on. By default, value is <code>10051</code>.</p>
 <h3 id="-db_server_host-"><code>DB_SERVER_HOST</code></h3>

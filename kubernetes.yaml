@@ -239,6 +239,8 @@ spec:
             successThreshold: 1
             failureThreshold: 5
           env:
+          - name: ZBX_SERVER_HOST
+            value: "zabbix-server"
           - name: ZBX_SERVER_NAME
             value: "Zabbix Kubernetes"
           - name: PHP_TZ
