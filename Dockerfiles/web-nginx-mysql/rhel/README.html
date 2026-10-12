@@ -81,7 +81,7 @@
     -v ./.MYSQL_USER:/run/secrets/MYSQL_USER \
     -e MYSQL_USER_FILE=/run/secrets/MYSQL_USER \
     -v ./.MYSQL_PASSWORD:/run/secrets/MYSQL_PASSWORD \
-    -e MYSQL_PASSWORD_FILE=/var/run/secrets/MYSQL_PASSWORD \
+    -e MYSQL_PASSWORD_FILE=/run/secrets/MYSQL_PASSWORD \
     -e PHP_TZ=&quot;some-timezone&quot; \
     -d registry.connect.redhat.com/zabbix/zabbix-web-mysql-74:tag
 </code></pre>
@@ -90,6 +90,8 @@
 printf &quot;zabbix&quot; | podman secret create MYSQL_PASSWORD -
 podman run \
     --name some-zabbix-web-nginx-mysql \
+    --secret MYSQL_USER \
+    --secret MYSQL_PASSWORD \
     -e DB_SERVER_HOST=&quot;some-mysql-server&quot; \
     -e MYSQL_USER_FILE=/run/secrets/MYSQL_USER \
     -e MYSQL_PASSWORD_FILE=/run/secrets/MYSQL_PASSWORD \

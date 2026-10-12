@@ -62,7 +62,7 @@ where 1995 is <code>zabbix</code> GID.</p>
     -v ./.POSTGRES_USER:/run/secrets/POSTGRES_USER \
     -e POSTGRES_USER_FILE=/run/secrets/POSTGRES_USER \
     -v ./.POSTGRES_PASSWORD:/run/secrets/POSTGRES_PASSWORD \
-    -e POSTGRES_PASSWORD_FILE=/var/run/secrets/POSTGRES_PASSWORD \
+    -e POSTGRES_PASSWORD_FILE=/run/secrets/POSTGRES_PASSWORD \
     --init \
     -d registry.connect.redhat.com/zabbix/zabbix-server-pgsql-74:tag
 </code></pre>
@@ -71,6 +71,8 @@ where 1995 is <code>zabbix</code> GID.</p>
 printf &quot;zabbix&quot; | podman secret create POSTGRES_PASSWORD -
 podman run \
     --name some-zabbix-server-pgsql \
+    --secret POSTGRES_USER \
+    --secret POSTGRES_PASSWORD \
     -e DB_SERVER_HOST=&quot;some-postgres-server&quot; \
     -e POSTGRES_USER_FILE=/run/secrets/POSTGRES_USER \
     -e POSTGRES_PASSWORD_FILE=/run/secrets/POSTGRES_PASSWORD \

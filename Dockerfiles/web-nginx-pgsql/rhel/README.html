@@ -81,7 +81,7 @@
     -v ./.POSTGRES_USER:/run/secrets/POSTGRES_USER \
     -e POSTGRES_USER_FILE=/run/secrets/POSTGRES_USER \
     -v ./.POSTGRES_PASSWORD:/run/secrets/POSTGRES_PASSWORD \
-    -e POSTGRES_PASSWORD_FILE=/var/run/secrets/POSTGRES_PASSWORD \
+    -e POSTGRES_PASSWORD_FILE=/run/secrets/POSTGRES_PASSWORD \
     -e ZBX_SERVER_HOST=&quot;some-zabbix-server&quot; \
     -e PHP_TZ=&quot;some-timezone&quot; \
     -d registry.connect.redhat.com/zabbix/zabbix-web-pgsql-74:tag
@@ -91,6 +91,8 @@
 printf &quot;zabbix&quot; | podman secret create POSTGRES_PASSWORD -
 podman run \
     --name some-zabbix-web-nginx-pgsql \
+    --secret POSTGRES_USER \
+    --secret POSTGRES_PASSWORD \
     -e DB_SERVER_HOST=&quot;some-postgres-server&quot; \
     -e POSTGRES_USER_FILE=/run/secrets/POSTGRES_USER \
     -e POSTGRES_PASSWORD_FILE=/run/secrets/POSTGRES_PASSWORD \

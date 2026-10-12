@@ -88,7 +88,7 @@ where 1995 is <code>zabbix</code> GID.</p>
     -v ./.MYSQL_USER:/run/secrets/MYSQL_USER \
     -e MYSQL_USER_FILE=/run/secrets/MYSQL_USER \
     -v ./.MYSQL_PASSWORD:/run/secrets/MYSQL_PASSWORD \
-    -e MYSQL_PASSWORD_FILE=/var/run/secrets/MYSQL_PASSWORD \
+    -e MYSQL_PASSWORD_FILE=/run/secrets/MYSQL_PASSWORD \
     -e ZBX_HOSTNAME=some-hostname \
     -e ZBX_SERVER_HOST=some-zabbix-server \
     --init \
@@ -99,6 +99,8 @@ where 1995 is <code>zabbix</code> GID.</p>
 printf &quot;zabbix&quot; | podman secret create MYSQL_PASSWORD -
 podman run \
     --name some-zabbix-proxy-mysql \
+    --secret MYSQL_USER \
+    --secret MYSQL_PASSWORD \
     -e DB_SERVER_HOST=&quot;some-mysql-server&quot; \
     -e MYSQL_USER_FILE=/run/secrets/MYSQL_USER \
     -e MYSQL_PASSWORD_FILE=/run/secrets/MYSQL_PASSWORD \
