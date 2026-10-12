@@ -147,18 +147,19 @@ check-rhel-host:
 	fi
 
 # -------- Targets --------
+DIRECT_BAKE_TARGETS := base \
+	builders-common builders-mysql builders-pgsql builders-sqlite3 \
+	runtime-mysql-all runtime-mysql-minimal runtime-pgsql-all runtime-pgsql-minimal
+
 .PHONY: help print-vars \
-	base builders-common builders-mysql builders-pgsql builders-sqlite3 builders \
-	runtime-mysql-all runtime-mysql-minimal runtime-pgsql-all runtime-pgsql-minimal \
+	$(DIRECT_BAKE_TARGETS) builders \
 	runtime-all runtime-minimal runtime \
 	build build-all \
 	up up-local down restart logs ps \
 	bake-target clean \
 	check-bake
 
-BAKE_MAKE_TARGETS := base builders-common builders-mysql builders-pgsql builders-sqlite3 builders \
-	runtime-mysql-all runtime-mysql-minimal runtime-pgsql-all runtime-pgsql-minimal \
-	runtime-all runtime-minimal bake-target
+BAKE_MAKE_TARGETS := $(DIRECT_BAKE_TARGETS) builders runtime-all runtime-minimal bake-target
 
 $(BAKE_MAKE_TARGETS): check-bake
 
@@ -225,45 +226,23 @@ check-bake:
 	esac
 
 # ---- Bake groups ----
-base: check-rhel-host
-	@echo "==> Bake group: $(BAKE_BASE_GROUP) (OS=$(OS))"
-	@$(bake_env) $(BAKE_BASE_GROUP)
+base: DIRECT_BAKE_GROUP = $(BAKE_BASE_GROUP)
+builders-common: DIRECT_BAKE_GROUP = $(BAKE_BUILDERS_COMMON_GROUP)
+builders-mysql: DIRECT_BAKE_GROUP = $(BAKE_BUILDERS_MYSQL_GROUP)
+builders-pgsql: DIRECT_BAKE_GROUP = $(BAKE_BUILDERS_PGSQL_GROUP)
+builders-sqlite3: DIRECT_BAKE_GROUP = $(BAKE_BUILDERS_SQLITE3_GROUP)
+runtime-mysql-all: DIRECT_BAKE_GROUP = $(BAKE_RUNTIME_MYSQL_ALL)
+runtime-mysql-minimal: DIRECT_BAKE_GROUP = $(BAKE_RUNTIME_MYSQL_MINIMAL)
+runtime-pgsql-all: DIRECT_BAKE_GROUP = $(BAKE_RUNTIME_PGSQL_ALL)
+runtime-pgsql-minimal: DIRECT_BAKE_GROUP = $(BAKE_RUNTIME_PGSQL_MINIMAL)
 
-builders-common: check-rhel-host
-	@echo "==> Bake group: $(BAKE_BUILDERS_COMMON_GROUP) (OS=$(OS))"
-	@$(bake_env) $(BAKE_BUILDERS_COMMON_GROUP)
-
-builders-mysql: check-rhel-host
-	@echo "==> Bake group: $(BAKE_BUILDERS_MYSQL_GROUP) (OS=$(OS))"
-	@$(bake_env) $(BAKE_BUILDERS_MYSQL_GROUP)
-
-builders-pgsql: check-rhel-host
-	@echo "==> Bake group: $(BAKE_BUILDERS_PGSQL_GROUP) (OS=$(OS))"
-	@$(bake_env) $(BAKE_BUILDERS_PGSQL_GROUP)
-
-builders-sqlite3: check-rhel-host
-	@echo "==> Bake group: $(BAKE_BUILDERS_SQLITE3_GROUP) (OS=$(OS))"
-	@$(bake_env) $(BAKE_BUILDERS_SQLITE3_GROUP)
+$(DIRECT_BAKE_TARGETS): %: check-rhel-host
+	@echo "==> Bake group: $(DIRECT_BAKE_GROUP) (OS=$(OS))"
+	@$(bake_env) $(DIRECT_BAKE_GROUP)
 
 builders: check-rhel-host
 	@echo "==> Bake groups: $(BAKE_BUILDERS_COMMON_GROUP) + $(BAKE_BUILDERS_GROUP) (DB=$(DB), OS=$(OS))"
 	@$(bake_env) $(BAKE_BUILDERS_COMMON_GROUP) $(BAKE_BUILDERS_GROUP)
-
-runtime-mysql-all: check-rhel-host
-	@echo "==> Bake group: $(BAKE_RUNTIME_MYSQL_ALL) (OS=$(OS))"
-	@$(bake_env) $(BAKE_RUNTIME_MYSQL_ALL)
-
-runtime-mysql-minimal: check-rhel-host
-	@echo "==> Bake group: $(BAKE_RUNTIME_MYSQL_MINIMAL) (OS=$(OS))"
-	@$(bake_env) $(BAKE_RUNTIME_MYSQL_MINIMAL)
-
-runtime-pgsql-all: check-rhel-host
-	@echo "==> Bake group: $(BAKE_RUNTIME_PGSQL_ALL) (OS=$(OS))"
-	@$(bake_env) $(BAKE_RUNTIME_PGSQL_ALL)
-
-runtime-pgsql-minimal: check-rhel-host
-	@echo "==> Bake group: $(BAKE_RUNTIME_PGSQL_MINIMAL) (OS=$(OS))"
-	@$(bake_env) $(BAKE_RUNTIME_PGSQL_MINIMAL)
 
 runtime-all: check-rhel-host
 	@if [ -z "$(BAKE_RUNTIME_ALL_GROUP)" ]; then \
