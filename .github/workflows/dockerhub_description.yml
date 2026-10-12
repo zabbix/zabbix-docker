@@ -24,7 +24,7 @@ permissions:
 jobs:
   update-description:
     name: Update description
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     permissions:
       contents: read
     strategy:
