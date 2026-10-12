@@ -74,7 +74,7 @@ When you start the `zabbix-web-apache-mysql` image, you can adjust the configura
 
 ### `ZBX_SERVER_HOST`
 
-This variable is IP or DNS name of Zabbix server. By default, value is `zabbix-server`.
+This variable is IP or DNS name of Zabbix server. By default, the variable is not set and the web interface uses the address of the active Zabbix server node stored in the database (see `ZBX_NODEADDRESS` of Zabbix server image). Keep it unset for Zabbix server HA clusters; set it to always connect to one specific Zabbix server.
 
 ### `ZBX_SERVER_PORT`
 
