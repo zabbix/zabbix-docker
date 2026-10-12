@@ -58,7 +58,7 @@ spec:
     name: web-https
   selector:
     name: zabbix-web
-  sessionAffinity: None
+  sessionAffinity: ClientIP
   type: ClusterIP
 ---
 apiVersion: v1
@@ -110,10 +110,6 @@ spec:
   - port: 10051
     targetPort: 10051
     name: zabbix-trapper
-  - port: 162
-    targetPort: 1162
-    protocol: UDP
-    name: snmp-trap
   selector:
     name: zabbix-proxy-sqlite3
   sessionAffinity: None
@@ -131,10 +127,6 @@ spec:
   - port: 10051
     targetPort: 10051
     name: zabbix-trapper
-  - port: 162
-    targetPort: 1162
-    protocol: UDP
-    name: snmp-trap
   selector:
     name: zabbix-proxy-mysql
 ---
@@ -183,8 +175,8 @@ spec:
   selector:
     name: zabbix-agent
 ---
-apiVersion: v1
-kind: ReplicationController
+apiVersion: apps/v1
+kind: Deployment
 metadata:
   name: zabbix-web
   labels:
@@ -193,6 +185,10 @@ metadata:
   namespace: zabbix
 spec:
   replicas: 2
+  selector:
+    matchLabels:
+      name: zabbix-web
+      app: zabbix
   template:
     metadata:
       labels:
@@ -203,10 +199,13 @@ spec:
        - name: mysql-tls-certs
          secret:
           secretName: zabbix-mysql-client-tls-certs
+       - name: mysql-credentials
+         secret:
+          secretName: mysql-credentials
       containers:
         - name: zabbix-web
           image: zabbix/zabbix-web-nginx-mysql:alpine-trunk
-          imagePullPolicy: IfNotPresent
+          imagePullPolicy: Always
           ports:
           - containerPort: 8080
             name: web-http
@@ -246,21 +245,10 @@ spec:
             value: "Europe/Riga"
           - name: DB_SERVER_HOST
             value: "mysql-server"
-          - name: MYSQL_USER
-            valueFrom:
-             secretKeyRef:
-              name: db-secret
-              key: db-zbx-user
-          - name: MYSQL_PASSWORD
-            valueFrom:
-             secretKeyRef:
-              name: db-secret
-              key: db-zbx-pass
-          - name: MYSQL_ROOT_PASSWORD
-            valueFrom:
-             secretKeyRef:
-              name: db-secret
-              key: db-root-pass
+          - name: MYSQL_USER_FILE
+            value: "/run/secrets/MYSQL_USER"
+          - name: MYSQL_PASSWORD_FILE
+            value: "/run/secrets/MYSQL_PASSWORD"
           - name: MYSQL_DATABASE
             value: "zabbix"
           - name: ZBX_DB_ENCRYPTION
@@ -272,7 +260,7 @@ spec:
           - name: ZBX_DBTLSKEYFILE
             value: "/tmp/secrets/client-key.pem"
           - name: ZBX_DB_VERIFY_HOST
-            value: "false"
+            value: "true"
           - name: ZBX_DBTLSCIPHER
             value: ""
 #          - name: ZBX_HISTORYPROVIDER_0
@@ -300,6 +288,9 @@ spec:
           volumeMounts:
           - mountPath: "/tmp/secrets"
             name: mysql-tls-certs
+            readOnly: true
+          - mountPath: "/run/secrets"
+            name: mysql-credentials
             readOnly: true
 ---
 apiVersion: apps/v1
@@ -332,14 +323,20 @@ spec:
        - name: mysql-tls-certs
          secret:
           secretName: zabbix-mysql-server-tls-certs
+       - name: mysql-credentials
+         secret:
+          secretName: mysql-credentials
+       - name: mysql-admin-credentials
+         secret:
+          secretName: mysql-admin-credentials
       containers:
         - name: zabbix-db
-          image: mysql:8.0-oracle
+          image: mysql:8.4-oracle
+          imagePullPolicy: Always
           args:
            - mysqld
-           - --character-set-server=utf8
-           - --collation-server=utf8_bin
-           - --default-authentication-plugin=mysql_native_password
+           - --character-set-server=utf8mb4
+           - --collation-server=utf8mb4_bin
            - --require-secure-transport
            - --ssl-ca=/tmp/secrets/root-ca.pem
            - --ssl-cert=/tmp/secrets/server-cert.pem
@@ -348,35 +345,39 @@ spec:
           ports:
           - containerPort: 3306
             name: mysql
+          resources:
+           limits:
+            cpu: "1"
+            memory: 1Gi
+           requests:
+            cpu: 250m
+            memory: 512Mi
+          readinessProbe:
+            exec:
+              command: ["bash", "-c", "MYSQL_PWD=\"$(cat /run/secrets-admin/MYSQL_ROOT_PASSWORD)\" mysqladmin -u root ping --silent"]
+            timeoutSeconds: 3
+            failureThreshold: 3
+            periodSeconds: 10
           livenessProbe:
             exec:
-              command: ["bash", "-c", "mysqladmin -u root -p$MYSQL_ROOT_PASSWORD ping"]
+              command: ["bash", "-c", "MYSQL_PWD=\"$(cat /run/secrets-admin/MYSQL_ROOT_PASSWORD)\" mysqladmin -u root ping --silent"]
             timeoutSeconds: 3
             failureThreshold: 3
             periodSeconds: 10
           startupProbe:
             exec:
-              command: ["bash", "-c", "mysql -u root -p$MYSQL_ROOT_PASSWORD -e 'SELECT 1'"]
+              command: ["bash", "-c", "MYSQL_PWD=\"$(cat /run/secrets-admin/MYSQL_ROOT_PASSWORD)\" mysql -u root -e 'SELECT 1'"]
             initialDelaySeconds: 5
             periodSeconds: 5
             timeoutSeconds: 3
             failureThreshold: 30
           env:
-          - name: MYSQL_USER
-            valueFrom:
-             secretKeyRef:
-              name: db-secret
-              key: db-zbx-user
-          - name: MYSQL_PASSWORD
-            valueFrom:
-             secretKeyRef:
-              name: db-secret
-              key: db-zbx-pass
-          - name: MYSQL_ROOT_PASSWORD
-            valueFrom:
-             secretKeyRef:
-              name: db-secret
-              key: db-root-pass
+          - name: MYSQL_USER_FILE
+            value: "/run/secrets/MYSQL_USER"
+          - name: MYSQL_PASSWORD_FILE
+            value: "/run/secrets/MYSQL_PASSWORD"
+          - name: MYSQL_ROOT_PASSWORD_FILE
+            value: "/run/secrets-admin/MYSQL_ROOT_PASSWORD"
           - name: MYSQL_DATABASE
             value: "zabbix"
           volumeMounts:
@@ -386,9 +387,40 @@ spec:
            - mountPath: "/tmp/secrets"
              name: mysql-tls-certs
              readOnly: true
+           - mountPath: "/run/secrets"
+             name: mysql-credentials
+             readOnly: true
+           - mountPath: "/run/secrets-admin"
+             name: mysql-admin-credentials
+             readOnly: true
           securityContext:
             capabilities: {}
             privileged: false
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: mysql-server
+  namespace: zabbix
+spec:
+  podSelector:
+    matchLabels:
+      name: mysql-server
+  policyTypes:
+  - Ingress
+  ingress:
+  - from:
+    - podSelector:
+        matchExpressions:
+        - key: name
+          operator: In
+          values:
+          - zabbix-web
+          - zabbix-server
+          - zabbix-proxy-mysql
+    ports:
+    - protocol: TCP
+      port: 3306
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -419,14 +451,69 @@ spec:
        - name: mysql-tls-certs
          secret:
            secretName: zabbix-mysql-client-tls-certs
+       - name: mysql-credentials
+         secret:
+           secretName: mysql-credentials
+       - name: mysql-admin-credentials
+         secret:
+           secretName: mysql-admin-credentials
+      initContainers:
+        - name: zabbix-server-db-init
+          image: zabbix/zabbix-server-mysql:alpine-trunk
+          imagePullPolicy: Always
+          args:
+          - init_db_only
+          resources:
+           limits:
+            cpu: 500m
+            memory: 512Mi
+           requests:
+            cpu: 100m
+            memory: 128Mi
+          env:
+          - name: DB_SERVER_HOST
+            value: "mysql-server"
+          - name: MYSQL_USER_FILE
+            value: "/run/secrets/MYSQL_USER"
+          - name: MYSQL_PASSWORD_FILE
+            value: "/run/secrets/MYSQL_PASSWORD"
+          - name: MYSQL_ROOT_PASSWORD_FILE
+            value: "/run/secrets-admin/MYSQL_ROOT_PASSWORD"
+          - name: MYSQL_DATABASE
+            value: "zabbix"
+          - name: ZBX_DBTLSCONNECT
+            value: "verify_full"
+          - name: ZBX_DBTLSCAFILE
+            value: "/tmp/secrets/root-ca.pem"
+          - name: ZBX_DBTLSCERTFILE
+            value: "/tmp/secrets/client-cert.pem"
+          - name: ZBX_DBTLSKEYFILE
+            value: "/tmp/secrets/client-key.pem"
+          volumeMounts:
+          - mountPath: "/tmp/secrets"
+            name: mysql-tls-certs
+            readOnly: true
+          - mountPath: "/run/secrets"
+            name: mysql-credentials
+            readOnly: true
+          - mountPath: "/run/secrets-admin"
+            name: mysql-admin-credentials
+            readOnly: true
       containers:
         - name: zabbix-server
           image: zabbix/zabbix-server-mysql:alpine-trunk
-          imagePullPolicy: IfNotPresent
+          imagePullPolicy: Always
           ports:
           - containerPort: 10051
             protocol: TCP
             name: zabbix-trapper
+          resources:
+           limits:
+            cpu: "1"
+            memory: 1Gi
+           requests:
+            cpu: 250m
+            memory: 256Mi
           readinessProbe:
             tcpSocket:
               port: zabbix-trapper
@@ -438,25 +525,14 @@ spec:
             initialDelaySeconds: 15
             periodSeconds: 20
           env:
-          - name: MYSQL_USER
-            valueFrom:
-             secretKeyRef:
-              name: db-secret
-              key: db-zbx-user
-          - name: MYSQL_PASSWORD
-            valueFrom:
-             secretKeyRef:
-              name: db-secret
-              key: db-zbx-pass
-          - name: MYSQL_ROOT_PASSWORD
-            valueFrom:
-             secretKeyRef:
-              name: db-secret
-              key: db-root-pass
+          - name: MYSQL_USER_FILE
+            value: "/run/secrets/MYSQL_USER"
+          - name: MYSQL_PASSWORD_FILE
+            value: "/run/secrets/MYSQL_PASSWORD"
           - name: MYSQL_DATABASE
             value: "zabbix"
           - name: ZBX_DBTLSCONNECT
-            value: "required"
+            value: "verify_full"
           - name: ZBX_DBTLSCAFILE
             value: "/tmp/secrets/root-ca.pem"
           - name: ZBX_DBTLSCERTFILE
@@ -598,6 +674,9 @@ spec:
           - mountPath: "/tmp/secrets"
             name: mysql-tls-certs
             readOnly: true
+          - mountPath: "/run/secrets"
+            name: mysql-credentials
+            readOnly: true
           startupProbe:
             tcpSocket:
               port: 10051
@@ -610,11 +689,18 @@ spec:
             privileged: false
         - name: zabbix-snmptraps
           image: zabbix/zabbix-snmptraps:alpine-trunk
-          imagePullPolicy: IfNotPresent
+          imagePullPolicy: Always
           ports:
           - containerPort: 1162
             protocol: UDP
             name: snmp-trap
+          resources:
+           limits:
+            cpu: 200m
+            memory: 256Mi
+           requests:
+            cpu: 50m
+            memory: 64Mi
           volumeMounts:
           - name: zabbix-snmptraps
             mountPath: /var/lib/zabbix/snmptraps/
@@ -651,11 +737,23 @@ spec:
       containers:
         - name: zabbix-proxy-sqlite3
           image: zabbix/zabbix-proxy-sqlite3:alpine-trunk
-          imagePullPolicy: IfNotPresent
+          imagePullPolicy: Always
           ports:
           - containerPort: 10051
             protocol: TCP
             name: zabbix-trapper
+          resources:
+           limits:
+            cpu: 500m
+            memory: 512Mi
+           requests:
+            cpu: 100m
+            memory: 128Mi
+          readinessProbe:
+            tcpSocket:
+              port: zabbix-trapper
+            initialDelaySeconds: 5
+            periodSeconds: 10
           startupProbe:
             tcpSocket:
               port: 10051
@@ -808,14 +906,69 @@ spec:
        - name: mysql-tls-certs
          secret:
            secretName: zabbix-mysql-client-tls-certs
+       - name: mysql-credentials
+         secret:
+           secretName: mysql-credentials
+       - name: mysql-admin-credentials
+         secret:
+           secretName: mysql-admin-credentials
+      initContainers:
+        - name: zabbix-proxy-mysql-db-init
+          image: zabbix/zabbix-proxy-mysql:alpine-trunk
+          imagePullPolicy: Always
+          args:
+          - init_db_only
+          resources:
+           limits:
+            cpu: 500m
+            memory: 512Mi
+           requests:
+            cpu: 100m
+            memory: 128Mi
+          env:
+          - name: DB_SERVER_HOST
+            value: "mysql-server"
+          - name: MYSQL_USER_FILE
+            value: "/run/secrets/MYSQL_USER"
+          - name: MYSQL_PASSWORD_FILE
+            value: "/run/secrets/MYSQL_PASSWORD"
+          - name: MYSQL_ROOT_PASSWORD_FILE
+            value: "/run/secrets-admin/MYSQL_ROOT_PASSWORD"
+          - name: MYSQL_DATABASE
+            value: "zabbix_proxy"
+          - name: ZBX_DBTLSCONNECT
+            value: "verify_full"
+          - name: ZBX_DBTLSCAFILE
+            value: "/tmp/secrets/root-ca.pem"
+          - name: ZBX_DBTLSCERTFILE
+            value: "/tmp/secrets/client-cert.pem"
+          - name: ZBX_DBTLSKEYFILE
+            value: "/tmp/secrets/client-key.pem"
+          volumeMounts:
+          - mountPath: "/tmp/secrets"
+            name: mysql-tls-certs
+            readOnly: true
+          - mountPath: "/run/secrets"
+            name: mysql-credentials
+            readOnly: true
+          - mountPath: "/run/secrets-admin"
+            name: mysql-admin-credentials
+            readOnly: true
       containers:
         - name: zabbix-proxy-mysql
           image: zabbix/zabbix-proxy-mysql:alpine-trunk
-          imagePullPolicy: IfNotPresent
+          imagePullPolicy: Always
           ports:
           - containerPort: 10051
             protocol: TCP
             name: zabbix-trapper
+          resources:
+           limits:
+            cpu: 500m
+            memory: 512Mi
+           requests:
+            cpu: 100m
+            memory: 128Mi
           readinessProbe:
             tcpSocket:
               port: zabbix-trapper
@@ -827,25 +980,14 @@ spec:
             initialDelaySeconds: 15
             periodSeconds: 20
           env:
-          - name: MYSQL_USER
-            valueFrom:
-             secretKeyRef:
-              name: db-secret
-              key: db-zbx-user
-          - name: MYSQL_PASSWORD
-            valueFrom:
-             secretKeyRef:
-              name: db-secret
-              key: db-zbx-pass
-          - name: MYSQL_ROOT_PASSWORD
-            valueFrom:
-             secretKeyRef:
-              name: db-secret
-              key: db-root-pass
+          - name: MYSQL_USER_FILE
+            value: "/run/secrets/MYSQL_USER"
+          - name: MYSQL_PASSWORD_FILE
+            value: "/run/secrets/MYSQL_PASSWORD"
           - name: MYSQL_DATABASE
             value: "zabbix_proxy"
           - name: ZBX_DBTLSCONNECT
-            value: "required"
+            value: "verify_full"
           - name: ZBX_DBTLSCAFILE
             value: "/tmp/secrets/root-ca.pem"
           - name: ZBX_DBTLSCERTFILE
@@ -974,6 +1116,9 @@ spec:
           - mountPath: "/tmp/secrets"
             name: mysql-tls-certs
             readOnly: true
+          - mountPath: "/run/secrets"
+            name: mysql-credentials
+            readOnly: true
           securityContext:
             capabilities: {}
             privileged: false
@@ -1000,11 +1145,23 @@ spec:
       containers:
         - name: zabbix-java-gateway
           image: zabbix/zabbix-java-gateway:alpine-trunk
-          imagePullPolicy: IfNotPresent
+          imagePullPolicy: Always
           ports:
           - containerPort: 10052
             protocol: TCP
             name: zabbix-java
+          resources:
+           limits:
+            cpu: 500m
+            memory: 512Mi
+           requests:
+            cpu: 100m
+            memory: 128Mi
+          readinessProbe:
+            tcpSocket:
+              port: zabbix-java
+            initialDelaySeconds: 5
+            periodSeconds: 10
           livenessProbe:
             tcpSocket:
               port: 10052
@@ -1048,7 +1205,7 @@ spec:
       containers:
         - name: zabbix-web-service
           image: zabbix/zabbix-web-service:alpine-trunk
-          imagePullPolicy: IfNotPresent
+          imagePullPolicy: Always
           resources:
            limits:
             cpu: 100m
@@ -1060,6 +1217,11 @@ spec:
           - containerPort: 10053
             protocol: TCP
             name: zabbix-web-svc
+          readinessProbe:
+            tcpSocket:
+              port: zabbix-web-svc
+            initialDelaySeconds: 5
+            periodSeconds: 10
           livenessProbe:
             tcpSocket:
               port: 10053
@@ -1086,8 +1248,30 @@ spec:
           - name: DEBUG_MODE
             value: "false"
           securityContext:
-            capabilities: {}
+            capabilities:
+              add:
+              - SYS_ADMIN
             privileged: false
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: zabbix-web-service
+  namespace: zabbix
+spec:
+  podSelector:
+    matchLabels:
+      name: zabbix-web-service
+  policyTypes:
+  - Ingress
+  ingress:
+  - from:
+    - podSelector:
+        matchLabels:
+          name: zabbix-server
+    ports:
+    - protocol: TCP
+      port: 10053
 ---
 apiVersion: apps/v1
 kind: DaemonSet
@@ -1114,14 +1298,15 @@ spec:
       hostNetwork: true
       hostIPC: true
       hostPID: true
-      automountServiceAccountToken: true
+      dnsPolicy: ClusterFirstWithHostNet
+      automountServiceAccountToken: false
       serviceAccountName: zabbix-agent
       nodeSelector:
-       beta.kubernetes.io/os: linux
+       kubernetes.io/os: linux
       containers:
         - name: zabbix-agent
           image: zabbix/zabbix-agent:alpine-trunk
-          imagePullPolicy: IfNotPresent
+          imagePullPolicy: Always
           resources:
            limits:
             cpu: 100m
@@ -1132,6 +1317,11 @@ spec:
           ports:
           - containerPort: 10050
             name: zabbix-agent
+          readinessProbe:
+            tcpSocket:
+              port: zabbix-agent
+            initialDelaySeconds: 5
+            periodSeconds: 10
           livenessProbe:
             tcpSocket:
               port: 10050
@@ -1263,26 +1453,6 @@ spec:
             path: /var/run
             type: ''
 ---
-apiVersion: autoscaling/v2
-kind: HorizontalPodAutoscaler
-metadata:
-  name: zabbix-web
-  namespace: zabbix
-spec:
-  scaleTargetRef:
-    apiVersion: v1
-    kind: ReplicationController
-    name: zabbix-web
-  minReplicas: 1
-  maxReplicas: 5
-  metrics:
-  - type: Resource
-    resource:
-      name: cpu
-      target:
-        type: Utilization
-        averageUtilization: 70
----
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
@@ -1304,18 +1474,25 @@ items:
     kind: Secret
     type: Opaque
     metadata:
-     name: db-secret
+     name: mysql-credentials
      namespace: zabbix
-    data:
-     db-root-pass: "c29tZV90ZXN0X3Bhc3M="
-     db-zbx-user: "emFiYml4"
-     db-zbx-pass: "emJ4X3Bhc3N3b3Jk"
+    stringData:
+     MYSQL_USER: "zabbix"
+     MYSQL_PASSWORD: "zabbix"
+  - apiVersion: v1
+    kind: Secret
+    type: Opaque
+    metadata:
+     name: mysql-admin-credentials
+     namespace: zabbix
+    stringData:
+     MYSQL_ROOT_PASSWORD: "root_pwd"
 ---
 apiVersion: v1
 data:
-  root-ca.pem: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSURVekNDQWp1Z0F3SUJBZ0lKQUxNWTFSWlB5VVZsTUEwR0NTcUdTSWIzRFFFQkN3VUFNRUF4RXpBUkJnb0oKa2lhSmsvSXNaQUVaRmdOamIyMHhGekFWQmdvSmtpYUprL0lzWkFFWkZnZGxlR0Z0Y0d4bE1SQXdEZ1lEVlFRRApEQWRHWVd0bExVTkJNQjRYRFRJeE1Ea3lNakV4TlRJMU1Gb1hEVE14TURnd01URXhOVEkxTUZvd1FERVRNQkVHCkNnbVNKb21UOGl4a0FSa1dBMk52YlRFWE1CVUdDZ21TSm9tVDhpeGtBUmtXQjJWNFlXMXdiR1V4RURBT0JnTlYKQkFNTUIwWmhhMlV0UTBFd2dnRWlNQTBHQ1NxR1NJYjNEUUVCQVFVQUE0SUJEd0F3Z2dFS0FvSUJBUURqRjQ1NApXTVVKc1NqZ3ZzSk4rNE5na3dET2thUWdOMjdXVnJyVWRIVjhoVW9sYU4vMWdSeE80cTNES2lPRnhIZlBITzVXCmg0am1YQ3VVSTA0NXRwaEVaZDlCZDd4eUU2dUF3VGtya2pVWTczMExQRmZsYzJYQXE3TkYvMElidHB1aXQ3cFIKdUV2dTc0aVNMampLWVFaWHlxUGJLazlIaitWa2xCcTV2MjJUNTlxUmwzeFV5QUNRZGVEWVdPbTg2ZFgrY2FUVAorWWt6VXhDOHFRVVdBT2JUVThBWWZXbHA3NjRpY0NuMEdab3BCalN2dXQrZWxoTnl2eHk2alhRdU0xemZYMXUrCm56bVdiQzdOMTFqK2JDZWxVd2kwQUhIZUZrRFFrcHdPaGdycW9hbG5XUHk4VVNjMDFJRTIwZnlmTEptc3ZaVU4KZ3pnK0EwOGNqOThwemF2REFnTUJBQUdqVURCT01CMEdBMVVkRGdRV0JCVGtEenFQVEV0UGFHWWhBSzkrNjB6dgpBdklmS1RBZkJnTlZIU01FR0RBV2dCVGtEenFQVEV0UGFHWWhBSzkrNjB6dkF2SWZLVEFNQmdOVkhSTUVCVEFECkFRSC9NQTBHQ1NxR1NJYjNEUUVCQ3dVQUE0SUJBUURaY1A2cmJPWFMvSFcray8yczU1Nk14VU9vTkRNenRhdlIKQXJCa01HUGk5N2FGSW1MV2h6MVJqWGw3UjZKUmE0a3VVSGdiRXBuL3F1OUFISk1LejZ6UnVSRW9EM2UzTlIwVApJL3hkbHFJOVBzTmdIaDVwSzcvb281TzUrR21vTURoK3pRTHlnbXVYcWlSenpXV3NBOVcwaXpoMFJiZHRwQzR5CmdSYmxLMVBsTVhNeWs0eFArcHljV0treExMbWhqOWhuTDdkQlR3KzQzOW13eW5MZjlhSkdHajZaNmI2ZjJTS1EKWGlPZUNFOTVQRlR4S1BCbzRvQmdjOHI2NGFxc0FNelVCa0lQZWtnQ2xQWkJJSnJtKzZZdU9HbUROVUFtUCs3RApKdmRIbGVucGJ3RXJBZ3FKYWx4NjdxVGM2eVUzWUY5bTZMTkprRHlCYXJ6VU01MVdQc1JUCi0tLS0tRU5EIENFUlRJRklDQVRFLS0tLS0K
-  server-cert.pem: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUMrVENDQWVFQ0FRRXdEUVlKS29aSWh2Y05BUUVMQlFBd1FERVRNQkVHQ2dtU0pvbVQ4aXhrQVJrV0EyTnYKYlRFWE1CVUdDZ21TSm9tVDhpeGtBUmtXQjJWNFlXMXdiR1V4RURBT0JnTlZCQU1NQjBaaGEyVXRRMEV3SGhjTgpNakV3T1RJeU1URTFNalV4V2hjTk16RXdPREF4TVRFMU1qVXhXakJGTVJNd0VRWUtDWkltaVpQeUxHUUJHUllEClkyOXRNUmN3RlFZS0NaSW1pWlB5TEdRQkdSWUhaWGhoYlhCc1pURVZNQk1HQTFVRUF3d01iWGx6Y1d3dGMyVnkKZG1WeU1JSUJJakFOQmdrcWhraUc5dzBCQVFFRkFBT0NBUThBTUlJQkNnS0NBUUVBb0U2OVRZcFNqMDhTMmZoNQorYUtIQVlwT2JmbkR1Z01XNTlsOXljUFdoYUVqVzNaaXp1UkNoMWV1eUR0YnFlUzRubnpIY3RlKzF2TE9xcHA2CnQ2RmM5azROcDFqYkMyRUoxUWUyRDNvVTdpdEVTMnBXV2g1Rm4xR1dwek5FOXhxM2c2MFdBd1BZTG1MMUdDTloKNUdpU0ZENjBSei85WTdUYjFrVDl1RzVPUUVLeUg2dk42QjZ0N2ZTRk9TRmhVaVc4QVc1bTBZNngxdHhNSkcvRgpqamJGTGdHTTV2SXhuTHlwRW5uNm01UXV5enlSbm9rQVNESCtieVVtV1hhWUcvODUwODNEN0FBblN2UmZzb2pyCjhaQkVPd0QwVUtmNFZDaVl0b0hPanFhWmdUMElSWmhabGozR3U1TG9uZkx1S3lMN0ZtZmhLRmwrZnNOVGx3OGEKMVlqSkN3SURBUUFCTUEwR0NTcUdTSWIzRFFFQkN3VUFBNElCQVFCaUMxWjNLcUV2clRZU0V6eDJPcExnNFpKMwo1OTFjUFI2UEs2OXBESmQ0MWFCdnY5Mko3TmdxVUpqZ0VvZ0FsUWpZZmFJNDQ4MUZTUngvbDBKeDdwaXNPSTY0Cm1BSy96bXh6bXEzKzJCY016aXc1a09ZUFpHVGh3a0NUYnRjaWNYSTBveVNNUC8yN3hjTmFyZEdyaVdRMGJBZFcKOEIyNTY5TFQwWDA2ZWtHdktOS0xucnBBQk5FanBJelJyZXgyaSsrQnEybUVhTHRYQWVMVmtvbmUxNzFjUDFBWgpuVktmekNqQ3U1T0ZsNm1ST2dCRnMyMUtiU2RnQzl2K0JITFhmK3pXeTB1NDZjUmg1U09vb0VDSkJPNVlEVERrCm5ldDB2dUZtdUFZS3NINjRLMm9jU3IwYjBBZVlmbFRnalBKZktTS2ZXbnhKQnFnMnJ5azBlT3lUQnRVTgotLS0tLUVORCBDRVJUSUZJQ0FURS0tLS0tCg==
-  server-key.pem: LS0tLS1CRUdJTiBSU0EgUFJJVkFURSBLRVktLS0tLQpNSUlFb2dJQkFBS0NBUUVBb0U2OVRZcFNqMDhTMmZoNSthS0hBWXBPYmZuRHVnTVc1OWw5eWNQV2hhRWpXM1ppCnp1UkNoMWV1eUR0YnFlUzRubnpIY3RlKzF2TE9xcHA2dDZGYzlrNE5wMWpiQzJFSjFRZTJEM29VN2l0RVMycFcKV2g1Rm4xR1dwek5FOXhxM2c2MFdBd1BZTG1MMUdDTlo1R2lTRkQ2MFJ6LzlZN1RiMWtUOXVHNU9RRUt5SDZ2Tgo2QjZ0N2ZTRk9TRmhVaVc4QVc1bTBZNngxdHhNSkcvRmpqYkZMZ0dNNXZJeG5MeXBFbm42bTVRdXl6eVJub2tBClNESCtieVVtV1hhWUcvODUwODNEN0FBblN2UmZzb2pyOFpCRU93RDBVS2Y0VkNpWXRvSE9qcWFaZ1QwSVJaaFoKbGozR3U1TG9uZkx1S3lMN0ZtZmhLRmwrZnNOVGx3OGExWWpKQ3dJREFRQUJBb0lCQUh0NWlxZmlCZ3RxSFp3VQpubWJnZjlwNDNFWXJIazMxT1R4bHNsU3BhbC9OS1AyMjV3NXlsS2ZJcXRDQm4rM3hSUjZWLzgzK1RYa2sxbmhqCnVtZ2NldzBnTzdZTlk5S1U4TXpNUHJnWEVXNE5sM0g3T3YzNDJTbUkzMkJ6eGdnSzVSVWdTWmNTNi8xMnJVL2wKVXNUeW9xbkRUbnFlMkI1blhQamlkUWNNdDJzWWUralpUcGRWVHhVUUxlUWZsVC9ZcWVsM2pxZTJwZXVzK25USAp6dHRGRkFvb05IN0xtVHpJSFJtNnhuSDVoMmptcFZOZVRudkczb09sRk9mNmlObWp5blE3d3p6U1BWRHNQa3lJCmdpMGwrT0VGZFY5bUwyS2xEbnlpL25xM1d1d3E5L1NpVStXbFNmUjhMd21JaXYrY0ZOSVl6SnYyUTAvSkRmRGwKN2g5Y3FkRUNnWUVBMHFMazZzZ3d2ckZqam5weHhKMmRsMi9IWGZoaUxRWC9FcXVQVUJUYllCM0EwMUR1dDlHQQp0T3V2VlVEQWREV2lpMkZMQ1pwdFh0OUZ5c1A1UW1USkxaY2JsNG14L2ptdmxvb2ZPQzNDY0JBaEZLOGdoU2FTCjNFMGZmWVJmalE2U2F4WkF3WEJwR3lUSHpYY2c5dzViNCtJWUx2TWg5aGZha0JpVFpwY09HVU1DZ1lFQXd0VU0KZ3F4Y3piK0dMQThpOHc4Z3hmM1FNWXpXWUtwSlVqRUV3SFJjcTlRdVFHVDFFVlMzNzJwbU5mRXZQWmVTKyszUQp2Y01KS1hpeXUwZ0FUaFVSMDhndkpxVXdscHFwSUsvQ2c2b0tYRzV2SjM1Z1ZJSExKSFFMK3UzUlRXVVhRTlRXCkUrdS9NeTMzYlhaUHlodWUrb2VYU1NVQ1kxaEw3OE5BbE5jaWtKa0NnWUFKMDBGY1ZrUTMwT3gwNis4OG5hR0oKTzlTUDVKTW55SHpTY1NBNU93L1VsdTYwckxURjdFYlZxWnkvSEVzZDRKYVphOHRsUWtmUndoWnVVOS9mb2ZYawpZNFVNOTRaTzluL2pSTVFhQ2NCbEc4dC9QSUFHMWZySnZlczNIcUthWU5DaG9DTWJJdFEwU08zcy9wNlNCNkJ2CnE4ODIrVzVmSFZPN252blpNamlkSXdLQmdFend4OHorOW5OR05GMUg2UHhsdUFLWWRsUnJFdW4vdFk3Z3pzaVYKNjFic0p3dkZFc2F5VnlVVU5xTU15U1FncktvU3c0RjgrU3hJZndUWXJVNG9vZTZwdW4wZmRTMjBqQi9kYVFxSAo1eW1UYnhBQXAxZ1lIYm9hbmZTTllEK1pNWEtuMnBicFhZdC9scHZDd2tYRlhLWUJUK3hSMGp5YlRQbTFlTmFPCmt4YlpBb0dBWjNiZk5EUGpBRlYwWjhYTktGZjcrTStHaHNaLzZRdFpGSFRBRnZEZk1KU1pBQmozZmJOQkRJSmoKemJTenlGT2xPSklaN21rWWNxNE50MGNseldUQ0FoRHlBbDdkbTZ2dkdQZ2xhOUZ2OHpKN0JhVEtRaVFGL1pPWQpOZGRpT3ZiMXBTUTFwL2ZOUkN2SUU2Z1hZeXdnUXN2VU80czV4OTg5OEZuMGtTMWRXK0E9Ci0tLS0tRU5EIFJTQSBQUklWQVRFIEtFWS0tLS0tCg==
+  root-ca.pem: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUV1RENDQXlDZ0F3SUJBZ0lVYW92YWRFVnlxbkROYVorRmdrcFNxRUpUYTVBd0RRWUpLb1pJaHZjTkFRRUwKQlFBd1lqRUxNQWtHQTFVRUJoTUNURll4RXpBUkJnTlZCQW9NQ2xwaFltSnBlQ0JUU1VFeEd6QVpCZ05WQkFzTQpFa052Ym5SaGFXNWxjaUJsZUdGdGNHeGxjekVoTUI4R0ExVUVBd3dZV21GaVltbDRJRVJ2WTJ0bGNpQkZlR0Z0CmNHeGxJRU5CTUI0WERUSTJNVEF4TWpBd05EVXhNVm9YRFRRMk1UQXdOekF3TkRVeE1Wb3dZakVMTUFrR0ExVUUKQmhNQ1RGWXhFekFSQmdOVkJBb01DbHBoWW1KcGVDQlRTVUV4R3pBWkJnTlZCQXNNRWtOdmJuUmhhVzVsY2lCbAplR0Z0Y0d4bGN6RWhNQjhHQTFVRUF3d1lXbUZpWW1sNElFUnZZMnRsY2lCRmVHRnRjR3hsSUVOQk1JSUJvakFOCkJna3Foa2lHOXcwQkFRRUZBQU9DQVk4QU1JSUJpZ0tDQVlFQTdLcjRjQ0RpL2JJa3ZlNHNJUFlDU0F2c3RyMXYKaGFWMTZwUzFYZUV2SldyKzZDZjNaZWNzT3FnTFpNMFBtVjJuR3NoQmt4d2RLVkRESVgzSXIrdXU4Tmxkc3ljSgpxbHVNRnltQkxQU1VsaXB5aGtwS3p2ak1mQUEzVGNQMEZHbmFjUTNBbUdBR3ZsbmpoZW5pOCs2cEdtR21MWWVTCkZmZDRNNGpYOXppNVZTckV6WDBHMjRmcm5qQUx6aGlhVHk4T29LcE9tTWtqWHNoM2c3bVhBQ294U3Z3ZGg5VG0KZXNVUHRvNFcxT3JCY0x1TXZqbkZDeFc3M05vVVkyVHB4a3VtdXkwMmhqb2w0NVBGL3lCeUFFcy9YaHMxcW83MApUQVNJaStCQ3pBM0h6eGwzbkozVzZyUVYwMmpqOWxUakhvaXp3Tk50Uk9uR2QxYnRvL3dXaDZUR2t0ZVRQbVBzCmIxNGF4d0VlaExNNm8ralMwczdFN1N1OEpoRStZZjJMdWRpRG9GYTlaU3NaMGxPbXMrU0l6T1MxSUdBVlFXUjkKZVRrSUZOeUhJYVN6cG1MVDVCc1c4cWMwUy90cGFuRmlKajFqR21qVWdMblhKcHViZkpIOXcwWExnVFNkSlliRQovYzdzY2g0WjBYMjdyanoyZVNpN1d5cHpjNEVXSndPUmtRenRBZ01CQUFHalpqQmtNQjhHQTFVZEl3UVlNQmFBCkZIVjMyV0tTdzNKOTJZYXhLQzd6VTZOZU5VckJNQklHQTFVZEV3RUIvd1FJTUFZQkFmOENBUUF3RGdZRFZSMFAKQVFIL0JBUURBZ0VHTUIwR0ExVWREZ1FXQkJSMWQ5bGlrc055ZmRtR3NTZ3U4MU9qWGpWS3dUQU5CZ2txaGtpRwo5dzBCQVFzRkFBT0NBWUVBNmozWFpRK2ZVUFJwckxKR2MzRHJ3VThlUmhEOERkcjRsT3F0bURyczh0Wm44V0trClZkM0JBNXFKNUgwTTB5cVVjOEVuZytJS1NJZjQzVFpWTTJDZGJBVDNvUTh2b0pKNTZMMzRWVWczZk5OWnVhWlQKSjB6WVFNNUEvbDFNUWg5ZjF5T0NvMkxkZHRjeGJybzh5eUpJeUJkM1YrZU0wRTBYUFhUU2RnaUIvc3NSdjFaVApGYkpacXdHemdTNVdaYmJuS3hMbTBjK0d2YkJNUzdwUFRPNEREMVFWY0NyaVNQU2ZJYlF1WmJLMEN2TW1tdGMwCkFmaGV0M2RYSlNhV0JnWW1BMEplZWw5bGZjRVhJZXZ6cFJnWnRCZ0x5SWFrQ2NPY2VxMUZNRVpHaWRwUGFCME4KdFE2d1dyZGVCbUY2Z0trRmt4V2IzcXJ6VkdIaENMZUNYVy9jWWhzMElpRWUwQTh3YTI0OEtBa0NQdS80ZVNLUwpXZ3RGS1FuWEpCTzVpM09sNXd5R2k1dlYvdGwyajlGTjB4VU9GZEVJK3QvRmFTSXRqUmV1ZlRhTzBJZ2MvdGVZCnZrOUp6MFdFRDdlMUpldE1xTTlXTStXYUNlYmF0ajJnS0g5U1ViM3MyOXhEUXVpZUFtS3l5Qy9rcWNVblRxTU4KOWVGZE1pcytpWVhEWWRZUQotLS0tLUVORCBDRVJUSUZJQ0FURS0tLS0tCg==
+  server-cert.pem: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUZLekNDQTVPZ0F3SUJBZ0lVYVU4ZXEvYXlMZ3JjS2Q3bWlQM1ltcm5PMXVJd0RRWUpLb1pJaHZjTkFRRUwKQlFBd1lqRUxNQWtHQTFVRUJoTUNURll4RXpBUkJnTlZCQW9NQ2xwaFltSnBlQ0JUU1VFeEd6QVpCZ05WQkFzTQpFa052Ym5SaGFXNWxjaUJsZUdGdGNHeGxjekVoTUI4R0ExVUVBd3dZV21GaVltbDRJRVJ2WTJ0bGNpQkZlR0Z0CmNHeGxJRU5CTUI0WERUSTJNVEF4TWpBd05EVXhNVm9YRFRNMk1UQXdPVEF3TkRVeE1Wb3dWakVMTUFrR0ExVUUKQmhNQ1RGWXhFekFSQmdOVkJBb01DbHBoWW1KcGVDQlRTVUV4R3pBWkJnTlZCQXNNRWtOdmJuUmhhVzVsY2lCbAplR0Z0Y0d4bGN6RVZNQk1HQTFVRUF3d01iWGx6Y1d3dGMyVnlkbVZ5TUlJQm9qQU5CZ2txaGtpRzl3MEJBUUVGCkFBT0NBWThBTUlJQmlnS0NBWUVBb29yTS9sdlJOMXlKSHV5b1JEVkhvYTZnNHh3TkFMUnFsMUM0SmJvV1Bad2QKbWpNelBCSS9JWUdCVjJaZm4vUUlPUXRLWG9PTGczanVGZURobE9ZQTdDc3Y0RTZzbzRuL0JKcWVXUHo1cTZLYgpMNlZNZnRGWlJPUzJQK2FCRFVsMVpZNnAxY2I4bUtJVTlPVEdpbmsrdXdkV01KZXQ4NmJMeFhVenZJMElwYjh5Cm0xTEMvZmR5NE9zRGVieFhjQUxsSjNJY0gyeEljenFLbDliRkVCMGdPd2VxV2dQcW5GTGxjT0wyUitCNDE4bjEKYW0yeStmMkY2QUV2Yi9KMDVCanhVc2ZxaUg4YStuR1oxQVZzclpUTDhzK2V5Y1NSbUlyTXNyNmh2SEl1cHYzaQpaUWRBaUJEdzFLMFFJazRaeGI5czB5SHFnNDh2alNST1Y3c0E4dWw3YmMyOWp3SEp5ZFFOcWxudFdKYlVVZ0dICjVNL0xqS00wdFY1cnRrUlJLTm5STWFPWHBicDRvY0UwVjRaVTIvUlNvYzZ5MjNzNDRCQXZ3TmhtTjliVG9Ub00KbG1jVDBGMGhiWk93MDdUL2J4L0IzT2FMOW1tdTFLNXlCSS8zUjFjcUNQNWZkeG52WjFWY0gxd2p1SkpFTjk3awpEcC9oc2tLMlYzaWRpQ2w0b0s5WEFnTUJBQUdqZ2VRd2dlRXdEQVlEVlIwVEFRSC9CQUl3QURBT0JnTlZIUThCCkFmOEVCQU1DQmFBd0V3WURWUjBsQkF3d0NnWUlLd1lCQlFVSEF3RXdIUVlEVlIwT0JCWUVGSXA4T055OUZON3EKMXE0TmVTYiszTUdsUFZnK01COEdBMVVkSXdRWU1CYUFGSFYzMldLU3czSjkyWWF4S0M3elU2TmVOVXJCTUd3RwpBMVVkRVFSbE1HT0NERzE1YzNGc0xYTmxjblpsY29JVGJYbHpjV3d0YzJWeWRtVnlMbnBoWW1KcGVJSVhiWGx6CmNXd3RjMlZ5ZG1WeUxucGhZbUpwZUM1emRtT0NKVzE1YzNGc0xYTmxjblpsY2k1NllXSmlhWGd1YzNaakxtTnMKZFhOMFpYSXViRzlqWVd3d0RRWUpLb1pJaHZjTkFRRUxCUUFEZ2dHQkFIejlHVUJYNXUrQ2VsOEhoTXVPdjgrNwpMRHFhVVBFSjFMYkJzWkRnV1g1ci9ydVh4MXNTeGU5bDR4eWlDZEY4UGk2bHJDZno1MnJsTFp1U0M5SEFNcXIzCkdyOVVKeVlyNkI1c3pveEJEdStBSDRBSGQ0eVdtZmkrNjVqRHVMSk5ZS1JkTGM4TTdoWTNGVGp4cmwxUDVtWXMKMWczd2tHVnJzL3FxUnNPaWdybVBzQUNldjdNMjFaMks4VWt1UGM5TTczemZoUDVST2IzOUR6ZU05NHd2NnRKVQpuRkNmWlRrNlJmUUwvQUtWUXY1SGYybFJ0czdkQVZremU3QWwyVU84bE5rVURhNXNnVWRsT3dpUU9OME85cC92Cng3cTNZczVURWlLWGc5eFd0NnpWOEhscW5QUU5iRDB3V3VLbmt5QVova1M2OFU2L2hucld2dVB2cU5qd20wY0IKYzZRQ0FsTEJYbjFHM0dkTHRVYkh6eTlSMkpOSUtjNFdBQ05Pak9zbENqMVJBQ0VPMEZvYXJUUlFwZFloVVdUdApocEFiT2s1b0pQd0pjNmEyWWp6eVJCeDg1bjhVM1FzVTJWY1BxSGYrWjl2YnF5WVV4bUZJM1ZUR0dNWVByZGo4Cks5QkMxcnJySWJXTjMzVEtkSjRCM25YLzRra3RsMVFqUjRqSEM5L0tEdz09Ci0tLS0tRU5EIENFUlRJRklDQVRFLS0tLS0K
+  server-key.pem: LS0tLS1CRUdJTiBQUklWQVRFIEtFWS0tLS0tCk1JSUcvUUlCQURBTkJna3Foa2lHOXcwQkFRRUZBQVNDQnVjd2dnYmpBZ0VBQW9JQmdRQ2lpc3orVzlFM1hJa2UKN0toRU5VZWhycURqSEEwQXRHcVhVTGdsdWhZOW5CMmFNek04RWo4aGdZRlhabCtmOUFnNUMwcGVnNHVEZU80Vgo0T0dVNWdEc0t5L2dUcXlqaWY4RW1wNVkvUG1yb3BzdnBVeCswVmxFNUxZLzVvRU5TWFZsanFuVnh2eVlvaFQwCjVNYUtlVDY3QjFZd2w2M3pwc3ZGZFRPOGpRaWx2ektiVXNMOTkzTGc2d041dkZkd0F1VW5jaHdmYkVoek9vcVgKMXNVUUhTQTdCNnBhQStxY1V1Vnc0dlpINEhqWHlmVnFiYkw1L1lYb0FTOXY4blRrR1BGU3grcUlmeHI2Y1puVQpCV3l0bE12eXo1N0p4SkdZaXN5eXZxRzhjaTZtL2VKbEIwQ0lFUERVclJBaVRobkZ2MnpUSWVxRGp5K05KRTVYCnV3RHk2WHR0emIyUEFjbkoxQTJxV2UxWWx0UlNBWWZrejh1TW96UzFYbXUyUkZFbzJkRXhvNWVsdW5paHdUUlgKaGxUYjlGS2h6ckxiZXpqZ0VDL0EyR1kzMXRPaE9neVdaeFBRWFNGdGs3RFR0UDl2SDhIYzVvdjJhYTdVcm5JRQpqL2RIVnlvSS9sOTNHZTluVlZ3ZlhDTzRra1EzM3VRT24rR3lRclpYZUoySUtYaWdyMWNDQXdFQUFRS0NBWUJICmpTVmZSU2pzbjNJSEtIT01EdzQ0Mk1nZklaNkJ0R29Gc1RWVytqdEhKTDJOUDBPckNuYzY5eWpxUWZrUFR4djkKaklCUTZjUlUvRHVHYXdleWhhdGJTMG1ZaXRtSlpqcGFHdnhndlAvbE03L3ZzZXJpR3FNYTVqbHFHTHl2amlvOQpLaGVPTVRuSnNQUGJ1QWZFTmtwTWg1YkQ3a2xYYkJIZ21zN0xEaVNEM2c1WGZJKzB2NlNVNlMrTys3OWI0aEpoCkVtVFoyazlzVmhWamNOb3YxVHAyY2RIbUxUb3VWWG1GLzRzZHFlMVlSS0dobDZmRlQzcU9YbE0xQ3Z5MDJsdFIKS3lRM2NMbjU2VTlUZjZmMFY5VUlzOFUyUDNTckZOUjU1Mk1UNjc4SGY0dFBlblFYT01oTjVWbjkyVlZzWHZRWQpMeDZGOGY1bzNXM1h2Zldwb0ZDQUZ2aXpJYmRnMmdteEp5RHo5S1BmakVPWXVuNWEyZ1k5UlhkNlpwREFaNUQwCmo5YWNyUXNKVGw1d0o4VFhKNmlkQXdWYmJHc1FOZmR5SkRPQ1RML0xGZnF2NEFPaE9iOGMzMVZzQ0EwU2Yza1MKL3NBT0YxaHNSallvaCtkSE9LYy9STUVZMm1jYlRyTlhEbHhkbm5zdzhYbTluZzUyUHE2NjJMbFN1QnJLVVJrQwpnY0VBMm5MSjVVVG9sc0UyMTlUTTJYcjBrMU9zaGFMSFFXMjVRVHhPUVhncEV0YjFENHpXOW1hd2R0ZVJxMmJ6CjhMYTZBNkFzWmxKNWNRY2owWTNZSTkydGYvT0JySUxFclhYWFVZdG53YTdxZDlZV2lGclB6b0hiMUxJdU40eHoKcnRiaFdSS3ZNU0kvTURtSXN3eEkwZUlYOUhmcWVwejQ1MzZ4UmhMd1p6NWRWUllBbzlKaVhuZUIwRkpkK2Z5OQp3Nm5GLy91V0VQZUZrZ3BkU1RVRWJrdUFsckZLS3Myb0JNY3FNTWlQOVY4a09UR08yU055ZjB5bUdBZThGcWZKCnBrV1BBb0hCQUw1N3dvZ3VWV0doMlhzZVhPQityOVR0c1o4Y3BodmdyQzdvd2xPK1VPTVpvL2lORlBkWVFSMWkKSTBGSDlPMS82NmlIQjR3anhOUDMzM0EySXN6eGVhY1FNMmpWdk15SE9LNzBIbFhJRGVDbGI3Rm5TNGdJZ0F3MApmaUc1LzNhQTZhanZKMFJ4NUpCa3NEMGpFREE5dlJ2enZzY1JYZGpzdDlWWDNwVFh0bXBVdUhoYWcxcGxiN1Y1CjZzWFVhV0lmMGZkanNkNHhVQUJsNWtvZVJKaFpOWHBGQmM3akNJN0pyWnhFYTYwUHMvNlZHZ3d0T1IvNFp1S2sKRHM1UkRBbGx1UUtCd0g1K3hnYXJWbndsdWxwVThhSm1Ic1pKUjdmQ3dOdFViRmdvVWJCN29sMDBlSWZlcUlQYQpod2pxWDRIL2hmYTMrUk1zWjBtQkxLMlUwdHIvNWs4dWlNOTA5SHd1NVRFRThnQllWMmJDb1Nkdm8zQ21GWHVoCm11aVpuVVd4WVRPM1hwcXp4UnNRbDhLWExsOXdGNkxoNTdrNnoxN2RFdzBLUWlFdnltSWVyUEVlWXBSNnVWZTIKb0VjL3l3ZDlvVzF5SENQVlRkclpXbEZ0Q3dQZlhZZDQxU2R0MW1MZTRCS1VPZ3d4dDVzQTB2c0RoWktiZ2l2UQorTVVsaFhjaEJoWHdaUUtCd1FDMEFpYXpKUDRnOXArY252UHNYeXh4RDNNMHh4RWU5VElpWG1vT1U2TURDbDhQCmF0dnVaeU9aemYwOUd2QVdaVFhobkVHQXFPaS8yOVgycCtJNVJOWFBFQnRWTGU5dVpUY205cUdZTlNjUUxhY2cKd2xuNW92YkhFZkJFbFE0YkFmWk9aRHI2anBzTjdXa3pUV2hsL21JeEFTWS8zMlNOdEI2QjZiajVkZVQ0RlRvQwoycDZaRlpUOHJjczB5dWdRQjd3WGlzb3pET3pxZzJHZWwzNEJid1IvbUt6RmQzM0Yya2RManNrbTBka3FjK01hCnNMMzBQWDJWSHE2elFKb2NZMWtDZ2NCVkpEblZNL0dRYVVSUHQyZUljMERYbWxoUldtVURVZFZpM0hqY3A0NUsKbU1PNUlQM2Q1YmhMYkxrVnkxODJ6UHA2SXlvdnlHZXFSRlRQVlBYMW41UWlvd0IzTEpUclhpWm1qaHU0cGRPWQpNMVBBTjVhSEo4SEZzanFxejNMMTc1NkZqL215d3pQNEZiRzQ1TjB2WWYyYVpsS1hCSk8xckw1QTZ1UnhTNjcvCmE2ZkMrMnVpNk1vSXVYNUhGMmxoc211ZURWQ1ZlS3pXcHdFUzhHeHZVdXhDdy9UMGgrc0NWK0FtRlE5QmJGV24KS3FGeko3RC9LaUlReGNyU3loSFNuUms9Ci0tLS0tRU5EIFBSSVZBVEUgS0VZLS0tLS0K
 kind: Secret
 metadata:
   name: zabbix-mysql-server-tls-certs
@@ -1324,9 +1501,9 @@ type: Opaque
 ---
 apiVersion: v1
 data:
-  client-cert.pem: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUM4ekNDQWRzQ0FRRXdEUVlKS29aSWh2Y05BUUVMQlFBd1FERVRNQkVHQ2dtU0pvbVQ4aXhrQVJrV0EyTnYKYlRFWE1CVUdDZ21TSm9tVDhpeGtBUmtXQjJWNFlXMXdiR1V4RURBT0JnTlZCQU1NQjBaaGEyVXRRMEV3SGhjTgpNakV3T1RJeU1URTFNalV4V2hjTk16RXdPREF4TVRFMU1qVXhXakEvTVJNd0VRWUtDWkltaVpQeUxHUUJHUllEClkyOXRNUmN3RlFZS0NaSW1pWlB5TEdRQkdSWUhaWGhoYlhCc1pURVBNQTBHQTFVRUF3d0dZMnhwWlc1ME1JSUIKSWpBTkJna3Foa2lHOXcwQkFRRUZBQU9DQVE4QU1JSUJDZ0tDQVFFQXVZTllXVUp3Y2Nsd0oxbnYwS1YyNGVncQpUQW1vM1N5cTFwMS9OTGZIdGd1UVcyZllSUXJkVFZ5OU80R0VyWmUwVCtmMnFwRUtPN2JoSExvVElnMFZXQmNoClU4K2g1dVhSZlVhZC90eHVKNWh0QnBIL1hpR0NEbVFpSFVtd0hxbHJwK0pDL3lmTzJwb3pDalpaOVF4RVBlYjgKQmEwaHgycUZXUEtKc1ZSY0JTejMzMm1tY1ZjeGE5YmtsWVVQZHgwUTVGSHFWZ1pXOTI0QXdHOC95QThxcUFiNApPcVkxbUZkUW9VaW9kTjRGUDQzSkVGSWxrMnExWUVjenlSMHlidVJIelBIQjhJUG1Fa2lNaHlpSitsdnJaSzZLCjR5NWZVSzQ0SXkxanYveEJDSnJ3TmNnVVZBdGFYTStiV2RXS3U4dDNudGV6ME02ZWU2Ym5WSHhTeDh0NWF3SUQKQVFBQk1BMEdDU3FHU0liM0RRRUJDd1VBQTRJQkFRQW9SOE5SZEo4YUJsWnZBOWFCVzQ1SFdnWGF0Z1ExcGRpNwo3R1BpL3Qzem5MWTNNamMrUVZSdmZLUlFvU2wwc095NUZ5NFlZWHdwZDlQRUsxVXBReFRaK201SGtVWm9LR095CnlISzZ1aGZ6NFY5NXNRdkcvdGcvaS9ESHQvVlJYMEpsc2lpTW1zalFYRFpPcUpaOUNPTnhOYUlObkdSZGZEUVoKNVRneUEraXVyTU5mcThpUU9HcDhYRGkzNStvMlp4enpDWHl3SGRRVDExcTdSbThBZDNGaG5xKzJQVGR0UDduYwpZWFB4Ym1ibkxMeTBReFl3Y1BYQlkrWjNrTFlxbk1wK2ozajIwcE0rTE1sMkNBbTNDblJsdU9yKytrTTV1T29hCnkxOHN6QWJRSjF4L0RoMEFmQUZKOG90THMrUU9IU2prdUoveEJCelkxelNETnRNdmxUMDEKLS0tLS1FTkQgQ0VSVElGSUNBVEUtLS0tLQo=
-  client-key.pem: LS0tLS1CRUdJTiBSU0EgUFJJVkFURSBLRVktLS0tLQpNSUlFb2dJQkFBS0NBUUVBdVlOWVdVSndjY2x3SjFudjBLVjI0ZWdxVEFtbzNTeXExcDEvTkxmSHRndVFXMmZZClJRcmRUVnk5TzRHRXJaZTBUK2YycXBFS083YmhITG9USWcwVldCY2hVOCtoNXVYUmZVYWQvdHh1SjVodEJwSC8KWGlHQ0RtUWlIVW13SHFscnArSkMveWZPMnBvekNqWlo5UXhFUGViOEJhMGh4MnFGV1BLSnNWUmNCU3ozMzJtbQpjVmN4YTlia2xZVVBkeDBRNUZIcVZnWlc5MjRBd0c4L3lBOHFxQWI0T3FZMW1GZFFvVWlvZE40RlA0M0pFRklsCmsycTFZRWN6eVIweWJ1Ukh6UEhCOElQbUVraU1oeWlKK2x2clpLNks0eTVmVUs0NEl5MWp2L3hCQ0pyd05jZ1UKVkF0YVhNK2JXZFdLdTh0M250ZXowTTZlZTZiblZIeFN4OHQ1YXdJREFRQUJBb0lCQUdYaVRlNVB2K091Und0RgpxS0RGanlJSTJOb0Q0QnNBZ2g3MlJydVVSM21pcGppZE1yalFlN1FXUDlOamtaT3BJcDFUL3pPMERwTzNIN0VnClBJdlI5YXY0b0JRZ2o0RjVMSEdLREJIQnpEbXd6QWYwdlBSY29NbjRrb2ZWUllYQmRGK3lzeXJoR1FrVDhQNGwKMVlmd29iWUJtdDRmTk5NSm5JeTZQNGNGbHJnOEJlcmVnRFp2Z3FqWlN3Q3RoUDV4QzMzeEFEaGtJazVuVk80QQpTNEpEUGNSTDNkaU5IK3YxRkVhY2EraGc3dzNpY09XZWQ4Y0xMQnJqZmpkaXJkTUpXRW52NnYrSlgzZ2N4bjg2CkxpeXZkSk9ZNTdqSFZpTndLQ0NwQlJOVUJmbWFhK2lXNEs5QTE3K0h5VmdUTFZnLzhoeGZwV292Nkc3UEh2NTcKaXlJelBya0NnWUVBOXpjV042bW95Q0VCc0ZYRzBDTk5DdE54RHVjU290ZVoxK0JqZENBbnZycnRiQVNubUZUOAppdG5LaFR3Nkl4K3lkNzJaeXNHWkI2MGloTXZsRlhMUnRtQ0pUVGpWY0xDOXVhM2t1OHZYUzdBdmQ4YWZUcmJoCmlLeVRLMmg5NklxYUpxQzR6R0tkNStLejhKZFM0RGpjdmRUTlhSOHp6MGQxLzg1c0hXZDhsNDhDZ1lFQXdCcjAKZXZpbFN0cjdhZGxWY0tONnQ0ZWxlVXJjVTdYdElSZDhncjNpSk5jUGo0MENVUW0xTXZ5WXhTckR5MEpTQVdLbwpHWkswQVE3S1oyY2FoK2JWV3dvUnVES1hBR0NHQVE3ODRrU3lqQisrQkpqaWhDNHZkNERrcGFpSVYvdVY1NEwxCnZQVDNQcC9PdncyQU4yU0lHcWJwMjM0SmJzWlNCWVVYbWVKNmNtVUNnWUFhN1BNTWlQd0xJQjB3K1lhMzhNQloKWjRJdTMxZ1dTR2xISy9kcEZIOS90SmhiWlg1amh3NGlpV29YYk9IZ0pYbW90UXZsRzRUeFl4Z1pZcVBHM0VTZgpHcENaeXBEa3Z6dEsxL2ZMeEgza2pvSDlCN01lUGFqKzI5MERvMVBqV2dWRUk4azg2WmpOUXRIYWFJRHNUd1VyCjM5dW1RdG0vdjhiSVg5RkN1cHpGWFFLQmdBbDhTejRYTVBJMVJkekFJbnZoVnBuaFZNWmNiK3lpT3djN1JhYWYKQVorWUR1aWpxYzJla1JmbmFST3pQTis0Y3B3bTV1MzhWRzhJNysyVEpiZzRLYWpKSW43WjRLTGdJVDNFSTdCNAplK2gzV01hWlZmWDQ0ZGNnd2lsNzNOK2JTSmVaMjlCc3VCaWJnM1hqa01VcmJaMERTT0RScEYyWDVVem9lWFhiCnZQZ1JBb0dBSjVvLzNIOWJCbEp3b3Z0WjF5VUY2KzRjaFpodGhiU1VJOS9zSXFueHllNEtZMGtMaEpxU013ZkEKZ1hPSW10cmxzNllxU3VkVGovaGNwbi85VDIzbnFOSEpyd3RKWXJVMk9zdUYrdnNHUE5DeFQwZTUrSXZlQ015QQplZFhuSU9BaTBjSXhxUjluWVNXNDR0cjFEcG8rN1c5SEZ5aXZ5eVZ4M09uMzlMUi9EUHM9Ci0tLS0tRU5EIFJTQSBQUklWQVRFIEtFWS0tLS0tCg==
-  root-ca.pem: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSURVekNDQWp1Z0F3SUJBZ0lKQUxNWTFSWlB5VVZsTUEwR0NTcUdTSWIzRFFFQkN3VUFNRUF4RXpBUkJnb0oKa2lhSmsvSXNaQUVaRmdOamIyMHhGekFWQmdvSmtpYUprL0lzWkFFWkZnZGxlR0Z0Y0d4bE1SQXdEZ1lEVlFRRApEQWRHWVd0bExVTkJNQjRYRFRJeE1Ea3lNakV4TlRJMU1Gb1hEVE14TURnd01URXhOVEkxTUZvd1FERVRNQkVHCkNnbVNKb21UOGl4a0FSa1dBMk52YlRFWE1CVUdDZ21TSm9tVDhpeGtBUmtXQjJWNFlXMXdiR1V4RURBT0JnTlYKQkFNTUIwWmhhMlV0UTBFd2dnRWlNQTBHQ1NxR1NJYjNEUUVCQVFVQUE0SUJEd0F3Z2dFS0FvSUJBUURqRjQ1NApXTVVKc1NqZ3ZzSk4rNE5na3dET2thUWdOMjdXVnJyVWRIVjhoVW9sYU4vMWdSeE80cTNES2lPRnhIZlBITzVXCmg0am1YQ3VVSTA0NXRwaEVaZDlCZDd4eUU2dUF3VGtya2pVWTczMExQRmZsYzJYQXE3TkYvMElidHB1aXQ3cFIKdUV2dTc0aVNMampLWVFaWHlxUGJLazlIaitWa2xCcTV2MjJUNTlxUmwzeFV5QUNRZGVEWVdPbTg2ZFgrY2FUVAorWWt6VXhDOHFRVVdBT2JUVThBWWZXbHA3NjRpY0NuMEdab3BCalN2dXQrZWxoTnl2eHk2alhRdU0xemZYMXUrCm56bVdiQzdOMTFqK2JDZWxVd2kwQUhIZUZrRFFrcHdPaGdycW9hbG5XUHk4VVNjMDFJRTIwZnlmTEptc3ZaVU4KZ3pnK0EwOGNqOThwemF2REFnTUJBQUdqVURCT01CMEdBMVVkRGdRV0JCVGtEenFQVEV0UGFHWWhBSzkrNjB6dgpBdklmS1RBZkJnTlZIU01FR0RBV2dCVGtEenFQVEV0UGFHWWhBSzkrNjB6dkF2SWZLVEFNQmdOVkhSTUVCVEFECkFRSC9NQTBHQ1NxR1NJYjNEUUVCQ3dVQUE0SUJBUURaY1A2cmJPWFMvSFcray8yczU1Nk14VU9vTkRNenRhdlIKQXJCa01HUGk5N2FGSW1MV2h6MVJqWGw3UjZKUmE0a3VVSGdiRXBuL3F1OUFISk1LejZ6UnVSRW9EM2UzTlIwVApJL3hkbHFJOVBzTmdIaDVwSzcvb281TzUrR21vTURoK3pRTHlnbXVYcWlSenpXV3NBOVcwaXpoMFJiZHRwQzR5CmdSYmxLMVBsTVhNeWs0eFArcHljV0treExMbWhqOWhuTDdkQlR3KzQzOW13eW5MZjlhSkdHajZaNmI2ZjJTS1EKWGlPZUNFOTVQRlR4S1BCbzRvQmdjOHI2NGFxc0FNelVCa0lQZWtnQ2xQWkJJSnJtKzZZdU9HbUROVUFtUCs3RApKdmRIbGVucGJ3RXJBZ3FKYWx4NjdxVGM2eVUzWUY5bTZMTkprRHlCYXJ6VU01MVdQc1JUCi0tLS0tRU5EIENFUlRJRklDQVRFLS0tLS0K
+  client-cert.pem: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUV3akNDQXlxZ0F3SUJBZ0lVYVU4ZXEvYXlMZ3JjS2Q3bWlQM1ltcm5PMXVNd0RRWUpLb1pJaHZjTkFRRUwKQlFBd1lqRUxNQWtHQTFVRUJoTUNURll4RXpBUkJnTlZCQW9NQ2xwaFltSnBlQ0JUU1VFeEd6QVpCZ05WQkFzTQpFa052Ym5SaGFXNWxjaUJsZUdGdGNHeGxjekVoTUI4R0ExVUVBd3dZV21GaVltbDRJRVJ2WTJ0bGNpQkZlR0Z0CmNHeGxJRU5CTUI0WERUSTJNVEF4TWpBd05EVXhNbG9YRFRNMk1UQXdPVEF3TkRVeE1sb3dYVEVMTUFrR0ExVUUKQmhNQ1RGWXhFekFSQmdOVkJBb01DbHBoWW1KcGVDQlRTVUV4R3pBWkJnTlZCQXNNRWtOdmJuUmhhVzVsY2lCbAplR0Z0Y0d4bGN6RWNNQm9HQTFVRUF3d1RlbUZpWW1sNExXMTVjM0ZzTFdOc2FXVnVkRENDQWFJd0RRWUpLb1pJCmh2Y05BUUVCQlFBRGdnR1BBRENDQVlvQ2dnR0JBSkhjdWdSSy80ellXa2lkMTdYeEN3SU1lQkVPQk5hMForYXEKcU5PUTZGSXQwRm5pb2tKcDhNOXpOendZMElKTGM2SiswQk04MlAzczJJMFRJeVpSZ0RoQW1VMElya25EZnZ2Zwo3NVEveFhseFVDc0J3SWg0bmRVTEFXNDdxRVVtYW9hMzljTnRidHMyR1Y1NGNtOS9VeHhETGhvNGZtMUJFMU0yCktESGJZVmdmWjBNOEtHVGpKbmtPaFhCaW9oTytwWG5XdUs4OWlmdDF2ZkFLaGpMczIza2t1K1h5OHlLV0NzQkYKTU1aQzdSSVQ1NTRCamZVdDMwclNFakU2cThjV3RKVENHOVhyZFo3bkZBaGFxYUVEY3NIbVFlVTJ3Y3MrV3VqTwp6czFNNjJTL2RQUlVta0lyU3BGalpaRDFSVFgzUitjemViTm4zZWJVOUFwTUthMVdONkxmWEp3bHEzcWRzZFZVCkthbDloQ1hpcHZKUmhCaGwvcEdxSTdHS0o3dGQvMlU5Y285K2xlRVd0NWt6ZkluZXVlNE1nRjlJcXZheUg2NkoKV05qcHptZjgwUzFmL01UcURtYW52YjdMOUlqUkpZOEFDVHYvR0lxT3lES1hyeDhWU0pJbU1ScVd6ZmZGcks2dApKYkNLWUY4dWpXM3VRQmpOSTZib2pVZVBnakNFcndJREFRQUJvM1V3Y3pBTUJnTlZIUk1CQWY4RUFqQUFNQTRHCkExVWREd0VCL3dRRUF3SUZvREFUQmdOVkhTVUVEREFLQmdnckJnRUZCUWNEQWpBZEJnTlZIUTRFRmdRVUppdmcKaTBpUVdSc1hhdjJiYTMvZVJRYWw3MGN3SHdZRFZSMGpCQmd3Rm9BVWRYZlpZcExEY24zWmhyRW9Mdk5UbzE0MQpTc0V3RFFZSktvWklodmNOQVFFTEJRQURnZ0dCQUdtYXd3eTdpYjdEMjFBRjZIRHgxOE1ZMjBLMUU4Kzk4bHhqClZDMVA3b2FlSXp2aThzL1U2V3laaHVxTHh5RzVqcWlUcTlITHp1VkZPemlFMnR6MVpYc2tZS2owLyt0VlZsa2kKOTZZaWgwTUYrMmJpMm1MaElDOVBOZ2JlbmsyRXEyUlhkZ0U1RkZkUlVsWTEwS2RvYlljMTJYeXhjWFFlRWtEQwppZGhuK2l6d2xmVjF1R2R4eGp0N0dPL25FeEVWWXdRaVZZQ251dVJWSFRtMVplWUVucU1SRitueGR2WTlXNTNZCmVJNXBIZGlkY3BsUStOczNtc1hSeUpSelI1MG1iTUgwaHRYSzM3S1ErZXVOTkg5dGU0SkxjSHNUdjl2SXNYNEgKSXRiTEJEVWwycVYvZFg0aXdiTkJrZ1JQNGpUZnhubW8rdE1pT3FRSFVtbnVKNDZjVGRRK2ZvYmxobzFDamUraQpObERxS3UrVjZSS0ZQei90NmFOZ050UlpHMXQyVEk2anVtSWdOZWJGa3JPVnc4WVZ6Zk92c3E5WTY3OXZsNTRZCjFvTmovTUc1TGtINlVGTXZrT295YTdxVVZJSVNVVG45c2FQbUdGWkpLQWJxZlZ4WXJ3aGI1N2FiTGhpMWRvUnYKcFFTNVVlYTdJWmRMQXYwQ1JkQmlOQVdkREZ4Q2t3PT0KLS0tLS1FTkQgQ0VSVElGSUNBVEUtLS0tLQo=
+  client-key.pem: LS0tLS1CRUdJTiBQUklWQVRFIEtFWS0tLS0tCk1JSUcvUUlCQURBTkJna3Foa2lHOXcwQkFRRUZBQVNDQnVjd2dnYmpBZ0VBQW9JQmdRQ1IzTG9FU3YrTTJGcEkKbmRlMThRc0NESGdSRGdUV3RHZm1xcWpUa09oU0xkQlo0cUpDYWZEUGN6YzhHTkNDUzNPaWZ0QVRQTmo5N05pTgpFeU1tVVlBNFFKbE5DSzVKdzM3NzRPK1VQOFY1Y1ZBckFjQ0llSjNWQ3dGdU82aEZKbXFHdC9YRGJXN2JOaGxlCmVISnZmMU1jUXk0YU9INXRRUk5UTmlneDIyRllIMmREUENoazR5WjVEb1Z3WXFJVHZxVjUxcml2UFluN2RiM3cKQ29ZeTdOdDVKTHZsOHZNaWxnckFSVERHUXUwU0UrZWVBWTMxTGQ5SzBoSXhPcXZIRnJTVXdodlY2M1dlNXhRSQpXcW1oQTNMQjVrSGxOc0hMUGxyb3pzN05UT3RrdjNUMFZKcENLMHFSWTJXUTlVVTE5MGZuTTNtelo5M20xUFFLClRDbXRWamVpMzF5Y0phdDZuYkhWVkNtcGZZUWw0cWJ5VVlRWVpmNlJxaU94aWllN1hmOWxQWEtQZnBYaEZyZVoKTTN5SjNybnVESUJmU0tyMnNoK3VpVmpZNmM1bi9ORXRYL3pFNmc1bXA3Mit5L1NJMFNXUEFBazcveGlLanNneQpsNjhmRlVpU0pqRWFsczMzeGF5dXJTV3dpbUJmTG8xdDdrQVl6U09tNkkxSGo0SXdoSzhDQXdFQUFRS0NBWUFmCnRid3M1YjhUdUE4OG5UQUJpbE1KMFhzaXZnajRRa1VhUlB5cDdlVkx4RkQ0MFlmVDUyTW1QbGFDTnFUUnhxUnYKYmFFL3BXbEpIcjNmUVl0Ukw4T3Z0djk4MjBmRW1uOFhOQW54a1VHVmlyaFNlVEdKbWFzNlh3ZWpGczRZcG1iZgpQY3ZzZmZSdExLQXNSUVFmMEM3WnhKTVh1VE5tL2hBODlWZWNxeVJJKzU2LzQ2cW1jQ2x6aE9BbWxCTEhOeG1UCldNWlN0bzZ5UDZFWXQ3a0FCalVhYTQxN3lxcm4ySFdpNGdmZCtqdSt3OXdGSWpKaDNHU2dSL1lUaEwxR2JWMWwKcTc3NzZIQ1R5KzVXQmtvdUNTZ0FlNC9aOXp4MUtPcHFoREdja0VEVDM1bWVqQjBKQllBSktuMkNJMTBnb0tqKwpSN053MEovVjFOUXdDVWNaNDZkUExEU2o1YXl1dEN1RjlXT3NNR09aOTlrTHdYbU1HcncxYUJ2d0c2ZERDMUZUCnFpQnJjbnl4QVJJRTdqeW1CdlBRQUwxRU92TllqaFdUeGJhK0lTd3NaSlV1RDB6a1dIQmlJWkFWMnF0TUQ1WWQKWGlvNUN6TTRXVGxzNGlBTDIyUU1qNTdOUW9PNkdCZFVTWXVnYWJyOXRhWTZiQTczNW51TTNDOEtUVm9YckwwQwpnY0VBeUpDaWpOWXlRQWlDcHduVm8za2MybENURWxHQTFQWVE0eHJtYlBUV2lBT1o5VmtoZmIwOUdzSVFDbS9uCnY4OURFb0t2TU1qZGw2bEo0RWRtbWhBeU5sUk9ERlZzYk10TTVJY0xGUTY5bEJhd3RWZUdMdFd2M1c2ZFJza0IKNlJpRzdvekk5RW5PS2NuNXk5MnZsaFRHR0MwdE0vS25HVTc3OWI1RGNRWFduRURnN0JRUXhMM0Q1VVRMVThDQgplN3REOFJ6c3hlcVNKckordUJ6VlFRM2FLVUQ4dktYVW1wSWV1ck9pYlUwS2NjYVZpQUZOY2FRUWRSbjgxN1c2CmdQRGpBb0hCQUxvdGZiWTdQM2VleWJGZXhJT1lGSmppS0hDdU5jQjRaYlFMZis2dU5wODRzRTlyME1wWmlETkUKZU5TVjVCUVUyby9nM3FBTk52RWtCeWE3SjBNZ2Uzb3dqaHN4Nys4TjM1MkRDT1ppU3FmRGV3NW5Kc0NadFVXdApwSjRQaHRxM0JhWGtuWng3eStKLzBMSUx5ZWswTVFrVWxod2ZROWxXTXoxbXYrcWxSK29NOXRRdFJ6alB0eWd6Cjl5NWhSV3JGNXYxeC9kbFJ0ZUQ1SHUvbWVOY08vUkZzZXNibnNaMmFLWnFEa0J4T0xHZDgxSlNrVXFxREt2RXkKMFozSGJYTWl4UUtCd1FDSjlPcktneDlIYWxNc1FKaUIvSEc3UFVjY2g1RmRhdkJNdHBrZkF2NTV5amhoU2ZDKwpnNmQvTzFNN1NxUVhES0t2SGRNUmRHanZ4Qk03d1FFekljYllGZjhsZnJDNDJOSklNeGVOWVhsSFhxQW43RTh3CjhlMHBHOGYxQTVoYjFISWpyaFVmNjVCeXNDb3hiNGd5YkpHaDJabEpMVFNCTlJJY2c4WHgvVGtVZTQvNjh3WmgKdmNIOGR1aUE4RjVnVkh3MFlsZisvdzJPcnFKNVUrUGYvbjQ4ZUNZZ1FOVFBpWWkzbFk0NUxvL3JtTlFNSEJGQQpCTUVKTzFudXFtTGlCRThDZ2NBV0xPRHlXYkEva1R3NDBpN1o5YjFPVUhHOHFpTmczM1pOc2FqMVJ1N2VuQ1B6CjhjV1d0SDlTaSs5UWN1SU51a1ltS1FTYlQ3ZWhsVWI4eUFIdkx1bEdMbzVla3Q0ZlBTbkxXeFl1U3JyVnJLVDEKbkRlemJSdDRSeXg2WHlNUzNnWGdNcERMV0x0NktQczBtYzdjNWdpSktsaU8xUEtCNnBDRDJiODJOYVdSTFNZaApNNXR1R3QrWC9FaU96NnN6QW90MjJLTUJ4WWZDV2luakxUSnJleStOYWJ4ZUFLN1pOTW1MeSt2WVV6OWF2RFdkCjFzeTUzcEc0MVBLK3RraEZGSGtDZ2NBWFhGRnNkcE1XLzNhSWFadmdqeTFrMXhiaEo2b09LSVkyTmZHNTVVeFMKQXoxMEREdVErT2czS053ZDlIaUdKa2NsRksxTDZvOGhKODBiYVRpVVBXTmZOY0E3bnQvNERWVXVoY3Q5VWpPKwpnZXlHVURxa2paTEFxblBqQVhLRVlBeDllc0x3UnU5UE1zdEJwMHVONjRzY0VCcmhaNE94Yk40SGdSNUhEK0dLCnRRcm83eCt3ZzMzeFhBNUxKZWY3U3JTRm9rS0d4eXVyNkVjc1pKK016TUJhbFh5blViOFpsRjNIdnBDREJYSFYKKzJFci82VDhPUFFoRTRXSXhxNUhsUHc9Ci0tLS0tRU5EIFBSSVZBVEUgS0VZLS0tLS0K
+  root-ca.pem: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUV1RENDQXlDZ0F3SUJBZ0lVYW92YWRFVnlxbkROYVorRmdrcFNxRUpUYTVBd0RRWUpLb1pJaHZjTkFRRUwKQlFBd1lqRUxNQWtHQTFVRUJoTUNURll4RXpBUkJnTlZCQW9NQ2xwaFltSnBlQ0JUU1VFeEd6QVpCZ05WQkFzTQpFa052Ym5SaGFXNWxjaUJsZUdGdGNHeGxjekVoTUI4R0ExVUVBd3dZV21GaVltbDRJRVJ2WTJ0bGNpQkZlR0Z0CmNHeGxJRU5CTUI0WERUSTJNVEF4TWpBd05EVXhNVm9YRFRRMk1UQXdOekF3TkRVeE1Wb3dZakVMTUFrR0ExVUUKQmhNQ1RGWXhFekFSQmdOVkJBb01DbHBoWW1KcGVDQlRTVUV4R3pBWkJnTlZCQXNNRWtOdmJuUmhhVzVsY2lCbAplR0Z0Y0d4bGN6RWhNQjhHQTFVRUF3d1lXbUZpWW1sNElFUnZZMnRsY2lCRmVHRnRjR3hsSUVOQk1JSUJvakFOCkJna3Foa2lHOXcwQkFRRUZBQU9DQVk4QU1JSUJpZ0tDQVlFQTdLcjRjQ0RpL2JJa3ZlNHNJUFlDU0F2c3RyMXYKaGFWMTZwUzFYZUV2SldyKzZDZjNaZWNzT3FnTFpNMFBtVjJuR3NoQmt4d2RLVkRESVgzSXIrdXU4Tmxkc3ljSgpxbHVNRnltQkxQU1VsaXB5aGtwS3p2ak1mQUEzVGNQMEZHbmFjUTNBbUdBR3ZsbmpoZW5pOCs2cEdtR21MWWVTCkZmZDRNNGpYOXppNVZTckV6WDBHMjRmcm5qQUx6aGlhVHk4T29LcE9tTWtqWHNoM2c3bVhBQ294U3Z3ZGg5VG0KZXNVUHRvNFcxT3JCY0x1TXZqbkZDeFc3M05vVVkyVHB4a3VtdXkwMmhqb2w0NVBGL3lCeUFFcy9YaHMxcW83MApUQVNJaStCQ3pBM0h6eGwzbkozVzZyUVYwMmpqOWxUakhvaXp3Tk50Uk9uR2QxYnRvL3dXaDZUR2t0ZVRQbVBzCmIxNGF4d0VlaExNNm8ralMwczdFN1N1OEpoRStZZjJMdWRpRG9GYTlaU3NaMGxPbXMrU0l6T1MxSUdBVlFXUjkKZVRrSUZOeUhJYVN6cG1MVDVCc1c4cWMwUy90cGFuRmlKajFqR21qVWdMblhKcHViZkpIOXcwWExnVFNkSlliRQovYzdzY2g0WjBYMjdyanoyZVNpN1d5cHpjNEVXSndPUmtRenRBZ01CQUFHalpqQmtNQjhHQTFVZEl3UVlNQmFBCkZIVjMyV0tTdzNKOTJZYXhLQzd6VTZOZU5VckJNQklHQTFVZEV3RUIvd1FJTUFZQkFmOENBUUF3RGdZRFZSMFAKQVFIL0JBUURBZ0VHTUIwR0ExVWREZ1FXQkJSMWQ5bGlrc055ZmRtR3NTZ3U4MU9qWGpWS3dUQU5CZ2txaGtpRwo5dzBCQVFzRkFBT0NBWUVBNmozWFpRK2ZVUFJwckxKR2MzRHJ3VThlUmhEOERkcjRsT3F0bURyczh0Wm44V0trClZkM0JBNXFKNUgwTTB5cVVjOEVuZytJS1NJZjQzVFpWTTJDZGJBVDNvUTh2b0pKNTZMMzRWVWczZk5OWnVhWlQKSjB6WVFNNUEvbDFNUWg5ZjF5T0NvMkxkZHRjeGJybzh5eUpJeUJkM1YrZU0wRTBYUFhUU2RnaUIvc3NSdjFaVApGYkpacXdHemdTNVdaYmJuS3hMbTBjK0d2YkJNUzdwUFRPNEREMVFWY0NyaVNQU2ZJYlF1WmJLMEN2TW1tdGMwCkFmaGV0M2RYSlNhV0JnWW1BMEplZWw5bGZjRVhJZXZ6cFJnWnRCZ0x5SWFrQ2NPY2VxMUZNRVpHaWRwUGFCME4KdFE2d1dyZGVCbUY2Z0trRmt4V2IzcXJ6VkdIaENMZUNYVy9jWWhzMElpRWUwQTh3YTI0OEtBa0NQdS80ZVNLUwpXZ3RGS1FuWEpCTzVpM09sNXd5R2k1dlYvdGwyajlGTjB4VU9GZEVJK3QvRmFTSXRqUmV1ZlRhTzBJZ2MvdGVZCnZrOUp6MFdFRDdlMUpldE1xTTlXTStXYUNlYmF0ajJnS0g5U1ViM3MyOXhEUXVpZUFtS3l5Qy9rcWNVblRxTU4KOWVGZE1pcytpWVhEWWRZUQotLS0tLUVORCBDRVJUSUZJQ0FURS0tLS0tCg==
 kind: Secret
 metadata:
   name: zabbix-mysql-client-tls-certs
