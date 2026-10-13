@@ -51,7 +51,7 @@ env:
 jobs:
   init_build:
     name: Initialize build
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     permissions:
       contents: read
     outputs:
@@ -162,7 +162,7 @@ jobs:
       fail-fast: false
       matrix:
         os: ${{ fromJson(needs.init_build.outputs.os) }}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     permissions:
       contents: read
       id-token: write
@@ -376,7 +376,7 @@ jobs:
       matrix:
         build: ${{ fromJson(needs.init_build.outputs.builders) }}
         os: ${{ fromJson(needs.init_build.outputs.os) }}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     permissions:
       contents: read
       id-token: write
@@ -541,7 +541,7 @@ jobs:
         build: ${{ fromJson(needs.init_build.outputs.components) }}
         os: ${{ fromJson(needs.init_build.outputs.os) }}
 
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     permissions:
       contents: read
       id-token: write
