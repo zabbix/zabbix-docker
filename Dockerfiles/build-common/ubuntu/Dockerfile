@@ -156,18 +156,18 @@ RUN --mount=type=cache,target=/root/.cache/go-build \
         conf="$5"; \
         outname="$6"; \
         workdir="/tmp/${name}-plugin-${version}"; \
-        rm -rf "$workdir"; \
+        rm -rf "$workdir" && \
         git -c advice.detachedHead=false clone "$repo" \
             --branch "$version" \
             --depth 1 \
             --single-branch \
-            "$workdir"; \
-        cd "$workdir"; \
-        make; \
-        strip "$binary" || true; \
-        mv "$binary" "${ZBX_OUTPUT_DIR}/agent2/sbin/zabbix-agent2-plugin/${outname}"; \
-        cp "$conf" "${ZBX_OUTPUT_DIR}/agent2/conf/zabbix_agent2.d/plugins.d/"; \
-        make clean || true; \
+            "$workdir" && \
+        cd "$workdir" && \
+        make && \
+        { strip "$binary" || true; } && \
+        mv "$binary" "${ZBX_OUTPUT_DIR}/agent2/sbin/zabbix-agent2-plugin/${outname}" && \
+        cp "$conf" "${ZBX_OUTPUT_DIR}/agent2/conf/zabbix_agent2.d/plugins.d/" && \
+        { make clean || true; }; \
     }; \
     build_plugin mongodb "${MONGODB_PLUGIN_SOURCES}" "${MONGODB_PLUGIN_VERSION}" \
         zabbix-agent2-plugin-mongodb mongodb.conf mongodb && \
