@@ -17,6 +17,7 @@ ARG ZBX_PRODUCT_REF=${ZBX_VERSION}
 ARG ZBX_PRODUCT_REVISION=unknown
 
 ENV TERM=xterm \
+    CHROME_CONFIG_HOME=/tmp/chromium-config \
     ZBX_VERSION=${ZBX_VERSION} \
     ZBX_SOURCES=${ZBX_SOURCES} \
     ZABBIX_USER_HOME_DIR=/var/lib/zabbix \
