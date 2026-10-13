@@ -87,15 +87,15 @@ This variable is port of MySQL server. By default, value is '3306'.
 These variables are used by Zabbix server to connect to Zabbix database. With the `_FILE` variables you can instead provide the path to a file which contains the user / the password instead. Without Docker Swarm or Kubernetes you also have to map the files. Those are exclusive so you can just provide one type - either `MYSQL_USER` or `MYSQL_USER_FILE`!
 
 ```console
-docker run --name some-zabbix-server-mysql -e DB_SERVER_HOST="some-mysql-server" -v ./.MYSQL_USER:/run/secrets/MYSQL_USER -e MYSQL_USER_FILE=/run/secrets/MYSQL_USER -v ./.MYSQL_PASSWORD:/run/secrets/MYSQL_PASSWORD -e MYSQL_PASSWORD_FILE=/var/run/secrets/MYSQL_PASSWORD -d zabbix/zabbix-server-mysql:tag
+docker run --name some-zabbix-server-mysql -e DB_SERVER_HOST="some-mysql-server" -v ./.MYSQL_USER:/run/secrets/MYSQL_USER -e MYSQL_USER_FILE=/run/secrets/MYSQL_USER -v ./.MYSQL_PASSWORD:/run/secrets/MYSQL_PASSWORD -e MYSQL_PASSWORD_FILE=/run/secrets/MYSQL_PASSWORD -d zabbix/zabbix-server-mysql:tag
 ```
 
-With Docker Swarm or Kubernetes this works with secrets. That way it is replicated in your cluster!
+With Docker Swarm, use secrets and deploy the container as a service:
 
 ```console
 printf "zabbix" | docker secret create MYSQL_USER -
 printf "zabbix" | docker secret create MYSQL_PASSWORD -
-docker run --name some-zabbix-server-mysql -e DB_SERVER_HOST="some-mysql-server" -e MYSQL_USER_FILE=/run/secrets/MYSQL_USER -e MYSQL_PASSWORD_FILE=/run/secrets/MYSQL_PASSWORD -d zabbix/zabbix-server-mysql:tag
+docker service create --name some-zabbix-server-mysql --secret MYSQL_USER --secret MYSQL_PASSWORD -e DB_SERVER_HOST="some-mysql-server" -e MYSQL_USER_FILE=/run/secrets/MYSQL_USER -e MYSQL_PASSWORD_FILE=/run/secrets/MYSQL_PASSWORD -d zabbix/zabbix-server-mysql:tag
 ```
 
 This method is also applicable for `MYSQL_ROOT_PASSWORD` with `MYSQL_ROOT_PASSWORD_FILE`.
@@ -122,7 +122,7 @@ The variable is used to specify debug level. By default, value is ``3``. It is `
 
 ### `ZBX_TIMEOUT`
 
-The variable is used to specify timeout for processing checks. By default, value is ``4``.
+The variable is used to specify timeout for processing checks. By default, value is ``3``.
 
 ### `ZBX_JAVAGATEWAY_ENABLE`
 

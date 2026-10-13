@@ -60,7 +60,7 @@ $ docker run --name some-zabbix-server --link some-zabbix-proxy-sqlite3:zabbix-p
 
 ## Connect to Zabbix server (Active proxy)
 
-This image can operate as Active proxy (`default` mode). Start your application container like this in order to link Zabbix proxy to Zabbix server containters:
+This image can operate as Active proxy (`default` mode). Start your application container like this in order to link Zabbix proxy to Zabbix server containers:
 
 ```console
 $ docker run --name some-zabbix-proxy-sqlite3 --link some-zabbix-server:zabbix-server -d zabbix/zabbix-proxy-sqlite3:latest

@@ -74,7 +74,7 @@ When you start the `zabbix-web-apache-mysql` image, you can adjust the configura
 
 ### `ZBX_SERVER_HOST`
 
-This variable is IP or DNS name of Zabbix server. By default, value is `zabbix-server`.
+This variable is IP or DNS name of Zabbix server. By default, the variable is not set and the web interface uses the address of the active Zabbix server node stored in the database (see `ZBX_NODEADDRESS` of Zabbix server image). Keep it unset for Zabbix server HA clusters; set it to always connect to one specific Zabbix server.
 
 ### `ZBX_SERVER_PORT`
 
@@ -93,15 +93,15 @@ This variable is port of MySQL server. By default, value is '3306'.
 These variables are used by Zabbix web-interface to connect to Zabbix database. With the `_FILE` variables you can instead provide the path to a file which contains the user / the password instead. Without Docker Swarm or Kubernetes you also have to map the files. Those are exclusive so you can just provide one type - either `MYSQL_USER` or `MYSQL_USER_FILE`!
 
 ```console
-docker run --name some-zabbix-web-apache-mysql -e DB_SERVER_HOST="some-mysql-server" -v ./.MYSQL_USER:/run/secrets/MYSQL_USER -e MYSQL_USER_FILE=/run/secrets/MYSQL_USER -v ./.MYSQL_PASSWORD:/run/secrets/MYSQL_PASSWORD -e MYSQL_PASSWORD_FILE=/var/run/secrets/MYSQL_PASSWORD -e PHP_TZ="some-timezone" -d zabbix/zabbix-web-apache-mysql:tag
+docker run --name some-zabbix-web-apache-mysql -e DB_SERVER_HOST="some-mysql-server" -v ./.MYSQL_USER:/run/secrets/MYSQL_USER -e MYSQL_USER_FILE=/run/secrets/MYSQL_USER -v ./.MYSQL_PASSWORD:/run/secrets/MYSQL_PASSWORD -e MYSQL_PASSWORD_FILE=/run/secrets/MYSQL_PASSWORD -e PHP_TZ="some-timezone" -d zabbix/zabbix-web-apache-mysql:tag
 ```
 
-With Docker Swarm or Kubernetes this works with secrets. That way it is replicated in your cluster!
+With Docker Swarm, use secrets and deploy the container as a service:
 
 ```console
 printf "zabbix" | docker secret create MYSQL_USER -
 printf "zabbix" | docker secret create MYSQL_PASSWORD -
-docker run --name some-zabbix-web-apache-mysql -e DB_SERVER_HOST="some-mysql-server" -e MYSQL_USER_FILE=/run/secrets/MYSQL_USER -e MYSQL_PASSWORD_FILE=/run/secrets/MYSQL_PASSWORD -e ZBX_SERVER_HOST="some-zabbix-server" -e PHP_TZ="some-timezone" -d zabbix/zabbix-web-apache-mysql:tag
+docker service create --name some-zabbix-web-apache-mysql --secret MYSQL_USER --secret MYSQL_PASSWORD -e DB_SERVER_HOST="some-mysql-server" -e MYSQL_USER_FILE=/run/secrets/MYSQL_USER -e MYSQL_PASSWORD_FILE=/run/secrets/MYSQL_PASSWORD -e ZBX_SERVER_HOST="some-zabbix-server" -e PHP_TZ="some-timezone" -d zabbix/zabbix-web-apache-mysql:tag
 ```
 
 By default, values for `MYSQL_USER` and `MYSQL_PASSWORD` are `zabbix`, `zabbix`.
