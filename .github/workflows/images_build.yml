@@ -350,17 +350,19 @@ jobs:
       - name: Image metadata
         env:
           CACHE_FILE_NAME: ${{ env.BASE_CACHE_FILE_NAME }}
-          METADATA: ${{ steps.docker_build.outputs.metadata }}
+          IMAGE_DIGEST: ${{ steps.docker_build.outputs.digest }}
+          IMAGE_NAME: ${{ fromJSON(steps.docker_build.outputs.metadata)['image.name'] }}
         run: |
+          jq -n --arg digest "$IMAGE_DIGEST" --arg name "$IMAGE_NAME" \
+              '{"containerimage.digest": $digest, "image.name": $name}' > "$CACHE_FILE_NAME"
+
           echo "::group::Image metadata"
-          echo "${METADATA}"
+          cat "$CACHE_FILE_NAME"
           echo "::endgroup::"
 
           echo "::group::Cache file name"
           echo "${CACHE_FILE_NAME}"
           echo "::endgroup::"
-
-          printf '%s' "${METADATA}" > "$CACHE_FILE_NAME"
 
       - name: Upload artifact metadata
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
@@ -515,17 +517,19 @@ jobs:
       - name: Image metadata
         env:
           CACHE_FILE_NAME: ${{ env.BUILD_CACHE_FILE_NAME }}
-          METADATA: ${{ steps.docker_build.outputs.metadata }}
+          IMAGE_DIGEST: ${{ steps.docker_build.outputs.digest }}
+          IMAGE_NAME: ${{ fromJSON(steps.docker_build.outputs.metadata)['image.name'] }}
         run: |
+          jq -n --arg digest "$IMAGE_DIGEST" --arg name "$IMAGE_NAME" \
+              '{"containerimage.digest": $digest, "image.name": $name}' > "$CACHE_FILE_NAME"
+
           echo "::group::Image metadata"
-          echo "${METADATA}"
+          cat "$CACHE_FILE_NAME"
           echo "::endgroup::"
 
           echo "::group::Cache file name"
           echo "${CACHE_FILE_NAME}"
           echo "::endgroup::"
-
-          printf '%s' "${METADATA}" > "$CACHE_FILE_NAME"
 
       - name: Upload artifact metadata
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
