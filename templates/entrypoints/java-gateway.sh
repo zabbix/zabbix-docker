@@ -23,6 +23,7 @@ run_service() {
     local -a java_opts=(
         -server
         "-Dlogback.configurationFile=${ZBX_GATEWAY_CONFIG}"
+        "$@"
     )
 
     if [[ -n "${ZBX_JAVA_OPTS:-}" ]]; then
@@ -53,7 +54,7 @@ run_service() {
 }
 
 if [[ $# -eq 0 || "${1:-}" == -* ]]; then
-    run_service
+    run_service "$@"
 fi
 
 exec "$@"
