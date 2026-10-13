@@ -9,11 +9,11 @@
 prepare_web_server() {
     if [ "$(id -u)" -eq 0 ]; then
         APACHE_RUN_USER="${DAEMON_USER}"
-        export APACHE_RUN_USER
-    else
-        APACHE_RUN_USER="$(id -un)"
-        export APACHE_RUN_USER
+    elif ! APACHE_RUN_USER="$(id -un 2>/dev/null)"; then
+        # Arbitrary UID without a passwd entry (e.g. OpenShift); Apache accepts "#uid"
+        APACHE_RUN_USER="#$(id -u)"
     fi
+    export APACHE_RUN_USER
     APACHE_RUN_GROUP="${DAEMON_GROUP}"
     export APACHE_RUN_GROUP
 
