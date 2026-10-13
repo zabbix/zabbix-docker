@@ -25,6 +25,20 @@ proxy_config() {
         update_config_var "${ZBX_PROXY_CONFIG}" "HostnameItem" "${ZBX_HOSTNAMEITEM:-}"
     fi
 
+    if [ -n "${ZBX_VAULT:-}" ] && [ -n "${ZBX_VAULTURL:-}" ]; then
+        update_config_var "${ZBX_PROXY_CONFIG}" "Vault" "${ZBX_VAULT:-}"
+        update_config_var "${ZBX_PROXY_CONFIG}" "VaultTLSCertFile" "${ZBX_VAULTTLSCERTFILE:-}"
+        update_config_var "${ZBX_PROXY_CONFIG}" "VaultTLSKeyFile" "${ZBX_VAULTTLSKEYFILE:-}"
+        update_config_var "${ZBX_PROXY_CONFIG}" "VaultPrefix" "${ZBX_VAULTPREFIX:-}"
+        update_config_var "${ZBX_PROXY_CONFIG}" "VaultURL" "${ZBX_VAULTURL:-}"
+    else
+        update_config_var "${ZBX_PROXY_CONFIG}" "Vault"
+        update_config_var "${ZBX_PROXY_CONFIG}" "VaultTLSCertFile"
+        update_config_var "${ZBX_PROXY_CONFIG}" "VaultTLSKeyFile"
+        update_config_var "${ZBX_PROXY_CONFIG}" "VaultPrefix"
+        update_config_var "${ZBX_PROXY_CONFIG}" "VaultURL"
+    fi
+
     update_config_var "${ZBX_PROXY_CONFIG}" "ListenIP" "${ZBX_LISTENIP:-}"
     update_config_var "${ZBX_PROXY_CONFIG}" "ListenPort" "${ZBX_LISTENPORT:-}"
     update_config_var "${ZBX_PROXY_CONFIG}" "ListenBacklog" "${ZBX_LISTENBACKLOG:-}"

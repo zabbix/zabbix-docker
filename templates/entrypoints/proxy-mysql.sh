@@ -38,22 +38,12 @@ update_config() {
     update_config_var "${ZBX_PROXY_CONFIG}" "DBName" "${DB_SERVER_DBNAME:-}"
     update_config_var "${ZBX_PROXY_CONFIG}" "DBSchema" "${DB_SERVER_SCHEMA:-}"
 
-    if [ -n "${ZBX_VAULTDBPATH:-}" ] && [ -n "${ZBX_VAULTURL:-}" ]; then
-        update_config_var "${ZBX_PROXY_CONFIG}" "Vault" "${ZBX_VAULT:-}"
+    if [ -n "${ZBX_VAULT:-}" ] && [ -n "${ZBX_VAULTURL:-}" ] && [ -n "${ZBX_VAULTDBPATH:-}" ]; then
         update_config_var "${ZBX_PROXY_CONFIG}" "VaultDBPath" "${ZBX_VAULTDBPATH:-}"
-        update_config_var "${ZBX_PROXY_CONFIG}" "VaultTLSCertFile" "${ZBX_VAULTTLSCERTFILE:-}"
-        update_config_var "${ZBX_PROXY_CONFIG}" "VaultTLSKeyFile" "${ZBX_VAULTTLSKEYFILE:-}"
-        update_config_var "${ZBX_PROXY_CONFIG}" "VaultPrefix" "${ZBX_VAULTPREFIX:-}"
-        update_config_var "${ZBX_PROXY_CONFIG}" "VaultURL" "${ZBX_VAULTURL:-}"
         update_config_var "${ZBX_PROXY_CONFIG}" "DBUser"
         update_config_var "${ZBX_PROXY_CONFIG}" "DBPassword"
     else
-        update_config_var "${ZBX_PROXY_CONFIG}" "Vault"
         update_config_var "${ZBX_PROXY_CONFIG}" "VaultDBPath"
-        update_config_var "${ZBX_PROXY_CONFIG}" "VaultTLSCertFile"
-        update_config_var "${ZBX_PROXY_CONFIG}" "VaultTLSKeyFile"
-        update_config_var "${ZBX_PROXY_CONFIG}" "VaultPrefix"
-        update_config_var "${ZBX_PROXY_CONFIG}" "VaultURL"
         update_config_var "${ZBX_PROXY_CONFIG}" "DBUser" "${DB_SERVER_ZBX_USER:-}"
         update_config_var "${ZBX_PROXY_CONFIG}" "DBPassword" "${DB_SERVER_ZBX_PASS:-}"
     fi
