@@ -14,6 +14,7 @@ on:
       - '.github/workflows/images_build.yml'
       - '.github/actions/*'
       - 'templates/entrypoints/**'
+      - 'templates/patches/**'
   schedule:
     - cron:  '50 02 * * *'
   workflow_dispatch:
@@ -488,6 +489,7 @@ jobs:
           build_contexts: |
             sources=./sources/
             config_templates=./templates/config/
+            patches=./templates/patches/
           build_args: |
             BUILD_BASE_IMAGE=${{ steps.base_build.outputs.base_build_image }}
             BUILD_JOBS=${{ steps.jobs.outputs.jobs }}

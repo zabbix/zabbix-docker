@@ -83,6 +83,7 @@ build_image() {
         -t "$image_tag" \
         --build-context sources="../../../sources" \
         --build-context config_templates="../../../templates/config" \
+        --build-context patches="../../../templates/patches" \
         --build-context entrypoints="../../../templates/entrypoints" \
         "${build_args[@]}" \
         -f Dockerfile .
