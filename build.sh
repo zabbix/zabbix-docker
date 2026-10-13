@@ -67,6 +67,17 @@ build_image() {
     local runtime="${1:-}"
     local image_tag="${2:-}"
     local vcs_ref="${3:-}"
+    local version="${4:-local}"
+    local -a build_args=(
+        --build-arg "BUILD_DATE=$(date -u '+%Y-%m-%dT%H:%M:%SZ')"
+    )
+
+    if [ "$version" != "local" ]; then
+        build_args+=(
+            --build-arg "ZBX_VERSION=$version"
+            --build-arg "ZBX_PRODUCT_REVISION=$vcs_ref"
+        )
+    fi
 
     DOCKER_BUILDKIT=1 "$runtime" build \
         -t "$image_tag" \
@@ -74,8 +85,7 @@ build_image() {
         --build-context config_templates="../../../templates/config" \
         --build-context patches="../../../templates/patches" \
         --build-context entrypoints="../../../templates/entrypoints" \
-        --build-arg "VCS_REF=$vcs_ref" \
-        --build-arg "BUILD_DATE=$(date -u '+%Y-%m-%dT%H:%M:%SZ')" \
+        "${build_args[@]}" \
         -f Dockerfile .
 }
 
@@ -96,7 +106,7 @@ main() {
     image_name="zabbix-${app_component}:${os}-${vcs_ref}"
 
     info "Building image '$image_name' using $runtime"
-    build_image "$runtime" "$image_name" "$vcs_ref"
+    build_image "$runtime" "$image_name" "$vcs_ref" "$version"
 }
 
 main "$@"
