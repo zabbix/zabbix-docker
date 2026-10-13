@@ -38,7 +38,7 @@ prepare_php_config() {
     : "${ZBX_GUI_ACCESS_IP_RANGE:=['127.0.0.1']}"
     : "${ZBX_GUI_WARNING_MSG:=Zabbix is under maintenance.}"
 
-    : "${ZBX_MAXEXECUTIONTIME:=600}"
+    : "${ZBX_MAXEXECUTIONTIME:=300}"
     : "${ZBX_MEMORYLIMIT:=128M}"
     : "${ZBX_POSTMAXSIZE:=16M}"
     : "${ZBX_UPLOADMAXFILESIZE:=2M}"
@@ -66,10 +66,9 @@ prepare_php_config() {
     export DB_SERVER_USER="${DB_SERVER_ZBX_USER:-}"
     export DB_SERVER_PASS="${DB_SERVER_ZBX_PASS:-}"
 
-    : "${ZBX_SERVER_HOST=zabbix-server}"
     : "${ZBX_SERVER_PORT=10051}"
 
-    export ZBX_SERVER_HOST="${ZBX_SERVER_HOST}"
+    [ -n "${ZBX_SERVER_HOST:-}" ] && export ZBX_SERVER_HOST
     export ZBX_SERVER_PORT="${ZBX_SERVER_PORT}"
     export ZBX_SERVER_NAME="${ZBX_SERVER_NAME:-}"
 
