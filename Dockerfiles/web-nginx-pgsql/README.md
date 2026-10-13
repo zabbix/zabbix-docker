@@ -74,7 +74,7 @@ When you start the `zabbix-web-nginx-pgsql` image, you can adjust the configurat
 
 ### `ZBX_SERVER_HOST`
 
-This variable is IP or DNS name of Zabbix server. By default, value is `zabbix-server`.
+This variable is IP or DNS name of Zabbix server. By default, the variable is not set and the web interface uses the address of the active Zabbix server node stored in the database (see `ZBX_NODEADDRESS` of Zabbix server image). Keep it unset for Zabbix server HA clusters; set it to always connect to one specific Zabbix server.
 
 ### `ZBX_SERVER_PORT`
 
@@ -93,15 +93,15 @@ This variable is port of PostgreSQL server. By default, value is '5432'.
 These variables are used by Zabbix web interface to connect to Zabbix database. With the `_FILE` variables you can instead provide the path to a file which contains the user / the password instead. Without Docker Swarm or Kubernetes you also have to map the files. Those are exclusive so you can just provide one type - either `POSTGRES_USER` or `POSTGRES_USER_FILE`!
 
 ```console
-docker run --name some-zabbix-web-nginx-pgsql -e DB_SERVER_HOST="some-postgres-server" -v ./.POSTGRES_USER:/run/secrets/POSTGRES_USER -e POSTGRES_USER_FILE=/run/secrets/POSTGRES_USER -v ./.POSTGRES_PASSWORD:/run/secrets/POSTGRES_PASSWORD -e POSTGRES_PASSWORD_FILE=/var/run/secrets/POSTGRES_PASSWORD -e ZBX_SERVER_HOST="some-zabbix-server" -e PHP_TZ="some-timezone" -d zabbix/zabbix-web-nginx-pgsql:tag
+docker run --name some-zabbix-web-nginx-pgsql -e DB_SERVER_HOST="some-postgres-server" -v ./.POSTGRES_USER:/run/secrets/POSTGRES_USER -e POSTGRES_USER_FILE=/run/secrets/POSTGRES_USER -v ./.POSTGRES_PASSWORD:/run/secrets/POSTGRES_PASSWORD -e POSTGRES_PASSWORD_FILE=/run/secrets/POSTGRES_PASSWORD -e ZBX_SERVER_HOST="some-zabbix-server" -e PHP_TZ="some-timezone" -d zabbix/zabbix-web-nginx-pgsql:tag
 ```
 
-With Docker Swarm or Kubernetes this works with secrets. That way it is replicated in your cluster!
+With Docker Swarm, use secrets and deploy the container as a service:
 
 ```console
 printf "zabbix" | docker secret create POSTGRES_USER -
 printf "zabbix" | docker secret create POSTGRES_PASSWORD -
-docker run --name some-zabbix-web-nginx-pgsql -e DB_SERVER_HOST="some-postgres-server" -e POSTGRES_USER_FILE=/run/secrets/POSTGRES_USER -e POSTGRES_PASSWORD_FILE=/run/secrets/POSTGRES_PASSWORD -e ZBX_SERVER_HOST="some-zabbix-server" -e PHP_TZ="some-timezone" -d zabbix/zabbix-web-nginx-pgsql:tag
+docker service create --name some-zabbix-web-nginx-pgsql --secret POSTGRES_USER --secret POSTGRES_PASSWORD -e DB_SERVER_HOST="some-postgres-server" -e POSTGRES_USER_FILE=/run/secrets/POSTGRES_USER -e POSTGRES_PASSWORD_FILE=/run/secrets/POSTGRES_PASSWORD -e ZBX_SERVER_HOST="some-zabbix-server" -e PHP_TZ="some-timezone" -d zabbix/zabbix-web-nginx-pgsql:tag
 ```
 
 By default, values for `POSTGRES_USER` and `POSTGRES_PASSWORD` are `zabbix`, `zabbix`.

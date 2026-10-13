@@ -86,15 +86,15 @@ This variable is port of PostgreSQL server. By default, value is '5432'.
 These variables are used by Zabbix server to connect to Zabbix database. With the `_FILE` variables you can instead provide the path to a file which contains the user / the password instead. Without Docker Swarm or Kubernetes you also have to map the files. Those are exclusive so you can just provide one type - either `POSTGRES_USER` or `POSTGRES_USER_FILE`!
 
 ```console
-docker run --name some-zabbix-server-pgsql -e DB_SERVER_HOST="some-postgres-server" -v ./.POSTGRES_USER:/run/secrets/POSTGRES_USER -e POSTGRES_USER_FILE=/run/secrets/POSTGRES_USER -v ./.POSTGRES_PASSWORD:/run/secrets/POSTGRES_PASSWORD -e POSTGRES_PASSWORD_FILE=/var/run/secrets/POSTGRES_PASSWORD --init -d zabbix/zabbix-server-pgsql:tag
+docker run --name some-zabbix-server-pgsql -e DB_SERVER_HOST="some-postgres-server" -v ./.POSTGRES_USER:/run/secrets/POSTGRES_USER -e POSTGRES_USER_FILE=/run/secrets/POSTGRES_USER -v ./.POSTGRES_PASSWORD:/run/secrets/POSTGRES_PASSWORD -e POSTGRES_PASSWORD_FILE=/run/secrets/POSTGRES_PASSWORD --init -d zabbix/zabbix-server-pgsql:tag
 ```
 
-With Docker Swarm or Kubernetes this works with secrets. That way it is replicated in your cluster!
+With Docker Swarm, use secrets and deploy the container as a service:
 
 ```console
 printf "zabbix" | docker secret create POSTGRES_USER -
 printf "zabbix" | docker secret create POSTGRES_PASSWORD -
-docker run --name some-zabbix-server-pgsql -e DB_SERVER_HOST="some-postgres-server" -e POSTGRES_USER_FILE=/run/secrets/POSTGRES_USER -e POSTGRES_PASSWORD_FILE=/run/secrets/POSTGRES_PASSWORD --init -d zabbix/zabbix-server-pgsql:tag
+docker service create --name some-zabbix-server-pgsql --secret POSTGRES_USER --secret POSTGRES_PASSWORD -e DB_SERVER_HOST="some-postgres-server" -e POSTGRES_USER_FILE=/run/secrets/POSTGRES_USER -e POSTGRES_PASSWORD_FILE=/run/secrets/POSTGRES_PASSWORD --init -d zabbix/zabbix-server-pgsql:tag
 ```
 
 By default, values for `POSTGRES_USER` and `POSTGRES_PASSWORD` are `zabbix`, `zabbix`.
@@ -317,10 +317,6 @@ Documentation for this image is stored in the [`server-pgsql/` directory](https:
 ## Issues
 
 If you have any problems with or questions about this image, please contact us through a [GitHub issue](https://github.com/zabbix/zabbix-docker/issues).
-
-### Known issues
-
-Zabbix server does not support Jabber notifications on Alpine Linux because of `iksemel` package is in testing repository and not available in stable repository.
 
 ## Contributing
 
