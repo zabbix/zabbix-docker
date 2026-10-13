@@ -55,7 +55,7 @@ env:
 jobs:
   init_build:
     name: Initialize build
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     permissions:
       contents: read
     defaults:

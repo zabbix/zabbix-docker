@@ -33,7 +33,7 @@ permissions:
 jobs:
   init:
     name: Initialize workflow
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     permissions:
       contents: read
     outputs:
@@ -101,7 +101,7 @@ jobs:
 
   update-description:
     name: Update description (${{ matrix.component }})
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     needs: init
     permissions:
       contents: read
