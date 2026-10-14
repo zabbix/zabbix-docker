@@ -14,6 +14,7 @@
         {
             "name": "jquery",
             "purl": "pkg:npm/jquery",
+            "cpe": "cpe:2.3:a:jquery:jquery:{version}:*:*:*:*:*:*:*",
             "licenses": ["MIT"],
             "file": "ui/js/vendors/jQuery/jquery.js",
             "version_pattern": "jQuery JavaScript Library v(?<version>[0-9.]+)"
@@ -21,6 +22,7 @@
         {
             "name": "jquery-ui",
             "purl": "pkg:npm/jquery-ui",
+            "cpe": "cpe:2.3:a:jqueryui:jquery_ui:{version}:*:*:*:*:*:*:*",
             "licenses": ["MIT"],
             "file": "ui/js/vendors/jQueryUI/jquery-ui.js",
             "version_pattern": "jQuery UI - v(?<version>[0-9.]+)"
@@ -43,13 +45,15 @@
             "name": "leaflet.markercluster",
             "purl": "pkg:npm/leaflet.markercluster",
             "licenses": ["MIT"],
-            "file": "ui/js/vendors/Leaflet.markercluster/leaflet.markercluster.js"
+            "file": "ui/js/vendors/Leaflet.markercluster/leaflet.markercluster.js",
+            "version": "1.1.0"
         },
         {
             "name": "qrcodejs",
             "purl": "pkg:github/davidshimjs/qrcodejs",
             "licenses": ["MIT"],
-            "file": "ui/js/vendors/qrcode/qrcode.js"
+            "file": "ui/js/vendors/qrcode/qrcode.js",
+            "version": "11d1bdb"
         },
         {
             "name": "noto-cjk",
