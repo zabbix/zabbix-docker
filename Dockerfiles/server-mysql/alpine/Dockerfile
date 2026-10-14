@@ -62,6 +62,7 @@ COPY --from=builder /tmp/zabbix-${ZBX_VERSION}-output/server/sbin/zabbix_server 
 COPY --from=builder /tmp/zabbix-${ZBX_VERSION}-output/general/bin/zabbix_get /usr/bin/
 COPY --from=builder /tmp/zabbix-${ZBX_VERSION}-output/general/bin/zabbix_sender /usr/bin/
 COPY --from=builder /tmp/zabbix-${ZBX_VERSION}-output/server/conf/ ${ZABBIX_CONF_DIR}/
+COPY --from=builder /tmp/zabbix-${ZBX_VERSION}-output/server/sbom/ /usr/share/doc/zabbix/sbom/
 COPY --from=builder /tmp/zabbix-${ZBX_VERSION}-output/server/database/mysql/create.sql.gz /usr/share/doc/zabbix-server-mysql/create.sql.gz
 COPY --from=builder /tmp/zabbix-${ZBX_VERSION}-output/server/database/clickhouse/ /usr/share/doc/zabbix-server-mysql/clickhouse/
 

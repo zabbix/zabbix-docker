@@ -203,3 +203,6 @@ RUN --mount=type=cache,target=/root/.cache/go-build \
     cp "/tmp/mcp-server-${ZBX_VERSION}/zabbix_mcp_server.conf" "${ZBX_OUTPUT_DIR}/mcp_server/conf/zabbix_mcp_server.conf.dist" && \
     cp -a /tmp/conf/mcp_server/. "${ZBX_OUTPUT_DIR}/mcp_server/conf/" && \
     make clean
+
+RUN --mount=from=sbom,target=/tmp/sbom,ro \
+    sh /tmp/sbom/sbom.sh "${ZBX_SOURCES_DIR}" "${ZBX_VERSION}" "${ZBX_OUTPUT_DIR}"

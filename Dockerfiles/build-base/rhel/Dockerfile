@@ -51,6 +51,7 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             java-21-openjdk-devel \
             gettext \
             git \
+            jq \
             patch \
             c-ares-devel \
             grpc-devel \

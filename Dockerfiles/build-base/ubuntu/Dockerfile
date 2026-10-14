@@ -41,6 +41,7 @@ RUN --mount=type=cache,target=/var/cache/apt/,sharing=locked \
             openjdk-21-jdk-headless \
             gettext \
             git \
+            jq \
             patch \
             protobuf-compiler-grpc \
             unzip \

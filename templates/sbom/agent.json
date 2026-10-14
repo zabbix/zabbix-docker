@@ -1,0 +1,39 @@
+{
+    "component": {
+        "name": "zabbix-agent",
+        "description": "Zabbix agent",
+        "licenses": ["AGPL-3.0-only"],
+        "purl": "pkg:generic/zabbix/zabbix-agent@{version}",
+        "cpe": "cpe:2.3:a:zabbix:zabbix:{version}:*:*:*:*:*:*:*"
+    },
+    "vendored": [
+        {
+            "name": "aladdin-md5",
+            "purl": "pkg:generic/aladdin-md5",
+            "licenses": ["Zlib"],
+            "file": "src/libs/zbxhash/md5.c",
+            "version": "2002-04-13"
+        },
+        {
+            "name": "drepper-sha-crypt",
+            "purl": "pkg:generic/drepper-sha-crypt",
+            "licenses": [{"name": "Public Domain"}],
+            "file": "src/libs/zbxhash/sha512crypt.c",
+            "version": "0.6"
+        },
+        {
+            "name": "gnu-getopt",
+            "purl": "pkg:generic/gnu-getopt",
+            "licenses": ["GPL-2.0-or-later"],
+            "file": "src/libs/zbxgetopt/getopt.c",
+            "version": "1993"
+        },
+        {
+            "name": "tiny-aes-c",
+            "purl": "pkg:github/kokke/tiny-aes-c",
+            "licenses": ["Unlicense"],
+            "file": "src/libs/zbxcrypto/aes.c",
+            "version": "c3b7532"
+        }
+    ]
+}

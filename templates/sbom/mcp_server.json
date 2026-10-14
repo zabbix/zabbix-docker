@@ -1,0 +1,9 @@
+{
+    "component": {
+        "name": "zabbix-mcp-server",
+        "description": "Zabbix MCP server",
+        "licenses": ["AGPL-3.0-only"],
+        "purl": "pkg:generic/zabbix/zabbix-mcp-server@{version}",
+        "cpe": "cpe:2.3:a:zabbix:zabbix:{version}:*:*:*:*:*:*:*"
+    }
+}

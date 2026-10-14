@@ -70,6 +70,7 @@ LABEL org.opencontainers.image.authors="Alexey Pustovalov <alexey.pustovalov@zab
 
 COPY --from=entrypoint-builder /tmp/zabbix-${ZBX_VERSION}/ui ${ZABBIX_WWW_ROOT}/
 COPY --from=entrypoint-builder /tmp/zabbix-${ZBX_VERSION}-output/web/conf ${ZABBIX_CONF_DIR}/web/
+COPY --from=entrypoint-builder /tmp/zabbix-${ZBX_VERSION}-output/web/sbom/ /usr/share/doc/zabbix/sbom/
 COPY conf/etc/ /etc/
 
 RUN set -eux && \

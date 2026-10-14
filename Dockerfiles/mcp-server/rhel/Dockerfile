@@ -60,6 +60,7 @@ LABEL description="Zabbix MCP server speaks the Model Context Protocol (MCP) on 
 
 COPY --from=builder /tmp/zabbix-${ZBX_VERSION}-output/mcp_server/sbin/zabbix_mcp_server /usr/sbin/zabbix_mcp_server
 COPY --from=builder /tmp/zabbix-${ZBX_VERSION}-output/mcp_server/conf/ ${ZABBIX_CONF_DIR}/
+COPY --from=builder /tmp/zabbix-${ZBX_VERSION}-output/mcp_server/sbom/ /usr/share/doc/zabbix/sbom/
 COPY --chmod=0755 --from=entrypoint-builder /tmp/docker-entrypoint /usr/bin/docker-entrypoint
 COPY --from=entrypoints /licenses/AGPL-v3.0.txt /licenses/go-THIRD-PARTY-NOTICES.txt /licenses/
 
