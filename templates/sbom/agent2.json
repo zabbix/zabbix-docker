@@ -1,0 +1,9 @@
+{
+    "component": {
+        "name": "zabbix-agent2",
+        "description": "Zabbix agent 2",
+        "licenses": ["AGPL-3.0-only"],
+        "purl": "pkg:generic/zabbix/zabbix-agent2@{version}",
+        "cpe": "cpe:2.3:a:zabbix:zabbix:{version}:*:*:*:*:*:*:*"
+    }
+}

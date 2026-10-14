@@ -1,0 +1,9 @@
+{
+    "component": {
+        "name": "zabbix-java-gateway",
+        "description": "Zabbix Java gateway",
+        "licenses": ["AGPL-3.0-only"],
+        "purl": "pkg:generic/zabbix/zabbix-java-gateway@{version}",
+        "cpe": "cpe:2.3:a:zabbix:zabbix:{version}:*:*:*:*:*:*:*"
+    }
+}

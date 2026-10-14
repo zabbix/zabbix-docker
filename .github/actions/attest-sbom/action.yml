@@ -1,0 +1,40 @@
+name: Attest image SBOM
+description: Generate image SBOM including SBOM files shipped inside the image and push its attestation
+
+inputs:
+  subject_name:
+    required: true
+  subject_digest:
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Install Syft
+      id: syft
+      uses: anchore/sbom-action/download-syft@66cbf4bc1f1c0d2edc94016e65bc221b6bb0ad6c # v0.24.3
+      with:
+        syft-version: v1.54.0
+
+    - name: Generate image SBOM
+      shell: bash
+      env:
+        SYFT: ${{ steps.syft.outputs.cmd }}
+        SYFT_CHECK_FOR_APP_UPDATE: false
+        IMAGE: ${{ inputs.subject_name }}
+        DIGEST: ${{ inputs.subject_digest }}
+        SBOM_FILE: ${{ runner.temp }}/sbom.cdx.json
+      run: |
+        "$SYFT" "registry:${IMAGE}@${DIGEST}" \
+            --platform linux/amd64 \
+            --select-catalogers +sbom-cataloger \
+            --source-name "${IMAGE}" \
+            -o "cyclonedx-json=${SBOM_FILE}"
+
+    - name: Attest image SBOM
+      uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4.2.2
+      with:
+        subject-name: ${{ inputs.subject_name }}
+        subject-digest: ${{ inputs.subject_digest }}
+        sbom-path: ${{ runner.temp }}/sbom.cdx.json
+        push-to-registry: true

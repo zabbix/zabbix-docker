@@ -50,6 +50,7 @@ COPY --from=builder /tmp/zabbix-${ZBX_VERSION}-output/server/sbin/zabbix_server 
 COPY --from=builder /tmp/zabbix-${ZBX_VERSION}-output/general/bin/zabbix_get /usr/bin/
 COPY --from=builder /tmp/zabbix-${ZBX_VERSION}-output/general/bin/zabbix_sender /usr/bin/
 COPY --from=builder /tmp/zabbix-${ZBX_VERSION}-output/server/conf/ ${ZABBIX_CONF_DIR}/
+COPY --from=builder /tmp/zabbix-${ZBX_VERSION}-output/server/sbom/ /usr/share/doc/zabbix/sbom/
 COPY --from=builder /tmp/zabbix-${ZBX_VERSION}-output/server/database/postgresql/ /usr/share/doc/zabbix-server-postgresql/
 
 RUN --mount=type=cache,target=/var/cache/apt/,sharing=locked \

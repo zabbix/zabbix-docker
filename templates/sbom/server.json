@@ -1,0 +1,18 @@
+{
+    "component": {
+        "name": "zabbix-server",
+        "description": "Zabbix server",
+        "licenses": ["AGPL-3.0-only"],
+        "purl": "pkg:generic/zabbix/zabbix-server@{version}",
+        "cpe": "cpe:2.3:a:zabbix:zabbix:{version}:*:*:*:*:*:*:*"
+    },
+    "vendored": [
+        {
+            "name": "duktape",
+            "purl": "pkg:github/svaarala/duktape",
+            "licenses": ["MIT"],
+            "file": "src/libs/zbxembed/duktape.h",
+            "version_pattern": "DUK_GIT_DESCRIBE\\s+\"v(?<version>[0-9.]+)\""
+        }
+    ]
+}

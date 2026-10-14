@@ -184,6 +184,14 @@ RUN set -eux && \
     rm -f ui/assets/fonts/DejaVuSans.ttf && \
     chmod o+r ui/assets/fonts/*
 
+RUN --mount=from=sbom,target=/tmp/sbom,ro \
+    set -eux && \
+    for descriptor in /tmp/sbom/*.json; do \
+        component="$(basename "${descriptor}" .json)"; \
+        [ -d "${ZBX_OUTPUT_DIR}/${component}" ] || continue; \
+        sh /tmp/sbom/sbom.sh "${descriptor}" "${ZBX_SOURCES_DIR}" "${ZBX_VERSION}" "${ZBX_OUTPUT_DIR}/${component}/sbom"; \
+    done
+
 RUN --mount=type=cache,target=/root/.cache/go-build \
     --mount=type=cache,target=/root/go/pkg/mod \
     set -eux && \

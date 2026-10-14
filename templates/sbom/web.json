@@ -1,0 +1,62 @@
+{
+    "component": {
+        "name": "zabbix-frontend",
+        "description": "Zabbix web interface",
+        "licenses": ["AGPL-3.0-only"],
+        "purl": "pkg:generic/zabbix/zabbix-frontend@{version}",
+        "cpe": "cpe:2.3:a:zabbix:zabbix:{version}:*:*:*:*:*:*:*"
+    },
+    "composer": {
+        "installed": "ui/vendor/composer/installed.json",
+        "manifest": "ui/composer.json"
+    },
+    "vendored": [
+        {
+            "name": "jquery",
+            "purl": "pkg:npm/jquery",
+            "licenses": ["MIT"],
+            "file": "ui/js/vendors/jQuery/jquery.js",
+            "version_pattern": "jQuery JavaScript Library v(?<version>[0-9.]+)"
+        },
+        {
+            "name": "jquery-ui",
+            "purl": "pkg:npm/jquery-ui",
+            "licenses": ["MIT"],
+            "file": "ui/js/vendors/jQueryUI/jquery-ui.js",
+            "version_pattern": "jQuery UI - v(?<version>[0-9.]+)"
+        },
+        {
+            "name": "d3",
+            "purl": "pkg:npm/d3",
+            "licenses": ["ISC"],
+            "file": "ui/js/vendors/D3/d3.js",
+            "version_pattern": "d3js\\.org v(?<version>[0-9.]+)"
+        },
+        {
+            "name": "leaflet",
+            "purl": "pkg:npm/leaflet",
+            "licenses": ["BSD-2-Clause"],
+            "file": "ui/js/vendors/Leaflet/leaflet.js",
+            "version_pattern": "Leaflet (?<version>[0-9.]+),"
+        },
+        {
+            "name": "leaflet.markercluster",
+            "purl": "pkg:npm/leaflet.markercluster",
+            "licenses": ["MIT"],
+            "file": "ui/js/vendors/Leaflet.markercluster/leaflet.markercluster.js"
+        },
+        {
+            "name": "qrcodejs",
+            "purl": "pkg:github/davidshimjs/qrcodejs",
+            "licenses": ["MIT"],
+            "file": "ui/js/vendors/qrcode/qrcode.js"
+        },
+        {
+            "name": "noto-cjk",
+            "type": "file",
+            "purl": "pkg:github/notofonts/noto-cjk",
+            "licenses": ["OFL-1.1"],
+            "file": "ui/assets/fonts/NotoSansCJKjp-Regular.otf"
+        }
+    ]
+}

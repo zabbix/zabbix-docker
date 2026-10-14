@@ -160,6 +160,7 @@ target "_builder_common" {
   contexts = {
     config_templates = "templates/config"
     patches          = "templates/patches"
+    sbom             = "templates/sbom"
     sources          = "sources"
   }
 

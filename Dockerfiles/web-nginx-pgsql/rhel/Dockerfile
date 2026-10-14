@@ -71,6 +71,7 @@ LABEL description="Zabbix web-interface based on Nginx web server with PostgreSQ
 COPY --from=entrypoints /licenses/AGPL-v3.0.txt /licenses/
 COPY --from=clean_builder /tmp/zabbix-${ZBX_VERSION}/ui ${ZABBIX_WWW_ROOT}/
 COPY --from=clean_builder /tmp/zabbix-${ZBX_VERSION}-output/web/conf ${ZABBIX_CONF_DIR}/web/
+COPY --from=clean_builder /tmp/zabbix-${ZBX_VERSION}-output/web/sbom/ /usr/share/doc/zabbix/sbom/
 COPY conf/etc/ /etc/
 
 RUN --mount=type=tmpfs,target=/var/lib/dnf/ \

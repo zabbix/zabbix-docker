@@ -39,6 +39,7 @@ RUN set -eux && \
             openjdk21-jre-headless \
             gettext \
             git \
+            jq \
             patch \
             c-ares-dev \
             curl-dev \
