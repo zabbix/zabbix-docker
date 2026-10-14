@@ -612,6 +612,7 @@ jobs:
             r12.c.lencr.org:80
             registry-1.docker.io:443
             rekor.sigstore.dev:443
+            release-assets.githubusercontent.com:443
             timestamp.sigstore.dev:443
             tuf-repo-cdn.sigstore.dev:443
             x1.c.lencr.org:80
@@ -734,5 +735,13 @@ jobs:
       - name: Attest images
         uses: ./.github/actions/attest-image
         with:
+          subject_name: ${{ format('{0}/{1}/{2}{3}', env.DOCKER_REGISTRY, env.DOCKER_REPOSITORY, env.IMAGES_PREFIX, matrix.component ) }}
+          subject_digest: ${{ steps.docker_build.outputs.digest }}
+
+      - name: Attest image SBOM
+        if: ${{ env.AUTO_PUSH_IMAGES == 'true' }}
+        uses: ./.github/actions/attest-sbom
+        with:
+          platform: windows/amd64
           subject_name: ${{ format('{0}/{1}/{2}{3}', env.DOCKER_REGISTRY, env.DOCKER_REPOSITORY, env.IMAGES_PREFIX, matrix.component ) }}
           subject_digest: ${{ steps.docker_build.outputs.digest }}
