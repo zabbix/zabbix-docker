@@ -15,6 +15,7 @@ on:
       - '.github/actions/*'
       - 'templates/entrypoints/**'
       - 'templates/patches/**'
+      - 'templates/sbom/**'
   schedule:
     - cron:  '50 02 * * *'
   workflow_dispatch:
@@ -492,6 +493,7 @@ jobs:
             sources=./sources/
             config_templates=./templates/config/
             patches=./templates/patches/
+            sbom=./templates/sbom/
           build_args: |
             BUILD_BASE_IMAGE=${{ steps.base_build.outputs.base_build_image }}
             BUILD_JOBS=${{ steps.jobs.outputs.jobs }}
@@ -831,3 +833,10 @@ jobs:
           subject-name: ${{ format('{0}/{1}/{2}{3}', env.DOCKER_REGISTRY, env.DOCKER_REPOSITORY, env.IMAGES_PREFIX, matrix.build) }}
           subject-digest: ${{ matrix.build == 'snmptraps' && steps.docker_build_snmptraps.outputs.digest || steps.docker_build.outputs.digest }}
           push-to-registry: true
+
+      - name: Attest image SBOM
+        if: ${{ env.AUTO_PUSH_IMAGES == 'true' }}
+        uses: ./.github/actions/attest-sbom
+        with:
+          subject_name: ${{ format('{0}/{1}/{2}{3}', env.DOCKER_REGISTRY, env.DOCKER_REPOSITORY, env.IMAGES_PREFIX, matrix.build) }}
+          subject_digest: ${{ matrix.build == 'snmptraps' && steps.docker_build_snmptraps.outputs.digest || steps.docker_build.outputs.digest }}

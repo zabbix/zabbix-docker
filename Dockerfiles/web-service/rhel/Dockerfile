@@ -53,6 +53,7 @@ LABEL description="Zabbix web service for performing various tasks using headles
 COPY --from=entrypoints /licenses/gpl-2.0.txt /licenses/
 COPY --from=builder /tmp/zabbix-${ZBX_VERSION}-output/web_service/sbin/zabbix_web_service /usr/sbin/zabbix_web_service
 COPY --from=builder /tmp/zabbix-${ZBX_VERSION}-output/web_service/conf/ ${ZABBIX_CONF_DIR}/
+COPY --from=builder /tmp/zabbix-${ZBX_VERSION}-output/web_service/sbom/ /usr/share/doc/zabbix/sbom/
 
 RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
     --mount=type=tmpfs,target=/var/cache/yum/ \

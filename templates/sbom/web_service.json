@@ -1,0 +1,9 @@
+{
+    "component": {
+        "name": "zabbix-web-service",
+        "description": "Zabbix web service",
+        "licenses": ["GPL-2.0-or-later"],
+        "purl": "pkg:generic/zabbix/zabbix-web-service@{version}",
+        "cpe": "cpe:2.3:a:zabbix:zabbix:{version}:*:*:*:*:*:*:*"
+    }
+}

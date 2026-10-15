@@ -42,6 +42,7 @@ RUN set -eux && \
             $openjdk_packages \
             gettext \
             git \
+            jq \
             patch \
             curl-dev \
             libevent-dev \
