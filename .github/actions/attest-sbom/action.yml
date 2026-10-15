@@ -6,9 +6,6 @@ inputs:
     required: true
   subject_digest:
     required: true
-  platform:
-    required: false
-    default: linux/amd64
 
 runs:
   using: composite
@@ -27,12 +24,11 @@ runs:
         SYFT_FILE_METADATA_SELECTION: none
         IMAGE: ${{ inputs.subject_name }}
         DIGEST: ${{ inputs.subject_digest }}
-        PLATFORM: ${{ inputs.platform }}
         SBOM_FILE: ${{ runner.temp }}/sbom.cdx.json
       run: |
         "$SYFT" "registry:${IMAGE}@${DIGEST}" \
-            --platform "$PLATFORM" \
-            --select-catalogers +sbom-cataloger,-java-archive-cataloger,-pe-binary-package-cataloger \
+            --platform linux/amd64 \
+            --select-catalogers +sbom-cataloger,-java-archive-cataloger \
             --source-name "${IMAGE}" \
             -o "cyclonedx-json=${SBOM_FILE}"
 
