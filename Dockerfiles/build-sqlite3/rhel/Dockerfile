@@ -203,3 +203,6 @@ RUN --mount=type=cache,target=/root/.cache/go-build \
         zabbix-agent2-plugin-mssql mssql.conf mssql && \
     build_plugin ember "${EMBER_PLUS_PLUGIN_SOURCES}" "${EMBER_PLUS_PLUGIN_VERSION}" \
         zabbix-agent2-plugin-ember-plus ember.conf ember-plus
+
+RUN --mount=from=sbom,target=/tmp/sbom,z \
+    sh /tmp/sbom/sbom.sh "${ZBX_SOURCES_DIR}" "${ZBX_VERSION}" "${ZBX_OUTPUT_DIR}"

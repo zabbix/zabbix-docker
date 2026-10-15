@@ -1,0 +1,46 @@
+{
+    "component": {
+        "name": "zabbix-agent2",
+        "description": "Zabbix agent 2",
+        "licenses": ["AGPL-3.0-only"],
+        "purl": "pkg:generic/zabbix/zabbix-agent2@{version}",
+        "cpe": "cpe:2.3:a:zabbix:zabbix:{version}:*:*:*:*:*:*:*"
+    },
+    "vendored": [
+        {
+            "name": "zabbix-agent2-plugin-ember-plus",
+            "type": "application",
+            "purl": "pkg:generic/zabbix/zabbix-agent2-plugin-ember-plus",
+            "licenses": ["AGPL-3.0-only"],
+            "version": "{version}"
+        },
+        {
+            "name": "zabbix-agent2-plugin-mongodb",
+            "type": "application",
+            "purl": "pkg:generic/zabbix/zabbix-agent2-plugin-mongodb",
+            "licenses": ["AGPL-3.0-only"],
+            "version": "{version}"
+        },
+        {
+            "name": "zabbix-agent2-plugin-mssql",
+            "type": "application",
+            "purl": "pkg:generic/zabbix/zabbix-agent2-plugin-mssql",
+            "licenses": ["AGPL-3.0-only"],
+            "version": "{version}"
+        },
+        {
+            "name": "zabbix-agent2-plugin-postgresql",
+            "type": "application",
+            "purl": "pkg:generic/zabbix/zabbix-agent2-plugin-postgresql",
+            "licenses": ["AGPL-3.0-only"],
+            "version": "{version}"
+        },
+        {
+            "name": "tiny-aes-c",
+            "purl": "pkg:github/kokke/tiny-aes-c",
+            "licenses": ["Unlicense"],
+            "file": "src/libs/zbxcrypto/aes.c",
+            "version": "0-unversioned"
+        }
+    ]
+}
