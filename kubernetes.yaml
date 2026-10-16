@@ -58,7 +58,7 @@ spec:
     name: web-https
   selector:
     name: zabbix-web
-  sessionAffinity: None
+  sessionAffinity: ClientIP
   type: ClusterIP
 ---
 apiVersion: v1
@@ -110,10 +110,6 @@ spec:
   - port: 10051
     targetPort: 10051
     name: zabbix-trapper
-  - port: 162
-    targetPort: 1162
-    protocol: UDP
-    name: snmp-trap
   selector:
     name: zabbix-proxy-sqlite3
   sessionAffinity: None
@@ -131,10 +127,6 @@ spec:
   - port: 10051
     targetPort: 10051
     name: zabbix-trapper
-  - port: 162
-    targetPort: 1162
-    protocol: UDP
-    name: snmp-trap
   selector:
     name: zabbix-proxy-mysql
 ---
@@ -183,8 +175,8 @@ spec:
   selector:
     name: zabbix-agent
 ---
-apiVersion: v1
-kind: ReplicationController
+apiVersion: apps/v1
+kind: Deployment
 metadata:
   name: zabbix-web
   labels:
@@ -193,6 +185,10 @@ metadata:
   namespace: zabbix
 spec:
   replicas: 2
+  selector:
+    matchLabels:
+      name: zabbix-web
+      app: zabbix
   template:
     metadata:
       labels:
@@ -203,6 +199,14 @@ spec:
        - name: mysql-tls-certs
          secret:
           secretName: zabbix-mysql-client-tls-certs
+       - name: mysql-credentials
+         secret:
+          secretName: db-secret
+          items:
+          - key: db-zbx-user
+            path: MYSQL_USER
+          - key: db-zbx-pass
+            path: MYSQL_PASSWORD
       containers:
         - name: zabbix-web
           image: zabbix/zabbix-web-nginx-mysql:alpine-7.4-latest
@@ -248,21 +252,10 @@ spec:
             value: "Europe/Riga"
           - name: DB_SERVER_HOST
             value: "mysql-server"
-          - name: MYSQL_USER
-            valueFrom:
-             secretKeyRef:
-              name: db-secret
-              key: db-zbx-user
-          - name: MYSQL_PASSWORD
-            valueFrom:
-             secretKeyRef:
-              name: db-secret
-              key: db-zbx-pass
-          - name: MYSQL_ROOT_PASSWORD
-            valueFrom:
-             secretKeyRef:
-              name: db-secret
-              key: db-root-pass
+          - name: MYSQL_USER_FILE
+            value: "/run/secrets/MYSQL_USER"
+          - name: MYSQL_PASSWORD_FILE
+            value: "/run/secrets/MYSQL_PASSWORD"
           - name: MYSQL_DATABASE
             value: "zabbix"
           - name: ZBX_DB_ENCRYPTION
@@ -274,7 +267,7 @@ spec:
           - name: ZBX_DB_KEY_FILE
             value: "/tmp/secrets/client-key.pem"
           - name: ZBX_DB_VERIFY_HOST
-            value: "false"
+            value: "true"
           - name: ZBX_DB_CIPHER_LIST
             value: ""
 #          - name: ZBX_HISTORYSTORAGEURL
@@ -304,6 +297,9 @@ spec:
           volumeMounts:
           - mountPath: "/tmp/secrets"
             name: mysql-tls-certs
+            readOnly: true
+          - mountPath: "/run/secrets"
+            name: mysql-credentials
             readOnly: true
 ---
 apiVersion: apps/v1
@@ -336,14 +332,27 @@ spec:
        - name: mysql-tls-certs
          secret:
           secretName: zabbix-mysql-server-tls-certs
+       - name: mysql-credentials
+         secret:
+          secretName: db-secret
+          items:
+          - key: db-zbx-user
+            path: MYSQL_USER
+          - key: db-zbx-pass
+            path: MYSQL_PASSWORD
+       - name: mysql-admin-credentials
+         secret:
+          secretName: db-secret
+          items:
+          - key: db-root-pass
+            path: MYSQL_ROOT_PASSWORD
       containers:
         - name: zabbix-db
-          image: mysql:8.0-oracle
+          image: mysql:8.4-oracle
           args:
            - mysqld
-           - --character-set-server=utf8
-           - --collation-server=utf8_bin
-           - --default-authentication-plugin=mysql_native_password
+           - --character-set-server=utf8mb4
+           - --collation-server=utf8mb4_bin
            - --require-secure-transport
            - --ssl-ca=/tmp/secrets/root-ca.pem
            - --ssl-cert=/tmp/secrets/server-cert.pem
@@ -352,35 +361,39 @@ spec:
           ports:
           - containerPort: 3306
             name: mysql
+          resources:
+           limits:
+            cpu: "1"
+            memory: 1Gi
+           requests:
+            cpu: 250m
+            memory: 512Mi
+          readinessProbe:
+            exec:
+              command: ["bash", "-c", "MYSQL_PWD=\"$(cat /run/secrets-admin/MYSQL_ROOT_PASSWORD)\" mysqladmin -u root ping --silent"]
+            timeoutSeconds: 3
+            failureThreshold: 3
+            periodSeconds: 10
           livenessProbe:
             exec:
-              command: ["bash", "-c", "mysqladmin -u root -p$MYSQL_ROOT_PASSWORD ping"]
+              command: ["bash", "-c", "MYSQL_PWD=\"$(cat /run/secrets-admin/MYSQL_ROOT_PASSWORD)\" mysqladmin -u root ping --silent"]
             timeoutSeconds: 3
             failureThreshold: 3
             periodSeconds: 10
           startupProbe:
             exec:
-              command: ["bash", "-c", "mysql -u root -p$MYSQL_ROOT_PASSWORD -e 'SELECT 1'"]
+              command: ["bash", "-c", "MYSQL_PWD=\"$(cat /run/secrets-admin/MYSQL_ROOT_PASSWORD)\" mysql -u root -e 'SELECT 1'"]
             initialDelaySeconds: 5
             periodSeconds: 5
             timeoutSeconds: 3
             failureThreshold: 30
           env:
-          - name: MYSQL_USER
-            valueFrom:
-             secretKeyRef:
-              name: db-secret
-              key: db-zbx-user
-          - name: MYSQL_PASSWORD
-            valueFrom:
-             secretKeyRef:
-              name: db-secret
-              key: db-zbx-pass
-          - name: MYSQL_ROOT_PASSWORD
-            valueFrom:
-             secretKeyRef:
-              name: db-secret
-              key: db-root-pass
+          - name: MYSQL_USER_FILE
+            value: "/run/secrets/MYSQL_USER"
+          - name: MYSQL_PASSWORD_FILE
+            value: "/run/secrets/MYSQL_PASSWORD"
+          - name: MYSQL_ROOT_PASSWORD_FILE
+            value: "/run/secrets-admin/MYSQL_ROOT_PASSWORD"
           - name: MYSQL_DATABASE
             value: "zabbix"
           volumeMounts:
@@ -390,9 +403,40 @@ spec:
            - mountPath: "/tmp/secrets"
              name: mysql-tls-certs
              readOnly: true
+           - mountPath: "/run/secrets"
+             name: mysql-credentials
+             readOnly: true
+           - mountPath: "/run/secrets-admin"
+             name: mysql-admin-credentials
+             readOnly: true
           securityContext:
             capabilities: {}
             privileged: false
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: mysql-server
+  namespace: zabbix
+spec:
+  podSelector:
+    matchLabels:
+      name: mysql-server
+  policyTypes:
+  - Ingress
+  ingress:
+  - from:
+    - podSelector:
+        matchExpressions:
+        - key: name
+          operator: In
+          values:
+          - zabbix-web
+          - zabbix-server
+          - zabbix-proxy-mysql
+    ports:
+    - protocol: TCP
+      port: 3306
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -423,6 +467,62 @@ spec:
        - name: mysql-tls-certs
          secret:
            secretName: zabbix-mysql-client-tls-certs
+       - name: mysql-credentials
+         secret:
+           secretName: db-secret
+           items:
+           - key: db-zbx-user
+             path: MYSQL_USER
+           - key: db-zbx-pass
+             path: MYSQL_PASSWORD
+       - name: mysql-admin-credentials
+         secret:
+           secretName: db-secret
+           items:
+           - key: db-root-pass
+             path: MYSQL_ROOT_PASSWORD
+      initContainers:
+        - name: zabbix-server-db-init
+          image: zabbix/zabbix-server-mysql:alpine-7.4-latest
+          imagePullPolicy: IfNotPresent
+          args:
+          - init_db_only
+          resources:
+           limits:
+            cpu: 500m
+            memory: 512Mi
+           requests:
+            cpu: 100m
+            memory: 128Mi
+          env:
+          - name: DB_SERVER_HOST
+            value: "mysql-server"
+          - name: MYSQL_USER_FILE
+            value: "/run/secrets/MYSQL_USER"
+          - name: MYSQL_PASSWORD_FILE
+            value: "/run/secrets/MYSQL_PASSWORD"
+          - name: MYSQL_ROOT_PASSWORD_FILE
+            value: "/run/secrets-admin/MYSQL_ROOT_PASSWORD"
+          - name: MYSQL_DATABASE
+            value: "zabbix"
+          - name: ZBX_DBTLSCONNECT
+            value: "verify_full"
+          - name: ZBX_DBTLSCAFILE
+            value: "/tmp/secrets/root-ca.pem"
+          - name: ZBX_DBTLSCERTFILE
+            value: "/tmp/secrets/client-cert.pem"
+          - name: ZBX_DBTLSKEYFILE
+            value: "/tmp/secrets/client-key.pem"
+          volumeMounts:
+          - mountPath: "/tmp/secrets"
+            name: mysql-tls-certs
+            readOnly: true
+          - mountPath: "/run/secrets"
+            name: mysql-credentials
+            readOnly: true
+          - mountPath: "/run/secrets-admin"
+            name: mysql-admin-credentials
+            readOnly: true
       containers:
         - name: zabbix-server
           image: zabbix/zabbix-server-mysql:alpine-7.4-latest
@@ -431,6 +531,13 @@ spec:
           - containerPort: 10051
             protocol: TCP
             name: zabbix-trapper
+          resources:
+           limits:
+            cpu: "1"
+            memory: 1Gi
+           requests:
+            cpu: 250m
+            memory: 256Mi
           readinessProbe:
             tcpSocket:
               port: zabbix-trapper
@@ -442,25 +549,14 @@ spec:
             initialDelaySeconds: 15
             periodSeconds: 20
           env:
-          - name: MYSQL_USER
-            valueFrom:
-             secretKeyRef:
-              name: db-secret
-              key: db-zbx-user
-          - name: MYSQL_PASSWORD
-            valueFrom:
-             secretKeyRef:
-              name: db-secret
-              key: db-zbx-pass
-          - name: MYSQL_ROOT_PASSWORD
-            valueFrom:
-             secretKeyRef:
-              name: db-secret
-              key: db-root-pass
+          - name: MYSQL_USER_FILE
+            value: "/run/secrets/MYSQL_USER"
+          - name: MYSQL_PASSWORD_FILE
+            value: "/run/secrets/MYSQL_PASSWORD"
           - name: MYSQL_DATABASE
             value: "zabbix"
           - name: ZBX_DBTLSCONNECT
-            value: "required"
+            value: "verify_full"
           - name: ZBX_DBTLSCAFILE
             value: "/tmp/secrets/root-ca.pem"
           - name: ZBX_DBTLSCERTFILE
@@ -596,6 +692,9 @@ spec:
           - mountPath: "/tmp/secrets"
             name: mysql-tls-certs
             readOnly: true
+          - mountPath: "/run/secrets"
+            name: mysql-credentials
+            readOnly: true
           startupProbe:
             tcpSocket:
               port: 10051
@@ -613,6 +712,13 @@ spec:
           - containerPort: 1162
             protocol: UDP
             name: snmp-trap
+          resources:
+           limits:
+            cpu: 200m
+            memory: 256Mi
+           requests:
+            cpu: 50m
+            memory: 64Mi
           volumeMounts:
           - name: zabbix-snmptraps
             mountPath: /var/lib/zabbix/snmptraps/
@@ -654,6 +760,18 @@ spec:
           - containerPort: 10051
             protocol: TCP
             name: zabbix-trapper
+          resources:
+           limits:
+            cpu: 500m
+            memory: 512Mi
+           requests:
+            cpu: 100m
+            memory: 128Mi
+          readinessProbe:
+            tcpSocket:
+              port: zabbix-trapper
+            initialDelaySeconds: 5
+            periodSeconds: 10
           startupProbe:
             tcpSocket:
               port: 10051
@@ -806,6 +924,62 @@ spec:
        - name: mysql-tls-certs
          secret:
            secretName: zabbix-mysql-client-tls-certs
+       - name: mysql-credentials
+         secret:
+           secretName: db-secret
+           items:
+           - key: db-zbx-user
+             path: MYSQL_USER
+           - key: db-zbx-pass
+             path: MYSQL_PASSWORD
+       - name: mysql-admin-credentials
+         secret:
+           secretName: db-secret
+           items:
+           - key: db-root-pass
+             path: MYSQL_ROOT_PASSWORD
+      initContainers:
+        - name: zabbix-proxy-mysql-db-init
+          image: zabbix/zabbix-proxy-mysql:alpine-7.4-latest
+          imagePullPolicy: IfNotPresent
+          args:
+          - init_db_only
+          resources:
+           limits:
+            cpu: 500m
+            memory: 512Mi
+           requests:
+            cpu: 100m
+            memory: 128Mi
+          env:
+          - name: DB_SERVER_HOST
+            value: "mysql-server"
+          - name: MYSQL_USER_FILE
+            value: "/run/secrets/MYSQL_USER"
+          - name: MYSQL_PASSWORD_FILE
+            value: "/run/secrets/MYSQL_PASSWORD"
+          - name: MYSQL_ROOT_PASSWORD_FILE
+            value: "/run/secrets-admin/MYSQL_ROOT_PASSWORD"
+          - name: MYSQL_DATABASE
+            value: "zabbix_proxy"
+          - name: ZBX_DBTLSCONNECT
+            value: "verify_full"
+          - name: ZBX_DBTLSCAFILE
+            value: "/tmp/secrets/root-ca.pem"
+          - name: ZBX_DBTLSCERTFILE
+            value: "/tmp/secrets/client-cert.pem"
+          - name: ZBX_DBTLSKEYFILE
+            value: "/tmp/secrets/client-key.pem"
+          volumeMounts:
+          - mountPath: "/tmp/secrets"
+            name: mysql-tls-certs
+            readOnly: true
+          - mountPath: "/run/secrets"
+            name: mysql-credentials
+            readOnly: true
+          - mountPath: "/run/secrets-admin"
+            name: mysql-admin-credentials
+            readOnly: true
       containers:
         - name: zabbix-proxy-mysql
           image: zabbix/zabbix-proxy-mysql:alpine-7.4-latest
@@ -814,6 +988,13 @@ spec:
           - containerPort: 10051
             protocol: TCP
             name: zabbix-trapper
+          resources:
+           limits:
+            cpu: 500m
+            memory: 512Mi
+           requests:
+            cpu: 100m
+            memory: 128Mi
           readinessProbe:
             tcpSocket:
               port: zabbix-trapper
@@ -825,25 +1006,14 @@ spec:
             initialDelaySeconds: 15
             periodSeconds: 20
           env:
-          - name: MYSQL_USER
-            valueFrom:
-             secretKeyRef:
-              name: db-secret
-              key: db-zbx-user
-          - name: MYSQL_PASSWORD
-            valueFrom:
-             secretKeyRef:
-              name: db-secret
-              key: db-zbx-pass
-          - name: MYSQL_ROOT_PASSWORD
-            valueFrom:
-             secretKeyRef:
-              name: db-secret
-              key: db-root-pass
+          - name: MYSQL_USER_FILE
+            value: "/run/secrets/MYSQL_USER"
+          - name: MYSQL_PASSWORD_FILE
+            value: "/run/secrets/MYSQL_PASSWORD"
           - name: MYSQL_DATABASE
             value: "zabbix_proxy"
           - name: ZBX_DBTLSCONNECT
-            value: "required"
+            value: "verify_full"
           - name: ZBX_DBTLSCAFILE
             value: "/tmp/secrets/root-ca.pem"
           - name: ZBX_DBTLSCERTFILE
@@ -968,6 +1138,9 @@ spec:
           - mountPath: "/tmp/secrets"
             name: mysql-tls-certs
             readOnly: true
+          - mountPath: "/run/secrets"
+            name: mysql-credentials
+            readOnly: true
           securityContext:
             capabilities: {}
             privileged: false
@@ -999,6 +1172,18 @@ spec:
           - containerPort: 10052
             protocol: TCP
             name: zabbix-java
+          resources:
+           limits:
+            cpu: 500m
+            memory: 512Mi
+           requests:
+            cpu: 100m
+            memory: 128Mi
+          readinessProbe:
+            tcpSocket:
+              port: zabbix-java
+            initialDelaySeconds: 5
+            periodSeconds: 10
           livenessProbe:
             tcpSocket:
               port: 10052
@@ -1054,6 +1239,11 @@ spec:
           - containerPort: 10053
             protocol: TCP
             name: zabbix-web-svc
+          readinessProbe:
+            tcpSocket:
+              port: zabbix-web-svc
+            initialDelaySeconds: 5
+            periodSeconds: 10
           livenessProbe:
             tcpSocket:
               port: 10053
@@ -1083,6 +1273,26 @@ spec:
             capabilities: {}
             privileged: false
 ---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: zabbix-web-service
+  namespace: zabbix
+spec:
+  podSelector:
+    matchLabels:
+      name: zabbix-web-service
+  policyTypes:
+  - Ingress
+  ingress:
+  - from:
+    - podSelector:
+        matchLabels:
+          name: zabbix-server
+    ports:
+    - protocol: TCP
+      port: 10053
+---
 apiVersion: apps/v1
 kind: DaemonSet
 metadata:
@@ -1108,10 +1318,11 @@ spec:
       hostNetwork: true
       hostIPC: true
       hostPID: true
-      automountServiceAccountToken: true
+      dnsPolicy: ClusterFirstWithHostNet
+      automountServiceAccountToken: false
       serviceAccountName: zabbix-agent
       nodeSelector:
-       beta.kubernetes.io/os: linux
+       kubernetes.io/os: linux
       containers:
         - name: zabbix-agent
           image: zabbix/zabbix-agent:alpine-7.4-latest
@@ -1126,6 +1337,11 @@ spec:
           ports:
           - containerPort: 10050
             name: zabbix-agent
+          readinessProbe:
+            tcpSocket:
+              port: zabbix-agent
+            initialDelaySeconds: 5
+            periodSeconds: 10
           livenessProbe:
             tcpSocket:
               port: 10050
@@ -1254,26 +1470,6 @@ spec:
           hostPath:
             path: /var/run
             type: ''
----
-apiVersion: autoscaling/v2
-kind: HorizontalPodAutoscaler
-metadata:
-  name: zabbix-web
-  namespace: zabbix
-spec:
-  scaleTargetRef:
-    apiVersion: v1
-    kind: ReplicationController
-    name: zabbix-web
-  minReplicas: 1
-  maxReplicas: 5
-  metrics:
-  - type: Resource
-    resource:
-      name: cpu
-      target:
-        type: Utilization
-        averageUtilization: 70
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
