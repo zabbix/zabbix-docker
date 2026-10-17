@@ -17,7 +17,12 @@ func proxyEnvironment(t *testing.T) (bootstrap.Environment, string) {
 	homeDir := t.TempDir()
 	configDir := t.TempDir()
 	internalCADir := filepath.Join(homeDir, "ssl", "ssl_ca_internal")
-	for _, dir := range []string{filepath.Join(homeDir, "ssl", "ssl_ca"), internalCADir} {
+	for _, dir := range []string{
+		filepath.Join(homeDir, "enc"),
+		filepath.Join(homeDir, "enc_internal"),
+		filepath.Join(homeDir, "ssl", "ssl_ca"),
+		internalCADir,
+	} {
 		if err := os.MkdirAll(dir, 0o755); err != nil {
 			t.Fatal(err)
 		}
@@ -33,6 +38,52 @@ func proxyEnvironment(t *testing.T) (bootstrap.Environment, string) {
 		"ZABBIX_CONF_DIR":      configDir,
 		"ZBX_SSLCALOCATION":    internalCADir,
 	}, configDir
+}
+
+func TestPrepareAPMTLSFiles(t *testing.T) {
+	env, _ := proxyEnvironment(t)
+	homeDir := env["ZABBIX_USER_HOME_DIR"]
+	caPath := filepath.Join(homeDir, "enc", "apm-ca.pem")
+	if err := os.WriteFile(caPath, []byte("ca-certificate"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+
+	env["ZBX_APMTLSCAFILE"] = "apm-ca.pem"
+	env["ZBX_APMTLSCERT"] = "collector-certificate"
+	env["ZBX_APMTLSKEY"] = "collector-private-key"
+
+	if err := Prepare(env, "proxy-1"); err != nil {
+		t.Fatal(err)
+	}
+
+	wantPaths := map[string]string{
+		"ZBX_APMTLSCAFILE":   caPath,
+		"ZBX_APMTLSCERTFILE": filepath.Join(homeDir, "enc_internal", "ZBX_APMTLSCERTFILE"),
+		"ZBX_APMTLSKEYFILE":  filepath.Join(homeDir, "enc_internal", "ZBX_APMTLSKEYFILE"),
+	}
+	for name, want := range wantPaths {
+		if got := env[name]; got != want {
+			t.Errorf("%s = %q, want %q", name, got, want)
+		}
+	}
+	for _, name := range []string{"ZBX_APMTLSCA", "ZBX_APMTLSCERT", "ZBX_APMTLSKEY"} {
+		if _, exists := env[name]; exists {
+			t.Errorf("%s remains in the environment", name)
+		}
+	}
+
+	for path, want := range map[string]string{
+		env["ZBX_APMTLSCERTFILE"]: "collector-certificate",
+		env["ZBX_APMTLSKEYFILE"]:  "collector-private-key",
+	} {
+		data, err := os.ReadFile(path)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if got := string(data); got != want {
+			t.Errorf("%s content = %q, want %q", path, got, want)
+		}
+	}
 }
 
 func TestPrepareServerAndHostname(t *testing.T) {

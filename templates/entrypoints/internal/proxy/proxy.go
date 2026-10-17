@@ -49,7 +49,12 @@ func Prepare(env bootstrap.Environment, defaultHostname string) error {
 		return err
 	}
 
-	if err := bootstrap.ProcessTLSFiles(env, filepath.Join(homeDir, "enc"), "ZBX_TLSCA", "ZBX_TLSCRL", "ZBX_TLSCERT", "ZBX_TLSKEY", "ZBX_TLSPSK"); err != nil {
+	if err := bootstrap.ProcessTLSFiles(
+		env,
+		filepath.Join(homeDir, "enc"),
+		"ZBX_TLSCA", "ZBX_TLSCRL", "ZBX_TLSCERT", "ZBX_TLSKEY", "ZBX_TLSPSK",
+		"ZBX_APMTLSCA", "ZBX_APMTLSCERT", "ZBX_APMTLSKEY",
+	); err != nil {
 		return err
 	}
 
