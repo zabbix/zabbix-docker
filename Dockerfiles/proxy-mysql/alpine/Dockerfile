@@ -136,7 +136,7 @@ RUN set -eux && \
     chmod g=u ${ZABBIX_CONF_DIR} && \
     /usr/sbin/zabbix_proxy -V
 
-EXPOSE 10051/tcp
+EXPOSE 10051/tcp 4317/tcp
 
 WORKDIR ${ZABBIX_USER_HOME_DIR}
 

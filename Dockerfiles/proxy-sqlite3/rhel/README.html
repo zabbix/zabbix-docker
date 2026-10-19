@@ -70,7 +70,16 @@ where 1995 is <code>zabbix</code> GID.</p>
 <p>Certificate and key paths may be absolute or relative to <code>/var/lib/zabbix/ssl/certs</code> and <code>/var/lib/zabbix/ssl/keys</code>, respectively. CA certificates are read from <code>/var/lib/zabbix/ssl/ssl_ca</code>.</p>
 <h3 id="other-variables">Other variables</h3>
 <p>Additionally the image allows to specify many other environment variables listed below:</p>
-<pre><code><span class="hljs-attr">ZBX_TELEMETRYPROVIDER_0</span>=
+<pre><code><span class="hljs-attr">ZBX_APMLISTENIP</span>=<span class="hljs-number">0.0</span>.<span class="hljs-number">0.0</span> # Available since <span class="hljs-number">8.0</span>.<span class="hljs-number">0</span>
+<span class="hljs-attr">ZBX_APMLISTENPORT</span>=<span class="hljs-number">4317</span> # Available since <span class="hljs-number">8.0</span>.<span class="hljs-number">0</span>
+<span class="hljs-attr">ZBX_APMTLSCAFILE</span>= # Available since <span class="hljs-number">8.0</span>.<span class="hljs-number">0</span>
+<span class="hljs-attr">ZBX_APMTLSCA</span>= # Available since <span class="hljs-number">8.0</span>.<span class="hljs-number">0</span>
+<span class="hljs-attr">ZBX_APMTLSCERTFILE</span>= # Available since <span class="hljs-number">8.0</span>.<span class="hljs-number">0</span>
+<span class="hljs-attr">ZBX_APMTLSCERT</span>= # Available since <span class="hljs-number">8.0</span>.<span class="hljs-number">0</span>
+<span class="hljs-attr">ZBX_APMTLSKEYFILE</span>= # Available since <span class="hljs-number">8.0</span>.<span class="hljs-number">0</span>
+<span class="hljs-attr">ZBX_APMTLSKEY</span>= # Available since <span class="hljs-number">8.0</span>.<span class="hljs-number">0</span>
+<span class="hljs-attr">ZBX_STARTAPMCOLLECTORS</span>=<span class="hljs-number">0</span> # Available since <span class="hljs-number">8.0</span>.<span class="hljs-number">0</span>
+<span class="hljs-attr">ZBX_TELEMETRYPROVIDER_0</span>=
 <span class="hljs-attr">ZBX_TELEMETRYPROVIDER_0_USERNAME</span>=
 <span class="hljs-attr">ZBX_TELEMETRYPROVIDER_0_USERNAME_FILE</span>=
 <span class="hljs-attr">ZBX_TELEMETRYPROVIDER_0_PASSWORD</span>=
@@ -161,7 +170,7 @@ where 1995 is <code>zabbix</code> GID.</p>
 <h3 id="-var-lib-zabbix-modules-"><code>/var/lib/zabbix/modules</code></h3>
 <p>The volume allows load additional modules and extend Zabbix proxy using <code>LoadModule</code> feature.</p>
 <h3 id="-var-lib-zabbix-enc-"><code>/var/lib/zabbix/enc</code></h3>
-<p>The volume is used to store TLS related files. These file names are specified using <code>ZBX_TLSCAFILE</code>, <code>ZBX_TLSCRLFILE</code>, <code>ZBX_TLSCERTFILE</code>, <code>ZBX_TLSKEYFILE</code> and <code>ZBX_TLSPSKFILE</code> variables. Additionally it is possible to use environment variables <code>ZBX_TLSCA</code>, <code>ZBX_TLSCRL</code>, <code>ZBX_TLSCERT</code>, <code>ZBX_TLSKEY</code> and <code>ZBX_TLSPSK</code> with plaintext values.</p>
+<p>The volume is used to store TLS related files. These file names are specified using <code>ZBX_TLSCAFILE</code>, <code>ZBX_TLSCRLFILE</code>, <code>ZBX_TLSCERTFILE</code>, <code>ZBX_TLSKEYFILE</code>, <code>ZBX_TLSPSKFILE</code>, <code>ZBX_APMTLSCAFILE</code>, <code>ZBX_APMTLSCERTFILE</code> and <code>ZBX_APMTLSKEYFILE</code> variables. Additionally it is possible to use environment variables <code>ZBX_TLSCA</code>, <code>ZBX_TLSCRL</code>, <code>ZBX_TLSCERT</code>, <code>ZBX_TLSKEY</code>, <code>ZBX_TLSPSK</code>, <code>ZBX_APMTLSCA</code>, <code>ZBX_APMTLSCERT</code> and <code>ZBX_APMTLSKEY</code> with plaintext values.</p>
 <h3 id="-var-lib-zabbix-ssh_keys-"><code>/var/lib/zabbix/ssh_keys</code></h3>
 <p>The volume is used as location of public and private keys for SSH checks and actions. It is <code>SSHKeyLocation</code> parameter in <code>zabbix_proxy.conf</code>.</p>
 <h3 id="-var-lib-zabbix-ssl-certs-"><code>/var/lib/zabbix/ssl/certs</code></h3>

@@ -131,6 +131,15 @@ Certificate and key paths may be absolute or relative to `/var/lib/zabbix/ssl/ce
 Additionally the image allows to specify many other environment variables listed below:
 
 ```
+ZBX_APMLISTENIP=0.0.0.0 # Available since 8.0.0
+ZBX_APMLISTENPORT=4317 # Available since 8.0.0
+ZBX_APMTLSCAFILE= # Available since 8.0.0
+ZBX_APMTLSCA= # Available since 8.0.0
+ZBX_APMTLSCERTFILE= # Available since 8.0.0
+ZBX_APMTLSCERT= # Available since 8.0.0
+ZBX_APMTLSKEYFILE= # Available since 8.0.0
+ZBX_APMTLSKEY= # Available since 8.0.0
+ZBX_STARTAPMCOLLECTORS=0 # Available since 8.0.0
 ZBX_TELEMETRYPROVIDER_0=
 ZBX_TELEMETRYPROVIDER_0_USERNAME=
 ZBX_TELEMETRYPROVIDER_0_USERNAME_FILE=
@@ -235,7 +244,7 @@ The volume allows load additional modules and extend Zabbix proxy using ``LoadMo
 
 ### ``/var/lib/zabbix/enc``
 
-The volume is used to store TLS related files. These file names are specified using ``ZBX_TLSCAFILE``, ``ZBX_TLSCRLFILE``, ``ZBX_TLSCERTFILE``, ``ZBX_TLSKEYFILE`` and ``ZBX_TLSPSKFILE`` variables. Additionally it is possible to use environment variables ``ZBX_TLSCA``, ``ZBX_TLSCRL``, ``ZBX_TLSCERT``, ``ZBX_TLSKEY`` and ``ZBX_TLSPSK`` with plaintext values.
+The volume is used to store TLS related files. These file names are specified using ``ZBX_TLSCAFILE``, ``ZBX_TLSCRLFILE``, ``ZBX_TLSCERTFILE``, ``ZBX_TLSKEYFILE``, ``ZBX_TLSPSKFILE``, ``ZBX_APMTLSCAFILE``, ``ZBX_APMTLSCERTFILE`` and ``ZBX_APMTLSKEYFILE`` variables. Additionally it is possible to use environment variables ``ZBX_TLSCA``, ``ZBX_TLSCRL``, ``ZBX_TLSCERT``, ``ZBX_TLSKEY``, ``ZBX_TLSPSK``, ``ZBX_APMTLSCA``, ``ZBX_APMTLSCERT`` and ``ZBX_APMTLSKEY`` with plaintext values.
 
 ### ``/var/lib/zabbix/ssh_keys``
 
