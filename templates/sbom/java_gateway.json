@@ -25,15 +25,15 @@
             "name": "logback-classic",
             "purl": "pkg:maven/ch.qos.logback/logback-classic",
             "licenses": [{"expression": "EPL-1.0 OR LGPL-2.1-only"}],
-            "file": "src/zabbix_java/lib/logback-classic-1.5.16.jar",
-            "version": "1.5.16"
+            "file": "src/zabbix_java/lib/logback-classic-1.5.25.jar",
+            "version": "1.5.25"
         },
         {
             "name": "logback-core",
             "purl": "pkg:maven/ch.qos.logback/logback-core",
             "licenses": [{"expression": "EPL-1.0 OR LGPL-2.1-only"}],
-            "file": "src/zabbix_java/lib/logback-core-1.5.16.jar",
-            "version": "1.5.16"
+            "file": "src/zabbix_java/lib/logback-core-1.5.25.jar",
+            "version": "1.5.25"
         },
         {
             "name": "slf4j-api",
