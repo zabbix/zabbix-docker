@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1.6
 ARG OS_BASE_IMAGE=container-registry.oracle.com/os/oraclelinux:10-slim
 ARG MAJOR_VERSION=6.0
-ARG ZBX_VERSION=${MAJOR_VERSION}.48
+ARG ZBX_VERSION=${MAJOR_VERSION}.49
 ARG BUILD_BASE_IMAGE=zabbix-build-common:ol-${ZBX_VERSION}
 
 FROM ${BUILD_BASE_IMAGE} AS builder
