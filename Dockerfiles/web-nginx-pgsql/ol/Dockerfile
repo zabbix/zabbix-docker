@@ -80,15 +80,14 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             glibc-locale-source \
             tzdata \
             nginx \
-            php-fpm \
-            php-bcmath \
-            php-curl \
-            php-gd \
-            php-json \
-            php-ldap \
-            php-mbstring \
-            php-pgsql \
-            php-xml" && \
+            php8.4-fpm \
+            php8.4-bcmath \
+            php8.4-common \
+            php8.4-gd \
+            php8.4-ldap \
+            php8.4-mbstring \
+            php8.4-pgsql \
+            php8.4-xml" && \
     microdnf -y install \
             --disablerepo="*" \
             --enablerepo="ol10_baseos_latest" \
