@@ -2,6 +2,10 @@ name: Get branch info
 description: Extract branch metadata and derived values for the workflow
 
 inputs:
+  release_version:
+    required: false
+    default: ""
+    description: Full release version supplied explicitly for a manual build
   trunk_version:
     required: false
     default: ""
@@ -25,7 +29,7 @@ outputs:
     description: Short Git commit SHA
     value: ${{ steps.branch_info.outputs.sha_short }}
   release_version:
-    description: Version extracted from a standardized release commit subject
+    description: Full release version resolved from explicit input or commit subject
     value: ${{ steps.branch_info.outputs.release_version }}
 
 runs:
@@ -38,6 +42,7 @@ runs:
         DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
         GITHUB_REF_RAW: ${{ github.ref }}
         GITHUB_EVENT_NAME: ${{ github.event_name }}
+        RELEASE_VERSION_INPUT: ${{ inputs.release_version }}
         TRUNK_MAJOR_VERSION: ${{ inputs.trunk_version }}
         TRUNK_GIT_BRANCH: ${{ inputs.trunk_git_branch }}
       run: |
@@ -61,17 +66,29 @@ runs:
 
         current_branch="${ref##*/}"
         is_default_branch=false
-        release_version=""
+        release_version="$RELEASE_VERSION_INPUT"
 
         if [[ "$current_branch" == "$DEFAULT_BRANCH" ]]; then
           is_default_branch=true
         fi
 
-        commit_subject="$(git log -1 --pretty=%s)"
+        if [[ -n "$release_version" ]]; then
+          if [[ ! "$release_version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "Release version must use X.Y.Z format: $release_version" >&2
+            exit 1
+          fi
 
-        if [[ "$GITHUB_EVENT_NAME" == "push" &&
-              "$commit_subject" =~ ^Zabbix\ v([0-9]+\.[0-9]+\.[0-9]+)\ release$ ]]; then
-          release_version="${BASH_REMATCH[1]}"
+          if [[ "$current_branch" != "${release_version%.*}" ]]; then
+            echo "Release version $release_version does not match branch $current_branch" >&2
+            exit 1
+          fi
+        else
+          commit_subject="$(git log -1 --pretty=%s)"
+
+          if [[ "$GITHUB_EVENT_NAME" == "push" &&
+                "$commit_subject" =~ ^Zabbix\ v([0-9]+\.[0-9]+\.[0-9]+)\ release$ ]]; then
+            release_version="${BASH_REMATCH[1]}"
+          fi
         fi
 
         if [[ "${current_branch//.}" == "trunk" && -n "$TRUNK_MAJOR_VERSION" ]]; then
