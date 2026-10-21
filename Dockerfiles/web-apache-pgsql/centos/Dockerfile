@@ -71,17 +71,16 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             jq \
             shadow-utils \
             httpd \
-            php \
-            php-fpm \
+            php8.4 \
+            php8.4-fpm \
             mod_ssl \
-            php-bcmath \
-            php-curl \
-            php-gd \
-            php-json \
-            php-ldap \
-            php-mbstring \
-            php-pgsql \
-            php-xml \
+            php8.4-bcmath \
+            php8.4-common \
+            php8.4-gd \
+            php8.4-ldap \
+            php8.4-mbstring \
+            php8.4-pgsql \
+            php8.4-xml \
             postgresql18" && \
     microdnf -y install \
             --disablerepo="*" \
