@@ -86,6 +86,7 @@ RUN --mount=type=cache,target=/var/cache/apt/,sharing=locked \
             -o Dpkg::Options::="--force-confold" \
             --no-install-recommends install \
         ${INSTALL_PKGS} && \
+    dpkg --compare-versions "$(dpkg-query -W -f='${Version}' php8.3-fpm)" ge '8.3.6-0ubuntu0.24.04.13' && \
     groupadd \
             --system \
             --gid 1995 \
