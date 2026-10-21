@@ -89,6 +89,7 @@ RUN --mount=type=cache,target=/var/cache/apt/,sharing=locked \
             -o Dpkg::Options::="--force-confold" \
             --no-install-recommends \
         ${INSTALL_PKGS} && \
+    dpkg --compare-versions "$(dpkg-query -W -f='${Version}' php8.5-fpm)" ge '8.5.4-0ubuntu1.5' && \
     groupadd \
             --system \
             --gid 1995 \
