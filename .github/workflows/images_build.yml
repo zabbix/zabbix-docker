@@ -19,6 +19,20 @@ on:
   schedule:
     - cron:  '50 02 * * *'
   workflow_dispatch:
+    inputs:
+      publish_images:
+        description: 'Publish images'
+        required: true
+        default: false
+        type: boolean
+      release_version:
+        description: 'Full release version (X.Y.Z)'
+        required: false
+        type: string
+      trunk_version:
+        description: 'Specify trunk major version'
+        required: false
+        type: string
 
 concurrency:
   group: images-build-${{ github.workflow }}-${{ github.ref }}
@@ -33,7 +47,7 @@ permissions:
 
 env:
   TRUNK_ONLY_EVENT: ${{ contains(fromJSON('["schedule"]'), github.event_name) }}
-  AUTO_PUSH_IMAGES: ${{ ! contains(fromJSON('["workflow_dispatch"]'), github.event_name) && vars.AUTO_PUSH_IMAGES }}
+  AUTO_PUSH_IMAGES: ${{ (! contains(fromJSON('["workflow_dispatch"]'), github.event_name) && vars.AUTO_PUSH_IMAGES) || (contains(fromJSON('["workflow_dispatch"]'), github.event_name) && inputs.publish_images) }}
 
   DOCKER_REGISTRY: ${{ vars.DOCKER_REGISTRY }}
   DOCKER_REPOSITORY: ${{ vars.DOCKER_REPOSITORY }}
@@ -145,6 +159,7 @@ jobs:
         id: branch_info
         uses: ./.github/actions/get-branch-info
         with:
+          release_version: ${{ inputs.release_version }}
           trunk_version: ${{ inputs.trunk_version }}
           trunk_git_branch: ${{ env.TRUNK_GIT_BRANCH }}
 
