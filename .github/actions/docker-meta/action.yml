@@ -23,7 +23,7 @@ inputs:
   release_version:
     required: false
     default: ""
-    description: 'Version extracted from a standardized release commit subject'
+    description: 'Full release version, when available'
 
 outputs:
   tags:
