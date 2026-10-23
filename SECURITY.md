@@ -2,7 +2,7 @@
 
 The Zabbix container images follow the [Zabbix security policy](https://www.zabbix.com/zabbix_security_policy), which describes the disclosure policy, how security issues are reported and how Zabbix deals with them.
 
-Security fixes are released as new images for the Zabbix versions that are supported according to the [Zabbix life cycle and release policy](https://www.zabbix.com/life_cycle_and_release_policy). This branch builds the images of Zabbix 6.0 LTS.
+Security fixes are released as new images for the Zabbix versions that are supported according to the [Zabbix life cycle and release policy](https://www.zabbix.com/life_cycle_and_release_policy). This branch builds the images of Zabbix 7.0 LTS.
 
 # Reporting a security issue
 
@@ -10,9 +10,9 @@ Report security issues, including issues in the images themselves, by [creating 
 
 # Verifying images
 
-The images published on Docker Hub are built by the [GitHub Actions workflows](https://github.com/zabbix/zabbix-docker/tree/6.0/.github/workflows) of this repository.
+The images published on Docker Hub are built by the [GitHub Actions workflows](https://github.com/zabbix/zabbix-docker/tree/7.0/.github/workflows) of this repository.
 
-The examples below use the `zabbix/zabbix-server-pgsql:alpine-6.0-latest` tag. Other images and tags can be checked by adjusting the image reference, workflow and branch where applicable. Tags are updated whenever an image is rebuilt, for example for security updates, while signatures and attestations belong to a specific image digest. For reproducible results, refer to the image by its digest, for example `zabbix/zabbix-server-pgsql@sha256:...`.
+The examples below use the `zabbix/zabbix-server-pgsql:alpine-7.0-latest` tag. Other images and tags can be checked by adjusting the image reference, workflow and branch where applicable. Tags are updated whenever an image is rebuilt, for example for security updates, while signatures and attestations belong to a specific image digest. For reproducible results, refer to the image by its digest, for example `zabbix/zabbix-server-pgsql@sha256:...`.
 
 The tools used are [cosign](https://github.com/sigstore/cosign), [GitHub CLI](https://cli.github.com/), [Docker Buildx](https://github.com/docker/buildx) and, for vulnerability scanning, [Grype](https://github.com/anchore/grype).
 
@@ -23,25 +23,25 @@ Images are signed with [Sigstore](https://www.sigstore.dev/) keyless signing by 
 ```bash
 cosign verify \
     --certificate-oidc-issuer https://token.actions.githubusercontent.com \
-    --certificate-identity 'https://github.com/zabbix/zabbix-docker/.github/workflows/images_build.yml@refs/heads/6.0' \
-    zabbix/zabbix-server-pgsql:alpine-6.0-latest
+    --certificate-identity 'https://github.com/zabbix/zabbix-docker/.github/workflows/images_build.yml@refs/heads/7.0' \
+    zabbix/zabbix-server-pgsql:alpine-7.0-latest
 ```
 
 ## Build provenance
 
-The [SLSA provenance](https://slsa.dev/) attestation records the repository, commit and workflow run that built the image. To check that an image was built by the image build workflow from the `6.0` branch:
+The [SLSA provenance](https://slsa.dev/) attestation records the repository, commit and workflow run that built the image. To check that an image was built by the image build workflow from the `7.0` branch:
 
 ```bash
-gh attestation verify oci://docker.io/zabbix/zabbix-server-pgsql:alpine-6.0-latest \
+gh attestation verify oci://docker.io/zabbix/zabbix-server-pgsql:alpine-7.0-latest \
     --repo zabbix/zabbix-docker \
     --signer-workflow zabbix/zabbix-docker/.github/workflows/images_build.yml \
-    --source-ref refs/heads/6.0
+    --source-ref refs/heads/7.0
 ```
 
 Linux images additionally carry provenance recorded by BuildKit. It can be inspected with:
 
 ```bash
-docker buildx imagetools inspect zabbix/zabbix-server-pgsql:alpine-6.0-latest \
+docker buildx imagetools inspect zabbix/zabbix-server-pgsql:alpine-7.0-latest \
     --format '{{ json (index .Provenance "linux/amd64").SLSA }}'
 ```
 
@@ -60,10 +60,10 @@ Linux images provide up to three SBOMs. The Zabbix component SBOM is present onl
 The image SBOM attestation is recommended for vulnerability scanning and tools such as [Dependency-Track](https://dependencytrack.org/) because it provides a normalized CycloneDX document. It describes the `linux/amd64` image only; for other platforms use the BuildKit SBOM attestation.
 
 ```bash
-gh attestation verify oci://docker.io/zabbix/zabbix-server-pgsql:alpine-6.0-latest \
+gh attestation verify oci://docker.io/zabbix/zabbix-server-pgsql:alpine-7.0-latest \
     --repo zabbix/zabbix-docker \
     --signer-workflow zabbix/zabbix-docker/.github/workflows/images_build.yml \
-    --source-ref refs/heads/6.0 \
+    --source-ref refs/heads/7.0 \
     --predicate-type https://cyclonedx.org/bom \
     --bundle-from-oci \
     --format json \
@@ -73,10 +73,10 @@ gh attestation verify oci://docker.io/zabbix/zabbix-server-pgsql:alpine-6.0-late
 To list only the vulnerabilities that already have a fixed version available, add `--only-fixed`:
 
 ```bash
-gh attestation verify oci://docker.io/zabbix/zabbix-server-pgsql:alpine-6.0-latest \
+gh attestation verify oci://docker.io/zabbix/zabbix-server-pgsql:alpine-7.0-latest \
     --repo zabbix/zabbix-docker \
     --signer-workflow zabbix/zabbix-docker/.github/workflows/images_build.yml \
-    --source-ref refs/heads/6.0 \
+    --source-ref refs/heads/7.0 \
     --predicate-type https://cyclonedx.org/bom \
     --bundle-from-oci \
     --format json \
@@ -86,7 +86,7 @@ gh attestation verify oci://docker.io/zabbix/zabbix-server-pgsql:alpine-6.0-late
 The BuildKit SBOM attestation is available for each platform of the image, for example `linux/arm64`:
 
 ```bash
-docker buildx imagetools inspect zabbix/zabbix-server-pgsql:alpine-6.0-latest \
+docker buildx imagetools inspect zabbix/zabbix-server-pgsql:alpine-7.0-latest \
     --format '{{ json (index .SBOM "linux/arm64").SPDX }}' | grype
 ```
 
