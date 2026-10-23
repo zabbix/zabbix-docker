@@ -1,32 +1,93 @@
-# Disclosure policy
+# Security policy
 
-In Zabbix we use the term "**responsible disclosure**", which means we have a policy on how we are disclosing all security issues that come to our attention, but only after the issues has been resolved and all customers with support contracts are given time to upgrade or patch their installations.
+The Zabbix container images follow the [Zabbix security policy](https://www.zabbix.com/zabbix_security_policy), which describes the disclosure policy, how security issues are reported and how Zabbix deals with them.
 
-We kindly ask that when you are reporting a security issue, you follow the same guidelines and share the details only with the Zabbix Security team.
+Security fixes are released as new images for the Zabbix versions that are supported according to the [Zabbix life cycle and release policy](https://www.zabbix.com/life_cycle_and_release_policy). This branch builds the images of Zabbix 7.4.
 
-# Before reporting the issue:
+# Reporting a security issue
 
-Make sure that the issue you are submitting is not related to server configuration, 3rd party scripts and utilities. In order to avoid any possible issues with server configuration we advise Zabbix users to read [Best practices for secure Zabbix setup](https://www.zabbix.com/documentation/current/en/manual/best_practices/security).
+Report security issues, including issues in the images themselves, by [creating a new issue](https://support.zabbix.com/secure/CreateIssue.jspa) in the restricted Zabbix Security Reports (ZBXSEC) project, as described in the [Zabbix security policy](https://www.zabbix.com/zabbix_security_policy). Please do not report security issues on GitHub.
 
-# How to report a security issue?
+# Verifying images
 
-[Create a new issue](https://support.zabbix.com/secure/CreateIssue.jspa) in the Zabbix Security Reports (ZBXSEC) section of the public bug tracker describing the problem (and a proposed solution if possible) in detail. This way we can ensure that only Zabbix security team and the reporter have access to the case.
+The images published on Docker Hub are built by the [GitHub Actions workflows](https://github.com/zabbix/zabbix-docker/tree/7.4/.github/workflows) of this repository.
 
-The following information will be helpful for Zabbix Security team:
+The examples below use the `zabbix/zabbix-server-pgsql:alpine-7.4-latest` tag. Other images and tags can be checked by adjusting the image reference, workflow and branch where applicable. Tags are updated whenever an image is rebuilt, for example for security updates, while signatures and attestations belong to a specific image digest. For reproducible results, refer to the image by its digest, for example `zabbix/zabbix-server-pgsql@sha256:...`.
 
-- Date and time when you identified the security defect.
-- Affected Zabbix version range.
-- Type of security issue you are reporting, e.g.: XSS, CSRF, SQLi, RCE.
-- Affected components, e.g.: Image, Frontend, Server, Agent, API.
-- Any details you can provide, e.g. screenshots, screen recordings, http(s) transaction logs, POC exploits (please do not share any evidence via unauthenticated file sharing services and avoid sharing sensitive information, as if Zabbix Security team decides that this issue does not fit Security defect description it might be moved to ZBX project and the issue will be visible to all users).
-- Step by step instructions to reproduce the issue as the problem might not be easily identifiable.
+The tools used are [cosign](https://github.com/sigstore/cosign), [GitHub CLI](https://cli.github.com/), [Docker Buildx](https://github.com/docker/buildx) and, for vulnerability scanning, [Grype](https://github.com/anchore/grype).
 
-# How Zabbix deals with reported security issues:
+## Signature
 
-1. Zabbix Security team reviews the issue and evaluates its potential impact.
-2. If the security issue is found not to be related to security then the issue will be moved to ZBX project.
-3. Zabbix security team works on the issue to provide a solution and keeps all details on the problem until the next version of Zabbix is out.
-4. New images are created and made available for download on [https://www.zabbix.com/container_images](https://www.zabbix.com/container_images), [https://hub.docker.com/u/zabbix](http://hub.docker.com/r/zabbix/) and [Red Hat Certified Container Catalog](https://catalog.redhat.com/software/containers/search?vendor_name=Zabbix%20Sia&p=1)
-5. Zabbix requests [CVE identifiers](https://cve.mitre.org/) for the security issue.
-6. Clients with valid support agreements are emailed giving a period of time when it is possible to upgrade before the issue becomes known to the public.
-7. A public announcement for the community is made.
+Images are signed with [Sigstore](https://www.sigstore.dev/) keyless signing by the workflows of this repository:
+
+```bash
+cosign verify \
+    --certificate-oidc-issuer https://token.actions.githubusercontent.com \
+    --certificate-identity 'https://github.com/zabbix/zabbix-docker/.github/workflows/images_build.yml@refs/heads/7.4' \
+    zabbix/zabbix-server-pgsql:alpine-7.4-latest
+```
+
+## Build provenance
+
+The [SLSA provenance](https://slsa.dev/) attestation records the repository, commit and workflow run that built the image. To check that an image was built by the image build workflow from the `7.4` branch:
+
+```bash
+gh attestation verify oci://docker.io/zabbix/zabbix-server-pgsql:alpine-7.4-latest \
+    --repo zabbix/zabbix-docker \
+    --signer-workflow zabbix/zabbix-docker/.github/workflows/images_build.yml \
+    --source-ref refs/heads/7.4
+```
+
+Linux images additionally carry provenance recorded by BuildKit. It can be inspected with:
+
+```bash
+docker buildx imagetools inspect zabbix/zabbix-server-pgsql:alpine-7.4-latest \
+    --format '{{ json (index .Provenance "linux/amd64").SLSA }}'
+```
+
+Verifying the signature or SLSA attestation confirms who built the image and from which source. Inspecting the BuildKit provenance alone does not verify the signer identity. None of these checks mean that the image is free from vulnerabilities.
+
+## Software Bill of Materials (SBOM)
+
+Linux images provide up to three SBOMs. The Zabbix component SBOM is present only in images that contain a Zabbix component; for example, the `snmptraps` image does not contain one.
+
+| SBOM | Format | Content | Platforms |
+|------|--------|---------|-----------|
+| Image SBOM attestation | CycloneDX, signed | Operating system packages and application dependencies, including the embedded Zabbix component SBOM when present | `linux/amd64` |
+| Zabbix component SBOM | CycloneDX, file in `/usr/share/doc/zabbix/sbom/` of the image | Zabbix component with its CPE, third-party code bundled in Zabbix sources (for example Duktape, jQuery, MD5 implementation), PHP and Java libraries, agent 2 plugins | all supported platforms where applicable |
+| BuildKit SBOM attestation | SPDX | Packages and dependencies detected in the image filesystem, including embedded SBOM data when present | each platform |
+
+The image SBOM attestation is recommended for vulnerability scanning and tools such as [Dependency-Track](https://dependencytrack.org/) because it provides a normalized CycloneDX document. It describes the `linux/amd64` image only; for other platforms use the BuildKit SBOM attestation.
+
+```bash
+gh attestation verify oci://docker.io/zabbix/zabbix-server-pgsql:alpine-7.4-latest \
+    --repo zabbix/zabbix-docker \
+    --signer-workflow zabbix/zabbix-docker/.github/workflows/images_build.yml \
+    --source-ref refs/heads/7.4 \
+    --predicate-type https://cyclonedx.org/bom \
+    --bundle-from-oci \
+    --format json \
+    --jq '.[0].verificationResult.statement.predicate' | grype
+```
+
+To list only the vulnerabilities that already have a fixed version available, add `--only-fixed`:
+
+```bash
+gh attestation verify oci://docker.io/zabbix/zabbix-server-pgsql:alpine-7.4-latest \
+    --repo zabbix/zabbix-docker \
+    --signer-workflow zabbix/zabbix-docker/.github/workflows/images_build.yml \
+    --source-ref refs/heads/7.4 \
+    --predicate-type https://cyclonedx.org/bom \
+    --bundle-from-oci \
+    --format json \
+    --jq '.[0].verificationResult.statement.predicate' | grype --only-fixed
+```
+
+The BuildKit SBOM attestation is available for each platform of the image, for example `linux/arm64`:
+
+```bash
+docker buildx imagetools inspect zabbix/zabbix-server-pgsql:alpine-7.4-latest \
+    --format '{{ json (index .SBOM "linux/arm64").SPDX }}' | grype
+```
+
+Windows images are signed and come with build provenance, but do not provide SBOMs yet.
