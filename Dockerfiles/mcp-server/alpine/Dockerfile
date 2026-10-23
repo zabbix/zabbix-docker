@@ -36,6 +36,7 @@ LABEL org.opencontainers.image.authors="Alexey Pustovalov <alexey.pustovalov@zab
       com.zabbix.product.source="${ZBX_SOURCES}" \
       com.zabbix.product.ref="${ZBX_PRODUCT_REF}" \
       com.zabbix.product.revision="${ZBX_PRODUCT_REVISION}" \
+      io.modelcontextprotocol.server.name="com.zabbix/mcp-server" \
       org.opencontainers.image.source="https://github.com/zabbix/zabbix-docker" \
       org.opencontainers.image.title="Zabbix MCP server" \
       org.opencontainers.image.url="https://hub.docker.com/r/zabbix/zabbix-mcp-server" \

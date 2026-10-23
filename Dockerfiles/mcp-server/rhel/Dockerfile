@@ -44,6 +44,7 @@ LABEL description="Zabbix MCP server speaks the Model Context Protocol (MCP) on 
       io.k8s.display-name="Zabbix MCP server" \
       io.openshift.expose-services="8443:8443" \
       io.openshift.tags="zabbix,zabbix-mcp-server,mcp" \
+      io.modelcontextprotocol.server.name="com.zabbix/mcp-server" \
       org.opencontainers.image.authors="Alexey Pustovalov <alexey.pustovalov@zabbix.com>" \
       org.opencontainers.image.description="Zabbix MCP server speaks the Model Context Protocol (MCP) on one side and the Zabbix API on the other, so that an AI agent can work incidents in Zabbix." \
       org.opencontainers.image.documentation="https://www.zabbix.com/documentation/${MAJOR_VERSION}/manual/installation/containers" \
