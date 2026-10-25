@@ -80,7 +80,7 @@ This variable is used to specify log level. By default, value is `info`. The var
 
 Name of properties file. Can be used to set additional properties using a key-value format in such a way that they are not visible on a command line or to overwrite existing ones.
 
-### `ZBX_JAVA_OPTS`
+### `JDK_JAVA_OPTIONS`
 
 Additional Java Virtual Machine (JVM) options for Zabbix Java Gateway, for example `-Xms128m -Xmx1g`.
 
