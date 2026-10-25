@@ -16,6 +16,21 @@ updates:
         patterns:
           - "*"
 
+  - package-ecosystem: "gomod"
+    directory: "/templates/entrypoints"
+    schedule:
+      interval: "weekly"
+      time: "06:15"
+    open-pull-requests-limit: 3
+    labels:
+      - "dependencies"
+      - "go"
+    groups:
+      go-entrypoints:
+        applies-to: version-updates
+        patterns:
+          - "*"
+
   - package-ecosystem: "docker"
     directories:
       - "/Dockerfiles/agent/*"
