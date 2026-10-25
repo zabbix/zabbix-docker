@@ -41,7 +41,7 @@ env:
 
   MSFT_BASE_BUILD_IMAGE: "mcr.microsoft.com/windows/servercore"
   OS_BASE_IMAGE_NAME: "mcr.microsoft.com/windows/nanoserver"
-  ENTRYPOINT_BUILD_IMAGE_NAME: "golang:1.27.1-windowsservercore"
+  ENTRYPOINT_BUILD_IMAGE_NAME: "golang:1.27.3-windowsservercore"
 
   BASE_IMAGE_NAME: "build-base"
   BASE_BUILD_IMAGE_NAME: "build-common"
@@ -71,7 +71,7 @@ jobs:
       need_rebuild: ${{ steps.upstream_changes.outputs.need_rebuild }}
     steps:
       - name: Block egress traffic
-        uses: step-security/harden-runner@05e31511f85b41b11d1cf0ef85d0992719546e2c # v2.21.0
+        uses: step-security/harden-runner@ccd8616d44fd3846e67624a50d5aad6d37bf2d25 # v2.22.1
         with:
           disable-sudo: true
           egress-policy: block
@@ -157,7 +157,7 @@ jobs:
 
     steps:
       - name: Block egress traffic
-        uses: step-security/harden-runner@05e31511f85b41b11d1cf0ef85d0992719546e2c # v2.21.0
+        uses: step-security/harden-runner@ccd8616d44fd3846e67624a50d5aad6d37bf2d25 # v2.22.1
         with:
           disable-sudo: true
           egress-policy: block
@@ -407,7 +407,7 @@ jobs:
           Set-Content -Path $cacheFileName -Value $imageRef -NoNewline
 
       - name: Upload artifact metadata
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           path: ${{ env.BASE_IMAGE_NAME }}_${{ matrix.os }}_${{ matrix.component }}
           name: ${{ env.BASE_IMAGE_NAME }}-${{ matrix.os }}-${{ matrix.component }}-${{ github.run_id }}
@@ -483,7 +483,7 @@ jobs:
             latest=false
 
       - name: Download image ref of ${{ env.BASE_IMAGE_NAME }}:${{ matrix.os }}
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           name: ${{ env.BASE_IMAGE_NAME }}-${{ matrix.os }}-${{ matrix.component }}-${{ github.run_id }}
 
@@ -570,7 +570,7 @@ jobs:
           Set-Content -Path $cacheFileName -Value $imageRef -NoNewline
 
       - name: Upload artifact metadata
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           path: ${{ env.BASE_BUILD_IMAGE_NAME }}_${{ matrix.os }}_${{ matrix.component }}
           name: ${{ env.BASE_BUILD_IMAGE_NAME }}-${{ matrix.os }}-${{ matrix.component }}-${{ github.run_id }}
@@ -593,7 +593,7 @@ jobs:
 
     steps:
       - name: Block egress traffic
-        uses: step-security/harden-runner@05e31511f85b41b11d1cf0ef85d0992719546e2c # v2.21.0
+        uses: step-security/harden-runner@ccd8616d44fd3846e67624a50d5aad6d37bf2d25 # v2.22.1
         with:
           disable-sudo: true
           egress-policy: block
@@ -671,7 +671,7 @@ jobs:
             latest=false
 
       - name: Download image ref of ${{ env.BASE_BUILD_IMAGE_NAME }}:${{ matrix.os }}
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           name: ${{ env.BASE_BUILD_IMAGE_NAME }}-${{ matrix.os }}-${{ matrix.component }}-${{ github.run_id }}
 
