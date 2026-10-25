@@ -5,6 +5,7 @@ zbx_env*/
 .*KEY_FILE
 .*CA_FILE
 Dockerfiles/*/rhel/secrets/*
+env_vars/.env_*_override
 sources/*
 .*.orig
 .*.rej
