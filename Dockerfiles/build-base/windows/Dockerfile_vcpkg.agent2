@@ -3,7 +3,7 @@
 ARG BUILD_BASE_IMAGE=mcr.microsoft.com/windows/servercore:ltsc2022
 FROM $BUILD_BASE_IMAGE as builder_base
 
-ARG GOLANG_VERSION=1.23.2
+ARG GOLANG_VERSION=1.27.3
 
 ARG BUILD_ARCH=x64
 
@@ -60,7 +60,7 @@ RUN Set-Location -Path $env:SystemDrive\.; `
     Write-Host ('Downloading {0} ...' -f $env:GOLANG_URL); `
     Invoke-WebRequest -OutFile $env:TEMP\go_lang.zip -Uri $env:GOLANG_URL; `
     `
-    $sha256 = 'bc28fe3002cd65cec65d0e4f6000584dacb8c71bfaff8801dfb532855ca42513'; `
+    $sha256 = 'f0c0a0d33ba94f4d2c5dbc887334ce678b21813504ddb3aafcb06e60a5a667c4'; `
     $d_sha256 = (Get-FileHash $env:TEMP\go_lang.zip -Algorithm sha256).Hash; `
     Write-Host ('Verifying SHA256 ({0}) ...' -f $sha256); `
     if ($d_sha256 -ne $sha256) { `
