@@ -35,7 +35,7 @@ variable "OS_BASE_IMAGE" {
 
 variable "ENTRYPOINT_BUILD_IMAGE" {
   type        = string
-  default     = "golang:1.27.0-alpine"
+  default     = "golang:1.27.3-alpine"
   description = "Go image used to build the Zabbix SNMP traps entrypoint"
 }
 
