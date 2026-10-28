@@ -35,7 +35,6 @@ var phpDefaults = []struct{ name, value string }{
 
 	// Database connection
 	{"ZBX_DB_ENCRYPTION", "false"},
-	{"ZBX_DB_VERIFY_HOST", "false"},
 	{"ZBX_DB_DOUBLE_IEEE754", "true"},
 
 	// Frontend features
@@ -50,6 +49,9 @@ var phpDefaults = []struct{ name, value string }{
 }
 
 func prepareFrontendAliases(env bootstrap.Environment) error {
+	// Apply this before configuring the bootstrap database connection as well as PHP.
+	env.SetDefaultNonEmpty("ZBX_DB_VERIFY_HOST", "true")
+
 	for _, variable := range []struct {
 		name, legacy, directory string
 	}{

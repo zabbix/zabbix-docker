@@ -63,7 +63,7 @@ if (getenv('ZBX_SERVER_HOST')) {
 $ZBX_SERVER_NAME = env_string('ZBX_SERVER_NAME');
 
 $DB['ENCRYPTION']  = env_bool('ZBX_DB_ENCRYPTION');
-$DB['VERIFY_HOST'] = env_bool('ZBX_DB_VERIFY_HOST');
+$DB['VERIFY_HOST'] = env_bool('ZBX_DB_VERIFY_HOST', true);
 $DB['KEY_FILE']    = env_string('ZBX_DBTLSKEYFILE');
 $DB['CERT_FILE']   = env_string('ZBX_DBTLSCERTFILE');
 $DB['CA_FILE']     = env_string('ZBX_DBTLSCAFILE');

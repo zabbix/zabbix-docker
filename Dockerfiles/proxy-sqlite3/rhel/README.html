@@ -63,7 +63,7 @@ where 1995 is <code>zabbix</code> GID.</p>
 <li><code>5</code> - extended debugging (produces even more information)</li>
 </ul>
 <h3 id="-zbx_timeout-"><code>ZBX_TIMEOUT</code></h3>
-<p>The variable is used to specify timeout for processing checks. By default, value is <code>4</code>.</p>
+<p>The variable is used to specify timeout for processing checks. By default, value is <code>3</code>.</p>
 <h3 id="-zbx_telemetryprovider_0-"><code>ZBX_TELEMETRYPROVIDER_0</code></h3>
 <p>ClickHouse telemetry provider configuration in JSON format.</p>
 <p>Credentials and the TLS private key password can be set with the matching <code>_USERNAME</code>, <code>_PASSWORD</code>, and <code>_SSL_KEY_PASSWORD</code> variables or their <code>_FILE</code> alternatives.</p>
@@ -78,7 +78,7 @@ where 1995 is <code>zabbix</code> GID.</p>
 <span class="hljs-attr">ZBX_APMTLSCERT</span>= # Available since <span class="hljs-number">8.0</span>.<span class="hljs-number">0</span>
 <span class="hljs-attr">ZBX_APMTLSKEYFILE</span>= # Available since <span class="hljs-number">8.0</span>.<span class="hljs-number">0</span>
 <span class="hljs-attr">ZBX_APMTLSKEY</span>= # Available since <span class="hljs-number">8.0</span>.<span class="hljs-number">0</span>
-<span class="hljs-attr">ZBX_STARTAPMCOLLECTORS</span>=<span class="hljs-number">0</span> # Available since <span class="hljs-number">8.0</span>.<span class="hljs-number">0</span>
+<span class="hljs-attr">ZBX_STARTAPMCOLLECTOR</span>=<span class="hljs-number">0</span> # Available since <span class="hljs-number">8.0</span>.<span class="hljs-number">0</span>
 <span class="hljs-attr">ZBX_TELEMETRYPROVIDER_0</span>=
 <span class="hljs-attr">ZBX_TELEMETRYPROVIDER_0_USERNAME</span>=
 <span class="hljs-attr">ZBX_TELEMETRYPROVIDER_0_USERNAME_FILE</span>=
@@ -102,7 +102,7 @@ where 1995 is <code>zabbix</code> GID.</p>
 <span class="hljs-attr">ZBX_STARTAGENTPOLLERS</span>=<span class="hljs-number">1</span> # Available since <span class="hljs-number">7.0</span>.<span class="hljs-number">0</span>
 <span class="hljs-attr">ZBX_STARTHTTPAGENTPOLLERS</span>=<span class="hljs-number">1</span> # Available since <span class="hljs-number">7.0</span>.<span class="hljs-number">0</span>
 <span class="hljs-attr">ZBX_STARTPOLLERS</span>=<span class="hljs-number">5</span>
-<span class="hljs-attr">ZBX_STARTPREPROCESSORS</span>=<span class="hljs-number">3</span> # Available since <span class="hljs-number">4.2</span>.<span class="hljs-number">0</span>
+<span class="hljs-attr">ZBX_STARTPREPROCESSORS</span>=<span class="hljs-number">16</span> # Available since <span class="hljs-number">4.2</span>.<span class="hljs-number">0</span>
 <span class="hljs-attr">ZBX_STARTIPMIPOLLERS</span>=<span class="hljs-number">0</span>
 <span class="hljs-attr">ZBX_STARTPOLLERSUNREACHABLE</span>=<span class="hljs-number">1</span>
 <span class="hljs-attr">ZBX_STARTTRAPPERS</span>=<span class="hljs-number">5</span>
@@ -132,7 +132,7 @@ where 1995 is <code>zabbix</code> GID.</p>
 <span class="hljs-attr">ZBX_UNREACHABLEPERIOD</span>=<span class="hljs-number">45</span>
 <span class="hljs-attr">ZBX_UNAVAILABLEDELAY</span>=<span class="hljs-number">60</span>
 <span class="hljs-attr">ZBX_UNREACHABLEDELAY</span>=<span class="hljs-number">15</span>
-<span class="hljs-attr">ZBX_LOGSLOWQUERIES</span>=<span class="hljs-number">3000</span>
+<span class="hljs-attr">ZBX_LOGSLOWQUERIES</span>=<span class="hljs-number">0</span>
 <span class="hljs-attr">ZBX_TLSLISTEN</span>= # Available since <span class="hljs-number">7.4</span>.<span class="hljs-number">0</span>
 <span class="hljs-attr">ZBX_TLSCONNECT</span>=unencrypted
 <span class="hljs-attr">ZBX_TLSACCEPT</span>=unencrypted

@@ -49,6 +49,9 @@ func TestPreparePHPUsesTrunkFrontendSettings(t *testing.T) {
 	if err := prepareFrontendAliases(env); err != nil {
 		t.Fatal(err)
 	}
+	if env["ZBX_DB_VERIFY_HOST"] != "true" {
+		t.Fatal("database hostname verification must default to true before the bootstrap connection")
+	}
 	if err := preparePHP(env, MySQL); err != nil {
 		t.Fatal(err)
 	}
@@ -59,6 +62,7 @@ func TestPreparePHPUsesTrunkFrontendSettings(t *testing.T) {
 		t.Fatalf("stale CA was not removed: %v", err)
 	}
 	want := map[string]string{
+		"ZBX_DB_VERIFY_HOST":         "true",
 		"ZBX_MAXEXECUTIONTIME":       "300",
 		"ZBX_HISTORYPROVIDERS":       "[]",
 		"ZBX_TELEMETRYPROVIDERS":     "[]",
@@ -115,6 +119,22 @@ func TestPreparePHPUsesTrunkFrontendSettings(t *testing.T) {
 		if _, found := env[legacy]; found {
 			t.Fatalf("legacy variable %s was exported", legacy)
 		}
+	}
+	explicitEnv := bootstrap.Environment{
+		"ZABBIX_USER_HOME_DIR": root,
+		"PHP_ZBX_CONFIG_FILE":  phpConfig,
+		"DAEMON_USER":          "zabbix",
+		"DAEMON_GROUP":         "zabbix",
+		"ZBX_DB_VERIFY_HOST":   "false",
+	}
+	if err := prepareFrontendAliases(explicitEnv); err != nil {
+		t.Fatal(err)
+	}
+	if err := preparePHP(explicitEnv, MySQL); err != nil {
+		t.Fatal(err)
+	}
+	if explicitEnv["ZBX_DB_VERIFY_HOST"] != "false" {
+		t.Fatal("explicitly disabled database hostname verification was overridden")
 	}
 }
 

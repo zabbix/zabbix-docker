@@ -106,7 +106,7 @@ podman run --name some-zabbix-web-nginx-pgsql --secret POSTGRES_USER --secret PO
 <h3 id="-zbx_dbtlscafile-"><code>ZBX_DBTLSCAFILE</code></h3>
 <p>The variable allows to specify a TLS certificate authority file. Available since 5.0.0.</p>
 <h3 id="-zbx_db_verify_host-"><code>ZBX_DB_VERIFY_HOST</code></h3>
-<p>The variable allows to activate host verification. Available since 5.0.0.</p>
+<p>The variable controls database hostname verification. Enabled by default; set ZBX_DB_VERIFY_HOST=false to disable it. Available since 5.0.0.</p>
 <h3 id="-zbx_sso_sp_keyfile-zbx_sso_sp_key-"><code>ZBX_SSO_SP_KEYFILE</code>, <code>ZBX_SSO_SP_KEY</code></h3>
 <p><code>ZBX_SSO_SP_KEYFILE</code> specifies the Service Provider (SP) private key file. A relative path is resolved against <code>/etc/zabbix/web/certs</code>. Alternatively, <code>ZBX_SSO_SP_KEY</code> provides the private key content directly. Available since 8.0.0.</p>
 <h3 id="-zbx_sso_sp_certfile-zbx_sso_sp_cert-"><code>ZBX_SSO_SP_CERTFILE</code>, <code>ZBX_SSO_SP_CERT</code></h3>

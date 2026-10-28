@@ -214,7 +214,7 @@ The variable allows to specify a TLS certificate authority file. Available since
 
 ### `ZBX_DB_VERIFY_HOST`
 
-The variable allows to activate host verification. Available since 5.0.0.
+The variable controls database hostname verification. Enabled by default; set ZBX_DB_VERIFY_HOST=false to disable it. Available since 5.0.0.
 
 ### `ZBX_SSO_SP_KEYFILE`, `ZBX_SSO_SP_KEY`
 
