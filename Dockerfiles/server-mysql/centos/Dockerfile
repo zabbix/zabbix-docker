@@ -58,6 +58,7 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
     --mount=type=tmpfs,target=/var/cache/yum/ \
     set -eux && \
     INSTALL_PKGS="bash \
+            tzdata \
             curl-minimal \
             gzip \
             jq \
