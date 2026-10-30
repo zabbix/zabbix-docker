@@ -57,6 +57,7 @@ update_config_var() {
     local var_value="${3:-}"
     local is_multiple="${4:-false}"
     local log_message
+    local line_number
 
     [[ -f "$config_path" ]] || error "Missing configuration file: $config_path"
 
@@ -95,6 +96,12 @@ update_config_var() {
     elif grep -qE "^${var_name}=" "$config_path" && [ "$is_multiple" != "true" ]; then
         sed -i -e "/^${var_name}=/s/=.*/=${var_value}/" "$config_path"
         log_message="$log_message updated"
+    elif [ "$is_multiple" == "true" ] && grep -qE "^${var_name}=" "$config_path"; then
+        # Add after the last already defined occurrence to keep the order of values,
+        # the daemon processes such parameters in order of their appearance
+        line_number="$(grep -nE "^${var_name}=" "$config_path" | tail -1 | cut -d: -f1)"
+        sed -i -e "${line_number}s/.*/&\n${var_name}=${var_value}/" "$config_path"
+        log_message="$log_message added after the last occurrence"
     elif [ "$(grep -Ec "^# ${var_name}=" "$config_path")" -gt 1 ]; then
         sed -i -e "/^[#;] ${var_name}=$/i\\${var_name}=${var_value}" "$config_path"
         log_message="$log_message added first occurrence"
