@@ -132,7 +132,11 @@ func (db *DB) Prepare(schemaFile, timescaleFile string) error {
 		return fmt.Errorf("close PostgreSQL connection: %w", err)
 	}
 
-	return db.createSchema(schemaFile, timescaleFile)
+	if err := db.createSchema(schemaFile, timescaleFile); err != nil {
+		return err
+	}
+	bootstrap.LogInfo("** Database schema successfully created!")
+	return nil
 }
 
 func quoteIdentifier(value string) string {
