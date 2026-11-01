@@ -62,6 +62,7 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             jq \
             hostname \
             shadow-utils \
+            tzdata \
             c-ares \
             file-libs \
             libbrotli \

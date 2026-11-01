@@ -71,6 +71,7 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             gzip \
             jq \
             shadow-utils \
+            tzdata \
             httpd \
             php8.4 \
             php8.4-fpm \

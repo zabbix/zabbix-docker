@@ -61,6 +61,7 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             gzip \
             jq \
             shadow-utils \
+            tzdata \
             c-ares \
             file-libs \
             libevent \
