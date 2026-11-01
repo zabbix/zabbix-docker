@@ -67,6 +67,81 @@ services:
    com.zabbix.company: "Zabbix SIA"
    com.zabbix.component: "server"
 
+ server-history-init:
+  init: true
+  attach: true
+  read_only: true
+  restart: no
+  volumes:
+   - /etc/localtime:/etc/localtime:ro
+   - ${DATA_DIRECTORY}/var/lib/zabbix/enc:/var/lib/zabbix/enc:ro
+   - ${DATA_DIRECTORY}/var/lib/zabbix/ssl/certs:/var/lib/zabbix/ssl/certs:ro
+   - ${DATA_DIRECTORY}/var/lib/zabbix/ssl/keys:/var/lib/zabbix/ssl/keys:ro
+   - ${DATA_DIRECTORY}/var/lib/zabbix/ssl/ssl_ca:/var/lib/zabbix/ssl/ssl_ca:ro
+  tmpfs:
+   - /tmp
+   - /var/lib/zabbix/ssl/ssl_ca_internal:mode=770,uid=1997,gid=0
+  networks:
+   database:
+  command: init_db_history_providers
+  env_file:
+   - path: ${ENV_VARS_DIRECTORY}/.env_srv
+     required: true
+   - path: ${ENV_VARS_DIRECTORY}/.env_srv_override
+     required: false
+
+ telemetry-init:
+  init: true
+  attach: true
+  read_only: true
+  restart: no
+  volumes:
+   - /etc/localtime:/etc/localtime:ro
+   - ${DATA_DIRECTORY}/var/lib/zabbix/enc:/var/lib/zabbix/enc:ro
+   - ${DATA_DIRECTORY}/var/lib/zabbix/ssl/certs:/var/lib/zabbix/ssl/certs:ro
+   - ${DATA_DIRECTORY}/var/lib/zabbix/ssl/keys:/var/lib/zabbix/ssl/keys:ro
+   - ${DATA_DIRECTORY}/var/lib/zabbix/ssl/ssl_ca:/var/lib/zabbix/ssl/ssl_ca:ro
+  tmpfs:
+   - /tmp
+   - /var/lib/zabbix/ssl/ssl_ca_internal:mode=770,uid=1997,gid=0
+  networks:
+   database:
+  command: init_db_telemetry
+
+ server-telemetry-init:
+  extends:
+   service: telemetry-init
+  env_file:
+   - path: ${ENV_VARS_DIRECTORY}/.env_srv
+     required: true
+   - path: ${ENV_VARS_DIRECTORY}/.env_srv_override
+     required: false
+
+ proxy-telemetry-init:
+  extends:
+   service: telemetry-init
+  env_file:
+   - path: ${ENV_VARS_DIRECTORY}/.env_prx
+     required: true
+
+ proxy-mysql-telemetry-init:
+  extends:
+   service: proxy-telemetry-init
+  env_file:
+   - path: ${ENV_VARS_DIRECTORY}/.env_prx_mysql
+     required: true
+   - path: ${ENV_VARS_DIRECTORY}/.env_prx_mysql_override
+     required: false
+
+ proxy-sqlite3-telemetry-init:
+  extends:
+   service: proxy-telemetry-init
+  env_file:
+   - path: ${ENV_VARS_DIRECTORY}/.env_prx_sqlite3
+     required: true
+   - path: ${ENV_VARS_DIRECTORY}/.env_prx_sqlite3_override
+     required: false
+
  server-mysql-db-init:
   init: true
   attach: true

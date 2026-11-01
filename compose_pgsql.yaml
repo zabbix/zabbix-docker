@@ -21,6 +21,65 @@ services:
   labels:
    com.zabbix.os: "${OS}"
 
+ server-history-init:
+  profiles:
+   - history-providers
+  extends:
+   file: compose_zabbix_components.yaml
+   service: server-history-init
+  image: "${ZABBIX_SERVER_PGSQL_IMAGE}:${ZBX_IMAGE_TAG}"
+  depends_on:
+   clickhouse:
+    condition: service_healthy
+    required: false
+   elasticsearch:
+    condition: service_healthy
+    required: false
+  labels:
+   com.zabbix.os: "${OS}"
+
+ server-telemetry-init:
+  profiles:
+   - telemetry
+  extends:
+   file: compose_zabbix_components.yaml
+   service: server-telemetry-init
+  image: "${ZABBIX_SERVER_PGSQL_IMAGE}:${ZBX_IMAGE_TAG}"
+  depends_on:
+   clickhouse:
+    condition: service_healthy
+    required: false
+  labels:
+   com.zabbix.os: "${OS}"
+
+ proxy-mysql-telemetry-init:
+  profiles:
+   - telemetry
+  extends:
+   file: compose_zabbix_components.yaml
+   service: proxy-mysql-telemetry-init
+  image: "${ZABBIX_PROXY_MYSQL_IMAGE}:${ZBX_IMAGE_TAG}"
+  depends_on:
+   clickhouse:
+    condition: service_healthy
+    required: false
+  labels:
+   com.zabbix.os: "${OS}"
+
+ proxy-sqlite3-telemetry-init:
+  profiles:
+   - telemetry
+  extends:
+   file: compose_zabbix_components.yaml
+   service: proxy-sqlite3-telemetry-init
+  image: "${ZABBIX_PROXY_SQLITE3_IMAGE}:${ZBX_IMAGE_TAG}"
+  depends_on:
+   clickhouse:
+    condition: service_healthy
+    required: false
+  labels:
+   com.zabbix.os: "${OS}"
+
  zabbix-server:
   extends:
    file: compose_zabbix_components.yaml
@@ -29,6 +88,12 @@ services:
   depends_on:
    server-db-init:
     condition: service_completed_successfully
+   server-history-init:
+    condition: service_completed_successfully
+    required: false
+   server-telemetry-init:
+    condition: service_completed_successfully
+    required: false
    postgres-server:
     condition: service_healthy
   labels:
@@ -39,6 +104,10 @@ services:
    file: compose_zabbix_components.yaml
    service: proxy-sqlite3
   image: "${ZABBIX_PROXY_SQLITE3_IMAGE}:${ZBX_IMAGE_TAG}"
+  depends_on:
+   proxy-sqlite3-telemetry-init:
+    condition: service_completed_successfully
+    required: false
   labels:
    com.zabbix.os: "${OS}"
 
@@ -50,6 +119,9 @@ services:
   depends_on:
    proxy-db-init:
     condition: service_completed_successfully
+   proxy-mysql-telemetry-init:
+    condition: service_completed_successfully
+    required: false
    mysql-server:
     condition: service_healthy
   labels:
