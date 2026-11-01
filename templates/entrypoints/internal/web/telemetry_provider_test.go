@@ -89,6 +89,7 @@ func TestConfigureWebTelemetryProviders(t *testing.T) {
 // of its own, so a minimal configuration must still produce the full set.
 func TestWebTelemetryProvidesEveryOptionTheFrontendReads(t *testing.T) {
 	env := bootstrap.Environment{
+		"ZBX_TELEMETRYPROVIDERS":  "",
 		"ZBX_TELEMETRYPROVIDER_0": `{"provider":"clickhouse","url":"http://clickhouse:8123","db":"zabbix"}`,
 	}
 	if err := configureWebTelemetryProviders(env, t.TempDir()); err != nil {

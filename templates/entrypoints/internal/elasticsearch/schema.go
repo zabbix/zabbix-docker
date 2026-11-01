@@ -41,12 +41,7 @@ func (s Schema) objects() ([]object, error) {
 		return nil, err
 	}
 	var objects []object
-	seen := make(map[string]bool)
 	for _, kind := range s.ValueTypes {
-		if seen[kind] {
-			continue
-		}
-		seen[kind] = true
 		if s.DateIndex || kind == "json" {
 			pipeline, err := s.pipelineObject(kind)
 			if err != nil {

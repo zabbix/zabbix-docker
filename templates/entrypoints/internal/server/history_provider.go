@@ -2,6 +2,7 @@ package server
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/zabbix/zabbix-docker/templates/entrypoints/internal/bootstrap"
 	"github.com/zabbix/zabbix-docker/templates/entrypoints/internal/storageinit"
@@ -9,7 +10,7 @@ import (
 )
 
 func configureJSONHistoryProviders(env bootstrap.Environment) error {
-	if _, exists := env[storageprovider.History.Plural]; exists {
+	if strings.TrimSpace(env[storageprovider.History.Plural]) != "" {
 		return fmt.Errorf("%s is not supported by the server; use %s",
 			storageprovider.History.Plural, bootstrap.IndexedName(storageprovider.History.Prefix, 0))
 	}

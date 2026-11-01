@@ -43,11 +43,24 @@ func TestConfigHistoryValueTypes(t *testing.T) {
 				if err != nil {
 					t.Fatal(err)
 				}
-				if len(configs) != 1 || !slices.Equal(configs[0].ValueTypes, []string{"uint", "future", "uint"}) {
-					t.Fatalf("types or their order changed: %+v", configs)
+				if len(configs) != 1 || !slices.Equal(configs[0].ValueTypes, []string{"uint", "future"}) {
+					t.Fatalf("unexpected schema types: %+v", configs)
 				}
 				if env["ZBX_HISTORYPROVIDER_0"] != raw {
 					t.Fatal("schema parsing changed the service configuration")
+				}
+				if err := configuration.ConfigureNative(); err != nil {
+					t.Fatal(err)
+				}
+				if got := env["ZBX_HISTORYPROVIDER_0"]; got != provider+`;value_types="uint,future"` {
+					t.Fatalf("unexpected server configuration: %s", got)
+				}
+				providers, err := WebProviders(bootstrap.Environment{"ZBX_HISTORYPROVIDER_0": raw}, History)
+				if err != nil {
+					t.Fatal(err)
+				}
+				if len(providers) != 1 || !slices.Equal(providers[0]["types"].([]string), []string{"uint", "future"}) {
+					t.Fatalf("unexpected frontend types: %v", providers)
 				}
 			})
 		}

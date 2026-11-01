@@ -180,6 +180,19 @@ func TestJSONHistoryProviderValidation(t *testing.T) {
 		wantErr string
 	}{
 		{
+			name: "empty plural",
+			env:  bootstrap.Environment{"ZBX_HISTORYPROVIDERS": ""},
+		},
+		{
+			name: "whitespace plural",
+			env:  bootstrap.Environment{"ZBX_HISTORYPROVIDERS": " \t "},
+		},
+		{
+			name:    "nonempty plural",
+			env:     bootstrap.Environment{"ZBX_HISTORYPROVIDERS": "[]"},
+			wantErr: "is not supported by the server",
+		},
+		{
 			name: "missing index",
 			env: bootstrap.Environment{
 				"ZBX_HISTORYPROVIDER_1": `{"provider":"elasticsearch","types":["uint"],"url":"http://elasticsearch:9200"}`,

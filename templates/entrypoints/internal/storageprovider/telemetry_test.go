@@ -9,6 +9,7 @@ import (
 
 func TestTelemetryNativeConfiguration(t *testing.T) {
 	env := bootstrap.Environment{
+		"ZBX_TELEMETRYPROVIDERS":                   "",
 		"ZBX_TELEMETRYPROVIDER_0":                  `{"provider":"clickhouse","url":"https://clickhouse:8443","db":"zabbix","ssl_cert_file":"client.crt","ssl_key_file":"client.key"}`,
 		"ZBX_TELEMETRYPROVIDER_0_USERNAME":         "zabbix",
 		"ZBX_TELEMETRYPROVIDER_0_PASSWORD":         "secret",

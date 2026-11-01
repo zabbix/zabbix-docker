@@ -42,7 +42,7 @@ func clickHousePreparation(env bootstrap.Environment, dataset string, config sto
 	if err := schema.Validate(); err != nil {
 		return preparation{}, err
 	}
-	conn, err := clickHouseConnection(env, config.Fields)
+	conn, err := clickHouseConnection(env, dataset, config.Fields)
 	if err != nil {
 		return preparation{}, err
 	}
@@ -67,12 +67,16 @@ func clickHousePreparation(env bootstrap.Environment, dataset string, config sto
 	}}, nil
 }
 
-func clickHouseConnection(env bootstrap.Environment, fields map[string]any) (clickhouse.Connection, error) {
+func clickHouseConnection(env bootstrap.Environment, dataset string, fields map[string]any) (clickhouse.Connection, error) {
 	values := make(map[string]string)
-	for _, key := range []string{
+	keys := []string{
 		"url", "username", "password", "source_ip",
-		"ssl_cert_file", "ssl_key_file", "ssl_key_password", "vault_path",
-	} {
+		"ssl_cert_file", "ssl_key_file", "ssl_key_password",
+	}
+	if dataset == "otel" {
+		keys = append(keys, "vault_path")
+	}
+	for _, key := range keys {
 		if value := fields[key]; value != nil {
 			text, ok := value.(string)
 			if !ok {

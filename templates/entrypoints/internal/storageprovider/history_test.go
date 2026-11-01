@@ -118,7 +118,7 @@ func TestUnsupportedProvidersAreRejected(t *testing.T) {
 	}
 }
 
-func TestHistoryTLSPaths(t *testing.T) {
+func TestHistoryInvalidOptions(t *testing.T) {
 	for _, test := range []struct {
 		field      string
 		value      any
@@ -142,7 +142,8 @@ func TestHistoryTLSPaths(t *testing.T) {
 			}
 			_, prepareErr := configuration.ConfigsToPrepare()
 			nativeErr := configuration.ConfigureNative()
-			for _, err := range []error{prepareErr, nativeErr} {
+			_, webErr := WebProviders(bootstrap.Environment{"ZBX_HISTORYPROVIDER_0": string(raw)}, History)
+			for _, err := range []error{prepareErr, nativeErr, webErr} {
 				if err == nil || !strings.Contains(err.Error(), "ZBX_HISTORYPROVIDER_0") || !strings.Contains(err.Error(), test.field) || !strings.Contains(err.Error(), test.diagnostic) {
 					t.Fatalf("unexpected error: %v", err)
 				}

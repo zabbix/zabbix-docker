@@ -49,13 +49,7 @@ func (s Schema) tables() ([]table, error) {
 			return nil, errors.New("history schema requires value types")
 		}
 
-		seen := make(map[string]bool)
 		for _, valueType := range s.ValueTypes {
-			if seen[valueType] {
-				continue
-			}
-
-			seen[valueType] = true
 			name := "history_" + valueType
 			if valueType == "dbl" {
 				name = "history"

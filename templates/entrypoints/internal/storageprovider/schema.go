@@ -286,7 +286,9 @@ func parseValueTypes(value any) ([]string, error) {
 		if !ok || valueType == "" || strings.ContainsAny(valueType, "\r\n") {
 			return nil, fmt.Errorf("%s must contain value type names", valueTypeOption)
 		}
-		types = append(types, valueType)
+		if !slices.Contains(types, valueType) {
+			types = append(types, valueType)
+		}
 	}
 	return types, nil
 }
