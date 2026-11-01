@@ -100,6 +100,7 @@ func prepareSchemas(env bootstrap.Environment, configs []storageprovider.Provide
 				return 0, fmt.Errorf("%s: %w", config.Name, err)
 			}
 		}
+
 		var task preparation
 		var err error
 		switch config.Provider {
@@ -116,6 +117,7 @@ func prepareSchemas(env bootstrap.Environment, configs []storageprovider.Provide
 		task.name = config.Name
 		preparations = append(preparations, task)
 	}
+
 	ctx := context.Background()
 	for _, task := range preparations {
 		if err := task.prepare(ctx); err != nil {

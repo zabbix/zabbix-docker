@@ -129,6 +129,7 @@ func (c *Client) Prepare(ctx context.Context, schema Schema, create bool) error 
 	if err != nil {
 		return err
 	}
+
 	for _, obj := range objects {
 		exists, err := c.objectExists(ctx, obj)
 		if err != nil {
@@ -137,6 +138,7 @@ func (c *Client) Prepare(ctx context.Context, schema Schema, create bool) error 
 		if exists {
 			continue
 		}
+
 		if !create {
 			return fmt.Errorf("%s is missing (creation is disabled)", obj.path)
 		}
@@ -148,6 +150,7 @@ func (c *Client) Prepare(ctx context.Context, schema Schema, create bool) error 
 		if createErr != nil {
 			createErr = fmt.Errorf("create %s: %w", obj.path, createErr)
 		}
+
 		exists, err = c.objectExists(ctx, obj)
 		if err != nil {
 			return errors.Join(createErr, fmt.Errorf("check after creation %s: %w", obj.path, err))

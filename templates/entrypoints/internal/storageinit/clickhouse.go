@@ -26,14 +26,15 @@ func clickHousePreparation(env bootstrap.Environment, dataset string, config sto
 	if err := decodeOptions(config.SchemaOptions, &options); err != nil {
 		return preparation{}, err
 	}
-
 	if options.Create == nil {
 		return preparation{}, errors.New("_SCHEMA requires an explicit boolean create")
 	}
+
 	database, ok := config.Fields["db"].(string)
 	if config.Fields["db"] != nil && !ok {
 		return preparation{}, fmt.Errorf("db must be a string, got %T", config.Fields["db"])
 	}
+
 	schema := clickhouse.Schema{
 		Database: database, Dataset: dataset, ValueTypes: config.ValueTypes,
 		Cluster: options.Cluster, Replicated: options.Replicated,
@@ -42,6 +43,7 @@ func clickHousePreparation(env bootstrap.Environment, dataset string, config sto
 	if err := schema.Validate(); err != nil {
 		return preparation{}, err
 	}
+
 	conn, err := clickHouseConnection(env, dataset, config.Fields)
 	if err != nil {
 		return preparation{}, err
@@ -85,6 +87,7 @@ func clickHouseConnection(env bootstrap.Environment, dataset string, fields map[
 			values[key] = text
 		}
 	}
+
 	conn := clickhouse.Connection{
 		URL: values["url"], Username: values["username"], Password: values["password"],
 		SourceIP: values["source_ip"], CertFile: values["ssl_cert_file"],
@@ -94,6 +97,7 @@ func clickHouseConnection(env bootstrap.Environment, dataset string, fields map[
 	if conn.SourceIP == "" {
 		conn.SourceIP = env["ZBX_SOURCEIP"]
 	}
+
 	conn.VerifyPeer, err = providerBool(fields, "ssl_verify_peer", true)
 	if err != nil {
 		return clickhouse.Connection{}, err
@@ -102,6 +106,7 @@ func clickHouseConnection(env bootstrap.Environment, dataset string, fields map[
 	if err != nil {
 		return clickhouse.Connection{}, err
 	}
+
 	conn.CADirectory = env["ZBX_SSLCALOCATION"]
 	conn.CertFile, err = resolveTLSFile(env, conn.CertFile, "ZBX_SSLCERTLOCATION", "certs")
 	if err != nil {
@@ -111,6 +116,7 @@ func clickHouseConnection(env bootstrap.Environment, dataset string, fields map[
 	if err != nil {
 		return clickhouse.Connection{}, err
 	}
+
 	if vaultPath := values["vault_path"]; vaultPath != "" {
 		if conn.Username != "" || conn.Password != "" {
 			return clickhouse.Connection{}, errors.New("vault_path cannot be combined with username/password for schema preparation")

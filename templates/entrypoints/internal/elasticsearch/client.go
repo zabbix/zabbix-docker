@@ -70,8 +70,8 @@ func (c *Client) request(ctx context.Context, method, path string, body []byte) 
 			query[key] = values
 		}
 	}
-
 	req.URL.RawQuery = query.Encode()
+
 	if body != nil {
 		req.Header.Set("Content-Type", "application/json")
 	}

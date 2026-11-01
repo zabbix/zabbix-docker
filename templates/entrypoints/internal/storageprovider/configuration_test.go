@@ -8,6 +8,22 @@ import (
 	"github.com/zabbix/zabbix-docker/templates/entrypoints/internal/bootstrap"
 )
 
+func TestNativeNumbers(t *testing.T) {
+	for _, test := range []struct {
+		value float64
+		want  string
+	}{
+		{1000000, "value=1000000"},
+		{0.0000001, "value=0.0000001"},
+		{1.25, "value=1.25"},
+	} {
+		got, err := nativeOption("value", test.value)
+		if err != nil || got != test.want {
+			t.Errorf("nativeOption(%v) = %q, %v; want %q", test.value, got, err, test.want)
+		}
+	}
+}
+
 func TestConfigHistoryValueTypes(t *testing.T) {
 	for _, provider := range []string{"clickhouse", "elasticsearch"} {
 		for _, test := range []struct {

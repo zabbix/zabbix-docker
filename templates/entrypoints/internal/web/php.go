@@ -92,6 +92,7 @@ func preparePHP(env bootstrap.Environment, dbType DBType) error {
 	if err := bootstrap.ProcessTLSFiles(env, apmCASourceDir, "ZBX_APM_CA"); err != nil {
 		return err
 	}
+
 	if err := bootstrap.ProcessTLSFiles(
 		env,
 		bootstrap.WebCertsDir,
@@ -105,6 +106,7 @@ func preparePHP(env bootstrap.Environment, dbType DBType) error {
 	for _, setting := range phpDefaults {
 		env.SetDefaultNonEmpty(setting.name, setting.value)
 	}
+
 	if err := configureWebHistoryProviders(env); err != nil {
 		return err
 	}

@@ -23,6 +23,7 @@ func elasticsearchPreparation(config storageprovider.ProviderConfig) (preparatio
 	if options.Create == nil {
 		return preparation{}, errors.New("_SCHEMA requires an explicit boolean create")
 	}
+
 	endpoint, ok := config.Fields["url"].(string)
 	if !ok || endpoint == "" {
 		return preparation{}, errors.New("url must be a non-empty string")
@@ -38,6 +39,7 @@ func elasticsearchPreparation(config storageprovider.ProviderConfig) (preparatio
 	if err := schema.Validate(); err != nil {
 		return preparation{}, err
 	}
+
 	client, err := elasticsearch.NewClient(endpoint)
 	if err != nil {
 		return preparation{}, err

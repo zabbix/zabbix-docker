@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"strconv"
 	"strings"
 
 	"github.com/zabbix/zabbix-docker/templates/entrypoints/internal/bootstrap"
@@ -140,7 +141,7 @@ func nativeOption(key string, value any) (string, error) {
 		}
 		return key + "=" + quoteOption(typed), nil
 	case float64:
-		return key + "=" + fmt.Sprint(typed), nil
+		return key + "=" + strconv.FormatFloat(typed, 'f', -1, 64), nil
 	case bool:
 		if typed {
 			return key + "=1", nil
