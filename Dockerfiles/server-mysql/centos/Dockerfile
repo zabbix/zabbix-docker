@@ -53,6 +53,7 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             jq \
             hostname \
             shadow-utils \
+            tzdata \
             file-libs \
             libbrotli \
             libevent \

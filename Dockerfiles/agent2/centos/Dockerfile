@@ -45,6 +45,7 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
     set -eux && \
     INSTALL_PKGS="bash \
             shadow-utils \
+            tzdata \
             libcurl-minimal \
             openssl-libs \
             pcre2 \
