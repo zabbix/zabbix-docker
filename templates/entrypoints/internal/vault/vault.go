@@ -53,6 +53,11 @@ func Fetch(env bootstrap.Environment) (Credentials, error) {
 
 	switch env["ZBX_VAULT"] {
 	case "HashiCorp":
+		for _, key := range []string{"VAULT_TOKEN", "ZBX_VAULTAPPROLEID", "ZBX_VAULTAPPSECRETID"} {
+			if err := bootstrap.ResolveSecretEnv(env, key); err != nil {
+				return Credentials{}, err
+			}
+		}
 		return fetchHashiCorp(env, vaultURL, dbPath)
 	case "CyberArk":
 		return fetchCyberArk(env, vaultURL, dbPath)

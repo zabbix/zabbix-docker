@@ -7,6 +7,7 @@ import (
 	"errors"
 	"io"
 	"net/http"
+	"net/http/httptest"
 	"os"
 	"path/filepath"
 	"strings"
@@ -258,6 +259,57 @@ func TestDecodeCyberArk(t *testing.T) {
 			}
 			if creds.Username != "zabbix" || creds.Password != test.wantPass {
 				t.Fatalf("unexpected credentials: %#v", creds)
+			}
+		})
+	}
+}
+
+func TestDBCredentialsSecretFiles(t *testing.T) {
+	for _, mode := range []string{"token", "approle"} {
+		t.Run(mode, func(t *testing.T) {
+			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				switch r.URL.Path {
+				case "/v1/auth/approle/login":
+					var payload map[string]string
+					if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
+						t.Error(err)
+					}
+					if mode != "approle" || payload["role_id"] != "role" || payload["secret_id"] != "secret" {
+						t.Errorf("unexpected AppRole login: %v", payload)
+					}
+					io.WriteString(w, `{"auth":{"client_token":"token"}}`)
+				case "/v1/secret/data/database":
+					if r.Header.Get("X-Vault-Token") != "token" {
+						t.Error("Vault token was not supplied")
+					}
+					io.WriteString(w, `{"data":{"data":{"username":"zabbix","password":"password"}}}`)
+				default:
+					t.Errorf("unexpected request: %s", r.URL.Path)
+					http.NotFound(w, r)
+				}
+			}))
+			defer server.Close()
+			env := bootstrap.Environment{
+				"ZBX_VAULT": "HashiCorp", "ZBX_VAULTURL": server.URL, "ZBX_VAULTDBPATH": "secret/database",
+			}
+			secrets := map[string]string{"VAULT_TOKEN": "token"}
+			if mode == "approle" {
+				secrets = map[string]string{"ZBX_VAULTAPPROLEID": "role", "ZBX_VAULTAPPSECRETID": "secret"}
+			}
+			dir := t.TempDir()
+			for name, value := range secrets {
+				path := filepath.Join(dir, name)
+				if err := os.WriteFile(path, []byte(value+"\n"), 0o600); err != nil {
+					t.Fatal(err)
+				}
+				env[name+"_FILE"] = path
+			}
+			creds, err := ResolveDBCredentials(env)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if creds == nil || *creds != (Credentials{Username: "zabbix", Password: "password"}) {
+				t.Fatalf("unexpected credentials: %v", creds)
 			}
 		})
 	}

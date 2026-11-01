@@ -117,11 +117,6 @@ func clickHouseConnection(env bootstrap.Environment, dataset string, fields map[
 		}
 		vaultEnv := maps.Clone(env)
 		vaultEnv["ZBX_VAULTDBPATH"] = vaultPath
-		for _, key := range []string{"VAULT_TOKEN", "ZBX_VAULTAPPROLEID", "ZBX_VAULTAPPSECRETID"} {
-			if err := bootstrap.ResolveSecretEnv(vaultEnv, key); err != nil {
-				return clickhouse.Connection{}, err
-			}
-		}
 		creds, err := vault.Fetch(vaultEnv)
 		if err != nil {
 			return clickhouse.Connection{}, err
