@@ -49,6 +49,7 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
     INSTALL_PKGS="bash \
             gzip \
             shadow-utils \
+            tzdata \
             c-ares \
             file-libs \
             libevent \

@@ -66,6 +66,7 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             glibc-locale-source \
             jq \
             shadow-utils \
+            tzdata \
             nginx \
             php8.4-fpm \
             php8.4-bcmath \
