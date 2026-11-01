@@ -15,7 +15,7 @@ var History = &Parameter{
 	Prefix:        historyPrefix,
 	Plural:        "ZBX_HISTORYPROVIDERS",
 	pluralInput:   true,
-	providerError: "provider must be clickhouse or elasticsearch",
+	providerError: "provider must be clickhouse, elasticsearch or sql",
 	reserved:      map[string]string{"value_types": "use types instead of value_types"},
 	providers: map[string]providerDefinition{
 		"clickhouse": clickHouseHistory,
@@ -23,5 +23,6 @@ var History = &Parameter{
 			valueTypes: true,
 			web:        []string{"provider", "types", "url"},
 		},
+		"sql": {valueTypes: true},
 	},
 }

@@ -143,7 +143,7 @@ func TestConfigureWebHistoryProvidersRejectsInvalidSettings(t *testing.T) {
 			env: bootstrap.Environment{
 				"ZBX_HISTORYPROVIDER_0": `{"types":["uint"],"url":"http://clickhouse:8123"}`,
 			},
-			wantErr: "provider must be clickhouse or elasticsearch",
+			wantErr: "provider must be clickhouse, elasticsearch or sql",
 		},
 	}
 	for _, test := range tests {

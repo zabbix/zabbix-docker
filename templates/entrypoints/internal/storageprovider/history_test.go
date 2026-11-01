@@ -11,7 +11,11 @@ import (
 
 func TestProviderTLSPaths(t *testing.T) {
 	for _, param := range []*Parameter{History, Telemetry} {
-		for _, path := range []string{"client.pem", "team/client.pem", "/custom/team/client.pem"} {
+		paths := []string{"client.pem", "team/client.pem"}
+		if param == Telemetry {
+			paths = append(paths, "/custom/team/client.pem")
+		}
+		for _, path := range paths {
 			t.Run(param.Prefix+"/"+path, func(t *testing.T) {
 				fields := map[string]any{
 					"provider": "clickhouse", "url": "https://clickhouse:8443", "db": "zabbix",
@@ -114,31 +118,50 @@ func TestUnsupportedProvidersAreRejected(t *testing.T) {
 	}
 }
 
-func TestNativeConnectionOptions(t *testing.T) {
-	value := `{"provider":"clickhouse","types":["uint"],"url":"http://clickhouse:8123","db":"zabbix","source_ip":"192.0.2.1","log_slow_queries":3000}`
-	env := bootstrap.Environment{"ZBX_HISTORYPROVIDER_0": value}
-	configuration, err := NewConfiguration(env, History)
+func TestHistoryTLSPaths(t *testing.T) {
+	for _, test := range []struct {
+		field      string
+		value      any
+		diagnostic string
+	}{
+		{"ssl_cert_file", "/custom/client.pem", "relative"},
+		{"ssl_key_file", "/custom/client.key", "relative"},
+	} {
+		t.Run(test.field, func(t *testing.T) {
+			fields := map[string]any{"provider": "clickhouse", "url": "https://clickhouse:8443", "db": "zabbix", "types": []string{"uint"}, test.field: test.value}
+			raw, err := json.Marshal(fields)
+			if err != nil {
+				t.Fatal(err)
+			}
+			configuration, err := NewConfiguration(bootstrap.Environment{
+				"ZBX_HISTORYPROVIDER_0":        string(raw),
+				"ZBX_HISTORYPROVIDER_0_SCHEMA": `{"create":true}`,
+			}, History)
+			if err != nil {
+				t.Fatal(err)
+			}
+			_, prepareErr := configuration.ConfigsToPrepare()
+			nativeErr := configuration.ConfigureNative()
+			for _, err := range []error{prepareErr, nativeErr} {
+				if err == nil || !strings.Contains(err.Error(), "ZBX_HISTORYPROVIDER_0") || !strings.Contains(err.Error(), test.field) || !strings.Contains(err.Error(), test.diagnostic) {
+					t.Fatalf("unexpected error: %v", err)
+				}
+			}
+		})
+	}
+}
+
+func TestTelemetrySourceIP(t *testing.T) {
+	env := bootstrap.Environment{"ZBX_TELEMETRYPROVIDER_0": `{"provider":"clickhouse","url":"http://clickhouse:8123","db":"zabbix","source_ip":"192.0.2.1"}`}
+	configuration, err := NewConfiguration(env, Telemetry)
 	if err != nil {
 		t.Fatal(err)
 	}
 	if err := configuration.ConfigureNative(); err != nil {
 		t.Fatal(err)
 	}
-	for _, expected := range []string{`source_ip="192.0.2.1"`, "log_slow_queries=3000"} {
-		if !strings.Contains(env["ZBX_HISTORYPROVIDER_0"], expected) {
-			t.Errorf("provider %q does not contain %q", env["ZBX_HISTORYPROVIDER_0"], expected)
-		}
-	}
-
-	web := bootstrap.Environment{"ZBX_HISTORYPROVIDER_0": value}
-	providers, err := WebProviders(web, History)
-	if err != nil {
-		t.Fatal(err)
-	}
-	for _, serverOnly := range []string{"source_ip", "log_slow_queries"} {
-		if _, exists := providers[0][serverOnly]; exists {
-			t.Errorf("%s reached the frontend", serverOnly)
-		}
+	if !strings.Contains(env["ZBX_TELEMETRYPROVIDER_0"], `source_ip="192.0.2.1"`) {
+		t.Fatal("telemetry source_ip was not preserved")
 	}
 }
 
@@ -158,6 +181,41 @@ func TestManagedLocations(t *testing.T) {
 		err = configuration.ConfigureNative()
 		if err == nil || !strings.Contains(err.Error(), "managed by the image") {
 			t.Errorf("%s error = %v", test.param.Prefix, err)
+		}
+	}
+}
+
+func TestHistoryNativeOptions(t *testing.T) {
+	for _, test := range []struct{ raw, want string }{
+		{`{"provider":"sql","types":["dbl","uint"],"precache":0}`, `sql;value_types="dbl,uint",precache=0`},
+		{`{"provider":"clickhouse","source_ip":"192.0.2.1","log_slow_queries":3000}`, `clickhouse;log_slow_queries=3000,source_ip="192.0.2.1"`},
+		{`{"provider":"elasticsearch","source_ip":"192.0.2.1","log_slow_queries":3000}`, `elasticsearch;log_slow_queries=3000,source_ip="192.0.2.1"`},
+	} {
+		env := bootstrap.Environment{"ZBX_HISTORYPROVIDER_0": test.raw}
+		configuration, err := NewConfiguration(env, History)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if err := configuration.ConfigureNative(); err != nil {
+			t.Fatal(err)
+		}
+		if got := env["ZBX_HISTORYPROVIDER_0"]; got != test.want {
+			t.Errorf("got %q, want %q", got, test.want)
+		}
+	}
+}
+
+func TestWebSQLHistory(t *testing.T) {
+	for _, env := range []bootstrap.Environment{
+		{"ZBX_HISTORYPROVIDER_0": `{"provider":"sql","types":["dbl","uint"],"precache":0}`},
+		{"ZBX_HISTORYPROVIDERS": `[{"provider":"sql","types":["dbl","uint"],"precache":0}]`},
+	} {
+		providers, err := WebProviders(env, History)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if len(providers) != 0 {
+			t.Fatalf("SQL provider passed to frontend: %v", providers)
 		}
 	}
 }

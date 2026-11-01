@@ -62,10 +62,11 @@ func configureProviders(env bootstrap.Environment, param *storageprovider.Parame
 	if err != nil {
 		return err
 	}
-	if _, err := prepareSchemas(env, configs, dataset); err != nil {
+	if err := configuration.ConfigureNative(); err != nil {
 		return err
 	}
-	return configuration.ConfigureNative()
+	_, err = prepareSchemas(env, configs, dataset)
+	return err
 }
 
 type preparation struct {

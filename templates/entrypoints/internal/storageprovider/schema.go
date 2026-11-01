@@ -85,14 +85,18 @@ func WebProviders(env bootstrap.Environment, param *Parameter) ([]map[string]any
 		if err != nil {
 			return nil, err
 		}
-		providers = append(providers, webFields(env, name, config.definition, config.Fields))
+		if len(config.definition.web) != 0 {
+			providers = append(providers, webFields(env, name, config.definition, config.Fields))
+		}
 	}
 	for _, fields := range plural {
 		config, err := param.validate(env, param.Plural, fields)
 		if err != nil {
 			return nil, err
 		}
-		providers = append(providers, webFields(env, param.Plural, config.definition, config.Fields))
+		if len(config.definition.web) != 0 {
+			providers = append(providers, webFields(env, param.Plural, config.definition, config.Fields))
+		}
 	}
 
 	for _, name := range names {
@@ -176,6 +180,9 @@ func (p *Parameter) validate(env bootstrap.Environment, name string, fields map[
 		if slices.Contains(current.files, key) {
 			if err := validateFilePath(value, key); err != nil {
 				return ProviderConfig{}, fmt.Errorf("%s: %w", name, err)
+			}
+			if p == History && filepath.IsAbs(value.(string)) {
+				return ProviderConfig{}, fmt.Errorf("%s: %s must be a relative path for history providers", name, key)
 			}
 		}
 	}

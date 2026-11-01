@@ -227,6 +227,9 @@ func TestValidateAllProvidersBeforeRequests(t *testing.T) {
 		{"ClickHouse CA directory", `{"provider":"clickhouse","url":"https://unused:8123","db":"history","types":["uint"]}`, `{"create":true}`},
 		{"ClickHouse history type", `{"provider":"clickhouse","url":"http://unused:8123","db":"history","types":["unknown"]}`, `{"create":true}`},
 		{"Elasticsearch history type", `{"provider":"elasticsearch","url":"http://unused:9200","types":["json_pipeline"]}`, `{"create":true}`},
+		{"history certificate", `{"provider":"clickhouse","url":"http://unused:8123","db":"history","types":["uint"],"ssl_cert_file":"/custom/client.pem"}`, `{"create":true}`},
+		{"history key", `{"provider":"clickhouse","url":"http://unused:8123","db":"history","types":["uint"],"ssl_key_file":"/custom/client.key"}`, `{"create":true}`},
+		{"history without schema", `{"provider":"elasticsearch","url":"http://unused:9200","types":["uint"],"ssl_ca_location":"/custom/ca"}`, ""},
 	} {
 		t.Run(test.name, func(t *testing.T) {
 			calls := 0
