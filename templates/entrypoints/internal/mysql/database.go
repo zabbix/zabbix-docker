@@ -4,7 +4,7 @@ package mysql
 
 import (
 	"cmp"
-	"fmt"
+	"errors"
 	"net"
 	"strings"
 
@@ -111,7 +111,7 @@ func (db *DB) Configure(defaultDBName string) error {
 	allowEmptyPassword := db.env["MYSQL_ALLOW_EMPTY_PASSWORD"] == "true"
 
 	if mysqlUser == "" && mysqlRootPassword == "" && !allowEmptyPassword {
-		return fmt.Errorf("impossible to use MySQL server because MYSQL_ROOT_PASSWORD is not defined and empty password is not allowed")
+		return errors.New("impossible to use MySQL server because MYSQL_ROOT_PASSWORD is not defined and empty password is not allowed")
 	}
 
 	useMySQLRoot := allowEmptyPassword || mysqlRootPassword != ""

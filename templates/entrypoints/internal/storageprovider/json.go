@@ -33,7 +33,7 @@ func decodeObject(raw string) (map[string]any, error) {
 		return nil, err
 	}
 	fields, ok := value.(map[string]any)
-	if !ok || fields == nil {
+	if !ok {
 		return nil, errors.New("invalid provider JSON")
 	}
 	return fields, nil

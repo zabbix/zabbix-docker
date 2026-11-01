@@ -64,7 +64,7 @@ func configureFeatureSwitches(env bootstrap.Environment) {
 	}
 
 	if env["ZBX_ENABLESTATUSPORT"] == "true" {
-		env["ZBX_STATUSPORT"] = env.ValueOrDefaultNonEmpty("ZBX_STATUSPORT", "31999")
+		env.SetDefaultNonEmpty("ZBX_STATUSPORT", "31999")
 	} else {
 		delete(env, "ZBX_STATUSPORT")
 	}
@@ -78,9 +78,10 @@ func updatePluginConfig(homeDir, configDir string) error {
 	configDir = filepath.Join(configDir, "zabbix_agent2.d", "plugins.d")
 	binDir := pluginBinDir(homeDir)
 
-	plugins := []struct {
+	type pluginConfig struct {
 		file, param, binary string
-	}{
+	}
+	plugins := []pluginConfig{
 		{"mongodb.conf", "Plugins.MongoDB.System.Path", "mongodb"},
 		{"postgresql.conf", "Plugins.PostgreSQL.System.Path", "postgresql"},
 		{"mssql.conf", "Plugins.MSSQL.System.Path", "mssql"},
@@ -88,9 +89,7 @@ func updatePluginConfig(homeDir, configDir string) error {
 	}
 
 	if _, err := exec.LookPath(nvidiaCommand); err == nil {
-		plugins = append(plugins, struct {
-			file, param, binary string
-		}{"nvidia.conf", "Plugins.NVIDIA.System.Path", "nvidia-gpu"})
+		plugins = append(plugins, pluginConfig{"nvidia.conf", "Plugins.NVIDIA.System.Path", "nvidia-gpu"})
 	}
 
 	for _, plugin := range plugins {

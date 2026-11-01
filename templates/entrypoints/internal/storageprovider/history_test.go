@@ -188,7 +188,7 @@ func TestManagedLocations(t *testing.T) {
 
 func TestHistoryNativeOptions(t *testing.T) {
 	for _, test := range []struct{ raw, want string }{
-		{`{"provider":"sql","types":["dbl","uint"],"precache":0}`, `sql;value_types="dbl,uint",precache=0`},
+		{`{"provider":"sql","types":["dbl","uint"],"precache":0}`, `sql;precache=0,value_types="dbl,uint"`},
 		{`{"provider":"clickhouse","source_ip":"192.0.2.1","log_slow_queries":3000}`, `clickhouse;log_slow_queries=3000,source_ip="192.0.2.1"`},
 		{`{"provider":"elasticsearch","source_ip":"192.0.2.1","log_slow_queries":3000}`, `elasticsearch;log_slow_queries=3000,source_ip="192.0.2.1"`},
 	} {

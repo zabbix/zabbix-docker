@@ -5,7 +5,6 @@ import (
 	"maps"
 	"path/filepath"
 	"slices"
-	"sort"
 	"strings"
 
 	"github.com/zabbix/zabbix-docker/templates/entrypoints/internal/bootstrap"
@@ -86,7 +85,7 @@ func WebProviders(env bootstrap.Environment, param *Parameter) ([]map[string]any
 			return nil, err
 		}
 		if len(config.definition.web) != 0 {
-			providers = append(providers, webFields(env, name, config.definition, config.Fields))
+			providers = append(providers, webFields(config.definition, config.Fields))
 		}
 	}
 	for _, fields := range plural {
@@ -95,7 +94,7 @@ func WebProviders(env bootstrap.Environment, param *Parameter) ([]map[string]any
 			return nil, err
 		}
 		if len(config.definition.web) != 0 {
-			providers = append(providers, webFields(env, param.Plural, config.definition, config.Fields))
+			providers = append(providers, webFields(config.definition, config.Fields))
 		}
 	}
 
@@ -150,10 +149,7 @@ func (p *Parameter) decode(env bootstrap.Environment, name string) (ProviderConf
 }
 
 func (p *Parameter) validate(env bootstrap.Environment, name string, fields map[string]any) (ProviderConfig, error) {
-	providerName, ok := fields["provider"].(string)
-	if !ok || providerName == "" {
-		return ProviderConfig{}, fmt.Errorf("%s: %s", name, p.providerError)
-	}
+	providerName, _ := fields["provider"].(string)
 	current, known := p.providers[providerName]
 	if !known {
 		return ProviderConfig{}, fmt.Errorf("%s: %s", name, p.providerError)
@@ -205,8 +201,6 @@ func (p *Parameter) validate(env bootstrap.Environment, name string, fields map[
 	return config, nil
 }
 
-var leadingOptions = []string{"url", "db"}
-
 func renderNative(providerName string, current providerDefinition, fields map[string]any) (string, error) {
 	// Zabbix joins each TLS location and file name, even for absolute paths.
 	for _, key := range current.files {
@@ -217,30 +211,13 @@ func renderNative(providerName string, current providerDefinition, fields map[st
 	}
 
 	options := make([]string, 0, len(fields))
-	rendered := map[string]bool{"provider": true}
-	if current.valueTypes {
-		rendered[valueTypeOption] = true
-		if value, exists := fields[valueTypeOption]; exists {
+	for _, key := range slices.Sorted(maps.Keys(fields)) {
+		if key == "provider" {
+			continue
+		}
+		value := fields[key]
+		if key == valueTypeOption && current.valueTypes {
 			options = append(options, "value_types="+quoteOption(strings.Join(value.([]string), ",")))
-		}
-	}
-
-	order := make([]string, 0, len(fields))
-	for _, key := range leadingOptions {
-		order = append(order, key)
-		rendered[key] = true
-	}
-	remaining := make([]string, 0, len(fields))
-	for key := range fields {
-		if !rendered[key] {
-			remaining = append(remaining, key)
-		}
-	}
-	sort.Strings(remaining)
-
-	for _, key := range append(order, remaining...) {
-		value, exists := fields[key]
-		if !exists {
 			continue
 		}
 		option, err := nativeOption(key, value)
@@ -252,7 +229,7 @@ func renderNative(providerName string, current providerDefinition, fields map[st
 	return providerName + ";" + strings.Join(options, ","), nil
 }
 
-func webFields(env bootstrap.Environment, name string, current providerDefinition, fields map[string]any) map[string]any {
+func webFields(current providerDefinition, fields map[string]any) map[string]any {
 	result := make(map[string]any, len(current.web)+len(current.webDefaults))
 	for key, value := range current.webDefaults {
 		result[key] = value
@@ -261,16 +238,6 @@ func webFields(env bootstrap.Environment, name string, current providerDefinitio
 		if value, exists := fields[key]; exists {
 			result[key] = value
 		}
-	}
-	dropped := make([]string, 0, len(fields))
-	for key := range fields {
-		if _, used := result[key]; !used {
-			dropped = append(dropped, key)
-		}
-	}
-	if len(dropped) != 0 {
-		sort.Strings(dropped)
-		bootstrap.LogDebug(env, "** %s: options not used by the frontend: %s", name, strings.Join(dropped, ", "))
 	}
 	return result
 }

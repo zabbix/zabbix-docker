@@ -33,11 +33,7 @@ func prepareService(env bootstrap.Environment, db *postgresql.DB) error {
 
 	db.ExportEnv()
 
-	if err := server.Prepare(env); err != nil {
-		return err
-	}
-
-	return nil
+	return server.Prepare(env)
 }
 
 func main() {

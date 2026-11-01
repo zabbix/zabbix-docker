@@ -16,7 +16,7 @@ func prepareService(env bootstrap.Environment) error {
 		return err
 	}
 
-	env["ZBX_ALLOWEDIP"] = env.ValueOrDefaultNonEmpty("ZBX_ALLOWEDIP", "zabbix-server")
+	env.SetDefaultNonEmpty("ZBX_ALLOWEDIP", "zabbix-server")
 
 	if err := bootstrap.ProcessTLSFiles(env, filepath.Join(homeDir, "enc"), "ZBX_TLSCA", "ZBX_TLSCERT", "ZBX_TLSKEY"); err != nil {
 		return err

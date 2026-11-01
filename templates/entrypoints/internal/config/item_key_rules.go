@@ -23,9 +23,5 @@ func ConfigureItemKeyRules(env bootstrap.Environment, configDir, fileName string
 	}
 
 	configPath := filepath.Join(configDir, fileName)
-	if err := replaceIndexedParamsAtEnd(configPath, itemKeyRuleParamByPrefix, rules); err != nil {
-		return err
-	}
-
-	return nil
+	return replaceIndexedParamsAtEnd(configPath, itemKeyRuleParamByPrefix, rules)
 }

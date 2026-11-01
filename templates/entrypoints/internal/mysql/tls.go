@@ -3,6 +3,7 @@ package mysql
 import (
 	"crypto/tls"
 	"crypto/x509"
+	"errors"
 	"fmt"
 	"os"
 	"strings"
@@ -35,7 +36,7 @@ func (db *DB) tlsConfig() (*tls.Config, error) {
 	certFile := db.tls.CertFile
 	keyFile := db.tls.KeyFile
 	if (certFile == "") != (keyFile == "") {
-		return nil, fmt.Errorf("ZBX_DBTLSCERTFILE and ZBX_DBTLSKEYFILE must be set together")
+		return nil, errors.New("ZBX_DBTLSCERTFILE and ZBX_DBTLSKEYFILE must be set together")
 	}
 	if certFile != "" {
 		cert, err := tls.LoadX509KeyPair(certFile, keyFile)

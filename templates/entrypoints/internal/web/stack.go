@@ -1,6 +1,7 @@
 package web
 
 import (
+	"maps"
 	"os"
 	"os/exec"
 	"os/signal"
@@ -37,30 +38,24 @@ func startStack(env bootstrap.Environment, server ServerType) error {
 }
 
 func webServerEnv(env bootstrap.Environment) bootstrap.Environment {
-	result := make(bootstrap.Environment, len(env))
-	for name, value := range env {
-		result[name] = value
-	}
-
-	for name := range result {
+	result := maps.Clone(env)
+	maps.DeleteFunc(result, func(name, _ string) bool {
 		if name == "VAULT_TOKEN" {
-			delete(result, name)
-			continue
+			return true
 		}
 		if name == "ZBX_HISTORYPROVIDERS" || strings.HasPrefix(name, "ZBX_HISTORYPROVIDERS_") ||
 			strings.HasPrefix(name, "ZBX_HISTORYPROVIDER_") || name == "ZBX_TELEMETRYPROVIDERS" ||
 			strings.HasPrefix(name, "ZBX_TELEMETRYPROVIDER_") {
-			delete(result, name)
-			continue
+			return true
 		}
 
 		for _, prefix := range []string{"DB_", "MYSQL_", "POSTGRES_", "ZBX_DB_", "ZBX_DBTLS", "ZBX_VAULT"} {
 			if strings.HasPrefix(name, prefix) {
-				delete(result, name)
-				break
+				return true
 			}
 		}
-	}
+		return false
+	})
 
 	return result
 }

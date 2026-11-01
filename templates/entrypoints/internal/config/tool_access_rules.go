@@ -32,9 +32,5 @@ func ConfigureToolAccessRules(env bootstrap.Environment, templatePath, runtimePa
 	if len(rules) == 0 {
 		return nil
 	}
-	if err := replaceIndexedParamsAtEnd(runtimePath, toolAccessRuleParamByPrefix, rules); err != nil {
-		return err
-	}
-
-	return nil
+	return replaceIndexedParamsAtEnd(runtimePath, toolAccessRuleParamByPrefix, rules)
 }

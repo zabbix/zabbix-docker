@@ -1,6 +1,7 @@
 package postgresql
 
 import (
+	"errors"
 	"fmt"
 	"strconv"
 	"strings"
@@ -40,12 +41,12 @@ func parseEndpoint(value, defaultPort string) (string, string, error) {
 	if strings.HasPrefix(value, "[") {
 		bracketEnd := strings.IndexByte(value, ']')
 		if bracketEnd == -1 {
-			return "", "", fmt.Errorf("missing closing bracket in IPv6 address")
+			return "", "", errors.New("missing closing bracket in IPv6 address")
 		}
 
 		host := strings.TrimSpace(value[1:bracketEnd])
 		if host == "" {
-			return "", "", fmt.Errorf("host is empty")
+			return "", "", errors.New("host is empty")
 		}
 
 		suffix := strings.TrimSpace(value[bracketEnd+1:])
@@ -53,7 +54,7 @@ func parseEndpoint(value, defaultPort string) (string, string, error) {
 			return host, defaultPort, nil
 		}
 		if !strings.HasPrefix(suffix, ":") {
-			return "", "", fmt.Errorf("unexpected data after IPv6 address")
+			return "", "", errors.New("unexpected data after IPv6 address")
 		}
 
 		port := strings.TrimSpace(suffix[1:])
@@ -73,7 +74,7 @@ func parseEndpoint(value, defaultPort string) (string, string, error) {
 	host = strings.TrimSpace(host)
 	port = strings.TrimSpace(port)
 	if host == "" {
-		return "", "", fmt.Errorf("host is empty")
+		return "", "", errors.New("host is empty")
 	}
 	if err := validatePort(port); err != nil {
 		return "", "", err
@@ -84,7 +85,7 @@ func parseEndpoint(value, defaultPort string) (string, string, error) {
 
 func validatePort(port string) error {
 	if port == "" {
-		return fmt.Errorf("port is empty")
+		return errors.New("port is empty")
 	}
 	if _, err := strconv.ParseUint(port, 10, 16); err != nil {
 		return fmt.Errorf("invalid port %q: %w", port, err)

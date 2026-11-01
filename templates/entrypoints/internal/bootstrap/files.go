@@ -25,7 +25,7 @@ const (
 // defaultDir. Relative paths cannot escape defaultDir.
 func ResolveFile(value, defaultDir string) (string, error) {
 	if value == "" {
-		return "", fmt.Errorf("file path is empty")
+		return "", errors.New("file path is empty")
 	}
 
 	if filepath.IsAbs(value) {

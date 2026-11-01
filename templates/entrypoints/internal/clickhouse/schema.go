@@ -27,28 +27,33 @@ type table struct {
 	name, columns, timestamp, orderBy, shardKey string
 }
 
-func (s Schema) tables() ([]table, error) {
+func (s Schema) Validate() error {
 	if s.Database == "" {
-		return nil, errors.New("database must be non-empty")
+		return errors.New("database must be non-empty")
 	}
 
 	if s.TTL < 0 {
-		return nil, errors.New("ttl must be non-negative seconds")
+		return errors.New("ttl must be non-negative seconds")
 	}
 
 	switch s.Partition {
 	case "toDate", "toYYYYMM":
 	default:
-		return nil, errors.New("partition must be toDate or toYYYYMM")
+		return errors.New("partition must be toDate or toYYYYMM")
 	}
 
+	switch s.Dataset {
+	case "history", "otel":
+	default:
+		return fmt.Errorf("unknown ClickHouse dataset %q", s.Dataset)
+	}
+	return nil
+}
+
+func (s Schema) tables() ([]table, error) {
 	var tables []table
 	switch s.Dataset {
 	case "history":
-		if len(s.ValueTypes) == 0 {
-			return nil, errors.New("history schema requires value types")
-		}
-
 		for _, valueType := range s.ValueTypes {
 			name := "history_" + valueType
 			if valueType == "dbl" {
@@ -81,20 +86,17 @@ func (s Schema) tables() ([]table, error) {
 
 			tables = append(tables, t)
 		}
-	default:
-		return nil, fmt.Errorf("unknown ClickHouse dataset %q", s.Dataset)
 	}
 	return tables, nil
-}
-
-func (s Schema) Validate() error {
-	_, err := s.tables()
-	return err
 }
 
 // Prepare checks names on every replica and optionally creates missing objects.
 // Cluster tables without the _local suffix must use the Distributed engine.
 func (c *Client) Prepare(ctx context.Context, s Schema, createMissing bool) error {
+	if err := s.Validate(); err != nil {
+		return err
+	}
+
 	tables, err := s.tables()
 	if err != nil {
 		return err

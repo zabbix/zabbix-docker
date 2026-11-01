@@ -3,6 +3,7 @@ package sqlite
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 	"net/url"
 	"os"
@@ -17,7 +18,7 @@ import (
 // start. An existing database is left untouched.
 func Prepare(dbPath, schemaPath string) error {
 	if dbPath == "" {
-		return fmt.Errorf("ZBX_DB_NAME must be set")
+		return errors.New("ZBX_DB_NAME must be set")
 	}
 
 	directory := filepath.Dir(dbPath)

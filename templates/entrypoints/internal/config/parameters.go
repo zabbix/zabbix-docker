@@ -21,11 +21,7 @@ type indexedParam struct {
 func MergeParameterValues(configPath, param, rawValue string) error {
 	value := strings.Trim(strings.TrimSpace(rawValue), `"`)
 	if value == "" {
-		if err := rewriteParameter(configPath, param, nil, false); err != nil {
-			return err
-		}
-
-		return nil
+		return rewriteParameter(configPath, param, nil, false)
 	}
 
 	parts := strings.Split(value, ",")
@@ -36,22 +32,14 @@ func MergeParameterValues(configPath, param, rawValue string) error {
 		}
 	}
 
-	if err := rewriteParameter(configPath, param, values, true); err != nil {
-		return err
-	}
-
-	return nil
+	return rewriteParameter(configPath, param, values, true)
 }
 
 // SetParameter sets a single-value parameter in the configuration file.
 func SetParameter(configPath, param, value string) error {
 	values := []string{value}
 
-	if err := rewriteParameter(configPath, param, values, false); err != nil {
-		return err
-	}
-
-	return nil
+	return rewriteParameter(configPath, param, values, false)
 }
 
 // UpdateIndexedParameter collects the prefix_0, prefix_1, ... variables
@@ -71,11 +59,7 @@ func UpdateIndexedParameter(env bootstrap.Environment, configPath, param, prefix
 	for _, entry := range params {
 		values = append(values, "${"+entry.variable+"}")
 	}
-	if err := rewriteParameter(configPath, param, values, false); err != nil {
-		return err
-	}
-
-	return nil
+	return rewriteParameter(configPath, param, values, false)
 }
 
 func collectIndexedParams(env bootstrap.Environment, paramByPrefix map[string]string, strict bool) ([]indexedParam, error) {

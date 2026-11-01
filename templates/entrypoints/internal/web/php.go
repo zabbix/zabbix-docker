@@ -1,6 +1,7 @@
 package web
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -129,7 +130,7 @@ func preparePHP(env bootstrap.Environment, dbType DBType) error {
 	if os.Getuid() == 0 {
 		configFile := env["PHP_ZBX_CONFIG_FILE"]
 		if configFile == "" {
-			return fmt.Errorf("PHP_ZBX_CONFIG_FILE must be set")
+			return errors.New("PHP_ZBX_CONFIG_FILE must be set")
 		}
 
 		daemonUser := env["DAEMON_USER"]
@@ -155,9 +156,5 @@ func preparePHP(env bootstrap.Environment, dbType DBType) error {
 		env.SetDefault("DB_SERVER_SOCKET", "")
 	}
 
-	if err := bootstrap.ProcessTLSFiles(env, filepath.Join(homeDir, "enc"), "ZBX_SERVER_TLS_CA", "ZBX_SERVER_TLS_KEY", "ZBX_SERVER_TLS_CERT"); err != nil {
-		return err
-	}
-
-	return nil
+	return bootstrap.ProcessTLSFiles(env, filepath.Join(homeDir, "enc"), "ZBX_SERVER_TLS_CA", "ZBX_SERVER_TLS_KEY", "ZBX_SERVER_TLS_CERT")
 }

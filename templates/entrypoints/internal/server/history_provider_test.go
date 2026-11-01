@@ -20,8 +20,8 @@ func TestConfigureJSONHistoryProviders(t *testing.T) {
 		t.Fatal(err)
 	}
 	want := map[string]string{
-		"ZBX_HISTORYPROVIDER_0": `clickhouse;value_types="uint,dbl",url="http://clickhouse:8123",db="zabbix",password="secret,\"password",precache=1,username="secret-user"`,
-		"ZBX_HISTORYPROVIDER_1": `elasticsearch;value_types="str,log",url="http://elasticsearch:9200",date_index=0`,
+		"ZBX_HISTORYPROVIDER_0": `clickhouse;db="zabbix",password="secret,\"password",precache=1,value_types="uint,dbl",url="http://clickhouse:8123",username="secret-user"`,
+		"ZBX_HISTORYPROVIDER_1": `elasticsearch;date_index=0,value_types="str,log",url="http://elasticsearch:9200"`,
 	}
 	for name, expected := range want {
 		if env[name] != expected {

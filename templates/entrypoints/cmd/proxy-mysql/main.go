@@ -32,11 +32,7 @@ func prepareService(env bootstrap.Environment, db *mysql.DB) error {
 	}
 	db.ExportEnv()
 
-	if err := proxy.Prepare(env, defaultProxyName); err != nil {
-		return err
-	}
-
-	return nil
+	return proxy.Prepare(env, defaultProxyName)
 }
 
 func main() {

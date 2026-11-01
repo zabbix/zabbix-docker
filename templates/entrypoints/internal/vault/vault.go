@@ -7,6 +7,7 @@ import (
 	"context"
 	"crypto/tls"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -48,7 +49,7 @@ func Fetch(env bootstrap.Environment) (Credentials, error) {
 	dbPath := strings.Trim(env["ZBX_VAULTDBPATH"], "/")
 
 	if vaultURL == "" || dbPath == "" {
-		return Credentials{}, fmt.Errorf("if ZBX_VAULT is used, ZBX_VAULTURL and ZBX_VAULTDBPATH must be set")
+		return Credentials{}, errors.New("if ZBX_VAULT is used, ZBX_VAULTURL and ZBX_VAULTDBPATH must be set")
 	}
 
 	switch env["ZBX_VAULT"] {
@@ -62,7 +63,7 @@ func Fetch(env bootstrap.Environment) (Credentials, error) {
 	case "CyberArk":
 		return fetchCyberArk(env, vaultURL, dbPath)
 	default:
-		return Credentials{}, fmt.Errorf("ZBX_VAULT has wrong value: HashiCorp or CyberArk are supported")
+		return Credentials{}, errors.New("ZBX_VAULT has wrong value: HashiCorp or CyberArk are supported")
 	}
 }
 
@@ -99,13 +100,13 @@ func resolveHashiCorpToken(env bootstrap.Environment, baseURL string, client vau
 
 	if roleID == "" {
 		if secretID != "" {
-			return "", fmt.Errorf("ZBX_VAULTAPPSECRETID is set but ZBX_VAULTAPPROLEID is not set")
+			return "", errors.New("ZBX_VAULTAPPSECRETID is set but ZBX_VAULTAPPROLEID is not set")
 		}
 
-		return "", fmt.Errorf("either VAULT_TOKEN or ZBX_VAULTAPPROLEID must be set when ZBX_VAULT=HashiCorp")
+		return "", errors.New("either VAULT_TOKEN or ZBX_VAULTAPPROLEID must be set when ZBX_VAULT=HashiCorp")
 	}
 	if secretID == "" {
-		return "", fmt.Errorf("ZBX_VAULTAPPROLEID is set but ZBX_VAULTAPPSECRETID is not set")
+		return "", errors.New("ZBX_VAULTAPPROLEID is set but ZBX_VAULTAPPSECRETID is not set")
 	}
 
 	return loginHashiCorpAppRole(client, baseURL, roleID, secretID)
@@ -138,7 +139,7 @@ func loginHashiCorpAppRole(client vaultClient, baseURL, roleID, secretID string)
 		return "", fmt.Errorf("HashiCorp Vault AppRole login failed: %s", strings.Join(resp.Errors, ", "))
 	}
 	if resp.Auth.ClientToken == "" {
-		return "", fmt.Errorf("HashiCorp Vault AppRole response does not contain a client token")
+		return "", errors.New("HashiCorp Vault AppRole response does not contain a client token")
 	}
 
 	return resp.Auth.ClientToken, nil
@@ -186,10 +187,10 @@ func decodeHashiCorp(data []byte) (Credentials, error) {
 		return Credentials{}, fmt.Errorf("error getting secrets from vault: %s", strings.Join(resp.Errors, ", "))
 	}
 	if resp.Data.Data.Username == "" {
-		return Credentials{}, fmt.Errorf("vault response from HashiCorp does not contain a database username")
+		return Credentials{}, errors.New("vault response from HashiCorp does not contain a database username")
 	}
 	if resp.Data.Data.Password == nil {
-		return Credentials{}, fmt.Errorf("vault response from HashiCorp does not contain a database password")
+		return Credentials{}, errors.New("vault response from HashiCorp does not contain a database password")
 	}
 
 	return Credentials{Username: resp.Data.Data.Username, Password: *resp.Data.Data.Password}, nil
@@ -201,7 +202,7 @@ func fetchCyberArk(env bootstrap.Environment, baseURL, dbPath string) (Credentia
 		return Credentials{}, err
 	}
 	if certFile == "" {
-		return Credentials{}, fmt.Errorf("if CyberArk is used, a Vault certificate file must be set")
+		return Credentials{}, errors.New("if CyberArk is used, a Vault certificate file must be set")
 	}
 
 	certPEM, err := os.ReadFile(certFile)
@@ -288,10 +289,10 @@ func decodeCyberArk(data []byte) (Credentials, error) {
 		return Credentials{}, fmt.Errorf("error getting secrets from vault: %s", resp.ErrorCode)
 	}
 	if resp.Username == "" {
-		return Credentials{}, fmt.Errorf("vault response from CyberArk does not contain a database username")
+		return Credentials{}, errors.New("vault response from CyberArk does not contain a database username")
 	}
 	if resp.Password == nil {
-		return Credentials{}, fmt.Errorf("vault response from CyberArk does not contain a database password")
+		return Credentials{}, errors.New("vault response from CyberArk does not contain a database password")
 	}
 
 	return Credentials{Username: resp.Username, Password: *resp.Password}, nil
@@ -353,7 +354,7 @@ func (c vaultClient) request(method, reqURL string, body []byte,
 			return err
 		}
 
-		body, readErr := readVaultResponse(resp.Body)
+		responseBody, readErr := readVaultResponse(resp.Body)
 		_ = resp.Body.Close()
 
 		if resp.StatusCode < http.StatusOK || resp.StatusCode >= http.StatusMultipleChoices {
@@ -367,7 +368,7 @@ func (c vaultClient) request(method, reqURL string, body []byte,
 		if readErr != nil {
 			return readErr
 		}
-		data = body
+		data = responseBody
 
 		return nil
 	})

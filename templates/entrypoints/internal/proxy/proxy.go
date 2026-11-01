@@ -14,7 +14,7 @@ import (
 // Prepare performs the proxy-specific entrypoint steps. defaultHostname is
 // used when neither ZBX_HOSTNAME nor ZBX_HOSTNAMEITEM is set.
 func Prepare(env bootstrap.Environment, defaultHostname string) error {
-	env["ZBX_SERVER_HOST"] = env.ValueOrDefaultNonEmpty("ZBX_SERVER_HOST", "zabbix-server")
+	env.SetDefaultNonEmpty("ZBX_SERVER_HOST", "zabbix-server")
 
 	// Keep the hostname explicitly empty when ZBX_HOSTNAMEITEM is used:
 	// the proxy then resolves its own name via the item.

@@ -17,7 +17,7 @@ func prepareService(env bootstrap.Environment, runtimeRulePath string) error {
 		return err
 	}
 
-	env["ZBX_ALLOWEDIP"] = env.ValueOrDefaultNonEmpty("ZBX_ALLOWEDIP", "127.0.0.1,::1")
+	env.SetDefaultNonEmpty("ZBX_ALLOWEDIP", "127.0.0.1,::1")
 
 	if err := config.ConfigureToolAccessRules(env,
 		filepath.Join(configDir, "zabbix_mcp_server_tool_access.conf"), runtimeRulePath,

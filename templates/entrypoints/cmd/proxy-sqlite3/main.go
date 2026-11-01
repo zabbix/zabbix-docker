@@ -41,11 +41,7 @@ func prepareService(env bootstrap.Environment) error {
 		return err
 	}
 
-	if err := proxy.Prepare(env, defaultProxyName); err != nil {
-		return err
-	}
-
-	return nil
+	return proxy.Prepare(env, defaultProxyName)
 }
 
 func main() {

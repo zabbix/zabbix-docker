@@ -27,9 +27,6 @@ type object struct {
 }
 
 func (s Schema) Validate() error {
-	if len(s.ValueTypes) == 0 {
-		return errors.New("history schema requires value types")
-	}
 	if s.Shards < 1 || s.Replicas < 0 {
 		return errors.New("shards must be positive and replicas non-negative")
 	}

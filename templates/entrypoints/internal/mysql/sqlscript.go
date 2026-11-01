@@ -1,7 +1,7 @@
 package mysql
 
 import (
-	"fmt"
+	"errors"
 	"strings"
 )
 
@@ -35,10 +35,10 @@ func splitSQLStatements(script string) ([]string, error) {
 		p.write(line)
 	}
 	if p.quote != 0 {
-		return nil, fmt.Errorf("unterminated quoted string")
+		return nil, errors.New("unterminated quoted string")
 	}
 	if p.blockComment {
-		return nil, fmt.Errorf("unterminated block comment")
+		return nil, errors.New("unterminated block comment")
 	}
 	p.flush()
 	return p.statements, nil
@@ -60,7 +60,7 @@ func (p *sqlStatementParser) write(value string) {
 			continue
 		}
 		if p.blockComment {
-			if index+1 < len(value) && value[index:index+2] == "*/" {
+			if strings.HasPrefix(value[index:], "*/") {
 				if p.keepComment {
 					p.statement.WriteString("*/")
 				} else {
@@ -110,7 +110,7 @@ func (p *sqlStatementParser) write(value string) {
 			}
 			continue
 		}
-		if index+1 < len(value) && value[index:index+2] == "/*" {
+		if strings.HasPrefix(value[index:], "/*") {
 			p.blockComment = true
 			p.keepComment = index+2 < len(value) && (value[index+2] == '!' || value[index+2] == '+')
 			if p.keepComment {

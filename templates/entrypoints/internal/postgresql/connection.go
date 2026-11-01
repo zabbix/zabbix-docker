@@ -182,10 +182,7 @@ func (db *DB) connect(ctx context.Context, dbName, user, password string) (dbSes
 		return nil, bootstrap.Stop(err)
 	}
 
-	timeout := config.ConnectTimeout + time.Second
-	if len(db.endpoints) > 1 {
-		timeout = time.Duration(len(db.endpoints))*config.ConnectTimeout + time.Second
-	}
+	timeout := time.Duration(len(db.endpoints))*config.ConnectTimeout + time.Second
 	attemptCtx, cancel := context.WithTimeout(ctx, timeout)
 	defer cancel()
 
