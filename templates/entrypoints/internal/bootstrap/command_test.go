@@ -244,23 +244,26 @@ func TestStorageInitEntrypointRouting(t *testing.T) {
 func TestStorageInitEntrypointResult(t *testing.T) {
 	for _, test := range []struct {
 		name    string
+		command string
 		count   int
 		err     error
-		warning bool
+		warning string
 	}{
-		{"prepared", 1, nil, false},
-		{"nothing selected", 0, nil, true},
-		{"failed", 0, errors.New("schema preparation failed"), false},
+		{"prepared", initHistoryProvidersCommand, 1, nil, ""},
+		{"no history selected", initHistoryProvidersCommand, 0, nil, "No history schemas initialized: set ZBX_HISTORYPROVIDER_<N>_SCHEMA"},
+		{"no telemetry selected", initTelemetryCommand, 0, nil, "No telemetry schemas initialized: ZBX_TELEMETRYPROVIDER_0_SCHEMA is not set"},
+		{"failed", initHistoryProvidersCommand, 0, errors.New("schema preparation failed"), ""},
 	} {
 		t.Run(test.name, func(t *testing.T) {
-			entry := StorageInitEntrypoint(nil, func(Environment) (int, error) { return test.count, test.err }, nil)
+			prepare := func(Environment) (int, error) { return test.count, test.err }
+			entry := StorageInitEntrypoint(nil, prepare, prepare)
 			var err error
-			output := testutil.CaptureStderr(t, func() { err = entry(Environment{}, []string{initHistoryProvidersCommand}) })
+			output := testutil.CaptureStderr(t, func() { err = entry(Environment{}, []string{test.command}) })
 			if !errors.Is(err, test.err) {
 				t.Fatalf("error = %v, want %v", err, test.err)
 			}
-			if test.warning {
-				if !strings.Contains(output, "No schemas selected for "+initHistoryProvidersCommand) || !strings.Contains(output, "_SCHEMA") {
+			if test.warning != "" {
+				if !strings.Contains(output, test.warning) {
 					t.Fatalf("missing warning: %s", output)
 				}
 			} else if output != "" {
