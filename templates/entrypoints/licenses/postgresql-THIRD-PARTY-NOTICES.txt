@@ -1,9 +1,9 @@
 PostgreSQL entrypoint third-party notices
 =========================================
 
-Component: github.com/jackc/pgx/v5 v5.10.0
+Component: github.com/jackc/pgx/v5 v5.12.0
 License: MIT
-Source: https://github.com/jackc/pgx/tree/v5.10.0
+Source: https://github.com/jackc/pgx/tree/v5.12.0
 
 Copyright (c) 2013-2021 Jack Christensen
 
@@ -89,9 +89,9 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 -------------------------------------------------------------------------------
 
-Component: golang.org/x/text v0.39.0
+Component: golang.org/x/text v0.43.0
 License: BSD-3-Clause
-Source: https://github.com/golang/text/tree/v0.39.0
+Source: https://github.com/golang/text/tree/v0.43.0
 
 The BSD-3-Clause terms and copyright notice for this component are identical
 to those in go-THIRD-PARTY-NOTICES.txt, which is distributed alongside this

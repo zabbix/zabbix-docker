@@ -4,11 +4,12 @@ import (
 	"github.com/zabbix/zabbix-docker/templates/entrypoints/internal/bootstrap"
 	"github.com/zabbix/zabbix-docker/templates/entrypoints/internal/mysql"
 	"github.com/zabbix/zabbix-docker/templates/entrypoints/internal/server"
+	"github.com/zabbix/zabbix-docker/templates/entrypoints/internal/storageinit"
 )
 
 const (
 	serverBinary = "/usr/sbin/zabbix_server"
-	schemaPath   = "/usr/share/doc/zabbix-server-mysql/create.sql.gz"
+	schemaPath   = "/usr/share/doc/zabbix-server-mysql/mysql/create.sql.gz"
 	dbName       = "zabbix"
 )
 
@@ -38,8 +39,9 @@ func prepareService(env bootstrap.Environment, db *mysql.DB) error {
 }
 
 func main() {
-	bootstrap.Main(bootstrap.DBService(serverBinary,
+	entry := bootstrap.DBService(serverBinary,
 		func(env bootstrap.Environment) error { return prepareService(env, mysql.NewForBackend(env)) },
 		func(env bootstrap.Environment) error { return prepareDB(env, mysql.NewForBackend(env)) },
-	))
+	)
+	bootstrap.Main(bootstrap.StorageInitEntrypoint(entry, storageinit.PrepareHistory, storageinit.PrepareTelemetry))
 }

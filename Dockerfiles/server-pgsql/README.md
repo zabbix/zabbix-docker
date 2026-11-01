@@ -145,6 +145,44 @@ Credentials and the TLS private key password can be set with the matching `_USER
 
 Certificate and key paths may be absolute or relative to `/var/lib/zabbix/ssl/certs` and `/var/lib/zabbix/ssl/keys`, respectively. CA certificates are read from `/var/lib/zabbix/ssl/ssl_ca`.
 
+### Storage provider schema preparation
+
+Use `ZBX_HISTORYPROVIDER_<N>_SCHEMA` or `ZBX_TELEMETRYPROVIDER_0_SCHEMA` to create or check the schema for the corresponding provider. The provider configuration must be JSON; ClickHouse requires an explicit `db`.
+
+```yaml
+environment:
+  ZBX_TELEMETRYPROVIDER_0: '{"provider":"clickhouse","url":"http://clickhouse:8123","db":"telemetry"}'
+  ZBX_TELEMETRYPROVIDER_0_USERNAME: zabbix
+  ZBX_TELEMETRYPROVIDER_0_PASSWORD: zabbix
+  ZBX_TELEMETRYPROVIDER_0_SCHEMA: '{"create":true}'
+  ZBX_HISTORYPROVIDER_0: '{"provider":"clickhouse","url":"http://clickhouse:8123","db":"history","types":["uint","dbl"]}'
+  ZBX_HISTORYPROVIDER_0_USERNAME: zabbix
+  ZBX_HISTORYPROVIDER_0_PASSWORD: zabbix
+  ZBX_HISTORYPROVIDER_0_SCHEMA: '{"create":true}'
+```
+
+Each provider has independent settings; history preparation covers only the selected `types`.
+
+- Unset or empty: no schema checks or creation.
+- `{"create":false}`: check that the required objects exist.
+- `{"create":true}`: create missing objects; existing definitions remain unchanged.
+
+Optional ClickHouse `_SCHEMA` settings: `cluster` (default empty), `replicated` (default `false`), `ttl` (seconds, default `2678400`; `0` disables TTL), and `partition` (`toDate` or `toYYYYMM`, default `toDate`). Cluster infrastructure and users must already be configured.
+
+Elasticsearch also accepts `shards` (default `5`) and `replicas` (default `1`):
+
+```yaml
+environment:
+  ZBX_HISTORYPROVIDER_0: '{"provider":"elasticsearch","url":"http://elasticsearch:9200","types":["uint","dbl"],"date_index":1}'
+  ZBX_HISTORYPROVIDER_0_SCHEMA: '{"create":true,"shards":1,"replicas":0}'
+```
+
+The Compose Elasticsearch service disables authentication. For an authenticated service, include credentials in `url`, for example `http://user:password@elasticsearch:9200`.
+
+For Elasticsearch, `create: true` creates indices with `date_index: 0`, or templates and pipelines with `date_index: 1`.
+
+With `_SCHEMA` set, preparation runs at every start and errors prevent Zabbix from starting. For separate initialization, set `_SCHEMA` only on a container running `init_db_history_providers` or `init_db_telemetry`.
+
 ### Other variables
 
 Additionally the image allows to specify many other environment variables listed below:

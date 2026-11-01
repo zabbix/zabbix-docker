@@ -1,10 +1,8 @@
 package mysql
 
 import (
-	"compress/gzip"
 	"context"
 	"errors"
-	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -12,36 +10,12 @@ import (
 
 	"github.com/go-sql-driver/mysql"
 	"github.com/zabbix/zabbix-docker/templates/entrypoints/internal/bootstrap"
+	"github.com/zabbix/zabbix-docker/templates/entrypoints/internal/testutil"
 )
 
-type fakeDBSession struct {
-	queries    map[string]string
-	statements []string
-	closed     bool
-}
-
-func (s *fakeDBSession) Ping(ctx context.Context) error {
-	return ctx.Err()
-}
-
-func (s *fakeDBSession) QueryString(_ context.Context, query string, args ...any) (string, error) {
-	s.statements = append(s.statements, formatStatement(query, args...))
-	return s.queries[query], nil
-}
-
-func (s *fakeDBSession) Exec(_ context.Context, query string, args ...any) error {
-	s.statements = append(s.statements, formatStatement(query, args...))
-	return nil
-}
-
-func (s *fakeDBSession) Close() error {
-	s.closed = true
-	return nil
-}
-
 type fakeSessionFactory struct {
-	admin   *fakeDBSession
-	imports []*fakeDBSession
+	admin   *testutil.FakeDBSession
+	imports []*testutil.FakeDBSession
 	configs []*mysql.Config
 }
 
@@ -50,7 +24,7 @@ func (f *fakeSessionFactory) open(_ context.Context, config *mysql.Config) (dbSe
 	if config.DBName == "" {
 		return f.admin, nil
 	}
-	s := &fakeDBSession{queries: map[string]string{}}
+	s := &testutil.FakeDBSession{Queries: map[string]string{}}
 	f.imports = append(f.imports, s)
 	return s, nil
 }
@@ -65,7 +39,7 @@ func TestPrepareDatabase(t *testing.T) {
 		t.Fatal(err)
 	}
 	schemaFile := filepath.Join(root, "create.sql.gz")
-	writeGzipFile(t, schemaFile, "CREATE TABLE dbversion (mandatory integer);")
+	testutil.WriteGzipFile(t, schemaFile, "CREATE TABLE dbversion (mandatory integer);")
 
 	env := bootstrap.Environment{
 		"DB_SERVER_HOST": "database", "MYSQL_USER": "zabbix",
@@ -73,7 +47,7 @@ func TestPrepareDatabase(t *testing.T) {
 		"MYSQL_DATABASE": "zabbix_test", "ZABBIX_USER_HOME_DIR": root,
 	}
 	db := NewForBackend(env)
-	f := &fakeSessionFactory{admin: &fakeDBSession{queries: map[string]string{}}}
+	f := &fakeSessionFactory{admin: &testutil.FakeDBSession{Queries: map[string]string{}}}
 	db.open = f.open
 	if err := db.Configure("zabbix"); err != nil {
 		t.Fatal(err)
@@ -82,7 +56,7 @@ func TestPrepareDatabase(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	adminStatements := strings.Join(f.admin.statements, "\n")
+	adminStatements := strings.Join(f.admin.Statements, "\n")
 	for _, expected := range []string{
 		"CREATE USER ?@'%' IDENTIFIED BY ? [zabbix zabbix-password]",
 		"CREATE DATABASE `zabbix_test` CHARACTER SET `utf8mb4` COLLATE `utf8mb4_bin`",
@@ -95,7 +69,7 @@ func TestPrepareDatabase(t *testing.T) {
 	if strings.Contains(adminStatements, "GRANT ALL PRIVILEGES") {
 		t.Fatalf("admin statements contain an unrestricted grant:\n%s", adminStatements)
 	}
-	imports := importedStatements(f.imports)
+	imports := testutil.ImportedStatements(f.imports)
 	for _, expected := range []string{"CREATE TABLE dbversion (mandatory integer)", "SELECT 'extra'"} {
 		if !strings.Contains(imports, expected) {
 			t.Fatalf("import statements do not contain %q:\n%s", expected, imports)
@@ -104,8 +78,29 @@ func TestPrepareDatabase(t *testing.T) {
 	if len(f.configs) == 0 || f.configs[0].Passwd != "root-password" {
 		t.Fatalf("root password was not configured: %#v", f.configs)
 	}
-	if !f.admin.closed {
+	if !f.admin.Closed {
 		t.Fatal("admin connection was not closed")
+	}
+	logs := testutil.CaptureStdout(t, func() {
+		if err := db.createSchema(f.admin, schemaFile); err != nil {
+			t.Fatal(err)
+		}
+	})
+	message := "Database schema successfully created!"
+	if strings.Count(logs, message) != 1 || strings.Index(logs, message) < strings.Index(logs, "Processing additional") {
+		t.Fatalf("expected one creation message after additional scripts:\n%s", logs)
+	}
+
+	if err := os.Mkdir(filepath.Join(scriptsDirectory, "20-invalid.sql"), 0o700); err != nil {
+		t.Fatal(err)
+	}
+	logs = testutil.CaptureStdout(t, func() {
+		if err := db.createSchema(f.admin, schemaFile); err == nil {
+			t.Fatal("expected additional script failure")
+		}
+	})
+	if strings.Contains(logs, message) {
+		t.Fatal("creation success was logged after a script failure")
 	}
 }
 
@@ -159,7 +154,7 @@ func TestWaitForConnectionIsCanceled(t *testing.T) {
 	}
 
 	db.open = func(context.Context, *mysql.Config) (dbSession, error) {
-		return &fakeDBSession{}, nil
+		return &testutil.FakeDBSession{}, nil
 	}
 
 	ctx, cancel := context.WithCancel(context.Background())
@@ -369,12 +364,17 @@ func TestExistingSchemaIsNotImported(t *testing.T) {
 	env := bootstrap.Environment{}
 	db := NewForBackend(env)
 	db.name = "zabbix"
-	admin := &fakeDBSession{queries: map[string]string{
+	admin := &testutil.FakeDBSession{Queries: map[string]string{
 		"SELECT 1 FROM information_schema.tables WHERE table_schema = ? AND table_name = 'dbversion'": "1",
 		"SELECT mandatory FROM `zabbix`.dbversion":                                                    "8000000",
 	}}
-	if err := db.createSchema(admin, "/does/not/exist.sql.gz"); err != nil {
-		t.Fatal(err)
+	logs := testutil.CaptureStdout(t, func() {
+		if err := db.createSchema(admin, "/does/not/exist.sql.gz"); err != nil {
+			t.Fatal(err)
+		}
+	})
+	if strings.Contains(logs, "Database schema successfully created!") {
+		t.Fatal("creation success was logged for an existing schema")
 	}
 	if _, found := env["ZBX_DB_VERSION"]; found {
 		t.Fatal("database version was exposed through the environment")
@@ -386,37 +386,4 @@ func TestAccessors(t *testing.T) {
 	if db.Name() != "zabbix" || db.User() != "zabbix" || db.Password() != "password" {
 		t.Fatal("database accessors returned unexpected values")
 	}
-}
-
-func writeGzipFile(t *testing.T, path, content string) {
-	t.Helper()
-	file, err := os.Create(path)
-	if err != nil {
-		t.Fatal(err)
-	}
-	compressed := gzip.NewWriter(file)
-	if _, err := compressed.Write([]byte(content)); err != nil {
-		t.Fatal(err)
-	}
-	if err := compressed.Close(); err != nil {
-		t.Fatal(err)
-	}
-	if err := file.Close(); err != nil {
-		t.Fatal(err)
-	}
-}
-
-func formatStatement(query string, args ...any) string {
-	if len(args) == 0 {
-		return query
-	}
-	return fmt.Sprintf("%s %v", query, args)
-}
-
-func importedStatements(sessions []*fakeDBSession) string {
-	var statements []string
-	for _, s := range sessions {
-		statements = append(statements, s.statements...)
-	}
-	return strings.Join(statements, "\n")
 }

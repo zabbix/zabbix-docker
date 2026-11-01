@@ -82,22 +82,20 @@ func (env Environment) ValueOrDefaultNonEmpty(name, defaultValue string) string 
 // RequiredHomeDir returns the Zabbix home directory,
 // verifying that it exists.
 func RequiredHomeDir(env Environment) (string, error) {
-	dir := env["ZABBIX_USER_HOME_DIR"]
-	if err := validateDir(dir); err != nil {
-		return "", fmt.Errorf("ZABBIX_USER_HOME_DIR: %w", err)
-	}
-
-	return dir, nil
+	return requiredDir(env, "ZABBIX_USER_HOME_DIR")
 }
 
 // RequiredConfigDir returns the Zabbix config directory,
 // verifying that it exists.
 func RequiredConfigDir(env Environment) (string, error) {
-	dir := env["ZABBIX_CONF_DIR"]
-	if err := validateDir(dir); err != nil {
-		return "", fmt.Errorf("ZABBIX_CONF_DIR: %w", err)
-	}
+	return requiredDir(env, "ZABBIX_CONF_DIR")
+}
 
+func requiredDir(env Environment, name string) (string, error) {
+	dir := env[name]
+	if err := validateDir(dir); err != nil {
+		return "", fmt.Errorf("%s: %w", name, err)
+	}
 	return dir, nil
 }
 

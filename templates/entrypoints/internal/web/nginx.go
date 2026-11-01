@@ -79,7 +79,7 @@ func prepareNginx(env bootstrap.Environment) error {
 	}
 
 	accessLog := "access_log /var/log/nginx/access.log main;\n"
-	if strings.EqualFold(env.ValueOrDefaultNonEmpty("ENABLE_WEB_ACCESS_LOG", "true"), "false") {
+	if strings.EqualFold(env["ENABLE_WEB_ACCESS_LOG"], "false") {
 		accessLog = "access_log off;\n"
 	}
 	if err := os.WriteFile(filepath.Join(includes, "access-log.conf"), []byte(accessLog), 0o644); err != nil {

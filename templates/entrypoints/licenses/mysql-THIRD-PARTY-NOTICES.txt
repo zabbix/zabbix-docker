@@ -1,9 +1,9 @@
 MySQL entrypoint third-party notices
 ====================================
 
-Component: github.com/go-sql-driver/mysql v1.10.0
+Component: github.com/go-sql-driver/mysql v1.10.1
 License: MPL-2.0
-Source: https://github.com/go-sql-driver/mysql/tree/v1.10.0
+Source: https://github.com/go-sql-driver/mysql/tree/v1.10.1
 
 The source code for this MPL-licensed component is available at the URL
 above. The following is the complete text of the Mozilla Public License 2.0.

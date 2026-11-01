@@ -1,10 +1,8 @@
 package postgresql
 
 import (
-	"compress/gzip"
 	"context"
 	"errors"
-	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -12,33 +10,13 @@ import (
 
 	"github.com/jackc/pgx/v5"
 	"github.com/zabbix/zabbix-docker/templates/entrypoints/internal/bootstrap"
+	"github.com/zabbix/zabbix-docker/templates/entrypoints/internal/testutil"
 )
 
-type fakeDBSession struct {
-	queries    map[string]string
-	statements []string
-	closed     bool
-}
-
-func (s *fakeDBSession) QueryString(_ context.Context, query string, args ...any) (string, error) {
-	s.statements = append(s.statements, formatStatement(query, args...))
-	return s.queries[query], nil
-}
-
-func (s *fakeDBSession) Exec(_ context.Context, query string, args ...any) error {
-	s.statements = append(s.statements, formatStatement(query, args...))
-	return nil
-}
-
-func (s *fakeDBSession) Close() error {
-	s.closed = true
-	return nil
-}
-
 type fakeSessionFactory struct {
-	admin   *fakeDBSession
-	schema  *fakeDBSession
-	imports []*fakeDBSession
+	admin   *testutil.FakeDBSession
+	schema  *testutil.FakeDBSession
+	imports []*testutil.FakeDBSession
 	configs []*pgx.ConnConfig
 }
 
@@ -51,7 +29,7 @@ func (f *fakeSessionFactory) open(_ context.Context, config *pgx.ConnConfig) (db
 		return f.schema, nil
 	}
 
-	s := &fakeDBSession{queries: map[string]string{}}
+	s := &testutil.FakeDBSession{Queries: map[string]string{}}
 	f.imports = append(f.imports, s)
 	return s, nil
 }
@@ -130,7 +108,7 @@ func TestPrepareDatabase(t *testing.T) {
 		t.Fatal(err)
 	}
 	schemaFile := filepath.Join(root, "create.sql.gz")
-	writeGzipFile(t, schemaFile, "CREATE TABLE dbversion (mandatory integer);")
+	testutil.WriteGzipFile(t, schemaFile, "CREATE TABLE dbversion (mandatory integer);")
 	timescaleFile := filepath.Join(root, "timescaledb.sql")
 	if err := os.WriteFile(timescaleFile, []byte("SELECT 'timescale';"), 0o600); err != nil {
 		t.Fatal(err)
@@ -153,19 +131,19 @@ func TestPrepareDatabase(t *testing.T) {
 	db.password = "zabbix-password"
 
 	f := &fakeSessionFactory{
-		admin:  &fakeDBSession{queries: map[string]string{}},
-		schema: &fakeDBSession{queries: map[string]string{}},
+		admin:  &testutil.FakeDBSession{Queries: map[string]string{}},
+		schema: &testutil.FakeDBSession{Queries: map[string]string{}},
 	}
 	db.open = f.open
 	if err := db.Prepare(schemaFile, timescaleFile); err != nil {
 		t.Fatal(err)
 	}
 
-	adminStatements := strings.Join(f.admin.statements, "\n")
+	adminStatements := strings.Join(f.admin.Statements, "\n")
 	if !strings.Contains(adminStatements, `CREATE DATABASE "zabbix_test" OWNER "zabbix"`) {
 		t.Fatalf("database was not created with the expected owner:\n%s", adminStatements)
 	}
-	schemaStatements := strings.Join(f.schema.statements, "\n")
+	schemaStatements := strings.Join(f.schema.Statements, "\n")
 	for _, expected := range []string{
 		`CREATE SCHEMA "monitoring" AUTHORIZATION "zabbix"`,
 		"CREATE EXTENSION IF NOT EXISTS timescaledb CASCADE",
@@ -174,7 +152,7 @@ func TestPrepareDatabase(t *testing.T) {
 			t.Fatalf("schema statements do not contain %q:\n%s", expected, schemaStatements)
 		}
 	}
-	imports := importedStatements(f.imports)
+	imports := testutil.ImportedStatements(f.imports)
 	for _, expected := range []string{
 		"CREATE TABLE dbversion (mandatory integer);",
 		"SELECT 'timescale';",
@@ -184,13 +162,34 @@ func TestPrepareDatabase(t *testing.T) {
 			t.Fatalf("import statements do not contain %q:\n%s", expected, imports)
 		}
 	}
-	if !f.admin.closed || !f.schema.closed {
+	if !f.admin.Closed || !f.schema.Closed {
 		t.Fatal("administrative PostgreSQL connections were not closed")
 	}
 	for _, s := range f.imports {
-		if !s.closed {
+		if !s.Closed {
 			t.Fatal("SQL import connection was not closed")
 		}
+	}
+	logs := testutil.CaptureStdout(t, func() {
+		if err := db.createSchema(schemaFile, timescaleFile); err != nil {
+			t.Fatal(err)
+		}
+	})
+	message := "Database schema successfully created!"
+	if strings.Count(logs, message) != 1 || strings.Index(logs, message) < strings.Index(logs, "Processing additional") {
+		t.Fatalf("expected one creation message after additional scripts:\n%s", logs)
+	}
+
+	if err := os.Mkdir(filepath.Join(scriptsDirectory, "20-invalid.sql"), 0o700); err != nil {
+		t.Fatal(err)
+	}
+	logs = testutil.CaptureStdout(t, func() {
+		if err := db.createSchema(schemaFile, timescaleFile); err == nil {
+			t.Fatal("expected additional script failure")
+		}
+	})
+	if strings.Contains(logs, message) {
+		t.Fatal("creation success was logged after a script failure")
 	}
 }
 
@@ -246,36 +245,22 @@ func TestExportEnv(t *testing.T) {
 	}
 }
 
-func writeGzipFile(t *testing.T, path, content string) {
-	t.Helper()
-
-	file, err := os.Create(path)
-	if err != nil {
+func TestExistingSchemaIsNotImported(t *testing.T) {
+	db := NewForBackend(bootstrap.Environment{})
+	if err := db.Configure("zabbix"); err != nil {
 		t.Fatal(err)
 	}
-	compressed := gzip.NewWriter(file)
-	if _, err := compressed.Write([]byte(content)); err != nil {
-		t.Fatal(err)
+	existing := &testutil.FakeDBSession{Queries: map[string]string{
+		"SELECT 1::text FROM pg_catalog.pg_class c JOIN pg_catalog.pg_namespace n ON n.oid=c.relnamespace WHERE c.relname='dbversion' AND n.nspname = $1": "1",
+		"SELECT mandatory::text FROM \"public\".dbversion": "8000000",
+	}}
+	db.open = (&fakeSessionFactory{admin: existing, schema: existing}).open
+	logs := testutil.CaptureStdout(t, func() {
+		if err := db.createSchema("/does/not/exist.sql.gz", ""); err != nil {
+			t.Fatal(err)
+		}
+	})
+	if strings.Contains(logs, "Database schema successfully created!") {
+		t.Fatal("creation success was logged for an existing schema")
 	}
-	if err := compressed.Close(); err != nil {
-		t.Fatal(err)
-	}
-	if err := file.Close(); err != nil {
-		t.Fatal(err)
-	}
-}
-
-func formatStatement(query string, args ...any) string {
-	if len(args) == 0 {
-		return query
-	}
-	return fmt.Sprintf("%s %v", query, args)
-}
-
-func importedStatements(sessions []*fakeDBSession) string {
-	var statements []string
-	for _, s := range sessions {
-		statements = append(statements, s.statements...)
-	}
-	return strings.Join(statements, "\n")
 }

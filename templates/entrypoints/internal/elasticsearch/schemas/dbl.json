@@ -1,0 +1,14 @@
+{
+  "properties": {
+    "itemid": {
+      "type": "long"
+    },
+    "clock": {
+      "format": "epoch_second",
+      "type": "date"
+    },
+    "value": {
+      "type": "double"
+    }
+  }
+}

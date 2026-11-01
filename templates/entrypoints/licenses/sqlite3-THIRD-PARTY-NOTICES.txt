@@ -1,9 +1,9 @@
 SQLite3 entrypoint third-party notices
 ======================================
 
-Component: github.com/ncruces/go-sqlite3 v0.35.2
+Component: github.com/ncruces/go-sqlite3 v0.36.0
 License: MIT
-Source: https://github.com/ncruces/go-sqlite3/tree/v0.35.2
+Source: https://github.com/ncruces/go-sqlite3/tree/v0.36.0
 
 MIT License
 
@@ -29,9 +29,9 @@ SOFTWARE.
 
 -------------------------------------------------------------------------------
 
-Component: github.com/ncruces/go-sqlite3-wasm/v3 v3.2.35303
+Component: github.com/ncruces/go-sqlite3-wasm/v6 v6.4.35401
 License: MIT-0
-Source: https://github.com/ncruces/go-sqlite3-wasm/tree/v3.2.35303
+Source: https://github.com/ncruces/go-sqlite3-wasm/tree/v6.4.35401
 
 MIT No Attribution License
 
@@ -82,9 +82,9 @@ SOFTWARE.
 
 -------------------------------------------------------------------------------
 
-Component: golang.org/x/sys v0.46.0
+Component: golang.org/x/sys v0.49.0
 License: BSD-3-Clause
-Source: https://github.com/golang/sys/tree/v0.46.0
+Source: https://github.com/golang/sys/tree/v0.49.0
 
 The BSD-3-Clause terms and copyright notice for this component are identical
 to those in go-THIRD-PARTY-NOTICES.txt, which is distributed alongside this

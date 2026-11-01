@@ -1,0 +1,22 @@
+{
+  "dynamic": false,
+  "properties": {
+    "itemid": {
+      "type": "long"
+    },
+    "clock": {
+      "type": "date",
+      "format": "epoch_second"
+    },
+    "ns": {
+      "type": "long"
+    },
+    "value_parsed": {
+      "type": "flattened"
+    },
+    "value_raw": {
+      "type": "keyword",
+      "ignore_above": 1000000
+    }
+  }
+}

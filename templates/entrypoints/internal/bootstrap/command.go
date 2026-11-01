@@ -101,9 +101,11 @@ func Service(binary string, prepare func(Environment) error) Entrypoint {
 	}
 }
 
-// initDBCommand provisions the database and exits without starting
-// the service.
-const initDBCommand = "init_db_only"
+const (
+	initDBCommand               = "init_db_only"
+	initHistoryProvidersCommand = "init_db_history_providers"
+	initTelemetryCommand        = "init_db_telemetry"
+)
 
 // DBService is Service for images with a database. The extra initDB hook
 // implements the initDBCommand command.
@@ -121,5 +123,41 @@ func DBService(binary string, prepare, initDB func(Environment) error) Entrypoin
 		}
 
 		return Execute(command, env)
+	}
+}
+
+// StorageInitEntrypoint handles independent database initialization commands without starting the service.
+// A nil handler marks a command as unsupported by the image.
+func StorageInitEntrypoint(next Entrypoint, history, telemetry func(Environment) (int, error)) Entrypoint {
+	return func(env Environment, args []string) error {
+		if len(args) == 0 {
+			return next(env, args)
+		}
+
+		var prepare func(Environment) (int, error)
+
+		switch args[0] {
+		case initHistoryProvidersCommand:
+			prepare = history
+		case initTelemetryCommand:
+			prepare = telemetry
+		default:
+			return next(env, args)
+		}
+
+		if prepare == nil {
+			return fmt.Errorf("%s is not supported by this image", args[0])
+		}
+
+		if len(args) != 1 {
+			return fmt.Errorf("%s takes no arguments", args[0])
+		}
+
+		count, err := prepare(env)
+		if err == nil && count == 0 {
+			LogWarn("** No schemas selected for %s: set a provider _SCHEMA variable", args[0])
+		}
+
+		return err
 	}
 }

@@ -1,11 +1,11 @@
 package bootstrap
 
 import (
-	"bytes"
-	"compress/gzip"
 	"os"
 	"path/filepath"
 	"testing"
+
+	"github.com/zabbix/zabbix-docker/templates/entrypoints/internal/testutil"
 )
 
 func TestResolveFile(t *testing.T) {
@@ -45,18 +45,8 @@ func TestReadSQLFile(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	var buffer bytes.Buffer
-	writer := gzip.NewWriter(&buffer)
-	if _, err := writer.Write([]byte("SELECT 2;")); err != nil {
-		t.Fatal(err)
-	}
-	if err := writer.Close(); err != nil {
-		t.Fatal(err)
-	}
 	compressed := filepath.Join(dir, "schema.sql.gz")
-	if err := os.WriteFile(compressed, buffer.Bytes(), 0o644); err != nil {
-		t.Fatal(err)
-	}
+	testutil.WriteGzipFile(t, compressed, "SELECT 2;")
 
 	data, err := ReadSQLFile(plain)
 	if err != nil {

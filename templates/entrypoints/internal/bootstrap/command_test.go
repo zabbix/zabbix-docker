@@ -7,7 +7,10 @@ import (
 	"os"
 	"os/exec"
 	"reflect"
+	"strings"
 	"testing"
+
+	"github.com/zabbix/zabbix-docker/templates/entrypoints/internal/testutil"
 )
 
 func TestResolveCommand(t *testing.T) {
@@ -186,5 +189,96 @@ func TestDBServiceRunsInitOnly(t *testing.T) {
 	}
 	if !initCalled {
 		t.Fatal("init-only preparation did not run")
+	}
+}
+
+func TestStorageInitEntrypointRouting(t *testing.T) {
+	for _, test := range []struct {
+		args             []string
+		handler, wantErr string
+	}{
+		{[]string{initHistoryProvidersCommand}, "history", ""},
+		{[]string{initTelemetryCommand}, "telemetry", ""},
+		{nil, "next", "startup failed"},
+		{[]string{"zabbix_proxy"}, "next", "startup failed"},
+		{[]string{"sh", "-c", "true"}, "next", "startup failed"},
+		{[]string{initHistoryProvidersCommand, "extra"}, "", "takes no arguments"},
+		{[]string{initTelemetryCommand, "extra"}, "", "takes no arguments"},
+	} {
+		t.Run(fmt.Sprint(test.args), func(t *testing.T) {
+			env := Environment{"test": "value"}
+			selected := ""
+			record := func(name string, got Environment) {
+				if selected != "" {
+					t.Fatal("multiple handlers ran")
+				}
+				selected = name
+				if !reflect.DeepEqual(got, env) {
+					t.Fatal("environment changed")
+				}
+			}
+			entry := StorageInitEntrypoint(func(got Environment, args []string) error {
+				record("next", got)
+				if !reflect.DeepEqual(args, test.args) {
+					t.Fatal("command arguments changed")
+				}
+				return errors.New("startup failed")
+			}, func(got Environment) (int, error) {
+				record("history", got)
+				return 1, nil
+			}, func(got Environment) (int, error) {
+				record("telemetry", got)
+				return 1, nil
+			})
+			err := entry(env, test.args)
+			if (err == nil) != (test.wantErr == "") || (err != nil && !strings.Contains(err.Error(), test.wantErr)) {
+				t.Fatalf("error = %v, want %q", err, test.wantErr)
+			}
+			if selected != test.handler {
+				t.Fatalf("handler = %q, want %q", selected, test.handler)
+			}
+		})
+	}
+}
+
+func TestStorageInitEntrypointResult(t *testing.T) {
+	for _, test := range []struct {
+		name    string
+		count   int
+		err     error
+		warning bool
+	}{
+		{"prepared", 1, nil, false},
+		{"nothing selected", 0, nil, true},
+		{"failed", 0, errors.New("schema preparation failed"), false},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			entry := StorageInitEntrypoint(nil, func(Environment) (int, error) { return test.count, test.err }, nil)
+			var err error
+			output := testutil.CaptureStderr(t, func() { err = entry(Environment{}, []string{initHistoryProvidersCommand}) })
+			if !errors.Is(err, test.err) {
+				t.Fatalf("error = %v, want %v", err, test.err)
+			}
+			if test.warning {
+				if !strings.Contains(output, "No schemas selected for "+initHistoryProvidersCommand) || !strings.Contains(output, "_SCHEMA") {
+					t.Fatalf("missing warning: %s", output)
+				}
+			} else if output != "" {
+				t.Fatalf("unexpected warning: %s", output)
+			}
+		})
+	}
+}
+
+func TestStorageInitEntrypointRejectsMissingHistoryHandler(t *testing.T) {
+	entry := StorageInitEntrypoint(func(Environment, []string) error {
+		t.Fatal("unsupported command passed to normal startup")
+		return nil
+	}, nil, func(Environment) (int, error) {
+		t.Fatal("telemetry initialized for a history command")
+		return 0, nil
+	})
+	if err := entry(Environment{}, []string{initHistoryProvidersCommand}); err == nil || !strings.Contains(err.Error(), "not supported") {
+		t.Fatalf("unsupported history initialization: %v", err)
 	}
 }

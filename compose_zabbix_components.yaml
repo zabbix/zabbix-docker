@@ -236,12 +236,18 @@ services:
      published: "${ZABBIX_PROXY_SQLITE3_PORT}"
      protocol: tcp
      app_protocol: zabbix-trapper
+   - name: otlp-grpc
+     target: 4317
+     published: "${ZABBIX_PROXY_SQLITE3_APM_PORT}"
+     protocol: tcp
+     app_protocol: grpc
   env_file:
    - path: ${ENV_VARS_DIRECTORY}/.env_prx_sqlite3
      required: true
    - path: ${ENV_VARS_DIRECTORY}/.env_prx_sqlite3_override
      required: false
   networks:
+   database:
    backend:
     aliases:
      - zabbix-proxy-sqlite3
@@ -293,6 +299,11 @@ services:
      published: "${ZABBIX_PROXY_MYSQL_PORT}"
      protocol: tcp
      app_protocol: zabbix-trapper
+   - name: otlp-grpc
+     target: 4317
+     published: "${ZABBIX_PROXY_MYSQL_APM_PORT}"
+     protocol: tcp
+     app_protocol: grpc
 #  volumes:
 #   - mysql_socket:/var/run/mysqld/
   env_file:

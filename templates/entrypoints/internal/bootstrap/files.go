@@ -94,44 +94,38 @@ func RegularFile(path string) bool {
 // RemoveLinesContaining deletes every line of the file that contains value.
 // A missing file is not an error.
 func RemoveLinesContaining(path, value string) error {
-	if !RegularFile(path) {
-		return nil
-	}
-
-	data, err := os.ReadFile(path)
-	if err != nil {
-		return err
-	}
-
-	lines := strings.Split(string(data), "\n")
-	result := lines[:0]
-	for _, line := range lines {
-		if !strings.Contains(line, value) {
-			result = append(result, line)
+	return editFile(path, func(content string) string {
+		lines := strings.Split(content, "\n")
+		result := lines[:0]
+		for _, line := range lines {
+			if !strings.Contains(line, value) {
+				result = append(result, line)
+			}
 		}
-	}
-
-	return WriteFilePreservingMode(path, []byte(strings.Join(result, "\n")))
+		return strings.Join(result, "\n")
+	})
 }
 
 // ReplaceInFile applies plain string replacements to the file contents.
 // A missing file is not an error.
 func ReplaceInFile(path string, replacements map[string]string) error {
+	return editFile(path, func(content string) string {
+		for old, replacement := range replacements {
+			content = strings.ReplaceAll(content, old, replacement)
+		}
+		return content
+	})
+}
+
+func editFile(path string, edit func(string) string) error {
 	if !RegularFile(path) {
 		return nil
 	}
-
 	data, err := os.ReadFile(path)
 	if err != nil {
 		return err
 	}
-
-	content := string(data)
-	for old, replacement := range replacements {
-		content = strings.ReplaceAll(content, old, replacement)
-	}
-
-	return WriteFilePreservingMode(path, []byte(content))
+	return WriteFilePreservingMode(path, []byte(edit(string(data))))
 }
 
 // ReadSQLFile reads an SQL script, transparently decompressing it when the

@@ -4,12 +4,13 @@ import (
 	"github.com/zabbix/zabbix-docker/templates/entrypoints/internal/bootstrap"
 	"github.com/zabbix/zabbix-docker/templates/entrypoints/internal/postgresql"
 	"github.com/zabbix/zabbix-docker/templates/entrypoints/internal/server"
+	"github.com/zabbix/zabbix-docker/templates/entrypoints/internal/storageinit"
 )
 
 const (
 	serverBinary          = "/usr/sbin/zabbix_server"
-	schemaPath            = "/usr/share/doc/zabbix-server-postgresql/create.sql.gz"
-	timescaleDBSchemaPath = "/usr/share/doc/zabbix-server-postgresql/timescaledb.sql"
+	schemaPath            = "/usr/share/doc/zabbix-server-postgresql/postgresql/create.sql.gz"
+	timescaleDBSchemaPath = "/usr/share/doc/zabbix-server-postgresql/postgresql/timescaledb.sql"
 	dbName                = "zabbix"
 )
 
@@ -40,8 +41,9 @@ func prepareService(env bootstrap.Environment, db *postgresql.DB) error {
 }
 
 func main() {
-	bootstrap.Main(bootstrap.DBService(serverBinary,
+	entry := bootstrap.DBService(serverBinary,
 		func(env bootstrap.Environment) error { return prepareService(env, postgresql.NewForBackend(env)) },
 		func(env bootstrap.Environment) error { return prepareDB(env, postgresql.NewForBackend(env)) },
-	))
+	)
+	bootstrap.Main(bootstrap.StorageInitEntrypoint(entry, storageinit.PrepareHistory, storageinit.PrepareTelemetry))
 }

@@ -43,7 +43,7 @@ func prepareApache(env bootstrap.Environment) error {
 	env.SetDefaultNonEmpty("HTTP_INDEX_FILE", "index.php")
 
 	env["APACHE_CUSTOM_LOG"] = "/proc/self/fd/1"
-	if strings.EqualFold(env.ValueOrDefaultNonEmpty("ENABLE_WEB_ACCESS_LOG", "true"), "false") {
+	if strings.EqualFold(env["ENABLE_WEB_ACCESS_LOG"], "false") {
 		env["APACHE_CUSTOM_LOG"] = "/dev/null"
 	}
 

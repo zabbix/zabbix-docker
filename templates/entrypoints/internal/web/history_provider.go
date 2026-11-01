@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	"github.com/zabbix/zabbix-docker/templates/entrypoints/internal/bootstrap"
-	"github.com/zabbix/zabbix-docker/templates/entrypoints/internal/provider"
+	"github.com/zabbix/zabbix-docker/templates/entrypoints/internal/storageprovider"
 )
 
 // escapedApostrophe is the JSON escape of an apostrophe. The generic PHP
@@ -18,11 +18,11 @@ const escapedApostrophe = "\\u0027"
 // into one JSON array for the PHP configuration. Credentials supplied through
 // separate environment variables take precedence over JSON fields.
 func configureWebHistoryProviders(env bootstrap.Environment) error {
-	providers, err := provider.WebProviders(env, provider.History)
+	providers, err := storageprovider.WebProviders(env, storageprovider.History)
 	if err != nil {
 		return err
 	}
-	return setWebProviders(env, provider.History.Plural, providers)
+	return setWebProviders(env, storageprovider.History.Plural, providers)
 }
 
 // setWebProviders stores the providers as the JSON array read by the PHP

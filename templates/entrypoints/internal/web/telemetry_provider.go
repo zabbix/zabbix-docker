@@ -4,7 +4,7 @@ import (
 	"path/filepath"
 
 	"github.com/zabbix/zabbix-docker/templates/entrypoints/internal/bootstrap"
-	"github.com/zabbix/zabbix-docker/templates/entrypoints/internal/provider"
+	"github.com/zabbix/zabbix-docker/templates/entrypoints/internal/storageprovider"
 )
 
 // configureWebTelemetryProviders generates the frontend telemetry
@@ -12,7 +12,7 @@ import (
 // directories the image owns, so the frontend reads the same files as the
 // server.
 func configureWebTelemetryProviders(env bootstrap.Environment, homeDir string) error {
-	providers, err := provider.WebProviders(env, provider.Telemetry)
+	providers, err := storageprovider.WebProviders(env, storageprovider.Telemetry)
 	if err != nil {
 		return err
 	}
@@ -27,5 +27,5 @@ func configureWebTelemetryProviders(env bootstrap.Environment, homeDir string) e
 			}
 		}
 	}
-	return setWebProviders(env, provider.Telemetry.Plural, providers)
+	return setWebProviders(env, storageprovider.Telemetry.Plural, providers)
 }

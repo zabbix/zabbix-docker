@@ -113,7 +113,11 @@ func (db *DB) createSchema(schemaFile, timescaleFile string) error {
 		}
 	}
 
-	return bootstrap.RunAdditionalSQLScripts(db.env, db.executeSQLFile)
+	if err := bootstrap.RunAdditionalSQLScripts(db.env, db.executeSQLFile); err != nil {
+		return err
+	}
+	bootstrap.LogInfo("** Database schema successfully created!")
+	return nil
 }
 
 // Prepare provisions the database over the administrative connection: it
@@ -132,11 +136,7 @@ func (db *DB) Prepare(schemaFile, timescaleFile string) error {
 		return fmt.Errorf("close PostgreSQL connection: %w", err)
 	}
 
-	if err := db.createSchema(schemaFile, timescaleFile); err != nil {
-		return err
-	}
-	bootstrap.LogInfo("** Database schema successfully created!")
-	return nil
+	return db.createSchema(schemaFile, timescaleFile)
 }
 
 func quoteIdentifier(value string) string {

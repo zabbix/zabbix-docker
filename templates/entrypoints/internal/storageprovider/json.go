@@ -1,40 +1,31 @@
-package provider
+package storageprovider
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"strings"
 
 	"github.com/zabbix/zabbix-docker/templates/entrypoints/internal/bootstrap"
 )
 
-// SecretField binds the suffix of a credential variable to the provider option
-// it fills.
-type SecretField struct {
+type secretField struct {
 	Suffix string
 	Field  string
 }
 
-// ClickHouseSecretFields are the credentials that ClickHouse providers accept
-// through separate variables instead of the provider JSON. Every suffix also
-// has a _FILE variant holding the name of a file with the value.
-var ClickHouseSecretFields = []SecretField{
+var clickHouseSecretFields = []secretField{
 	{Suffix: "_USERNAME", Field: "username"},
 	{Suffix: "_PASSWORD", Field: "password"},
 	{Suffix: "_SSL_KEY_PASSWORD", Field: "ssl_key_password"},
 }
 
-// tlsFiles are the options naming TLS material that the image reads from the
-// directories it owns, shared by every provider that connects over TLS.
 var tlsFiles = []string{"ssl_cert_file", "ssl_key_file"}
 
-// isJSONObject reports whether the value is a provider object instead of a
-// native configuration value.
 func isJSONObject(raw string) bool {
 	return strings.HasPrefix(strings.TrimSpace(raw), "{")
 }
 
-// decodeObject parses one provider object.
 func decodeObject(raw string) (map[string]any, error) {
 	value, err := decodeJSON(raw)
 	if err != nil {
@@ -42,13 +33,11 @@ func decodeObject(raw string) (map[string]any, error) {
 	}
 	fields, ok := value.(map[string]any)
 	if !ok || fields == nil {
-		return nil, fmt.Errorf("invalid provider JSON")
+		return nil, errors.New("invalid provider JSON")
 	}
 	return fields, nil
 }
 
-// decodeList parses one provider object or an array of them. An empty value
-// means that no provider is configured.
 func decodeList(raw string) ([]map[string]any, error) {
 	if strings.TrimSpace(raw) == "" {
 		return nil, nil
@@ -71,7 +60,7 @@ func decodeList(raw string) ([]map[string]any, error) {
 		}
 		return providers, nil
 	default:
-		return nil, fmt.Errorf("invalid provider JSON")
+		return nil, errors.New("invalid provider JSON")
 	}
 }
 
@@ -88,14 +77,12 @@ func decodeJSON(raw string) (any, error) {
 	return value, nil
 }
 
-// secretConfigured reports whether the variable or its _FILE variant is set.
 func secretConfigured(env bootstrap.Environment, name string) bool {
 	return env[name] != "" || env[name+"_FILE"] != ""
 }
 
-// hasSecrets reports whether any credential variable of the provider is set.
 func hasSecrets(env bootstrap.Environment, name string) bool {
-	for _, secret := range ClickHouseSecretFields {
+	for _, secret := range clickHouseSecretFields {
 		if secretConfigured(env, name+secret.Suffix) {
 			return true
 		}
@@ -103,10 +90,9 @@ func hasSecrets(env bootstrap.Environment, name string) bool {
 	return false
 }
 
-// applySecrets replaces the credential options with the values of the separate
-// credential variables.
+// Separate credential variables override credentials in JSON.
 func applySecrets(env bootstrap.Environment, name string, fields map[string]any) error {
-	for _, secret := range ClickHouseSecretFields {
+	for _, secret := range clickHouseSecretFields {
 		variable := name + secret.Suffix
 		if !secretConfigured(env, variable) {
 			continue
@@ -119,10 +105,8 @@ func applySecrets(env bootstrap.Environment, name string, fields map[string]any)
 	return nil
 }
 
-// deleteSecrets removes the credential variables of the provider so that they
-// are not passed to the service.
 func deleteSecrets(env bootstrap.Environment, name string) {
-	for _, secret := range ClickHouseSecretFields {
+	for _, secret := range clickHouseSecretFields {
 		delete(env, name+secret.Suffix)
 		delete(env, name+secret.Suffix+"_FILE")
 	}

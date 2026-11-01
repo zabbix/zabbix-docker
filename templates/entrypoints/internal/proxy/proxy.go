@@ -8,7 +8,7 @@ import (
 	"github.com/zabbix/zabbix-docker/templates/entrypoints/internal/bootstrap"
 	"github.com/zabbix/zabbix-docker/templates/entrypoints/internal/config"
 	"github.com/zabbix/zabbix-docker/templates/entrypoints/internal/hooks"
-	"github.com/zabbix/zabbix-docker/templates/entrypoints/internal/provider"
+	"github.com/zabbix/zabbix-docker/templates/entrypoints/internal/storageinit"
 )
 
 // Prepare performs the proxy-specific entrypoint steps. defaultHostname is
@@ -24,7 +24,7 @@ func Prepare(env bootstrap.Environment, defaultHostname string) error {
 	}
 	env["ZBX_HOSTNAME"] = hostname
 
-	if strings.EqualFold(env.ValueOrDefaultNonEmpty("ZBX_ENABLE_SNMP_TRAPS", "false"), "true") {
+	if strings.EqualFold(env["ZBX_ENABLE_SNMP_TRAPS"], "true") {
 		env["ZBX_STARTSNMPTRAPPER"] = "1"
 	}
 	delete(env, "ZBX_ENABLE_SNMP_TRAPS")
@@ -39,10 +39,14 @@ func Prepare(env bootstrap.Environment, defaultHostname string) error {
 		}
 	}
 
+	if err := bootstrap.PrepareCertDir(filepath.Join(homeDir, "ssl", "ssl_ca"), env["ZBX_SSLCALOCATION"]); err != nil {
+		return err
+	}
+
 	if err := config.MergeParameterValues(filepath.Join(configDir, "zabbix_proxy_modules.conf"), "LoadModule", env["ZBX_LOADMODULE"]); err != nil {
 		return err
 	}
-	if err := provider.ConfigureNativeTelemetry(env); err != nil {
+	if err := storageinit.ConfigureTelemetry(env); err != nil {
 		return err
 	}
 	if err := config.UpdateIndexedParameter(env, filepath.Join(configDir, "zabbix_proxy_telemetry.conf"), "TelemetryProvider", "ZBX_TELEMETRYPROVIDER"); err != nil {
@@ -59,10 +63,6 @@ func Prepare(env bootstrap.Environment, defaultHostname string) error {
 	}
 
 	bootstrap.ConfigureRunUser(env)
-
-	if err := bootstrap.PrepareCertDir(filepath.Join(homeDir, "ssl", "ssl_ca"), env["ZBX_SSLCALOCATION"]); err != nil {
-		return err
-	}
 
 	if err := hooks.Run(env); err != nil {
 		return err

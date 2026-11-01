@@ -1,4 +1,4 @@
-package provider
+package storageprovider
 
 import (
 	"strings"
@@ -13,7 +13,7 @@ func TestIndexedNamesIgnoresEmptyCredentialVariables(t *testing.T) {
 		"ZBX_HISTORYPROVIDER_0_USERNAME":      "",
 		"ZBX_HISTORYPROVIDER_0_PASSWORD_FILE": "",
 	}
-	names, err := IndexedNames(env, HistoryPrefix)
+	names, err := indexedNames(env, historyPrefix)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -23,9 +23,9 @@ func TestIndexedNamesIgnoresEmptyCredentialVariables(t *testing.T) {
 }
 
 func TestIndexedNamesRejectsNonEmptyOrphanCredential(t *testing.T) {
-	_, err := IndexedNames(bootstrap.Environment{"ZBX_HISTORYPROVIDER_0_PASSWORD_FILE": "/run/secrets/password"}, HistoryPrefix)
+	_, err := indexedNames(bootstrap.Environment{"ZBX_HISTORYPROVIDER_0_PASSWORD_FILE": "/run/secrets/password"}, historyPrefix)
 	if err == nil || !strings.Contains(err.Error(), "matching JSON provider") {
-		t.Fatalf("IndexedNames() error = %v", err)
+		t.Fatalf("indexedNames() error = %v", err)
 	}
 }
 
@@ -34,7 +34,7 @@ func TestIndexedTelemetryNamesIncludeSSLKeyPassword(t *testing.T) {
 		"ZBX_TELEMETRYPROVIDER_0":                       `{"provider":"clickhouse"}`,
 		"ZBX_TELEMETRYPROVIDER_0_SSL_KEY_PASSWORD_FILE": "/run/secrets/key-password",
 	}
-	names, err := IndexedNames(env, TelemetryPrefix)
+	names, err := indexedNames(env, telemetryPrefix)
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -126,6 +126,26 @@ Credentials and the TLS private key password can be set with the matching `_USER
 
 Certificate and key paths may be absolute or relative to `/var/lib/zabbix/ssl/certs` and `/var/lib/zabbix/ssl/keys`, respectively. CA certificates are read from `/var/lib/zabbix/ssl/ssl_ca`.
 
+### ClickHouse schema preparation
+
+Use `ZBX_TELEMETRYPROVIDER_0_SCHEMA` to create or check the telemetry database and tables. The provider configuration must be JSON with an explicit `db`.
+
+```yaml
+environment:
+  ZBX_TELEMETRYPROVIDER_0: '{"provider":"clickhouse","url":"http://clickhouse:8123","db":"telemetry"}'
+  ZBX_TELEMETRYPROVIDER_0_USERNAME: zabbix
+  ZBX_TELEMETRYPROVIDER_0_PASSWORD: zabbix
+  ZBX_TELEMETRYPROVIDER_0_SCHEMA: '{"create":true}'
+```
+
+- Unset or empty: no schema checks or creation.
+- `{"create":false}`: check that the required database and tables exist.
+- `{"create":true}`: create missing objects; existing definitions remain unchanged.
+
+Optional `_SCHEMA` settings: `cluster` (default empty), `replicated` (default `false`), `ttl` (seconds, default `2678400`; `0` disables TTL), and `partition` (`toDate` or `toYYYYMM`, default `toDate`). Cluster infrastructure and users must already be configured.
+
+With `_SCHEMA` set, preparation runs at every start and errors prevent Zabbix from starting. For separate initialization, set `_SCHEMA` only on a container running `init_db_telemetry`.
+
 ### Other variables
 
 Additionally the image allows to specify many other environment variables listed below:

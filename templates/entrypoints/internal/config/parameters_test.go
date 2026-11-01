@@ -11,87 +11,54 @@ import (
 )
 
 func TestMergeParameterValues(t *testing.T) {
-	path := filepath.Join(t.TempDir(), "agent.conf")
-	if err := os.WriteFile(path, []byte("# DenyKey=system.run[*]\nOther=value\n"), 0o600); err != nil {
-		t.Fatal(err)
-	}
-	if err := MergeParameterValues(path, "DenyKey", `"one,two"`); err != nil {
-		t.Fatal(err)
-	}
-
-	data, err := os.ReadFile(path)
-	if err != nil {
-		t.Fatal(err)
-	}
-	want := "# DenyKey=system.run[*]\nDenyKey=one\nDenyKey=two\nOther=value\n"
-	if string(data) != want {
-		t.Fatalf("config:\n%s\nwant:\n%s", data, want)
-	}
-	info, err := os.Stat(path)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if info.Mode().Perm() != 0o600 {
-		t.Fatalf("config mode = %o, want 600", info.Mode().Perm())
-	}
-}
-
-func TestMergeParameterValuesNormalizesLineEndings(t *testing.T) {
-	path := filepath.Join(t.TempDir(), "agent.conf")
-	if err := os.WriteFile(path, []byte("# DenyKey=system.run[*]\r\nOther=value\r\n"), 0o600); err != nil {
-		t.Fatal(err)
-	}
-	if err := MergeParameterValues(path, "DenyKey", "one,two"); err != nil {
-		t.Fatal(err)
-	}
-
-	data, err := os.ReadFile(path)
-	if err != nil {
-		t.Fatal(err)
-	}
-	want := "# DenyKey=system.run[*]\nDenyKey=one\nDenyKey=two\nOther=value\n"
-	if string(data) != want {
-		t.Fatalf("config:\n%q\nwant:\n%q", data, want)
-	}
-}
-
-func TestMergeParameterValuesPreservesActiveValues(t *testing.T) {
-	path := filepath.Join(t.TempDir(), "agent.conf")
-	if err := os.WriteFile(path, []byte("DenyKey=existing\n# DenyKey=system.run[*]\n"), 0o600); err != nil {
-		t.Fatal(err)
-	}
-	if err := MergeParameterValues(path, "DenyKey", "existing,new"); err != nil {
-		t.Fatal(err)
-	}
-
-	data, err := os.ReadFile(path)
-	if err != nil {
-		t.Fatal(err)
-	}
-	content := string(data)
-	if strings.Count(content, "DenyKey=existing\n") != 1 {
-		t.Fatalf("existing value was removed or duplicated:\n%s", data)
-	}
-	if !strings.Contains(content, "DenyKey=new\n") {
-		t.Fatalf("new value was not added:\n%s", data)
-	}
-}
-
-func TestMergeParameterValuesRemovesActiveValuesWhenEmpty(t *testing.T) {
-	path := filepath.Join(t.TempDir(), "agent.conf")
-	if err := os.WriteFile(path, []byte("DenyKey=system.run[*]\nOther=value\n"), 0o600); err != nil {
-		t.Fatal(err)
-	}
-	if err := MergeParameterValues(path, "DenyKey", ""); err != nil {
-		t.Fatal(err)
-	}
-
-	data, err := os.ReadFile(path)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if strings.Contains(string(data), "DenyKey=") {
-		t.Fatalf("active DenyKey was not removed:\n%s", data)
+	for _, test := range []struct{ name, input, value, want string }{
+		{
+			name:  "quoted values",
+			input: "# DenyKey=system.run[*]\nOther=value\n",
+			value: `"one,two"`,
+			want:  "# DenyKey=system.run[*]\nDenyKey=one\nDenyKey=two\nOther=value\n",
+		},
+		{
+			name:  "CRLF",
+			input: "# DenyKey=system.run[*]\r\nOther=value\r\n",
+			value: "one,two",
+			want:  "# DenyKey=system.run[*]\nDenyKey=one\nDenyKey=two\nOther=value\n",
+		},
+		{
+			name:  "existing values",
+			input: "DenyKey=existing\n# DenyKey=system.run[*]\n",
+			value: "existing,new",
+			want:  "DenyKey=existing\nDenyKey=new\n# DenyKey=system.run[*]\n",
+		},
+		{
+			name:  "empty value",
+			input: "DenyKey=system.run[*]\nOther=value\n",
+			want:  "Other=value\n",
+		},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			path := filepath.Join(t.TempDir(), "agent.conf")
+			if err := os.WriteFile(path, []byte(test.input), 0o600); err != nil {
+				t.Fatal(err)
+			}
+			if err := MergeParameterValues(path, "DenyKey", test.value); err != nil {
+				t.Fatal(err)
+			}
+			data, err := os.ReadFile(path)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if string(data) != test.want {
+				t.Fatalf("config:\n%q\nwant:\n%q", data, test.want)
+			}
+			info, err := os.Stat(path)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if info.Mode().Perm() != 0o600 {
+				t.Fatalf("config mode = %o, want 600", info.Mode().Perm())
+			}
+		})
 	}
 }
 

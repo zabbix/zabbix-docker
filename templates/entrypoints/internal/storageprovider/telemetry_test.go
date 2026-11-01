@@ -1,4 +1,4 @@
-package provider
+package storageprovider
 
 import (
 	"strings"
@@ -7,14 +7,18 @@ import (
 	"github.com/zabbix/zabbix-docker/templates/entrypoints/internal/bootstrap"
 )
 
-func TestConfigureNativeTelemetry(t *testing.T) {
+func TestTelemetryNativeConfiguration(t *testing.T) {
 	env := bootstrap.Environment{
 		"ZBX_TELEMETRYPROVIDER_0":                  `{"provider":"clickhouse","url":"https://clickhouse:8443","db":"zabbix","ssl_cert_file":"client.crt","ssl_key_file":"client.key"}`,
 		"ZBX_TELEMETRYPROVIDER_0_USERNAME":         "zabbix",
 		"ZBX_TELEMETRYPROVIDER_0_PASSWORD":         "secret",
 		"ZBX_TELEMETRYPROVIDER_0_SSL_KEY_PASSWORD": "key-secret",
 	}
-	if err := ConfigureNativeTelemetry(env); err != nil {
+	configuration, err := NewConfiguration(env, Telemetry)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := configuration.ConfigureNative(); err != nil {
 		t.Fatal(err)
 	}
 	value := env["ZBX_TELEMETRYPROVIDER_0"]
@@ -36,7 +40,7 @@ func TestConfigureNativeTelemetry(t *testing.T) {
 			t.Errorf("provider contains managed option %s: %q", forbidden, value)
 		}
 	}
-	for _, secret := range ClickHouseSecretFields {
+	for _, secret := range clickHouseSecretFields {
 		if _, exists := env["ZBX_TELEMETRYPROVIDER_0"+secret.Suffix]; exists {
 			t.Errorf("%s remains in the environment", secret.Suffix)
 		}
@@ -74,9 +78,12 @@ func TestTelemetryProviderValidation(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			err := ConfigureNativeTelemetry(test.env)
+			configuration, err := NewConfiguration(test.env, Telemetry)
+			if err == nil {
+				err = configuration.ConfigureNative()
+			}
 			if err == nil || !strings.Contains(err.Error(), test.wantErr) {
-				t.Fatalf("ConfigureNativeTelemetry() error = %v, want %q", err, test.wantErr)
+				t.Fatalf("ConfigureNative() error = %v, want %q", err, test.wantErr)
 			}
 		})
 	}
@@ -86,7 +93,11 @@ func TestTelemetryDefaultsKeepPlainConnections(t *testing.T) {
 	env := bootstrap.Environment{
 		"ZBX_TELEMETRYPROVIDER_0": `{"provider":"clickhouse","url":"http://clickhouse:8123","db":"zabbix"}`,
 	}
-	if err := ConfigureNativeTelemetry(env); err != nil {
+	configuration, err := NewConfiguration(env, Telemetry)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := configuration.ConfigureNative(); err != nil {
 		t.Fatal(err)
 	}
 	if strings.Contains(env["ZBX_TELEMETRYPROVIDER_0"], "ssl_verify") {

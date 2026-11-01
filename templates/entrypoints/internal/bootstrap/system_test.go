@@ -1,10 +1,11 @@
 package bootstrap
 
 import (
-	"io"
 	"os"
 	"path/filepath"
 	"testing"
+
+	"github.com/zabbix/zabbix-docker/templates/entrypoints/internal/testutil"
 )
 
 func TestPrepareCertDir(t *testing.T) {
@@ -21,7 +22,7 @@ func TestPrepareCertDir(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	captureStderr(t, func() {
+	testutil.CaptureStderr(t, func() {
 		if err := PrepareCertDir(sourceDir, targetDir); err != nil {
 			t.Fatal(err)
 		}
@@ -37,32 +38,4 @@ func TestPrepareCertDir(t *testing.T) {
 	if string(data) != "certificate" {
 		t.Fatalf("certificate = %q", data)
 	}
-}
-
-func captureStderr(t *testing.T, run func()) string {
-	t.Helper()
-
-	reader, writer, err := os.Pipe()
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer reader.Close()
-
-	stderr := os.Stderr
-	os.Stderr = writer
-	defer func() {
-		os.Stderr = stderr
-	}()
-
-	run()
-	if err := writer.Close(); err != nil {
-		t.Fatal(err)
-	}
-
-	output, err := io.ReadAll(reader)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	return string(output)
 }

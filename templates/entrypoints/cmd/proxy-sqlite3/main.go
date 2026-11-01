@@ -8,6 +8,7 @@ import (
 	"github.com/zabbix/zabbix-docker/templates/entrypoints/internal/bootstrap"
 	"github.com/zabbix/zabbix-docker/templates/entrypoints/internal/proxy"
 	"github.com/zabbix/zabbix-docker/templates/entrypoints/internal/sqlite"
+	"github.com/zabbix/zabbix-docker/templates/entrypoints/internal/storageinit"
 )
 
 const (
@@ -48,5 +49,6 @@ func prepareService(env bootstrap.Environment) error {
 }
 
 func main() {
-	bootstrap.Main(bootstrap.Service(proxyBinary, prepareService))
+	entry := bootstrap.Service(proxyBinary, prepareService)
+	bootstrap.Main(bootstrap.StorageInitEntrypoint(entry, nil, storageinit.PrepareTelemetry))
 }

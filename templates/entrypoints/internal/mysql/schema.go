@@ -108,7 +108,11 @@ func (db *DB) createSchema(sess dbSession, schemaFile string) error {
 	if err := db.executeSQLFile(schemaFile); err != nil {
 		return err
 	}
-	return bootstrap.RunAdditionalSQLScripts(db.env, db.executeSQLFile)
+	if err := bootstrap.RunAdditionalSQLScripts(db.env, db.executeSQLFile); err != nil {
+		return err
+	}
+	bootstrap.LogInfo("** Database schema successfully created!")
+	return nil
 }
 
 // Prepare provisions the database over the administrative connection: it
@@ -122,9 +126,6 @@ func (db *DB) Prepare(schemaFile string) (err error) {
 	defer func() {
 		if closeErr := admin.Close(); err == nil && closeErr != nil {
 			err = fmt.Errorf("close database connection: %w", closeErr)
-		}
-		if err == nil {
-			bootstrap.LogInfo("** Database schema successfully created!")
 		}
 	}()
 

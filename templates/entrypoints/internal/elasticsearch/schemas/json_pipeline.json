@@ -1,0 +1,16 @@
+{
+  "processors": [
+    {
+      "json": {
+        "field": "value",
+        "target_field": "value_parsed",
+        "ignore_failure": true
+      }
+    },
+    {
+      "script": {
+        "source": "if (ctx.value_parsed == null || !(ctx.value_parsed instanceof Map)) { ctx.value_raw = ctx.value; ctx.remove(\"value_parsed\"); }"
+      }
+    }
+  ]
+}

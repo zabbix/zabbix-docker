@@ -1,0 +1,22 @@
+{
+  "properties": {
+    "itemid": {
+      "type": "long"
+    },
+    "clock": {
+      "format": "epoch_second",
+      "type": "date"
+    },
+    "value": {
+      "fields": {
+        "analyzed": {
+          "index": true,
+          "type": "text",
+          "analyzer": "standard"
+        }
+      },
+      "index": false,
+      "type": "text"
+    }
+  }
+}

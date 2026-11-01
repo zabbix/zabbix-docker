@@ -4,6 +4,7 @@ import (
 	"github.com/zabbix/zabbix-docker/templates/entrypoints/internal/bootstrap"
 	"github.com/zabbix/zabbix-docker/templates/entrypoints/internal/mysql"
 	"github.com/zabbix/zabbix-docker/templates/entrypoints/internal/proxy"
+	"github.com/zabbix/zabbix-docker/templates/entrypoints/internal/storageinit"
 )
 
 const (
@@ -39,8 +40,9 @@ func prepareService(env bootstrap.Environment, db *mysql.DB) error {
 }
 
 func main() {
-	bootstrap.Main(bootstrap.DBService(proxyBinary,
+	entry := bootstrap.DBService(proxyBinary,
 		func(env bootstrap.Environment) error { return prepareService(env, mysql.NewForBackend(env)) },
 		func(env bootstrap.Environment) error { return prepareDB(env, mysql.NewForBackend(env)) },
-	))
+	)
+	bootstrap.Main(bootstrap.StorageInitEntrypoint(entry, nil, storageinit.PrepareTelemetry))
 }

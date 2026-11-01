@@ -1,6 +1,5 @@
-// Package provider handles provider variables shared by the server, proxy and
-// web image entrypoints.
-package provider
+// Package storageprovider configures history and telemetry storage for Zabbix images.
+package storageprovider
 
 import (
 	"fmt"
@@ -10,25 +9,30 @@ import (
 	"github.com/zabbix/zabbix-docker/templates/entrypoints/internal/bootstrap"
 )
 
-// secretSuffixes are the credential variable suffixes, longest first so that a
-// shorter suffix is never trimmed from the middle of a longer one.
+// Match the longest suffix first: _PASSWORD also matches _SSL_KEY_PASSWORD.
 var secretSuffixes = credentialSuffixes()
 
 func credentialSuffixes() []string {
-	suffixes := make([]string, 0, len(ClickHouseSecretFields)*2)
-	for _, secret := range ClickHouseSecretFields {
+	suffixes := make([]string, 0, len(clickHouseSecretFields)*2)
+	for _, secret := range clickHouseSecretFields {
 		suffixes = append(suffixes, secret.Suffix, secret.Suffix+"_FILE")
 	}
 	sort.Slice(suffixes, func(i, j int) bool { return len(suffixes[i]) > len(suffixes[j]) })
 	return suffixes
 }
 
-// IndexedNames returns consecutive provider names and checks that credentials
+// indexedNames returns consecutive provider names and checks that credentials
 // are attached to a provider.
-func IndexedNames(env bootstrap.Environment, prefix string) ([]string, error) {
+func indexedNames(env bootstrap.Environment, prefix string) ([]string, error) {
 	providerEnv := make(bootstrap.Environment)
 	for name, value := range env {
 		if name != prefix && !strings.HasPrefix(name, prefix+"_") {
+			continue
+		}
+		if base, found := strings.CutSuffix(name, schemaSuffix); found {
+			if value != "" && env[base] == "" {
+				return nil, fmt.Errorf("%s requires a matching JSON provider", name)
+			}
 			continue
 		}
 		if base, isCredential := credentialBase(name); isCredential {

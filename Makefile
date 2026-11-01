@@ -66,7 +66,7 @@ endif
 
 # Compose / bake / image commands
 COMPOSE ?= $(CONTAINER) compose
-BAKE ?= $(CONTAINER) buildx bake
+BAKE ?= $(CONTAINER) buildx bake --provenance=false
 IMAGE ?= $(CONTAINER) image
 ENV_FILE ?= .env
 

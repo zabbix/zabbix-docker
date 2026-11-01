@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"os"
 	"strings"
+
+	"github.com/zabbix/zabbix-docker/templates/entrypoints/internal/bootstrap"
 )
 
 func (db *DB) tlsConfig() (*tls.Config, error) {
@@ -48,7 +50,9 @@ func (db *DB) tlsConfig() (*tls.Config, error) {
 		config.InsecureSkipVerify = true // Encryption is required, certificate verification is explicitly not requested
 	case "verify_ca":
 		config.InsecureSkipVerify = true // Verification is performed below without a DNS name
-		config.VerifyConnection = verifyCertificateAuthority(config.RootCAs)
+		config.VerifyConnection = func(state tls.ConnectionState) error {
+			return bootstrap.VerifyCertificateChain(state.PeerCertificates, config.RootCAs)
+		}
 	case "verify_full":
 		config.ServerName = strings.Trim(db.env["DB_SERVER_HOST"], "[]")
 		if config.ServerName == "" {
@@ -78,24 +82,4 @@ func loadCertificatePool(path string) (*x509.CertPool, error) {
 	}
 
 	return pool, nil
-}
-
-func verifyCertificateAuthority(roots *x509.CertPool) func(tls.ConnectionState) error {
-	return func(state tls.ConnectionState) error {
-		if len(state.PeerCertificates) == 0 {
-			return fmt.Errorf("database server did not provide a certificate")
-		}
-
-		intermediates := x509.NewCertPool()
-		for _, cert := range state.PeerCertificates[1:] {
-			intermediates.AddCert(cert)
-		}
-		_, err := state.PeerCertificates[0].Verify(x509.VerifyOptions{
-			Roots:         roots,
-			Intermediates: intermediates,
-			KeyUsages:     []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth},
-		})
-
-		return err
-	}
 }
