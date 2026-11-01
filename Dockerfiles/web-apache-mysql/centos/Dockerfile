@@ -81,6 +81,7 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             findutils \
             glibc-locale-source \
             shadow-utils \
+            tzdata \
             httpd \
             php8.4 \
             php8.4-fpm \
