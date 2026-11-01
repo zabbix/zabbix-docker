@@ -69,10 +69,12 @@ RUN --mount=from=sources,target=/tmp/src,z \
         ${ZBX_OUTPUT_DIR}/proxy/sbin \
         ${ZBX_OUTPUT_DIR}/proxy/conf \
         ${ZBX_OUTPUT_DIR}/proxy/database/${DB_TYPE} \
+        ${ZBX_OUTPUT_DIR}/proxy/database/clickhouse \
         ${ZBX_OUTPUT_DIR}/server/sbin \
         ${ZBX_OUTPUT_DIR}/server/conf \
         ${ZBX_OUTPUT_DIR}/server/database/${DB_TYPE} \
         ${ZBX_OUTPUT_DIR}/server/database/clickhouse \
+        ${ZBX_OUTPUT_DIR}/server/database/elasticsearch \
         ${ZBX_OUTPUT_DIR}/java_gateway/sbin/bin \
         ${ZBX_OUTPUT_DIR}/java_gateway/sbin/lib \
         ${ZBX_OUTPUT_DIR}/java_gateway/conf \
@@ -145,11 +147,13 @@ RUN --mount=type=cache,target=/root/.cache/go-build \
     make -j"${jobs}" -s gettext && \
     cat "database/${DB_TYPE}/schema.sql" > "database/${DB_TYPE}/create.sql" && \
     gzip -c < "database/${DB_TYPE}/create.sql" > "${ZBX_OUTPUT_DIR}/proxy/database/${DB_TYPE}/create.sql.gz" && \
+    cp -a database/clickhouse/clickhouse.sh database/clickhouse/otel*.sh "${ZBX_OUTPUT_DIR}/proxy/database/clickhouse/" && \
     cat "database/${DB_TYPE}/images.sql" >> "database/${DB_TYPE}/create.sql" && \
     cat "database/${DB_TYPE}/data.sql" >> "database/${DB_TYPE}/create.sql" && \
     gzip -c < "database/${DB_TYPE}/create.sql" > "${ZBX_OUTPUT_DIR}/server/database/${DB_TYPE}/create.sql.gz" && \
     rm -f "database/${DB_TYPE}/create.sql" && \
     cp -a database/clickhouse/. "${ZBX_OUTPUT_DIR}/server/database/clickhouse/" && \
+    cp -a database/elasticsearch/. "${ZBX_OUTPUT_DIR}/server/database/elasticsearch/" && \
     strip src/zabbix_agent/zabbix_agentd && \
     strip src/zabbix_server/zabbix_server && \
     strip src/zabbix_proxy/zabbix_proxy && \

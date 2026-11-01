@@ -64,6 +64,7 @@ COPY --from=builder /tmp/zabbix-${ZBX_VERSION}-output/general/bin/zabbix_sender 
 COPY --from=builder /tmp/zabbix-${ZBX_VERSION}-output/proxy/conf/ ${ZABBIX_CONF_DIR}/
 COPY --from=builder /tmp/zabbix-${ZBX_VERSION}-output/proxy/sbom/ /usr/share/doc/zabbix/sbom/
 COPY --from=builder /tmp/zabbix-${ZBX_VERSION}-output/proxy/database/sqlite3/ /usr/share/doc/zabbix-proxy-sqlite3/
+COPY --from=builder /tmp/zabbix-${ZBX_VERSION}-output/proxy/database/clickhouse/ /usr/share/doc/zabbix-proxy-sqlite3/clickhouse/
 
 RUN --mount=type=cache,target=/var/cache/apt/,sharing=locked \
     --mount=type=cache,target=/var/lib/apt/,sharing=locked \

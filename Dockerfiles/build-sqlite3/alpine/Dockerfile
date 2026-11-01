@@ -55,6 +55,7 @@ RUN --mount=from=sources,target=/tmp/src,ro \
         ${ZBX_OUTPUT_DIR}/proxy/sbin \
         ${ZBX_OUTPUT_DIR}/proxy/conf \
         ${ZBX_OUTPUT_DIR}/proxy/database/${DB_TYPE} \
+        ${ZBX_OUTPUT_DIR}/proxy/database/clickhouse \
         ${ZBX_OUTPUT_DIR}/java_gateway/sbin/bin \
         ${ZBX_OUTPUT_DIR}/java_gateway/sbin/lib \
         ${ZBX_OUTPUT_DIR}/java_gateway/conf \
@@ -123,6 +124,7 @@ RUN --mount=type=cache,target=/root/.cache/go-build \
     make -j"${jobs}" -s gettext && \
     cat "database/${DB_TYPE}/schema.sql" > "database/${DB_TYPE}/create.sql" && \
     gzip -c < "database/${DB_TYPE}/create.sql" > "${ZBX_OUTPUT_DIR}/proxy/database/${DB_TYPE}/create.sql.gz" && \
+    cp -a database/clickhouse/clickhouse.sh database/clickhouse/otel*.sh "${ZBX_OUTPUT_DIR}/proxy/database/clickhouse/" && \
     strip src/zabbix_agent/zabbix_agentd && \
     strip src/zabbix_proxy/zabbix_proxy && \
     strip src/zabbix_get/zabbix_get && \
