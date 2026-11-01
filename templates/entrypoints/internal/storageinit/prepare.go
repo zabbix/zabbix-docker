@@ -7,8 +7,10 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"net"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/zabbix/zabbix-docker/templates/entrypoints/internal/bootstrap"
 	"github.com/zabbix/zabbix-docker/templates/entrypoints/internal/storageprovider"
@@ -71,6 +73,24 @@ type preparation struct {
 	run  func(context.Context) error
 }
 
+func (p preparation) prepare(ctx context.Context) error {
+	const interval = 10 * time.Second
+	return bootstrap.Retry(ctx, bootstrap.RetryOptions{
+		Attempts: 3,
+		Interval: interval,
+		OnRetry: func(err error) {
+			bootstrap.LogWarn("** %s: %v; retrying in %s", p.name, err, interval)
+		},
+	}, func() error {
+		err := p.run(ctx)
+		var connectionError *net.OpError
+		if err != nil && (!errors.As(err, &connectionError) || connectionError.Op != "dial") {
+			return bootstrap.Stop(err)
+		}
+		return err
+	})
+}
+
 func prepareSchemas(env bootstrap.Environment, configs []storageprovider.ProviderConfig, dataset string) (int, error) {
 	var preparations []preparation
 	for _, config := range configs {
@@ -97,7 +117,7 @@ func prepareSchemas(env bootstrap.Environment, configs []storageprovider.Provide
 	}
 	ctx := context.Background()
 	for _, task := range preparations {
-		if err := task.run(ctx); err != nil {
+		if err := task.prepare(ctx); err != nil {
 			return 0, fmt.Errorf("%s: %w", task.name, err)
 		}
 	}
