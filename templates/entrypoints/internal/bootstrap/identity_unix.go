@@ -14,8 +14,6 @@ func ConfigureRunUser(env Environment) {
 	configureRunUser(env, os.Getuid(), user.LookupId)
 }
 
-// configureRunUser takes the UID and the account lookup as parameters so that
-// the container defaults and an arbitrary UID can both be tested.
 func configureRunUser(env Environment, uid int, lookup func(string) (*user.User, error)) {
 	if uid == 0 {
 		env["ZBX_ALLOWROOT"] = "1"

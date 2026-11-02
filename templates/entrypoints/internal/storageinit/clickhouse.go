@@ -21,7 +21,7 @@ type clickHouseSchemaOptions struct {
 	Partition  string `json:"partition"`
 }
 
-func clickHousePreparation(env bootstrap.Environment, dataset string, config storageprovider.ProviderConfig) (preparation, error) {
+func clickHousePreparation(ctx context.Context, env bootstrap.Environment, dataset string, config storageprovider.ProviderConfig) (preparation, error) {
 	options := clickHouseSchemaOptions{TTL: 2678400, Partition: "toDate"}
 	if err := decodeOptions(config.SchemaOptions, &options); err != nil {
 		return preparation{}, err
@@ -44,11 +44,11 @@ func clickHousePreparation(env bootstrap.Environment, dataset string, config sto
 		return preparation{}, err
 	}
 
-	conn, err := clickHouseConnection(env, dataset, config.Fields)
+	conn, err := clickHouseConnection(ctx, env, dataset, config.Fields)
 	if err != nil {
 		return preparation{}, err
 	}
-	client, err := clickhouse.NewClient(conn)
+	client, err := clickhouse.NewClient(ctx, conn)
 	if err != nil {
 		return preparation{}, err
 	}
@@ -69,13 +69,13 @@ func clickHousePreparation(env bootstrap.Environment, dataset string, config sto
 	}}, nil
 }
 
-func clickHouseConnection(env bootstrap.Environment, dataset string, fields map[string]any) (clickhouse.Connection, error) {
+func clickHouseConnection(ctx context.Context, env bootstrap.Environment, dataset string, fields map[string]any) (clickhouse.Connection, error) {
 	values := make(map[string]string)
 	keys := []string{
 		"url", "username", "password", "source_ip",
 		"ssl_cert_file", "ssl_key_file", "ssl_key_password",
 	}
-	if dataset == "otel" {
+	if dataset == telemetryDataset {
 		keys = append(keys, "vault_path")
 	}
 	for _, key := range keys {
@@ -123,7 +123,7 @@ func clickHouseConnection(env bootstrap.Environment, dataset string, fields map[
 		}
 		vaultEnv := maps.Clone(env)
 		vaultEnv["ZBX_VAULTDBPATH"] = vaultPath
-		creds, err := vault.Fetch(vaultEnv)
+		creds, err := vault.Fetch(ctx, vaultEnv)
 		if err != nil {
 			return clickhouse.Connection{}, err
 		}

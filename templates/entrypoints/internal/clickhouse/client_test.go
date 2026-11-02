@@ -28,7 +28,7 @@ import (
 
 func TestInvalidURLDiagnostic(t *testing.T) {
 	for _, address := range []string{"invalid", "ftp://clickhouse:9000", "http://clickhouse:bad"} {
-		_, err := NewClient(Connection{URL: address})
+		_, err := NewClient(context.Background(), Connection{URL: address})
 		if err == nil || !strings.Contains(err.Error(), fmt.Sprintf("%q", address)) {
 			t.Fatalf("unexpected URL error: %v", err)
 		}
@@ -83,7 +83,7 @@ func TestClientQueryParameters(t *testing.T) {
 		fmt.Fprintln(w, "1")
 	}))
 	defer server.Close()
-	client, err := NewClient(Connection{URL: server.URL + "?max_threads=2&wait_end_of_query=0&skip_unavailable_shards=1#section"})
+	client, err := NewClient(context.Background(), Connection{URL: server.URL + "?max_threads=2&wait_end_of_query=0&skip_unavailable_shards=1#section"})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -125,7 +125,7 @@ func TestTLSVerification(t *testing.T) {
 			if test.trusted {
 				connection.CADirectory = dir
 			}
-			config, err := connection.tlsConfig(test.hostname)
+			config, err := connection.tlsConfig(context.Background(), test.hostname)
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -167,7 +167,7 @@ func TestCASecretMount(t *testing.T) {
 	var client *Client
 	logs := testutil.CaptureStderr(t, func() {
 		var err error
-		client, err = NewClient(Connection{URL: server.URL, CADirectory: dir, VerifyPeer: true, VerifyHost: true})
+		client, err = NewClient(context.Background(), Connection{URL: server.URL, CADirectory: dir, VerifyPeer: true, VerifyHost: true})
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -215,7 +215,7 @@ func TestReadEncryptedPrivateKey(t *testing.T) {
 		{"missing file", filepath.Join(dir, "missing.pem"), password, true},
 	} {
 		t.Run(test.name, func(t *testing.T) {
-			data, err := readPrivateKey(test.path, test.password)
+			data, err := readPrivateKey(context.Background(), test.path, test.password)
 			if test.wantErr {
 				var exitErr *exec.ExitError
 				if !errors.As(err, &exitErr) {
@@ -248,7 +248,7 @@ func (f roundTripFunc) RoundTrip(r *http.Request) (*http.Response, error) { retu
 func TestRequestTimeouts(t *testing.T) {
 	for _, clusterDDL := range []bool{false, true} {
 		t.Run(fmt.Sprint(clusterDDL), func(t *testing.T) {
-			c, err := NewClient(Connection{URL: "http://unused:8123"})
+			c, err := NewClient(context.Background(), Connection{URL: "http://unused:8123"})
 			if err != nil {
 				t.Fatal(err)
 			}

@@ -34,9 +34,6 @@ func (s Schema) Validate() error {
 }
 
 func (s Schema) objects() ([]object, error) {
-	if err := s.Validate(); err != nil {
-		return nil, err
-	}
 	var objects []object
 	for _, kind := range s.ValueTypes {
 		if s.DateIndex || kind == "json" {
@@ -143,7 +140,7 @@ func (c *Client) Prepare(ctx context.Context, schema Schema, create bool) error 
 		if path == "" {
 			path = obj.path
 		}
-		_, createErr := c.request(ctx, http.MethodPut, path, obj.body)
+		createErr := c.request(ctx, http.MethodPut, path, obj.body)
 		if createErr != nil {
 			createErr = fmt.Errorf("create %s: %w", obj.path, createErr)
 		}

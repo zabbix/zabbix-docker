@@ -16,9 +16,6 @@ func (db *DB) tlsConfig() (*tls.Config, error) {
 	if mode == "" {
 		return nil, nil
 	}
-	if mode == "verify_identity" {
-		mode = "verify_full"
-	}
 	if mode != "required" && mode != "verify_ca" && mode != "verify_full" {
 		return nil, fmt.Errorf("unsupported database TLS connection mode %q", db.tls.ConnectMode)
 	}

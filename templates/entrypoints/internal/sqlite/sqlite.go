@@ -3,7 +3,6 @@ package sqlite
 
 import (
 	"database/sql"
-	"errors"
 	"fmt"
 	"net/url"
 	"os"
@@ -17,10 +16,6 @@ import (
 // creating the file and importing the (optionally gzipped) schema on first
 // start. An existing database is left untouched.
 func Prepare(dbPath, schemaPath string) error {
-	if dbPath == "" {
-		return errors.New("ZBX_DB_NAME must be set")
-	}
-
 	directory := filepath.Dir(dbPath)
 	if _, err := os.Stat(directory); os.IsNotExist(err) {
 		bootstrap.LogInfo("** SQLite database directory '%s' does not exist. Creating...", directory)

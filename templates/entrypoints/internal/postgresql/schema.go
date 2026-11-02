@@ -128,12 +128,10 @@ func (db *DB) Prepare(schemaFile, timescaleFile string) error {
 	if err != nil {
 		return err
 	}
-	if err := db.createDB(sess); err != nil {
-		_ = sess.Close()
+	err = db.createDB(sess)
+	_ = sess.Close()
+	if err != nil {
 		return err
-	}
-	if err := sess.Close(); err != nil {
-		return fmt.Errorf("close PostgreSQL connection: %w", err)
 	}
 
 	return db.createSchema(schemaFile, timescaleFile)

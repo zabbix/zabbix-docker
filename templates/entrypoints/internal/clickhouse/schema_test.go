@@ -14,7 +14,7 @@ func testClient(t *testing.T, handler http.HandlerFunc) *Client {
 	t.Helper()
 	server := httptest.NewServer(handler)
 	t.Cleanup(server.Close)
-	c, err := NewClient(Connection{URL: server.URL})
+	c, err := NewClient(context.Background(), Connection{URL: server.URL})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -104,13 +104,13 @@ func TestLocalDDLUsesSchemaOptions(t *testing.T) {
 	}
 }
 
-func TestOTelIncludesSummaryAndShardKeys(t *testing.T) {
+func TestOTelTablesAndShardKeys(t *testing.T) {
 	s := Schema{Database: "otel", Dataset: "otel", Partition: "toDate", TTL: 2678400}
 	tables, err := s.tables()
 	if err != nil {
 		t.Fatal(err)
 	}
-	if len(tables) != 7 {
+	if len(tables) != 6 {
 		t.Fatalf("table count = %d", len(tables))
 	}
 	for _, table := range tables {
@@ -119,9 +119,6 @@ func TestOTelIncludesSummaryAndShardKeys(t *testing.T) {
 		}
 		if table.name != "otel_traces" && table.shardKey != "rand()" {
 			t.Fatal("unexpected sharding key")
-		}
-		if table.name == "otel_metrics_summary" && !strings.Contains(table.columns, `"ValueAtQuantiles.Quantile" Array(Float64)`) {
-			t.Fatal("missing Summary columns")
 		}
 	}
 }
@@ -140,7 +137,7 @@ func TestClusterRejectsNonDistributedTableBeforeDDL(t *testing.T) {
 		for _, create := range []bool{false, true} {
 			t.Run(fmt.Sprintf("%s/create=%t", dataset, create), func(t *testing.T) {
 				s := Schema{Database: "data", Dataset: dataset, ValueTypes: []string{"uint", "log"}, Cluster: "cluster", Partition: "toDate"}
-				name := "otel_metrics_summary"
+				name := "otel_metrics_histogram"
 				if dataset == "history" {
 					name = "history_log"
 				}

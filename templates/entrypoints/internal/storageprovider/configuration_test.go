@@ -111,3 +111,32 @@ func TestSchemaOptionsRequireProvider(t *testing.T) {
 		t.Fatal("_SCHEMA accepted without a provider")
 	}
 }
+
+func TestProviderJSONQuotes(t *testing.T) {
+	for _, test := range []struct {
+		raw, password string
+	}{
+		{`{"password":"it's secret"}`, `it's secret`},
+		{`{'password':'it\'s secret'}`, `it's secret`},
+		{`{'password':'a "quoted" secret'}`, `a "quoted" secret`},
+		{`{'password':"it's secret"}`, `it's secret`},
+		{`{"password":'it\'s "secret"'}`, `it's "secret"`},
+		{`{'password':'back\\slash\'quote'}`, `back\slash'quote`},
+		{`{'password':'ends with slash\\'}`, `ends with slash\`},
+	} {
+		t.Run(test.raw, func(t *testing.T) {
+			fields, err := decodeObject(test.raw)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if fields["password"] != test.password {
+				t.Fatalf("password = %q, want %q", fields["password"], test.password)
+			}
+		})
+	}
+	for _, raw := range []string{`{'password':'it's secret'}`, `{'password':'unfinished}`, `{'password':'bad\q'}`} {
+		if _, err := decodeObject(raw); err == nil {
+			t.Errorf("invalid quoting or escape accepted: %s", raw)
+		}
+	}
+}

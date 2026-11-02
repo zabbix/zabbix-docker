@@ -57,3 +57,26 @@ func TestPreparationRetries(t *testing.T) {
 		})
 	}
 }
+
+func TestCancelRetryWait(t *testing.T) {
+	synctest.Test(t, func(t *testing.T) {
+		ctx, cancel := context.WithCancel(context.Background())
+		defer cancel()
+		calls := 0
+		task := preparation{run: func(context.Context) error {
+			calls++
+			return &net.OpError{Op: "dial", Err: syscall.ECONNREFUSED}
+		}}
+		go func() {
+			time.Sleep(time.Second)
+			cancel()
+		}()
+		started := time.Now()
+		if err := task.prepare(ctx); !errors.Is(err, context.Canceled) {
+			t.Fatalf("expected cancellation, got %v", err)
+		}
+		if calls != 1 || time.Since(started) != time.Second {
+			t.Fatal("cancellation did not stop the retry wait")
+		}
+	})
+}

@@ -42,11 +42,6 @@ func (s Schema) Validate() error {
 		return errors.New("partition must be toDate or toYYYYMM")
 	}
 
-	switch s.Dataset {
-	case "history", "otel":
-	default:
-		return fmt.Errorf("unknown ClickHouse dataset %q", s.Dataset)
-	}
 	return nil
 }
 
@@ -70,7 +65,7 @@ func (s Schema) tables() ([]table, error) {
 		}
 	case "otel":
 		for _, name := range []string{"otel_logs", "otel_traces", "otel_metrics_gauge", "otel_metrics_sum",
-			"otel_metrics_histogram", "otel_metrics_exponential_histogram", "otel_metrics_summary"} {
+			"otel_metrics_histogram", "otel_metrics_exponential_histogram"} {
 			columns, err := schemas.ReadFile("schemas/" + name + ".sql")
 			if err != nil {
 				return nil, err
@@ -93,10 +88,6 @@ func (s Schema) tables() ([]table, error) {
 // Prepare checks names on every replica and optionally creates missing objects.
 // Cluster tables without the _local suffix must use the Distributed engine.
 func (c *Client) Prepare(ctx context.Context, s Schema, createMissing bool) error {
-	if err := s.Validate(); err != nil {
-		return err
-	}
-
 	tables, err := s.tables()
 	if err != nil {
 		return err

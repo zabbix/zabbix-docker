@@ -40,7 +40,7 @@ var managedLocations = []string{"ssl_ca_file", "ssl_ca_location", "ssl_cert_loca
 func (c *Configuration) ConfigureNative() error {
 	values := make(map[string]string, len(c.names))
 	for _, name := range c.names {
-		if !isJSONObject(c.env[name]) {
+		if !looksLikeJSONObject(c.env[name]) {
 			if hasSecrets(c.env, name) {
 				return fmt.Errorf("%s credentials require a JSON provider", name)
 			}
@@ -177,6 +177,7 @@ func (p *Parameter) validate(env bootstrap.Environment, name string, fields map[
 			if err := validateFilePath(value, key); err != nil {
 				return ProviderConfig{}, fmt.Errorf("%s: %w", name, err)
 			}
+			// History providers cannot override Zabbix's SSL certificate/key directories.
 			if p == History && filepath.IsAbs(value.(string)) {
 				return ProviderConfig{}, fmt.Errorf("%s: %s must be a relative path for history providers", name, key)
 			}

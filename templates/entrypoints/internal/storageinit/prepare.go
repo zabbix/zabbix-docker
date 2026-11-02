@@ -16,24 +16,29 @@ import (
 	"github.com/zabbix/zabbix-docker/templates/entrypoints/internal/storageprovider"
 )
 
+const (
+	historyDataset   = "history"
+	telemetryDataset = "otel"
+)
+
 // PrepareHistory initializes the selected history providers without configuring Zabbix.
 func PrepareHistory(env bootstrap.Environment) (int, error) {
-	return prepareProviders(env, storageprovider.History, "history")
+	return prepareProviders(env, storageprovider.History, historyDataset)
 }
 
 // PrepareTelemetry initializes the selected telemetry provider without configuring Zabbix.
 func PrepareTelemetry(env bootstrap.Environment) (int, error) {
-	return prepareProviders(env, storageprovider.Telemetry, "otel")
+	return prepareProviders(env, storageprovider.Telemetry, telemetryDataset)
 }
 
 // ConfigureHistory prepares selected schemas and writes native history configuration.
 func ConfigureHistory(env bootstrap.Environment) error {
-	return configureProviders(env, storageprovider.History, "history")
+	return configureProviders(env, storageprovider.History, historyDataset)
 }
 
 // ConfigureTelemetry prepares selected schemas and writes native telemetry configuration.
 func ConfigureTelemetry(env bootstrap.Environment) error {
-	return configureProviders(env, storageprovider.Telemetry, "otel")
+	return configureProviders(env, storageprovider.Telemetry, telemetryDataset)
 }
 
 func prepareProviders(env bootstrap.Environment, param *storageprovider.Parameter, dataset string) (int, error) {
@@ -93,9 +98,15 @@ func (p preparation) prepare(ctx context.Context) error {
 }
 
 func prepareSchemas(env bootstrap.Environment, configs []storageprovider.ProviderConfig, dataset string) (int, error) {
+	ctx, stop := bootstrap.TerminationContext()
+	defer stop()
+
 	var preparations []preparation
 	for _, config := range configs {
-		if dataset == "history" {
+		if err := ctx.Err(); err != nil {
+			return 0, err
+		}
+		if dataset == historyDataset {
 			if err := validateHistoryTypes(config.ValueTypes); err != nil {
 				return 0, fmt.Errorf("%s: %w", config.Name, err)
 			}
@@ -105,7 +116,7 @@ func prepareSchemas(env bootstrap.Environment, configs []storageprovider.Provide
 		var err error
 		switch config.Provider {
 		case "clickhouse":
-			task, err = clickHousePreparation(env, dataset, config)
+			task, err = clickHousePreparation(ctx, env, dataset, config)
 		case "elasticsearch":
 			task, err = elasticsearchPreparation(config)
 		default:
@@ -118,8 +129,10 @@ func prepareSchemas(env bootstrap.Environment, configs []storageprovider.Provide
 		preparations = append(preparations, task)
 	}
 
-	ctx := context.Background()
 	for _, task := range preparations {
+		if err := ctx.Err(); err != nil {
+			return 0, err
+		}
 		if err := task.prepare(ctx); err != nil {
 			return 0, fmt.Errorf("%s: %w", task.name, err)
 		}

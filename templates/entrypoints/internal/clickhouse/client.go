@@ -45,7 +45,7 @@ type Client struct {
 }
 
 // NewClient validates the connection and configures its HTTP transport.
-func NewClient(conn Connection) (*Client, error) {
+func NewClient(ctx context.Context, conn Connection) (*Client, error) {
 	u, err := url.Parse(conn.URL)
 	if err != nil || u.Hostname() == "" || (u.Scheme != "http" && u.Scheme != "https") {
 		return nil, fmt.Errorf("ClickHouse URL %q must be an http(s) endpoint", conn.URL)
@@ -64,7 +64,7 @@ func NewClient(conn Connection) (*Client, error) {
 	}
 
 	if u.Scheme == "https" {
-		transport.TLSClientConfig, err = conn.tlsConfig(u.Hostname())
+		transport.TLSClientConfig, err = conn.tlsConfig(ctx, u.Hostname())
 		if err != nil {
 			return nil, err
 		}
@@ -128,7 +128,7 @@ func (c *Client) request(ctx context.Context, sql string, clusterDDL bool) ([]by
 	return resp.Body, nil
 }
 
-func (c Connection) tlsConfig(hostname string) (*tls.Config, error) {
+func (c Connection) tlsConfig(ctx context.Context, hostname string) (*tls.Config, error) {
 	config := &tls.Config{ServerName: hostname}
 
 	if c.VerifyPeer {
@@ -195,7 +195,7 @@ func (c Connection) tlsConfig(hostname string) (*tls.Config, error) {
 			return nil, fmt.Errorf("read ClickHouse client certificate: %w", err)
 		}
 
-		keyPEM, err := readPrivateKey(c.KeyFile, c.KeyPassword)
+		keyPEM, err := readPrivateKey(ctx, c.KeyFile, c.KeyPassword)
 		if err != nil {
 			return nil, fmt.Errorf("read ClickHouse client key: %w", err)
 		}
@@ -211,12 +211,12 @@ func (c Connection) tlsConfig(hostname string) (*tls.Config, error) {
 	return config, nil
 }
 
-func readPrivateKey(path, password string) ([]byte, error) {
+func readPrivateKey(ctx context.Context, path, password string) ([]byte, error) {
 	if password == "" {
 		return os.ReadFile(path)
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
 
 	command := exec.CommandContext(ctx, "openssl", "pkey", "-in", path, "-passin", "stdin")

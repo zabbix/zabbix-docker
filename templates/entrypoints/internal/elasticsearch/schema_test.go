@@ -212,7 +212,7 @@ func TestClientQueryParameters(t *testing.T) {
 		{http.MethodPut, "/_index_template/uint_template?create=true"},
 		{http.MethodGet, "/_index_template/uint_template"},
 	} {
-		if _, err := client.request(context.Background(), request.method, request.path, nil); err != nil {
+		if err := client.request(context.Background(), request.method, request.path, nil); err != nil {
 			t.Fatal(err)
 		}
 	}
@@ -240,7 +240,7 @@ func TestClientCredentialsAndRedirects(t *testing.T) {
 	if strings.Contains(client.Endpoint(), "user") || strings.Contains(client.Endpoint(), "password") {
 		t.Fatal("endpoint leaks credentials")
 	}
-	_, err = client.request(context.Background(), http.MethodGet, "/uint", nil)
+	err = client.request(context.Background(), http.MethodGet, "/uint", nil)
 	if err == nil || !strings.Contains(err.Error(), "307") || strings.Contains(err.Error(), "private-password") {
 		t.Fatalf("error=%v", err)
 	}

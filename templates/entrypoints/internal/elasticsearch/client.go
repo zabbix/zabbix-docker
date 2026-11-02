@@ -55,13 +55,13 @@ type responseError struct {
 
 func (e *responseError) Error() string { return e.message }
 
-func (c *Client) request(ctx context.Context, method, path string, body []byte) ([]byte, error) {
+func (c *Client) request(ctx context.Context, method, path string, body []byte) error {
 	ctx, cancel := context.WithTimeout(ctx, 60*time.Second)
 	defer cancel()
 
 	req, err := http.NewRequestWithContext(ctx, method, c.endpoint+path, bytes.NewReader(body))
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	query := req.URL.Query()
@@ -81,19 +81,19 @@ func (c *Client) request(ctx context.Context, method, path string, body []byte) 
 
 	resp, err := httpapi.Do(c.http, req)
 	if err != nil {
-		return nil, fmt.Errorf("Elasticsearch %w", err)
+		return fmt.Errorf("Elasticsearch %w", err)
 	}
 
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
 		message := httpapi.ErrorMessage(resp.Body, c.password)
-		return nil, &responseError{resp.StatusCode, fmt.Sprintf("Elasticsearch HTTP %d: %s", resp.StatusCode, message)}
+		return &responseError{resp.StatusCode, fmt.Sprintf("Elasticsearch HTTP %d: %s", resp.StatusCode, message)}
 	}
 
-	return resp.Body, nil
+	return nil
 }
 
 func (c *Client) exists(ctx context.Context, method, path string) (bool, error) {
-	_, err := c.request(ctx, method, path, nil)
+	err := c.request(ctx, method, path, nil)
 
 	var response *responseError
 	if errors.As(err, &response) && response.status == http.StatusNotFound {

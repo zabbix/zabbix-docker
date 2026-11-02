@@ -180,7 +180,7 @@ func (db *DB) Wait() error {
 	return nil
 }
 
-func (db *DB) query(sess dbSession, query string, args ...any) (string, error) {
+func query(sess dbSession, query string, args ...any) (string, error) {
 	value, err := sess.QueryString(context.Background(), query, args...)
 	if err != nil {
 		return "", fmt.Errorf("execute database query: %w", err)
@@ -189,7 +189,7 @@ func (db *DB) query(sess dbSession, query string, args ...any) (string, error) {
 	return value, nil
 }
 
-func (db *DB) execute(sess dbSession, query string, args ...any) error {
+func execute(sess dbSession, query string, args ...any) error {
 	if err := sess.Exec(context.Background(), query, args...); err != nil {
 		return fmt.Errorf("execute database statement: %w", err)
 	}

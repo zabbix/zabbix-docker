@@ -10,7 +10,6 @@ import (
 )
 
 type indexedParam struct {
-	index    int
 	param    string
 	variable string
 }
@@ -76,7 +75,6 @@ func collectIndexedParams(env bootstrap.Environment, paramByPrefix map[string]st
 	params := make([]indexedParam, 0, len(variables))
 	for _, variable := range variables {
 		params = append(params, indexedParam{
-			index:    variable.Index,
 			param:    paramByPrefix[variable.Prefix],
 			variable: variable.Name,
 		})

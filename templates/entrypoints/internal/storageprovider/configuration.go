@@ -41,7 +41,7 @@ func (c *Configuration) ConfigsToPrepare() ([]ProviderConfig, error) {
 		if strings.TrimSpace(c.env[name+schemaSuffix]) == "" {
 			continue
 		}
-		if !isJSONObject(c.env[name]) {
+		if !looksLikeJSONObject(c.env[name]) {
 			return nil, fmt.Errorf("%s requires a JSON provider", name+schemaSuffix)
 		}
 		config, err := c.decode(name)

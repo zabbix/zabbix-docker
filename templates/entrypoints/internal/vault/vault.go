@@ -35,7 +35,10 @@ func ResolveDBCredentials(env bootstrap.Environment) (*Credentials, error) {
 
 	bootstrap.LogInfo("***** Connecting to vault... ******")
 
-	creds, err := Fetch(env)
+	ctx, stop := bootstrap.TerminationContext()
+	defer stop()
+
+	creds, err := Fetch(ctx, env)
 	if err != nil {
 		return nil, err
 	}
@@ -44,7 +47,7 @@ func ResolveDBCredentials(env bootstrap.Environment) (*Credentials, error) {
 }
 
 // Fetch retrieves the credentials from the Vault selected by ZBX_VAULT.
-func Fetch(env bootstrap.Environment) (Credentials, error) {
+func Fetch(ctx context.Context, env bootstrap.Environment) (Credentials, error) {
 	vaultURL := strings.TrimSuffix(env["ZBX_VAULTURL"], "/")
 	dbPath := strings.Trim(env["ZBX_VAULTDBPATH"], "/")
 
@@ -59,27 +62,27 @@ func Fetch(env bootstrap.Environment) (Credentials, error) {
 				return Credentials{}, err
 			}
 		}
-		return fetchHashiCorp(env, vaultURL, dbPath)
+		return fetchHashiCorp(ctx, env, vaultURL, dbPath)
 	case "CyberArk":
-		return fetchCyberArk(env, vaultURL, dbPath)
+		return fetchCyberArk(ctx, env, vaultURL, dbPath)
 	default:
 		return Credentials{}, errors.New("ZBX_VAULT has wrong value: HashiCorp or CyberArk are supported")
 	}
 }
 
-func fetchHashiCorp(env bootstrap.Environment, baseURL, dbPath string) (Credentials, error) {
+func fetchHashiCorp(ctx context.Context, env bootstrap.Environment, baseURL, dbPath string) (Credentials, error) {
 	reqURL := hashicorpURL(baseURL, env["ZBX_VAULTPREFIX"], dbPath)
 
 	bootstrap.LogInfo("***** VAULT URL: %s", reqURL)
 
 	client := newVaultClient(hashicorpTLSConfig(env))
 
-	token, err := resolveHashiCorpToken(env, baseURL, client)
+	token, err := resolveHashiCorpToken(ctx, env, baseURL, client)
 	if err != nil {
 		return Credentials{}, err
 	}
 
-	data, err := client.request(http.MethodGet, reqURL, nil, func(req *http.Request) {
+	data, err := client.request(ctx, http.MethodGet, reqURL, nil, func(req *http.Request) {
 		req.Header.Set("X-Vault-Token", token)
 	})
 	if err != nil {
@@ -89,7 +92,7 @@ func fetchHashiCorp(env bootstrap.Environment, baseURL, dbPath string) (Credenti
 	return decodeHashiCorp(data)
 }
 
-func resolveHashiCorpToken(env bootstrap.Environment, baseURL string, client vaultClient) (string, error) {
+func resolveHashiCorpToken(ctx context.Context, env bootstrap.Environment, baseURL string, client vaultClient) (string, error) {
 	token := env["VAULT_TOKEN"]
 	roleID := env["ZBX_VAULTAPPROLEID"]
 	secretID := env["ZBX_VAULTAPPSECRETID"]
@@ -109,16 +112,16 @@ func resolveHashiCorpToken(env bootstrap.Environment, baseURL string, client vau
 		return "", errors.New("ZBX_VAULTAPPROLEID is set but ZBX_VAULTAPPSECRETID is not set")
 	}
 
-	return loginHashiCorpAppRole(client, baseURL, roleID, secretID)
+	return loginHashiCorpAppRole(ctx, client, baseURL, roleID, secretID)
 }
 
-func loginHashiCorpAppRole(client vaultClient, baseURL, roleID, secretID string) (string, error) {
+func loginHashiCorpAppRole(ctx context.Context, client vaultClient, baseURL, roleID, secretID string) (string, error) {
 	payload, _ := json.Marshal(struct {
 		RoleID   string `json:"role_id"`
 		SecretID string `json:"secret_id"`
 	}{RoleID: roleID, SecretID: secretID})
 
-	data, err := client.request(http.MethodPost, baseURL+"/v1/auth/approle/login", payload,
+	data, err := client.request(ctx, http.MethodPost, baseURL+"/v1/auth/approle/login", payload,
 		func(req *http.Request) {
 			req.Header.Set("Content-Type", "application/json")
 		})
@@ -196,7 +199,7 @@ func decodeHashiCorp(data []byte) (Credentials, error) {
 	return Credentials{Username: resp.Data.Data.Username, Password: *resp.Data.Data.Password}, nil
 }
 
-func fetchCyberArk(env bootstrap.Environment, baseURL, dbPath string) (Credentials, error) {
+func fetchCyberArk(ctx context.Context, env bootstrap.Environment, baseURL, dbPath string) (Credentials, error) {
 	certFile, err := resolveVaultFile(env, "ZBX_VAULTCERTFILE", "ZBX_VAULTTLSCERTFILE")
 	if err != nil {
 		return Credentials{}, err
@@ -233,7 +236,7 @@ func fetchCyberArk(env bootstrap.Environment, baseURL, dbPath string) (Credentia
 
 	client := newVaultClient(&tls.Config{Certificates: []tls.Certificate{cert}})
 
-	data, err := client.request(http.MethodGet, reqURL, nil, func(req *http.Request) {
+	data, err := client.request(ctx, http.MethodGet, reqURL, nil, func(req *http.Request) {
 		req.Header.Set("Content-Type", "application/json")
 	})
 	if err != nil {
@@ -314,11 +317,6 @@ const (
 // up or temporarily unavailable.
 type vaultClient struct {
 	http *http.Client
-	// attempts is the number of requests made before giving up.
-	attempts int
-	// delay is the pause between attempts.
-	delay time.Duration
-	// wait replaces the pause between attempts in tests.
 	wait func(context.Context, time.Duration) error
 }
 
@@ -326,24 +324,22 @@ type vaultClient struct {
 // the given TLS configuration.
 func newVaultClient(tlsConfig *tls.Config) vaultClient {
 	return vaultClient{
-		http:     &http.Client{Timeout: 10 * time.Second, Transport: vaultTransport(tlsConfig)},
-		attempts: maxAttempts,
-		delay:    retryDelay,
+		http: &http.Client{Timeout: 10 * time.Second, Transport: vaultTransport(tlsConfig)},
 	}
 }
 
-func (c vaultClient) request(method, reqURL string, body []byte,
+func (c vaultClient) request(ctx context.Context, method, reqURL string, body []byte,
 	configure func(*http.Request)) ([]byte, error) {
 	var data []byte
-	err := bootstrap.Retry(context.Background(), bootstrap.RetryOptions{
-		Attempts: c.attempts,
-		Interval: c.delay,
+	err := bootstrap.Retry(ctx, bootstrap.RetryOptions{
+		Attempts: maxAttempts,
+		Interval: retryDelay,
 		Wait:     c.wait,
 		OnRetry: func(error) {
-			bootstrap.LogInfo("**** Vault is not available. Waiting %s... ****", c.delay)
+			bootstrap.LogInfo("**** Vault is not available. Waiting %s... ****", retryDelay)
 		},
 	}, func() error {
-		req, err := http.NewRequestWithContext(context.Background(), method, reqURL, bytes.NewReader(body))
+		req, err := http.NewRequestWithContext(ctx, method, reqURL, bytes.NewReader(body))
 		if err != nil {
 			return bootstrap.Stop(err)
 		}

@@ -25,59 +25,41 @@ type DBTLSConfig struct {
 // ResolveServiceDBTLS resolves database TLS file names for Zabbix server and
 // proxy images.
 func ResolveServiceDBTLS(env Environment) (DBTLSConfig, error) {
-	return resolveDBTLS(env, serviceDBTLS(env))
+	return resolveDBTLS(env, env["ZBX_DBTLSCONNECT"])
 }
 
 // ResolveFrontendDBTLS resolves database TLS file names for frontend images.
 func ResolveFrontendDBTLS(env Environment) (DBTLSConfig, error) {
-	return resolveDBTLS(env, frontendDBTLS(env))
-}
-
-func resolveDBTLS(env Environment, settings DBTLSConfig) (DBTLSConfig, error) {
-	if settings.ConnectMode == "" {
-		return settings, nil
-	}
-	for _, name := range []string{envDBTLSCAFile, envDBTLSCertFile, envDBTLSKeyFile} {
-		if err := ResolveFileEnv(env, name, SecretsDir); err != nil {
-			return DBTLSConfig{}, err
-		}
-	}
-
-	settings.CAFile = env[envDBTLSCAFile]
-	settings.CertFile = env[envDBTLSCertFile]
-	settings.KeyFile = env[envDBTLSKeyFile]
-
-	return settings, nil
-}
-
-func serviceDBTLS(env Environment) DBTLSConfig {
-	return DBTLSConfig{
-		ConnectMode: env["ZBX_DBTLSCONNECT"],
-		CAFile:      env[envDBTLSCAFile],
-		CertFile:    env[envDBTLSCertFile],
-		KeyFile:     env[envDBTLSKeyFile],
-	}
-}
-
-func frontendDBTLS(env Environment) DBTLSConfig {
 	if !strings.EqualFold(env["ZBX_DB_ENCRYPTION"], "true") {
-		return DBTLSConfig{}
+		return DBTLSConfig{}, nil
 	}
 
-	settings := DBTLSConfig{
-		ConnectMode: "required",
-		CAFile:      env[envDBTLSCAFile],
-		CertFile:    env[envDBTLSCertFile],
-		KeyFile:     env[envDBTLSKeyFile],
-	}
-	if settings.CAFile != "" {
-		settings.ConnectMode = "verify_ca"
+	mode := "required"
+	if env[envDBTLSCAFile] != "" {
+		mode = "verify_ca"
 		if strings.EqualFold(env["ZBX_DB_VERIFY_HOST"], "true") {
-			settings.ConnectMode = "verify_full"
+			mode = "verify_full"
 		}
 	}
 
-	return settings
+	return resolveDBTLS(env, mode)
+}
+
+func resolveDBTLS(env Environment, mode string) (DBTLSConfig, error) {
+	if mode != "" {
+		for _, name := range []string{envDBTLSCAFile, envDBTLSCertFile, envDBTLSKeyFile} {
+			if err := ResolveFileEnv(env, name, SecretsDir); err != nil {
+				return DBTLSConfig{}, err
+			}
+		}
+	}
+
+	return DBTLSConfig{
+		ConnectMode: mode,
+		CAFile:      env[envDBTLSCAFile],
+		CertFile:    env[envDBTLSCertFile],
+		KeyFile:     env[envDBTLSKeyFile],
+	}, nil
 }
 
 // ResolveDBPort returns DB_SERVER_PORT or defaultPort and validates that the

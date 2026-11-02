@@ -52,7 +52,7 @@ func (db *DB) ensureUser(sess dbSession) error {
 	}
 
 	bootstrap.LogInfo("** Creating '%s' user in MySQL database", db.user)
-	exists, err := db.query(sess, "SELECT 1 FROM mysql.user WHERE user = ? AND host = '%'", db.user)
+	exists, err := query(sess, "SELECT 1 FROM mysql.user WHERE user = ? AND host = '%'", db.user)
 	if err != nil {
 		return err
 	}
@@ -60,15 +60,15 @@ func (db *DB) ensureUser(sess dbSession) error {
 	if exists != "" {
 		statement = "ALTER USER ?@'%' IDENTIFIED BY ?"
 	}
-	if err := db.execute(sess, statement, db.user, db.password); err != nil {
+	if err := execute(sess, statement, db.user, db.password); err != nil {
 		return err
 	}
 
-	return db.execute(sess, "GRANT "+zabbixDBPrivileges+" ON "+quoteIdentifier(db.name)+".* TO ?@'%'", db.user)
+	return execute(sess, "GRANT "+zabbixDBPrivileges+" ON "+quoteIdentifier(db.name)+".* TO ?@'%'", db.user)
 }
 
 func (db *DB) createDB(sess dbSession) error {
-	exists, err := db.query(sess, "SELECT SCHEMA_NAME FROM information_schema.SCHEMATA WHERE SCHEMA_NAME = ?", db.name)
+	exists, err := query(sess, "SELECT SCHEMA_NAME FROM information_schema.SCHEMATA WHERE SCHEMA_NAME = ?", db.name)
 	if err != nil {
 		return err
 	}
@@ -79,15 +79,15 @@ func (db *DB) createDB(sess dbSession) error {
 
 	bootstrap.LogInfo("** Database '%s' does not exist. Creating...", db.name)
 	statement := "CREATE DATABASE " + quoteIdentifier(db.name) + " CHARACTER SET " + quoteIdentifier(db.charset) + " COLLATE " + quoteIdentifier(db.collation)
-	if err := db.execute(sess, statement); err != nil {
+	if err := execute(sess, statement); err != nil {
 		return err
 	}
 
-	return db.execute(sess, "GRANT "+zabbixDBPrivileges+" ON "+quoteIdentifier(db.name)+".* TO ?@'%'", db.user)
+	return execute(sess, "GRANT "+zabbixDBPrivileges+" ON "+quoteIdentifier(db.name)+".* TO ?@'%'", db.user)
 }
 
 func (db *DB) createSchema(sess dbSession, schemaFile string) error {
-	exists, err := db.query(sess, "SELECT 1 FROM information_schema.tables WHERE table_schema = ? AND table_name = 'dbversion'", db.name)
+	exists, err := query(sess, "SELECT 1 FROM information_schema.tables WHERE table_schema = ? AND table_name = 'dbversion'", db.name)
 	if err != nil {
 		return err
 	}
@@ -95,7 +95,7 @@ func (db *DB) createSchema(sess dbSession, schemaFile string) error {
 	version := ""
 	if exists != "" {
 		bootstrap.LogWarn("** Table '%s.dbversion' already exists.", db.name)
-		version, err = db.query(sess, "SELECT mandatory FROM "+quoteIdentifier(db.name)+".dbversion")
+		version, err = query(sess, "SELECT mandatory FROM "+quoteIdentifier(db.name)+".dbversion")
 		if err != nil {
 			return err
 		}
@@ -118,16 +118,12 @@ func (db *DB) createSchema(sess dbSession, schemaFile string) error {
 // Prepare provisions the database over the administrative connection: it
 // creates the Zabbix user and database when missing and imports the schema
 // together with the additional dbscripts.
-func (db *DB) Prepare(schemaFile string) (err error) {
+func (db *DB) Prepare(schemaFile string) error {
 	admin, err := db.waitForConnection(db.adminUser, db.adminPass)
 	if err != nil {
 		return err
 	}
-	defer func() {
-		if closeErr := admin.Close(); err == nil && closeErr != nil {
-			err = fmt.Errorf("close database connection: %w", closeErr)
-		}
-	}()
+	defer admin.Close()
 
 	if err := db.ensureUser(admin); err != nil {
 		return err

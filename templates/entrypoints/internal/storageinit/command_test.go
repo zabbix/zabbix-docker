@@ -1,17 +1,22 @@
 package storageinit_test
 
 import (
+	"context"
 	"crypto/tls"
 	"crypto/x509"
 	"encoding/pem"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
 	"net/http/httptest"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strings"
+	"syscall"
 	"testing"
+	"time"
 
 	"github.com/zabbix/zabbix-docker/templates/entrypoints/internal/bootstrap"
 	"github.com/zabbix/zabbix-docker/templates/entrypoints/internal/proxy"
@@ -143,5 +148,64 @@ func prepareEnvironment(t *testing.T, env bootstrap.Environment) {
 		if err := os.WriteFile(filepath.Join(env["ZABBIX_CONF_DIR"], name), nil, 0o600); err != nil {
 			t.Fatal(err)
 		}
+	}
+}
+
+func TestInitCancellation(t *testing.T) {
+	if kind := os.Getenv("TEST_INIT_PROVIDER"); kind != "" {
+		env := bootstrap.Environment{}
+		prepareEnvironment(t, env)
+		endpoint := os.Getenv("TEST_INIT_ENDPOINT")
+		prepare := storageinit.PrepareHistory
+		switch kind {
+		case "elasticsearch":
+			env["ZBX_HISTORYPROVIDER_0"] = fmt.Sprintf(`{"provider":"elasticsearch","url":%q,"types":["uint"]}`, endpoint)
+		case "clickhouse":
+			env["ZBX_HISTORYPROVIDER_0"] = fmt.Sprintf(`{"provider":"clickhouse","url":%q,"db":"history","types":["uint"]}`, endpoint)
+		case "vault":
+			prepare = storageinit.PrepareTelemetry
+			env["ZBX_TELEMETRYPROVIDER_0"] = `{"provider":"clickhouse","url":"http://unused:8123","db":"otel","vault_path":"secret/apm"}`
+			env["ZBX_VAULT"], env["ZBX_VAULTURL"], env["VAULT_TOKEN"] = "HashiCorp", endpoint, "token"
+			env["ZBX_TELEMETRYPROVIDER_0_SCHEMA"] = `{"create":true}`
+		}
+		if kind != "vault" {
+			env["ZBX_HISTORYPROVIDER_0_SCHEMA"] = `{"create":true}`
+		}
+		if _, err := prepare(env); !errors.Is(err, context.Canceled) {
+			t.Fatalf("expected canceled initialization, got %v", err)
+		}
+		return
+	}
+
+	for _, kind := range []string{"clickhouse", "elasticsearch", "vault"} {
+		t.Run(kind, func(t *testing.T) {
+			requested := make(chan struct{}, 1)
+			endpoint := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				_, _ = io.Copy(io.Discard, r.Body)
+				requested <- struct{}{}
+				<-r.Context().Done()
+			}))
+			defer endpoint.Close()
+			ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+			defer cancel()
+			command := exec.CommandContext(ctx, os.Args[0], "-test.run=^TestInitCancellation$")
+			command.Env = append(os.Environ(), "TEST_INIT_PROVIDER="+kind, "TEST_INIT_ENDPOINT="+endpoint.URL)
+			var output strings.Builder
+			command.Stdout, command.Stderr = &output, &output
+			if err := command.Start(); err != nil {
+				t.Fatal(err)
+			}
+			select {
+			case <-requested:
+				if err := command.Process.Signal(syscall.SIGTERM); err != nil {
+					t.Error(err)
+				}
+			case <-ctx.Done():
+				t.Error("initialization did not send a request")
+			}
+			if err := command.Wait(); err != nil {
+				t.Fatalf("initialization did not cancel cleanly: %v\n%s", err, output.String())
+			}
+		})
 	}
 }

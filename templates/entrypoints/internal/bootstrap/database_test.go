@@ -22,8 +22,12 @@ func TestResolveDBTLS(t *testing.T) {
 	}
 
 	env = Environment{"ZBX_DBTLSCAFILE": "missing.pem"}
-	if _, err := ResolveServiceDBTLS(env); err != nil {
+	config, err = ResolveServiceDBTLS(env)
+	if err != nil {
 		t.Fatalf("disabled DB TLS validated an unused file: %v", err)
+	}
+	if config.ConnectMode != "" || config.CAFile != "missing.pem" || env[envDBTLSCAFile] != "missing.pem" {
+		t.Fatalf("disabled DB TLS changed file settings: config=%+v, env=%v", config, env)
 	}
 }
 

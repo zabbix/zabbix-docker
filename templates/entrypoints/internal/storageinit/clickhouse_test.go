@@ -54,7 +54,7 @@ func TestProviderCredentials(t *testing.T) {
 			t.Fatal(err)
 		}
 	})
-	for label, count := range map[string]int{"numbers": 3, "logs": 2, "telemetry": 8} {
+	for label, count := range map[string]int{"numbers": 3, "logs": 2, "telemetry": 7} {
 		if len(queries[label]) != count {
 			t.Fatalf("%s requests: %v", label, queries[label])
 		}

@@ -317,9 +317,11 @@ func TestVerifiedTLSConfigurations(t *testing.T) {
 		mode             string
 		wantServerName   string
 		wantCustomVerify bool
+		wantErr          bool
 	}{
 		{mode: "verify_ca", wantCustomVerify: true},
 		{mode: "verify_full", wantServerName: "db.example.test"},
+		{mode: "verify_identity", wantErr: true},
 	} {
 		t.Run(test.mode, func(t *testing.T) {
 			env := bootstrap.Environment{
@@ -332,6 +334,12 @@ func TestVerifiedTLSConfigurations(t *testing.T) {
 				t.Fatal(err)
 			}
 			config, err := db.tlsConfig()
+			if test.wantErr {
+				if err == nil || !strings.Contains(err.Error(), "unsupported database TLS connection mode") {
+					t.Fatalf("expected unsupported TLS mode error, got %v", err)
+				}
+				return
+			}
 			if err != nil {
 				t.Fatal(err)
 			}

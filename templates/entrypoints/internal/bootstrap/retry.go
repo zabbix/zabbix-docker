@@ -8,18 +8,11 @@ import (
 
 // RetryOptions describes how Retry repeats a failing attempt.
 type RetryOptions struct {
-	// Attempts limits the number of calls. Zero repeats the attempt until it
-	// succeeds or the context ends, which is what the entrypoints do while they
-	// wait for a service to start.
-	Attempts int
-	// Interval is the pause between attempts.
+	Attempts int // Zero repeats until success or cancellation.
 	Interval time.Duration
-	// OnRetry reports the failure that is about to be retried, so that the
-	// caller can log it in its own words.
+	// OnRetry runs before each retry, not after the final failure.
 	OnRetry func(error)
-	// Wait replaces the pause between attempts. Tests use it to observe the
-	// delay instead of sleeping.
-	Wait func(context.Context, time.Duration) error
+	Wait    func(context.Context, time.Duration) error
 }
 
 // Retry calls attempt until it succeeds, pausing Interval between calls. It
