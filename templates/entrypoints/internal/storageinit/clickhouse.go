@@ -75,7 +75,7 @@ func clickHouseConnection(ctx context.Context, env bootstrap.Environment, datase
 		"url", "username", "password", "source_ip",
 		"ssl_cert_file", "ssl_key_file", "ssl_key_password",
 	}
-	if dataset == telemetryDataset {
+	if dataset == "otel" {
 		keys = append(keys, "vault_path")
 	}
 	for _, key := range keys {

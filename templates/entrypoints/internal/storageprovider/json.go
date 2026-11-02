@@ -71,38 +71,10 @@ func decodeJSON(raw string) (any, error) {
 	if err := json.Unmarshal([]byte(raw), &value); err == nil {
 		return value, nil
 	}
-	if err := json.Unmarshal([]byte(normalizeJSONQuotes(raw)), &value); err != nil {
+	if err := json.Unmarshal([]byte(strings.ReplaceAll(raw, "'", `"`)), &value); err != nil {
 		return nil, fmt.Errorf("invalid provider JSON: %w", err)
 	}
 	return value, nil
-}
-
-func normalizeJSONQuotes(raw string) string {
-	var result strings.Builder
-	var quote byte
-	for i := 0; i < len(raw); i++ {
-		ch := raw[i]
-		if quote == 0 {
-			if ch == '\'' || ch == '"' {
-				quote = ch
-				ch = '"'
-			}
-		} else if ch == '\\' && i+1 < len(raw) {
-			i++
-			if quote != '\'' || raw[i] != '\'' {
-				result.WriteByte('\\')
-			}
-			result.WriteByte(raw[i])
-			continue
-		} else if ch == quote {
-			quote = 0
-			ch = '"'
-		} else if quote == '\'' && ch == '"' {
-			result.WriteByte('\\')
-		}
-		result.WriteByte(ch)
-	}
-	return result.String()
 }
 
 func secretConfigured(env bootstrap.Environment, name string) bool {

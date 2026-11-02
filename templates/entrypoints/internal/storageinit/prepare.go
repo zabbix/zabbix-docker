@@ -16,29 +16,24 @@ import (
 	"github.com/zabbix/zabbix-docker/templates/entrypoints/internal/storageprovider"
 )
 
-const (
-	historyDataset   = "history"
-	telemetryDataset = "otel"
-)
-
 // PrepareHistory initializes the selected history providers without configuring Zabbix.
 func PrepareHistory(env bootstrap.Environment) (int, error) {
-	return prepareProviders(env, storageprovider.History, historyDataset)
+	return prepareProviders(env, storageprovider.History, "history")
 }
 
 // PrepareTelemetry initializes the selected telemetry provider without configuring Zabbix.
 func PrepareTelemetry(env bootstrap.Environment) (int, error) {
-	return prepareProviders(env, storageprovider.Telemetry, telemetryDataset)
+	return prepareProviders(env, storageprovider.Telemetry, "otel")
 }
 
 // ConfigureHistory prepares selected schemas and writes native history configuration.
 func ConfigureHistory(env bootstrap.Environment) error {
-	return configureProviders(env, storageprovider.History, historyDataset)
+	return configureProviders(env, storageprovider.History, "history")
 }
 
 // ConfigureTelemetry prepares selected schemas and writes native telemetry configuration.
 func ConfigureTelemetry(env bootstrap.Environment) error {
-	return configureProviders(env, storageprovider.Telemetry, telemetryDataset)
+	return configureProviders(env, storageprovider.Telemetry, "otel")
 }
 
 func prepareProviders(env bootstrap.Environment, param *storageprovider.Parameter, dataset string) (int, error) {
@@ -103,10 +98,7 @@ func prepareSchemas(env bootstrap.Environment, configs []storageprovider.Provide
 
 	var preparations []preparation
 	for _, config := range configs {
-		if err := ctx.Err(); err != nil {
-			return 0, err
-		}
-		if dataset == historyDataset {
+		if dataset == "history" {
 			if err := validateHistoryTypes(config.ValueTypes); err != nil {
 				return 0, fmt.Errorf("%s: %w", config.Name, err)
 			}
@@ -130,9 +122,6 @@ func prepareSchemas(env bootstrap.Environment, configs []storageprovider.Provide
 	}
 
 	for _, task := range preparations {
-		if err := ctx.Err(); err != nil {
-			return 0, err
-		}
 		if err := task.prepare(ctx); err != nil {
 			return 0, fmt.Errorf("%s: %w", task.name, err)
 		}

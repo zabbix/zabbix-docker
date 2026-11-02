@@ -4,13 +4,19 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io"
+	"maps"
 	"net"
+	"net/http"
+	"net/http/httptest"
 	"strings"
+	"sync/atomic"
 	"syscall"
 	"testing"
 	"testing/synctest"
 	"time"
 
+	"github.com/zabbix/zabbix-docker/templates/entrypoints/internal/bootstrap"
 	"github.com/zabbix/zabbix-docker/templates/entrypoints/internal/testutil"
 )
 
@@ -79,4 +85,81 @@ func TestCancelRetryWait(t *testing.T) {
 			t.Fatal("cancellation did not stop the retry wait")
 		}
 	})
+}
+
+func TestRestartAfterPartialCreation(t *testing.T) {
+	var database, history, dbl, uintTable atomic.Bool
+	var historyCreates, dblCreates atomic.Int32
+	var failUint atomic.Bool
+	failUint.Store(true)
+	ch := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		body, _ := io.ReadAll(r.Body)
+		query := string(body)
+		switch {
+		case strings.HasPrefix(query, "CREATE DATABASE"):
+			database.Store(true)
+		case strings.HasPrefix(query, "CREATE TABLE"):
+			history.Store(true)
+			historyCreates.Add(1)
+		case strings.HasPrefix(query, "SELECT count()"):
+			exists := history.Load()
+			if strings.Contains(query, "system.databases") {
+				exists = database.Load()
+			}
+			if exists {
+				fmt.Fprintln(w, "1")
+			} else {
+				fmt.Fprintln(w, "0")
+			}
+		default:
+			t.Errorf("unexpected ClickHouse query: %s", query)
+			w.WriteHeader(http.StatusBadRequest)
+		}
+	}))
+	defer ch.Close()
+	es := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		var exists *atomic.Bool
+		switch r.URL.Path {
+		case "/dbl":
+			exists = &dbl
+		case "/uint":
+			exists = &uintTable
+		default:
+			t.Errorf("unexpected Elasticsearch path: %s", r.URL.Path)
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+		if r.Method == http.MethodPut {
+			if r.URL.Path == "/uint" && failUint.Load() {
+				http.Error(w, "creation failed", http.StatusServiceUnavailable)
+				return
+			}
+			if r.URL.Path == "/dbl" {
+				dblCreates.Add(1)
+			}
+			exists.Store(true)
+		} else if !exists.Load() {
+			w.WriteHeader(http.StatusNotFound)
+		}
+	}))
+	defer es.Close()
+	env := bootstrap.Environment{
+		"ZBX_HISTORYPROVIDER_0":        fmt.Sprintf(`{"provider":"clickhouse","url":%q,"db":"history","types":["str"]}`, ch.URL),
+		"ZBX_HISTORYPROVIDER_0_SCHEMA": `{"create":true}`,
+		"ZBX_HISTORYPROVIDER_1":        fmt.Sprintf(`{"provider":"elasticsearch","url":%q,"types":["dbl","uint"]}`, es.URL),
+		"ZBX_HISTORYPROVIDER_1_SCHEMA": `{"create":true}`,
+	}
+	if err := ConfigureHistory(maps.Clone(env)); err == nil || !strings.Contains(err.Error(), "ZBX_HISTORYPROVIDER_1") {
+		t.Fatalf("expected second provider failure, got %v", err)
+	}
+	if !history.Load() || !dbl.Load() || uintTable.Load() {
+		t.Fatal("expected ClickHouse and the first Elasticsearch index to be created")
+	}
+	failUint.Store(false)
+	if err := ConfigureHistory(maps.Clone(env)); err != nil {
+		t.Fatal(err)
+	}
+	if !uintTable.Load() || historyCreates.Load() != 1 || dblCreates.Load() != 1 {
+		t.Fatal("restart must create the missing index without recreating existing tables or indices")
+	}
 }

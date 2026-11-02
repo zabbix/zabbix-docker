@@ -321,7 +321,7 @@ func TestVerifiedTLSConfigurations(t *testing.T) {
 	}{
 		{mode: "verify_ca", wantCustomVerify: true},
 		{mode: "verify_full", wantServerName: "db.example.test"},
-		{mode: "verify_identity", wantErr: true},
+		{mode: "unsupported", wantErr: true},
 	} {
 		t.Run(test.mode, func(t *testing.T) {
 			env := bootstrap.Environment{
