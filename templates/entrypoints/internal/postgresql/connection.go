@@ -147,8 +147,8 @@ func (db *DB) waitForConnectionContext(ctx context.Context, user, password strin
 	var sess dbSession
 	err := bootstrap.Retry(ctx, bootstrap.RetryOptions{
 		Interval: reconnectInterval,
-		OnRetry: func(error) {
-			bootstrap.LogInfo("**** PostgreSQL server is not available. Waiting %s...", reconnectInterval)
+		OnRetry: func(err error) {
+			bootstrap.LogInfo("**** PostgreSQL connection failed: %v. Waiting %s...", err, reconnectInterval)
 		},
 	}, func() error {
 		// The Zabbix user may only be allowed to connect to its own database,

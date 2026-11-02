@@ -141,8 +141,7 @@ func (db *DB) waitForConnectionContext(ctx context.Context, user, password strin
 	err = bootstrap.Retry(ctx, bootstrap.RetryOptions{
 		Interval: reconnectInterval,
 		OnRetry: func(err error) {
-			bootstrap.LogDebug(db.env, "**** MySQL connection failed: %v", err)
-			bootstrap.LogInfo("**** MySQL server is not available. Waiting %s...", reconnectInterval)
+			bootstrap.LogInfo("**** MySQL connection failed: %v. Waiting %s...", err, reconnectInterval)
 		},
 	}, func() error {
 		attemptCtx, cancel := context.WithTimeout(ctx, connectTimeout)
