@@ -154,14 +154,16 @@ func StorageInitEntrypoint(next Entrypoint, history, telemetry func(Environment)
 		}
 
 		count, err := prepare(env)
-		if err == nil && count == 0 {
+		if err != nil {
+			return err
+		}
+		if count == 0 {
 			if args[0] == initHistoryProvidersCommand {
-				LogWarn("** No history schemas initialized: set ZBX_HISTORYPROVIDER_<N>_SCHEMA for the providers to initialize")
-			} else {
-				LogWarn("** No telemetry schemas initialized: ZBX_TELEMETRYPROVIDER_0_SCHEMA is not set")
+				return errors.New("no history schemas initialized: set ZBX_HISTORYPROVIDER_<N>_SCHEMA for the providers to initialize")
 			}
+			return errors.New("no telemetry schemas initialized: ZBX_TELEMETRYPROVIDER_0_SCHEMA is not set")
 		}
 
-		return err
+		return nil
 	}
 }

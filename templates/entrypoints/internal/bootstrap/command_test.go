@@ -9,8 +9,6 @@ import (
 	"reflect"
 	"strings"
 	"testing"
-
-	"github.com/zabbix/zabbix-docker/templates/entrypoints/internal/testutil"
 )
 
 func TestResolveCommand(t *testing.T) {
@@ -247,27 +245,23 @@ func TestStorageInitEntrypointResult(t *testing.T) {
 		command string
 		count   int
 		err     error
-		warning string
+		wantErr string
 	}{
 		{"prepared", initHistoryProvidersCommand, 1, nil, ""},
-		{"no history selected", initHistoryProvidersCommand, 0, nil, "No history schemas initialized: set ZBX_HISTORYPROVIDER_<N>_SCHEMA"},
-		{"no telemetry selected", initTelemetryCommand, 0, nil, "No telemetry schemas initialized: ZBX_TELEMETRYPROVIDER_0_SCHEMA is not set"},
+		{"no history selected", initHistoryProvidersCommand, 0, nil, "no history schemas initialized: set ZBX_HISTORYPROVIDER_<N>_SCHEMA"},
+		{"no telemetry selected", initTelemetryCommand, 0, nil, "no telemetry schemas initialized: ZBX_TELEMETRYPROVIDER_0_SCHEMA is not set"},
 		{"failed", initHistoryProvidersCommand, 0, errors.New("schema preparation failed"), ""},
 	} {
 		t.Run(test.name, func(t *testing.T) {
 			prepare := func(Environment) (int, error) { return test.count, test.err }
 			entry := StorageInitEntrypoint(nil, prepare, prepare)
-			var err error
-			output := testutil.CaptureStderr(t, func() { err = entry(Environment{}, []string{test.command}) })
-			if !errors.Is(err, test.err) {
-				t.Fatalf("error = %v, want %v", err, test.err)
-			}
-			if test.warning != "" {
-				if !strings.Contains(output, test.warning) {
-					t.Fatalf("missing warning: %s", output)
+			err := entry(Environment{}, []string{test.command})
+			if test.wantErr != "" {
+				if err == nil || !strings.Contains(err.Error(), test.wantErr) {
+					t.Fatalf("error = %v, want %q", err, test.wantErr)
 				}
-			} else if output != "" {
-				t.Fatalf("unexpected warning: %s", output)
+			} else if !errors.Is(err, test.err) {
+				t.Fatalf("error = %v, want %v", err, test.err)
 			}
 		})
 	}
