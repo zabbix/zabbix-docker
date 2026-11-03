@@ -78,11 +78,15 @@ jobs:
           go-version-file: templates/entrypoints/go.mod
           cache-dependency-path: templates/entrypoints/go.sum
 
-      - name: Test entrypoints
-        run: go test -count=1 ./...
+      # Windows images only ship agents; keep their shared packages covered too.
+      - name: Test agent entrypoints
+        run: >-
+          go test -count=1
+          ./cmd/agent ./cmd/agent2
+          ./internal/bootstrap ./internal/config ./internal/hooks
 
-      - name: Build entrypoints
-        run: go build ./cmd/...
+      - name: Build agent entrypoints
+        run: go build ./cmd/agent ./cmd/agent2
 
   init_build:
     name: Initialize build
