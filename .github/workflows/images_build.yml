@@ -13,7 +13,8 @@ on:
       - '!Dockerfiles/*/windows/*'
       - '.github/workflows/images_build.yml'
       - '.github/actions/*'
-      - 'templates/entrypoints/**'
+      - 'templates/entrypoints/*.sh'
+      - 'templates/entrypoints/lib/**'
       - 'templates/patches/**'
       - 'templates/sbom/**'
   schedule:
