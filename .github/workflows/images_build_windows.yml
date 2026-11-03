@@ -53,6 +53,39 @@ env:
   IDENTITY_REGEX: "${{ github.server_url }}/${{ github.repository }}/.github/"
 
 jobs:
+  test_entrypoints:
+    name: Test entrypoints
+    runs-on: windows-2022
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: templates/entrypoints
+    env:
+      CGO_ENABLED: "0"
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ env.TRUNK_ONLY_EVENT == 'true' && env.TRUNK_GIT_BRANCH || '' }}
+          sparse-checkout: templates/entrypoints
+
+      - name: Set up Go
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: templates/entrypoints/go.mod
+          cache-dependency-path: templates/entrypoints/go.sum
+
+      # Windows images only ship agents; keep their shared packages covered too.
+      - name: Test agent entrypoints
+        run: >-
+          go test -count=1
+          ./cmd/agent ./cmd/agent2
+          ./internal/bootstrap ./internal/config
+
+      - name: Build agent entrypoints
+        run: go build ./cmd/agent ./cmd/agent2
+
   init_build:
     name: Initialize build
     runs-on: ubuntu-26.04
