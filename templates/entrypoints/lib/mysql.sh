@@ -30,7 +30,7 @@ set_mysql_cli() {
 set_mysql_tls_args() {
     MYSQL_TLS_ARGS=()
 
-    [ "${ZBX_DB_ENCRYPTION:-}" = "true" ] && export ZBX_DBTLSCONNECT=required
+    set_frontend_db_tls
 
     if [ -n "${ZBX_DBTLSCONNECT:-}" ]; then
         if [ "${DB_ENGINE}" = "mariadb" ]; then
