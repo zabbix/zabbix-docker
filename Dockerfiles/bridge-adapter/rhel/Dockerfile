@@ -80,11 +80,12 @@ RUN --mount=type=tmpfs,target=${ZBX_ROOTFS_DIR}/var/lib/dnf/ \
     --mount=type=tmpfs,target=${ZBX_ROOTFS_DIR}/var/cache/dnf/ \
     --mount=type=tmpfs,target=${ZBX_ROOTFS_DIR}/var/log/ \
     set -eux && \
+    ARCH_SUFFIX="$(arch)"; \
     dnf -y install \
             --installroot=${ZBX_ROOTFS_DIR} \
             --disableplugin=subscription-manager \
             --disablerepo="*" \
-            --enablerepo="ubi-10-for-*-baseos-rpms" \
+            --enablerepo="ubi-10-for-$ARCH_SUFFIX-baseos-rpms" \
             --setopt=install_weak_deps=0 \
             --setopt=keepcache=0 \
             --setopt=tsflags=nodocs \
