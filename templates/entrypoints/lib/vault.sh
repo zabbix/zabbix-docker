@@ -17,8 +17,8 @@ get_vault_secrets() {
 
     if [ "${ZBX_VAULT:-}" = "HashiCorp" ]; then
         if [ -z "$vault_prefix" ]; then
-            vault_prefix="v1/${vault_db_path%/*}/data"
-            vault_db_path="${vault_db_path##*/}"
+            vault_prefix="v1/${vault_db_path%%/*}/data"
+            vault_db_path="${vault_db_path#*/}"
         else
             vault_prefix="${vault_prefix#/}"
             vault_prefix="${vault_prefix%/}"
