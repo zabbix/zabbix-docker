@@ -6,6 +6,8 @@ get_vault_secrets() {
     local vault_base_url vault_db_path vault_mount vault_secret_path vault_url
     local curl_opts=(-sS -m 10)
 
+    file_env VAULT_TOKEN
+
     if [ -z "${ZBX_VAULTURL:-}" ] || [ -z "${ZBX_VAULTDBPATH:-}" ] || [ -z "${VAULT_TOKEN:-}" ]; then
         error "ZBX_VAULTURL, ZBX_VAULTDBPATH and VAULT_TOKEN must be set to use HashiCorp Vault"
     fi
