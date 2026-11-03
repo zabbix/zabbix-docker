@@ -125,7 +125,7 @@ exec_sql_file() {
         command="zcat"
     fi
 
-    "$command" "$sql_script" | psql --quiet \
+    "$command" "$sql_script" | psql --quiet --set=ON_ERROR_STOP=1 \
         "${psql_connect_args[@]}" \
         --username "${DB_SERVER_ZBX_USER}" \
         --dbname "${DB_SERVER_DBNAME}" >/dev/null || exit 1
