@@ -32,6 +32,25 @@ file_env() {
     unset "$fileVar"
 }
 
+set_frontend_db_tls() {
+    if [ "${ZBX_DB_ENCRYPTION:-}" != "true" ]; then
+        return
+    fi
+
+    ZBX_DBTLSCONNECT=required
+    if [ -n "${ZBX_DB_CA_FILE:-}" ]; then
+        ZBX_DBTLSCONNECT=verify_ca
+
+        if [ "${ZBX_DB_VERIFY_HOST:-}" = "true" ]; then
+            ZBX_DBTLSCONNECT=verify_full
+        fi
+    fi
+
+    ZBX_DBTLSCAFILE="${ZBX_DB_CA_FILE:-}"
+    ZBX_DBTLSCERTFILE="${ZBX_DB_CERT_FILE:-}"
+    ZBX_DBTLSKEYFILE="${ZBX_DB_KEY_FILE:-}"
+}
+
 is_masked_config_var() {
     local var_name="${1:-}"
     case "$var_name" in
