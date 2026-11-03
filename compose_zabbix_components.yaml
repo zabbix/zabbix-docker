@@ -582,6 +582,7 @@ services:
    backend:
     aliases:
      - zabbix-web-nginx-mysql
+     - zabbix-web-nginx
   labels:
    com.zabbix.description: "Zabbix frontend on Nginx web-server with MySQL database support"
    com.zabbix.dbtype: "mysql"
@@ -604,6 +605,7 @@ services:
    backend:
     aliases:
      - zabbix-web-nginx-pgsql
+     - zabbix-web-nginx
   labels:
    com.zabbix.description: "Zabbix frontend on Nginx web-server with PostgreSQL database support"
    com.zabbix.dbtype: "pgsql"
@@ -871,3 +873,59 @@ services:
    com.zabbix.description: "Zabbix MCP server"
    com.zabbix.company: "Zabbix SIA"
    com.zabbix.component: "mcp-server"
+
+ bridge-adapter-init:
+  init: true
+  profiles:
+   - bridge-adapter
+  restart: "on-failure:3"
+  attach: true
+  read_only: true
+  healthcheck:
+   disable: true
+  command:
+   - accept-license
+  volumes:
+   - /etc/localtime:/etc/localtime:ro
+   - ${DATA_DIRECTORY}/var/lib/zabbix/bridge-adapter:/var/lib/zabbix/bridge-adapter:rw
+  env_file:
+   - path: ${ENV_VARS_DIRECTORY}/.env_bridge_adapter
+     required: true
+   - path: ${ENV_VARS_DIRECTORY}/.env_bridge_adapter_override
+     required: false
+  networks:
+   backend:
+  labels:
+   com.zabbix.description: "Zabbix Bridge Adapter EULA acceptance"
+   com.zabbix.company: "Zabbix SIA"
+   com.zabbix.component: "bridge-adapter-init"
+
+ bridge-adapter:
+  init: true
+  profiles:
+   - bridge-adapter
+  restart: "${RESTART_POLICY}"
+  attach: false
+  read_only: true
+  volumes:
+   - /etc/localtime:/etc/localtime:ro
+   - ${DATA_DIRECTORY}/var/lib/zabbix/bridge-adapter:/var/lib/zabbix/bridge-adapter:rw
+   - ${DATA_DIRECTORY}/var/lib/zabbix/ssl/certs:/var/lib/zabbix/ssl/certs:ro
+   - ${DATA_DIRECTORY}/var/lib/zabbix/ssl/keys:/var/lib/zabbix/ssl/keys:ro
+   - ${DATA_DIRECTORY}/var/lib/zabbix/ssl/ssl_ca:/var/lib/zabbix/ssl/ssl_ca:ro
+  tmpfs: /tmp
+  env_file:
+   - path: ${ENV_VARS_DIRECTORY}/.env_bridge_adapter
+     required: true
+   - path: ${ENV_VARS_DIRECTORY}/.env_bridge_adapter_override
+     required: false
+  networks:
+   backend:
+    aliases:
+     - zabbix-bridge-adapter
+   frontend:
+  stop_grace_period: 30s
+  labels:
+   com.zabbix.description: "Zabbix Bridge Adapter"
+   com.zabbix.company: "Zabbix SIA"
+   com.zabbix.component: "bridge-adapter"

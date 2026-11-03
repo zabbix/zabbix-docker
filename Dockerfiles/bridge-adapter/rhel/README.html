@@ -1,0 +1,157 @@
+<p><img src="https://assets.zabbix.com/img/logo/zabbix_logo_500x131.png" alt="logo"></p>
+<h1 id="what-is-zabbix">What is Zabbix?</h1>
+<p>Zabbix is an enterprise-class open source distributed monitoring solution.</p>
+<p>Zabbix monitors numerous parameters of a network and the health and integrity of servers. It provides flexible notification, reporting and data visualisation features.</p>
+<p>For more information and related downloads for Zabbix components, please visit <a href="https://hub.docker.com/u/zabbix/">https://hub.docker.com/u/zabbix/</a> and <a href="https://www.zabbix.com/">https://www.zabbix.com/</a>.</p>
+
+<h1 id="what-is-zabbix-bridge-adapter">What is Zabbix Bridge Adapter?</h1>
+<p>Zabbix Bridge Adapter connects a Zabbix installation to Zabbix Bridge for use with the Zabbix mobile application.</p>
+
+<h1 id="zabbix-bridge-adapter-images">Zabbix Bridge Adapter images</h1>
+<p>These are the official Red Hat UBI-based Zabbix Bridge Adapter container images. Images are updated when new releases are published.</p>
+
+<h1 id="how-to-use-this-image">How to use this image</h1>
+<h2 id="before-starting-zabbix-bridge-adapter">Before starting <code>zabbix-bridge-adapter</code></h2>
+<p>Zabbix server and the Zabbix frontend must be available. Obtain the Server ID from <strong>Reports &gt; System information</strong> in the target Zabbix frontend.</p>
+<p>The examples use an existing Podman network named <code>zabbix-backend</code>, shared with Zabbix server. The network must provide access to the Zabbix API and Zabbix Bridge.</p>
+
+<h2 id="reading-and-accepting-the-eula">Reading and accepting the EULA</h2>
+<p>Read the bundled Zabbix Mobile App End User License Agreement (EULA) before accepting it:</p>
+<pre><code class="lang-console">$ podman run --rm zabbix/zabbix-bridge-adapter-trunk:tag zabbix_bridge_adapter license show | less
+</code></pre>
+<p>Here and below, <code>tag</code> specifies the image version. Use the same image version for license acceptance and service startup.</p>
+<p>If you agree to the terms, create <code>bridge-adapter.env</code> with the EULA version shown by the command and the values for your installation:</p>
+<pre><code>ZBX_EULAVERSION=&lt;reviewed EULA version&gt;
+ZBX_SERVERID=&lt;Server ID from the Zabbix frontend&gt;
+ZBX_ZABBIXAPIURL=http://zabbix-web-nginx:8080/api_jsonrpc.php
+ZBX_ZABBIXAPITLSCONNECT=disabled
+</code></pre>
+<p>For an HTTPS API URL, configure the TLS variables described below. Configure <code>ZBX_ALLOWEDAPIMETHODS_&lt;N&gt;</code> in the same file to allow the API methods required by the mobile application.</p>
+<p>Accept the EULA using a persistent data volume:</p>
+<pre><code class="lang-console">$ podman run --rm --network none --read-only \
+    --env-file bridge-adapter.env \
+    --volume zabbix-bridge-adapter-data:/var/lib/zabbix/bridge-adapter \
+    zabbix/zabbix-bridge-adapter-trunk:tag accept-license
+</code></pre>
+<p>This command records acceptance of the specified EULA version and exits. Review and accept the terms again if the bundled EULA changes.</p>
+
+<h2 id="start-zabbix-bridge-adapter">Start <code>zabbix-bridge-adapter</code></h2>
+<p>Start a Zabbix Bridge Adapter container using the same environment file and data volume:</p>
+<pre><code class="lang-console">$ podman run --name some-zabbix-bridge-adapter \
+    --network zabbix-backend \
+    --read-only --tmpfs /tmp \
+    --env-file bridge-adapter.env \
+    --volume zabbix-bridge-adapter-data:/var/lib/zabbix/bridge-adapter \
+    -d zabbix/zabbix-bridge-adapter-trunk:tag
+</code></pre>
+<p>Where <code>some-zabbix-bridge-adapter</code> is the name you want to assign to your container and <code>tag</code> specifies the image version.</p>
+
+<h2 id="connects-from-zabbix-server-in-other-containers">Connects from Zabbix server in other containers</h2>
+<p>Connect Zabbix server to the same network and set its <code>ZBX_BRIDGEADAPTERURL</code> variable to:</p>
+<pre><code>http://some-zabbix-bridge-adapter:10054/rpc
+</code></pre>
+<p>Use an HTTPS URL when TLS is enabled on the Adapter listener.</p>
+
+<h2 id="container-shell-access-and-logs">Container shell access and viewing Zabbix Bridge Adapter logs</h2>
+<p>Start a shell inside the container as follows:</p>
+<pre><code class="lang-console">$ podman exec -ti some-zabbix-bridge-adapter /bin/bash
+</code></pre>
+<p>View the container log as follows:</p>
+<pre><code class="lang-console">$ podman logs some-zabbix-bridge-adapter
+</code></pre>
+
+<h2 id="environment-variables">Environment Variables</h2>
+<p>When you start the <code>zabbix-bridge-adapter</code> image, you can adjust the configuration by passing environment variables on the <code>podman run</code> command line or using <code>--env-file</code>.</p>
+<h3 id="zbx-eulaversion"><code>ZBX_EULAVERSION</code></h3>
+<p>Exact version of the reviewed EULA to accept. The value must match the version displayed by <code>zabbix_bridge_adapter license show</code>. The variable is used only by the EULA acceptance step; setting it does not accept the EULA during normal Adapter startup. Native <code>license</code> commands can be run with <code>--entrypoint /usr/sbin/zabbix_bridge_adapter</code>.</p>
+
+<h3 id="zbx-serverid"><code>ZBX_SERVERID</code></h3>
+<p>Full Server ID displayed under <strong>Reports &gt; System information</strong> in the target Zabbix frontend. This variable is required.</p>
+
+<h3 id="zbx-zabbixapiurl"><code>ZBX_ZABBIXAPIURL</code></h3>
+<p>URL of the target Zabbix JSON-RPC API endpoint, for example <code>https://zabbix.example.com/api_jsonrpc.php</code>. This variable is required.</p>
+
+<h3 id="zbx-zabbixbridgeurl"><code>ZBX_ZABBIXBRIDGEURL</code></h3>
+<p>URL used to retrieve the Zabbix Bridge configuration. The default value is <code>https://config.mobilebridge.zabbix.com/.well-known/bridge-configuration</code>.</p>
+
+<h3 id="zbx-zabbixapitlsconnect"><code>ZBX_ZABBIXAPITLSCONNECT</code></h3>
+<p>TLS mode used for outbound connections to the Zabbix API. Supported values are:</p>
+<ul>
+<li><code>disabled</code> - use plain HTTP;</li>
+<li><code>required</code> - use HTTPS without certificate verification;</li>
+<li><code>verify_ca</code> - use HTTPS and verify the certificate issuer;</li>
+<li><code>verify_full</code> - use HTTPS and verify the certificate issuer and hostname.</li>
+</ul>
+<p>Use <code>disabled</code> for an HTTP API URL. The default is <code>required</code> for HTTPS.</p>
+
+<h3 id="zbx-zabbixapitlscafile"><code>ZBX_ZABBIXAPITLSCAFILE</code></h3>
+<p>Full path to the CA file used to verify the Zabbix API certificate. This variable is required when <code>ZBX_ZABBIXAPITLSCONNECT</code> is set to <code>verify_ca</code> or <code>verify_full</code>.</p>
+
+<h3 id="zbx-listenip"><code>ZBX_LISTENIP</code></h3>
+<p>IP address or hostname on which the Adapter accepts requests from Zabbix server. By default, all available addresses are used.</p>
+
+<h3 id="zbx-listenport"><code>ZBX_LISTENPORT</code></h3>
+<p>Port on which the Adapter accepts requests from Zabbix server. The default value is <code>10054</code>. The RPC endpoint is available at <code>/rpc</code>.</p>
+
+<h3 id="zbx-listenhealthport"><code>ZBX_LISTENHEALTHPORT</code></h3>
+<p>Port exposing the <code>/health</code> and <code>/ready</code> endpoints. The default value is <code>8081</code>. The container health check uses <code>/ready</code>; the container becomes healthy when the Adapter is ready to handle requests.</p>
+
+<h3 id="zbx-debuglevel"><code>ZBX_DEBUGLEVEL</code></h3>
+<p>Debug level from <code>0</code> to <code>5</code>. The default value is <code>3</code>.</p>
+
+<h3 id="zbx-allowedapimethods-n"><code>ZBX_ALLOWEDAPIMETHODS_&lt;N&gt;</code></h3>
+<p>Zabbix API methods that the Adapter is allowed to call. Specify each method in a separate variable, using consecutive indexes starting with <code>0</code>. Each entry is either an exact method name, <code>resource.*</code> or <code>*.method</code>:</p>
+<pre><code>ZBX_ALLOWEDAPIMETHODS_0=apiinfo.version
+ZBX_ALLOWEDAPIMETHODS_1=host.get
+</code></pre>
+<p>If no variables are specified, the default deny-all policy applies and the Zabbix mobile application cannot use the Adapter. The minimal set of methods the mobile application currently needs is:</p>
+<pre><code>ZBX_ALLOWEDAPIMETHODS_0=apiinfo.version
+ZBX_ALLOWEDAPIMETHODS_1=device.onboard
+ZBX_ALLOWEDAPIMETHODS_2=device.offboard
+ZBX_ALLOWEDAPIMETHODS_3=user.get
+ZBX_ALLOWEDAPIMETHODS_4=role.get
+ZBX_ALLOWEDAPIMETHODS_5=problem.get
+ZBX_ALLOWEDAPIMETHODS_6=event.get
+ZBX_ALLOWEDAPIMETHODS_7=event.acknowledge
+ZBX_ALLOWEDAPIMETHODS_8=trigger.get
+ZBX_ALLOWEDAPIMETHODS_9=alert.get
+ZBX_ALLOWEDAPIMETHODS_10=host.get
+ZBX_ALLOWEDAPIMETHODS_11=hostgroup.get
+</code></pre>
+
+<h3 id="listener-tls-variables">Listener TLS variables</h3>
+<pre><code>ZBX_TLSMODE=none
+ZBX_TLSCERTFILE=
+ZBX_TLSKEYFILE=
+ZBX_TLSCAFILE=
+ZBX_TLSALLOWEDCN=
+</code></pre>
+<p>The default <code>none</code> mode accepts unencrypted connections. For production deployments, mutual TLS (<code>mtls</code>) is recommended for the server-facing listener. Set <code>ZBX_TLSMODE</code> to <code>tls</code> for TLS or <code>mtls</code> for mutual TLS. Certificate, private key and CA paths must refer to files available inside the container. <code>ZBX_TLSALLOWEDCN</code> is a comma-separated list of permitted client certificate Common Names in mTLS mode.</p>
+
+<h2 id="allowed-volumes">Allowed volumes for the Zabbix Bridge Adapter container</h2>
+<h3 id="data-volume"><code>/var/lib/zabbix/bridge-adapter</code></h3>
+<p>The volume stores persistent Adapter data and EULA acceptance. Use the same writable volume for license acceptance and service startup. For a bind mount, create the directory beforehand and grant access to UID <code>1997</code>. Run both containers with the same UID.</p>
+
+<h3 id="tls-volumes"><code>/var/lib/zabbix/ssl/certs</code>, <code>/var/lib/zabbix/ssl/keys</code> and <code>/var/lib/zabbix/ssl/ssl_ca</code></h3>
+<p>These volumes provide listener certificates, private keys and CA certificates. Mount them read-only.</p>
+
+<h1 id="user-feedback">User Feedback</h1>
+<h2 id="documentation">Documentation</h2>
+<p>Documentation for this image is stored in the <a href="https://github.com/zabbix/zabbix-docker/tree/trunk/Dockerfiles/bridge-adapter"><code>bridge-adapter/</code> directory</a> of the <a href="https://github.com/zabbix/zabbix-docker/"><code>zabbix/zabbix-docker</code> GitHub repository</a>.</p>
+
+<h2 id="issues">Issues</h2>
+<p>If you have any problems with or questions about this image, please contact us through a <a href="https://github.com/zabbix/zabbix-docker/issues">GitHub issue</a>.</p>
+
+<h2 id="contributing">Contributing</h2>
+<p>You are invited to contribute new features, fixes or updates. Before starting work, we recommend discussing plans through a <a href="https://github.com/zabbix/zabbix-docker/issues">GitHub issue</a>, especially for more ambitious contributions.</p>
+
+<h2 id="license">License</h2>
+<p>Zabbix Bridge Adapter is proprietary software licensed under the Zabbix Mobile App End User License Agreement (EULA), not under GPLv2 or AGPLv3. The source code of Zabbix Bridge Adapter is not made available or distributed.</p>
+<p>The <a href="https://www.zabbix.com/mobile_app_eula">current published EULA</a> may differ from the version bundled with your image. Review the bundled EULA at <code>/licenses/Zabbix-Mobile-App-EULA.txt</code>. Startup requires explicit acceptance of that version.</p>
+<p>The image contains the following license files:</p>
+<ul>
+<li><code>/licenses/Zabbix-Mobile-App-EULA.txt</code> - the EULA bundled with Zabbix Bridge Adapter;</li>
+<li><code>/licenses/bridge-adapter-THIRD-PARTY-NOTICES.txt</code> - notices for the Adapter runtime dependencies;</li>
+<li><code>/licenses/go-THIRD-PARTY-NOTICES.txt</code> - the Go runtime and standard library license and patent notice.</li>
+</ul>
+<p>Unless otherwise noted, files in this repository are licensed under the <a href="https://www.gnu.org/licenses/agpl-3.0.html">GNU Affero General Public License version 3 (AGPLv3)</a>. Third-party components remain subject to their respective licenses.</p>

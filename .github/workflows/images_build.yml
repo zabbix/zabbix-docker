@@ -7,6 +7,7 @@ on:
       - 'trunk'
     paths:
       - 'Dockerfiles/**'
+      - '!Dockerfiles/bridge-adapter/**'
       - 'build.json'
       - '!**/README.md'
       - '!Dockerfiles/*/rhel/*'
@@ -14,6 +15,7 @@ on:
       - '.github/workflows/images_build.yml'
       - '.github/actions/*'
       - 'templates/entrypoints/**'
+      - '!templates/entrypoints/cmd/bridge-adapter/**'
       - 'templates/patches/**'
       - 'templates/sbom/**'
   schedule:

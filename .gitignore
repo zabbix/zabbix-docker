@@ -7,5 +7,6 @@ zbx_env*/
 Dockerfiles/*/rhel/secrets/*
 env_vars/.env_*_override
 sources/*
+bridge_adapter_sources/
 .*.orig
 .*.rej

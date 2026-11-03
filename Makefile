@@ -29,6 +29,9 @@ GIT_BRANCH ?=
 # MCP server has its own release cycle, so it is pinned separately
 MCP_SERVER_VERSION ?=
 
+# Zabbix Bridge Adapter is built from a separate, non-public source tree.
+BRIDGE_ADAPTER_SOURCES ?= bridge_adapter_sources
+
 # Remote defaults (Official image registry)
 REMOTE_IMAGE_PREFIX ?= zabbix/
 REMOTE_ZBX_TAG ?= $(OS)-trunk
@@ -115,6 +118,12 @@ ZBX_IMAGE_NAMESPACE="$(LOCAL_IMAGE_PREFIX)" \
 $(BAKE)
 endef
 
+define bridge_adapter_bake_env
+BRIDGE_ADAPTER_SOURCES="$(BRIDGE_ADAPTER_SOURCES)" \
+$(bake_env) \
+  --allow "fs.read=$(BRIDGE_ADAPTER_SOURCES)"
+endef
+
 # Choose runtime groups by DB
 ifeq ($(DB),mysql)
   BAKE_RUNTIME_ALL_GROUP     := $(BAKE_RUNTIME_MYSQL_ALL)
@@ -154,7 +163,7 @@ DIRECT_BAKE_TARGETS := base \
 .PHONY: help print-vars \
 	$(DIRECT_BAKE_TARGETS) builders \
 	runtime-all runtime-minimal runtime \
-	build build-all \
+	build build-all bridge-adapter \
 	up up-local down restart logs ps \
 	bake-target clean \
 	check-bake
@@ -173,6 +182,8 @@ help:
 	@echo "  make build                       # base + builders + runtime-minimal (mysql/pgsql only)"
 	@echo "  make build-all                   # base + builders + runtime-all (mysql/pgsql only)"
 	@echo "  make bake-target TARGET=server-mysql   # build a single bake target by name"
+	@echo "  make bridge-adapter                  # build distroless from bridge_adapter_sources"
+	@echo "  make bridge-adapter TARGET=rhel      # build RHEL from bridge_adapter_sources"
 	@echo ""
 	@echo "Compose:"
 	@echo "  make up                          # auto-detect Docker/Podman, then pull+up using REMOTE_* images"
@@ -209,6 +220,7 @@ print-vars:
 	@echo "LOCAL_ZBX_TAG=$(LOCAL_ZBX_TAG)"
 	@echo "LOCAL_IMAGE_PREFIX=$(LOCAL_IMAGE_PREFIX)"
 	@echo "PLATFORMS=$(PLATFORMS)"
+	@echo "BRIDGE_ADAPTER_SOURCES=$(BRIDGE_ADAPTER_SOURCES)"
 	@echo "ENV_FILE=$(ENV_FILE)"
 	@echo "COMPOSE_FILE=$(COMPOSE_FILE)"
 	@echo "BAKE_BUILDERS_GROUP=$(BAKE_BUILDERS_GROUP)"
@@ -266,6 +278,21 @@ runtime: runtime-minimal
 # Convenience: full build
 build: base builders runtime-minimal
 build-all: base builders runtime-all
+
+# Build Bridge Adapter from its separate private source tree.
+bridge-adapter: TARGET ?= distroless
+bridge-adapter: check-bake
+	@case "$(TARGET)" in \
+	  distroless) BAKE_TARGET="bridge-adapter" ;; \
+	  rhel)       BAKE_TARGET="bridge-adapter-rhel" ;; \
+	  *) \
+	    echo "ERROR: Unsupported Bridge Adapter TARGET=$(TARGET)."; \
+	    echo "Allowed values: distroless, rhel."; \
+	    exit 1; \
+	    ;; \
+	esac; \
+	echo "==> Bake target: $$BAKE_TARGET (sources=$(BRIDGE_ADAPTER_SOURCES))"; \
+	$(bridge_adapter_bake_env) "$$BAKE_TARGET"
 
 # Build a single bake target by name (not group)
 bake-target: check-rhel-host

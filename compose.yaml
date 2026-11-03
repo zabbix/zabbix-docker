@@ -193,6 +193,25 @@ services:
   labels:
    com.zabbix.os: "${OS}"
 
+ bridge-adapter-init:
+  extends:
+   file: compose_zabbix_components.yaml
+   service: bridge-adapter-init
+  image: "${ZABBIX_BRIDGE_ADAPTER_IMAGE}:${ZBX_VERSION}"
+
+ zabbix-bridge-adapter:
+  extends:
+   file: compose_zabbix_components.yaml
+   service: bridge-adapter
+  image: "${ZABBIX_BRIDGE_ADAPTER_IMAGE}:${ZBX_VERSION}"
+  depends_on:
+   bridge-adapter-init:
+    condition: service_completed_successfully
+   zabbix-server:
+    condition: service_started
+   zabbix-web-nginx-mysql:
+    condition: service_healthy
+
  mysql-server:
   extends:
    file: compose_databases.yaml

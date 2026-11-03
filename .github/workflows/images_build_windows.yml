@@ -8,8 +8,10 @@ on:
     paths:
       - 'build.json'
       - 'Dockerfiles/*/windows/*'
+      - '!Dockerfiles/bridge-adapter/**'
       - 'templates/config/*_windows/**'
       - 'templates/entrypoints/**/*.go'
+      - '!templates/entrypoints/cmd/bridge-adapter/**'
       - 'templates/entrypoints/go.mod'
       - 'templates/entrypoints/licenses/go-THIRD-PARTY-NOTICES.txt'
       - '!**/README.md'

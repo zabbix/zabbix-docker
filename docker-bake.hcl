@@ -63,6 +63,12 @@ variable "ZBX_IMAGE_PREFIX" {
   description = "Prefix for Zabbix images"
 }
 
+variable "BRIDGE_ADAPTER_SOURCES" {
+  type        = string
+  default     = "bridge_adapter_sources"
+  description = "Path to the private Zabbix Bridge Adapter source tree"
+}
+
 // ----- Groups -----
 group "base" {
   targets = ["build-base"]
@@ -227,6 +233,23 @@ target "_runtime_pgsql" {
 
 target "_runtime_nodb" {
   inherits = ["_common"]
+}
+
+target "_bridge_adapter_common" {
+  context = "Dockerfiles/bridge-adapter"
+
+  contexts = {
+    bridge_adapter_sources = BRIDGE_ADAPTER_SOURCES
+    config_templates        = "templates/config"
+    entrypoints             = "templates/entrypoints"
+  }
+
+  args = {
+    BUILDKIT_INLINE_CACHE = "1"
+    ZBX_VERSION          = ZBX_VERSION
+  }
+
+  platforms = notequal(PLATFORMS, "") ? split(",", replace(PLATFORMS, " ", "")) : null
 }
 
 // =========================
@@ -399,4 +422,21 @@ target "snmptraps" {
     ENTRYPOINT_BUILD_IMAGE = ENTRYPOINT_BUILD_IMAGE
   }
   tags = ["${ZBX_IMAGE_NAMESPACE}${ZBX_IMAGE_PREFIX}snmptraps:${ZBX_IMAGE_TAG}"]
+}
+
+// =========================
+// Zabbix Bridge Adapter
+// =========================
+target "bridge-adapter" {
+  description = "Zabbix Bridge Adapter (distroless)"
+  inherits    = ["_bridge_adapter_common"]
+  dockerfile  = "distroless/Dockerfile"
+  tags        = ["${ZBX_IMAGE_NAMESPACE}${ZBX_IMAGE_PREFIX}bridge-adapter:${ZBX_VERSION}"]
+}
+
+target "bridge-adapter-rhel" {
+  description = "Zabbix Bridge Adapter (Red Hat UBI Micro)"
+  inherits    = ["_bridge_adapter_common"]
+  dockerfile  = "rhel/Dockerfile"
+  tags        = ["${ZBX_IMAGE_NAMESPACE}${ZBX_IMAGE_PREFIX}bridge-adapter:${ZBX_VERSION}"]
 }

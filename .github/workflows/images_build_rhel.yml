@@ -9,6 +9,7 @@ on:
       - 'trunk'
     paths:
       - 'Dockerfiles/*/rhel/*'
+      - '!Dockerfiles/bridge-adapter/**'
       - 'build.json'
       - '!**/README.md'
       - '!**/README.html'

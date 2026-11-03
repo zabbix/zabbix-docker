@@ -1,5 +1,5 @@
-Go entrypoint third-party notices
-=================================
+Go runtime and standard library third-party notices
+===================================================
 
 Component: Go standard library
 License: BSD-3-Clause

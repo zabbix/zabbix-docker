@@ -101,7 +101,14 @@ Before you start to code, we recommend discussing your plans through a [GitHub i
 
 Starting from Zabbix version 7.0, all subsequent Zabbix versions will be released under the GNU Affero General Public License version 3 (AGPLv3).
 You can modify the relevant version and propagate such modified version under the terms of the AGPLv3 as published by the Free Software Foundation.
+
 For additional details, including answers to common questions about the AGPLv3, see the generic FAQ from the [Free Software Foundation](http://www.fsf.org/licenses/gpl-faq.html).
 
 Zabbix is Open Source Software, however, if you use Zabbix in a commercial context we kindly ask you to support the development of Zabbix by purchasing some level of technical support.
 All previous Zabbix software versions up to 6.4 are released under the GNU General Public License version 2 (GPLv2). The formal terms of the GPLv2 and AGPLv3 can be found at http://www.fsf.org/licenses/.
+
+Zabbix Bridge Adapter is proprietary software licensed under the Zabbix Mobile App End User License Agreement (EULA), not under GPLv2 or AGPLv3. The source code of Zabbix Bridge Adapter is not made available or distributed.
+
+See the [current published EULA](https://www.zabbix.com/mobile_app_eula) and the [Zabbix Bridge Adapter image documentation](Dockerfiles/bridge-adapter/README.md#license) for license acceptance instructions.
+
+Unless otherwise noted, files in this repository are licensed under the [GNU Affero General Public License version 3 (AGPLv3)](https://www.gnu.org/licenses/agpl-3.0.html). Third-party components remain subject to their respective licenses.
