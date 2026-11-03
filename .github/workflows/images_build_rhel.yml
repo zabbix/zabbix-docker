@@ -14,8 +14,7 @@ on:
       - '!**/README.md'
       - '!**/README.html'
       - '.github/workflows/images_build_rhel.yml'
-      - 'templates/entrypoints/*.sh'
-      - 'templates/entrypoints/lib/**'
+      - 'templates/entrypoints/**'
       - '!templates/entrypoints/web-apache-*.sh'
       - '!templates/entrypoints/lib/apache.sh'
   workflow_dispatch:
@@ -59,6 +58,36 @@ env:
   RHEL_BUILD: "true"
 
 jobs:
+  test_entrypoints:
+    name: Test entrypoints
+    runs-on: ubuntu-26.04
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: templates/entrypoints
+    env:
+      CGO_ENABLED: "0"
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          sparse-checkout: templates/entrypoints
+
+      - name: Set up Go
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: templates/entrypoints/go.mod
+          cache-dependency-path: templates/entrypoints/go.sum
+
+      - name: Test entrypoints
+        run: |
+          openssl version
+          go test -count=1 ./...
+
+      - name: Build entrypoints
+        run: go build ./cmd/...
+
   init_build:
     name: Initialize build
     runs-on: ubuntu-26.04
@@ -161,7 +190,7 @@ jobs:
   build_base:
     timeout-minutes: 30
     name: Build ${{ matrix.build }} (${{ matrix.arch }})
-    needs: ["init_build"]
+    needs: ["init_build", "test_entrypoints"]
     strategy:
       fail-fast: false
       matrix:
