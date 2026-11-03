@@ -38,6 +38,7 @@ jobs:
           - build-sqlite3
           - agent
           - agent2
+          - bridge-adapter
           - java-gateway
           - mcp-server
           - proxy-mysql
