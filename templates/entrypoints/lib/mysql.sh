@@ -114,6 +114,7 @@ check_db_variables() {
 }
 
 check_db_connect() {
+    local connection_error
     local wait_timeout=5
 
     info "********************"
@@ -148,14 +149,15 @@ check_db_connect() {
     set_mysql_tls_args
     set_mysql_auth_env
 
-    while ! "$MYSQL_ADMIN_BIN" ping \
+    while ! connection_error="$("$MYSQL_ADMIN_BIN" ping \
         "${mysql_connect_args[@]}" \
         -u "${DB_SERVER_ROOT_USER}" \
         --silent \
         "${MYSQL_EXTRA_ARGS[@]}" \
         --connect_timeout=10 \
-        "${MYSQL_TLS_ARGS[@]}" >/dev/null 2>&1; do
-        info "**** MySQL server is not available. Waiting ${wait_timeout} seconds..."
+        "${MYSQL_TLS_ARGS[@]}" 2>&1 >/dev/null)"; do
+        connection_error="${connection_error##*$'\n'}"
+        info "**** MySQL connection failed: ${connection_error}. Waiting ${wait_timeout} seconds..."
         sleep "$wait_timeout"
     done
 
@@ -265,8 +267,8 @@ create_db_schema() {
     if [ -z "${ZBX_DB_VERSION:-}" ]; then
         info "** Creating '${DB_SERVER_DBNAME}' schema in MySQL"
         exec_sql_file "${db_schema_file}"
-        info "** Database schema successfully created!"
-
         apply_db_scripts
+
+        info "** Database schema successfully created!"
     fi
 }

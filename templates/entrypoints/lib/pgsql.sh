@@ -56,6 +56,7 @@ check_db_variables() {
 }
 
 check_db_connect() {
+    local connection_error
     local wait_timeout=5
 
     info "********************"
@@ -86,10 +87,13 @@ check_db_connect() {
     set_pg_env
 
     while :; do
-        psql "${psql_connect_args[@]}" --username "${DB_SERVER_ROOT_USER}" --list --quiet >/dev/null 2>&1 && break
-        psql "${psql_connect_args[@]}" --username "${DB_SERVER_ROOT_USER}" --list --dbname "${DB_SERVER_DBNAME}" --quiet >/dev/null 2>&1 && break
+        connection_error="$(psql "${psql_connect_args[@]}" --username "${DB_SERVER_ROOT_USER}" \
+            --list --quiet 2>&1 >/dev/null)" && break
+        connection_error="$(psql "${psql_connect_args[@]}" --username "${DB_SERVER_ROOT_USER}" \
+            --list --dbname "${DB_SERVER_DBNAME}" --quiet 2>&1 >/dev/null)" && break
 
-        info "**** PostgreSQL server is not available. Waiting ${wait_timeout} seconds..."
+        connection_error="${connection_error##*$'\n'}"
+        info "**** PostgreSQL connection failed: ${connection_error}. Waiting ${wait_timeout} seconds..."
         sleep "${wait_timeout}"
     done
 
