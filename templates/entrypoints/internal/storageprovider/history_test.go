@@ -126,6 +126,7 @@ func TestHistoryInvalidOptions(t *testing.T) {
 	}{
 		{"ssl_cert_file", "/custom/client.pem", "relative"},
 		{"ssl_key_file", "/custom/client.key", "relative"},
+		{"vault_path", "secret/history", "only supported by telemetry providers"},
 	} {
 		t.Run(test.field, func(t *testing.T) {
 			fields := map[string]any{"provider": "clickhouse", "url": "https://clickhouse:8443", "db": "zabbix", "types": []string{"uint"}, test.field: test.value}

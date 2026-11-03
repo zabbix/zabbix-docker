@@ -160,7 +160,7 @@ func TestSchemaVaultCredentials(t *testing.T) {
 		t.Fatal("schema initialization mutated the service's Vault configuration")
 	}
 
-	env["ZBX_HISTORYPROVIDER_0"] = fmt.Sprintf(`{"provider":"clickhouse","url":%q,"db":"history","types":["uint"],"username":"vault-user","password":"vault-secret","vault_path":"secret/history"}`, clickhouse.URL)
+	env["ZBX_HISTORYPROVIDER_0"] = fmt.Sprintf(`{"provider":"clickhouse","url":%q,"db":"history","types":["uint"],"username":"vault-user","password":"vault-secret"}`, clickhouse.URL)
 	env["ZBX_HISTORYPROVIDER_0_SCHEMA"] = `{"create":false}`
 	chCalls = 0
 	if err := ConfigureHistory(env); err != nil {
@@ -168,9 +168,6 @@ func TestSchemaVaultCredentials(t *testing.T) {
 	}
 	if vaultCalls != 1 || chCalls == 0 {
 		t.Fatalf("history preparation: Vault requests=%d, ClickHouse requests=%d", vaultCalls-1, chCalls)
-	}
-	if !strings.Contains(env["ZBX_HISTORYPROVIDER_0"], `vault_path="secret/history"`) {
-		t.Fatal("history vault_path was removed from the server configuration")
 	}
 }
 
