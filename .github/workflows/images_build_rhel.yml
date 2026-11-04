@@ -136,7 +136,9 @@ jobs:
         env:
           MATRIX_FILE: ${{ env.MATRIX_FILE }}
         run: |
-          platform_list="$(jq -c '.["os-linux"].rhel' "$MATRIX_FILE")"
+          platform_list="$(jq -ce '
+            .platforms.rhel as $rhel | [$rhel.imagePlatforms[] | split("/")[1] | $rhel.runnerLabels[.]]
+          ' "$MATRIX_FILE")"
 
           echo "::group::Platform List"
           echo "$platform_list"
@@ -151,9 +153,9 @@ jobs:
         run: |
           builder_list="$(jq -c '
             [.components
-             | map_values(select(.rhel == true))
-             | values[].base]
-            | map(select(length > 0))
+             | map_values(select(.platforms | index("rhel")))
+             | values[].builder]
+            | map(select(. != null))
             | unique
           ' "$MATRIX_FILE")"
 
@@ -170,7 +172,7 @@ jobs:
         run: |
           component_list="$(jq -c '
             .components
-            | map_values(select(.rhel == true))
+            | map_values(select(.platforms | index("rhel")))
             | keys
           ' "$MATRIX_FILE")"
 
@@ -547,7 +549,7 @@ jobs:
           MATRIX_BUILD: ${{ matrix.build }}
           MATRIX_FILE: ${{ env.MATRIX_FILE }}
         run: |
-          build_base="$(jq -r ".components.\"$MATRIX_BUILD\".base" "$MATRIX_FILE")"
+          build_base="$(jq -er --arg build "$MATRIX_BUILD" '.components[$build].builder' "$MATRIX_FILE")"
           [[ -n "$build_base" && "$build_base" != "null" ]] || { echo "::error::Base image is not defined for $MATRIX_BUILD"; exit 1; }
 
           echo "::group::Base Build Image"

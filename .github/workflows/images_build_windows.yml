@@ -97,8 +97,7 @@ jobs:
       run:
         shell: bash
     outputs:
-      os: ${{ steps.os.outputs.list }}
-      components: ${{ steps.components.outputs.list }}
+      images: ${{ steps.images.outputs.list }}
       is_default_branch: ${{ steps.branch_info.outputs.is_default_branch }}
       current_branch: ${{ steps.branch_info.outputs.current_branch }}
       sha_short: ${{ steps.branch_info.outputs.sha_short }}
@@ -134,30 +133,19 @@ jobs:
             exit 1
           fi
 
-      - name: Prepare Operating System list
-        id: os
+      - name: Prepare Windows build matrix
+        id: images
         env:
           MATRIX_FILE: ${{ env.MATRIX_FILE }}
         run: |
-          os_list="$(jq -c '.["os-windows"] | keys' "$MATRIX_FILE")"
-
-          echo "::group::Operating System List"
-          echo "$os_list"
-          echo "::endgroup::"
-
-          echo "list=$os_list" >> "$GITHUB_OUTPUT"
-
-      - name: Prepare Zabbix component list
-        id: components
-        shell: bash
-        run: |
-            component_list='["agent","agent2"]'
-
-            echo "::group::Zabbix Component List"
-            echo "$component_list"
-            echo "::endgroup::"
-
-            echo "list=$component_list" >> $GITHUB_OUTPUT
+          images="$(jq -ce '
+            .components as $components
+            | [.platforms | to_entries[] | select(.value.runner != null) as $platform
+              | $components | to_entries[]
+              | select(.value.platforms | index($platform.key))
+              | {os: $platform.value.runner, platform: $platform.key, component: .key}]
+          ' "$MATRIX_FILE")"
+          echo "list=$images" >> "$GITHUB_OUTPUT"
 
       - name: Get branch info
         id: branch_info
@@ -187,8 +175,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: ${{ fromJson(needs.init_build.outputs.os) }}
-        component: ${{ fromJson(needs.init_build.outputs.components) }}
+        include: ${{ fromJson(needs.init_build.outputs.images) }}
 
     steps:
       - name: Block egress traffic
@@ -243,16 +230,16 @@ jobs:
       - name: Base Windows OS tag
         id: base_os_tag
         env:
-          MATRIX_OS: ${{ matrix.os }}
+          MATRIX_PLATFORM: ${{ matrix.platform }}
           MATRIX_FILE: ${{ env.MATRIX_FILE }}
         run: |
           $matrixFile = "$env:MATRIX_FILE"
-          $matrixOs = "$env:MATRIX_OS"
+          $platform = "$env:MATRIX_PLATFORM"
 
-          $osTag = (Get-Content -Path $matrixFile | ConvertFrom-Json).'os-windows'."$matrixOs"
+          $osTag = (Get-Content -Raw -Path $matrixFile | ConvertFrom-Json).platforms."$platform".baseTag
 
           if ([string]::IsNullOrWhiteSpace($osTag)) {
-            throw "Failed to detect Windows base OS tag for '$matrixOs'"
+            throw "Failed to detect Windows base OS tag for '$platform'"
           }
 
           echo "::group::Base Microsoft Windows OS tag"
@@ -460,8 +447,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: ${{ fromJson(needs.init_build.outputs.os) }}
-        component: ${{ fromJson(needs.init_build.outputs.components) }}
+        include: ${{ fromJson(needs.init_build.outputs.images) }}
 
     steps:
       - name: Checkout repository
@@ -482,16 +468,16 @@ jobs:
       - name: Base OS tag
         id: base_os_tag
         env:
-          MATRIX_OS: ${{ matrix.os }}
+          MATRIX_PLATFORM: ${{ matrix.platform }}
           MATRIX_FILE: ${{ env.MATRIX_FILE }}
         run: |
           $matrixFile = "$env:MATRIX_FILE"
-          $matrixOs = "$env:MATRIX_OS"
+          $platform = "$env:MATRIX_PLATFORM"
 
-          $osTag = (Get-Content -Path $matrixFile | ConvertFrom-Json).'os-windows'."$matrixOs"
+          $osTag = (Get-Content -Raw -Path $matrixFile | ConvertFrom-Json).platforms."$platform".baseTag
 
           if ([string]::IsNullOrWhiteSpace($osTag)) {
-            throw "Failed to detect Windows base OS tag for '$matrixOs'"
+            throw "Failed to detect Windows base OS tag for '$platform'"
           }
 
           echo "::group::Base Windows OS tag"
@@ -623,8 +609,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: ${{ fromJson(needs.init_build.outputs.os) }}
-        component: ${{ fromJson(needs.init_build.outputs.components) }}
+        include: ${{ fromJson(needs.init_build.outputs.images) }}
 
     steps:
       - name: Block egress traffic
@@ -670,16 +655,16 @@ jobs:
       - name: Base OS tag
         id: base_os_tag
         env:
-          MATRIX_OS: ${{ matrix.os }}
+          MATRIX_PLATFORM: ${{ matrix.platform }}
           MATRIX_FILE: ${{ env.MATRIX_FILE }}
         run: |
           $matrixFile = "$env:MATRIX_FILE"
-          $matrixOs = "$env:MATRIX_OS"
+          $platform = "$env:MATRIX_PLATFORM"
 
-          $osTag = (Get-Content -Path $matrixFile | ConvertFrom-Json).'os-windows'."$matrixOs"
+          $osTag = (Get-Content -Raw -Path $matrixFile | ConvertFrom-Json).platforms."$platform".baseTag
 
           if ([string]::IsNullOrWhiteSpace($osTag)) {
-            throw "Failed to detect Windows base OS tag for '$matrixOs'"
+            throw "Failed to detect Windows base OS tag for '$platform'"
           }
 
           echo "::group::Base OS tag"
