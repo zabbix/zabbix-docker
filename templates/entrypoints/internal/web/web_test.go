@@ -333,6 +333,88 @@ func TestPrepareNginxReturnsSymlinkErrors(t *testing.T) {
 	}
 }
 
+func TestPrepareWebDisablesHTTPSWhenTLSFileIsRemoved(t *testing.T) {
+	for _, tc := range []struct {
+		name, enabledVHost, removedFile string
+		prepare                         func(bootstrap.Environment) error
+	}{
+		{"nginx", "nginx", "dhparam.pem", prepareNginx},
+		{"apache", "zabbix", "ssl.key", prepareApache},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			root := t.TempDir()
+			configDir := filepath.Join(root, "zabbix")
+			sitesDir := filepath.Join(root, "sites")
+			sslDir := filepath.Join(root, "ssl")
+			includesDir := filepath.Join(root, "includes")
+			for _, dir := range []string{configDir, sitesDir, sslDir, includesDir} {
+				if err := os.Mkdir(dir, 0o700); err != nil {
+					t.Fatal(err)
+				}
+			}
+
+			httpsSource := filepath.Join(configDir, tc.name+"_ssl.conf")
+			httpsLink := filepath.Join(sitesDir, tc.enabledVHost+"_ssl.conf")
+			for _, path := range []string{
+				filepath.Join(configDir, tc.name+".conf"), httpsSource,
+				filepath.Join(sslDir, "ssl.crt"), filepath.Join(sslDir, "ssl.key"), filepath.Join(sslDir, "dhparam.pem"),
+			} {
+				if err := os.WriteFile(path, nil, 0o600); err != nil {
+					t.Fatal(err)
+				}
+			}
+			env := bootstrap.Environment{
+				"ZABBIX_CONF_DIR": configDir, "ZBX_MAXEXECUTIONTIME": "600",
+				"NGINX_CONF_FILE": filepath.Join(root, "nginx.conf"), "NGINX_INCLUDES_DIR": includesDir,
+				"NGINX_CONFD_DIR": sitesDir, "NGINX_SSL_CONFIG_DIR": sslDir,
+				"APACHE_SITES_DIR": sitesDir, "APACHE_SSL_CONFIG_DIR": sslDir, "APACHE_RUN_DIR": filepath.Join(root, "run"),
+			}
+
+			prepare := func() {
+				t.Helper()
+				if err := tc.prepare(env); err != nil {
+					t.Fatal(err)
+				}
+			}
+			prepare()
+			if got, err := os.Readlink(httpsLink); err != nil || got != httpsSource {
+				t.Fatalf("HTTPS link = %q, error = %v", got, err)
+			}
+
+			if err := os.Remove(filepath.Join(sslDir, tc.removedFile)); err != nil {
+				t.Fatal(err)
+			}
+			prepare()
+			if _, err := os.Lstat(httpsLink); !os.IsNotExist(err) {
+				t.Fatalf("HTTPS link was not removed: %v", err)
+			}
+			if _, err := os.Readlink(filepath.Join(sitesDir, tc.enabledVHost+".conf")); err != nil {
+				t.Fatalf("HTTP link is missing: %v", err)
+			}
+
+			const customTarget = "custom-https.conf"
+			if err := os.Symlink(customTarget, httpsLink); err != nil {
+				t.Fatal(err)
+			}
+			prepare()
+			if got, err := os.Readlink(httpsLink); err != nil || got != customTarget {
+				t.Fatalf("custom HTTPS link = %q, error = %v", got, err)
+			}
+
+			if err := os.Remove(httpsLink); err != nil {
+				t.Fatal(err)
+			}
+			if err := os.WriteFile(httpsLink, []byte("custom vhost"), 0o600); err != nil {
+				t.Fatal(err)
+			}
+			prepare()
+			if got, err := os.ReadFile(httpsLink); err != nil || string(got) != "custom vhost" {
+				t.Fatalf("custom HTTPS file = %q, error = %v", got, err)
+			}
+		})
+	}
+}
+
 func TestStartStackReturnsFirstProcessExitCode(t *testing.T) {
 	root := t.TempDir()
 	phpBinary := filepath.Join(root, "php-fpm")

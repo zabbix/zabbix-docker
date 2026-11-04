@@ -43,9 +43,11 @@ func prepareNginx(env bootstrap.Environment) error {
 	}
 
 	sslDirectory := env.ValueOrDefaultNonEmpty("NGINX_SSL_CONFIG_DIR", "/etc/ssl/nginx")
+	httpsSource := filepath.Join(configDir, "nginx_ssl.conf")
+	httpsLink := filepath.Join(confDirectory, "nginx_ssl.conf")
 	if bootstrap.RegularFile(filepath.Join(sslDirectory, "ssl.crt")) && bootstrap.RegularFile(filepath.Join(sslDirectory, "ssl.key")) && bootstrap.RegularFile(filepath.Join(sslDirectory, "dhparam.pem")) {
 		bootstrap.LogInfo("** Enable SSL support for Nginx")
-		if err := bootstrap.ReplaceSymlink(filepath.Join(configDir, "nginx_ssl.conf"), filepath.Join(confDirectory, "nginx_ssl.conf")); err != nil {
+		if err := bootstrap.ReplaceSymlink(httpsSource, httpsLink); err != nil {
 			if !errors.Is(err, bootstrap.ErrMissingSymlinkSource) {
 				return fmt.Errorf("enable Nginx HTTPS virtual host: %w", err)
 			}
@@ -56,6 +58,9 @@ func prepareNginx(env bootstrap.Environment) error {
 			}
 		}
 	} else {
+		if err := bootstrap.RemoveMatchingSymlink(httpsSource, httpsLink); err != nil {
+			return fmt.Errorf("disable Nginx HTTPS virtual host: %w", err)
+		}
 		bootstrap.LogWarn("**** Impossible to enable SSL support for Nginx. Certificates are missing.")
 	}
 

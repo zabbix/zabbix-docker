@@ -85,6 +85,29 @@ func ReplaceSymlink(source, target string) error {
 	return os.Symlink(source, target)
 }
 
+// RemoveMatchingSymlink removes target if it is a symlink with the given source.
+func RemoveMatchingSymlink(source, target string) error {
+	info, err := os.Lstat(target)
+	if os.IsNotExist(err) {
+		return nil
+	}
+	if err != nil {
+		return err
+	}
+	if info.Mode()&os.ModeSymlink == 0 {
+		return nil
+	}
+
+	link, err := os.Readlink(target)
+	if err != nil {
+		return err
+	}
+	if link != source {
+		return nil
+	}
+	return os.Remove(target)
+}
+
 // RegularFile reports whether path exists and is a regular file.
 func RegularFile(path string) bool {
 	info, err := os.Stat(path)

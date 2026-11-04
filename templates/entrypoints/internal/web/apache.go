@@ -28,15 +28,20 @@ func prepareApache(env bootstrap.Environment) error {
 	}
 
 	sslDirectory := env.ValueOrDefaultNonEmpty("APACHE_SSL_CONFIG_DIR", "/etc/ssl/apache2")
+	httpsSource := filepath.Join(configDir, "apache_ssl.conf")
+	httpsLink := filepath.Join(sitesDirectory, "zabbix_ssl.conf")
 	if bootstrap.RegularFile(filepath.Join(sslDirectory, "ssl.crt")) && bootstrap.RegularFile(filepath.Join(sslDirectory, "ssl.key")) {
 		bootstrap.LogInfo("** Adding Zabbix virtual host (HTTPS)")
-		if err := bootstrap.ReplaceSymlink(filepath.Join(configDir, "apache_ssl.conf"), filepath.Join(sitesDirectory, "zabbix_ssl.conf")); err != nil {
+		if err := bootstrap.ReplaceSymlink(httpsSource, httpsLink); err != nil {
 			if !errors.Is(err, bootstrap.ErrMissingSymlinkSource) {
 				return fmt.Errorf("enable Apache HTTPS virtual host: %w", err)
 			}
 			bootstrap.LogWarn("**** Impossible to enable HTTPS virtual host")
 		}
 	} else {
+		if err := bootstrap.RemoveMatchingSymlink(httpsSource, httpsLink); err != nil {
+			return fmt.Errorf("disable Apache HTTPS virtual host: %w", err)
+		}
 		bootstrap.LogWarn("**** Impossible to enable SSL support for Apache2. Certificates are missing.")
 	}
 
