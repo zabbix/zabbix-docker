@@ -122,6 +122,35 @@ func TestConfigureItemKeyRulesValidation(t *testing.T) {
 			want: "ZBX_DENYKEY_2 uses index 2, but index 1 is missing",
 		},
 		{
+			name: "leading zero in deny index",
+			env: bootstrap.Environment{
+				"ZBX_ALLOWKEY_0": "system.run[*]",
+				"ZBX_DENYKEY_01": "system.run[rm *]",
+			},
+			want: "invalid indexed variable ZBX_DENYKEY_01",
+		},
+		{
+			name: "trailing text in regexp deny index",
+			env: bootstrap.Environment{
+				"ZBX_ALLOWKEY_0":        "system.run[*]",
+				"ZBX_DENYKEY_REGEXP_1a": "^system\\.run",
+			},
+			want: "invalid indexed variable ZBX_DENYKEY_REGEXP_1a",
+		},
+		{
+			name: "letter instead of digit in deny index",
+			env: bootstrap.Environment{
+				"ZBX_ALLOWKEY_0": "system.run[*]",
+				"ZBX_DENYKEY_O1": "system.run[rm *]",
+			},
+			want: "invalid indexed variable ZBX_DENYKEY_O1",
+		},
+		{
+			name: "space in allow index",
+			env:  bootstrap.Environment{"ZBX_ALLOWKEY_ 0": "system.localtime"},
+			want: "invalid indexed variable ZBX_ALLOWKEY_ 0",
+		},
+		{
 			name: "empty rule",
 			env:  bootstrap.Environment{"ZBX_ALLOWKEY_0": ""},
 			want: "ZBX_ALLOWKEY_0 must not be empty",
@@ -130,9 +159,18 @@ func TestConfigureItemKeyRulesValidation(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			err := ConfigureItemKeyRules(test.env, t.TempDir(), "item_keys.conf")
+			configDir := t.TempDir()
+			path := filepath.Join(configDir, "item_keys.conf")
+			const initial = "DenyKey=system.run[*]\n"
+			if err := os.WriteFile(path, []byte(initial), 0o600); err != nil {
+				t.Fatal(err)
+			}
+			err := ConfigureItemKeyRules(test.env, configDir, "item_keys.conf")
 			if err == nil || !strings.Contains(err.Error(), test.want) {
 				t.Fatalf("error = %v, want containing %q", err, test.want)
+			}
+			if got, err := os.ReadFile(path); err != nil || string(got) != initial {
+				t.Fatalf("item key config after validation error = %q, read error = %v", got, err)
 			}
 		})
 	}

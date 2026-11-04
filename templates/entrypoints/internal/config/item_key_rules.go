@@ -17,7 +17,7 @@ var itemKeyRuleParamByPrefix = map[string]string{
 // AllowKeyRegexp and DenyKeyRegexp variables to the end of the item key
 // configuration file.
 func ConfigureItemKeyRules(env bootstrap.Environment, configDir, fileName string) error {
-	rules, err := collectIndexedParams(env, itemKeyRuleParamByPrefix, false)
+	rules, err := collectIndexedParams(env, itemKeyRuleParamByPrefix, true)
 	if err != nil {
 		return err
 	}
