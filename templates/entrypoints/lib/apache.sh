@@ -32,6 +32,10 @@ prepare_web_server() {
             info "**** Impossible to enable HTTPS virtual host"
         fi
     else
+        if [ -L "${APACHE_SITES_DIR}/zabbix_ssl.conf" ] \
+            && [ "$(readlink "${APACHE_SITES_DIR}/zabbix_ssl.conf")" = "${ZABBIX_CONF_DIR}/apache_ssl.conf" ]; then
+            rm -f "${APACHE_SITES_DIR}/zabbix_ssl.conf"
+        fi
         info "**** Impossible to enable SSL support for Apache2. Certificates are missing."
     fi
 
