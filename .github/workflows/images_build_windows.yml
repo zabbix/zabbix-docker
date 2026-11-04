@@ -161,7 +161,7 @@ jobs:
 
   build_base:
     name: Build ${{ matrix.component }} base on ${{ matrix.os }}
-    needs: init_build
+    needs: ["init_build", "test_entrypoints"]
     if: needs.init_build.outputs.need_rebuild == 'true'
     runs-on: ${{ matrix.os }}
     timeout-minutes: 70
