@@ -55,8 +55,7 @@ update_config() {
     unset ZBX_SERVER_HOST
     unset ZBX_SERVER_PORT
 
-    update_config_multiple_var "${ZABBIX_CONF_DIR}/zabbix_agentd_item_keys.conf" "DenyKey" "${ZBX_DENYKEY:-}"
-    update_config_multiple_var "${ZABBIX_CONF_DIR}/zabbix_agentd_item_keys.conf" "AllowKey" "${ZBX_ALLOWKEY:-}"
+    configure_item_key_rules "${ZABBIX_CONF_DIR}/zabbix_agentd_item_keys.conf"
 
     update_config_multiple_var "${ZABBIX_CONF_DIR}/zabbix_agentd_modules.conf" "LoadModule" "${ZBX_LOADMODULE:-}"
 

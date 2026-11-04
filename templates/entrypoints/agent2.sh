@@ -68,8 +68,7 @@ update_config() {
         unset ZBX_STATUSPORT
     fi
 
-    update_config_multiple_var "${ZABBIX_CONF_DIR}/zabbix_agent2_item_keys.conf" "DenyKey" "${ZBX_DENYKEY:-}"
-    update_config_multiple_var "${ZABBIX_CONF_DIR}/zabbix_agent2_item_keys.conf" "AllowKey" "${ZBX_ALLOWKEY:-}"
+    configure_item_key_rules "${ZABBIX_CONF_DIR}/zabbix_agent2_item_keys.conf"
 
     file_process_from_env "${ZABBIX_INTERNAL_ENC_DIR}" "ZBX_TLSCAFILE" "${ZBX_TLSCAFILE:-}" "${ZBX_TLSCA:-}"
     file_process_from_env "${ZABBIX_INTERNAL_ENC_DIR}" "ZBX_TLSCRLFILE" "${ZBX_TLSCRLFILE:-}" "${ZBX_TLSCRL:-}"

@@ -109,7 +109,7 @@ update_config_var() {
     var_value="$(escape_special_chars "$var_value")"
     var_name="$(escape_special_chars "$var_name")"
 
-    if grep -qE "^${var_name}=${var_value}$" "$config_path"; then
+    if grep -Fqx -- "${var_name_raw}=${var_value_raw//$'\n'/}" "$config_path"; then
         log_message="$log_message exists"
     elif grep -qE "^${var_name}=" "$config_path" && [ "$is_multiple" != "true" ]; then
         sed -i -e "/^${var_name}=/s/=.*/=${var_value}/" "$config_path"
@@ -142,6 +142,33 @@ update_config_multiple_var() {
 
     for value in "${opt_list[@]}"; do
         update_config_var "$config_path" "$var_name" "$value" true
+    done
+}
+
+configure_item_key_rules() {
+    local config_path="$1"
+    local name env_name value rule
+    local -a rules
+
+    # Leave user-provided or read-only rule files untouched when no rules are set
+    [[ -n "${ZBX_DENYKEY:-}${ZBX_ALLOWKEY:-}" ]] || return 0
+
+    [[ -f "$config_path" ]] || error "Missing configuration file: $config_path"
+
+    sed -i -e \
+        '/^[[:space:]]*AllowKey[[:space:]]*=/d; /^[[:space:]]*DenyKey[[:space:]]*=/d' \
+        "$config_path"
+
+    for name in DenyKey AllowKey; do
+        env_name="ZBX_${name^^}"
+        value="${!env_name:-}"
+        value="${value%\"}"
+        value="${value#\"}"
+        IFS=, read -r -a rules <<< "$value"
+
+        for rule in "${rules[@]}"; do
+            [ -z "$rule" ] || printf '%s=%s\n' "$name" "$rule" >> "$config_path"
+        done
     done
 }
 
