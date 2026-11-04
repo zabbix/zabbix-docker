@@ -29,8 +29,8 @@ variable "MCP_SERVER_VERSION" {
 
 variable "OS_BASE_IMAGE" {
   type        = string
-  default     = "alpine:3.24"
-  description = "Base image for images. Passed to Dockerfiles as OS_BASE_IMAGE"
+  default     = ""
+  description = "Optional override for the base image declared in each Dockerfile"
 }
 
 variable "ENTRYPOINT_BUILD_IMAGE" {
@@ -166,7 +166,7 @@ group "default" {
 // ----- Common templates -----
 target "_common" {
   args = {
-    OS_BASE_IMAGE         = OS_BASE_IMAGE
+    OS_BASE_IMAGE         = notequal(OS_BASE_IMAGE, "") ? OS_BASE_IMAGE : null
     ZBX_VERSION           = ZBX_VERSION
     BUILDKIT_INLINE_CACHE = "1"
   }
