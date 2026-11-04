@@ -23,8 +23,8 @@ variable "GIT_BRANCH" {
 
 variable "OS_BASE_IMAGE" {
   type        = string
-  default     = "alpine:3.24"
-  description = "Base image for images. Passed to Dockerfiles as OS_BASE_IMAGE"
+  default     = ""
+  description = "Optional override for the base image declared in each Dockerfile"
 }
 
 variable "ZBX_IMAGE_TAG" {
@@ -146,7 +146,7 @@ group "default" {
 // ----- Common templates -----
 target "_common" {
   args = {
-    OS_BASE_IMAGE         = OS_BASE_IMAGE
+    OS_BASE_IMAGE         = notequal(OS_BASE_IMAGE, "") ? OS_BASE_IMAGE : null
     BUILDKIT_INLINE_CACHE = "1"
   }
 
