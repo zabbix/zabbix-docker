@@ -44,6 +44,10 @@ prepare_web_server() {
             warn "**** Impossible to enable HTTPS virtual host"
         fi
     else
+        if [ -L "${NGINX_CONFD_DIR}/nginx_ssl.conf" ] \
+            && [ "$(readlink "${NGINX_CONFD_DIR}/nginx_ssl.conf")" = "${ZABBIX_CONF_DIR}/nginx_ssl.conf" ]; then
+            rm -f "${NGINX_CONFD_DIR}/nginx_ssl.conf"
+        fi
         warn "**** Impossible to enable SSL support for Nginx. Certificates are missing."
     fi
 
