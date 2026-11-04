@@ -87,7 +87,7 @@ jobs:
         run: |
           set -Eeuo pipefail
 
-          component_list="$(jq -rc '.components | map_values(select(.rhel == true)) | keys' "$MATRIX_FILE")"
+          component_list="$(jq -rc '.components | map_values(select(.platforms | index("rhel"))) | keys' "$MATRIX_FILE")"
 
           if [[ -z "$component_list" || "$component_list" == "[]" ]]; then
             echo "::warning::No RHEL-enabled components found in $MATRIX_FILE"

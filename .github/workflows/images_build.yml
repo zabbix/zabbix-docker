@@ -118,7 +118,7 @@ jobs:
         env:
           MATRIX_FILE: ${{ env.MATRIX_FILE }}
         run: |
-          os_list="$(jq -c '.["os-linux"] | keys | map(select(. != "rhel"))' "$MATRIX_FILE")"
+          os_list="$(jq -ce '[.platforms | to_entries[] | select(.key != "rhel" and (.value.imagePlatforms[0] | startswith("linux/"))) | .key] | sort' "$MATRIX_FILE")"
 
           echo "::group::Operating System List"
           echo "$os_list"
@@ -129,12 +129,13 @@ jobs:
       - name: Prepare component builder list
         id: builders
         env:
+          OS_LIST: ${{ steps.os.outputs.list }}
           MATRIX_FILE: ${{ env.MATRIX_FILE }}
         run: |
-          builder_list="$(jq -c '
-            [.components | values[].base]
-            | map(select(length > 0))
-            | unique
+          builder_list="$(jq -ce --argjson oses "$OS_LIST" '
+            [. as $matrix | $oses[] as $os
+              | [$matrix.components[] | select(.platforms | index($os)) | .builder | select(. != null)]
+              | unique[] | {os: $os, build: .}]
           ' "$MATRIX_FILE")"
 
           echo "::group::Component Builder List"
@@ -146,9 +147,14 @@ jobs:
       - name: Prepare component list
         id: components
         env:
+          OS_LIST: ${{ steps.os.outputs.list }}
           MATRIX_FILE: ${{ env.MATRIX_FILE }}
         run: |
-          component_list="$(jq -c '.components | keys' "$MATRIX_FILE")"
+          component_list="$(jq -ce --argjson oses "$OS_LIST" '
+            [. as $matrix | $oses[] as $os
+              | $matrix.components | to_entries[] | select(.value.platforms | index($os))
+              | {os: $os, build: .key}]
+          ' "$MATRIX_FILE")"
 
           echo "::group::Zabbix Component List"
           echo "$component_list"
@@ -302,7 +308,7 @@ jobs:
           MATRIX_OS: ${{ matrix.os }}
           MATRIX_FILE: ${{ env.MATRIX_FILE }}
         run: |
-          platform_list="$(jq -r --arg os "$MATRIX_OS" '.["os-linux"][$os] | join(",")' "$MATRIX_FILE")"
+          platform_list="$(jq -er --arg os "$MATRIX_OS" '.platforms[$os].imagePlatforms | join(",")' "$MATRIX_FILE")"
 
           echo "::group::Platform List"
           echo "$platform_list"
@@ -370,8 +376,7 @@ jobs:
           IMAGE_DIGEST: ${{ steps.docker_build.outputs.digest }}
           IMAGE_NAME: ${{ fromJSON(steps.docker_build.outputs.metadata)['image.name'] }}
         run: |
-          jq -n --arg digest "$IMAGE_DIGEST" --arg name "$IMAGE_NAME" \
-              '{"containerimage.digest": $digest, "image.name": $name}' > "$CACHE_FILE_NAME"
+          jq -n --arg digest "$IMAGE_DIGEST" --arg name "$IMAGE_NAME" '{"containerimage.digest": $digest, "image.name": $name}' > "$CACHE_FILE_NAME"
 
           echo "::group::Image metadata"
           cat "$CACHE_FILE_NAME"
@@ -394,8 +399,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        build: ${{ fromJson(needs.init_build.outputs.builders) }}
-        os: ${{ fromJson(needs.init_build.outputs.os) }}
+        include: ${{ fromJson(needs.init_build.outputs.builders) }}
     runs-on: ubuntu-26.04
     permissions:
       contents: read
@@ -419,7 +423,7 @@ jobs:
           MATRIX_OS: ${{ matrix.os }}
           MATRIX_FILE: ${{ env.MATRIX_FILE }}
         run: |
-          platform_list="$(jq -r --arg os "$MATRIX_OS" '.["os-linux"][$os] | join(",")' "$MATRIX_FILE")"
+          platform_list="$(jq -er --arg os "$MATRIX_OS" '.platforms[$os].imagePlatforms | join(",")' "$MATRIX_FILE")"
 
           echo "::group::Platform List"
           echo "$platform_list"
@@ -538,8 +542,7 @@ jobs:
           IMAGE_DIGEST: ${{ steps.docker_build.outputs.digest }}
           IMAGE_NAME: ${{ fromJSON(steps.docker_build.outputs.metadata)['image.name'] }}
         run: |
-          jq -n --arg digest "$IMAGE_DIGEST" --arg name "$IMAGE_NAME" \
-              '{"containerimage.digest": $digest, "image.name": $name}' > "$CACHE_FILE_NAME"
+          jq -n --arg digest "$IMAGE_DIGEST" --arg name "$IMAGE_NAME" '{"containerimage.digest": $digest, "image.name": $name}' > "$CACHE_FILE_NAME"
 
           echo "::group::Image metadata"
           cat "$CACHE_FILE_NAME"
@@ -562,8 +565,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        build: ${{ fromJson(needs.init_build.outputs.components) }}
-        os: ${{ fromJson(needs.init_build.outputs.os) }}
+        include: ${{ fromJson(needs.init_build.outputs.components) }}
 
     runs-on: ubuntu-26.04
     permissions:
@@ -692,24 +694,12 @@ jobs:
           MATRIX_BUILD: ${{ matrix.build }}
           MATRIX_FILE: ${{ env.MATRIX_FILE }}
         run: |
-          if [[ "$MATRIX_BUILD" == "web-service" ]]; then
-            case "$MATRIX_OS" in
-              alpine|centos|ol|ubuntu)
-                platform_list="linux/amd64,linux/arm64"
-                ;;
-              *)
-                platform_list="$(jq -r --arg os "$MATRIX_OS" '.["os-linux"][$os] | join(",")' "$MATRIX_FILE")"
-                ;;
-            esac
-          else
-            platform_list="$(jq -r --arg os "$MATRIX_OS" '.["os-linux"][$os] | join(",")' "$MATRIX_FILE")"
-          fi
-
-          if [[ "$MATRIX_BUILD" != agent* ]]; then
-            platform_list="${platform_list#linux/386,}"
-          fi
-
-          platform_list="${platform_list%,}"
+          platform_list="$(jq -er --arg os "$MATRIX_OS" --arg build "$MATRIX_BUILD" '
+            .components[$build].architectures as $arches
+            | .platforms[$os].imagePlatforms
+            | map(split("/")[1] as $arch | select($arches == null or ($arches | index($arch))))
+            | select(length > 0) | join(",")
+          ' "$MATRIX_FILE")"
 
           echo "::group::Platform List"
           echo "$platform_list"
@@ -724,7 +714,7 @@ jobs:
           MATRIX_BUILD: ${{ matrix.build }}
           MATRIX_FILE: ${{ env.MATRIX_FILE }}
         run: |
-          build_base="$(jq -r --arg build "$MATRIX_BUILD" '.components[$build].base' "$MATRIX_FILE")"
+          build_base="$(jq -r --arg build "$MATRIX_BUILD" '.components[$build].builder' "$MATRIX_FILE")"
 
           [[ -n "$build_base" && "$build_base" != "null" ]] || { echo "::error::Base image is not defined for $MATRIX_BUILD"; exit 1; }
 

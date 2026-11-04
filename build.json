@@ -1,47 +1,80 @@
 {
-  "os-linux": {
-    "alpine": [
-      "linux/amd64",
-      "linux/arm64",
-      "linux/s390x",
-      "linux/ppc64le",
-      "linux/riscv64"
-    ],
-    "centos": [
-      "linux/amd64",
-      "linux/arm64",
-      "linux/ppc64le"
-    ],
-    "ol": [
-      "linux/amd64",
-      "linux/arm64"
-    ],
-    "rhel": [
-      "X64",
-      "ARM64"
-    ],
-    "ubuntu": [
-      "linux/amd64",
-      "linux/arm64",
-      "linux/ppc64le"
-    ]
-  },
-  "os-windows": {
-    "windows-2022": "ltsc2022"
+  "platforms": {
+    "alpine": {
+      "imagePlatforms": ["linux/amd64", "linux/arm64", "linux/s390x", "linux/ppc64le", "linux/riscv64"]
+    },
+    "centos": {
+      "imagePlatforms": ["linux/amd64", "linux/arm64", "linux/ppc64le"]
+    },
+    "ol": {
+      "imagePlatforms": ["linux/amd64", "linux/arm64"]
+    },
+    "rhel": {
+      "imagePlatforms": ["linux/amd64", "linux/arm64"],
+      "runnerLabels": {"amd64": "X64", "arm64": "ARM64"}
+    },
+    "ubuntu": {
+      "imagePlatforms": ["linux/amd64", "linux/arm64", "linux/ppc64le"]
+    },
+    "windows-ltsc2022": {
+      "imagePlatforms": ["windows/amd64"],
+      "runner": "windows-2022",
+      "baseTag": "ltsc2022"
+    }
   },
   "components": {
-    "agent": { "base": "build-common", "rhel": true },
-    "agent2": { "base": "build-common", "rhel": true },
-    "java-gateway": { "base": "build-common", "rhel": true },
-    "proxy-mysql": { "base": "build-mysql", "rhel": true },
-    "proxy-sqlite3": { "base": "build-sqlite3", "rhel": true },
-    "server-mysql": { "base": "build-mysql", "rhel": true },
-    "server-pgsql": { "base": "build-pgsql", "rhel": true },
-    "snmptraps": { "base": "", "rhel": true },
-    "web-apache-mysql": { "base": "build-common", "rhel": false },
-    "web-apache-pgsql": { "base": "build-common", "rhel": false },
-    "web-nginx-mysql": { "base": "build-common", "rhel": true },
-    "web-nginx-pgsql": { "base": "build-common", "rhel": true },
-    "web-service": { "base": "build-common", "rhel": true }
+    "agent": {
+      "builder": "build-common",
+      "platforms": ["alpine", "centos", "ol", "rhel", "ubuntu", "windows-ltsc2022"]
+    },
+    "agent2": {
+      "builder": "build-common",
+      "platforms": ["alpine", "centos", "ol", "rhel", "ubuntu", "windows-ltsc2022"]
+    },
+    "java-gateway": {
+      "builder": "build-common",
+      "platforms": ["alpine", "centos", "ol", "rhel", "ubuntu"]
+    },
+    "proxy-mysql": {
+      "builder": "build-mysql",
+      "platforms": ["alpine", "centos", "ol", "rhel", "ubuntu"]
+    },
+    "proxy-sqlite3": {
+      "builder": "build-sqlite3",
+      "platforms": ["alpine", "centos", "ol", "rhel", "ubuntu"]
+    },
+    "server-mysql": {
+      "builder": "build-mysql",
+      "platforms": ["alpine", "centos", "ol", "rhel", "ubuntu"]
+    },
+    "server-pgsql": {
+      "builder": "build-pgsql",
+      "platforms": ["alpine", "centos", "ol", "rhel", "ubuntu"]
+    },
+    "snmptraps": {
+      "builder": null,
+      "platforms": ["alpine", "centos", "ol", "rhel", "ubuntu"]
+    },
+    "web-apache-mysql": {
+      "builder": "build-common",
+      "platforms": ["alpine", "centos", "ol", "ubuntu"]
+    },
+    "web-apache-pgsql": {
+      "builder": "build-common",
+      "platforms": ["alpine", "centos", "ol", "ubuntu"]
+    },
+    "web-nginx-mysql": {
+      "builder": "build-common",
+      "platforms": ["alpine", "centos", "ol", "rhel", "ubuntu"]
+    },
+    "web-nginx-pgsql": {
+      "builder": "build-common",
+      "platforms": ["alpine", "centos", "ol", "rhel", "ubuntu"]
+    },
+    "web-service": {
+      "builder": "build-common",
+      "platforms": ["alpine", "centos", "ol", "rhel", "ubuntu"],
+      "architectures": ["amd64", "arm64"]
+    }
   }
 }
