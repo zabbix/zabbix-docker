@@ -114,8 +114,7 @@ update_config() {
     update_config_var "${ZBX_AGENT_CONFIG}" "TLSPSKIdentity" "${ZBX_TLSPSKIDENTITY:-}"
     file_process_from_env "${ZABBIX_INTERNAL_ENC_DIR}" "${ZBX_AGENT_CONFIG}" "TLSPSKFile" "${ZBX_TLSPSKFILE:-}" "${ZBX_TLSPSK:-}"
 
-    update_config_multiple_var "${ZBX_AGENT_CONFIG}" "DenyKey" "${ZBX_DENYKEY:-}"
-    update_config_multiple_var "${ZBX_AGENT_CONFIG}" "AllowKey" "${ZBX_ALLOWKEY:-}"
+    configure_item_key_rules "${ZBX_AGENT_CONFIG}"
 }
 
 update_plugin_config() {

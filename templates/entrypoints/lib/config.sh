@@ -149,6 +149,33 @@ update_config_multiple_var() {
     done
 }
 
+configure_item_key_rules() {
+    local config_path="$1"
+    local name env_name value rule
+    local -a rules
+
+    # Leave user-provided or read-only rule files untouched when no rules are set
+    [[ -n "${ZBX_DENYKEY:-}${ZBX_ALLOWKEY:-}" ]] || return 0
+
+    [[ -f "$config_path" ]] || error "Missing configuration file: $config_path"
+
+    sed -i -e \
+        '/^[[:space:]]*AllowKey[[:space:]]*=/d; /^[[:space:]]*DenyKey[[:space:]]*=/d' \
+        "$config_path"
+
+    for name in DenyKey AllowKey; do
+        env_name="ZBX_${name^^}"
+        value="${!env_name:-}"
+        value="${value%\"}"
+        value="${value#\"}"
+        IFS=, read -r -a rules <<< "$value"
+
+        for rule in "${rules[@]}"; do
+            [ -z "$rule" ] || printf '%s=%s\n' "$name" "$rule" >> "$config_path"
+        done
+    done
+}
+
 file_process_from_env() {
     local dir_name="${1:-}"
     local config_path="${2:-}"
