@@ -32,6 +32,7 @@ ENV TERM=xterm \
     ZABBIX_CONF_DIR=/etc/zabbix
 
 ENV ZBX_PERSISTENTBUFFERFILE=$ZABBIX_USER_HOME_DIR/buffer/agent2.db \
+    ZBX_PROFILERDIR=${ZABBIX_USER_HOME_DIR}/profiler \
     ZBX_USERPARAMETERDIR=${ZABBIX_USER_HOME_DIR}/user_scripts
 
 LABEL description="Zabbix agent 2 is deployed on a monitoring target to actively monitor local resources and applications" \
@@ -111,6 +112,7 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
         ${ZABBIX_USER_HOME_DIR}/enc \
         ${ZABBIX_USER_HOME_DIR}/enc_internal \
         ${ZABBIX_USER_HOME_DIR}/buffer \
+        ${ZBX_PROFILERDIR} \
         ${ZBX_USERPARAMETERDIR} && \
     FIX_PERM_LIST="\
         ${ZABBIX_CONF_DIR}/zabbix_agent2_item_keys.conf \

@@ -34,6 +34,7 @@ ENV ZABBIX_USER_HOME_DIR="C:\zabbix" `
     ZABBIX_CONF_DIR="C:\zabbix\conf"
 
 ENV ZBX_PERSISTENTBUFFERFILE="$ZABBIX_USER_HOME_DIR\buffer\agent2.db" `
+    ZBX_PROFILERDIR="${ZABBIX_USER_HOME_DIR}\profiler" `
     ZBX_USERPARAMETERDIR="${ZABBIX_USER_HOME_DIR}\user_scripts"
 
 LABEL org.opencontainers.image.title="Zabbix agent 2" `
@@ -77,6 +78,7 @@ RUN Set-Location -Path $env:SystemDrive\.; `
     New-Item -Force -ItemType directory -Path $env:ZABBIX_USER_HOME_DIR\enc | Out-Null; `
     New-Item -Force -ItemType directory -Path $env:ZABBIX_USER_HOME_DIR\enc_internal | Out-Null; `
     New-Item -Force -ItemType directory -Path $env:ZABBIX_USER_HOME_DIR\buffer | Out-Null; `
+    New-Item -Force -ItemType directory -Path $env:ZBX_PROFILERDIR | Out-Null; `
     New-Item -Force -ItemType directory -Path $env:ZBX_USERPARAMETERDIR | Out-Null; `
     `
     net accounts /MaxPWAge:unlimited; `
