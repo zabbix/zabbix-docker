@@ -911,10 +911,13 @@ services:
   volumes:
    - /etc/localtime:/etc/localtime:ro
    - ${DATA_DIRECTORY}/var/lib/zabbix/bridge-adapter:/var/lib/zabbix/bridge-adapter:rw
+   - ${DATA_DIRECTORY}/var/lib/zabbix/enc:/var/lib/zabbix/enc:ro
    - ${DATA_DIRECTORY}/var/lib/zabbix/ssl/certs:/var/lib/zabbix/ssl/certs:ro
    - ${DATA_DIRECTORY}/var/lib/zabbix/ssl/keys:/var/lib/zabbix/ssl/keys:ro
    - ${DATA_DIRECTORY}/var/lib/zabbix/ssl/ssl_ca:/var/lib/zabbix/ssl/ssl_ca:ro
-  tmpfs: /tmp
+  tmpfs:
+   - /tmp
+   - /var/lib/zabbix/enc_internal:mode=0700,uid=1997,gid=0
   env_file:
    - path: ${ENV_VARS_DIRECTORY}/.env_bridge_adapter
      required: true
