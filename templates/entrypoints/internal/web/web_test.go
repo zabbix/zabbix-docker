@@ -166,6 +166,44 @@ func TestPrepareFrontendAliasesPriority(t *testing.T) {
 	}
 }
 
+func TestPrepareFrontendAliasesInlineTLS(t *testing.T) {
+	homeDir := t.TempDir()
+	if err := os.Mkdir(filepath.Join(homeDir, "enc_internal"), 0o700); err != nil {
+		t.Fatal(err)
+	}
+	env := bootstrap.Environment{
+		"ZABBIX_USER_HOME_DIR": homeDir,
+		"ZBX_DBTLSCA":          "inline CA",
+		"ZBX_DBTLSCERTFILE":    "client.pem",
+		"ZBX_VAULTTLSCERT":     "inline Vault certificate",
+		"ZBX_VAULTKEYFILE":     "vault.key",
+	}
+	if err := prepareFrontendAliases(env); err != nil {
+		t.Fatal(err)
+	}
+	internal := filepath.Join(homeDir, "enc_internal")
+	for name, want := range map[string]string{
+		"ZBX_DBTLSCAFILE":      filepath.Join(internal, "ZBX_DBTLSCAFILE"),
+		"ZBX_DBTLSCERTFILE":    filepath.Join(bootstrap.SecretsDir, "client.pem"),
+		"ZBX_VAULTTLSCERTFILE": filepath.Join(internal, "ZBX_VAULTTLSCERTFILE"),
+		"ZBX_VAULTTLSKEYFILE":  filepath.Join(bootstrap.WebCertsDir, "vault.key"),
+	} {
+		if env[name] != want {
+			t.Errorf("%s = %q, want %q", name, env[name], want)
+		}
+	}
+	for _, name := range []string{"ZBX_DBTLSCA", "ZBX_VAULTTLSCERT", "ZBX_VAULTKEYFILE"} {
+		if _, found := env[name]; found {
+			t.Errorf("%s was left in the environment", name)
+		}
+	}
+
+	env = bootstrap.Environment{"ZABBIX_USER_HOME_DIR": homeDir, "ZBX_DB_KEY_FILE": "legacy.pem", "ZBX_DBTLSKEY": "inline"}
+	if err := prepareFrontendAliases(env); err == nil {
+		t.Fatal("legacy file and inline DB TLS key were both accepted")
+	}
+}
+
 func TestClearWebEnv(t *testing.T) {
 	tests := []struct {
 		name            string

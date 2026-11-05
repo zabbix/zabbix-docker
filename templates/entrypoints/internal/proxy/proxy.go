@@ -33,10 +33,8 @@ func Prepare(env bootstrap.Environment, defaultHostname string) error {
 	if err != nil {
 		return err
 	}
-	for _, name := range []string{"ZBX_VAULTTLSCERTFILE", "ZBX_VAULTTLSKEYFILE"} {
-		if err := bootstrap.ResolveFileEnv(env, name, filepath.Join(homeDir, "enc")); err != nil {
-			return err
-		}
+	if err := bootstrap.ProcessTLSFiles(env, filepath.Join(homeDir, "enc"), "ZBX_VAULTTLSCERT", "ZBX_VAULTTLSKEY"); err != nil {
+		return err
 	}
 
 	if err := bootstrap.PrepareCertDir(filepath.Join(homeDir, "ssl", "ssl_ca"), env["ZBX_SSLCALOCATION"]); err != nil {

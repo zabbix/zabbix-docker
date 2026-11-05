@@ -104,6 +104,7 @@ services:
   tmpfs:
    - /tmp
    - /var/lib/zabbix/ssl/ssl_ca_internal:mode=770,uid=1997,gid=0
+   - /var/lib/zabbix/enc_internal:mode=0700,uid=1997,gid=0
   networks:
    database:
   command: init_db_telemetry
@@ -153,7 +154,9 @@ services:
    - ${DATA_DIRECTORY}/var/lib/zabbix/enc:/var/lib/zabbix/enc:ro
 #   - mysql_socket:/var/run/mysqld/
   command: init_db_only
-  tmpfs: /tmp
+  tmpfs:
+   - /tmp
+   - /var/lib/zabbix/enc_internal:mode=0700,uid=1997,gid=0
   env_file:
    - path: ${ENV_VARS_DIRECTORY}/.env_db_mysql
      required: true
@@ -188,7 +191,9 @@ services:
 #   - ${ENV_VARS_DIRECTORY}/.ZBX_DB_KEY_FILE:/run/secrets/client-key.pem:ro
 #   - pgsql_socket:/var/run/postgresql
   command: init_db_only
-  tmpfs: /tmp
+  tmpfs:
+   - /tmp
+   - /var/lib/zabbix/enc_internal:mode=0700,uid=1997,gid=0
   env_file:
    - path: ${ENV_VARS_DIRECTORY}/.env_db_pgsql
      required: true
@@ -342,7 +347,9 @@ services:
    - ${DATA_DIRECTORY}/var/lib/zabbix/enc:/var/lib/zabbix/enc:ro
 #   - mysql_socket:/var/run/mysqld/
   command: init_db_only
-  tmpfs: /tmp
+  tmpfs:
+   - /tmp
+   - /var/lib/zabbix/enc_internal:mode=0700,uid=1997,gid=0
   env_file:
    - path: ${ENV_VARS_DIRECTORY}/.env_db_mysql_proxy
      required: true

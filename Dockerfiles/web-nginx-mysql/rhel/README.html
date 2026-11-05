@@ -97,12 +97,12 @@ podman run --name some-zabbix-web-nginx-mysql --secret MYSQL_USER --secret MYSQL
 <p>Information message about maintenance period for Zabbix web-interface.</p>
 <h3 id="-zbx_db_encryption-"><code>ZBX_DB_ENCRYPTION</code></h3>
 <p>The variable allows to activate encryption for connections to Zabbix database. Even if no other environment variables are specified, connections will be TLS-encrypted if <code>ZBX_DB_ENCRYPTION=true</code> specified. Available since 5.0.0. Disabled by default.</p>
-<h3 id="-zbx_dbtlskeyfile-"><code>ZBX_DBTLSKEYFILE</code></h3>
-<p>The variable allows to specify a TLS key file. Available since 5.0.0.</p>
-<h3 id="-zbx_dbtlscertfile-"><code>ZBX_DBTLSCERTFILE</code></h3>
-<p>The variable allows to specify a TLS certificate file. Available since 5.0.0.</p>
-<h3 id="-zbx_dbtlscafile-"><code>ZBX_DBTLSCAFILE</code></h3>
-<p>The variable allows to specify a TLS certificate authority file. Available since 5.0.0.</p>
+<h3 id="-zbx_dbtlscafile-"><code>ZBX_DBTLSCAFILE</code>, <code>ZBX_DBTLSCA</code></h3>
+<p><code>ZBX_DBTLSCAFILE</code> specifies a TLS certificate authority file. A relative path is resolved against <code>/run/secrets</code>. Available since 5.0.0. Alternatively, <code>ZBX_DBTLSCA</code> provides the CA certificate content directly.</p>
+<h3 id="-zbx_dbtlscertfile-"><code>ZBX_DBTLSCERTFILE</code>, <code>ZBX_DBTLSCERT</code></h3>
+<p><code>ZBX_DBTLSCERTFILE</code> specifies a TLS certificate file. A relative path is resolved against <code>/run/secrets</code>. Available since 5.0.0. Alternatively, <code>ZBX_DBTLSCERT</code> provides the certificate content directly.</p>
+<h3 id="-zbx_dbtlskeyfile-"><code>ZBX_DBTLSKEYFILE</code>, <code>ZBX_DBTLSKEY</code></h3>
+<p><code>ZBX_DBTLSKEYFILE</code> specifies a TLS key file. A relative path is resolved against <code>/run/secrets</code>. Available since 5.0.0. Alternatively, <code>ZBX_DBTLSKEY</code> provides the key content directly.</p>
 <h3 id="-zbx_db_verify_host-"><code>ZBX_DB_VERIFY_HOST</code></h3>
 <p>The variable controls database hostname verification. Enabled by default; set ZBX_DB_VERIFY_HOST=false to disable it. Available since 5.0.0.</p>
 <h3 id="-zbx_dbtlscipher-"><code>ZBX_DBTLSCIPHER</code></h3>
@@ -134,7 +134,9 @@ podman run --name some-zabbix-web-nginx-mysql --secret MYSQL_USER --secret MYSQL
 <span class="hljs-attr">ZBX_VAULTAPPSECRETID=</span> <span class="hljs-comment"># Available since 8.0.0</span>
 <span class="hljs-attr">ZBX_VAULTPREFIX=</span> <span class="hljs-comment"># Available since 7.0.0</span>
 <span class="hljs-attr">ZBX_VAULTTLSCERTFILE=</span> <span class="hljs-comment"># Available since 6.2.0</span>
+<span class="hljs-attr">ZBX_VAULTTLSCERT=</span>
 <span class="hljs-attr">ZBX_VAULTTLSKEYFILE=</span> <span class="hljs-comment"># Available since 6.2.0</span>
+<span class="hljs-attr">ZBX_VAULTTLSKEY=</span>
 <span class="hljs-attr">ZBX_VAULTCACHE=false</span> <span class="hljs-comment"># Available since 6.2.0</span>
 
 <span class="hljs-attr">ZBX_CERT_STORAGE=database</span> <span class="hljs-comment"># Available since 8.0.0</span>

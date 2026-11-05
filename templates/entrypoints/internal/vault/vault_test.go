@@ -41,6 +41,33 @@ func TestResolveVaultFileName(t *testing.T) {
 	}
 }
 
+func TestResolveVaultFileInline(t *testing.T) {
+	homeDir := t.TempDir()
+	if err := os.Mkdir(filepath.Join(homeDir, "enc_internal"), 0o700); err != nil {
+		t.Fatal(err)
+	}
+	env := bootstrap.Environment{"ZABBIX_USER_HOME_DIR": homeDir, "ZBX_VAULTTLSCERT": "inline certificate"}
+	resolved, err := resolveVaultFile(env, "ZBX_VAULTCERTFILE", "ZBX_VAULTTLSCERTFILE")
+	if err != nil {
+		t.Fatal(err)
+	}
+	want := filepath.Join(homeDir, "enc_internal", "ZBX_VAULTTLSCERTFILE")
+	if resolved != want || env["ZBX_VAULTTLSCERTFILE"] != want {
+		t.Fatalf("resolved Vault file = %q, environment = %q, want %q", resolved, env["ZBX_VAULTTLSCERTFILE"], want)
+	}
+	if data, err := os.ReadFile(want); err != nil || string(data) != "inline certificate" {
+		t.Fatalf("inline Vault certificate = %q, %v", data, err)
+	}
+	if _, found := env["ZBX_VAULTTLSCERT"]; found {
+		t.Error("inline ZBX_VAULTTLSCERT was left in the environment")
+	}
+
+	env = bootstrap.Environment{"ZABBIX_USER_HOME_DIR": homeDir, "ZBX_VAULTTLSKEY": "inline", "ZBX_VAULTTLSKEYFILE": "key.pem"}
+	if _, err := resolveVaultFile(env, "ZBX_VAULTKEYFILE", "ZBX_VAULTTLSKEYFILE"); err == nil || !strings.Contains(err.Error(), "exclusive") {
+		t.Fatalf("inline and file Vault key: error = %v", err)
+	}
+}
+
 func TestResolveVaultFilePriority(t *testing.T) {
 	homeDir := t.TempDir()
 	for _, names := range [][2]string{
