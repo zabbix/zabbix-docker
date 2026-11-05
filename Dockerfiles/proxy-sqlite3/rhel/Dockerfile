@@ -48,9 +48,9 @@ ENV ZBX_FPINGLOCATION=/usr/sbin/fping \
 
 LABEL description="Zabbix proxy with SQLite3 database support" \
       maintainer="alexey.pustovalov@zabbix.com" \
-      name="zabbix/zabbix-proxy-sqlite3-trunk" \
+      name="zabbix/zabbix-proxy-sqlite3-80" \
       release="${RELEASE}" \
-      run="docker run --name zabbix-proxy -p 10051:10051 -d registry.connect.redhat.com/zabbix/zabbix-proxy-sqlite-trunk:${ZBX_VERSION}" \
+      run="docker run --name zabbix-proxy -p 10051:10051 -d registry.connect.redhat.com/zabbix/zabbix-proxy-sqlite-80:${ZBX_VERSION}" \
       summary="Zabbix proxy (SQLite3)" \
       url="https://www.zabbix.com/" \
       vendor="Zabbix SIA" \

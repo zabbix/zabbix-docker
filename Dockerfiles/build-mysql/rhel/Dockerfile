@@ -11,7 +11,7 @@ ARG MAJOR_VERSION
 ARG RELEASE
 ARG ZBX_VERSION
 ARG ZBX_SOURCES=https://git.zabbix.com/scm/zbx/zabbix.git
-ARG GIT_BRANCH=master
+ARG GIT_BRANCH
 ARG ZBX_PRODUCT_REF=${GIT_BRANCH:-$ZBX_VERSION}
 ARG ZBX_PRODUCT_REVISION=unknown
 
@@ -22,7 +22,7 @@ ARG LDFLAGS
 
 LABEL description="Zabbix build base for MySQL based images" \
       maintainer="alexey.pustovalov@zabbix.com" \
-      name="zabbix/zabbix-build-mysql-trunk" \
+      name="zabbix/zabbix-build-mysql-80" \
       release="${RELEASE}" \
       summary="Zabbix build base (MySQL)" \
       url="https://www.zabbix.com/" \

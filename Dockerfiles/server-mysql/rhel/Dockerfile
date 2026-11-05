@@ -47,9 +47,9 @@ ENV ZBX_DB_NAME=dummy_db_name \
 
 LABEL description="Zabbix server with MySQL database support" \
       maintainer="alexey.pustovalov@zabbix.com" \
-      name="zabbix/zabbix-server-mysql-trunk" \
+      name="zabbix/zabbix-server-mysql-80" \
       release="${RELEASE}" \
-      run="docker run --name zabbix-server --link mysql-server:mysql-server -p 10051:10051 -d registry.connect.redhat.com/zabbix/zabbix-server-mysql-trunk:${ZBX_VERSION}" \
+      run="docker run --name zabbix-server --link mysql-server:mysql-server -p 10051:10051 -d registry.connect.redhat.com/zabbix/zabbix-server-mysql-80:${ZBX_VERSION}" \
       summary="Zabbix server (MySQL)" \
       url="https://www.zabbix.com/" \
       vendor="Zabbix SIA" \

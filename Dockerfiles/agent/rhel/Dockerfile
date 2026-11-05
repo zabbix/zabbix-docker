@@ -36,9 +36,9 @@ ENV ZBX_LOADMODULEPATH=${ZABBIX_USER_HOME_DIR}/modules \
 
 LABEL description="Zabbix agent is deployed on a monitoring target to actively monitor local resources and applications" \
       maintainer="alexey.pustovalov@zabbix.com" \
-      name="zabbix/zabbix-agent-trunk" \
+      name="zabbix/zabbix-agent-80" \
       release="${RELEASE}" \
-      run="podman run --name zabbix-agent -p 10050:10050 -d registry.connect.redhat.com/zabbix/zabbix-agent-trunk:${ZBX_VERSION}" \
+      run="podman run --name zabbix-agent -p 10050:10050 -d registry.connect.redhat.com/zabbix/zabbix-agent-80:${ZBX_VERSION}" \
       summary="Zabbix agent" \
       url="https://www.zabbix.com/" \
       vendor="Zabbix SIA" \

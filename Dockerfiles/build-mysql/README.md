@@ -20,9 +20,11 @@ These are the only official Zabbix build base (MySQL) Docker images. They are ba
     Zabbix build base 6.0.* (tags: alpine-6.0.*, ubuntu-6.0.*, ol-6.0.*)
     Zabbix build base 7.0 (tags: alpine-7.0-latest, ubuntu-7.0-latest, ol-7.0-latest)
     Zabbix build base 7.0.* (tags: alpine-7.0.*, ubuntu-7.0.*, ol-7.0.*)
-    Zabbix build base 7.4 (tags: alpine-7.4-latest, ubuntu-7.4-latest, ol-7.4-latest, alpine-latest, ubuntu-latest, ol-latest, latest)
+    Zabbix build base 7.4 (tags: alpine-7.4-latest, ubuntu-7.4-latest, ol-7.4-latest)
     Zabbix build base 7.4.* (tags: alpine-7.4.*, ubuntu-7.4.*, ol-7.4.*)
-    Zabbix build base 8.0 (tags: alpine-trunk, ubuntu-trunk, ol-trunk)
+    Zabbix build base 8.0 (tags: alpine-8.0-latest, ubuntu-8.0-latest, ol-8.0-latest, alpine-latest, ubuntu-latest, ol-latest, latest)
+    Zabbix build base 8.0.* (tags: alpine-8.0.*, ubuntu-8.0.*, ol-8.0.*)
+    Zabbix build base 8.2 (tags: alpine-trunk, ubuntu-trunk, ol-trunk)
 
 Images are updated when new releases are published. The image with ``latest`` tag is based on Alpine Linux.
 
@@ -30,7 +32,7 @@ Images are updated when new releases are published. The image with ``latest`` ta
 
 The image is used to build / compile Zabbix components. Components are prepared for usage in any other images.
 
-The image uses [Zabbix build base](https://github.com/zabbix/zabbix-docker/tree/trunk/Dockerfiles/build-base) image with prepared build environment as base image and build / compile Zabbix components only.
+The image uses [Zabbix build base](https://github.com/zabbix/zabbix-docker/tree/8.0/Dockerfiles/build-base) image with prepared build environment as base image and build / compile Zabbix components only.
 
 # The image variants
 
@@ -56,7 +58,7 @@ Oracle Linux is an open-source operating system available under the GNU General 
 
 ## Documentation
 
-Documentation for this image is stored in the [`build-mysql/` directory](https://github.com/zabbix/zabbix-docker/tree/trunk/Dockerfiles/build-mysql) of the [`zabbix/zabbix-docker` GitHub repo](https://github.com/zabbix/zabbix-docker/). Be sure to familiarize yourself with the [repository's `README.md` file](https://github.com/zabbix/zabbix-docker/blob/trunk/README.md) before attempting a pull request.
+Documentation for this image is stored in the [`build-mysql/` directory](https://github.com/zabbix/zabbix-docker/tree/8.0/Dockerfiles/build-mysql) of the [`zabbix/zabbix-docker` GitHub repo](https://github.com/zabbix/zabbix-docker/). Be sure to familiarize yourself with the [repository's `README.md` file](https://github.com/zabbix/zabbix-docker/blob/8.0/README.md) before attempting a pull request.
 
 ## Issues
 

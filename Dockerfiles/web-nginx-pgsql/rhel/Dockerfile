@@ -56,9 +56,9 @@ ENV NGINX_BIN=/usr/sbin/nginx \
 
 LABEL description="Zabbix web-interface based on Nginx web server with PostgreSQL database support" \
       maintainer="alexey.pustovalov@zabbix.com" \
-      name="zabbix/zabbix-web-pgsql-trunk" \
+      name="zabbix/zabbix-web-pgsql-80" \
       release="${RELEASE}" \
-      run="docker run --name zabbix-web-nginx --link postgresql:pgsql-server --link zabbix-server:zabbix-server -p 80:80 -d registry.connect.redhat.com/zabbix/zabbix-web-pgsql-trunk:${ZBX_VERSION}" \
+      run="docker run --name zabbix-web-nginx --link postgresql:pgsql-server --link zabbix-server:zabbix-server -p 80:80 -d registry.connect.redhat.com/zabbix/zabbix-web-pgsql-80:${ZBX_VERSION}" \
       summary="Zabbix web-interface based on Nginx web server with PostgreSQL database support" \
       url="https://www.zabbix.com/" \
       vendor="Zabbix SIA" \

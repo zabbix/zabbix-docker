@@ -36,9 +36,9 @@ ENV ZBX_PERSISTENTBUFFERFILE=$ZABBIX_USER_HOME_DIR/buffer/agent2.db \
 
 LABEL description="Zabbix agent 2 is deployed on a monitoring target to actively monitor local resources and applications" \
       maintainer="alexey.pustovalov@zabbix.com" \
-      name="zabbix/zabbix-agent2-trunk" \
+      name="zabbix/zabbix-agent2-80" \
       release="${RELEASE}" \
-      run="docker run --name zabbix-agent2 --link zabbix-server:zabbix-server -p 10050:10050 -d registry.connect.redhat.com/zabbix/zabbix-agent2-trunk:${ZBX_VERSION}" \
+      run="docker run --name zabbix-agent2 --link zabbix-server:zabbix-server -p 10050:10050 -d registry.connect.redhat.com/zabbix/zabbix-agent2-80:${ZBX_VERSION}" \
       summary="Zabbix agent" \
       url="https://www.zabbix.com/" \
       vendor="Zabbix SIA" \

@@ -33,9 +33,9 @@ ENV SNMP_PERSISTENT_DIR=${ZABBIX_USER_HOME_DIR}/snmptrapd_config
 
 LABEL description="Zabbix SNMP traps receiver" \
       maintainer="alexey.pustovalov@zabbix.com" \
-      name="zabbix/zabbix-snmptraps-trunk" \
+      name="zabbix/zabbix-snmptraps-80" \
       release="${RELEASE}" \
-      run="docker run --name zabbix-snmptraps --link zabbix-server:zabbix-server -p 162:1162/udp -d registry.connect.redhat.com/zabbix/zabbix-snmptraps-trunk:${ZBX_VERSION}" \
+      run="docker run --name zabbix-snmptraps --link zabbix-server:zabbix-server -p 162:1162/udp -d registry.connect.redhat.com/zabbix/zabbix-snmptraps-80:${ZBX_VERSION}" \
       summary="Zabbix SNMP traps receiver" \
       url="https://www.zabbix.com/" \
       vendor="Zabbix SIA" \

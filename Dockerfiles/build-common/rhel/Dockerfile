@@ -11,18 +11,18 @@ ARG MAJOR_VERSION
 ARG RELEASE
 ARG ZBX_VERSION
 ARG ZBX_SOURCES=https://git.zabbix.com/scm/zbx/zabbix.git
-ARG GIT_BRANCH=master
+ARG GIT_BRANCH
 ARG ZBX_PRODUCT_REF=${GIT_BRANCH:-$ZBX_VERSION}
 ARG ZBX_PRODUCT_REVISION=unknown
 
 ARG ZBX_PLUGINS_VERSION=${GIT_BRANCH:-$ZBX_VERSION}
-ARG MCP_SERVER_VERSION=${GIT_BRANCH:-$ZBX_VERSION}
+ARG MCP_SERVER_VERSION=8.0.0
 ARG CFLAGS
 ARG LDFLAGS
 
 LABEL description="Zabbix build base for database-independent images" \
       maintainer="alexey.pustovalov@zabbix.com" \
-      name="zabbix/zabbix-build-common-trunk" \
+      name="zabbix/zabbix-build-common-80" \
       release="${RELEASE}" \
       summary="Zabbix common build base" \
       url="https://www.zabbix.com/" \

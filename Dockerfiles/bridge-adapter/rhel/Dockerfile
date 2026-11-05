@@ -116,9 +116,9 @@ ENV ZBX_VERSION=${ZBX_VERSION} \
 
 LABEL description="Zabbix Bridge Adapter enables the Zabbix mobile application to communicate with an on-premise Zabbix installation" \
       maintainer="alexey.pustovalov@zabbix.com" \
-      name="zabbix/zabbix-bridge-adapter-trunk" \
+      name="zabbix/zabbix-bridge-adapter-80" \
       release="${RELEASE}" \
-      run="podman run --name zabbix-bridge-adapter --network zabbix-backend -d registry.connect.redhat.com/zabbix/zabbix-bridge-adapter-trunk:${ZBX_VERSION}" \
+      run="podman run --name zabbix-bridge-adapter --network zabbix-backend -d registry.connect.redhat.com/zabbix/zabbix-bridge-adapter-80:${ZBX_VERSION}" \
       summary="Zabbix Bridge Adapter" \
       url="https://www.zabbix.com/" \
       vendor="Zabbix SIA" \

@@ -20,7 +20,9 @@ For the list of tools, security recommendations and other details, see the [Zabb
 
 These are the only official Zabbix MCP server Docker images. They are based on Alpine Linux v3.24, Ubuntu 26.04 (resolute), CentOS Stream 10 and Oracle Linux 10 images. The available versions of Zabbix MCP server are:
 
-    Zabbix MCP server 8.0 (tags: alpine-trunk, ubuntu-trunk, ol-trunk)
+    Zabbix MCP server 8.0 (tags: alpine-8.0-latest, ubuntu-8.0-latest, ol-8.0-latest, alpine-latest, ubuntu-latest, ol-latest, latest)
+    Zabbix MCP server 8.0.* (tags: alpine-8.0.*, ubuntu-8.0.*, ol-8.0.*)
+    Zabbix MCP server 8.2 (tags: alpine-trunk, ubuntu-trunk, ol-trunk)
 
 Images are updated when new releases are published. The image with ``latest`` tag is based on Alpine Linux.
 
@@ -200,7 +202,7 @@ Oracle Linux is an open-source operating system available under the GNU General 
 
 ## Documentation
 
-Documentation for this image is stored in the [`mcp-server/` directory](https://github.com/zabbix/zabbix-docker/tree/trunk/Dockerfiles/mcp-server) of the [`zabbix/zabbix-docker` GitHub repo](https://github.com/zabbix/zabbix-docker/). Be sure to familiarize yourself with the [repository's `README.md` file](https://github.com/zabbix/zabbix-docker/blob/trunk/README.md) before attempting a pull request.
+Documentation for this image is stored in the [`mcp-server/` directory](https://github.com/zabbix/zabbix-docker/tree/8.0/Dockerfiles/mcp-server) of the [`zabbix/zabbix-docker` GitHub repo](https://github.com/zabbix/zabbix-docker/). Be sure to familiarize yourself with the [repository's `README.md` file](https://github.com/zabbix/zabbix-docker/blob/8.0/README.md) before attempting a pull request.
 
 ## Issues
 

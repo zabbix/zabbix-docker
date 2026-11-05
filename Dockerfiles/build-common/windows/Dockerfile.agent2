@@ -16,7 +16,7 @@ ARG POSTGRESQL_PLUGIN_SOURCES=https://git.zabbix.com/scm/ap/postgresql.git
 ARG MSSQL_PLUGIN_SOURCES=https://git.zabbix.com/scm/ap/mssql.git
 ARG EMBER_PLUS_PLUGIN_SOURCES=https://git.zabbix.com/scm/ap/ember-plus.git
 ARG NVIDIA_GPU_PLUGIN_SOURCES=https://git.zabbix.com/scm/ap/nvidia-gpu.git
-ARG GIT_BRANCH=master
+ARG GIT_BRANCH
 ARG ZBX_PRODUCT_REF=${GIT_BRANCH:-$ZBX_VERSION}
 ARG ZBX_PRODUCT_REVISION=unknown
 

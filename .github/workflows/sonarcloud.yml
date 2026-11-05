@@ -30,9 +30,9 @@ name: SonarCloud analysis
 
 on:
   push:
-    branches: [ "7.4" ]
+    branches: [ "8.0" ]
   pull_request:
-    branches: [ "7.4" ]
+    branches: [ "8.0" ]
   workflow_dispatch:
 
 permissions:

@@ -33,9 +33,9 @@ ENV TERM=xterm \
 
 LABEL description="Zabbix Java Gateway performs native support for monitoring JMX applications" \
       maintainer="alexey.pustovalov@zabbix.com" \
-      name="zabbix/zabbix-java-gateway-trunk" \
+      name="zabbix/zabbix-java-gateway-80" \
       release="${RELEASE}" \
-      run="docker run --name zabbix-java-gateway -p 10052:10052 -d registry.connect.redhat.com/zabbix/zabbix-java-gateway-trunk:${ZBX_VERSION}" \
+      run="docker run --name zabbix-java-gateway -p 10052:10052 -d registry.connect.redhat.com/zabbix/zabbix-java-gateway-80:${ZBX_VERSION}" \
       summary="Zabbix Java Gateway" \
       url="https://www.zabbix.com/" \
       vendor="Zabbix SIA" \

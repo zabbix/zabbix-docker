@@ -34,7 +34,7 @@ BRIDGE_ADAPTER_SOURCES ?= bridge_adapter_sources
 
 # Remote defaults (Official image registry)
 REMOTE_IMAGE_PREFIX ?= zabbix/
-REMOTE_ZBX_TAG ?= $(OS)-trunk
+REMOTE_ZBX_TAG ?= $(OS)-$(ZBX_VERSION)-latest
 
 # Local defaults (what bake builds)
 LOCAL_IMAGE_PREFIX ?=

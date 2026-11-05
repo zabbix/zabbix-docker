@@ -20,9 +20,11 @@ These are the only official Zabbix agent 2 Docker images. They are based on Alpi
     Zabbix agent 2 6.0.* (tags: alpine-6.0.*, ubuntu-6.0.*, ol-6.0.*, ltsc2019-6.0.*, ltsc2022-6.0.*)
     Zabbix agent 2 7.0 (tags: alpine-7.0-latest, ubuntu-7.0-latest, ol-7.0-latest)
     Zabbix agent 2 7.0.* (tags: alpine-7.0.*, ubuntu-7.0.*, ol-7.0.*, ltsc2019-7.0.*, ltsc2022-7.0.*)
-    Zabbix agent 2 7.4 (tags: alpine-7.4-latest, ubuntu-7.4-latest, ol-7.4-latest, alpine-latest, ubuntu-latest, ol-latest, ltsc2019-latest, ltsc2022-latest, latest)
+    Zabbix agent 2 7.4 (tags: alpine-7.4-latest, ubuntu-7.4-latest, ol-7.4-latest)
     Zabbix agent 2 7.4.* (tags: alpine-7.4.*, ubuntu-7.4.*, ol-7.4.*, ltsc2019-7.4.*, ltsc2022-7.4.*)
-    Zabbix agent 2 8.0 (tags: alpine-trunk, ubuntu-trunk, ol-trunk, ltsc2019-trunk, ltsc2022-trunk)
+    Zabbix agent 2 8.0 (tags: alpine-8.0-latest, ubuntu-8.0-latest, ol-8.0-latest, alpine-latest, ubuntu-latest, ol-latest, ltsc2022-latest, latest)
+    Zabbix agent 2 8.0.* (tags: alpine-8.0.*, ubuntu-8.0.*, ol-8.0.*, ltsc2022-8.0.*)
+    Zabbix agent 2 8.2 (tags: alpine-trunk, ubuntu-trunk, ol-trunk, ltsc2022-trunk)
 
 Images are updated when new releases are published. The image with ``latest`` tag is based on Alpine Linux.
 
@@ -32,9 +34,11 @@ Windows images are published with Microsoft Windows Server tags in both OS-first
     Zabbix agent 2 6.0.* for Windows (tags: ltsc2022-6.0.*, 6.0.*-ltsc2022)
     Zabbix agent 2 7.0 for Windows (tags: ltsc2022-7.0-latest, 7.0-ltsc2022-latest)
     Zabbix agent 2 7.0.* for Windows (tags: ltsc2022-7.0.*, 7.0.*-ltsc2022)
-    Zabbix agent 2 7.4 for Windows (tags: ltsc2022-7.4-latest, 7.4-ltsc2022-latest, ltsc2022-latest)
+    Zabbix agent 2 7.4 for Windows (tags: ltsc2022-7.4-latest, 7.4-ltsc2022-latest)
     Zabbix agent 2 7.4.* for Windows (tags: ltsc2022-7.4.*, 7.4.*-ltsc2022)
-    Zabbix agent 2 8.0 for Windows (tags: ltsc2022-trunk, trunk-ltsc2022)
+    Zabbix agent 2 8.0 for Windows (tags: ltsc2022-8.0-latest, 8.0-ltsc2022-latest, ltsc2022-latest)
+    Zabbix agent 2 8.0.* for Windows (tags: ltsc2022-8.0.*, 8.0.*-ltsc2022)
+    Zabbix agent 2 8.2 for Windows (tags: ltsc2022-trunk, trunk-ltsc2022)
 
 # How to use this image
 
@@ -245,7 +249,7 @@ Oracle Linux is an open-source operating system available under the GNU General 
 
 ## Documentation
 
-Documentation for this image is stored in the [`agent2/` directory](https://github.com/zabbix/zabbix-docker/tree/trunk/Dockerfiles/agent2) of the [`zabbix/zabbix-docker` GitHub repo](https://github.com/zabbix/zabbix-docker/). Be sure to familiarize yourself with the [repository's `README.md` file](https://github.com/zabbix/zabbix-docker/blob/trunk/README.md) before attempting a pull request.
+Documentation for this image is stored in the [`agent2/` directory](https://github.com/zabbix/zabbix-docker/tree/8.0/Dockerfiles/agent2) of the [`zabbix/zabbix-docker` GitHub repo](https://github.com/zabbix/zabbix-docker/). Be sure to familiarize yourself with the [repository's `README.md` file](https://github.com/zabbix/zabbix-docker/blob/8.0/README.md) before attempting a pull request.
 
 ## Issues
 

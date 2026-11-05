@@ -204,7 +204,7 @@ spec:
           secretName: mysql-credentials
       containers:
         - name: zabbix-web
-          image: zabbix/zabbix-web-nginx-mysql:alpine-trunk
+          image: zabbix/zabbix-web-nginx-mysql:alpine-8.0-latest
           imagePullPolicy: Always
           ports:
           - containerPort: 8080
@@ -461,7 +461,7 @@ spec:
            secretName: mysql-admin-credentials
       initContainers:
         - name: zabbix-server-db-init
-          image: zabbix/zabbix-server-mysql:alpine-trunk
+          image: zabbix/zabbix-server-mysql:alpine-8.0-latest
           imagePullPolicy: Always
           args:
           - init_db_only
@@ -503,7 +503,7 @@ spec:
             readOnly: true
       containers:
         - name: zabbix-server
-          image: zabbix/zabbix-server-mysql:alpine-trunk
+          image: zabbix/zabbix-server-mysql:alpine-8.0-latest
           imagePullPolicy: Always
           ports:
           - containerPort: 10051
@@ -690,7 +690,7 @@ spec:
             capabilities: {}
             privileged: false
         - name: zabbix-snmptraps
-          image: zabbix/zabbix-snmptraps:alpine-trunk
+          image: zabbix/zabbix-snmptraps:alpine-8.0-latest
           imagePullPolicy: Always
           ports:
           - containerPort: 1162
@@ -738,7 +738,7 @@ spec:
           emptyDir: {}
       containers:
         - name: zabbix-proxy-sqlite3
-          image: zabbix/zabbix-proxy-sqlite3:alpine-trunk
+          image: zabbix/zabbix-proxy-sqlite3:alpine-8.0-latest
           imagePullPolicy: Always
           ports:
           - containerPort: 10051
@@ -916,7 +916,7 @@ spec:
            secretName: mysql-admin-credentials
       initContainers:
         - name: zabbix-proxy-mysql-db-init
-          image: zabbix/zabbix-proxy-mysql:alpine-trunk
+          image: zabbix/zabbix-proxy-mysql:alpine-8.0-latest
           imagePullPolicy: Always
           args:
           - init_db_only
@@ -958,7 +958,7 @@ spec:
             readOnly: true
       containers:
         - name: zabbix-proxy-mysql
-          image: zabbix/zabbix-proxy-mysql:alpine-trunk
+          image: zabbix/zabbix-proxy-mysql:alpine-8.0-latest
           imagePullPolicy: Always
           ports:
           - containerPort: 10051
@@ -1146,7 +1146,7 @@ spec:
     spec:
       containers:
         - name: zabbix-java-gateway
-          image: zabbix/zabbix-java-gateway:alpine-trunk
+          image: zabbix/zabbix-java-gateway:alpine-8.0-latest
           imagePullPolicy: Always
           ports:
           - containerPort: 10052
@@ -1206,7 +1206,7 @@ spec:
     spec:
       containers:
         - name: zabbix-web-service
-          image: zabbix/zabbix-web-service:alpine-trunk
+          image: zabbix/zabbix-web-service:alpine-8.0-latest
           imagePullPolicy: Always
           resources:
            limits:
@@ -1307,7 +1307,7 @@ spec:
        kubernetes.io/os: linux
       containers:
         - name: zabbix-agent
-          image: zabbix/zabbix-agent:alpine-trunk
+          image: zabbix/zabbix-agent:alpine-8.0-latest
           imagePullPolicy: Always
           resources:
            limits:

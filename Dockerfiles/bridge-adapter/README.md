@@ -207,7 +207,7 @@ This image is based on the [distroless `static` image](https://github.com/Google
 
 ## Documentation
 
-Documentation for this image is stored in the [`bridge-adapter/` directory](https://github.com/zabbix/zabbix-docker/tree/trunk/Dockerfiles/bridge-adapter) of the [`zabbix/zabbix-docker` GitHub repo](https://github.com/zabbix/zabbix-docker/). Be sure to familiarize yourself with the [repository's `README.md` file](https://github.com/zabbix/zabbix-docker/blob/trunk/README.md) before attempting a pull request.
+Documentation for this image is stored in the [`bridge-adapter/` directory](https://github.com/zabbix/zabbix-docker/tree/8.0/Dockerfiles/bridge-adapter) of the [`zabbix/zabbix-docker` GitHub repo](https://github.com/zabbix/zabbix-docker/). Be sure to familiarize yourself with the [repository's `README.md` file](https://github.com/zabbix/zabbix-docker/blob/8.0/README.md) before attempting a pull request.
 
 ## Issues
 

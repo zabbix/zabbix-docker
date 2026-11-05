@@ -51,9 +51,9 @@ ENV ZBX_DB_NAME=dummy_db_name \
 
 LABEL description="Zabbix server with PostgreSQL database support" \
       maintainer="alexey.pustovalov@zabbix.com" \
-      name="zabbix/zabbix-server-pgsql-trunk" \
+      name="zabbix/zabbix-server-pgsql-80" \
       release="${RELEASE}" \
-      run="docker run --name zabbix-server --link postgresql:pgsql-server -p 10051:10051 -d registry.connect.redhat.com/zabbix/zabbix-server-pgsql-trunk:${ZBX_VERSION}" \
+      run="docker run --name zabbix-server --link postgresql:pgsql-server -p 10051:10051 -d registry.connect.redhat.com/zabbix/zabbix-server-pgsql-80:${ZBX_VERSION}" \
       summary="Zabbix server (PostgreSQL)" \
       url="https://www.zabbix.com/" \
       vendor="Zabbix SIA" \

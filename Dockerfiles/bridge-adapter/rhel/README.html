@@ -17,7 +17,7 @@
 
 <h2 id="reading-and-accepting-the-eula">Reading and accepting the EULA</h2>
 <p>Read the bundled Zabbix Mobile App End User License Agreement (EULA) before accepting it:</p>
-<pre><code class="lang-console">$ podman run --rm zabbix/zabbix-bridge-adapter-trunk:tag zabbix_bridge_adapter license show | less
+<pre><code class="lang-console">$ podman run --rm zabbix/zabbix-bridge-adapter-80:tag zabbix_bridge_adapter license show | less
 </code></pre>
 <p>Here and below, <code>tag</code> specifies the image version. Use the same image version for license acceptance and service startup.</p>
 <p>If you agree to the terms, create <code>bridge-adapter.env</code> with the EULA version shown by the command and the values for your installation:</p>
@@ -31,7 +31,7 @@ ZBX_ZABBIXAPITLSCONNECT=disabled
 <pre><code class="lang-console">$ podman run --rm --network none --read-only \
     --env-file bridge-adapter.env \
     --volume zabbix-bridge-adapter-data:/var/lib/zabbix/bridge-adapter \
-    zabbix/zabbix-bridge-adapter-trunk:tag accept-license
+    zabbix/zabbix-bridge-adapter-80:tag accept-license
 </code></pre>
 <p>This command records acceptance of the specified EULA version and exits. Review and accept the terms again if the bundled EULA changes.</p>
 
@@ -42,7 +42,7 @@ ZBX_ZABBIXAPITLSCONNECT=disabled
     --read-only --tmpfs /tmp \
     --env-file bridge-adapter.env \
     --volume zabbix-bridge-adapter-data:/var/lib/zabbix/bridge-adapter \
-    -d zabbix/zabbix-bridge-adapter-trunk:tag
+    -d zabbix/zabbix-bridge-adapter-80:tag
 </code></pre>
 <p>Where <code>some-zabbix-bridge-adapter</code> is the name you want to assign to your container and <code>tag</code> specifies the image version.</p>
 
@@ -137,7 +137,7 @@ ZBX_TLSALLOWEDCN=
 
 <h1 id="user-feedback">User Feedback</h1>
 <h2 id="documentation">Documentation</h2>
-<p>Documentation for this image is stored in the <a href="https://github.com/zabbix/zabbix-docker/tree/trunk/Dockerfiles/bridge-adapter"><code>bridge-adapter/</code> directory</a> of the <a href="https://github.com/zabbix/zabbix-docker/"><code>zabbix/zabbix-docker</code> GitHub repository</a>.</p>
+<p>Documentation for this image is stored in the <a href="https://github.com/zabbix/zabbix-docker/tree/8.0/Dockerfiles/bridge-adapter"><code>bridge-adapter/</code> directory</a> of the <a href="https://github.com/zabbix/zabbix-docker/"><code>zabbix/zabbix-docker</code> GitHub repository</a>.</p>
 
 <h2 id="issues">Issues</h2>
 <p>If you have any problems with or questions about this image, please contact us through a <a href="https://github.com/zabbix/zabbix-docker/issues">GitHub issue</a>.</p>
