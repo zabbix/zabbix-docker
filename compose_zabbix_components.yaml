@@ -678,6 +678,7 @@ services:
   volumes:
    - /etc/localtime:/etc/localtime:ro
    - ${DATA_DIRECTORY}/etc/zabbix/zabbix_agentd.d:/etc/zabbix/zabbix_agentd.d:ro
+   - ${DATA_DIRECTORY}/var/lib/zabbix/profiler:/var/lib/zabbix/profiler:rw
    - ${DATA_DIRECTORY}/var/lib/zabbix/modules:/var/lib/zabbix/modules:ro
    - ${DATA_DIRECTORY}/var/lib/zabbix/enc:/var/lib/zabbix/enc:ro
    - ${DATA_DIRECTORY}/var/lib/zabbix/ssh_keys:/var/lib/zabbix/ssh_keys:ro
