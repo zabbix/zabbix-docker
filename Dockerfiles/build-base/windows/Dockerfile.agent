@@ -38,7 +38,7 @@ ARG NASM_URL=https://www.nasm.us/pub/nasm/releasebuilds/$NASM_VERSION/win64/nasm
 ARG PCRE2_URL=https://github.com/PCRE2Project/pcre2/releases/download/pcre2-$PCRE2_VERSION/pcre2-$PCRE2_VERSION.zip
 ARG OPENSSL_URL=https://github.com/openssl/openssl/releases/download/openssl-$OPENSSL_VERSION/openssl-$OPENSSL_VERSION.tar.gz
 ARG LIBMODBUS_URL=https://github.com/stephane/libmodbus/archive/refs/tags/v$LIBMODBUS_VERSION.tar.gz
-ARG ZLIB_URL=https://zlib.net/zlib-$ZLIB_VERSION.tar.gz
+ARG ZLIB_URL=https://zlib.net/fossils/zlib-$ZLIB_VERSION.tar.gz
 ARG CURL_URL=https://curl.se/download/curl-$CURL_VERSION.tar.gz
 ARG CARES_URL=https://github.com/c-ares/c-ares/releases/download/v$CARES_VERSION/c-ares-$CARES_VERSION.tar.gz
 
