@@ -204,27 +204,35 @@ func ProcessTLSFilesTo(env Environment, directory, internalDir string, variables
 	}
 
 	for _, variable := range variables {
-		fileVariable := variable + "FILE"
-
-		if value := env[variable]; value != "" {
-			path := filepath.Join(internalDir, fileVariable)
-
-			if err := os.WriteFile(path, []byte(value), 0o600); err != nil {
-				return fmt.Errorf("write %s: %w", path, err)
-			}
-
-			env[fileVariable] = path
+		if err := processTLSFileTo(env, directory, filepath.Join(internalDir, variable+"FILE"), variable); err != nil {
+			return err
 		}
+	}
 
-		delete(env, variable)
+	return nil
+}
 
-		if path := env[fileVariable]; path != "" {
-			resolved, err := ResolveFile(path, directory)
-			if err != nil {
-				return fmt.Errorf("%s: %w", fileVariable, err)
-			}
-			env[fileVariable] = resolved
+func processTLSFileTo(env Environment, directory, outputPath, variable string) error {
+	fileVariable := variable + "FILE"
+	if env[variable] != "" && env[fileVariable] != "" {
+		return fmt.Errorf("both variables %s and %s are set (but are exclusive)", variable, fileVariable)
+	}
+
+	if value := env[variable]; value != "" {
+		if err := os.WriteFile(outputPath, []byte(value), 0o600); err != nil {
+			return fmt.Errorf("write %s: %w", outputPath, err)
 		}
+		env[fileVariable] = outputPath
+	}
+
+	delete(env, variable)
+
+	if path := env[fileVariable]; path != "" {
+		resolved, err := ResolveFile(path, directory)
+		if err != nil {
+			return fmt.Errorf("%s: %w", fileVariable, err)
+		}
+		env[fileVariable] = resolved
 	}
 
 	return nil

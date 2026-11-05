@@ -54,22 +54,26 @@ func prepareFrontendAliases(env bootstrap.Environment) error {
 	env.SetDefaultNonEmpty("ZBX_DB_VERIFY_HOST", "true")
 
 	for _, variable := range []struct {
-		name, legacy, directory string
+		name, legacy string
 	}{
-		{"ZBX_DBTLSCAFILE", "ZBX_DB_CA_FILE", bootstrap.SecretsDir},
-		{"ZBX_DBTLSCERTFILE", "ZBX_DB_CERT_FILE", bootstrap.SecretsDir},
-		{"ZBX_DBTLSKEYFILE", "ZBX_DB_KEY_FILE", bootstrap.SecretsDir},
-		{"ZBX_VAULTTLSCERTFILE", "ZBX_VAULTCERTFILE", bootstrap.WebCertsDir},
-		{"ZBX_VAULTTLSKEYFILE", "ZBX_VAULTKEYFILE", bootstrap.WebCertsDir},
+		{"ZBX_DBTLSCAFILE", "ZBX_DB_CA_FILE"},
+		{"ZBX_DBTLSCERTFILE", "ZBX_DB_CERT_FILE"},
+		{"ZBX_DBTLSKEYFILE", "ZBX_DB_KEY_FILE"},
+		{"ZBX_VAULTTLSCERTFILE", "ZBX_VAULTCERTFILE"},
+		{"ZBX_VAULTTLSKEYFILE", "ZBX_VAULTKEYFILE"},
 	} {
 		if env[variable.name] == "" {
 			env[variable.name] = env[variable.legacy]
 		}
 		delete(env, variable.legacy)
-		inline := strings.TrimSuffix(variable.name, "FILE")
-		if err := bootstrap.ProcessTLSFilesToEncInternal(env, variable.directory, inline); err != nil {
-			return err
-		}
+	}
+	if err := bootstrap.ProcessTLSFilesToEncInternal(
+		env,
+		bootstrap.WebCertsDir,
+		"ZBX_VAULTTLSCERT",
+		"ZBX_VAULTTLSKEY",
+	); err != nil {
+		return err
 	}
 	if env["ZBX_DBTLSCIPHER"] == "" {
 		env["ZBX_DBTLSCIPHER"] = env["ZBX_DB_CIPHER_LIST"]

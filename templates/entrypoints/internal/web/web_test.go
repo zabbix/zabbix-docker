@@ -52,6 +52,9 @@ func TestPreparePHPUsesFrontendSettings(t *testing.T) {
 	if env["ZBX_DB_VERIFY_HOST"] != "true" {
 		t.Fatal("database hostname verification must default to true before the bootstrap connection")
 	}
+	if _, err := bootstrap.ResolveFrontendDBTLS(env); err != nil {
+		t.Fatal(err)
+	}
 	if err := preparePHP(env, MySQL); err != nil {
 		t.Fatal(err)
 	}
@@ -183,8 +186,8 @@ func TestPrepareFrontendAliasesInlineTLS(t *testing.T) {
 	}
 	internal := filepath.Join(homeDir, "enc_internal")
 	for name, want := range map[string]string{
-		"ZBX_DBTLSCAFILE":      filepath.Join(internal, "ZBX_DBTLSCAFILE"),
-		"ZBX_DBTLSCERTFILE":    filepath.Join(bootstrap.SecretsDir, "client.pem"),
+		"ZBX_DBTLSCA":          "inline CA",
+		"ZBX_DBTLSCERTFILE":    "client.pem",
 		"ZBX_VAULTTLSCERTFILE": filepath.Join(internal, "ZBX_VAULTTLSCERTFILE"),
 		"ZBX_VAULTTLSKEYFILE":  filepath.Join(bootstrap.WebCertsDir, "vault.key"),
 	} {
@@ -192,15 +195,18 @@ func TestPrepareFrontendAliasesInlineTLS(t *testing.T) {
 			t.Errorf("%s = %q, want %q", name, env[name], want)
 		}
 	}
-	for _, name := range []string{"ZBX_DBTLSCA", "ZBX_VAULTTLSCERT", "ZBX_VAULTKEYFILE"} {
+	for _, name := range []string{"ZBX_VAULTTLSCERT", "ZBX_VAULTKEYFILE"} {
 		if _, found := env[name]; found {
 			t.Errorf("%s was left in the environment", name)
 		}
 	}
 
 	env = bootstrap.Environment{"ZABBIX_USER_HOME_DIR": homeDir, "ZBX_DB_KEY_FILE": "legacy.pem", "ZBX_DBTLSKEY": "inline"}
-	if err := prepareFrontendAliases(env); err == nil {
-		t.Fatal("legacy file and inline DB TLS key were both accepted")
+	if err := prepareFrontendAliases(env); err != nil {
+		t.Fatal(err)
+	}
+	if env["ZBX_DBTLSKEYFILE"] != "legacy.pem" || env["ZBX_DBTLSKEY"] != "inline" {
+		t.Fatalf("DB TLS aliases were not normalized before validation: %#v", env)
 	}
 }
 

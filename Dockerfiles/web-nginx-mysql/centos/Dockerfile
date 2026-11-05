@@ -120,6 +120,7 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
         ${ZABBIX_USER_HOME_DIR}/ssl/keys \
         ${ZABBIX_USER_HOME_DIR}/ssl/ssl_ca \
         ${ZABBIX_USER_HOME_DIR}/ssl/ssl_ca_internal \
+        /run/zabbix/secrets \
         /var/lib/php/session && \
     rm -rf /etc/nginx/conf.d/*.conf \
         /etc/php-fpm.d/www.conf && \
@@ -131,6 +132,7 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
         cut -d"'" -f 2 | sort -u | \
         xargs -r -I '{}' bash -c 'echo "{}" && localedef -c -i {} -f UTF-8 {}.UTF-8 2>/dev/null' && \
     FIX_PERM_LIST="\
+        /run/zabbix/secrets/ \
         ${ZABBIX_CONF_DIR}/ \
         ${ZABBIX_WWW_ROOT}/modules/ \
         ${ZABBIX_USER_HOME_DIR}/ \

@@ -122,6 +122,7 @@ RUN set -eux && \
         ${ZABBIX_USER_HOME_DIR}/ssl/keys \
         ${ZABBIX_USER_HOME_DIR}/ssl/ssl_ca \
         ${ZABBIX_USER_HOME_DIR}/ssl/ssl_ca_internal \
+        /run/zabbix/secrets \
         /var/lib/php/session && \
     rm -rf /etc/php85/php-fpm.d/www.conf \
         /etc/nginx/http.d/*.conf && \
@@ -130,6 +131,7 @@ RUN set -eux && \
     ln -sf "${ZABBIX_CONF_DIR}/web/zabbix.conf.php" "${ZABBIX_WWW_ROOT}/conf/zabbix.conf.php" && \
     ln -sf "${ZABBIX_CONF_DIR}/web/maintenance.inc.php" "${ZABBIX_WWW_ROOT}/conf/maintenance.inc.php" && \
     FIX_PERM_LIST="\
+        /run/zabbix/secrets/ \
         ${ZABBIX_CONF_DIR}/ \
         ${ZABBIX_WWW_ROOT}/modules/ \
         /etc/nginx/ \
