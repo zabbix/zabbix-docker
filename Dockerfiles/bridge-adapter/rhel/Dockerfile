@@ -94,6 +94,8 @@ RUN --mount=type=tmpfs,target=${ZBX_ROOTFS_DIR}/var/lib/dnf/ \
     mkdir -p \
             ${ZBX_ROOTFS_DIR}${ZABBIX_USER_HOME_DIR} \
             ${ZBX_ROOTFS_DIR}${ZABBIX_USER_HOME_DIR}/bridge-adapter \
+            ${ZBX_ROOTFS_DIR}${ZABBIX_USER_HOME_DIR}/enc \
+            ${ZBX_ROOTFS_DIR}${ZABBIX_USER_HOME_DIR}/enc_internal \
             ${ZBX_ROOTFS_DIR}${ZABBIX_USER_HOME_DIR}/ssl/certs \
             ${ZBX_ROOTFS_DIR}${ZABBIX_USER_HOME_DIR}/ssl/keys \
             ${ZBX_ROOTFS_DIR}${ZABBIX_USER_HOME_DIR}/ssl/ssl_ca && \

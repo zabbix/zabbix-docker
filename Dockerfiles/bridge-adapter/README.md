@@ -64,6 +64,7 @@ Start a Zabbix Bridge Adapter container using the same environment file and data
 $ docker run --name some-zabbix-bridge-adapter \
     --network zabbix-backend \
     --read-only --tmpfs /tmp \
+    --tmpfs /var/lib/zabbix/enc_internal:mode=0700,uid=1997,gid=0 \
     --env-file bridge-adapter.env \
     --volume zabbix-bridge-adapter-data:/var/lib/zabbix/bridge-adapter \
     -d zabbix/zabbix-bridge-adapter:tag
@@ -120,9 +121,9 @@ TLS mode used for outbound connections to the Zabbix API. Supported values are:
 
 Use `disabled` for an HTTP API URL. The default is `required` for HTTPS.
 
-### `ZBX_ZABBIXAPITLSCAFILE`
+### `ZBX_ZABBIXAPITLSCAFILE`, `ZBX_ZABBIXAPITLSCA`
 
-Full path to the CA file used to verify the Zabbix API certificate. This variable is required when `ZBX_ZABBIXAPITLSCONNECT` is set to `verify_ca` or `verify_full`.
+`ZBX_ZABBIXAPITLSCAFILE` specifies the CA file used to verify the Zabbix API certificate. A relative path is resolved against `/var/lib/zabbix/enc`. Alternatively, `ZBX_ZABBIXAPITLSCA` provides the CA certificate content directly. A CA is required when `ZBX_ZABBIXAPITLSCONNECT` is set to `verify_ca` or `verify_full`.
 
 ### `ZBX_LISTENIP`
 
@@ -179,19 +180,26 @@ The Adapter listener supports the following TLS variables:
 
 ```text
 ZBX_TLSMODE=none
-ZBX_TLSCERTFILE=
-ZBX_TLSKEYFILE=
 ZBX_TLSCAFILE=
+ZBX_TLSCA=
+ZBX_TLSCERTFILE=
+ZBX_TLSCERT=
+ZBX_TLSKEYFILE=
+ZBX_TLSKEY=
 ZBX_TLSALLOWEDCN=
 ```
 
-The default `none` mode accepts unencrypted connections. For production deployments, mutual TLS (`mtls`) is recommended for the server-facing listener. Set `ZBX_TLSMODE` to `tls` for TLS or `mtls` for mutual TLS. Certificate, private key and CA paths must refer to files available inside the container. `ZBX_TLSALLOWEDCN` is a comma-separated list of permitted client certificate Common Names in mTLS mode.
+The default `none` mode accepts unencrypted connections. For production deployments, mutual TLS (`mtls`) is recommended for the server-facing listener. Set `ZBX_TLSMODE` to `tls` for TLS or `mtls` for mutual TLS. Certificate, private key and CA file names are specified using the `ZBX_TLSCERTFILE`, `ZBX_TLSKEYFILE` and `ZBX_TLSCAFILE` variables. Relative paths are resolved against `/var/lib/zabbix/enc`. Alternatively, the certificate, private key and CA contents can be passed directly using `ZBX_TLSCERT`, `ZBX_TLSKEY` and `ZBX_TLSCA`. `ZBX_TLSALLOWEDCN` is a comma-separated list of permitted client certificate Common Names in mTLS mode.
 
 ## Allowed volumes for the Zabbix Bridge Adapter container
 
 ### ``/var/lib/zabbix/bridge-adapter``
 
 The volume stores persistent Adapter data and EULA acceptance. Use the same writable volume for license acceptance and service startup. For a bind mount, create the directory beforehand and grant access to UID `1997`. Run both containers with the same UID.
+
+### ``/var/lib/zabbix/enc``
+
+The volume stores TLS files referenced by the `ZBX_TLSCAFILE`, `ZBX_TLSCERTFILE`, `ZBX_TLSKEYFILE` and `ZBX_ZABBIXAPITLSCAFILE` variables. Relative paths are resolved against this directory. TLS material provided inline is written to `/var/lib/zabbix/enc_internal`; mount that directory as writable `tmpfs` when the container root filesystem is read-only.
 
 ### ``/var/lib/zabbix/ssl/certs``, ``/var/lib/zabbix/ssl/keys`` and ``/var/lib/zabbix/ssl/ssl_ca``
 

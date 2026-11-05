@@ -17,6 +17,12 @@ func newPrepareServiceFixture(t *testing.T) (bootstrap.Environment, string) {
 	t.Helper()
 
 	configDir := t.TempDir()
+	homeDir := t.TempDir()
+	for _, name := range []string{"enc", "enc_internal"} {
+		if err := os.Mkdir(filepath.Join(homeDir, name), 0o700); err != nil {
+			t.Fatal(err)
+		}
+	}
 	templatePath := filepath.Join(configDir, allowedMethodsConfigFile)
 	if err := os.WriteFile(templatePath, []byte(allowedMethodsTemplate), 0o644); err != nil {
 		t.Fatal(err)
@@ -27,7 +33,7 @@ func newPrepareServiceFixture(t *testing.T) (bootstrap.Environment, string) {
 	runtimeAllowedMethodsConfigPath = runtimePath
 	t.Cleanup(func() { runtimeAllowedMethodsConfigPath = originalRuntimePath })
 
-	return bootstrap.Environment{"ZABBIX_CONF_DIR": configDir}, runtimePath
+	return bootstrap.Environment{"ZABBIX_CONF_DIR": configDir, "ZABBIX_USER_HOME_DIR": homeDir}, runtimePath
 }
 
 func TestPrepareService(t *testing.T) {
@@ -68,6 +74,57 @@ func TestPrepareService(t *testing.T) {
 	for _, name := range []string{"ZBX_ALLOWEDAPIMETHODS_0", "ZBX_ALLOWEDAPIMETHODS_1"} {
 		if env[name] == "" {
 			t.Fatalf("%s was removed from the service environment", name)
+		}
+	}
+}
+
+func TestPrepareServiceTLSFiles(t *testing.T) {
+	env, _ := newPrepareServiceFixture(t)
+	homeDir := env["ZABBIX_USER_HOME_DIR"]
+	caPath := filepath.Join(homeDir, "enc", "listener-ca.pem")
+	if err := os.WriteFile(caPath, []byte("listener-ca"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+
+	env["ZBX_TLSCAFILE"] = "listener-ca.pem"
+	env["ZBX_TLSCERT"] = "listener-certificate"
+	env["ZBX_TLSKEY"] = "listener-private-key"
+	env["ZBX_ZABBIXAPITLSCA"] = "api-ca"
+
+	if err := prepareService(env); err != nil {
+		t.Fatal(err)
+	}
+
+	wantPaths := map[string]string{
+		"ZBX_TLSCAFILE":          caPath,
+		"ZBX_TLSCERTFILE":        filepath.Join(homeDir, "enc_internal", "ZBX_TLSCERTFILE"),
+		"ZBX_TLSKEYFILE":         filepath.Join(homeDir, "enc_internal", "ZBX_TLSKEYFILE"),
+		"ZBX_ZABBIXAPITLSCAFILE": filepath.Join(homeDir, "enc_internal", "ZBX_ZABBIXAPITLSCAFILE"),
+	}
+	for name, want := range wantPaths {
+		if got := env[name]; got != want {
+			t.Errorf("%s = %q, want %q", name, got, want)
+		}
+	}
+
+	for _, name := range []string{"ZBX_TLSCA", "ZBX_TLSCERT", "ZBX_TLSKEY", "ZBX_ZABBIXAPITLSCA"} {
+		if _, exists := env[name]; exists {
+			t.Errorf("%s remains in the environment", name)
+		}
+	}
+
+	wantContents := map[string]string{
+		env["ZBX_TLSCERTFILE"]:        "listener-certificate",
+		env["ZBX_TLSKEYFILE"]:         "listener-private-key",
+		env["ZBX_ZABBIXAPITLSCAFILE"]: "api-ca",
+	}
+	for path, want := range wantContents {
+		data, err := os.ReadFile(path)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if got := string(data); got != want {
+			t.Errorf("%s content = %q, want %q", path, got, want)
 		}
 	}
 }
