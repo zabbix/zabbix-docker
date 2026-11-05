@@ -4,7 +4,7 @@ ARG OS_BASE_IMAGE=mcr.microsoft.com/windows/nanoserver:ltsc2022
 ARG ENTRYPOINT_BUILD_IMAGE=golang:1.27.3-windowsservercore-ltsc2022
 
 ARG MAJOR_VERSION=8.0
-ARG ZBX_VERSION=${MAJOR_VERSION}
+ARG ZBX_VERSION=${MAJOR_VERSION}.0
 
 ARG BUILD_BASE_IMAGE=zabbix-build-common:ltsc2022-agent2-${ZBX_VERSION}
 

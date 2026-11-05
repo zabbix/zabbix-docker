@@ -14,7 +14,7 @@ RUN --mount=from=entrypoints,target=/tmp/entrypoints,ro \
 FROM ${OS_BASE_IMAGE}
 
 ARG MAJOR_VERSION=8.0
-ARG ZBX_VERSION=${MAJOR_VERSION}
+ARG ZBX_VERSION=${MAJOR_VERSION}.0
 ARG ZBX_SOURCES=https://git.zabbix.com/scm/zbx/zabbix.git
 ARG ZBX_PRODUCT_REF=${ZBX_VERSION}
 ARG ZBX_PRODUCT_REVISION=unknown

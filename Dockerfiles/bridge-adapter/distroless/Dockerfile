@@ -4,7 +4,7 @@ ARG OS_BASE_IMAGE=gcr.io/distroless/static-debian13:latest
 ARG GO_BASE_IMAGE=golang:1.27.3-alpine
 
 ARG MAJOR_VERSION=8.0
-ARG ZBX_VERSION=${MAJOR_VERSION}
+ARG ZBX_VERSION=${MAJOR_VERSION}.0
 
 FROM ${OS_BASE_IMAGE} AS runtime-base
 
