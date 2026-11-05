@@ -10,7 +10,7 @@ import (
 	"github.com/zabbix/zabbix-docker/templates/entrypoints/internal/bootstrap"
 )
 
-func TestPreparePHPUsesTrunkFrontendSettings(t *testing.T) {
+func TestPreparePHPUsesFrontendSettings(t *testing.T) {
 	root := t.TempDir()
 	for _, dir := range []string{
 		filepath.Join(root, "enc_internal"),
