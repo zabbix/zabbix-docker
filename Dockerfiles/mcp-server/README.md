@@ -20,7 +20,9 @@ For the list of tools, security recommendations and other details, see the [Zabb
 
 These are the only official Zabbix MCP server Docker images. They are based on Alpine Linux v3.24, Ubuntu 26.04 (resolute), CentOS Stream 10 and Oracle Linux 10 images. The available versions of Zabbix MCP server are:
 
-    Zabbix MCP server 8.0 (tags: alpine-trunk, ubuntu-trunk, ol-trunk)
+    Zabbix MCP server 8.0 (tags: alpine-8.0-latest, ubuntu-8.0-latest, ol-8.0-latest, alpine-latest, ubuntu-latest, ol-latest, latest)
+    Zabbix MCP server 8.0.* (tags: alpine-8.0.*, ubuntu-8.0.*, ol-8.0.*)
+    Zabbix MCP server 8.2 (tags: alpine-trunk, ubuntu-trunk, ol-trunk)
 
 Images are updated when new releases are published. The image with ``latest`` tag is based on Alpine Linux.
 

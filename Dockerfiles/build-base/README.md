@@ -20,9 +20,11 @@ These are the only official Zabbix build base Docker images. They are based on A
     Zabbix build base 6.0.* (tags: alpine-6.0.*, ubuntu-6.0.*, ol-6.0.*)
     Zabbix build base 7.0 (tags: alpine-7.0-latest, ubuntu-7.0-latest, ol-7.0-latest)
     Zabbix build base 7.0.* (tags: alpine-7.0.*, ubuntu-7.0.*, ol-7.0.*, ltsc2019-7.0.*, ltsc2022-7.0.*)
-    Zabbix build base 7.4 (tags: alpine-7.4-latest, ubuntu-7.4-latest, ol-7.4-latest, alpine-latest, ubuntu-latest, ol-latest, latest)
+    Zabbix build base 7.4 (tags: alpine-7.4-latest, ubuntu-7.4-latest, ol-7.4-latest)
     Zabbix build base 7.4.* (tags: alpine-7.4.*, ubuntu-7.4.*, ol-7.4.*, ltsc2019-7.4.*, ltsc2022-7.4.*)
-    Zabbix build base 8.0 (tags: alpine-trunk, ubuntu-trunk, ol-trunk, ltsc2019-trunk, ltsc2022-trunk)
+    Zabbix build base 8.0 (tags: alpine-8.0-latest, ubuntu-8.0-latest, ol-8.0-latest, alpine-latest, ubuntu-latest, ol-latest, latest)
+    Zabbix build base 8.0.* (tags: alpine-8.0.*, ubuntu-8.0.*, ol-8.0.*, ltsc2022-8.0.*)
+    Zabbix build base 8.2 (tags: alpine-trunk, ubuntu-trunk, ol-trunk, ltsc2022-trunk)
 
 Images are updated when new releases are published. The image with ``latest`` tag is based on Alpine Linux.
 
@@ -34,7 +36,9 @@ Windows agent and agent 2 build environments are published in the same repositor
     Zabbix build base for agent 7.0.* (tags: agent-ltsc2022-7.0.*, agent-7.0.*-ltsc2022)
     Zabbix build base for agent 7.4 (tags: agent-ltsc2022-7.4-latest, agent-7.4-ltsc2022-latest, agent-ltsc2022-latest)
     Zabbix build base for agent 7.4.* (tags: agent-ltsc2022-7.4.*, agent-7.4.*-ltsc2022)
-    Zabbix build base for agent 8.0 (tags: agent-ltsc2022-trunk, agent-trunk-ltsc2022)
+    Zabbix build base for agent 8.0 (tags: agent-ltsc2022-8.0-latest, agent-8.0-ltsc2022-latest, agent-ltsc2022-latest)
+    Zabbix build base for agent 8.0.* (tags: agent-ltsc2022-8.0.*, agent-8.0.*-ltsc2022)
+    Zabbix build base for agent 8.2 (tags: agent-ltsc2022-trunk, agent-trunk-ltsc2022)
 
     Zabbix build base for agent 2 6.0 (tags: agent2-ltsc2022-6.0-latest, agent2-6.0-ltsc2022-latest)
     Zabbix build base for agent 2 6.0.* (tags: agent2-ltsc2022-6.0.*, agent2-6.0.*-ltsc2022)
@@ -42,7 +46,9 @@ Windows agent and agent 2 build environments are published in the same repositor
     Zabbix build base for agent 2 7.0.* (tags: agent2-ltsc2022-7.0.*, agent2-7.0.*-ltsc2022)
     Zabbix build base for agent 2 7.4 (tags: agent2-ltsc2022-7.4-latest, agent2-7.4-ltsc2022-latest, agent2-ltsc2022-latest)
     Zabbix build base for agent 2 7.4.* (tags: agent2-ltsc2022-7.4.*, agent2-7.4.*-ltsc2022)
-    Zabbix build base for agent 2 8.0 (tags: agent2-ltsc2022-trunk, agent2-trunk-ltsc2022)
+    Zabbix build base for agent 2 8.0 (tags: agent2-ltsc2022-8.0-latest, agent2-8.0-ltsc2022-latest, agent2-ltsc2022-latest)
+    Zabbix build base for agent 2 8.0.* (tags: agent2-ltsc2022-8.0.*, agent2-8.0.*-ltsc2022)
+    Zabbix build base for agent 2 8.2 (tags: agent2-ltsc2022-trunk, agent2-trunk-ltsc2022)
 
 # How to use this image
 
