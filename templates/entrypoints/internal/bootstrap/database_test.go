@@ -146,14 +146,12 @@ func TestResolveDBPort(t *testing.T) {
 }
 
 func TestInlineDBTLS(t *testing.T) {
-	homeDir := homeWithEncInternal(t)
-	internal := filepath.Join(homeDir, "enc_internal")
+	runtimeDir := useDBTLSRuntimeDir(t)
 	env := Environment{
-		"ZABBIX_USER_HOME_DIR": homeDir,
-		"ZBX_DBTLSCONNECT":     "verify_full",
-		"ZBX_DBTLSCA":          "inline CA",
-		"ZBX_DBTLSCERTFILE":    "client.pem",
-		"ZBX_DBTLSKEY":         "inline key",
+		"ZBX_DBTLSCONNECT":  "verify_full",
+		"ZBX_DBTLSCA":       "inline CA",
+		"ZBX_DBTLSCERTFILE": "client.pem",
+		"ZBX_DBTLSKEY":      "inline key",
 	}
 	config, err := ResolveServiceDBTLS(env)
 	if err != nil {
@@ -161,9 +159,9 @@ func TestInlineDBTLS(t *testing.T) {
 	}
 	want := DBTLSConfig{
 		ConnectMode: "verify_full",
-		CAFile:      filepath.Join(internal, "ZBX_DBTLSCAFILE"),
+		CAFile:      filepath.Join(runtimeDir, "ca.pem"),
 		CertFile:    "/run/secrets/client.pem",
-		KeyFile:     filepath.Join(internal, "ZBX_DBTLSKEYFILE"),
+		KeyFile:     filepath.Join(runtimeDir, "key.pem"),
 	}
 	if !reflect.DeepEqual(config, want) {
 		t.Fatalf("DB TLS = %#v, want %#v", config, want)
@@ -188,23 +186,39 @@ func TestInlineDBTLS(t *testing.T) {
 }
 
 func TestInlineDBTLSFrontendModeAndConflicts(t *testing.T) {
-	homeDir := homeWithEncInternal(t)
+	runtimeDir := useDBTLSRuntimeDir(t)
 	env := Environment{
-		"ZABBIX_USER_HOME_DIR": homeDir, "ZBX_DB_ENCRYPTION": "true", "ZBX_DB_VERIFY_HOST": "true", "ZBX_DBTLSCA": "inline CA",
+		"ZBX_DB_ENCRYPTION": "true", "ZBX_DB_VERIFY_HOST": "true", "ZBX_DBTLSCA": "inline CA",
 	}
 	config, err := ResolveFrontendDBTLS(env)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if config.ConnectMode != "verify_full" || config.CAFile != filepath.Join(homeDir, "enc_internal", "ZBX_DBTLSCAFILE") {
+	if config.ConnectMode != "verify_full" || config.CAFile != filepath.Join(runtimeDir, "ca.pem") {
 		t.Fatalf("frontend DB TLS with inline CA = %#v", config)
 	}
 
-	env = Environment{"ZABBIX_USER_HOME_DIR": homeDir, "ZBX_DBTLSCONNECT": "required", "ZBX_DBTLSCERT": "inline", "ZBX_DBTLSCERTFILE": "cert.pem"}
+	env = Environment{"ZBX_DBTLSCONNECT": "required", "ZBX_DBTLSCERT": "inline", "ZBX_DBTLSCERTFILE": "cert.pem"}
 	if _, err := ResolveServiceDBTLS(env); err == nil || !strings.Contains(err.Error(), "exclusive") {
 		t.Fatalf("inline and file DB TLS certificate: error = %v", err)
 	}
 
+}
+
+func TestInlineDBTLSConflictDoesNotWriteFiles(t *testing.T) {
+	runtimeDir := useDBTLSRuntimeDir(t)
+	env := Environment{
+		"ZBX_DBTLSCONNECT":  "required",
+		"ZBX_DBTLSCA":       "inline CA",
+		"ZBX_DBTLSCERT":     "inline certificate",
+		"ZBX_DBTLSCERTFILE": "cert.pem",
+	}
+	if _, err := ResolveServiceDBTLS(env); err == nil || !strings.Contains(err.Error(), "exclusive") {
+		t.Fatalf("inline and file DB TLS certificate: error = %v", err)
+	}
+	if _, err := os.Stat(runtimeDir); !os.IsNotExist(err) {
+		t.Fatalf("DB TLS runtime directory was created before validation: %v", err)
+	}
 }
 
 func TestInlineDBTLSRemovedWhenDisabled(t *testing.T) {
@@ -217,9 +231,8 @@ func TestInlineDBTLSRemovedWhenDisabled(t *testing.T) {
 		{"frontend", ResolveFrontendDBTLS, Environment{"ZBX_DB_ENCRYPTION": "false"}},
 	} {
 		t.Run(test.name, func(t *testing.T) {
-			homeDir := homeWithEncInternal(t)
+			runtimeDir := useDBTLSRuntimeDir(t)
 			env := test.env
-			env["ZABBIX_USER_HOME_DIR"] = homeDir
 			env["ZBX_DBTLSCA"] = "inline CA"
 			env["ZBX_DBTLSCERTFILE"] = "client.pem"
 			config, err := test.resolve(env)
@@ -232,22 +245,25 @@ func TestInlineDBTLSRemovedWhenDisabled(t *testing.T) {
 			if _, found := env["ZBX_DBTLSCA"]; found {
 				t.Error("inline ZBX_DBTLSCA was left in the environment")
 			}
-			if want := filepath.Join(homeDir, "enc_internal", "ZBX_DBTLSCAFILE"); env["ZBX_DBTLSCAFILE"] != want {
+			if want := filepath.Join(runtimeDir, "ca.pem"); env["ZBX_DBTLSCAFILE"] != want {
 				t.Errorf("ZBX_DBTLSCAFILE = %q, want %q", env["ZBX_DBTLSCAFILE"], want)
 			}
-			if env["ZBX_DBTLSCERTFILE"] != "client.pem" {
-				t.Errorf("disabled DB TLS changed ZBX_DBTLSCERTFILE to %q", env["ZBX_DBTLSCERTFILE"])
+			wantCertFile := "client.pem"
+			if test.name == "frontend" {
+				wantCertFile = filepath.Join(SecretsDir, "client.pem")
+			}
+			if env["ZBX_DBTLSCERTFILE"] != wantCertFile {
+				t.Errorf("disabled DB TLS changed ZBX_DBTLSCERTFILE to %q, want %q", env["ZBX_DBTLSCERTFILE"], wantCertFile)
 			}
 		})
 	}
 }
 
-// homeWithEncInternal mirrors the image layout created by the Dockerfiles.
-func homeWithEncInternal(t *testing.T) string {
+func useDBTLSRuntimeDir(t *testing.T) string {
 	t.Helper()
-	homeDir := t.TempDir()
-	if err := os.Mkdir(filepath.Join(homeDir, "enc_internal"), 0o700); err != nil {
-		t.Fatal(err)
-	}
-	return homeDir
+	dir := filepath.Join(t.TempDir(), "database")
+	previous := dbTLSRuntimeDir
+	dbTLSRuntimeDir = dir
+	t.Cleanup(func() { dbTLSRuntimeDir = previous })
+	return dir
 }

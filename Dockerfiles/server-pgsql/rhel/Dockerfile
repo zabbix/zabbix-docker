@@ -157,10 +157,12 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
         ${ZABBIX_USER_HOME_DIR}/ssl/keys \
         ${ZABBIX_USER_HOME_DIR}/ssl/ssl_ca \
         ${ZABBIX_USER_HOME_DIR}/ssl/ssl_ca_internal \
+        /run/zabbix/secrets \
         /usr/lib/zabbix/alertscripts \
         /usr/lib/zabbix/externalscripts \
         /usr/share/doc/zabbix-server-postgresql && \
     FIX_PERM_LIST="\
+        /run/zabbix/secrets/ \
         ${ZABBIX_CONF_DIR}/zabbix_server_modules.conf \
         ${ZABBIX_USER_HOME_DIR}/" && \
     chown --quiet -R zabbix:0 ${FIX_PERM_LIST} && \

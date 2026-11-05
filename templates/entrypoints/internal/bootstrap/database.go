@@ -2,6 +2,7 @@ package bootstrap
 
 import (
 	"fmt"
+	"os"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -13,17 +14,41 @@ const (
 	envDBTLSKeyFile  = "ZBX_DBTLSKEYFILE"
 )
 
-var dbTLSVariables = []string{"ZBX_DBTLSCA", "ZBX_DBTLSCERT", "ZBX_DBTLSKEY"}
+var dbTLSRuntimeDir = "/run/zabbix/secrets/database"
+
+var dbTLSVariables = []struct {
+	name     string
+	fileName string
+}{
+	{"ZBX_DBTLSCA", "ca.pem"},
+	{"ZBX_DBTLSCERT", "cert.pem"},
+	{"ZBX_DBTLSKEY", "key.pem"},
+}
 
 // PrepareDBTLSFiles always moves inline material out of the environment
 // (ClearPrivateEnv keeps ZBX_*); *FILE paths are resolved only if resolvePaths.
 func PrepareDBTLSFiles(env Environment, resolvePaths bool) error {
+	inline := false
 	for _, variable := range dbTLSVariables {
-		if env[variable] == "" && !resolvePaths {
-			delete(env, variable)
+		fileVariable := variable.name + "FILE"
+		if env[variable.name] != "" && env[fileVariable] != "" {
+			return fmt.Errorf("both variables %s and %s are set (but are exclusive)", variable.name, fileVariable)
+		}
+		inline = inline || env[variable.name] != ""
+	}
+	if inline {
+		if err := os.MkdirAll(dbTLSRuntimeDir, 0o700); err != nil {
+			return fmt.Errorf("create database TLS directory: %w", err)
+		}
+	}
+
+	for _, variable := range dbTLSVariables {
+		if env[variable.name] == "" && !resolvePaths {
+			delete(env, variable.name)
 			continue
 		}
-		if err := ProcessTLSFilesToEncInternal(env, SecretsDir, variable); err != nil {
+		path := filepath.Join(dbTLSRuntimeDir, variable.fileName)
+		if err := processTLSFileTo(env, SecretsDir, path, variable.name); err != nil {
 			return err
 		}
 	}
@@ -53,7 +78,9 @@ func ResolveServiceDBTLS(env Environment) (DBTLSConfig, error) {
 func ResolveFrontendDBTLS(env Environment) (DBTLSConfig, error) {
 	// The mode below depends on the CA file.
 	encrypted := strings.EqualFold(env["ZBX_DB_ENCRYPTION"], "true")
-	if err := PrepareDBTLSFiles(env, encrypted); err != nil {
+	// Frontend file aliases have historically been resolved regardless of
+	// whether database encryption is enabled.
+	if err := PrepareDBTLSFiles(env, true); err != nil {
 		return DBTLSConfig{}, err
 	}
 	if !encrypted {
