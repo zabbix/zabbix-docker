@@ -66,7 +66,8 @@ func prepareFrontendAliases(env bootstrap.Environment) error {
 			env[variable.name] = env[variable.legacy]
 		}
 		delete(env, variable.legacy)
-		if err := bootstrap.ResolveFileEnv(env, variable.name, variable.directory); err != nil {
+		inline := strings.TrimSuffix(variable.name, "FILE")
+		if err := bootstrap.ProcessTLSFilesToEncInternal(env, variable.directory, inline); err != nil {
 			return err
 		}
 	}

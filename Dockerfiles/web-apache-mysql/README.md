@@ -198,17 +198,17 @@ Information message about maintenance period for Zabbix web-interface.
 
 The variable allows to activate encryption for connections to Zabbix database. Even if no other environment variables are specified, connections will be TLS-encrypted if `ZBX_DB_ENCRYPTION=true` specified. Available since 5.0.0. Disabled by default.
 
-### `ZBX_DBTLSKEYFILE`
+### `ZBX_DBTLSCAFILE`, `ZBX_DBTLSCA`
 
-The variable allows to specify a TLS key file. Available since 5.0.0.
+`ZBX_DBTLSCAFILE` specifies a TLS certificate authority file. A relative path is resolved against `/run/secrets`. Available since 5.0.0. Alternatively, `ZBX_DBTLSCA` provides the CA certificate content directly.
 
-### `ZBX_DBTLSCERTFILE`
+### `ZBX_DBTLSCERTFILE`, `ZBX_DBTLSCERT`
 
-The variable allows to specify a TLS certificate file. Available since 5.0.0.
+`ZBX_DBTLSCERTFILE` specifies a TLS certificate file. A relative path is resolved against `/run/secrets`. Available since 5.0.0. Alternatively, `ZBX_DBTLSCERT` provides the certificate content directly.
 
-### `ZBX_DBTLSCAFILE`
+### `ZBX_DBTLSKEYFILE`, `ZBX_DBTLSKEY`
 
-The variable allows to specify a TLS certificate authority file. Available since 5.0.0.
+`ZBX_DBTLSKEYFILE` specifies a TLS key file. A relative path is resolved against `/run/secrets`. Available since 5.0.0. Alternatively, `ZBX_DBTLSKEY` provides the key content directly.
 
 ### `ZBX_DB_VERIFY_HOST`
 
@@ -261,7 +261,9 @@ ZBX_VAULTAPPROLEID= # Available since 8.0.0
 ZBX_VAULTAPPSECRETID= # Available since 8.0.0
 ZBX_VAULTPREFIX= # Available since 7.0.0
 ZBX_VAULTTLSCERTFILE= # Available since 6.2.0
+ZBX_VAULTTLSCERT=
 ZBX_VAULTTLSKEYFILE= # Available since 6.2.0
+ZBX_VAULTTLSKEY=
 ZBX_VAULTCACHE=false # Available since 6.2.0
 
 ZBX_CERT_STORAGE=database # Available since 8.0.0

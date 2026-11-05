@@ -247,6 +247,18 @@ func fetchCyberArk(ctx context.Context, env bootstrap.Environment, baseURL, dbPa
 }
 
 func resolveVaultFile(env bootstrap.Environment, legacyName, name string) (string, error) {
+	// Server and proxy fetch credentials before preparing their TLS files.
+	inline := strings.TrimSuffix(name, "FILE")
+	if env[inline] != "" {
+		homeDir, err := bootstrap.RequiredHomeDir(env)
+		if err != nil {
+			return "", err
+		}
+		if err := bootstrap.ProcessTLSFiles(env, filepath.Join(homeDir, "enc"), inline); err != nil {
+			return "", err
+		}
+	}
+
 	directory := bootstrap.WebCertsDir
 	if env[name] != "" {
 		if !filepath.IsAbs(env[name]) {
