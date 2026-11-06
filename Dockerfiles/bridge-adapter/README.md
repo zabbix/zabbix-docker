@@ -64,7 +64,6 @@ Start a Zabbix Bridge Adapter container using the same environment file and data
 $ docker run --name some-zabbix-bridge-adapter \
     --network zabbix-backend \
     --read-only --tmpfs /tmp \
-    --tmpfs /var/lib/zabbix/enc_internal:mode=0700,uid=1997,gid=0 \
     --env-file bridge-adapter.env \
     --volume zabbix-bridge-adapter-data:/var/lib/zabbix/bridge-adapter \
     -d zabbix/zabbix-bridge-adapter:tag
@@ -199,7 +198,7 @@ The volume stores persistent Adapter data and EULA acceptance. Use the same writ
 
 ### ``/var/lib/zabbix/enc``
 
-The volume stores TLS files referenced by the `ZBX_TLSCAFILE`, `ZBX_TLSCERTFILE`, `ZBX_TLSKEYFILE` and `ZBX_ZABBIXAPITLSCAFILE` variables. Relative paths are resolved against this directory. TLS material provided inline is written to `/var/lib/zabbix/enc_internal`; mount that directory as writable `tmpfs` when the container root filesystem is read-only.
+The volume stores TLS files referenced by the `ZBX_TLSCAFILE`, `ZBX_TLSCERTFILE`, `ZBX_TLSKEYFILE` and `ZBX_ZABBIXAPITLSCAFILE` variables. Relative paths are resolved against this directory.
 
 ### ``/var/lib/zabbix/ssl/certs``, ``/var/lib/zabbix/ssl/keys`` and ``/var/lib/zabbix/ssl/ssl_ca``
 
