@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"io"
 	"net"
-	"path/filepath"
 	"strings"
 	"time"
 
@@ -44,11 +43,6 @@ func prepareProviders(env bootstrap.Environment, param *storageprovider.Paramete
 	configs, err := configuration.ConfigsToPrepare()
 	if err != nil {
 		return 0, err
-	}
-	if len(configs) != 0 {
-		if err := bootstrap.PrepareCertDir(filepath.Join(env["ZABBIX_USER_HOME_DIR"], "ssl", "ssl_ca"), env["ZBX_SSLCALOCATION"]); err != nil {
-			return 0, err
-		}
 	}
 	return prepareSchemas(env, configs, dataset)
 }

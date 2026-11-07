@@ -126,7 +126,7 @@ ClickHouse telemetry provider configuration in JSON format.
 
 Credentials and the TLS private key password can be set with the matching `_USERNAME`, `_PASSWORD`, and `_SSL_KEY_PASSWORD` variables or their `_FILE` alternatives.
 
-Certificate and key paths may be absolute or relative to `/var/lib/zabbix/ssl/certs` and `/var/lib/zabbix/ssl/keys`, respectively. CA certificates are read from `/var/lib/zabbix/ssl/ssl_ca`.
+TLS material can be supplied using the matching `_SSL_CA`, `_SSL_CERT` and `_SSL_KEY` variables or their `*FILE` alternatives. Relative `*FILE` paths are resolved against `/run/zabbix/secrets/providers/telemetry-0`. The deprecated JSON fields `ssl_cert_file` and `ssl_key_file` accept absolute paths or paths relative to `/run/zabbix/secrets/ssl/certs` and `/run/zabbix/secrets/ssl/keys`, respectively.
 
 ### ClickHouse schema preparation
 
@@ -134,7 +134,7 @@ Use `ZBX_TELEMETRYPROVIDER_0_SCHEMA` to create or check the telemetry database a
 
 ```yaml
 environment:
-  ZBX_TELEMETRYPROVIDER_0: '{"provider":"clickhouse","url":"http://clickhouse:8123","db":"telemetry"}'
+  ZBX_TELEMETRYPROVIDER_0: '{"provider":"clickhouse","url":"http://clickhouse:8123","db":"telemetry","vault_path":""}'
   ZBX_TELEMETRYPROVIDER_0_USERNAME: zabbix
   ZBX_TELEMETRYPROVIDER_0_PASSWORD: zabbix
   ZBX_TELEMETRYPROVIDER_0_SCHEMA: '{"create":true}'
@@ -162,13 +162,34 @@ ZBX_APMTLSCERT= # Available since 8.0.0
 ZBX_APMTLSKEYFILE= # Available since 8.0.0
 ZBX_APMTLSKEY= # Available since 8.0.0
 ZBX_STARTAPMCOLLECTOR=0 # Available since 8.0.0
-ZBX_TELEMETRYPROVIDER_0=
+ZBX_TELEMETRYPROVIDER_0={"provider":"clickhouse","url":"http://clickhouse:8123","db":"zabbix","vault_path":"","source_ip":"","ssl_verify_peer":false,"ssl_verify_host":false}
+ZBX_TELEMETRYPROVIDER_0_SCHEMA={"create":true,"cluster":"","replicated":false,"ttl":2678400,"partition":"toDate"}
 ZBX_TELEMETRYPROVIDER_0_USERNAME=
 ZBX_TELEMETRYPROVIDER_0_USERNAME_FILE=
 ZBX_TELEMETRYPROVIDER_0_PASSWORD=
 ZBX_TELEMETRYPROVIDER_0_PASSWORD_FILE=
 ZBX_TELEMETRYPROVIDER_0_SSL_KEY_PASSWORD=
 ZBX_TELEMETRYPROVIDER_0_SSL_KEY_PASSWORD_FILE=
+ZBX_TELEMETRYPROVIDER_0_SSL_CAFILE=
+ZBX_TELEMETRYPROVIDER_0_SSL_CA=
+ZBX_TELEMETRYPROVIDER_0_SSL_CERTFILE=
+ZBX_TELEMETRYPROVIDER_0_SSL_CERT=
+ZBX_TELEMETRYPROVIDER_0_SSL_KEYFILE=
+ZBX_TELEMETRYPROVIDER_0_SSL_KEY=
+ZBX_VAULT=HashiCorp # Allowed values: HashiCorp, CyberArk. Required when Vault is used. Available since 6.2.0
+ZBX_VAULTAPPROLEID= # Available since 8.0.0
+ZBX_VAULTAPPROLEID_FILE= # Available since 8.0.0
+ZBX_VAULTAPPSECRETID= # Available since 8.0.0
+ZBX_VAULTAPPSECRETID_FILE= # Available since 8.0.0
+ZBX_VAULTPREFIX= # Available since 7.0.0
+ZBX_VAULTURL=https://127.0.0.1:8200 # Available since 5.2.0
+ZBX_VAULT_SSL_VERIFY=true
+VAULT_TOKEN= # Available since 5.2.0
+VAULT_TOKEN_FILE= # Available since 8.0.0
+ZBX_VAULTTLSCERTFILE= # Available since 6.2.0
+ZBX_VAULTTLSCERT=
+ZBX_VAULTTLSKEYFILE= # Available since 6.2.0
+ZBX_VAULTTLSKEY=
 ZBX_USE_NODE_NAME_AS_DB_NAME=false
 ZBX_ENABLEREMOTECOMMANDS=0 # Available since 3.4.0
 ZBX_LOGREMOTECOMMANDS=0 # Available since 3.4.0
@@ -264,25 +285,37 @@ The volume stores SQLite3 database file and could be used for external database 
 
 The volume allows load additional modules and extend Zabbix proxy using ``LoadModule`` feature.
 
-### ``/var/lib/zabbix/enc``
+### ``/run/zabbix/secrets/apm``
 
-The volume is used to store TLS related files. These file names are specified using ``ZBX_TLSCAFILE``, ``ZBX_TLSCRLFILE``, ``ZBX_TLSCERTFILE``, ``ZBX_TLSKEYFILE``, ``ZBX_TLSPSKFILE``, ``ZBX_APMTLSCAFILE``, ``ZBX_APMTLSCERTFILE`` and ``ZBX_APMTLSKEYFILE`` variables. Additionally it is possible to use environment variables ``ZBX_TLSCA``, ``ZBX_TLSCRL``, ``ZBX_TLSCERT``, ``ZBX_TLSKEY``, ``ZBX_TLSPSK``, ``ZBX_APMTLSCA``, ``ZBX_APMTLSCERT`` and ``ZBX_APMTLSKEY`` with plaintext values.
+The volume provides files referenced by ``ZBX_APMTLSCAFILE``, ``ZBX_APMTLSCERTFILE`` and ``ZBX_APMTLSKEYFILE``.
+
+### ``/run/zabbix/secrets/providers``
+
+The volume provides file-backed telemetry provider secrets.
+
+### ``/run/zabbix/secrets/ssl/ca``
+
+The volume is used to provide certificate authority (CA) files for SSL server certificate verification. The files are copied to an internal writable directory where OpenSSL hash links are generated before Zabbix proxy starts. The volume should be mounted read-only.
+
+### ``/run/zabbix/secrets/ssl/certs``
+
+The volume is used as location of SSL client certificate files for client authentication. It is `SSLCertLocation` parameter in ``zabbix_proxy.conf``.
+
+### ``/run/zabbix/secrets/ssl/keys``
+
+The volume is used as location of SSL private key files for client authentication. It is `SSLKeyLocation` parameter in ``zabbix_proxy.conf``.
+
+### ``/run/zabbix/secrets/tls``
+
+The volume is used to store TLS related files. These file names are specified using ``ZBX_TLSCAFILE``, ``ZBX_TLSCRLFILE``, ``ZBX_TLSCERTFILE``, ``ZBX_TLSKEYFILE`` and ``ZBX_TLSPSKFILE`` variables. Additionally it is possible to use environment variables ``ZBX_TLSCA``, ``ZBX_TLSCRL``, ``ZBX_TLSCERT``, ``ZBX_TLSKEY`` and ``ZBX_TLSPSK`` with plaintext values.
+
+### ``/run/zabbix/secrets/vault``
+
+The volume provides file-backed Vault credentials and files referenced by ``ZBX_VAULTTLSCERTFILE`` and ``ZBX_VAULTTLSKEYFILE``.
 
 ### ``/var/lib/zabbix/ssh_keys``
 
 The volume is used as location of public and private keys for SSH checks and actions. It is `SSHKeyLocation` parameter in ``zabbix_proxy.conf``.
-
-### ``/var/lib/zabbix/ssl/certs``
-
-The volume is used as location of SSL client certificate files for client authentication. It is `SSLCertLocation` parameter in ``zabbix_proxy.conf``.
-
-### ``/var/lib/zabbix/ssl/keys``
-
-The volume is used as location of SSL private key files for client authentication. It is `SSLKeyLocation` parameter in ``zabbix_proxy.conf``.
-
-### ``/var/lib/zabbix/ssl/ssl_ca``
-
-The volume is used to provide certificate authority (CA) files for SSL server certificate verification. The files are copied to an internal writable directory where OpenSSL hash links are generated before Zabbix proxy starts. The volume should be mounted read-only.
 
 ### ``/var/lib/zabbix/snmptraps``
 

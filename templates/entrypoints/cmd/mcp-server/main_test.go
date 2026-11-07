@@ -12,8 +12,6 @@ import (
 
 func TestPrepareService(t *testing.T) {
 	env, runtimeRulePath := serviceFixture(t)
-	env["ZBX_TLSCERT"] = "certificate-data"
-	env["ZBX_TLSKEY"] = "key-data"
 	env["MYSQL_PASSWORD"] = "password"
 	if err := prepareService(env, runtimeRulePath); err != nil {
 		t.Fatal(err)
@@ -24,24 +22,6 @@ func TestPrepareService(t *testing.T) {
 	}
 	if _, found := env["MYSQL_PASSWORD"]; found {
 		t.Fatal("MYSQL_PASSWORD was not removed")
-	}
-	for _, variable := range []string{"ZBX_TLSCERT", "ZBX_TLSKEY"} {
-		if _, found := env[variable]; found {
-			t.Fatalf("%s was not removed", variable)
-		}
-	}
-	for variable, expected := range map[string]string{
-		"ZBX_TLSCERTFILE": "certificate-data",
-		"ZBX_TLSKEYFILE":  "key-data",
-	} {
-		path := env[variable]
-		data, err := os.ReadFile(path)
-		if err != nil {
-			t.Fatalf("read %s: %v", path, err)
-		}
-		if string(data) != expected {
-			t.Fatalf("unexpected %s content: %q", variable, data)
-		}
 	}
 }
 

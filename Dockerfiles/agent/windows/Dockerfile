@@ -73,7 +73,8 @@ RUN Set-Location -Path $env:SystemDrive\.; `
     New-Item -Force -ItemType directory -Path $env:ZABBIX_CONF_DIR | Out-Null; `
     New-Item -Force -ItemType directory -Path $env:ZABBIX_CONF_DIR\zabbix_agentd.d | Out-Null; `
     New-Item -Force -ItemType directory -Path $env:ZABBIX_USER_HOME_DIR\enc | Out-Null; `
-    New-Item -Force -ItemType directory -Path $env:ZABBIX_USER_HOME_DIR\enc_internal | Out-Null; `
+    New-Item -Force -ItemType directory -Path C:\zabbix\secrets\tls | Out-Null; `
+    New-Item -Force -ItemType directory -Path C:\zabbix\secrets_internal | Out-Null; `
     New-Item -Force -ItemType directory -Path $env:ZBX_USERPARAMETERDIR | Out-Null; `
     `
     net accounts /MaxPWAge:unlimited; `

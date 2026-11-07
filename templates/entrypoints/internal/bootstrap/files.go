@@ -17,7 +17,7 @@ var ErrMissingSymlinkSource = errors.New("symlink source does not exist")
 const (
 	// SecretsDir is where container runtimes mount secret files.
 	SecretsDir = "/run/secrets"
-	// WebCertsDir holds the frontend certificates of the web images.
+	// WebCertsDir is the deprecated relative-path base for web SSO and Vault files.
 	WebCertsDir = "/etc/zabbix/web/certs"
 )
 

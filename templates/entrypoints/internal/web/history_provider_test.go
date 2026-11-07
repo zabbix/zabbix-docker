@@ -2,8 +2,6 @@ package web
 
 import (
 	"encoding/json"
-	"os"
-	"path/filepath"
 	"strings"
 	"testing"
 
@@ -66,19 +64,11 @@ func TestConfigureWebHistoryProvidersUnindexedObject(t *testing.T) {
 	}
 }
 
-func TestConfigureWebHistoryProviderSecretFiles(t *testing.T) {
-	secretDir := t.TempDir()
-	usernameFile := filepath.Join(secretDir, "username")
-	passwordFile := filepath.Join(secretDir, "password")
-	for path, value := range map[string]string{usernameFile: "secret-user\n", passwordFile: "secret-password\n"} {
-		if err := os.WriteFile(path, []byte(value), 0o600); err != nil {
-			t.Fatal(err)
-		}
-	}
+func TestConfigureWebHistoryProviderResolvedCredentials(t *testing.T) {
 	env := bootstrap.Environment{
-		"ZBX_HISTORYPROVIDER_0":               `{"provider":"clickhouse","types":["uint"],"url":"http://clickhouse:8123"}`,
-		"ZBX_HISTORYPROVIDER_0_USERNAME_FILE": usernameFile,
-		"ZBX_HISTORYPROVIDER_0_PASSWORD_FILE": passwordFile,
+		"ZBX_HISTORYPROVIDER_0":          `{"provider":"clickhouse","types":["uint"],"url":"http://clickhouse:8123"}`,
+		"ZBX_HISTORYPROVIDER_0_USERNAME": "secret-user",
+		"ZBX_HISTORYPROVIDER_0_PASSWORD": "secret-password",
 	}
 	if err := configureWebHistoryProviders(env); err != nil {
 		t.Fatal(err)
@@ -89,9 +79,6 @@ func TestConfigureWebHistoryProviderSecretFiles(t *testing.T) {
 	}
 	if len(providers) != 1 || providers[0]["username"] != "secret-user" || providers[0]["password"] != "secret-password" {
 		t.Fatalf("Secret file credentials were not used: %#v", providers)
-	}
-	if _, exists := env["ZBX_HISTORYPROVIDER_0_PASSWORD_FILE"]; exists {
-		t.Fatal("Secret file variable remained in the environment")
 	}
 }
 

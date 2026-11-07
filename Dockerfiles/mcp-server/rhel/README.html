@@ -111,10 +111,10 @@ ZBX_TLSCERTFILE=
 ZBX_TLSCERT=
 ZBX_TLSKEYFILE=
 ZBX_TLSKEY=</code></pre>
-<p>Set <code>ZBX_TLSACCEPT=cert</code> and specify the server certificate and private key using <code>ZBX_TLSCERTFILE</code> and <code>ZBX_TLSKEYFILE</code>. Relative file names are resolved under <code>/var/lib/zabbix/enc</code>. Alternatively, the certificate and key contents may be passed directly through <code>ZBX_TLSCERT</code> and <code>ZBX_TLSKEY</code>.</p>
+<p>Set <code>ZBX_TLSACCEPT=cert</code> and specify the server certificate and private key using <code>ZBX_TLSCERTFILE</code> and <code>ZBX_TLSKEYFILE</code>. Relative file names are resolved under <code>/run/zabbix/secrets/tls</code>; the previous location remains available during migration with a warning. Alternatively, the certificate and key contents may be passed directly through <code>ZBX_TLSCERT</code> and <code>ZBX_TLSKEY</code>.</p>
 
 <h2 id="allowed-volumes-for-the-zabbix-mcp-server-container">Allowed volumes for the Zabbix MCP server container</h2>
-<h3 id="var-lib-zabbix-enc"><code>/var/lib/zabbix/enc</code></h3>
+<h3 id="run-zabbix-secrets-tls"><code>/run/zabbix/secrets/tls</code></h3>
 <p>The volume is used to store the TLS certificate and private key specified with <code>ZBX_TLSCERTFILE</code> and <code>ZBX_TLSKEYFILE</code>. Mount the volume read-only.</p>
 
 <h1 id="the-image-variants">The image variants</h1>

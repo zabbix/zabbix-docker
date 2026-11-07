@@ -172,11 +172,11 @@ ZBX_TLSKEYFILE=
 ZBX_TLSKEY=
 ```
 
-Set `ZBX_TLSACCEPT=cert` and specify the server certificate and private key using `ZBX_TLSCERTFILE` and `ZBX_TLSKEYFILE`. Relative file names are resolved under `/var/lib/zabbix/enc`. Alternatively, the certificate and key contents may be passed directly through `ZBX_TLSCERT` and `ZBX_TLSKEY`.
+Set `ZBX_TLSACCEPT=cert` and specify the server certificate and private key using `ZBX_TLSCERTFILE` and `ZBX_TLSKEYFILE`. Relative file names are resolved under `/run/zabbix/secrets/tls`; the previous location remains available during migration with a warning. Alternatively, the certificate and key contents may be passed directly through `ZBX_TLSCERT` and `ZBX_TLSKEY`.
 
 ## Allowed volumes for the Zabbix MCP server container
 
-### ``/var/lib/zabbix/enc``
+### ``/run/zabbix/secrets/tls``
 
 The volume is used to store the TLS certificate and private key specified with `ZBX_TLSCERTFILE` and `ZBX_TLSKEYFILE`. Mount the volume read-only.
 

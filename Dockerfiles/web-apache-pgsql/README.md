@@ -120,7 +120,7 @@ The variable is Zabbix database name. By default, value is `zabbix`.
 
 In some setups, for example including [PgBouncer](https://www.pgbouncer.org), setting the `search_path` via connection parameters fails. If this variable is set to `"true"`, the image skips setting the `search_path` and trusts that the `search_path` of the Zabbix user is setup correctly in PostgreSQL database.
 
-### `ZBX_HISTORYPROVIDER_<0-N>`
+### `ZBX_HISTORYPROVIDER_<N>`
 
 History storage provider configuration in JSON format. Use consecutive indices starting with `0`.
 
@@ -132,11 +132,11 @@ ClickHouse telemetry provider configuration in JSON format.
 
 Credentials and the TLS private key password can be set with the matching `_USERNAME`, `_PASSWORD`, and `_SSL_KEY_PASSWORD` variables or their `_FILE` alternatives.
 
-Certificate and key paths may be absolute or relative to `/var/lib/zabbix/ssl/certs` and `/var/lib/zabbix/ssl/keys`, respectively. CA certificates are read from `/var/lib/zabbix/ssl/ssl_ca`.
+TLS material can be supplied using the matching `_SSL_CA`, `_SSL_CERT` and `_SSL_KEY` variables or their `*FILE` alternatives. Relative `*FILE` paths are resolved against `/run/zabbix/secrets/providers/telemetry-0`. The deprecated JSON fields `ssl_cert_file` and `ssl_key_file` accept absolute paths or paths relative to `/run/zabbix/secrets/ssl/certs` and `/run/zabbix/secrets/ssl/keys`, respectively.
 
 ### `ZBX_APM_CAFILE`, `ZBX_APM_CA`
 
-`ZBX_APM_CAFILE` specifies the CA file used as the default for APM providers. A relative path is resolved against `/var/lib/zabbix/ssl/ssl_ca`. Alternatively, `ZBX_APM_CA` provides the CA certificate content directly.
+`ZBX_APM_CAFILE` specifies the CA file used as the default for APM providers. A relative path is resolved against `/run/zabbix/secrets/apm`. Alternatively, `ZBX_APM_CA` provides the CA certificate content directly.
 
 ### `PHP_TZ`
 
@@ -220,15 +220,15 @@ The variable controls database hostname verification. Enabled by default; set ZB
 
 ### `ZBX_SSO_SP_KEYFILE`, `ZBX_SSO_SP_KEY`
 
-`ZBX_SSO_SP_KEYFILE` specifies the Service Provider (SP) private key file. A relative path is resolved against `/etc/zabbix/web/certs`. Alternatively, `ZBX_SSO_SP_KEY` provides the private key content directly. Available since 8.0.0.
+`ZBX_SSO_SP_KEYFILE` specifies the Service Provider (SP) private key file. A relative path is resolved against `/run/zabbix/secrets/sso`; the previous location remains available during migration with a warning. Alternatively, `ZBX_SSO_SP_KEY` provides the private key content directly. Available since 8.0.0.
 
 ### `ZBX_SSO_SP_CERTFILE`, `ZBX_SSO_SP_CERT`
 
-`ZBX_SSO_SP_CERTFILE` specifies the Service Provider (SP) certificate file. A relative path is resolved against `/etc/zabbix/web/certs`. Alternatively, `ZBX_SSO_SP_CERT` provides the certificate content directly. Available since 8.0.0.
+`ZBX_SSO_SP_CERTFILE` specifies the Service Provider (SP) certificate file. A relative path is resolved against `/run/zabbix/secrets/sso`; the previous location remains available during migration with a warning. Alternatively, `ZBX_SSO_SP_CERT` provides the certificate content directly. Available since 8.0.0.
 
 ### `ZBX_SSO_IDP_CERTFILE`, `ZBX_SSO_IDP_CERT`
 
-`ZBX_SSO_IDP_CERTFILE` specifies the Identity Provider (IdP) certificate file. A relative path is resolved against `/etc/zabbix/web/certs`. Alternatively, `ZBX_SSO_IDP_CERT` provides the certificate content directly. Available since 8.0.0.
+`ZBX_SSO_IDP_CERTFILE` specifies the Identity Provider (IdP) certificate file. A relative path is resolved against `/run/zabbix/secrets/sso`; the previous location remains available during migration with a warning. Alternatively, `ZBX_SSO_IDP_CERT` provides the certificate content directly. Available since 8.0.0.
 
 ## `ZBX_SSO_SETTINGS`
 
@@ -257,14 +257,37 @@ ZBX_VAULT=HashiCorp # Allowed values: HashiCorp, CyberArk. Required when Vault i
 ZBX_VAULTDBPATH= # Available since 5.2.0
 ZBX_VAULTURL=https://127.0.0.1:8200 # Available since 5.2.0
 VAULT_TOKEN= # Available since 5.2.0
+VAULT_TOKEN_FILE= # Available since 8.0.0
 ZBX_VAULTAPPROLEID= # Available since 8.0.0
+ZBX_VAULTAPPROLEID_FILE= # Available since 8.0.0
 ZBX_VAULTAPPSECRETID= # Available since 8.0.0
+ZBX_VAULTAPPSECRETID_FILE= # Available since 8.0.0
 ZBX_VAULTPREFIX= # Available since 7.0.0
+ZBX_VAULT_SSL_VERIFY=true
 ZBX_VAULTTLSCERTFILE= # Available since 6.2.0
 ZBX_VAULTTLSCERT=
 ZBX_VAULTTLSKEYFILE= # Available since 6.2.0
 ZBX_VAULTTLSKEY=
 ZBX_VAULTCACHE=false # Available since 6.2.0
+
+ZBX_HISTORYPROVIDER_<N>={"provider":"clickhouse","url":"http://clickhouse:8123","db":"zabbix","types":["uint","dbl","str","log","text","json"]}
+ZBX_HISTORYPROVIDER_<N>_USERNAME=
+ZBX_HISTORYPROVIDER_<N>_USERNAME_FILE=
+ZBX_HISTORYPROVIDER_<N>_PASSWORD=
+ZBX_HISTORYPROVIDER_<N>_PASSWORD_FILE=
+ZBX_TELEMETRYPROVIDER_0={"provider":"clickhouse","url":"http://clickhouse:8123","db":"zabbix","vault_path":"","ssl_verify_peer":false,"ssl_verify_host":false}
+ZBX_TELEMETRYPROVIDER_0_USERNAME=zabbix
+ZBX_TELEMETRYPROVIDER_0_USERNAME_FILE=
+ZBX_TELEMETRYPROVIDER_0_PASSWORD=zabbix
+ZBX_TELEMETRYPROVIDER_0_PASSWORD_FILE=
+ZBX_TELEMETRYPROVIDER_0_SSL_KEY_PASSWORD=
+ZBX_TELEMETRYPROVIDER_0_SSL_KEY_PASSWORD_FILE=
+ZBX_TELEMETRYPROVIDER_0_SSL_CAFILE=
+ZBX_TELEMETRYPROVIDER_0_SSL_CA=
+ZBX_TELEMETRYPROVIDER_0_SSL_CERTFILE=
+ZBX_TELEMETRYPROVIDER_0_SSL_CERT=
+ZBX_TELEMETRYPROVIDER_0_SSL_KEYFILE=
+ZBX_TELEMETRYPROVIDER_0_SSL_KEY=
 
 ZBX_CERT_STORAGE=database # Available since 8.0.0
 ZBX_BANNERS_ENABLED=true # Available since 8.0.0
@@ -312,17 +335,41 @@ The volume allows to enable HTTPS for the Zabbix web interface. The volume must 
 
 Please follow official Apache2 [documentation](https://httpd.apache.org/docs/2.4/ssl/ssl_howto.html) to get more details about how to create certificate files.
 
-### ``/etc/zabbix/web/certs``
+### ``/run/zabbix/secrets/apm``
 
-The volume provides certificate and key files referenced by ``ZBX_SSO_SP_KEYFILE``, ``ZBX_SSO_SP_CERTFILE``, ``ZBX_SSO_IDP_CERTFILE``, ``ZBX_VAULTTLSCERTFILE`` and ``ZBX_VAULTTLSKEYFILE``. Relative paths are resolved against this directory. Available since 5.0.0.
+The volume provides APM TLS CA material. Relative ``ZBX_APM_CAFILE`` paths are resolved against this directory. CA files placed in its ``ca`` subdirectory are copied to an internal writable directory where OpenSSL hash links are generated.
 
-### ``/var/lib/zabbix/enc``
+### ``/run/zabbix/secrets/database``
 
-The volume is used to store TLS related files. These file names are specified using ``ZBX_SERVER_TLS_CAFILE``, ``ZBX_SERVER_TLS_KEYFILE`` and ``ZBX_SERVER_TLS_CERTFILE`` variables. Additionally it is possible to use environment variables ``ZBX_SERVER_TLS_CA``, ``ZBX_SERVER_TLS_KEY`` and ``ZBX_SERVER_TLS_CERT`` with plaintext values. Available since 7.4.0.
+The volume provides file-backed database credentials and database TLS files.
 
-### ``/var/lib/zabbix/ssl/ssl_ca``
+### ``/run/zabbix/secrets/providers``
 
-The volume is used to provide certificate authority (CA) files for APM server certificate verification. The files are copied to an internal writable directory where OpenSSL hash links are generated before Zabbix frontend starts. The volume should be mounted read-only.
+The volume provides file-backed history and telemetry provider secrets.
+
+### ``/run/zabbix/secrets/sso``
+
+The volume provides files referenced by ``ZBX_SSO_SP_KEYFILE``, ``ZBX_SSO_SP_CERTFILE`` and ``ZBX_SSO_IDP_CERTFILE``.
+
+### ``/run/zabbix/secrets/ssl/ca``
+
+The volume provides CA files used for Vault TLS when database credentials are read from Vault.
+
+### ``/run/zabbix/secrets/ssl/certs``
+
+The volume provides certificate files referenced by the deprecated telemetry JSON field ``ssl_cert_file``.
+
+### ``/run/zabbix/secrets/ssl/keys``
+
+The volume provides private key files referenced by the deprecated telemetry JSON field ``ssl_key_file``.
+
+### ``/run/zabbix/secrets/tls``
+
+The volume provides TLS files referenced by ``ZBX_SERVER_TLS_CAFILE``, ``ZBX_SERVER_TLS_KEYFILE`` and ``ZBX_SERVER_TLS_CERTFILE``.
+
+### ``/run/zabbix/secrets/vault``
+
+The volume provides files referenced by ``ZBX_VAULTTLSCERTFILE`` and ``ZBX_VAULTTLSKEYFILE``.
 
 # The image variants
 

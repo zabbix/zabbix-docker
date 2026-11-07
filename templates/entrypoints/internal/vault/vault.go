@@ -12,7 +12,6 @@ import (
 	"io"
 	"net/http"
 	"os"
-	"path/filepath"
 	"strings"
 	"time"
 
@@ -57,11 +56,6 @@ func Fetch(ctx context.Context, env bootstrap.Environment) (Credentials, error) 
 
 	switch env["ZBX_VAULT"] {
 	case "HashiCorp":
-		for _, key := range []string{"VAULT_TOKEN", "ZBX_VAULTAPPROLEID", "ZBX_VAULTAPPSECRETID"} {
-			if err := bootstrap.ResolveSecretEnv(env, key); err != nil {
-				return Credentials{}, err
-			}
-		}
 		return fetchHashiCorp(ctx, env, vaultURL, dbPath)
 	case "CyberArk":
 		return fetchCyberArk(ctx, env, vaultURL, dbPath)
@@ -75,7 +69,11 @@ func fetchHashiCorp(ctx context.Context, env bootstrap.Environment, baseURL, dbP
 
 	bootstrap.LogInfo("***** VAULT URL: %s", reqURL)
 
-	client := newVaultClient(hashicorpTLSConfig(env))
+	tlsConfig, err := hashicorpTLSConfig(env)
+	if err != nil {
+		return Credentials{}, err
+	}
+	client := newVaultClient(tlsConfig)
 
 	token, err := resolveHashiCorpToken(ctx, env, baseURL, client)
 	if err != nil {
@@ -148,10 +146,36 @@ func loginHashiCorpAppRole(ctx context.Context, client vaultClient, baseURL, rol
 	return resp.Auth.ClientToken, nil
 }
 
-func hashicorpTLSConfig(env bootstrap.Environment) *tls.Config {
-	return &tls.Config{
-		InsecureSkipVerify: env["ZBX_VAULT_SSL_VERIFY"] != "true",
+func hashicorpTLSConfig(env bootstrap.Environment) (*tls.Config, error) {
+	verify, err := vaultTLSVerification(env["ZBX_VAULT_SSL_VERIFY"])
+	if err != nil {
+		return nil, err
 	}
+	return vaultTLSConfig(env, !verify, nil)
+}
+
+func vaultTLSVerification(value string) (bool, error) {
+	switch strings.ToLower(strings.TrimSpace(value)) {
+	case "", "1", "true", "yes", "on":
+		return true, nil
+	case "0", "false", "no", "off":
+		return false, nil
+	default:
+		return false, fmt.Errorf("invalid ZBX_VAULT_SSL_VERIFY value %q", value)
+	}
+}
+
+func vaultTLSConfig(env bootstrap.Environment, insecure bool, certificates []tls.Certificate) (*tls.Config, error) {
+	config := &tls.Config{InsecureSkipVerify: insecure, Certificates: certificates}
+	if insecure || env["ZBX_SSLCALOCATION"] == "" {
+		return config, nil
+	}
+	roots, err := bootstrap.LoadCAPool(env["ZBX_SSLCALOCATION"])
+	if err != nil {
+		return nil, err
+	}
+	config.RootCAs = roots
+	return config, nil
 }
 
 func hashicorpURL(baseURL, configuredPrefix, dbPath string) string {
@@ -200,10 +224,7 @@ func decodeHashiCorp(data []byte) (Credentials, error) {
 }
 
 func fetchCyberArk(ctx context.Context, env bootstrap.Environment, baseURL, dbPath string) (Credentials, error) {
-	certFile, err := resolveVaultFile(env, "ZBX_VAULTCERTFILE", "ZBX_VAULTTLSCERTFILE")
-	if err != nil {
-		return Credentials{}, err
-	}
+	certFile := env["ZBX_VAULTTLSCERTFILE"]
 	if certFile == "" {
 		return Credentials{}, errors.New("if CyberArk is used, a Vault certificate file must be set")
 	}
@@ -214,10 +235,7 @@ func fetchCyberArk(ctx context.Context, env bootstrap.Environment, baseURL, dbPa
 	}
 
 	keyPEM := certPEM
-	keyFile, err := resolveVaultFile(env, "ZBX_VAULTKEYFILE", "ZBX_VAULTTLSKEYFILE")
-	if err != nil {
-		return Credentials{}, err
-	}
+	keyFile := env["ZBX_VAULTTLSKEYFILE"]
 	if keyFile != "" {
 		keyPEM, err = os.ReadFile(keyFile)
 		if err != nil {
@@ -234,7 +252,11 @@ func fetchCyberArk(ctx context.Context, env bootstrap.Environment, baseURL, dbPa
 
 	bootstrap.LogInfo("***** VAULT URL: %s", reqURL)
 
-	client := newVaultClient(&tls.Config{Certificates: []tls.Certificate{cert}})
+	tlsConfig, err := vaultTLSConfig(env, false, []tls.Certificate{cert})
+	if err != nil {
+		return Credentials{}, err
+	}
+	client := newVaultClient(tlsConfig)
 
 	data, err := client.request(ctx, http.MethodGet, reqURL, nil, func(req *http.Request) {
 		req.Header.Set("Content-Type", "application/json")
@@ -244,41 +266,6 @@ func fetchCyberArk(ctx context.Context, env bootstrap.Environment, baseURL, dbPa
 	}
 
 	return decodeCyberArk(data)
-}
-
-func resolveVaultFile(env bootstrap.Environment, legacyName, name string) (string, error) {
-	// Server and proxy fetch credentials before preparing their TLS files.
-	inline := strings.TrimSuffix(name, "FILE")
-	if env[inline] != "" {
-		homeDir, err := bootstrap.RequiredHomeDir(env)
-		if err != nil {
-			return "", err
-		}
-		if err := bootstrap.ProcessTLSFiles(env, filepath.Join(homeDir, "enc"), inline); err != nil {
-			return "", err
-		}
-	}
-
-	directory := bootstrap.WebCertsDir
-	if env[name] != "" {
-		if !filepath.IsAbs(env[name]) {
-			homeDir, err := bootstrap.RequiredHomeDir(env)
-			if err != nil {
-				return "", err
-			}
-			directory = filepath.Join(homeDir, "enc")
-		}
-	} else if env[legacyName] != "" {
-		name = legacyName
-	} else {
-		return "", nil
-	}
-
-	if err := bootstrap.ResolveFileEnv(env, name, directory); err != nil {
-		return "", err
-	}
-
-	return env[name], nil
 }
 
 func cyberArkURL(baseURL, prefix, dbPath string) string {

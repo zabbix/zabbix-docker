@@ -29,15 +29,8 @@ func Prepare(env bootstrap.Environment, defaultHostname string) error {
 	}
 	delete(env, "ZBX_ENABLE_SNMP_TRAPS")
 
-	homeDir, configDir, err := bootstrap.CommonDirs(env)
+	_, configDir, err := bootstrap.CommonDirs(env)
 	if err != nil {
-		return err
-	}
-	if err := bootstrap.ProcessTLSFiles(env, filepath.Join(homeDir, "enc"), "ZBX_VAULTTLSCERT", "ZBX_VAULTTLSKEY"); err != nil {
-		return err
-	}
-
-	if err := bootstrap.PrepareCertDir(filepath.Join(homeDir, "ssl", "ssl_ca"), env["ZBX_SSLCALOCATION"]); err != nil {
 		return err
 	}
 
@@ -48,15 +41,6 @@ func Prepare(env bootstrap.Environment, defaultHostname string) error {
 		return err
 	}
 	if err := config.UpdateIndexedParameter(env, filepath.Join(configDir, "zabbix_proxy_telemetry.conf"), "TelemetryProvider", "ZBX_TELEMETRYPROVIDER"); err != nil {
-		return err
-	}
-
-	if err := bootstrap.ProcessTLSFiles(
-		env,
-		filepath.Join(homeDir, "enc"),
-		"ZBX_TLSCA", "ZBX_TLSCRL", "ZBX_TLSCERT", "ZBX_TLSKEY", "ZBX_TLSPSK",
-		"ZBX_APMTLSCA", "ZBX_APMTLSCERT", "ZBX_APMTLSKEY",
-	); err != nil {
 		return err
 	}
 

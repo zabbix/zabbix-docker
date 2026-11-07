@@ -95,14 +95,17 @@ RUN --mount=type=tmpfs,target=${ZBX_ROOTFS_DIR}/var/lib/dnf/ \
             ${ZBX_ROOTFS_DIR}${ZABBIX_USER_HOME_DIR} \
             ${ZBX_ROOTFS_DIR}${ZABBIX_USER_HOME_DIR}/bridge-adapter \
             ${ZBX_ROOTFS_DIR}${ZABBIX_USER_HOME_DIR}/enc \
-            ${ZBX_ROOTFS_DIR}${ZABBIX_USER_HOME_DIR}/enc_internal \
+            ${ZBX_ROOTFS_DIR}/run/zabbix/secrets/tls \
+            ${ZBX_ROOTFS_DIR}/run/zabbix/secrets_internal \
             ${ZBX_ROOTFS_DIR}${ZABBIX_USER_HOME_DIR}/ssl/certs \
             ${ZBX_ROOTFS_DIR}${ZABBIX_USER_HOME_DIR}/ssl/keys \
             ${ZBX_ROOTFS_DIR}${ZABBIX_USER_HOME_DIR}/ssl/ssl_ca && \
     chown --quiet -R 1997:0 \
-        ${ZBX_ROOTFS_DIR}${ZABBIX_USER_HOME_DIR} && \
+        ${ZBX_ROOTFS_DIR}${ZABBIX_USER_HOME_DIR} \
+        ${ZBX_ROOTFS_DIR}/run/zabbix/secrets_internal && \
     chmod -R g=u \
-        ${ZBX_ROOTFS_DIR}${ZABBIX_USER_HOME_DIR}
+        ${ZBX_ROOTFS_DIR}${ZABBIX_USER_HOME_DIR} \
+        ${ZBX_ROOTFS_DIR}/run/zabbix/secrets_internal
 
 FROM runtime-base
 

@@ -19,6 +19,12 @@ func IndexedName(prefix string, index int) string {
 	return prefix + "_" + strconv.Itoa(index)
 }
 
+func parseIndexedNumber(value string) (int, bool) {
+	index, err := strconv.Atoi(value)
+
+	return index, err == nil && index >= 0 && strconv.Itoa(index) == value
+}
+
 // CollectIndexed returns a consecutive, globally ordered list of PREFIX_N
 // variables. Prefixes do not include the underscore before the index.
 // Unknown suffixes are ignored unless strict is true.
@@ -42,8 +48,8 @@ func CollectIndexed(env Environment, prefixes []string, strict bool) ([]IndexedV
 			continue
 		}
 
-		index, err := strconv.Atoi(suffix)
-		if err != nil || index < 0 || strconv.Itoa(index) != suffix {
+		index, valid := parseIndexedNumber(suffix)
+		if !valid {
 			if strict {
 				return nil, fmt.Errorf("invalid indexed variable %s", name)
 			}

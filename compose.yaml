@@ -289,11 +289,11 @@ secrets:
   MYSQL_ROOT_PASSWORD:
     file: ${ENV_VARS_DIRECTORY}/.MYSQL_ROOT_PASSWORD
 #  client-key.pem:
-#    file: ${ENV_VARS_DIRECTORY}/.ZBX_DB_KEY_FILE
+#    file: ${ENV_VARS_DIRECTORY}/.ZBX_DBTLSKEYFILE
 #  client-cert.pem:
-#    file: ${ENV_VARS_DIRECTORY}/.ZBX_DB_CERT_FILE
+#    file: ${ENV_VARS_DIRECTORY}/.ZBX_DBTLSCERTFILE
 #  root-ca.pem:
-#    file: ${ENV_VARS_DIRECTORY}/.ZBX_DB_CA_FILE
+#    file: ${ENV_VARS_DIRECTORY}/.ZBX_DBTLSCAFILE
 #  server-cert.pem:
 #    file: ${ENV_VARS_DIRECTORY}/.DB_CERT_FILE
 #  server-key.pem:

@@ -107,7 +107,7 @@ Please use official documentation for [``zabbix_web_service.conf``](https://www.
 
 ## Allowed volumes for the Zabbix web service container
 
-### ``/var/lib/zabbix/enc``
+### ``/run/zabbix/secrets/tls``
 
 The volume is used to store TLS related files. These file names are specified using ``ZBX_TLSCAFILE``, ``ZBX_TLSCERTFILE`` and ``ZBX_TLSKEYFILE`` variables. Additionally it is possible to use environment variables ``ZBX_TLSCA``, ``ZBX_TLSCERT`` and ``ZBX_TLSKEY`` with plaintext values.
 

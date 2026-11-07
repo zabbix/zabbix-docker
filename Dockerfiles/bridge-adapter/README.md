@@ -122,7 +122,7 @@ Use `disabled` for an HTTP API URL. The default is `required` for HTTPS.
 
 ### `ZBX_ZABBIXAPITLSCAFILE`, `ZBX_ZABBIXAPITLSCA`
 
-`ZBX_ZABBIXAPITLSCAFILE` specifies the CA file used to verify the Zabbix API certificate. A relative path is resolved against `/var/lib/zabbix/enc`. Alternatively, `ZBX_ZABBIXAPITLSCA` provides the CA certificate content directly. A CA is required when `ZBX_ZABBIXAPITLSCONNECT` is set to `verify_ca` or `verify_full`.
+`ZBX_ZABBIXAPITLSCAFILE` specifies the CA file used to verify the Zabbix API certificate. A relative path is resolved against `/run/zabbix/secrets/tls`; the previous location remains available during migration with a warning. Alternatively, `ZBX_ZABBIXAPITLSCA` provides the CA certificate content directly. A CA is required when `ZBX_ZABBIXAPITLSCONNECT` is set to `verify_ca` or `verify_full`.
 
 ### `ZBX_LISTENIP`
 
@@ -188,21 +188,15 @@ ZBX_TLSKEY=
 ZBX_TLSALLOWEDCN=
 ```
 
-The default `none` mode accepts unencrypted connections. For production deployments, mutual TLS (`mtls`) is recommended for the server-facing listener. Set `ZBX_TLSMODE` to `tls` for TLS or `mtls` for mutual TLS. Certificate, private key and CA file names are specified using the `ZBX_TLSCERTFILE`, `ZBX_TLSKEYFILE` and `ZBX_TLSCAFILE` variables. Relative paths are resolved against `/var/lib/zabbix/enc`. Alternatively, the certificate, private key and CA contents can be passed directly using `ZBX_TLSCERT`, `ZBX_TLSKEY` and `ZBX_TLSCA`. `ZBX_TLSALLOWEDCN` is a comma-separated list of permitted client certificate Common Names in mTLS mode.
-
 ## Allowed volumes for the Zabbix Bridge Adapter container
 
 ### ``/var/lib/zabbix/bridge-adapter``
 
 The volume stores persistent Adapter data and EULA acceptance. Use the same writable volume for license acceptance and service startup. For a bind mount, create the directory beforehand and grant access to UID `1997`. Run both containers with the same UID.
 
-### ``/var/lib/zabbix/enc``
+### ``/run/zabbix/secrets/tls``
 
-The volume stores TLS files referenced by the `ZBX_TLSCAFILE`, `ZBX_TLSCERTFILE`, `ZBX_TLSKEYFILE` and `ZBX_ZABBIXAPITLSCAFILE` variables. Relative paths are resolved against this directory.
-
-### ``/var/lib/zabbix/ssl/certs``, ``/var/lib/zabbix/ssl/keys`` and ``/var/lib/zabbix/ssl/ssl_ca``
-
-These volumes provide listener certificates, private keys and CA certificates. Mount them read-only.
+The volume provides TLS files referenced by the `ZBX_TLSCAFILE`, `ZBX_TLSCERTFILE`, `ZBX_TLSKEYFILE` and `ZBX_ZABBIXAPITLSCAFILE` variables. Mount it read-only.
 
 # The image variants
 

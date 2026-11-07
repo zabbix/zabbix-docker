@@ -2,10 +2,8 @@ package bootstrap
 
 import (
 	"fmt"
-	"os"
 	"path/filepath"
 	"strconv"
-	"strings"
 )
 
 const (
@@ -13,47 +11,6 @@ const (
 	envDBTLSCertFile = "ZBX_DBTLSCERTFILE"
 	envDBTLSKeyFile  = "ZBX_DBTLSKEYFILE"
 )
-
-var dbTLSRuntimeDir = "/run/zabbix/secrets/database"
-
-var dbTLSVariables = []struct {
-	name     string
-	fileName string
-}{
-	{"ZBX_DBTLSCA", "ca.pem"},
-	{"ZBX_DBTLSCERT", "cert.pem"},
-	{"ZBX_DBTLSKEY", "key.pem"},
-}
-
-// PrepareDBTLSFiles always moves inline material out of the environment
-// (ClearPrivateEnv keeps ZBX_*); *FILE paths are resolved only if resolvePaths.
-func PrepareDBTLSFiles(env Environment, resolvePaths bool) error {
-	inline := false
-	for _, variable := range dbTLSVariables {
-		fileVariable := variable.name + "FILE"
-		if env[variable.name] != "" && env[fileVariable] != "" {
-			return fmt.Errorf("both variables %s and %s are set (but are exclusive)", variable.name, fileVariable)
-		}
-		inline = inline || env[variable.name] != ""
-	}
-	if inline {
-		if err := os.MkdirAll(dbTLSRuntimeDir, 0o700); err != nil {
-			return fmt.Errorf("create database TLS directory: %w", err)
-		}
-	}
-
-	for _, variable := range dbTLSVariables {
-		if env[variable.name] == "" && !resolvePaths {
-			delete(env, variable.name)
-			continue
-		}
-		path := filepath.Join(dbTLSRuntimeDir, variable.fileName)
-		if err := processTLSFileTo(env, SecretsDir, path, variable.name); err != nil {
-			return err
-		}
-	}
-	return nil
-}
 
 // DBTLSConfig contains TLS options for the entrypoint's database connection.
 // Server/proxy and the PHP frontend expose different environment variables.
@@ -68,29 +25,21 @@ type DBTLSConfig struct {
 // proxy images.
 func ResolveServiceDBTLS(env Environment) (DBTLSConfig, error) {
 	mode := env["ZBX_DBTLSCONNECT"]
-	if err := PrepareDBTLSFiles(env, mode != ""); err != nil {
-		return DBTLSConfig{}, err
-	}
 	return dbTLSConfig(env, mode), nil
 }
 
 // ResolveFrontendDBTLS resolves database TLS file names for frontend images.
 func ResolveFrontendDBTLS(env Environment) (DBTLSConfig, error) {
-	// The mode below depends on the CA file.
-	encrypted := strings.EqualFold(env["ZBX_DB_ENCRYPTION"], "true")
-	// Frontend file aliases have historically been resolved regardless of
-	// whether database encryption is enabled.
-	if err := PrepareDBTLSFiles(env, true); err != nil {
-		return DBTLSConfig{}, err
-	}
+	encrypted := envEnabled(env["ZBX_DB_ENCRYPTION"])
 	if !encrypted {
 		return DBTLSConfig{}, nil
 	}
 
+	// Supplying a CA upgrades encryption-only mode to certificate verification.
 	mode := "required"
 	if env[envDBTLSCAFile] != "" {
 		mode = "verify_ca"
-		if strings.EqualFold(env["ZBX_DB_VERIFY_HOST"], "true") {
+		if envEnabled(env["ZBX_DB_VERIFY_HOST"]) {
 			mode = "verify_full"
 		}
 	}

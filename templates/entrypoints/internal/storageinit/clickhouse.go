@@ -73,7 +73,7 @@ func clickHouseConnection(ctx context.Context, env bootstrap.Environment, datase
 	values := make(map[string]string)
 	keys := []string{
 		"url", "username", "password", "source_ip",
-		"ssl_cert_file", "ssl_key_file", "ssl_key_password",
+		"ssl_ca_location", "ssl_cert_file", "ssl_key_file", "ssl_key_password",
 	}
 	if dataset == "otel" {
 		keys = append(keys, "vault_path")
@@ -107,7 +107,10 @@ func clickHouseConnection(ctx context.Context, env bootstrap.Environment, datase
 		return clickhouse.Connection{}, err
 	}
 
-	conn.CADirectory = env["ZBX_SSLCALOCATION"]
+	conn.CADirectory = values["ssl_ca_location"]
+	if conn.CADirectory == "" {
+		conn.CADirectory = env["ZBX_SSLCALOCATION"]
+	}
 	conn.CertFile, err = resolveTLSFile(env, conn.CertFile, "ZBX_SSLCERTLOCATION", "certs")
 	if err != nil {
 		return clickhouse.Connection{}, err

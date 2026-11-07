@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"crypto/tls"
-	"crypto/x509"
 	"errors"
 	"fmt"
 	"net"
@@ -12,7 +11,6 @@ import (
 	"net/url"
 	"os"
 	"os/exec"
-	"path/filepath"
 	"strings"
 	"time"
 
@@ -132,36 +130,9 @@ func (c Connection) tlsConfig(ctx context.Context, hostname string) (*tls.Config
 	config := &tls.Config{ServerName: hostname}
 
 	if c.VerifyPeer {
-		roots, err := x509.SystemCertPool()
+		roots, err := bootstrap.LoadCAPool(c.CADirectory)
 		if err != nil {
-			return nil, fmt.Errorf("load system CA certificates: %w", err)
-		}
-
-		if c.CADirectory != "" {
-			entries, err := os.ReadDir(c.CADirectory)
-			if err != nil {
-				return nil, fmt.Errorf("read ClickHouse CA directory: %w", err)
-			}
-
-			for _, entry := range entries {
-				path := filepath.Join(c.CADirectory, entry.Name())
-				info, err := os.Stat(path)
-				if err != nil {
-					return nil, fmt.Errorf("stat ClickHouse CA entry %q: %w", path, err)
-				}
-				if info.IsDir() {
-					continue
-				}
-
-				data, err := os.ReadFile(path)
-				if err != nil {
-					return nil, fmt.Errorf("read ClickHouse CA certificate: %w", err)
-				}
-
-				if !roots.AppendCertsFromPEM(data) {
-					bootstrap.LogWarn("** No PEM certificates parsed from ClickHouse CA file %q", path)
-				}
-			}
+			return nil, fmt.Errorf("load ClickHouse CA certificates: %w", err)
 		}
 
 		config.RootCAs = roots

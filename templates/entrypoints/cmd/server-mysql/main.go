@@ -37,7 +37,11 @@ func prepareService(env bootstrap.Environment, db *mysql.DB) error {
 func main() {
 	entry := bootstrap.DBService(serverBinary,
 		func(env bootstrap.Environment) error { return prepareService(env, mysql.NewForBackend(env)) },
-		func(env bootstrap.Environment) error { return prepareDB(env, mysql.NewForBackend(env)) },
+		bootstrap.WithInitDBSecrets(bootstrap.SecretsServerMySQL,
+			func(env bootstrap.Environment) error { return prepareDB(env, mysql.NewForBackend(env)) }),
 	)
-	bootstrap.Main(bootstrap.StorageInitEntrypoint(entry, storageinit.PrepareHistory, storageinit.PrepareTelemetry))
+	entry = bootstrap.StorageInitEntrypoint(entry,
+		bootstrap.WithHistoryInitSecrets(bootstrap.SecretsServerMySQL, storageinit.PrepareHistory),
+		bootstrap.WithTelemetryInitSecrets(bootstrap.SecretsServerMySQL, storageinit.PrepareTelemetry))
+	bootstrap.Main(bootstrap.WithResolvedSecrets(bootstrap.SecretsServerMySQL, serverBinary, entry))
 }

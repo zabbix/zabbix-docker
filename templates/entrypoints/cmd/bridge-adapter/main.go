@@ -40,18 +40,6 @@ func prepareLicenseAcceptance(env bootstrap.Environment) ([]string, error) {
 func prepareService(env bootstrap.Environment) error {
 	bootstrap.LogInfo("** Preparing Zabbix Bridge Adapter")
 
-	homeDir, err := bootstrap.RequiredHomeDir(env)
-	if err != nil {
-		return err
-	}
-	if err := bootstrap.ProcessTLSFiles(
-		env,
-		filepath.Join(homeDir, "enc"),
-		"ZBX_TLSCA", "ZBX_TLSCERT", "ZBX_TLSKEY", "ZBX_ZABBIXAPITLSCA",
-	); err != nil {
-		return err
-	}
-
 	variables, err := bootstrap.CollectIndexed(env, []string{"ZBX_ALLOWEDAPIMETHODS"}, false)
 	if err != nil {
 		return err
@@ -124,5 +112,5 @@ func entrypoint(env bootstrap.Environment, args []string) error {
 }
 
 func main() {
-	bootstrap.Main(entrypoint)
+	bootstrap.Main(bootstrap.WithResolvedSecrets(bootstrap.SecretsBridge, bridgeAdapterBinary, entrypoint))
 }

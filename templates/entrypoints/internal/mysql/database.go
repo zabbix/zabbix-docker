@@ -88,17 +88,6 @@ func (db *DB) Configure(defaultDBName string) error {
 		return err
 	}
 
-	credVars := []string{"MYSQL_ROOT_USER", "MYSQL_ROOT_PASSWORD"}
-	if creds == nil {
-		credVars = append(credVars, "MYSQL_USER", "MYSQL_PASSWORD")
-	}
-
-	for _, name := range credVars {
-		if err := bootstrap.ResolveSecretEnv(db.env, name); err != nil {
-			return err
-		}
-	}
-
 	mysqlUser := db.env["MYSQL_USER"]
 	mysqlPassword := db.env["MYSQL_PASSWORD"]
 	if creds != nil {

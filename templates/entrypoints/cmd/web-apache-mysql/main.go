@@ -7,5 +7,6 @@ import (
 )
 
 func main() {
-	bootstrap.Main(web.Entrypoint(mysql.NewForFrontend, web.Options{DBType: web.MySQL, Server: web.Apache}))
+	entry := web.Entrypoint(mysql.NewForFrontend, web.Options{DBType: web.MySQL, Server: web.Apache})
+	bootstrap.Main(bootstrap.WithResolvedSecrets(bootstrap.SecretsWebMySQL, "", entry))
 }

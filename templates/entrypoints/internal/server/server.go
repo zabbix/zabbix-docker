@@ -11,9 +11,7 @@ import (
 	"github.com/zabbix/zabbix-docker/templates/entrypoints/internal/storageinit"
 )
 
-// Prepare performs the server-specific entrypoint steps: modules, history
-// storage providers, TLS files, HA node autoconfiguration and CA
-// certificate rehashing.
+// Prepare configures modules, storage providers, HA node settings and hooks.
 func Prepare(env bootstrap.Environment) error {
 	if env["ZBX_EXPORTFILESIZE"] == "" {
 		delete(env, "ZBX_EXPORTDIR")
@@ -24,15 +22,8 @@ func Prepare(env bootstrap.Environment) error {
 	}
 	delete(env, "ZBX_ENABLE_SNMP_TRAPS")
 
-	homeDir, configDir, err := bootstrap.CommonDirs(env)
+	_, configDir, err := bootstrap.CommonDirs(env)
 	if err != nil {
-		return err
-	}
-	if err := bootstrap.ProcessTLSFiles(env, filepath.Join(homeDir, "enc"), "ZBX_VAULTTLSCERT", "ZBX_VAULTTLSKEY"); err != nil {
-		return err
-	}
-
-	if err := bootstrap.PrepareCertDir(filepath.Join(homeDir, "ssl", "ssl_ca"), env["ZBX_SSLCALOCATION"]); err != nil {
 		return err
 	}
 
@@ -50,10 +41,6 @@ func Prepare(env bootstrap.Environment) error {
 		return err
 	}
 	if err := config.UpdateIndexedParameter(env, filepath.Join(configDir, "zabbix_server_telemetry.conf"), "TelemetryProvider", "ZBX_TELEMETRYPROVIDER"); err != nil {
-		return err
-	}
-
-	if err := bootstrap.ProcessTLSFiles(env, filepath.Join(homeDir, "enc"), "ZBX_TLSCA", "ZBX_TLSCRL", "ZBX_TLSCERT", "ZBX_TLSKEY"); err != nil {
 		return err
 	}
 

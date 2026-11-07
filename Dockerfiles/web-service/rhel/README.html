@@ -54,7 +54,7 @@
 </code></pre><p>Default values of these variables are specified after equal sign.</p>
 <p>Please use official documentation for <a href="https://www.zabbix.com/documentation/current/manual/appendix/config/zabbix_web_service"><code>zabbix_web_service.conf</code></a> to get more information about the variables.</p>
 <h2 id="allowed-volumes-for-the-zabbix-web-service-container">Allowed volumes for the Zabbix web service container</h2>
-<h3 id="-var-lib-zabbix-enc-"><code>/var/lib/zabbix/enc</code></h3>
+<h3 id="-run-zabbix-secrets-tls-"><code>/run/zabbix/secrets/tls</code></h3>
 <p>The volume is used to store TLS related files. These file names are specified using <code>ZBX_TLSCAFILE</code>, <code>ZBX_TLSCERTFILE</code> and <code>ZBX_TLSKEYFILE</code> variables. Additionally it is possible to use environment variables <code>ZBX_TLSCA</code>, <code>ZBX_TLSCERT</code> and <code>ZBX_TLSKEY</code> with plaintext values.</p>
 <h1 id="user-feedback">User Feedback</h1>
 <h2 id="documentation">Documentation</h2>

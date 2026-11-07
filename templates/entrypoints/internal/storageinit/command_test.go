@@ -90,9 +90,9 @@ func TestSchemaTLS(t *testing.T) {
 				t.Fatal(err)
 			}
 			for path, data := range map[string][]byte{
-				"ssl/ssl_ca/ca.pem":    cert,
-				"ssl/certs/client.pem": cert,
-				"ssl/keys/client.key":  pem.EncodeToMemory(&pem.Block{Type: "PRIVATE KEY", Bytes: key}),
+				"ssl/ssl_ca_internal/ca.pem": cert,
+				"ssl/certs/client.pem":       cert,
+				"ssl/keys/client.key":        pem.EncodeToMemory(&pem.Block{Type: "PRIVATE KEY", Bytes: key}),
 			} {
 				path = filepath.Join(home, path)
 				if err := os.MkdirAll(filepath.Dir(path), 0o700); err != nil {

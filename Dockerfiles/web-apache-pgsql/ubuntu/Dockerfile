@@ -116,15 +116,21 @@ RUN --mount=type=cache,target=/var/cache/apt/,sharing=locked \
         ${ZABBIX_CONF_DIR} \
         ${ZABBIX_CONF_DIR}/web \
         ${ZABBIX_CONF_DIR}/web/certs \
-        ${ZABBIX_CONF_DIR}/web/certs_internal \
         ${ZABBIX_USER_HOME_DIR} \
         ${ZABBIX_USER_HOME_DIR}/enc \
-        ${ZABBIX_USER_HOME_DIR}/enc_internal \
+        /run/zabbix/secrets/apm/ca \
+        /run/zabbix/secrets/database \
+        /run/zabbix/secrets/providers \
+        /run/zabbix/secrets/sso \
+        /run/zabbix/secrets/ssl/ca \
+        /run/zabbix/secrets/ssl/certs \
+        /run/zabbix/secrets/ssl/keys \
+        /run/zabbix/secrets/tls \
+        /run/zabbix/secrets/vault \
+        /run/zabbix/secrets_internal \
         ${ZABBIX_USER_HOME_DIR}/ssl/certs \
         ${ZABBIX_USER_HOME_DIR}/ssl/keys \
         ${ZABBIX_USER_HOME_DIR}/ssl/ssl_ca \
-        ${ZABBIX_USER_HOME_DIR}/ssl/ssl_ca_internal \
-        /run/zabbix/secrets \
         /var/lib/php/session \
         /var/lib/locales/supported.d && \
     rm -rf /etc/apache2/sites-available/* \
@@ -139,7 +145,7 @@ RUN --mount=type=cache,target=/var/cache/apt/,sharing=locked \
         xargs -r -I '{}' bash -c 'echo "{}.UTF-8 UTF-8" >> /var/lib/locales/supported.d/local' && \
     dpkg-reconfigure locales && \
     FIX_PERM_LIST="\
-        /run/zabbix/secrets/ \
+        /run/zabbix/secrets_internal/ \
         ${ZABBIX_CONF_DIR}/ \
         ${ZABBIX_WWW_ROOT}/modules/ \
         ${ZABBIX_USER_HOME_DIR}/ \

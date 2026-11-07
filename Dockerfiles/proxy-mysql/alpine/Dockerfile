@@ -43,9 +43,8 @@ ENV ZBX_DB_NAME=dummy_db_name \
     ZBX_LOADMODULEPATH=${ZABBIX_USER_HOME_DIR}/modules \
     ZBX_SNMPTRAPPERFILE=${ZABBIX_USER_HOME_DIR}/snmptraps/snmptraps.log \
     ZBX_SSHKEYLOCATION=${ZABBIX_USER_HOME_DIR}/ssh_keys/ \
-    ZBX_SSLCERTLOCATION=${ZABBIX_USER_HOME_DIR}/ssl/certs/ \
-    ZBX_SSLKEYLOCATION=${ZABBIX_USER_HOME_DIR}/ssl/keys/ \
-    ZBX_SSLCALOCATION=${ZABBIX_USER_HOME_DIR}/ssl/ssl_ca_internal/
+    ZBX_SSLCERTLOCATION=/run/zabbix/secrets/ssl/certs/ \
+    ZBX_SSLKEYLOCATION=/run/zabbix/secrets/ssl/keys/
 
 LABEL org.opencontainers.image.authors="Alexey Pustovalov <alexey.pustovalov@zabbix.com>" \
       org.opencontainers.image.description="Zabbix proxy with MySQL database support" \
@@ -116,7 +115,15 @@ RUN set -eux && \
     mkdir -p ${ZABBIX_CONF_DIR} \
         ${ZABBIX_USER_HOME_DIR} \
         ${ZABBIX_USER_HOME_DIR}/enc \
-        ${ZABBIX_USER_HOME_DIR}/enc_internal \
+        /run/zabbix/secrets/apm \
+        /run/zabbix/secrets/database \
+        /run/zabbix/secrets/providers \
+        /run/zabbix/secrets/ssl/ca \
+        /run/zabbix/secrets/ssl/certs \
+        /run/zabbix/secrets/ssl/keys \
+        /run/zabbix/secrets/tls \
+        /run/zabbix/secrets/vault \
+        /run/zabbix/secrets_internal \
         ${ZABBIX_USER_HOME_DIR}/mibs \
         ${ZABBIX_USER_HOME_DIR}/modules \
         ${ZABBIX_USER_HOME_DIR}/snmptraps \
@@ -125,12 +132,10 @@ RUN set -eux && \
         ${ZABBIX_USER_HOME_DIR}/ssl/certs \
         ${ZABBIX_USER_HOME_DIR}/ssl/keys \
         ${ZABBIX_USER_HOME_DIR}/ssl/ssl_ca \
-        ${ZABBIX_USER_HOME_DIR}/ssl/ssl_ca_internal \
-        /run/zabbix/secrets \
         /usr/lib/zabbix/externalscripts \
         /usr/share/doc/zabbix-proxy-mysql && \
     FIX_PERM_LIST="\
-        /run/zabbix/secrets/ \
+        /run/zabbix/secrets_internal/ \
         ${ZABBIX_CONF_DIR}/zabbix_proxy_modules.conf \
         ${ZABBIX_USER_HOME_DIR}/" && \
     chown --quiet -R zabbix:0 ${FIX_PERM_LIST} && \

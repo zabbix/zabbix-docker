@@ -1,6 +1,7 @@
 package storageinit
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -31,10 +32,6 @@ func TestProviderCredentials(t *testing.T) {
 		t.Cleanup(server.Close)
 		return server.URL
 	}
-	secret := filepath.Join(t.TempDir(), "password")
-	if err := os.WriteFile(secret, []byte("file-secret"), 0o600); err != nil {
-		t.Fatal(err)
-	}
 	env := bootstrap.Environment{}
 	for _, spec := range []struct{ name, db, types string }{
 		{"ZBX_HISTORYPROVIDER_0", "numbers", `,"types":["uint","dbl"]`},
@@ -43,7 +40,7 @@ func TestProviderCredentials(t *testing.T) {
 	} {
 		env[spec.name] = fmt.Sprintf(`{"provider":"clickhouse","url":%q,"db":%q%s}`, newEndpoint(spec.db), spec.db, spec.types)
 		env[spec.name+"_USERNAME"] = spec.db
-		env[spec.name+"_PASSWORD_FILE"] = secret
+		env[spec.name+"_PASSWORD"] = "file-secret"
 		env[spec.name+"_SCHEMA"] = `{"create":false}`
 	}
 	logs := testutil.CaptureStdout(t, func() {
@@ -68,12 +65,6 @@ func TestProviderCredentials(t *testing.T) {
 		}
 	}
 	for _, name := range []string{"ZBX_HISTORYPROVIDER_0", "ZBX_HISTORYPROVIDER_1", "ZBX_TELEMETRYPROVIDER_0"} {
-		for _, suffix := range []string{"_USERNAME", "_PASSWORD"} {
-			message := "Using " + name + suffix + " variable"
-			if count := strings.Count(logs, message); count != 1 {
-				t.Errorf("%s logged %d times, want once", name+suffix, count)
-			}
-		}
 		if !strings.Contains(env[name], `password="file-secret"`) {
 			t.Errorf("%s does not contain the resolved password", name)
 		}
@@ -83,7 +74,7 @@ func TestProviderCredentials(t *testing.T) {
 	}
 
 	for name, value := range env {
-		if strings.HasSuffix(name, "_SCHEMA") || strings.HasSuffix(name, "_PASSWORD_FILE") {
+		if strings.HasSuffix(name, "_SCHEMA") {
 			t.Errorf("variable was not removed: %s", name)
 		}
 		if strings.Contains(value, "create=") || strings.Contains(value, "cluster=") {
@@ -217,32 +208,39 @@ func TestMixedProviderFormats(t *testing.T) {
 
 func TestInitSkipsProviderWithoutSchema(t *testing.T) {
 	env := bootstrap.Environment{
-		"ZBX_HISTORYPROVIDER_0":               `{"provider":"unknown"}`,
-		"ZBX_HISTORYPROVIDER_0_PASSWORD_FILE": "/missing/secret",
+		"ZBX_HISTORYPROVIDER_0":          `{"provider":"unknown"}`,
+		"ZBX_HISTORYPROVIDER_0_PASSWORD": "secret",
 	}
 	if count, err := PrepareHistory(env); err != nil || count != 0 {
 		t.Fatalf("prepared %d providers without _SCHEMA: %v", count, err)
 	}
-	if env["ZBX_HISTORYPROVIDER_0_PASSWORD_FILE"] != "/missing/secret" {
+	if env["ZBX_HISTORYPROVIDER_0_PASSWORD"] != "secret" {
 		t.Error("init changed credentials for a provider without _SCHEMA")
 	}
 }
 
 func TestValidateAllProvidersBeforeRequests(t *testing.T) {
-	for _, test := range []struct{ name, provider, options string }{
-		{"ClickHouse options", `{"provider":"clickhouse","url":"http://unused:8123","db":"history","types":["uint"]}`, `{}`},
-		{"Elasticsearch options", `{"provider":"elasticsearch","url":"http://unused:9200","types":["uint"]}`, `{}`},
-		{"ClickHouse URL", `{"provider":"clickhouse","url":"invalid","db":"history","types":["uint"]}`, `{"create":true}`},
-		{"Elasticsearch URL", `{"provider":"elasticsearch","url":"invalid","types":["uint"]}`, `{"create":true}`},
-		{"ClickHouse CA directory", `{"provider":"clickhouse","url":"https://unused:8123","db":"history","types":["uint"]}`, `{"create":true}`},
-		{"ClickHouse missing types", `{"provider":"clickhouse","url":"http://unused:8123","db":"history"}`, `{"create":true}`},
-		{"Elasticsearch missing types", `{"provider":"elasticsearch","url":"http://unused:9200"}`, `{"create":true}`},
-		{"SQL schema", `{"provider":"sql","types":["uint"]}`, `{"create":true}`},
-		{"ClickHouse history type", `{"provider":"clickhouse","url":"http://unused:8123","db":"history","types":["unknown"]}`, `{"create":true}`},
-		{"Elasticsearch history type", `{"provider":"elasticsearch","url":"http://unused:9200","types":["json_pipeline"]}`, `{"create":true}`},
-		{"history certificate", `{"provider":"clickhouse","url":"http://unused:8123","db":"history","types":["uint"],"ssl_cert_file":"/custom/client.pem"}`, `{"create":true}`},
-		{"history key", `{"provider":"clickhouse","url":"http://unused:8123","db":"history","types":["uint"],"ssl_key_file":"/custom/client.key"}`, `{"create":true}`},
-		{"history without schema", `{"provider":"elasticsearch","url":"http://unused:9200","types":["uint"],"ssl_ca_location":"/custom/ca"}`, ""},
+	for _, test := range []struct {
+		name, provider, options string
+		env                     map[string]string
+	}{
+		{"ClickHouse options", `{"provider":"clickhouse","url":"http://unused:8123","db":"history","types":["uint"]}`, `{}`, nil},
+		{"Elasticsearch options", `{"provider":"elasticsearch","url":"http://unused:9200","types":["uint"]}`, `{}`, nil},
+		{"ClickHouse URL", `{"provider":"clickhouse","url":"invalid","db":"history","types":["uint"]}`, `{"create":true}`, nil},
+		{"Elasticsearch URL", `{"provider":"elasticsearch","url":"invalid","types":["uint"]}`, `{"create":true}`, nil},
+		{"ClickHouse CA directory", `{"provider":"clickhouse","url":"https://unused:8123","db":"history","types":["uint"]}`, `{"create":true}`, nil},
+		{"ClickHouse missing types", `{"provider":"clickhouse","url":"http://unused:8123","db":"history"}`, `{"create":true}`, nil},
+		{"Elasticsearch missing types", `{"provider":"elasticsearch","url":"http://unused:9200"}`, `{"create":true}`, nil},
+		{"SQL schema", `{"provider":"sql","types":["uint"]}`, `{"create":true}`, nil},
+		{"ClickHouse history type", `{"provider":"clickhouse","url":"http://unused:8123","db":"history","types":["unknown"]}`, `{"create":true}`, nil},
+		{"Elasticsearch history type", `{"provider":"elasticsearch","url":"http://unused:9200","types":["json_pipeline"]}`, `{"create":true}`, nil},
+		{"history certificate escape", `{"provider":"clickhouse","url":"http://unused:8123","db":"history","types":["uint"],"ssl_cert_file":"../client.pem"}`, `{"create":true}`, nil},
+		{"history key escape", `{"provider":"clickhouse","url":"http://unused:8123","db":"history","types":["uint"],"ssl_key_file":"certs/../../client.key"}`, `{"create":true}`, nil},
+		{"history certificate field and variable", `{"provider":"clickhouse","url":"http://unused:8123","db":"history","types":["uint"],"ssl_cert_file":"client.pem"}`, `{"create":true}`,
+			map[string]string{"ZBX_HISTORYPROVIDER_1_SSL_CERTFILE": "/custom/client.pem"}},
+		{"history key field and variable", `{"provider":"clickhouse","url":"http://unused:8123","db":"history","types":["uint"],"ssl_key_file":"client.key"}`, `{"create":true}`,
+			map[string]string{"ZBX_HISTORYPROVIDER_1_SSL_KEYFILE": "/custom/client.key"}},
+		{"history without schema", `{"provider":"elasticsearch","url":"http://unused:9200","types":["uint"],"ssl_ca_location":"/custom/ca"}`, "", nil},
 	} {
 		t.Run(test.name, func(t *testing.T) {
 			calls := 0
@@ -257,6 +255,9 @@ func TestValidateAllProvidersBeforeRequests(t *testing.T) {
 				"ZBX_HISTORYPROVIDER_1":        test.provider,
 				"ZBX_HISTORYPROVIDER_1_SCHEMA": test.options,
 				"ZBX_SSLCALOCATION":            filepath.Join(t.TempDir(), "missing"),
+			}
+			for name, value := range test.env {
+				env[name] = value
 			}
 			if err := ConfigureHistory(env); err == nil || !strings.Contains(err.Error(), "ZBX_HISTORYPROVIDER_1") {
 				t.Fatalf("expected second provider error, got %v", err)
@@ -276,5 +277,22 @@ func prepareCADirs(t *testing.T, env bootstrap.Environment) {
 		if err := os.MkdirAll(dir, 0o700); err != nil {
 			t.Fatal(err)
 		}
+	}
+}
+
+func TestClickHouseConnectionUsesProviderCADirectory(t *testing.T) {
+	providerCA := filepath.Join(t.TempDir(), "provider-ca")
+	globalCA := filepath.Join(t.TempDir(), "global-ca")
+	conn, err := clickHouseConnection(context.Background(), bootstrap.Environment{
+		"ZBX_SSLCALOCATION": globalCA,
+	}, "history", map[string]any{
+		"url":             "https://clickhouse:8443",
+		"ssl_ca_location": providerCA,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if conn.CADirectory != providerCA {
+		t.Fatalf("CA directory=%q, want provider-specific %q", conn.CADirectory, providerCA)
 	}
 }

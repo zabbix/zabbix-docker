@@ -6,7 +6,6 @@ import (
 	"net"
 	"os"
 	"os/exec"
-	"path/filepath"
 	"strings"
 )
 
@@ -44,31 +43,9 @@ func Hostname(fqdn bool) (string, error) {
 	return hostname, nil
 }
 
-// PrepareCertDir replaces the target directory contents with the CA
-// certificates from source and creates OpenSSL hash links in target.
-func PrepareCertDir(sourceDir, targetDir string) error {
-	entries, err := os.ReadDir(targetDir)
-	if err != nil {
-		return fmt.Errorf("read certificate directory %q: %w", targetDir, err)
-	}
-
-	for _, entry := range entries {
-		if err := os.RemoveAll(filepath.Join(targetDir, entry.Name())); err != nil {
-			return fmt.Errorf("clear certificate directory %q: %w", targetDir, err)
-		}
-	}
-
-	if err := os.CopyFS(targetDir, os.DirFS(sourceDir)); err != nil {
-		return fmt.Errorf("copy certificates from %q to %q: %w", sourceDir, targetDir, err)
-	}
-
+func rehashDirectory(targetDir string) error {
 	command := exec.Command("openssl", "rehash", targetDir)
 	command.Stdout = io.Discard
 	command.Stderr = os.Stderr
-
-	if err := command.Run(); err != nil {
-		LogWarn("openssl rehash failed for '%s': %v", targetDir, err)
-	}
-
-	return nil
+	return command.Run()
 }
