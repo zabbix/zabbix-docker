@@ -2,10 +2,8 @@ package bootstrap
 
 import (
 	"fmt"
-	"io"
 	"net"
 	"os"
-	"os/exec"
 	"strings"
 )
 
@@ -41,11 +39,4 @@ func Hostname(fqdn bool) (string, error) {
 	}
 
 	return hostname, nil
-}
-
-func rehashDirectory(targetDir string) error {
-	command := exec.Command("openssl", "rehash", targetDir)
-	command.Stdout = io.Discard
-	command.Stderr = os.Stderr
-	return command.Run()
 }
