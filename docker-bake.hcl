@@ -11,7 +11,7 @@ variable "OS" {
 
 variable "ZBX_VERSION" {
   type        = string
-  default     = "8.0"
+  default     = "8.2"
   description = "Zabbix version used for build metadata and image layout"
 }
 
@@ -42,7 +42,7 @@ variable "ENTRYPOINT_BUILD_IMAGE" {
 variable "ZBX_IMAGE_TAG" {
   type        = string
   default     = "${OS}-${ZBX_VERSION}-local"
-  description = "Image tag for all images. For example, \"alpine-8.0-local\""
+  description = "Image tag for all images. For example, \"alpine-8.2-local\""
 }
 
 variable "PLATFORMS" {
