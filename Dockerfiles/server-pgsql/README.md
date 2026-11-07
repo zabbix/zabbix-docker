@@ -369,11 +369,11 @@ The volume is used to provide certificate authority (CA) files for SSL server ce
 
 ### ``/run/zabbix/secrets/ssl/certs``
 
-The volume is used as location of SSL client certificate files for client authentication. It is `SSLCertLocation` parameter in ``zabbix_server.conf``.
+The volume is used as location of SSL client certificate files for client authentication. It is `SSLCertLocation` parameter in ``zabbix_server.conf``. Files referenced by ``ZBX_VAULTTLSCERTFILE`` are resolved here.
 
 ### ``/run/zabbix/secrets/ssl/keys``
 
-The volume is used as location of SSL private key files for client authentication. It is `SSLKeyLocation` parameter in ``zabbix_server.conf``.
+The volume is used as location of SSL private key files for client authentication. It is `SSLKeyLocation` parameter in ``zabbix_server.conf``. Files referenced by ``ZBX_VAULTTLSKEYFILE`` are resolved here.
 
 ### ``/run/zabbix/secrets/tls``
 
@@ -381,7 +381,7 @@ The volume is used to store TLS related files. These file names are specified us
 
 ### ``/run/zabbix/secrets/vault``
 
-The volume provides file-backed Vault credentials and files referenced by ``ZBX_VAULTTLSCERTFILE`` and ``ZBX_VAULTTLSKEYFILE``.
+The volume provides file-backed Vault credentials.
 
 ### ``/var/lib/zabbix/ssh_keys``
 

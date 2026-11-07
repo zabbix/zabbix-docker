@@ -239,13 +239,13 @@ podman run --name some-zabbix-server-pgsql --secret POSTGRES_USER --secret POSTG
 <h3 id="-run-zabbix-secrets-ssl-ca-"><code>/run/zabbix/secrets/ssl/ca</code></h3>
 <p>The volume is used to provide certificate authority (CA) files for SSL server certificate verification.</p>
 <h3 id="-run-zabbix-secrets-ssl-certs-"><code>/run/zabbix/secrets/ssl/certs</code></h3>
-<p>The volume is used as location of of SSL client certificate files for client authentication. It is <code>SSLCertLocation</code> parameter in <code>zabbix_server.conf</code>.</p>
+<p>The volume is used as location of SSL client certificate files for client authentication. It is <code>SSLCertLocation</code> parameter in <code>zabbix_server.conf</code>. Files referenced by <code>ZBX_VAULTTLSCERTFILE</code> are resolved here.</p>
 <h3 id="-run-zabbix-secrets-ssl-keys-"><code>/run/zabbix/secrets/ssl/keys</code></h3>
-<p>The volume is used as location of SSL private key files for client authentication. It is <code>SSLKeyLocation</code> parameter in <code>zabbix_server.conf</code>.</p>
+<p>The volume is used as location of SSL private key files for client authentication. It is <code>SSLKeyLocation</code> parameter in <code>zabbix_server.conf</code>. Files referenced by <code>ZBX_VAULTTLSKEYFILE</code> are resolved here.</p>
 <h3 id="-run-zabbix-secrets-tls-"><code>/run/zabbix/secrets/tls</code></h3>
 <p>The volume is used to store TLS related files. These file names are specified using <code>ZBX_TLSCAFILE</code>, <code>ZBX_TLSCRLFILE</code>, <code>ZBX_TLSCERTFILE</code> and <code>ZBX_TLSKEYFILE</code> variables. Additionally it is possible to use environment variables <code>ZBX_TLSCA</code>, <code>ZBX_TLSCRL</code>, <code>ZBX_TLSCERT</code> and <code>ZBX_TLSKEY</code> with plaintext values.</p>
 <h3 id="-run-zabbix-secrets-vault-"><code>/run/zabbix/secrets/vault</code></h3>
-<p>The volume provides file-backed Vault credentials and files referenced by <code>ZBX_VAULTTLSCERTFILE</code> and <code>ZBX_VAULTTLSKEYFILE</code>.</p>
+<p>The volume provides file-backed Vault credentials.</p>
 <h3 id="-var-lib-zabbix-ssh_keys-"><code>/var/lib/zabbix/ssh_keys</code></h3>
 <p>The volume is used as location of public and private keys for SSH checks and actions. It is <code>SSHKeyLocation</code> parameter in <code>zabbix_server.conf</code>.</p>
 <h3 id="-var-lib-zabbix-snmptraps-"><code>/var/lib/zabbix/snmptraps</code></h3>

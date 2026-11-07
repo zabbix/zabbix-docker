@@ -49,6 +49,9 @@ func Prepare(env bootstrap.Environment, defaultHostname string) error {
 	if err := hooks.Run(env); err != nil {
 		return err
 	}
+	if err := bootstrap.SetVaultTLSFileNames(env); err != nil {
+		return err
+	}
 
 	bootstrap.ClearPrivateEnv(env)
 
