@@ -265,6 +265,91 @@ func ResolveExternalSecretFile(variable, path, category string) (string, error) 
 	return locateSecret(variable, path, category, false, "")
 }
 
+func prepareVaultTLSFiles(managed *managedSecrets, env Environment) error {
+	for _, file := range vaultTLSFileDefinitions {
+		if err := prepareVaultTLSFile(managed, env, file.file, file.location, file.category); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func prepareVaultTLSFile(managed *managedSecrets, env Environment, fileName, locationName, category string) error {
+	path := env[fileName]
+	target := filepath.Join(internalSecretsRoot, filepath.FromSlash(category))
+	if path == "" {
+		return managed.removeTree(target)
+	}
+
+	location := env[locationName]
+	if relative, err := filepath.Rel(location, path); err == nil && filepath.IsLocal(relative) {
+		if filepath.Clean(location) != filepath.Clean(target) {
+			return managed.removeTree(target)
+		}
+		return nil
+	}
+
+	data, err := os.ReadFile(path)
+	if err != nil {
+		return fmt.Errorf("%s: read secret file %q: %w", fileName, path, err)
+	}
+	if err := prepareVaultTLSDirectory(managed, target, location, fileName, data); err != nil {
+		return fmt.Errorf("%s: %w", fileName, err)
+	}
+
+	managedPath := filepath.Join(target, fileName)
+	env[fileName] = managedPath
+	env[locationName] = target
+	return nil
+}
+
+// SetVaultTLSFileNames converts resolved paths to the file names expected by
+// the native server and proxy configuration.
+func SetVaultTLSFileNames(env Environment) error {
+	for _, file := range vaultTLSFileDefinitions {
+		path := env[file.file]
+		if path == "" {
+			continue
+		}
+		relative, err := filepath.Rel(env[file.location], path)
+		if err != nil || !filepath.IsLocal(relative) {
+			return fmt.Errorf("%s path %q is outside %s %q", file.file, path, file.location, env[file.location])
+		}
+		env[file.file] = filepath.ToSlash(relative)
+	}
+	return nil
+}
+
+func prepareVaultTLSDirectory(managed *managedSecrets, target, source, vaultFile string, data []byte) error {
+	if err := managed.removeTree(target); err != nil {
+		return err
+	}
+	entries, err := os.ReadDir(source)
+	if err != nil && !errors.Is(err, os.ErrNotExist) {
+		return fmt.Errorf("read SSL file directory %q: %w", source, err)
+	}
+	for _, entry := range entries {
+		if entry.Name() == vaultFile {
+			return fmt.Errorf("generated file %q conflicts with %q", filepath.Join(target, vaultFile), filepath.Join(source, vaultFile))
+		}
+		regular, err := regularFileWithin(source, entry.Name())
+		if err != nil {
+			return err
+		}
+		if !regular {
+			continue
+		}
+		fileData, err := os.ReadFile(filepath.Join(source, entry.Name()))
+		if err != nil {
+			return fmt.Errorf("read SSL file %q: %w", filepath.Join(source, entry.Name()), err)
+		}
+		if err := managed.writeSecret(filepath.Join(target, entry.Name()), fileData); err != nil {
+			return err
+		}
+	}
+	return managed.writeSecret(filepath.Join(target, vaultFile), data)
+}
+
 func (managed *managedSecrets) writeSecret(path string, data []byte) error {
 	relative, err := managedRelativePath(path)
 	if err != nil {

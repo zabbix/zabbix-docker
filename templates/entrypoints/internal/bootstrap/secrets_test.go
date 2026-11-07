@@ -403,6 +403,93 @@ func TestResolveSecretsNormalizesAliases(t *testing.T) {
 	}
 }
 
+func TestResolveSecretsUsesVaultTLSFileNamesForServer(t *testing.T) {
+	external, _, _ := useSecretRoots(t)
+	cert := filepath.Join(external, "ssl", "certs", "client.pem")
+	key := filepath.Join(external, "ssl", "keys", "client.key")
+	writeTestSecret(t, cert, "certificate")
+	writeTestSecret(t, key, "private key")
+
+	env := Environment{
+		"ZABBIX_USER_HOME_DIR": t.TempDir(),
+		"ZBX_VAULT":            "CyberArk",
+		"ZBX_VAULTTLSCERTFILE": "client.pem",
+		"ZBX_VAULTTLSKEYFILE":  "client.key",
+	}
+	if err := ResolveSecrets(env, SecretsServerMySQL, SecretsService); err != nil {
+		t.Fatal(err)
+	}
+
+	if env["ZBX_VAULTTLSCERTFILE"] != cert || env["ZBX_VAULTTLSKEYFILE"] != key {
+		t.Fatalf("resolved Vault TLS paths=%q/%q, want %q/%q", env["ZBX_VAULTTLSCERTFILE"], env["ZBX_VAULTTLSKEYFILE"], cert, key)
+	}
+	if err := SetVaultTLSFileNames(env); err != nil {
+		t.Fatal(err)
+	}
+	if env["ZBX_VAULTTLSCERTFILE"] != "client.pem" || env["ZBX_VAULTTLSKEYFILE"] != "client.key" {
+		t.Fatalf("Vault TLS files=%q/%q, want file names", env["ZBX_VAULTTLSCERTFILE"], env["ZBX_VAULTTLSKEYFILE"])
+	}
+}
+
+func TestResolveSecretsKeepsVaultTLSPathForWeb(t *testing.T) {
+	external, _, _ := useSecretRoots(t)
+	cert := filepath.Join(external, "vault", "client.pem")
+	writeTestSecret(t, cert, "certificate")
+	env := Environment{"ZBX_VAULT": "HashiCorp", "ZBX_VAULTTLSCERTFILE": "client.pem"}
+
+	if err := ResolveSecrets(env, SecretsWebMySQL, SecretsService); err != nil {
+		t.Fatal(err)
+	}
+	if env["ZBX_VAULTTLSCERTFILE"] != cert {
+		t.Fatalf("ZBX_VAULTTLSCERTFILE=%q, want %q", env["ZBX_VAULTTLSCERTFILE"], cert)
+	}
+}
+
+func TestResolveSecretsCopiesVaultTLSFilesOutsideSharedLocations(t *testing.T) {
+	external, internal, _ := useSecretRoots(t)
+	writeTestSecret(t, filepath.Join(external, "ssl", "certs", "web.pem"), "web certificate")
+	writeTestSecret(t, filepath.Join(external, "ssl", "keys", "web.key"), "web private key")
+	cert := filepath.Join(t.TempDir(), "vault.pem")
+	writeTestSecret(t, cert, "vault certificate")
+
+	env := Environment{
+		"ZABBIX_USER_HOME_DIR": "ignored",
+		"ZBX_VAULT":            "CyberArk",
+		"ZBX_VAULTTLSCERTFILE": cert,
+		"ZBX_VAULTTLSKEY":      "vault private key",
+	}
+	if err := ResolveSecrets(env, SecretsProxyMySQL, SecretsService); err != nil {
+		t.Fatal(err)
+	}
+
+	certDir := filepath.Join(internal, "ssl", "certs")
+	keyDir := filepath.Join(internal, "ssl", "keys")
+	if env["ZBX_SSLCERTLOCATION"] != certDir || env["ZBX_SSLKEYLOCATION"] != keyDir {
+		t.Fatalf("SSL locations=%q/%q, want %q/%q", env["ZBX_SSLCERTLOCATION"], env["ZBX_SSLKEYLOCATION"], certDir, keyDir)
+	}
+	for path, want := range map[string]string{
+		filepath.Join(certDir, "web.pem"):              "web certificate",
+		filepath.Join(certDir, "ZBX_VAULTTLSCERTFILE"): "vault certificate",
+		filepath.Join(keyDir, "web.key"):               "web private key",
+		filepath.Join(keyDir, "ZBX_VAULTTLSKEYFILE"):   "vault private key",
+	} {
+		data, err := os.ReadFile(path)
+		if err != nil || string(data) != want {
+			t.Fatalf("%s=%q, %v; want %q", path, data, err, want)
+		}
+	}
+	if env["ZBX_VAULTTLSCERTFILE"] != filepath.Join(certDir, "ZBX_VAULTTLSCERTFILE") ||
+		env["ZBX_VAULTTLSKEYFILE"] != filepath.Join(keyDir, "ZBX_VAULTTLSKEYFILE") {
+		t.Fatalf("resolved Vault TLS paths=%q/%q", env["ZBX_VAULTTLSCERTFILE"], env["ZBX_VAULTTLSKEYFILE"])
+	}
+	if err := SetVaultTLSFileNames(env); err != nil {
+		t.Fatal(err)
+	}
+	if env["ZBX_VAULTTLSCERTFILE"] != "ZBX_VAULTTLSCERTFILE" || env["ZBX_VAULTTLSKEYFILE"] != "ZBX_VAULTTLSKEYFILE" {
+		t.Fatalf("Vault TLS files=%q/%q, want managed file names", env["ZBX_VAULTTLSCERTFILE"], env["ZBX_VAULTTLSKEYFILE"])
+	}
+}
+
 func TestWithResolvedSecretsSkipsCustomCommands(t *testing.T) {
 	for _, test := range []struct {
 		name      string

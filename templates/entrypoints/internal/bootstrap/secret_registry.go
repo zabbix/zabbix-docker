@@ -27,6 +27,13 @@ type secretAlias struct {
 	canonical string
 }
 
+var vaultTLSFileDefinitions = []struct {
+	inline, file, location, category string
+}{
+	{"ZBX_VAULTTLSCERT", "ZBX_VAULTTLSCERTFILE", "ZBX_SSLCERTLOCATION", "ssl/certs"},
+	{"ZBX_VAULTTLSKEY", "ZBX_VAULTTLSKEYFILE", "ZBX_SSLKEYLOCATION", "ssl/keys"},
+}
+
 func secretPlan(env Environment, component SecretComponent, command SecretCommand) ([]fileSecretSpec, []valueSecretSpec, []secretAlias, error) {
 	home := env["ZABBIX_USER_HOME_DIR"]
 	enc := filepath.Join(home, "enc")
@@ -113,8 +120,12 @@ func secretPlan(env Environment, component SecretComponent, command SecretComman
 			if command == SecretsInitTelemetry {
 				vaultActive = vaultActive || telemetryProviderUsesVault(env)
 			}
-			for _, name := range []string{"ZBX_VAULTTLSCERT", "ZBX_VAULTTLSKEY"} {
-				files = append(files, fileSecretSpec{inline: name, file: name + "FILE", category: "vault", legacyDir: legacy, active: vaultActive})
+			for _, file := range vaultTLSFileDefinitions {
+				category := "vault"
+				if server || proxy {
+					category = file.category
+				}
+				files = append(files, fileSecretSpec{inline: file.inline, file: file.file, category: category, legacyDir: legacy, active: vaultActive})
 			}
 			for _, name := range []string{"VAULT_TOKEN", "ZBX_VAULTAPPROLEID", "ZBX_VAULTAPPSECRETID"} {
 				values = append(values, valueSecretSpec{name: name, category: "vault", active: vaultActive})

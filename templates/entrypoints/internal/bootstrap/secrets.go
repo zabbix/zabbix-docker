@@ -160,6 +160,11 @@ func ResolveSecrets(env Environment, component SecretComponent, command SecretCo
 			if err := resolveSharedTLSDirectories(env); err != nil {
 				return err
 			}
+			if command == SecretsService {
+				if err := prepareVaultTLSFiles(managed, env); err != nil {
+					return err
+				}
+			}
 			if err := resolveGlobalCA(managed, env); err != nil {
 				return err
 			}

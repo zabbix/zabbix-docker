@@ -171,6 +171,8 @@ services:
    - ${DATA_DIRECTORY}/var/lib/zabbix/dbscripts:/var/lib/zabbix/dbscripts:ro
    - ${DATA_DIRECTORY}/run/zabbix/secrets/database:/run/zabbix/secrets/database:ro
    - ${DATA_DIRECTORY}/run/zabbix/secrets/ssl/ca:/run/zabbix/secrets/ssl/ca:ro
+   - ${DATA_DIRECTORY}/run/zabbix/secrets/ssl/certs:/run/zabbix/secrets/ssl/certs:ro
+   - ${DATA_DIRECTORY}/run/zabbix/secrets/ssl/keys:/run/zabbix/secrets/ssl/keys:ro
    - ${DATA_DIRECTORY}/run/zabbix/secrets/vault:/run/zabbix/secrets/vault:ro
 # Deprecated secret locations. Uncomment temporarily while migrating.
 #   - ${DATA_DIRECTORY}/var/lib/zabbix/enc:/var/lib/zabbix/enc:ro
@@ -211,6 +213,8 @@ services:
    - ${DATA_DIRECTORY}/var/lib/zabbix/dbscripts:/var/lib/zabbix/dbscripts:ro
    - ${DATA_DIRECTORY}/run/zabbix/secrets/database:/run/zabbix/secrets/database:ro
    - ${DATA_DIRECTORY}/run/zabbix/secrets/ssl/ca:/run/zabbix/secrets/ssl/ca:ro
+   - ${DATA_DIRECTORY}/run/zabbix/secrets/ssl/certs:/run/zabbix/secrets/ssl/certs:ro
+   - ${DATA_DIRECTORY}/run/zabbix/secrets/ssl/keys:/run/zabbix/secrets/ssl/keys:ro
    - ${DATA_DIRECTORY}/run/zabbix/secrets/vault:/run/zabbix/secrets/vault:ro
 # Deprecated secret locations. Uncomment temporarily while migrating.
 #   - ${DATA_DIRECTORY}/var/lib/zabbix/enc:/var/lib/zabbix/enc:ro
@@ -383,6 +387,8 @@ services:
    - /etc/localtime:/etc/localtime:ro
    - ${DATA_DIRECTORY}/run/zabbix/secrets/database:/run/zabbix/secrets/database:ro
    - ${DATA_DIRECTORY}/run/zabbix/secrets/ssl/ca:/run/zabbix/secrets/ssl/ca:ro
+   - ${DATA_DIRECTORY}/run/zabbix/secrets/ssl/certs:/run/zabbix/secrets/ssl/certs:ro
+   - ${DATA_DIRECTORY}/run/zabbix/secrets/ssl/keys:/run/zabbix/secrets/ssl/keys:ro
    - ${DATA_DIRECTORY}/run/zabbix/secrets/vault:/run/zabbix/secrets/vault:ro
 # Deprecated secret locations. Uncomment temporarily while migrating.
 #   - ${DATA_DIRECTORY}/var/lib/zabbix/enc:/var/lib/zabbix/enc:ro
