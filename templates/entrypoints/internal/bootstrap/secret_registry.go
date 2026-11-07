@@ -135,7 +135,7 @@ func secretPlan(env Environment, component SecretComponent, command SecretComman
 
 	if (server && (service || command == SecretsInitHistory || command == SecretsInitTelemetry)) ||
 		(proxy && (service || command == SecretsInitTelemetry)) || (web && service) {
-		providerFiles, providerValues, err := providerSecretPlan(env, command, server || web, server)
+		providerFiles, providerValues, err := providerSecretPlan(env, component, command)
 		if err != nil {
 			return nil, nil, nil, err
 		}
@@ -186,7 +186,9 @@ func envEnabled(value string) bool {
 	}
 }
 
-func providerSecretPlan(env Environment, command SecretCommand, includeHistory, includeHistoryFiles bool) ([]fileSecretSpec, []valueSecretSpec, error) {
+func providerSecretPlan(env Environment, component SecretComponent, command SecretCommand) ([]fileSecretSpec, []valueSecretSpec, error) {
+	includeHistory := isServer(component) || isWeb(component)
+	includeHistoryFiles := isServer(component)
 	bases := make(map[string]string)
 	for name := range env {
 		for _, prefix := range []string{"ZBX_HISTORYPROVIDER_", "ZBX_TELEMETRYPROVIDER_"} {
