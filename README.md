@@ -38,7 +38,7 @@ This repository contains **Dockerfile** of [Zabbix](https://zabbix.com/) for [Do
 
 > A `ZBX_<NAME>` file-secret variable contains inline data, while `ZBX_<NAME>FILE` identifies a mounted file. For raw credentials, `<NAME>` contains the value and `<NAME>_FILE` identifies a file whose contents are read by the entrypoint. The two sources in each pair are mutually exclusive. A zero-length mounted file is accepted as an explicitly empty value.
 
-> The entrypoint writes generated files to `/run/zabbix/secrets_internal`. When an image is run with a read-only root filesystem, mount a writable tmpfs there. The bundled Compose configuration already provides this mount.
+> Depending on the configured secrets, the entrypoint may write generated files to `/run/zabbix/secrets_internal`. When an image is run with a read-only root filesystem, mount a writable tmpfs there, for example `--tmpfs /run/zabbix/secrets_internal:mode=770,uid=1997,gid=0`. The bundled Compose configuration already provides this mount.
 
 ClickHouse TLS files can be supplied separately from provider JSON through `ZBX_HISTORYPROVIDER_<N>_SSL_{CA,CERT,KEY}` and `ZBX_TELEMETRYPROVIDER_0_SSL_{CA,CERT,KEY}`, or their corresponding `*FILE` variables. The older `ssl_cert_file` and `ssl_key_file` JSON fields are deprecated and cannot be combined with the new variables.
 
