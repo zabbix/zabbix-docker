@@ -84,6 +84,7 @@ BAKE_RUNTIME_MYSQL_ALL       := runtime-mysql-all
 BAKE_RUNTIME_MYSQL_MINIMAL   := runtime-mysql-minimal
 BAKE_RUNTIME_PGSQL_ALL       := runtime-pgsql-all
 BAKE_RUNTIME_PGSQL_MINIMAL   := runtime-pgsql-minimal
+BAKE_RUNTIME_SQLITE3         := runtime-sqlite3
 
 # Export for sub-make / shells
 export OS DB MAJOR_VERSION ZBX_VERSION GIT_BRANCH MCP_SERVER_VERSION OS_BASE_IMAGE PLATFORMS
@@ -132,10 +133,9 @@ else ifeq ($(DB),pgsql)
   BAKE_RUNTIME_MINIMAL_GROUP := $(BAKE_RUNTIME_PGSQL_MINIMAL)
   BAKE_BUILDERS_GROUP        := $(BAKE_BUILDERS_PGSQL_GROUP)
 else ifeq ($(DB),sqlite3)
-  # No sqlite3 runtime groups listed in your target table; keep builders only.
   BAKE_BUILDERS_GROUP        := $(BAKE_BUILDERS_SQLITE3_GROUP)
-  BAKE_RUNTIME_ALL_GROUP     :=
-  BAKE_RUNTIME_MINIMAL_GROUP :=
+  BAKE_RUNTIME_ALL_GROUP     := $(BAKE_RUNTIME_SQLITE3)
+  BAKE_RUNTIME_MINIMAL_GROUP := $(BAKE_RUNTIME_SQLITE3)
 endif
 
 # ---- Guards ----
@@ -156,7 +156,7 @@ check-rhel-host:
 # -------- Targets --------
 DIRECT_BAKE_TARGETS := base \
 	builders-common builders-mysql builders-pgsql builders-sqlite3 \
-	runtime-mysql-all runtime-mysql-minimal runtime-pgsql-all runtime-pgsql-minimal
+	runtime-mysql-all runtime-mysql-minimal runtime-pgsql-all runtime-pgsql-minimal runtime-sqlite3
 
 .PHONY: help print-vars \
 	$(DIRECT_BAKE_TARGETS) builders \
@@ -175,10 +175,10 @@ help:
 	@echo "  make base                       # build build-base"
 	@echo "  make builders-common            # build database-independent components"
 	@echo "  make builders                    # build common + DB=$(DB) builders (mysql/pgsql/sqlite3)"
-	@echo "  make runtime-minimal             # build runtime-<db>-minimal (mysql/pgsql only)"
-	@echo "  make runtime-all                 # build runtime-<db>-all (mysql/pgsql only)"
-	@echo "  make build                       # base + builders + runtime-minimal (mysql/pgsql only)"
-	@echo "  make build-all                   # base + builders + runtime-all (mysql/pgsql only)"
+	@echo "  make runtime-minimal             # build the minimal runtime group for DB"
+	@echo "  make runtime-all                 # build the full runtime group for DB"
+	@echo "  make build                       # base + builders + minimal runtime group"
+	@echo "  make build-all                   # base + builders + full runtime group"
 	@echo "  make bake-target TARGET=server-mysql   # build a single bake target by name"
 	@echo "  make bridge-adapter                  # build distroless from bridge_adapter_sources"
 	@echo "  make bridge-adapter TARGET=rhel      # build RHEL from bridge_adapter_sources"
@@ -193,7 +193,7 @@ help:
 	@echo "  make build CONTAINER=docker         # build targets require Docker Buildx bake"
 	@echo "  make build DB=mysql"
 	@echo "  make build DB=pgsql"
-	@echo "  make builders DB=sqlite3"
+	@echo "  make build DB=sqlite3"
 	@echo "  make builders GIT_BRANCH=feature/custom-branch"
 	@echo "  make builders MCP_SERVER_VERSION=8.0.1"
 	@echo "  make build OS=ubuntu OS_BASE_IMAGE=ubuntu:resolute"
@@ -245,6 +245,7 @@ runtime-mysql-all: DIRECT_BAKE_GROUP = $(BAKE_RUNTIME_MYSQL_ALL)
 runtime-mysql-minimal: DIRECT_BAKE_GROUP = $(BAKE_RUNTIME_MYSQL_MINIMAL)
 runtime-pgsql-all: DIRECT_BAKE_GROUP = $(BAKE_RUNTIME_PGSQL_ALL)
 runtime-pgsql-minimal: DIRECT_BAKE_GROUP = $(BAKE_RUNTIME_PGSQL_MINIMAL)
+runtime-sqlite3: DIRECT_BAKE_GROUP = $(BAKE_RUNTIME_SQLITE3)
 
 $(DIRECT_BAKE_TARGETS): %: check-rhel-host
 	@echo "==> Bake group: $(DIRECT_BAKE_GROUP) (OS=$(OS))"
@@ -256,7 +257,7 @@ builders: check-rhel-host
 
 runtime-all: check-rhel-host
 	@if [ -z "$(BAKE_RUNTIME_ALL_GROUP)" ]; then \
-	  echo "ERROR: runtime-all is not defined for DB=$(DB) (no runtime groups listed for sqlite3)."; \
+	  echo "ERROR: runtime-all is not defined for DB=$(DB)."; \
 	  exit 1; \
 	fi
 	@echo "==> Bake group: $(BAKE_RUNTIME_ALL_GROUP) (DB=$(DB), OS=$(OS))"
@@ -264,7 +265,7 @@ runtime-all: check-rhel-host
 
 runtime-minimal: check-rhel-host
 	@if [ -z "$(BAKE_RUNTIME_MINIMAL_GROUP)" ]; then \
-	  echo "ERROR: runtime-minimal is not defined for DB=$(DB) (no runtime groups listed for sqlite3)."; \
+	  echo "ERROR: runtime-minimal is not defined for DB=$(DB)."; \
 	  exit 1; \
 	fi
 	@echo "==> Bake group: $(BAKE_RUNTIME_MINIMAL_GROUP) (DB=$(DB), OS=$(OS))"
