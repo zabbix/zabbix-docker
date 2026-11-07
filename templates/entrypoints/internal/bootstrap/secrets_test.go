@@ -4,6 +4,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"testing"
 )
@@ -146,6 +147,7 @@ func TestResolveSecretsDoesNotUseLegacyPathsForEightZeroSecrets(t *testing.T) {
 		command   SecretCommand
 		env       Environment
 		legacy    func(home string) string
+		current   string
 	}{
 		{
 			"proxy APM",
@@ -153,6 +155,7 @@ func TestResolveSecretsDoesNotUseLegacyPathsForEightZeroSecrets(t *testing.T) {
 			SecretsService,
 			Environment{"ZBX_APMTLSCERTFILE": "cert.pem", "ZBX_STARTAPMCOLLECTOR": "1"},
 			func(home string) string { return filepath.Join(home, "enc", "cert.pem") },
+			"apm/cert.pem",
 		},
 		{
 			"web APM",
@@ -160,6 +163,7 @@ func TestResolveSecretsDoesNotUseLegacyPathsForEightZeroSecrets(t *testing.T) {
 			SecretsService,
 			Environment{"ZBX_APM_CAFILE": "ca.pem"},
 			func(home string) string { return filepath.Join(home, "ssl", "ssl_ca", "ca.pem") },
+			"apm/ca.pem",
 		},
 		{
 			"history provider",
@@ -167,6 +171,7 @@ func TestResolveSecretsDoesNotUseLegacyPathsForEightZeroSecrets(t *testing.T) {
 			SecretsInitHistory,
 			Environment{"ZBX_HISTORYPROVIDER_0": provider, "ZBX_HISTORYPROVIDER_0_SSL_CERTFILE": "cert.pem"},
 			func(home string) string { return filepath.Join(home, "enc", "cert.pem") },
+			"providers/history-0/cert.pem",
 		},
 		{
 			"telemetry provider",
@@ -174,6 +179,7 @@ func TestResolveSecretsDoesNotUseLegacyPathsForEightZeroSecrets(t *testing.T) {
 			SecretsInitTelemetry,
 			Environment{"ZBX_TELEMETRYPROVIDER_0": provider, "ZBX_TELEMETRYPROVIDER_0_SSL_CERTFILE": "cert.pem"},
 			func(home string) string { return filepath.Join(home, "enc", "cert.pem") },
+			"providers/telemetry-0/cert.pem",
 		},
 	} {
 		t.Run(test.name, func(t *testing.T) {
@@ -182,8 +188,9 @@ func TestResolveSecretsDoesNotUseLegacyPathsForEightZeroSecrets(t *testing.T) {
 			writeTestSecret(t, test.legacy(home), "legacy")
 			test.env["ZABBIX_USER_HOME_DIR"] = home
 			err := ResolveSecrets(test.env, test.component, test.command)
-			if err == nil || !strings.Contains(err.Error(), external) {
-				t.Fatalf("ResolveSecrets() error=%v, want missing file under %q", err, external)
+			want := filepath.Join(external, filepath.FromSlash(test.current))
+			if err == nil || !strings.Contains(err.Error(), strconv.Quote(want)) {
+				t.Fatalf("ResolveSecrets() error=%v, want missing file %q", err, want)
 			}
 		})
 	}
