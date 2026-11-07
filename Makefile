@@ -99,8 +99,6 @@ else
   COMPOSE_FILE := compose.yaml
 endif
 
-# Compose env passthrough: ensure compose sees the same variables
-# (useful if compose uses ${OS}/${DB}/${IMAGE_TAG}/${IMAGE_PREFIX})
 define compose_env
 OS="$(OS)" DB="$(DB)" ZBX_IMAGE_TAG="$(1)" ZBX_IMAGE_REGISTRY="$(2)" ZBX_IMAGE_NAMESPACE="" $(COMPOSE) -f "$(COMPOSE_FILE)" --env-file "$(ENV_FILE)"
 endef

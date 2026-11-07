@@ -158,7 +158,6 @@ group "runtime-sqlite3" {
   ]
 }
 
-// Keep default minimal to avoid surprises
 group "default" {
   targets = ["base"]
 }
