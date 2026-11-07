@@ -58,15 +58,15 @@ podman run --name some-zabbix-web-nginx-pgsql --secret POSTGRES_USER --secret PO
 <p>The variable is Zabbix database name. By default, value is <code>zabbix</code>.</p>
 <h3 id="-postgres_use_implicit_search_path-"><code>POSTGRES_USE_IMPLICIT_SEARCH_PATH</code></h3>
 <p>In some setups, for example including <a href="https://www.pgbouncer.org">PgBouncer</a>, setting the <code>search_path</code> via connection parameters fails. If this variable is set to <code>&quot;true&quot;</code>, the image skips setting the <code>search_path</code> and trusts that the <code>search_path</code> of the Zabbix user is setup correctly in PostgreSQL database.</p>
-<h3 id="-zbx_historyprovider_0-n-"><code>ZBX_HISTORYPROVIDER_&lt;0-N&gt;</code></h3>
+<h3 id="-zbx_historyprovider_n-"><code>ZBX_HISTORYPROVIDER_&lt;N&gt;</code></h3>
 <p>History storage provider configuration in JSON format. Use consecutive indices starting with <code>0</code>.</p>
 <p>For ClickHouse, credentials can be set with the matching <code>_USERNAME</code> and <code>_PASSWORD</code> variables or their <code>_FILE</code> alternatives.</p>
 <h3 id="-zbx_telemetryprovider_0-"><code>ZBX_TELEMETRYPROVIDER_0</code></h3>
 <p>ClickHouse telemetry provider configuration in JSON format.</p>
 <p>Credentials and the TLS private key password can be set with the matching <code>_USERNAME</code>, <code>_PASSWORD</code>, and <code>_SSL_KEY_PASSWORD</code> variables or their <code>_FILE</code> alternatives.</p>
-<p>Certificate and key paths may be absolute or relative to <code>/var/lib/zabbix/ssl/certs</code> and <code>/var/lib/zabbix/ssl/keys</code>, respectively. CA certificates are read from <code>/var/lib/zabbix/ssl/ssl_ca</code>.</p>
+<p>TLS material can be supplied using the matching <code>_SSL_CA</code>, <code>_SSL_CERT</code> and <code>_SSL_KEY</code> variables or their <code>*FILE</code> alternatives. Relative <code>*FILE</code> paths are resolved against <code>/run/zabbix/secrets/providers/telemetry-0</code>. The deprecated JSON fields <code>ssl_cert_file</code> and <code>ssl_key_file</code> accept absolute paths or paths relative to <code>/run/zabbix/secrets/ssl/certs</code> and <code>/run/zabbix/secrets/ssl/keys</code>, respectively.</p>
 <h3 id="-zbx_apm_cafile-zbx_apm_ca-"><code>ZBX_APM_CAFILE</code>, <code>ZBX_APM_CA</code></h3>
-<p><code>ZBX_APM_CAFILE</code> specifies the CA file used as the default for APM providers. A relative path is resolved against <code>/var/lib/zabbix/ssl/ssl_ca</code>. Alternatively, <code>ZBX_APM_CA</code> provides the CA certificate content directly.</p>
+<p><code>ZBX_APM_CAFILE</code> specifies the CA file used as the default for APM providers. A relative path is resolved against <code>/run/zabbix/secrets/apm</code>. Alternatively, <code>ZBX_APM_CA</code> provides the CA certificate content directly.</p>
 <h3 id="-php_tz-"><code>PHP_TZ</code></h3>
 <p>The variable is timezone in PHP format. Full list of supported timezones are available on <a href="http://php.net/manual/en/timezones.php"><code>php.net</code></a>. By default, value is &#39;Europe/Riga&#39; and system timezone since Zabbix 5.2.0.</p>
 <h3 id="-zbx_server_name-"><code>ZBX_SERVER_NAME</code></h3>
@@ -108,11 +108,11 @@ podman run --name some-zabbix-web-nginx-pgsql --secret POSTGRES_USER --secret PO
 <h3 id="-zbx_db_verify_host-"><code>ZBX_DB_VERIFY_HOST</code></h3>
 <p>The variable controls database hostname verification. Enabled by default; set ZBX_DB_VERIFY_HOST=false to disable it. Available since 5.0.0.</p>
 <h3 id="-zbx_sso_sp_keyfile-zbx_sso_sp_key-"><code>ZBX_SSO_SP_KEYFILE</code>, <code>ZBX_SSO_SP_KEY</code></h3>
-<p><code>ZBX_SSO_SP_KEYFILE</code> specifies the Service Provider (SP) private key file. A relative path is resolved against <code>/etc/zabbix/web/certs</code>. Alternatively, <code>ZBX_SSO_SP_KEY</code> provides the private key content directly. Available since 8.0.0.</p>
+<p><code>ZBX_SSO_SP_KEYFILE</code> specifies the Service Provider (SP) private key file. A relative path is resolved against <code>/run/zabbix/secrets/sso</code>; the previous location remains available during migration with a warning. Alternatively, <code>ZBX_SSO_SP_KEY</code> provides the private key content directly. Available since 8.0.0.</p>
 <h3 id="-zbx_sso_sp_certfile-zbx_sso_sp_cert-"><code>ZBX_SSO_SP_CERTFILE</code>, <code>ZBX_SSO_SP_CERT</code></h3>
-<p><code>ZBX_SSO_SP_CERTFILE</code> specifies the Service Provider (SP) certificate file. A relative path is resolved against <code>/etc/zabbix/web/certs</code>. Alternatively, <code>ZBX_SSO_SP_CERT</code> provides the certificate content directly. Available since 8.0.0.</p>
+<p><code>ZBX_SSO_SP_CERTFILE</code> specifies the Service Provider (SP) certificate file. A relative path is resolved against <code>/run/zabbix/secrets/sso</code>; the previous location remains available during migration with a warning. Alternatively, <code>ZBX_SSO_SP_CERT</code> provides the certificate content directly. Available since 8.0.0.</p>
 <h3 id="-zbx_sso_idp_certfile-zbx_sso_idp_cert-"><code>ZBX_SSO_IDP_CERTFILE</code>, <code>ZBX_SSO_IDP_CERT</code></h3>
-<p><code>ZBX_SSO_IDP_CERTFILE</code> specifies the Identity Provider (IdP) certificate file. A relative path is resolved against <code>/etc/zabbix/web/certs</code>. Alternatively, <code>ZBX_SSO_IDP_CERT</code> provides the certificate content directly. Available since 8.0.0.</p>
+<p><code>ZBX_SSO_IDP_CERTFILE</code> specifies the Identity Provider (IdP) certificate file. A relative path is resolved against <code>/run/zabbix/secrets/sso</code>; the previous location remains available during migration with a warning. Alternatively, <code>ZBX_SSO_IDP_CERT</code> provides the certificate content directly. Available since 8.0.0.</p>
 <h2 id="-zbx_sso_settings-"><code>ZBX_SSO_SETTINGS</code></h2>
 <p>The variable allows to specify custom SSO settings in JSON format. Available since 5.0.0.</p>
 <p>Example of YAML Mapping to Sequences</p>
@@ -130,14 +130,37 @@ podman run --name some-zabbix-web-nginx-pgsql --secret POSTGRES_USER --secret PO
 <span class="hljs-attr">ZBX_VAULTDBPATH=</span> <span class="hljs-comment"># Available since 5.2.0</span>
 <span class="hljs-attr">ZBX_VAULTURL=https://127.0.0.1:8200</span> <span class="hljs-comment"># Available since 5.2.0</span>
 <span class="hljs-attr">VAULT_TOKEN=</span> <span class="hljs-comment"># Available since 5.2.0</span>
+<span class="hljs-attr">VAULT_TOKEN_FILE=</span> <span class="hljs-comment"># Available since 8.0.0</span>
 <span class="hljs-attr">ZBX_VAULTAPPROLEID=</span> <span class="hljs-comment"># Available since 8.0.0</span>
+<span class="hljs-attr">ZBX_VAULTAPPROLEID_FILE=</span> <span class="hljs-comment"># Available since 8.0.0</span>
 <span class="hljs-attr">ZBX_VAULTAPPSECRETID=</span> <span class="hljs-comment"># Available since 8.0.0</span>
+<span class="hljs-attr">ZBX_VAULTAPPSECRETID_FILE=</span> <span class="hljs-comment"># Available since 8.0.0</span>
 <span class="hljs-attr">ZBX_VAULTPREFIX=</span> <span class="hljs-comment"># Available since 7.0.0</span>
+<span class="hljs-attr">ZBX_VAULT_SSL_VERIFY=true</span>
 <span class="hljs-attr">ZBX_VAULTTLSCERTFILE=</span> <span class="hljs-comment"># Available since 6.2.0</span>
 <span class="hljs-attr">ZBX_VAULTTLSCERT=</span>
 <span class="hljs-attr">ZBX_VAULTTLSKEYFILE=</span> <span class="hljs-comment"># Available since 6.2.0</span>
 <span class="hljs-attr">ZBX_VAULTTLSKEY=</span>
 <span class="hljs-attr">ZBX_VAULTCACHE=false</span> <span class="hljs-comment"># Available since 6.2.0</span>
+
+<span class="hljs-attr">ZBX_HISTORYPROVIDER_&lt;N&gt;</span>={"provider":"clickhouse","url":"http://clickhouse:8123","db":"zabbix","types":["uint","dbl","str","log","text","json"]}
+<span class="hljs-attr">ZBX_HISTORYPROVIDER_&lt;N&gt;_USERNAME</span>=
+<span class="hljs-attr">ZBX_HISTORYPROVIDER_&lt;N&gt;_USERNAME_FILE</span>=
+<span class="hljs-attr">ZBX_HISTORYPROVIDER_&lt;N&gt;_PASSWORD</span>=
+<span class="hljs-attr">ZBX_HISTORYPROVIDER_&lt;N&gt;_PASSWORD_FILE</span>=
+<span class="hljs-attr">ZBX_TELEMETRYPROVIDER_0</span>={"provider":"clickhouse","url":"http://clickhouse:8123","db":"zabbix","vault_path":"","ssl_verify_peer":false,"ssl_verify_host":false}
+<span class="hljs-attr">ZBX_TELEMETRYPROVIDER_0_USERNAME</span>=zabbix
+<span class="hljs-attr">ZBX_TELEMETRYPROVIDER_0_USERNAME_FILE</span>=
+<span class="hljs-attr">ZBX_TELEMETRYPROVIDER_0_PASSWORD</span>=zabbix
+<span class="hljs-attr">ZBX_TELEMETRYPROVIDER_0_PASSWORD_FILE</span>=
+<span class="hljs-attr">ZBX_TELEMETRYPROVIDER_0_SSL_KEY_PASSWORD</span>=
+<span class="hljs-attr">ZBX_TELEMETRYPROVIDER_0_SSL_KEY_PASSWORD_FILE</span>=
+<span class="hljs-attr">ZBX_TELEMETRYPROVIDER_0_SSL_CAFILE</span>=
+<span class="hljs-attr">ZBX_TELEMETRYPROVIDER_0_SSL_CA</span>=
+<span class="hljs-attr">ZBX_TELEMETRYPROVIDER_0_SSL_CERTFILE</span>=
+<span class="hljs-attr">ZBX_TELEMETRYPROVIDER_0_SSL_CERT</span>=
+<span class="hljs-attr">ZBX_TELEMETRYPROVIDER_0_SSL_KEYFILE</span>=
+<span class="hljs-attr">ZBX_TELEMETRYPROVIDER_0_SSL_KEY</span>=
 
 <span class="hljs-attr">ZBX_CERT_STORAGE=database</span> <span class="hljs-comment"># Available since 8.0.0</span>
 <span class="hljs-attr">ZBX_BANNERS_ENABLED=true</span> <span class="hljs-comment"># Available since 8.0.0</span>
@@ -179,12 +202,24 @@ Allowed Nginx configuration options:
 <h3 id="-etc-ssl-nginx-"><code>/etc/ssl/nginx</code></h3>
 <p>The volume allows to enable HTTPS for the Zabbix web interface. The volume must contains three files <code>ssl.crt</code>, <code>ssl.key</code> and <code>dhparam.pem</code> prepared for Nginx SSL connections.</p>
 <p>Please follow official Nginx <a href="http://nginx.org/en/docs/http/configuring_https_servers.html">documentation</a> to get more details about how to create certificate files.</p>
-<h3 id="-etc-zabbix-web-certs-"><code>/etc/zabbix/web/certs</code></h3>
-<p>The volume provides certificate and key files referenced by <code>ZBX_SSO_SP_KEYFILE</code>, <code>ZBX_SSO_SP_CERTFILE</code>, <code>ZBX_SSO_IDP_CERTFILE</code>, <code>ZBX_VAULTTLSCERTFILE</code> and <code>ZBX_VAULTTLSKEYFILE</code>. Relative paths are resolved against this directory. Available since 5.0.0.</p>
-<h3 id="-var-lib-zabbix-enc-"><code>/var/lib/zabbix/enc</code></h3>
-<p>The volume is used to store TLS related files. These file names are specified using <code>ZBX_SERVER_TLS_CAFILE</code>, <code>ZBX_SERVER_TLS_KEYFILE</code> and <code>ZBX_SERVER_TLS_CERTFILE</code> variables. Additionally it is possible to use environment variables <code>ZBX_SERVER_TLS_CA</code>, <code>ZBX_SERVER_TLS_KEY</code> and <code>ZBX_SERVER_TLS_CERT</code> with plaintext values. Available since 7.4.0.</p>
-<h3 id="-var-lib-zabbix-ssl-ssl_ca-"><code>/var/lib/zabbix/ssl/ssl_ca</code></h3>
-<p>The volume is used to provide certificate authority (CA) files for APM server certificate verification. The files are copied to an internal writable directory where OpenSSL hash links are generated before Zabbix frontend starts. The volume should be mounted read-only.</p>
+<h3 id="-run-zabbix-secrets-apm-"><code>/run/zabbix/secrets/apm</code></h3>
+<p>The volume provides APM TLS CA material. Relative <code>ZBX_APM_CAFILE</code> paths are resolved against this directory. CA files placed in its <code>ca</code> subdirectory are copied to an internal writable directory where OpenSSL hash links are generated.</p>
+<h3 id="-run-zabbix-secrets-database-"><code>/run/zabbix/secrets/database</code></h3>
+<p>The volume provides file-backed database credentials and database TLS files.</p>
+<h3 id="-run-zabbix-secrets-providers-"><code>/run/zabbix/secrets/providers</code></h3>
+<p>The volume provides file-backed history and telemetry provider secrets.</p>
+<h3 id="-run-zabbix-secrets-sso-"><code>/run/zabbix/secrets/sso</code></h3>
+<p>The volume provides files referenced by <code>ZBX_SSO_SP_KEYFILE</code>, <code>ZBX_SSO_SP_CERTFILE</code> and <code>ZBX_SSO_IDP_CERTFILE</code>.</p>
+<h3 id="-run-zabbix-secrets-ssl-ca-"><code>/run/zabbix/secrets/ssl/ca</code></h3>
+<p>The volume provides CA files used for Vault TLS when database credentials are read from Vault.</p>
+<h3 id="-run-zabbix-secrets-ssl-certs-"><code>/run/zabbix/secrets/ssl/certs</code></h3>
+<p>The volume provides certificate files referenced by the deprecated telemetry JSON field <code>ssl_cert_file</code>.</p>
+<h3 id="-run-zabbix-secrets-ssl-keys-"><code>/run/zabbix/secrets/ssl/keys</code></h3>
+<p>The volume provides private key files referenced by the deprecated telemetry JSON field <code>ssl_key_file</code>.</p>
+<h3 id="-run-zabbix-secrets-tls-"><code>/run/zabbix/secrets/tls</code></h3>
+<p>The volume provides TLS files referenced by <code>ZBX_SERVER_TLS_CAFILE</code>, <code>ZBX_SERVER_TLS_KEYFILE</code> and <code>ZBX_SERVER_TLS_CERTFILE</code>.</p>
+<h3 id="-run-zabbix-secrets-vault-"><code>/run/zabbix/secrets/vault</code></h3>
+<p>The volume provides files referenced by <code>ZBX_VAULTTLSCERTFILE</code> and <code>ZBX_VAULTTLSKEYFILE</code>.</p>
 <h1 id="user-feedback">User Feedback</h1>
 <h2 id="documentation">Documentation</h2>
 <p>Documentation for this image is stored in the <a href="https://github.com/zabbix/zabbix-docker/tree/8.0/Dockerfiles/web-nginx-pgsql"><code>web-nginx-pgsql/</code> directory</a> of the <a href="https://github.com/zabbix/zabbix-docker/"><code>zabbix/zabbix-docker</code> GitHub repo</a>. Be sure to familiarize yourself with the <a href="https://github.com/zabbix/zabbix-docker/blob/8.0/README.md">repository&#39;s <code>README.md</code> file</a> before attempting a pull request.</p>

@@ -19,9 +19,6 @@ func TestPrepareService(t *testing.T) {
 
 	env := bootstrap.Environment{
 		"ZABBIX_USER_HOME_DIR": homeDir,
-		"ZBX_TLSCA":            "ca-data",
-		"ZBX_TLSCERT":          "certificate-data",
-		"ZBX_TLSKEY":           "key-data",
 		"MYSQL_PASSWORD":       "password",
 	}
 	if err := prepareService(env); err != nil {
@@ -33,25 +30,6 @@ func TestPrepareService(t *testing.T) {
 	}
 	if _, found := env["MYSQL_PASSWORD"]; found {
 		t.Fatal("MYSQL_PASSWORD was not removed")
-	}
-	for _, variable := range []string{"ZBX_TLSCA", "ZBX_TLSCERT", "ZBX_TLSKEY"} {
-		if _, found := env[variable]; found {
-			t.Fatalf("%s was not removed", variable)
-		}
-	}
-	for variable, expected := range map[string]string{
-		"ZBX_TLSCAFILE":   "ca-data",
-		"ZBX_TLSCERTFILE": "certificate-data",
-		"ZBX_TLSKEYFILE":  "key-data",
-	} {
-		path := env[variable]
-		data, err := os.ReadFile(path)
-		if err != nil {
-			t.Fatalf("read %s: %v", path, err)
-		}
-		if string(data) != expected {
-			t.Fatalf("unexpected %s content: %q", variable, data)
-		}
 	}
 }
 

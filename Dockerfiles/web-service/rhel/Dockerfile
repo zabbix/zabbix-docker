@@ -103,9 +103,10 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
     mkdir -p ${ZABBIX_CONF_DIR} \
         ${ZABBIX_USER_HOME_DIR} \
         ${ZABBIX_USER_HOME_DIR}/enc \
-        ${ZABBIX_USER_HOME_DIR}/enc_internal && \
-    chown --quiet -R zabbix:0 ${ZABBIX_USER_HOME_DIR}/ && \
-    chmod -R g=u ${ZABBIX_USER_HOME_DIR}/ && \
+        /run/zabbix/secrets/tls \
+        /run/zabbix/secrets_internal && \
+    chown --quiet -R zabbix:0 ${ZABBIX_USER_HOME_DIR}/ /run/zabbix/secrets_internal/ && \
+    chmod -R g=u ${ZABBIX_USER_HOME_DIR}/ /run/zabbix/secrets_internal/ && \
     /usr/sbin/zabbix_web_service -V
 
 EXPOSE 10053/tcp

@@ -177,10 +177,8 @@ func (p *Parameter) validate(env bootstrap.Environment, name string, fields map[
 			if err := validateFilePath(value, key); err != nil {
 				return ProviderConfig{}, fmt.Errorf("%s: %w", name, err)
 			}
-			// History providers cannot override Zabbix's SSL certificate/key directories.
-			if p == History && filepath.IsAbs(value.(string)) {
-				return ProviderConfig{}, fmt.Errorf("%s: %s must be a relative path for history providers", name, key)
-			}
+			bootstrap.LogWarn("%s field %s is deprecated; use %s_%sFILE", name, key, name,
+				strings.ToUpper(strings.TrimSuffix(key, "_file")))
 		}
 	}
 

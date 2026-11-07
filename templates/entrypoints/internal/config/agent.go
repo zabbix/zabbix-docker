@@ -2,7 +2,6 @@
 package config
 
 import (
-	"path/filepath"
 	"strings"
 
 	"github.com/zabbix/zabbix-docker/templates/entrypoints/internal/bootstrap"
@@ -41,20 +40,6 @@ func ConfigureServers(env bootstrap.Environment) {
 
 	delete(env, "ZBX_SERVER_HOST")
 	delete(env, "ZBX_SERVER_PORT")
-}
-
-// ProcessTLSFiles persists the agent TLS material from the
-// environment into files.
-func ProcessTLSFiles(env bootstrap.Environment, homeDir string) error {
-	return bootstrap.ProcessTLSFiles(
-		env,
-		filepath.Join(homeDir, "enc"),
-		"ZBX_TLSCA",
-		"ZBX_TLSCRL",
-		"ZBX_TLSCERT",
-		"ZBX_TLSKEY",
-		"ZBX_TLSPSK",
-	)
 }
 
 // ClearPrivateEnv drops internal ZABBIX_* variables before the

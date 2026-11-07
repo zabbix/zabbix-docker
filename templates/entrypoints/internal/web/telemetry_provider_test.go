@@ -2,7 +2,6 @@ package web
 
 import (
 	"encoding/json"
-	"path/filepath"
 	"strings"
 	"testing"
 
@@ -10,8 +9,7 @@ import (
 )
 
 func TestWebTelemetryTLSPaths(t *testing.T) {
-	homeDir := t.TempDir()
-	for _, path := range []string{"team/client.pem", "/custom/team/client.pem"} {
+	for _, path := range []string{"/custom/team/client.pem"} {
 		t.Run(path, func(t *testing.T) {
 			raw, err := json.Marshal(map[string]any{
 				"provider": "clickhouse", "ssl_cert_file": path, "ssl_key_file": path,
@@ -20,35 +18,39 @@ func TestWebTelemetryTLSPaths(t *testing.T) {
 				t.Fatal(err)
 			}
 			env := bootstrap.Environment{"ZBX_TELEMETRYPROVIDER_0": string(raw)}
-			if err := configureWebTelemetryProviders(env, homeDir); err != nil {
+			if err := configureWebTelemetryProviders(env); err != nil {
 				t.Fatal(err)
 			}
 			var providers []map[string]any
 			if err := json.Unmarshal([]byte(env["ZBX_TELEMETRYPROVIDERS"]), &providers); err != nil {
 				t.Fatal(err)
 			}
-			for field, directory := range map[string]string{"ssl_cert_file": "certs", "ssl_key_file": "keys"} {
-				want := path
-				if !filepath.IsAbs(path) {
-					want = filepath.Join(homeDir, "ssl", directory, path)
-				}
-				if got := providers[0][field]; got != want {
-					t.Errorf("%s = %v, want %s", field, got, want)
+			for _, field := range []string{"ssl_cert_file", "ssl_key_file"} {
+				if got := providers[0][field]; got != path {
+					t.Errorf("%s = %v, want %s", field, got, path)
 				}
 			}
 		})
 	}
 }
 
-func TestConfigureWebTelemetryProviders(t *testing.T) {
-	homeDir := t.TempDir()
+func TestWebTelemetryMissingRelativeTLSFile(t *testing.T) {
 	env := bootstrap.Environment{
-		"ZBX_TELEMETRYPROVIDER_0":                  `{"provider":"clickhouse","url":"https://clickhouse:8443","db":"zabbix","source_ip":"192.0.2.1","ssl_cert_file":"client.crt","ssl_key_file":"client.key"}`,
+		"ZBX_TELEMETRYPROVIDER_0": `{"provider":"clickhouse","ssl_cert_file":"missing.crt"}`,
+	}
+	if err := configureWebTelemetryProviders(env); err == nil {
+		t.Fatal("configureWebTelemetryProviders succeeded for a missing relative TLS file")
+	}
+}
+
+func TestConfigureWebTelemetryProviders(t *testing.T) {
+	env := bootstrap.Environment{
+		"ZBX_TELEMETRYPROVIDER_0":                  `{"provider":"clickhouse","url":"https://clickhouse:8443","db":"zabbix","source_ip":"192.0.2.1","ssl_cert_file":"/custom/client.crt","ssl_key_file":"/custom/client.key"}`,
 		"ZBX_TELEMETRYPROVIDER_0_USERNAME":         "zabbix",
 		"ZBX_TELEMETRYPROVIDER_0_PASSWORD":         "secret",
 		"ZBX_TELEMETRYPROVIDER_0_SSL_KEY_PASSWORD": "key-secret",
 	}
-	if err := configureWebTelemetryProviders(env, homeDir); err != nil {
+	if err := configureWebTelemetryProviders(env); err != nil {
 		t.Fatal(err)
 	}
 
@@ -61,8 +63,8 @@ func TestConfigureWebTelemetryProviders(t *testing.T) {
 	}
 	got := providers[0]
 	want := map[string]any{
-		"ssl_cert_file":    filepath.Join(homeDir, "ssl", "certs", "client.crt"),
-		"ssl_key_file":     filepath.Join(homeDir, "ssl", "keys", "client.key"),
+		"ssl_cert_file":    "/custom/client.crt",
+		"ssl_key_file":     "/custom/client.key",
 		"ssl_ca_location":  "",
 		"ssl_key_password": "key-secret",
 		"ssl_verify_peer":  true,
@@ -85,6 +87,22 @@ func TestConfigureWebTelemetryProviders(t *testing.T) {
 	}
 }
 
+func TestWebTelemetryVaultPath(t *testing.T) {
+	env := bootstrap.Environment{
+		"ZBX_TELEMETRYPROVIDER_0": `{"provider":"clickhouse","url":"https://clickhouse:8443","db":"zabbix","vault_path":"secret/telemetry"}`,
+	}
+	if err := configureWebTelemetryProviders(env); err != nil {
+		t.Fatal(err)
+	}
+	var providers []map[string]any
+	if err := json.Unmarshal([]byte(env["ZBX_TELEMETRYPROVIDERS"]), &providers); err != nil {
+		t.Fatal(err)
+	}
+	if got := providers[0]["vault_path"]; got != "secret/telemetry" {
+		t.Fatalf("vault_path = %#v, want secret/telemetry", got)
+	}
+}
+
 // The frontend reads every option of a telemetry data source without a default
 // of its own, so a minimal configuration must still produce the full set.
 func TestWebTelemetryProvidesEveryOptionTheFrontendReads(t *testing.T) {
@@ -92,7 +110,7 @@ func TestWebTelemetryProvidesEveryOptionTheFrontendReads(t *testing.T) {
 		"ZBX_TELEMETRYPROVIDERS":  "",
 		"ZBX_TELEMETRYPROVIDER_0": `{"provider":"clickhouse","url":"http://clickhouse:8123","db":"zabbix"}`,
 	}
-	if err := configureWebTelemetryProviders(env, t.TempDir()); err != nil {
+	if err := configureWebTelemetryProviders(env); err != nil {
 		t.Fatal(err)
 	}
 	var providers []map[string]any

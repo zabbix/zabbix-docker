@@ -124,8 +124,6 @@ func TestHistoryInvalidOptions(t *testing.T) {
 		value      any
 		diagnostic string
 	}{
-		{"ssl_cert_file", "/custom/client.pem", "relative"},
-		{"ssl_key_file", "/custom/client.key", "relative"},
 		{"vault_path", "secret/history", "only supported by telemetry providers"},
 	} {
 		t.Run(test.field, func(t *testing.T) {
@@ -150,6 +148,48 @@ func TestHistoryInvalidOptions(t *testing.T) {
 				}
 			}
 		})
+	}
+}
+
+func TestHistoryTLSVariablesSupportAbsoluteFiles(t *testing.T) {
+	env := bootstrap.Environment{
+		"ZBX_HISTORYPROVIDER_0":                `{"provider":"clickhouse","url":"https://clickhouse:8443","db":"zabbix","types":["uint"]}`,
+		"ZBX_HISTORYPROVIDER_0_SSL_CERTFILE":   "/run/zabbix/secrets/providers/history-0/client.pem",
+		"ZBX_HISTORYPROVIDER_0_SSL_KEYFILE":    "/run/zabbix/secrets/providers/history-0/client.key",
+		"ZBX_HISTORYPROVIDER_0_SSL_CALOCATION": "/run/zabbix/secrets_internal/providers/history-0/ca",
+	}
+	configuration, err := NewConfiguration(env, History)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := configuration.ConfigureNative(); err != nil {
+		t.Fatal(err)
+	}
+	for _, option := range []string{
+		`ssl_cert_location="/run/zabbix/secrets/providers/history-0"`,
+		`ssl_cert_file="client.pem"`,
+		`ssl_key_location="/run/zabbix/secrets/providers/history-0"`,
+		`ssl_key_file="client.key"`,
+		`ssl_ca_location="/run/zabbix/secrets_internal/providers/history-0/ca"`,
+	} {
+		if !strings.Contains(env["ZBX_HISTORYPROVIDER_0"], option) {
+			t.Fatalf("native provider %q does not contain %q", env["ZBX_HISTORYPROVIDER_0"], option)
+		}
+	}
+}
+
+func TestProviderTLSVariableConflictsWithJSONField(t *testing.T) {
+	env := bootstrap.Environment{
+		"ZBX_HISTORYPROVIDER_0":              `{"provider":"clickhouse","url":"https://clickhouse:8443","db":"zabbix","types":["uint"],"ssl_cert_file":"legacy.pem"}`,
+		"ZBX_HISTORYPROVIDER_0_SSL_CERTFILE": "/cert.pem",
+	}
+	configuration, err := NewConfiguration(env, History)
+	if err != nil {
+		t.Fatal(err)
+	}
+	err = configuration.ConfigureNative()
+	if err == nil || !strings.Contains(err.Error(), "cannot be combined") {
+		t.Fatalf("ConfigureNative() error=%v, want source conflict", err)
 	}
 }
 

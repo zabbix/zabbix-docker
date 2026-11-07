@@ -73,8 +73,10 @@ RUN --mount=type=cache,target=/var/cache/apt/,sharing=locked \
     mkdir -p ${ZABBIX_CONF_DIR} \
         ${ZABBIX_USER_HOME_DIR} \
         ${ZABBIX_USER_HOME_DIR}/enc \
-        ${ZABBIX_USER_HOME_DIR}/enc_internal && \
+        /run/zabbix/secrets/tls \
+        /run/zabbix/secrets_internal && \
     FIX_PERM_LIST="\
+        /run/zabbix/secrets_internal/ \
         ${ZABBIX_USER_HOME_DIR}/" && \
     chown --quiet -R zabbix:0 ${FIX_PERM_LIST} && \
     chmod -R g=u ${FIX_PERM_LIST} && \

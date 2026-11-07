@@ -7,7 +7,6 @@ import (
 	"errors"
 	"fmt"
 	"os"
-	"path/filepath"
 	"sort"
 	"strings"
 )
@@ -127,112 +126,6 @@ func validateDir(dir string) error {
 	}
 	if !info.IsDir() {
 		return fmt.Errorf("%q is not a directory", dir)
-	}
-
-	return nil
-}
-
-// ResolveSecretEnv resolves the NAME / NAME_FILE pair following the Docker
-// secrets convention. The value is read from NAME_FILE when NAME is empty;
-// setting both is an error. The *_FILE variable is removed from the
-// environment.
-func ResolveSecretEnv(env Environment, name string) error {
-	return resolveSecretEnv(env, name, SecretsDir)
-}
-
-func resolveSecretEnv(env Environment, name, secretsDir string) error {
-	fileName := name + "_FILE"
-	value := env[name]
-	secretFile := env[fileName]
-	if value != "" && secretFile != "" {
-		return fmt.Errorf("both variables %s and %s are set (but are exclusive)", name, fileName)
-	}
-
-	if value != "" {
-		LogInfo("** Using %s variable from ENV", name)
-	} else if secretFile != "" {
-		resolved, err := ResolveFile(secretFile, secretsDir)
-		if err != nil {
-			return fmt.Errorf("%s: %w", fileName, err)
-		}
-		secretFile = resolved
-		data, err := os.ReadFile(secretFile)
-		if err != nil {
-			return fmt.Errorf("secret file %q is not found: %w", secretFile, err)
-		}
-		value = strings.TrimRight(string(data), "\r\n")
-		LogInfo("** Using %s variable from secret file", name)
-	}
-
-	env[name] = value
-	delete(env, fileName)
-	return nil
-}
-
-// ProcessTLSFiles moves inline TLS material from the listed variables into
-// files under <directory>_internal. Existing relative TLS file paths are
-// resolved against directory, while absolute paths are preserved unchanged.
-func ProcessTLSFiles(env Environment, directory string, variables ...string) error {
-	return ProcessTLSFilesTo(env, directory, directory+"_internal", variables...)
-}
-
-// ProcessTLSFilesToEncInternal writes inline material to <home>/enc_internal.
-func ProcessTLSFilesToEncInternal(env Environment, directory string, variables ...string) error {
-	internalDir := ""
-	for _, variable := range variables {
-		if env[variable] == "" {
-			continue
-		}
-		homeDir, err := RequiredHomeDir(env)
-		if err != nil {
-			return err
-		}
-		internalDir = filepath.Join(homeDir, "enc_internal")
-		break
-	}
-
-	return ProcessTLSFilesTo(env, directory, internalDir, variables...)
-}
-
-// ProcessTLSFilesTo is ProcessTLSFiles with an explicit inline directory.
-func ProcessTLSFilesTo(env Environment, directory, internalDir string, variables ...string) error {
-	for _, variable := range variables {
-		fileVariable := variable + "FILE"
-		if env[variable] != "" && env[fileVariable] != "" {
-			return fmt.Errorf("both variables %s and %s are set (but are exclusive)", variable, fileVariable)
-		}
-	}
-
-	for _, variable := range variables {
-		if err := processTLSFileTo(env, directory, filepath.Join(internalDir, variable+"FILE"), variable); err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
-
-func processTLSFileTo(env Environment, directory, outputPath, variable string) error {
-	fileVariable := variable + "FILE"
-	if env[variable] != "" && env[fileVariable] != "" {
-		return fmt.Errorf("both variables %s and %s are set (but are exclusive)", variable, fileVariable)
-	}
-
-	if value := env[variable]; value != "" {
-		if err := os.WriteFile(outputPath, []byte(value), 0o600); err != nil {
-			return fmt.Errorf("write %s: %w", outputPath, err)
-		}
-		env[fileVariable] = outputPath
-	}
-
-	delete(env, variable)
-
-	if path := env[fileVariable]; path != "" {
-		resolved, err := ResolveFile(path, directory)
-		if err != nil {
-			return fmt.Errorf("%s: %w", fileVariable, err)
-		}
-		env[fileVariable] = resolved
 	}
 
 	return nil

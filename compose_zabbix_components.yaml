@@ -15,17 +15,24 @@ services:
    - ${DATA_DIRECTORY}/usr/lib/zabbix/externalscripts:/usr/lib/zabbix/externalscripts:ro
    - ${DATA_DIRECTORY}/var/lib/zabbix/export:/var/lib/zabbix/export:rw
    - ${DATA_DIRECTORY}/var/lib/zabbix/modules:/var/lib/zabbix/modules:ro
-   - ${DATA_DIRECTORY}/var/lib/zabbix/enc:/var/lib/zabbix/enc:ro
+   - ${DATA_DIRECTORY}/run/zabbix/secrets/database:/run/zabbix/secrets/database:ro
+   - ${DATA_DIRECTORY}/run/zabbix/secrets/providers:/run/zabbix/secrets/providers:ro
+   - ${DATA_DIRECTORY}/run/zabbix/secrets/ssl/ca:/run/zabbix/secrets/ssl/ca:ro
+   - ${DATA_DIRECTORY}/run/zabbix/secrets/ssl/certs:/run/zabbix/secrets/ssl/certs:ro
+   - ${DATA_DIRECTORY}/run/zabbix/secrets/ssl/keys:/run/zabbix/secrets/ssl/keys:ro
+   - ${DATA_DIRECTORY}/run/zabbix/secrets/tls:/run/zabbix/secrets/tls:ro
+   - ${DATA_DIRECTORY}/run/zabbix/secrets/vault:/run/zabbix/secrets/vault:ro
+# Deprecated secret locations. Uncomment temporarily while migrating.
+#   - ${DATA_DIRECTORY}/var/lib/zabbix/enc:/var/lib/zabbix/enc:ro
+#   - ${DATA_DIRECTORY}/var/lib/zabbix/ssl/certs:/var/lib/zabbix/ssl/certs:ro
+#   - ${DATA_DIRECTORY}/var/lib/zabbix/ssl/keys:/var/lib/zabbix/ssl/keys:ro
+#   - ${DATA_DIRECTORY}/var/lib/zabbix/ssl/ssl_ca:/var/lib/zabbix/ssl/ssl_ca:ro
    - ${DATA_DIRECTORY}/var/lib/zabbix/ssh_keys:/var/lib/zabbix/ssh_keys:ro
    - ${DATA_DIRECTORY}/var/lib/zabbix/mibs:/var/lib/zabbix/mibs:ro
-   - ${DATA_DIRECTORY}/var/lib/zabbix/ssl/certs:/var/lib/zabbix/ssl/certs:ro
-   - ${DATA_DIRECTORY}/var/lib/zabbix/ssl/keys:/var/lib/zabbix/ssl/keys:ro
-   - ${DATA_DIRECTORY}/var/lib/zabbix/ssl/ssl_ca:/var/lib/zabbix/ssl/ssl_ca:ro
    - snmptraps:/var/lib/zabbix/snmptraps:ro
   tmpfs:
    - /tmp
-   - /run/zabbix/secrets
-   - /var/lib/zabbix/ssl/ssl_ca_internal
+   - /run/zabbix/secrets_internal
   ulimits:
    nproc: 65535
    nofile:
@@ -75,13 +82,18 @@ services:
   restart: no
   volumes:
    - /etc/localtime:/etc/localtime:ro
-   - ${DATA_DIRECTORY}/var/lib/zabbix/enc:/var/lib/zabbix/enc:ro
-   - ${DATA_DIRECTORY}/var/lib/zabbix/ssl/certs:/var/lib/zabbix/ssl/certs:ro
-   - ${DATA_DIRECTORY}/var/lib/zabbix/ssl/keys:/var/lib/zabbix/ssl/keys:ro
-   - ${DATA_DIRECTORY}/var/lib/zabbix/ssl/ssl_ca:/var/lib/zabbix/ssl/ssl_ca:ro
+   - ${DATA_DIRECTORY}/run/zabbix/secrets/providers:/run/zabbix/secrets/providers:ro
+   - ${DATA_DIRECTORY}/run/zabbix/secrets/ssl/ca:/run/zabbix/secrets/ssl/ca:ro
+   - ${DATA_DIRECTORY}/run/zabbix/secrets/ssl/certs:/run/zabbix/secrets/ssl/certs:ro
+   - ${DATA_DIRECTORY}/run/zabbix/secrets/ssl/keys:/run/zabbix/secrets/ssl/keys:ro
+# Deprecated secret locations. Uncomment temporarily while migrating.
+#   - ${DATA_DIRECTORY}/var/lib/zabbix/enc:/var/lib/zabbix/enc:ro
+#   - ${DATA_DIRECTORY}/var/lib/zabbix/ssl/certs:/var/lib/zabbix/ssl/certs:ro
+#   - ${DATA_DIRECTORY}/var/lib/zabbix/ssl/keys:/var/lib/zabbix/ssl/keys:ro
+#   - ${DATA_DIRECTORY}/var/lib/zabbix/ssl/ssl_ca:/var/lib/zabbix/ssl/ssl_ca:ro
   tmpfs:
    - /tmp
-   - /var/lib/zabbix/ssl/ssl_ca_internal
+   - /run/zabbix/secrets_internal
   networks:
    database:
   command: init_db_history_providers
@@ -98,14 +110,19 @@ services:
   restart: no
   volumes:
    - /etc/localtime:/etc/localtime:ro
-   - ${DATA_DIRECTORY}/var/lib/zabbix/enc:/var/lib/zabbix/enc:ro
-   - ${DATA_DIRECTORY}/var/lib/zabbix/ssl/certs:/var/lib/zabbix/ssl/certs:ro
-   - ${DATA_DIRECTORY}/var/lib/zabbix/ssl/keys:/var/lib/zabbix/ssl/keys:ro
-   - ${DATA_DIRECTORY}/var/lib/zabbix/ssl/ssl_ca:/var/lib/zabbix/ssl/ssl_ca:ro
+   - ${DATA_DIRECTORY}/run/zabbix/secrets/providers:/run/zabbix/secrets/providers:ro
+   - ${DATA_DIRECTORY}/run/zabbix/secrets/ssl/ca:/run/zabbix/secrets/ssl/ca:ro
+   - ${DATA_DIRECTORY}/run/zabbix/secrets/ssl/certs:/run/zabbix/secrets/ssl/certs:ro
+   - ${DATA_DIRECTORY}/run/zabbix/secrets/ssl/keys:/run/zabbix/secrets/ssl/keys:ro
+   - ${DATA_DIRECTORY}/run/zabbix/secrets/vault:/run/zabbix/secrets/vault:ro
+# Deprecated secret locations. Uncomment temporarily while migrating.
+#   - ${DATA_DIRECTORY}/var/lib/zabbix/enc:/var/lib/zabbix/enc:ro
+#   - ${DATA_DIRECTORY}/var/lib/zabbix/ssl/certs:/var/lib/zabbix/ssl/certs:ro
+#   - ${DATA_DIRECTORY}/var/lib/zabbix/ssl/keys:/var/lib/zabbix/ssl/keys:ro
+#   - ${DATA_DIRECTORY}/var/lib/zabbix/ssl/ssl_ca:/var/lib/zabbix/ssl/ssl_ca:ro
   tmpfs:
    - /tmp
-   - /var/lib/zabbix/ssl/ssl_ca_internal
-   - /var/lib/zabbix/enc_internal
+   - /run/zabbix/secrets_internal
   networks:
    database:
   command: init_db_telemetry
@@ -152,12 +169,17 @@ services:
   volumes:
    - /etc/localtime:/etc/localtime:ro
    - ${DATA_DIRECTORY}/var/lib/zabbix/dbscripts:/var/lib/zabbix/dbscripts:ro
-   - ${DATA_DIRECTORY}/var/lib/zabbix/enc:/var/lib/zabbix/enc:ro
+   - ${DATA_DIRECTORY}/run/zabbix/secrets/database:/run/zabbix/secrets/database:ro
+   - ${DATA_DIRECTORY}/run/zabbix/secrets/ssl/ca:/run/zabbix/secrets/ssl/ca:ro
+   - ${DATA_DIRECTORY}/run/zabbix/secrets/vault:/run/zabbix/secrets/vault:ro
+# Deprecated secret locations. Uncomment temporarily while migrating.
+#   - ${DATA_DIRECTORY}/var/lib/zabbix/enc:/var/lib/zabbix/enc:ro
+#   - ${DATA_DIRECTORY}/var/lib/zabbix/ssl/ssl_ca:/var/lib/zabbix/ssl/ssl_ca:ro
 #   - mysql_socket:/var/run/mysqld/
   command: init_db_only
   tmpfs:
    - /tmp
-   - /run/zabbix/secrets
+   - /run/zabbix/secrets_internal
   env_file:
    - path: ${ENV_VARS_DIRECTORY}/.env_db_mysql
      required: true
@@ -187,14 +209,20 @@ services:
   restart: no
   volumes:
    - ${DATA_DIRECTORY}/var/lib/zabbix/dbscripts:/var/lib/zabbix/dbscripts:ro
-#   - ${ENV_VARS_DIRECTORY}/.ZBX_DB_CA_FILE:/run/secrets/root-ca.pem:ro
-#   - ${ENV_VARS_DIRECTORY}/.ZBX_DB_CERT_FILE:/run/secrets/client-cert.pem:ro
-#   - ${ENV_VARS_DIRECTORY}/.ZBX_DB_KEY_FILE:/run/secrets/client-key.pem:ro
+   - ${DATA_DIRECTORY}/run/zabbix/secrets/database:/run/zabbix/secrets/database:ro
+   - ${DATA_DIRECTORY}/run/zabbix/secrets/ssl/ca:/run/zabbix/secrets/ssl/ca:ro
+   - ${DATA_DIRECTORY}/run/zabbix/secrets/vault:/run/zabbix/secrets/vault:ro
+# Deprecated secret locations. Uncomment temporarily while migrating.
+#   - ${DATA_DIRECTORY}/var/lib/zabbix/enc:/var/lib/zabbix/enc:ro
+#   - ${DATA_DIRECTORY}/var/lib/zabbix/ssl/ssl_ca:/var/lib/zabbix/ssl/ssl_ca:ro
+#   - ${ENV_VARS_DIRECTORY}/.ZBX_DBTLSCAFILE:/run/secrets/root-ca.pem:ro
+#   - ${ENV_VARS_DIRECTORY}/.ZBX_DBTLSCERTFILE:/run/secrets/client-cert.pem:ro
+#   - ${ENV_VARS_DIRECTORY}/.ZBX_DBTLSKEYFILE:/run/secrets/client-key.pem:ro
 #   - pgsql_socket:/var/run/postgresql
   command: init_db_only
   tmpfs:
    - /tmp
-   - /run/zabbix/secrets
+   - /run/zabbix/secrets_internal
   env_file:
    - path: ${ENV_VARS_DIRECTORY}/.env_db_pgsql
      required: true
@@ -237,9 +265,9 @@ services:
   extends:
    service: server
 #  volumes:
-#   - ${ENV_VARS_DIRECTORY}/.ZBX_DB_CA_FILE:/run/secrets/root-ca.pem:ro
-#   - ${ENV_VARS_DIRECTORY}/.ZBX_DB_CERT_FILE:/run/secrets/client-cert.pem:ro
-#   - ${ENV_VARS_DIRECTORY}/.ZBX_DB_KEY_FILE:/run/secrets/client-key.pem:ro
+#   - ${ENV_VARS_DIRECTORY}/.ZBX_DBTLSCAFILE:/run/secrets/root-ca.pem:ro
+#   - ${ENV_VARS_DIRECTORY}/.ZBX_DBTLSCERTFILE:/run/secrets/client-cert.pem:ro
+#   - ${ENV_VARS_DIRECTORY}/.ZBX_DBTLSKEYFILE:/run/secrets/client-key.pem:ro
 #   - pgsql_socket:/var/run/postgresql
   env_file:
    - path: ${ENV_VARS_DIRECTORY}/.env_db_pgsql
@@ -265,17 +293,24 @@ services:
    - /etc/localtime:/etc/localtime:ro
    - ${DATA_DIRECTORY}/usr/lib/zabbix/externalscripts:/usr/lib/zabbix/externalscripts:ro
    - ${DATA_DIRECTORY}/var/lib/zabbix/modules:/var/lib/zabbix/modules:ro
-   - ${DATA_DIRECTORY}/var/lib/zabbix/enc:/var/lib/zabbix/enc:ro
+   - ${DATA_DIRECTORY}/run/zabbix/secrets/apm:/run/zabbix/secrets/apm:ro
+   - ${DATA_DIRECTORY}/run/zabbix/secrets/providers:/run/zabbix/secrets/providers:ro
+   - ${DATA_DIRECTORY}/run/zabbix/secrets/ssl/ca:/run/zabbix/secrets/ssl/ca:ro
+   - ${DATA_DIRECTORY}/run/zabbix/secrets/ssl/certs:/run/zabbix/secrets/ssl/certs:ro
+   - ${DATA_DIRECTORY}/run/zabbix/secrets/ssl/keys:/run/zabbix/secrets/ssl/keys:ro
+   - ${DATA_DIRECTORY}/run/zabbix/secrets/tls:/run/zabbix/secrets/tls:ro
+   - ${DATA_DIRECTORY}/run/zabbix/secrets/vault:/run/zabbix/secrets/vault:ro
+# Deprecated secret locations. Uncomment temporarily while migrating.
+#   - ${DATA_DIRECTORY}/var/lib/zabbix/enc:/var/lib/zabbix/enc:ro
+#   - ${DATA_DIRECTORY}/var/lib/zabbix/ssl/certs:/var/lib/zabbix/ssl/certs:ro
+#   - ${DATA_DIRECTORY}/var/lib/zabbix/ssl/keys:/var/lib/zabbix/ssl/keys:ro
+#   - ${DATA_DIRECTORY}/var/lib/zabbix/ssl/ssl_ca:/var/lib/zabbix/ssl/ssl_ca:ro
    - ${DATA_DIRECTORY}/var/lib/zabbix/ssh_keys:/var/lib/zabbix/ssh_keys:ro
    - ${DATA_DIRECTORY}/var/lib/zabbix/mibs:/var/lib/zabbix/mibs:ro
-   - ${DATA_DIRECTORY}/var/lib/zabbix/ssl/certs:/var/lib/zabbix/ssl/certs:ro
-   - ${DATA_DIRECTORY}/var/lib/zabbix/ssl/keys:/var/lib/zabbix/ssl/keys:ro
-   - ${DATA_DIRECTORY}/var/lib/zabbix/ssl/ssl_ca:/var/lib/zabbix/ssl/ssl_ca:ro
    - snmptraps:/var/lib/zabbix/snmptraps:ro
   tmpfs:
    - /tmp
-   - /run/zabbix/secrets
-   - /var/lib/zabbix/ssl/ssl_ca_internal
+   - /run/zabbix/secrets_internal
   ulimits:
    nproc: 65535
    nofile:
@@ -346,12 +381,17 @@ services:
    - all
   volumes:
    - /etc/localtime:/etc/localtime:ro
-   - ${DATA_DIRECTORY}/var/lib/zabbix/enc:/var/lib/zabbix/enc:ro
+   - ${DATA_DIRECTORY}/run/zabbix/secrets/database:/run/zabbix/secrets/database:ro
+   - ${DATA_DIRECTORY}/run/zabbix/secrets/ssl/ca:/run/zabbix/secrets/ssl/ca:ro
+   - ${DATA_DIRECTORY}/run/zabbix/secrets/vault:/run/zabbix/secrets/vault:ro
+# Deprecated secret locations. Uncomment temporarily while migrating.
+#   - ${DATA_DIRECTORY}/var/lib/zabbix/enc:/var/lib/zabbix/enc:ro
+#   - ${DATA_DIRECTORY}/var/lib/zabbix/ssl/ssl_ca:/var/lib/zabbix/ssl/ssl_ca:ro
 #   - mysql_socket:/var/run/mysqld/
   command: init_db_only
   tmpfs:
    - /tmp
-   - /run/zabbix/secrets
+   - /run/zabbix/secrets_internal
   env_file:
    - path: ${ENV_VARS_DIRECTORY}/.env_db_mysql_proxy
      required: true
@@ -388,7 +428,8 @@ services:
      published: "${ZABBIX_PROXY_MYSQL_APM_PORT}"
      protocol: tcp
      app_protocol: grpc
-#  volumes:
+  volumes:
+   - ${DATA_DIRECTORY}/run/zabbix/secrets/database:/run/zabbix/secrets/database:ro
 #   - mysql_socket:/var/run/mysqld/
   env_file:
    - path: ${ENV_VARS_DIRECTORY}/.env_db_mysql_proxy
@@ -434,13 +475,22 @@ services:
    - /etc/localtime:/etc/localtime:ro
    - ${DATA_DIRECTORY}/etc/ssl/apache2:/etc/ssl/apache2:ro
    - ${DATA_DIRECTORY}/usr/share/zabbix/modules/:/usr/share/zabbix/modules/:ro
-   - ${DATA_DIRECTORY}/var/lib/zabbix/enc:/var/lib/zabbix/enc:ro
-   - ${DATA_DIRECTORY}/var/lib/zabbix/ssl/certs:/var/lib/zabbix/ssl/certs:ro
-   - ${DATA_DIRECTORY}/var/lib/zabbix/ssl/keys:/var/lib/zabbix/ssl/keys:ro
-   - ${DATA_DIRECTORY}/var/lib/zabbix/ssl/ssl_ca:/var/lib/zabbix/ssl/ssl_ca:ro
+   - ${DATA_DIRECTORY}/run/zabbix/secrets/apm:/run/zabbix/secrets/apm:ro
+   - ${DATA_DIRECTORY}/run/zabbix/secrets/database:/run/zabbix/secrets/database:ro
+   - ${DATA_DIRECTORY}/run/zabbix/secrets/providers:/run/zabbix/secrets/providers:ro
+   - ${DATA_DIRECTORY}/run/zabbix/secrets/sso:/run/zabbix/secrets/sso:ro
+   - ${DATA_DIRECTORY}/run/zabbix/secrets/ssl/ca:/run/zabbix/secrets/ssl/ca:ro
+   - ${DATA_DIRECTORY}/run/zabbix/secrets/ssl/certs:/run/zabbix/secrets/ssl/certs:ro
+   - ${DATA_DIRECTORY}/run/zabbix/secrets/ssl/keys:/run/zabbix/secrets/ssl/keys:ro
+   - ${DATA_DIRECTORY}/run/zabbix/secrets/tls:/run/zabbix/secrets/tls:ro
+   - ${DATA_DIRECTORY}/run/zabbix/secrets/vault:/run/zabbix/secrets/vault:ro
+# Deprecated secret locations. Uncomment temporarily while migrating.
+#   - ${DATA_DIRECTORY}/etc/zabbix/web/certs:/etc/zabbix/web/certs:ro
+#   - ${DATA_DIRECTORY}/var/lib/zabbix/enc:/var/lib/zabbix/enc:ro
+#   - ${DATA_DIRECTORY}/var/lib/zabbix/ssl/ssl_ca:/var/lib/zabbix/ssl/ssl_ca:ro
   tmpfs:
    - /tmp
-   - /run/zabbix/secrets
+   - /run/zabbix/secrets_internal
    - /var/lib/php/session:mode=1777
   deploy:
    resources:
@@ -498,9 +548,9 @@ services:
   extends:
    service: web-apache
 #  volumes:
-#   - ${ENV_VARS_DIRECTORY}/.ZBX_DB_CA_FILE:/run/secrets/root-ca.pem:ro
-#   - ${ENV_VARS_DIRECTORY}/.ZBX_DB_CERT_FILE:/run/secrets/client-cert.pem:ro
-#   - ${ENV_VARS_DIRECTORY}/.ZBX_DB_KEY_FILE:/run/secrets/client-key.pem:ro
+#   - ${ENV_VARS_DIRECTORY}/.ZBX_DBTLSCAFILE:/run/secrets/root-ca.pem:ro
+#   - ${ENV_VARS_DIRECTORY}/.ZBX_DBTLSCERTFILE:/run/secrets/client-cert.pem:ro
+#   - ${ENV_VARS_DIRECTORY}/.ZBX_DBTLSKEYFILE:/run/secrets/client-key.pem:ro
 #   - pgsql_socket:/var/run/postgresql
   env_file:
    - path: ${ENV_VARS_DIRECTORY}/.env_db_pgsql
@@ -534,13 +584,22 @@ services:
    - /etc/localtime:/etc/localtime:ro
    - ${DATA_DIRECTORY}/etc/ssl/nginx:/etc/ssl/nginx:ro
    - ${DATA_DIRECTORY}/usr/share/zabbix/modules/:/usr/share/zabbix/modules/:ro
-   - ${DATA_DIRECTORY}/var/lib/zabbix/enc:/var/lib/zabbix/enc:ro
-   - ${DATA_DIRECTORY}/var/lib/zabbix/ssl/certs:/var/lib/zabbix/ssl/certs:ro
-   - ${DATA_DIRECTORY}/var/lib/zabbix/ssl/keys:/var/lib/zabbix/ssl/keys:ro
-   - ${DATA_DIRECTORY}/var/lib/zabbix/ssl/ssl_ca:/var/lib/zabbix/ssl/ssl_ca:ro
+   - ${DATA_DIRECTORY}/run/zabbix/secrets/apm:/run/zabbix/secrets/apm:ro
+   - ${DATA_DIRECTORY}/run/zabbix/secrets/database:/run/zabbix/secrets/database:ro
+   - ${DATA_DIRECTORY}/run/zabbix/secrets/providers:/run/zabbix/secrets/providers:ro
+   - ${DATA_DIRECTORY}/run/zabbix/secrets/sso:/run/zabbix/secrets/sso:ro
+   - ${DATA_DIRECTORY}/run/zabbix/secrets/ssl/ca:/run/zabbix/secrets/ssl/ca:ro
+   - ${DATA_DIRECTORY}/run/zabbix/secrets/ssl/certs:/run/zabbix/secrets/ssl/certs:ro
+   - ${DATA_DIRECTORY}/run/zabbix/secrets/ssl/keys:/run/zabbix/secrets/ssl/keys:ro
+   - ${DATA_DIRECTORY}/run/zabbix/secrets/tls:/run/zabbix/secrets/tls:ro
+   - ${DATA_DIRECTORY}/run/zabbix/secrets/vault:/run/zabbix/secrets/vault:ro
+# Deprecated secret locations. Uncomment temporarily while migrating.
+#   - ${DATA_DIRECTORY}/etc/zabbix/web/certs:/etc/zabbix/web/certs:ro
+#   - ${DATA_DIRECTORY}/var/lib/zabbix/enc:/var/lib/zabbix/enc:ro
+#   - ${DATA_DIRECTORY}/var/lib/zabbix/ssl/ssl_ca:/var/lib/zabbix/ssl/ssl_ca:ro
   tmpfs:
    - /tmp
-   - /run/zabbix/secrets
+   - /run/zabbix/secrets_internal
    - /var/lib/php/session:mode=1777
   deploy:
    resources:
@@ -602,9 +661,9 @@ services:
   extends:
    service: web-nginx
 #  volumes:
-#   - ${ENV_VARS_DIRECTORY}/.ZBX_DB_CA_FILE:/run/secrets/root-ca.pem:ro
-#   - ${ENV_VARS_DIRECTORY}/.ZBX_DB_CERT_FILE:/run/secrets/client-cert.pem:ro
-#   - ${ENV_VARS_DIRECTORY}/.ZBX_DB_KEY_FILE:/run/secrets/client-key.pem:ro
+#   - ${ENV_VARS_DIRECTORY}/.ZBX_DBTLSCAFILE:/run/secrets/root-ca.pem:ro
+#   - ${ENV_VARS_DIRECTORY}/.ZBX_DBTLSCERTFILE:/run/secrets/client-cert.pem:ro
+#   - ${ENV_VARS_DIRECTORY}/.ZBX_DBTLSKEYFILE:/run/secrets/client-key.pem:ro
 #   - pgsql_socket:/var/run/postgresql
   env_file:
    - path: ${ENV_VARS_DIRECTORY}/.env_db_pgsql
@@ -638,10 +697,14 @@ services:
    - /etc/localtime:/etc/localtime:ro
    - ${DATA_DIRECTORY}/etc/zabbix/zabbix_agentd.d:/etc/zabbix/zabbix_agentd.d:ro
    - ${DATA_DIRECTORY}/var/lib/zabbix/modules:/var/lib/zabbix/modules:ro
-   - ${DATA_DIRECTORY}/var/lib/zabbix/enc:/var/lib/zabbix/enc:ro
+   - ${DATA_DIRECTORY}/run/zabbix/secrets/tls:/run/zabbix/secrets/tls:ro
+# Deprecated secret locations. Uncomment temporarily while migrating.
+#   - ${DATA_DIRECTORY}/var/lib/zabbix/enc:/var/lib/zabbix/enc:ro
    - ${DATA_DIRECTORY}/var/lib/zabbix/ssh_keys:/var/lib/zabbix/ssh_keys:ro
    - ${DATA_DIRECTORY}/var/lib/zabbix/user_scripts:/var/lib/zabbix/user_scripts:ro
-  tmpfs: /tmp
+  tmpfs:
+   - /tmp
+   - /run/zabbix/secrets_internal
   deploy:
    resources:
     limits:
@@ -691,10 +754,14 @@ services:
    - ${DATA_DIRECTORY}/etc/zabbix/zabbix_agentd.d:/etc/zabbix/zabbix_agentd.d:ro
    - ${DATA_DIRECTORY}/var/lib/zabbix/profiler:/var/lib/zabbix/profiler:rw
    - ${DATA_DIRECTORY}/var/lib/zabbix/modules:/var/lib/zabbix/modules:ro
-   - ${DATA_DIRECTORY}/var/lib/zabbix/enc:/var/lib/zabbix/enc:ro
+   - ${DATA_DIRECTORY}/run/zabbix/secrets/tls:/run/zabbix/secrets/tls:ro
+# Deprecated secret locations. Uncomment temporarily while migrating.
+#   - ${DATA_DIRECTORY}/var/lib/zabbix/enc:/var/lib/zabbix/enc:ro
    - ${DATA_DIRECTORY}/var/lib/zabbix/ssh_keys:/var/lib/zabbix/ssh_keys:ro
    - ${DATA_DIRECTORY}/var/lib/zabbix/user_scripts:/var/lib/zabbix/user_scripts:ro
-  tmpfs: /tmp
+  tmpfs:
+   - /tmp
+   - /run/zabbix/secrets_internal
   deploy:
    resources:
     limits:
@@ -815,9 +882,11 @@ services:
   attach: false
   read_only: true
   volumes:
-   - ${DATA_DIRECTORY}/var/lib/zabbix/enc:/var/lib/zabbix/enc:ro
+   - ${DATA_DIRECTORY}/run/zabbix/secrets/tls:/run/zabbix/secrets/tls:ro
+# Deprecated secret locations. Uncomment temporarily while migrating.
+#   - ${DATA_DIRECTORY}/var/lib/zabbix/enc:/var/lib/zabbix/enc:ro
   tmpfs:
-   - /var/lib/zabbix/enc_internal
+   - /run/zabbix/secrets_internal
    - /tmp
   security_opt:
    - seccomp:${ENV_VARS_DIRECTORY}/chrome_dp.json
@@ -858,10 +927,12 @@ services:
   attach: false
   read_only: true
   volumes:
-   - ${DATA_DIRECTORY}/var/lib/zabbix/enc:/var/lib/zabbix/enc:ro
+   - ${DATA_DIRECTORY}/run/zabbix/secrets/tls:/run/zabbix/secrets/tls:ro
+# Deprecated secret locations. Uncomment temporarily while migrating.
+#   - ${DATA_DIRECTORY}/var/lib/zabbix/enc:/var/lib/zabbix/enc:ro
   tmpfs:
    - /tmp
-   - /var/lib/zabbix/enc_internal
+   - /run/zabbix/secrets_internal
   deploy:
    resources:
     limits:
@@ -922,13 +993,15 @@ services:
   volumes:
    - /etc/localtime:/etc/localtime:ro
    - ${DATA_DIRECTORY}/var/lib/zabbix/bridge-adapter:/var/lib/zabbix/bridge-adapter:rw
-   - ${DATA_DIRECTORY}/var/lib/zabbix/enc:/var/lib/zabbix/enc:ro
-   - ${DATA_DIRECTORY}/var/lib/zabbix/ssl/certs:/var/lib/zabbix/ssl/certs:ro
-   - ${DATA_DIRECTORY}/var/lib/zabbix/ssl/keys:/var/lib/zabbix/ssl/keys:ro
-   - ${DATA_DIRECTORY}/var/lib/zabbix/ssl/ssl_ca:/var/lib/zabbix/ssl/ssl_ca:ro
+   - ${DATA_DIRECTORY}/run/zabbix/secrets/tls:/run/zabbix/secrets/tls:ro
+# Deprecated secret locations. Uncomment temporarily while migrating.
+#   - ${DATA_DIRECTORY}/var/lib/zabbix/enc:/var/lib/zabbix/enc:ro
+#   - ${DATA_DIRECTORY}/var/lib/zabbix/ssl/certs:/var/lib/zabbix/ssl/certs:ro
+#   - ${DATA_DIRECTORY}/var/lib/zabbix/ssl/keys:/var/lib/zabbix/ssl/keys:ro
+#   - ${DATA_DIRECTORY}/var/lib/zabbix/ssl/ssl_ca:/var/lib/zabbix/ssl/ssl_ca:ro
   tmpfs:
    - /tmp
-   - /var/lib/zabbix/enc_internal
+   - /run/zabbix/secrets_internal
   env_file:
    - path: ${ENV_VARS_DIRECTORY}/.env_bridge_adapter
      required: true

@@ -12,19 +12,6 @@ import (
 
 func TestPreparePHPUsesFrontendSettings(t *testing.T) {
 	root := t.TempDir()
-	for _, dir := range []string{
-		filepath.Join(root, "enc_internal"),
-		filepath.Join(root, "ssl", "ssl_ca"),
-		filepath.Join(root, "ssl", "ssl_ca_internal"),
-	} {
-		if err := os.MkdirAll(dir, 0o700); err != nil {
-			t.Fatal(err)
-		}
-	}
-	staleCA := filepath.Join(root, "ssl", "ssl_ca_internal", "stale.pem")
-	if err := os.WriteFile(staleCA, nil, 0o600); err != nil {
-		t.Fatal(err)
-	}
 	phpConfig := filepath.Join(root, "php-fpm.conf")
 	if err := os.WriteFile(phpConfig, nil, 0o600); err != nil {
 		t.Fatal(err)
@@ -34,17 +21,7 @@ func TestPreparePHPUsesFrontendSettings(t *testing.T) {
 		"PHP_ZBX_CONFIG_FILE":  phpConfig,
 		"DAEMON_USER":          "zabbix",
 		"DAEMON_GROUP":         "zabbix",
-		"ZBX_DB_CA_FILE":       "ca.pem",
-		"ZBX_DB_CERT_FILE":     "cert.pem",
-		"ZBX_DB_KEY_FILE":      "key.pem",
 		"ZBX_DB_CIPHER_LIST":   "cipher",
-		"ZBX_VAULTCERTFILE":    "vault.crt",
-		"ZBX_VAULTKEYFILE":     "vault.key",
-		"ZBX_APM_CA_LOCATION":  "/custom/ca",
-		"ZBX_APM_CA":           "apm-ca",
-		"ZBX_SSO_SP_KEYFILE":   "sp.key",
-		"ZBX_SSO_SP_CERTFILE":  "sp.crt",
-		"ZBX_SSO_IDP_CERTFILE": "idp.crt",
 	}
 	if err := prepareFrontendAliases(env); err != nil {
 		t.Fatal(err)
@@ -52,17 +29,11 @@ func TestPreparePHPUsesFrontendSettings(t *testing.T) {
 	if env["ZBX_DB_VERIFY_HOST"] != "true" {
 		t.Fatal("database hostname verification must default to true before the bootstrap connection")
 	}
-	if _, err := bootstrap.ResolveFrontendDBTLS(env); err != nil {
-		t.Fatal(err)
-	}
 	if err := preparePHP(env, MySQL); err != nil {
 		t.Fatal(err)
 	}
 	if value, found := env["ZBX_SERVER_HOST"]; found {
 		t.Fatalf("ZBX_SERVER_HOST got default %q; unset must keep the address from the database", value)
-	}
-	if _, err := os.Stat(staleCA); !os.IsNotExist(err) {
-		t.Fatalf("stale CA was not removed: %v", err)
 	}
 	want := map[string]string{
 		"ZBX_DB_VERIFY_HOST":         "true",
@@ -75,32 +46,12 @@ func TestPreparePHPUsesFrontendSettings(t *testing.T) {
 		"ZBX_MODULES_CONFIG_ENABLED": "true",
 		"ZBX_MEDIA_TYPE_DENYLIST":    "[]",
 		"ZBX_DB_DOUBLE_IEEE754":      "true",
-		"ZBX_DBTLSCAFILE":            filepath.Join(bootstrap.SecretsDir, "ca.pem"),
-		"ZBX_DBTLSCERTFILE":          filepath.Join(bootstrap.SecretsDir, "cert.pem"),
-		"ZBX_DBTLSKEYFILE":           filepath.Join(bootstrap.SecretsDir, "key.pem"),
 		"ZBX_DBTLSCIPHER":            "cipher",
-		"ZBX_VAULTTLSCERTFILE":       filepath.Join(bootstrap.WebCertsDir, "vault.crt"),
-		"ZBX_VAULTTLSKEYFILE":        filepath.Join(bootstrap.WebCertsDir, "vault.key"),
-		"ZBX_APM_CA_LOCATION":        filepath.Join(root, "ssl", "ssl_ca_internal"),
-		"ZBX_APM_CAFILE":             filepath.Join(root, "ssl", "ssl_ca_internal", "ZBX_APM_CAFILE"),
-		"ZBX_SSO_SP_KEYFILE":         filepath.Join(bootstrap.WebCertsDir, "sp.key"),
-		"ZBX_SSO_SP_CERTFILE":        filepath.Join(bootstrap.WebCertsDir, "sp.crt"),
-		"ZBX_SSO_IDP_CERTFILE":       filepath.Join(bootstrap.WebCertsDir, "idp.crt"),
 	}
 	for name, value := range want {
 		if env[name] != value {
 			t.Fatalf("%s = %q, want %q", name, env[name], value)
 		}
-	}
-	if _, found := env["ZBX_APM_CA"]; found {
-		t.Fatal("plaintext ZBX_APM_CA was not removed")
-	}
-	apmCA, err := os.ReadFile(env["ZBX_APM_CAFILE"])
-	if err != nil {
-		t.Fatal(err)
-	}
-	if string(apmCA) != "apm-ca" {
-		t.Fatalf("ZBX_APM_CAFILE content = %q, want %q", apmCA, "apm-ca")
 	}
 	if value, found := env["DB_SERVER_SOCKET"]; !found || value != "" {
 		t.Fatalf("DB_SERVER_SOCKET = %q, found = %t", value, found)
@@ -115,10 +66,7 @@ func TestPreparePHPUsesFrontendSettings(t *testing.T) {
 			t.Fatalf("obsolete frontend setting %s was exported", obsolete)
 		}
 	}
-	for _, legacy := range []string{
-		"ZBX_DB_CA_FILE", "ZBX_DB_CERT_FILE", "ZBX_DB_KEY_FILE", "ZBX_DB_CIPHER_LIST",
-		"ZBX_VAULTCERTFILE", "ZBX_VAULTKEYFILE",
-	} {
+	for _, legacy := range []string{"ZBX_DB_CIPHER_LIST"} {
 		if _, found := env[legacy]; found {
 			t.Fatalf("legacy variable %s was exported", legacy)
 		}
@@ -141,72 +89,19 @@ func TestPreparePHPUsesFrontendSettings(t *testing.T) {
 	}
 }
 
-func TestPrepareFrontendAliasesPriority(t *testing.T) {
+func TestPrepareFrontendAliasesCipherPriority(t *testing.T) {
 	env := bootstrap.Environment{
-		"ZBX_VAULTCERTFILE":    "../legacy/vault.crt",
-		"ZBX_VAULTTLSCERTFILE": "/current/vault.crt",
-		"ZBX_VAULTKEYFILE":     "../legacy/vault.key",
-		"ZBX_VAULTTLSKEYFILE":  "/current/vault.key",
-		"ZBX_DB_CA_FILE":       "/legacy/ca.pem",
-		"ZBX_DBTLSCAFILE":      "/current/ca.pem",
+		"ZBX_DB_CIPHER_LIST": "legacy",
+		"ZBX_DBTLSCIPHER":    "current",
 	}
 	if err := prepareFrontendAliases(env); err != nil {
 		t.Fatal(err)
 	}
-	for name, want := range map[string]string{
-		"ZBX_VAULTTLSCERTFILE": "/current/vault.crt",
-		"ZBX_VAULTTLSKEYFILE":  "/current/vault.key",
-		"ZBX_DBTLSCAFILE":      "/current/ca.pem",
-	} {
-		if env[name] != want {
-			t.Errorf("%s = %q, want %q", name, env[name], want)
-		}
+	if env["ZBX_DBTLSCIPHER"] != "current" {
+		t.Fatalf("ZBX_DBTLSCIPHER=%q, want current", env["ZBX_DBTLSCIPHER"])
 	}
-	for _, name := range []string{"ZBX_VAULTCERTFILE", "ZBX_VAULTKEYFILE", "ZBX_DB_CA_FILE"} {
-		if _, found := env[name]; found {
-			t.Errorf("legacy variable %s was exported", name)
-		}
-	}
-}
-
-func TestPrepareFrontendAliasesInlineTLS(t *testing.T) {
-	homeDir := t.TempDir()
-	if err := os.Mkdir(filepath.Join(homeDir, "enc_internal"), 0o700); err != nil {
-		t.Fatal(err)
-	}
-	env := bootstrap.Environment{
-		"ZABBIX_USER_HOME_DIR": homeDir,
-		"ZBX_DBTLSCA":          "inline CA",
-		"ZBX_DBTLSCERTFILE":    "client.pem",
-		"ZBX_VAULTTLSCERT":     "inline Vault certificate",
-		"ZBX_VAULTKEYFILE":     "vault.key",
-	}
-	if err := prepareFrontendAliases(env); err != nil {
-		t.Fatal(err)
-	}
-	internal := filepath.Join(homeDir, "enc_internal")
-	for name, want := range map[string]string{
-		"ZBX_DBTLSCA":          "inline CA",
-		"ZBX_DBTLSCERTFILE":    "client.pem",
-		"ZBX_VAULTTLSCERTFILE": filepath.Join(internal, "ZBX_VAULTTLSCERTFILE"),
-		"ZBX_VAULTTLSKEYFILE":  filepath.Join(bootstrap.WebCertsDir, "vault.key"),
-	} {
-		if env[name] != want {
-			t.Errorf("%s = %q, want %q", name, env[name], want)
-		}
-	}
-	for _, name := range []string{"ZBX_VAULTTLSCERT", "ZBX_VAULTKEYFILE"} {
-		if _, found := env[name]; found {
-			t.Errorf("%s was left in the environment", name)
-		}
-	}
-
-	env = bootstrap.Environment{"ZABBIX_USER_HOME_DIR": homeDir, "ZBX_DB_KEY_FILE": "legacy.pem", "ZBX_DBTLSKEY": "inline"}
-	if err := prepareFrontendAliases(env); err != nil {
-		t.Fatal(err)
-	}
-	if env["ZBX_DBTLSKEYFILE"] != "legacy.pem" || env["ZBX_DBTLSKEY"] != "inline" {
-		t.Fatalf("DB TLS aliases were not normalized before validation: %#v", env)
+	if _, found := env["ZBX_DB_CIPHER_LIST"]; found {
+		t.Fatal("ZBX_DB_CIPHER_LIST was not removed")
 	}
 }
 
@@ -223,20 +118,22 @@ func TestClearWebEnv(t *testing.T) {
 			wantCredentials: true,
 		},
 		{
-			name: "HashiCorp Vault",
+			name: "HashiCorp Vault for a non-database secret",
 			env: bootstrap.Environment{
 				"ZBX_VAULT": "HashiCorp", "VAULT_TOKEN": "token", "ZBX_VAULTURL": "https://vault",
 			},
+			wantCredentials: true,
 		},
 		{
-			name: "HashiCorp Vault without token",
+			name: "HashiCorp Vault database credentials",
 			env: bootstrap.Environment{
-				"ZBX_VAULT": "HashiCorp", "ZBX_VAULTURL": "https://vault",
+				"ZBX_VAULT": "HashiCorp", "ZBX_VAULTURL": "https://vault", "ZBX_VAULTDBPATH": "secret/database",
 			},
 		},
 		{
-			name: "CyberArk Vault",
-			env:  bootstrap.Environment{"ZBX_VAULT": "CyberArk"},
+			name:            "CyberArk Vault for a non-database secret",
+			env:             bootstrap.Environment{"ZBX_VAULT": "CyberArk"},
+			wantCredentials: true,
 		},
 		{
 			name: "cleanup disabled",

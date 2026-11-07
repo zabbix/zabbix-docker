@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/tls"
 	"encoding/json"
+	"encoding/pem"
 	"errors"
 	"io"
 	"net/http"
@@ -16,101 +17,6 @@ import (
 
 	"github.com/zabbix/zabbix-docker/templates/entrypoints/internal/bootstrap"
 )
-
-func TestResolveVaultFileName(t *testing.T) {
-	homeDir := t.TempDir()
-	encDir := filepath.Join(homeDir, "enc")
-	if err := os.Mkdir(encDir, 0o700); err != nil {
-		t.Fatal(err)
-	}
-	path := filepath.Join(encDir, "vault.pem")
-	if err := os.WriteFile(path, []byte("certificate"), 0o600); err != nil {
-		t.Fatal(err)
-	}
-
-	env := bootstrap.Environment{
-		"ZABBIX_USER_HOME_DIR": homeDir,
-		"ZBX_VAULTTLSCERTFILE": "vault.pem",
-	}
-	resolved, err := resolveVaultFile(env, "ZBX_VAULTCERTFILE", "ZBX_VAULTTLSCERTFILE")
-	if err != nil {
-		t.Fatal(err)
-	}
-	if resolved != path || env["ZBX_VAULTTLSCERTFILE"] != path {
-		t.Fatalf("resolved Vault file = %q, environment = %q", resolved, env["ZBX_VAULTTLSCERTFILE"])
-	}
-}
-
-func TestResolveVaultFileInline(t *testing.T) {
-	homeDir := t.TempDir()
-	if err := os.Mkdir(filepath.Join(homeDir, "enc_internal"), 0o700); err != nil {
-		t.Fatal(err)
-	}
-	env := bootstrap.Environment{"ZABBIX_USER_HOME_DIR": homeDir, "ZBX_VAULTTLSCERT": "inline certificate"}
-	resolved, err := resolveVaultFile(env, "ZBX_VAULTCERTFILE", "ZBX_VAULTTLSCERTFILE")
-	if err != nil {
-		t.Fatal(err)
-	}
-	want := filepath.Join(homeDir, "enc_internal", "ZBX_VAULTTLSCERTFILE")
-	if resolved != want || env["ZBX_VAULTTLSCERTFILE"] != want {
-		t.Fatalf("resolved Vault file = %q, environment = %q, want %q", resolved, env["ZBX_VAULTTLSCERTFILE"], want)
-	}
-	if data, err := os.ReadFile(want); err != nil || string(data) != "inline certificate" {
-		t.Fatalf("inline Vault certificate = %q, %v", data, err)
-	}
-	if _, found := env["ZBX_VAULTTLSCERT"]; found {
-		t.Error("inline ZBX_VAULTTLSCERT was left in the environment")
-	}
-
-	env = bootstrap.Environment{"ZABBIX_USER_HOME_DIR": homeDir, "ZBX_VAULTTLSKEY": "inline", "ZBX_VAULTTLSKEYFILE": "key.pem"}
-	if _, err := resolveVaultFile(env, "ZBX_VAULTKEYFILE", "ZBX_VAULTTLSKEYFILE"); err == nil || !strings.Contains(err.Error(), "exclusive") {
-		t.Fatalf("inline and file Vault key: error = %v", err)
-	}
-}
-
-func TestResolveVaultFilePriority(t *testing.T) {
-	homeDir := t.TempDir()
-	for _, names := range [][2]string{
-		{"ZBX_VAULTCERTFILE", "ZBX_VAULTTLSCERTFILE"},
-		{"ZBX_VAULTKEYFILE", "ZBX_VAULTTLSKEYFILE"},
-	} {
-		for _, tc := range []struct {
-			name, legacy, current, want string
-			wantError                   bool
-		}{
-			{name: "new wins", legacy: "../ignored.pem", current: "current.pem", want: filepath.Join(homeDir, "enc", "current.pem")},
-			{name: "subdirectory", current: "team/current.pem", want: filepath.Join(homeDir, "enc", "team", "current.pem")},
-			{name: "legacy fallback", legacy: "legacy.pem", want: filepath.Join(bootstrap.WebCertsDir, "legacy.pem")},
-			{name: "invalid new does not fall back", legacy: "legacy.pem", current: "../invalid.pem", wantError: true},
-			{name: "unset"},
-		} {
-			t.Run(names[1]+"/"+tc.name, func(t *testing.T) {
-				env := bootstrap.Environment{
-					"ZABBIX_USER_HOME_DIR": homeDir,
-					names[0]:               tc.legacy,
-					names[1]:               tc.current,
-				}
-				got, err := resolveVaultFile(env, names[0], names[1])
-				if (err != nil) != tc.wantError {
-					t.Fatalf("error = %v, wantError = %t", err, tc.wantError)
-				}
-				if got != tc.want {
-					t.Errorf("resolved Vault file = %q, want %q", got, tc.want)
-				}
-			})
-		}
-	}
-}
-
-func TestResolveVaultAbsolutePathWithoutHome(t *testing.T) {
-	for _, name := range []string{"ZBX_VAULTTLSCERTFILE", "ZBX_VAULTTLSKEYFILE"} {
-		env := bootstrap.Environment{name: "/custom/team/client.pem"}
-		got, err := resolveVaultFile(env, "unused_legacy", name)
-		if err != nil || got != "/custom/team/client.pem" {
-			t.Errorf("%s: path = %q, error = %v", name, got, err)
-		}
-	}
-}
 
 type roundTripFunc func(*http.Request) (*http.Response, error)
 
@@ -141,14 +47,65 @@ func TestHashiCorpURL(t *testing.T) {
 }
 
 func TestHashiCorpTLSConfig(t *testing.T) {
-	if !hashicorpTLSConfig(bootstrap.Environment{}).InsecureSkipVerify {
-		t.Fatal("certificate verification must stay disabled by default")
+	for _, test := range []struct {
+		name     string
+		value    string
+		insecure bool
+		wantErr  bool
+	}{
+		{name: "default verifies"},
+		{name: "true", value: "true"},
+		{name: "one", value: "1"},
+		{name: "yes", value: "yes"},
+		{name: "on", value: "on"},
+		{name: "false", value: "false", insecure: true},
+		{name: "zero", value: "0", insecure: true},
+		{name: "no", value: "no", insecure: true},
+		{name: "off", value: "off", insecure: true},
+		{name: "invalid", value: "sometimes", wantErr: true},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			config, err := hashicorpTLSConfig(bootstrap.Environment{"ZBX_VAULT_SSL_VERIFY": test.value})
+			if (err != nil) != test.wantErr {
+				t.Fatalf("hashicorpTLSConfig() error = %v, wantErr = %t", err, test.wantErr)
+			}
+			if test.wantErr {
+				return
+			}
+			if config.InsecureSkipVerify != test.insecure {
+				t.Fatalf("InsecureSkipVerify = %t, want %t", config.InsecureSkipVerify, test.insecure)
+			}
+		})
 	}
-	if hashicorpTLSConfig(bootstrap.Environment{"ZBX_VAULT_SSL_VERIFY": "true"}).InsecureSkipVerify {
-		t.Fatal("ZBX_VAULT_SSL_VERIFY=true did not enable certificate verification")
+}
+
+func TestHashiCorpUsesSSLCALocation(t *testing.T) {
+	server := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Header.Get("X-Vault-Token") != "token" {
+			t.Error("Vault token is missing")
+		}
+		_, _ = io.WriteString(w, `{"data":{"data":{"username":"zabbix","password":"secret"}}}`)
+	}))
+	defer server.Close()
+
+	caDir := t.TempDir()
+	ca := pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: server.Certificate().Raw})
+	if err := os.WriteFile(filepath.Join(caDir, "vault-ca.pem"), ca, 0o600); err != nil {
+		t.Fatal(err)
 	}
-	if !hashicorpTLSConfig(bootstrap.Environment{"ZBX_VAULT_SSL_VERIFY": "false"}).InsecureSkipVerify {
-		t.Fatal("ZBX_VAULT_SSL_VERIFY=false must keep verification disabled")
+	credentials, err := Fetch(context.Background(), bootstrap.Environment{
+		"ZBX_VAULT":            "HashiCorp",
+		"ZBX_VAULTURL":         server.URL,
+		"ZBX_VAULTDBPATH":      "secret/database",
+		"ZBX_VAULT_SSL_VERIFY": "true",
+		"ZBX_SSLCALOCATION":    caDir,
+		"VAULT_TOKEN":          "token",
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if credentials.Username != "zabbix" || credentials.Password != "secret" {
+		t.Fatalf("credentials=%#v", credentials)
 	}
 }
 
@@ -291,7 +248,7 @@ func TestDecodeCyberArk(t *testing.T) {
 	}
 }
 
-func TestDBCredentialsSecretFiles(t *testing.T) {
+func TestDBCredentialsResolvedSecrets(t *testing.T) {
 	for _, mode := range []string{"token", "approle"} {
 		t.Run(mode, func(t *testing.T) {
 			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -323,13 +280,8 @@ func TestDBCredentialsSecretFiles(t *testing.T) {
 			if mode == "approle" {
 				secrets = map[string]string{"ZBX_VAULTAPPROLEID": "role", "ZBX_VAULTAPPSECRETID": "secret"}
 			}
-			dir := t.TempDir()
 			for name, value := range secrets {
-				path := filepath.Join(dir, name)
-				if err := os.WriteFile(path, []byte(value+"\n"), 0o600); err != nil {
-					t.Fatal(err)
-				}
-				env[name+"_FILE"] = path
+				env[name] = value
 			}
 			creds, err := ResolveDBCredentials(env)
 			if err != nil {

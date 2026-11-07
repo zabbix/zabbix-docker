@@ -84,12 +84,6 @@ func (db *DB) Configure(defaultDBName string) error {
 		return err
 	}
 
-	for _, name := range []string{"POSTGRES_USER", "POSTGRES_PASSWORD"} {
-		if err := bootstrap.ResolveSecretEnv(db.env, name); err != nil {
-			return err
-		}
-	}
-
 	postgresUser := db.env["POSTGRES_USER"]
 	postgresPassword := db.env["POSTGRES_PASSWORD"]
 	db.adminUser = cmp.Or(postgresUser, "postgres")

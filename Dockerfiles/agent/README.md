@@ -217,7 +217,7 @@ The volume allows include ``*.conf`` files and extend Zabbix agent using ``UserP
 
 The volume allows load additional modules and extend Zabbix agent using ``LoadModule`` feature.
 
-### ``/var/lib/zabbix/enc``
+### ``/run/zabbix/secrets/tls``
 
 The volume is used to store TLS related files. These file names are specified using ``ZBX_TLSCAFILE``, ``ZBX_TLSCRLFILE``, ``ZBX_TLSCERTFILE``, ``ZBX_TLSKEYFILE`` and ``ZBX_TLSPSKFILE`` variables. Additionally it is possible to use environment variables ``ZBX_TLSCA``, ``ZBX_TLSCRL``, ``ZBX_TLSCERT``, ``ZBX_TLSKEY`` and ``ZBX_TLSPSK`` with plaintext values.
 

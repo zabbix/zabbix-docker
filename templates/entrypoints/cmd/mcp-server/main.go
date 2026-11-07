@@ -12,7 +12,7 @@ const mcpServerBinary = "/usr/sbin/zabbix_mcp_server"
 func prepareService(env bootstrap.Environment, runtimeRulePath string) error {
 	bootstrap.LogInfo("** Preparing Zabbix MCP server")
 
-	homeDir, configDir, err := bootstrap.CommonDirs(env)
+	_, configDir, err := bootstrap.CommonDirs(env)
 	if err != nil {
 		return err
 	}
@@ -25,17 +25,14 @@ func prepareService(env bootstrap.Environment, runtimeRulePath string) error {
 		return err
 	}
 
-	if err := bootstrap.ProcessTLSFiles(env, filepath.Join(homeDir, "enc"), "ZBX_TLSCERT", "ZBX_TLSKEY"); err != nil {
-		return err
-	}
-
 	bootstrap.ClearPrivateEnv(env)
 
 	return nil
 }
 
 func main() {
-	bootstrap.Main(bootstrap.Service(mcpServerBinary, func(env bootstrap.Environment) error {
+	entry := bootstrap.Service(mcpServerBinary, func(env bootstrap.Environment) error {
 		return prepareService(env, "/tmp/zabbix_mcp_server_tool_access.conf")
-	}))
+	})
+	bootstrap.Main(bootstrap.WithResolvedSecrets(bootstrap.SecretsMCPServer, mcpServerBinary, entry))
 }

@@ -125,7 +125,7 @@
 <h2 id="allowed-volumes-for-the-zabbix-agent-2-container">Allowed volumes for the Zabbix agent 2 container</h2>
 <h3 id="-etc-zabbix-zabbix_agentd-d-"><code>/etc/zabbix/zabbix_agentd.d</code></h3>
 <p>The volume allows include <code>*.conf</code> files and extend Zabbix agent 2 using <code>UserParameter</code> feature.</p>
-<h3 id="-var-lib-zabbix-enc-"><code>/var/lib/zabbix/enc</code></h3>
+<h3 id="-run-zabbix-secrets-tls-"><code>/run/zabbix/secrets/tls</code></h3>
 <p>The volume is used to store TLS related files. These file names are specified using <code>ZBX_TLSCAFILE</code>, <code>ZBX_TLSCRLFILE</code>, <code>ZBX_TLSCERTFILE</code>, <code>ZBX_TLSKEYFILE</code> and <code>ZBX_TLSPSKFILE</code> variables. Additionally it is possible to use environment variables <code>ZBX_TLSCA</code>, <code>ZBX_TLSCRL</code>, <code>ZBX_TLSCERT</code>, <code>ZBX_TLSKEY</code> and <code>ZBX_TLSPSK</code> with plaintext values.</p>
 <h3 id="-var-lib-zabbix-buffer-"><code>/var/lib/zabbix/buffer</code></h3>
 <p>The volume is used to store the file, where Zabbix Agent2 should keep SQLite database. To enable the feature specify <code>ZBX_ENABLEPERSISTENTBUFFER=true</code>. Available since 5.0.0.</p>

@@ -100,10 +100,12 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
         ${ZABBIX_CONF_DIR}/zabbix_agentd.d \
         ${ZABBIX_USER_HOME_DIR} \
         ${ZABBIX_USER_HOME_DIR}/enc \
-        ${ZABBIX_USER_HOME_DIR}/enc_internal \
+        /run/zabbix/secrets/tls \
+        /run/zabbix/secrets_internal \
         ${ZABBIX_USER_HOME_DIR}/modules \
         ${ZBX_USERPARAMETERDIR} && \
     FIX_PERM_LIST="\
+        /run/zabbix/secrets_internal/ \
         ${ZABBIX_CONF_DIR}/zabbix_agentd_modules.conf \
         ${ZABBIX_CONF_DIR}/zabbix_agentd_item_keys.conf \
         ${ZABBIX_CONF_DIR}/zabbix_agentd.d/ \

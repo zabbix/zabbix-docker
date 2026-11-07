@@ -83,19 +83,11 @@ func TestJSONHistoryProviderInlineCredentialsFallback(t *testing.T) {
 	}
 }
 
-func TestJSONHistoryProviderSecretFiles(t *testing.T) {
-	secretDir := t.TempDir()
-	usernameFile := filepath.Join(secretDir, "username")
-	passwordFile := filepath.Join(secretDir, "password")
-	for path, value := range map[string]string{usernameFile: "secret-user\n", passwordFile: "secret-password\n"} {
-		if err := os.WriteFile(path, []byte(value), 0o600); err != nil {
-			t.Fatal(err)
-		}
-	}
+func TestJSONHistoryProviderResolvedCredentials(t *testing.T) {
 	env := bootstrap.Environment{
-		"ZBX_HISTORYPROVIDER_0":               `{"provider":"clickhouse","types":["uint"],"url":"http://clickhouse:8123"}`,
-		"ZBX_HISTORYPROVIDER_0_USERNAME_FILE": usernameFile,
-		"ZBX_HISTORYPROVIDER_0_PASSWORD_FILE": passwordFile,
+		"ZBX_HISTORYPROVIDER_0":          `{"provider":"clickhouse","types":["uint"],"url":"http://clickhouse:8123"}`,
+		"ZBX_HISTORYPROVIDER_0_USERNAME": "secret-user",
+		"ZBX_HISTORYPROVIDER_0_PASSWORD": "secret-password",
 	}
 	if err := configureJSONHistoryProviders(env); err != nil {
 		t.Fatal(err)
@@ -104,9 +96,6 @@ func TestJSONHistoryProviderSecretFiles(t *testing.T) {
 		if !strings.Contains(env["ZBX_HISTORYPROVIDER_0"], expected) {
 			t.Fatalf("Secret file credentials were not used: %q", env["ZBX_HISTORYPROVIDER_0"])
 		}
-	}
-	if _, exists := env["ZBX_HISTORYPROVIDER_0_PASSWORD_FILE"]; exists {
-		t.Fatal("Secret file variable remained in the environment")
 	}
 }
 
@@ -207,20 +196,10 @@ func TestJSONHistoryProviderValidation(t *testing.T) {
 			wantErr: "matching JSON provider",
 		},
 		{
-			name: "direct value and Secret file",
-			env: bootstrap.Environment{
-				"ZBX_HISTORYPROVIDER_0":               `{"provider":"clickhouse","types":["uint"],"url":"http://clickhouse:8123"}`,
-				"ZBX_HISTORYPROVIDER_0_USERNAME":      "direct-user",
-				"ZBX_HISTORYPROVIDER_0_USERNAME_FILE": "/run/secrets/username",
-				"ZBX_HISTORYPROVIDER_0_PASSWORD":      "direct-password",
-			},
-			wantErr: "both variables",
-		},
-		{
 			name: "credentials with native value",
 			env: bootstrap.Environment{
-				"ZBX_HISTORYPROVIDER_0":               `clickhouse;value_types="uint",url=http://clickhouse:8123`,
-				"ZBX_HISTORYPROVIDER_0_PASSWORD_FILE": "/run/secrets/password",
+				"ZBX_HISTORYPROVIDER_0":          `clickhouse;value_types="uint",url=http://clickhouse:8123`,
+				"ZBX_HISTORYPROVIDER_0_PASSWORD": "secret",
 			},
 			wantErr: "credentials require a JSON provider",
 		},

@@ -62,7 +62,6 @@ func ServiceArgs(args []string, service string) ([]string, bool) {
 	return nil, false
 }
 
-// resolveCommand decides what the container should execute.
 func resolveCommand(args []string, binary string) []string {
 	if serviceArgs, startsService := ServiceArgs(args, binary); startsService {
 		return append([]string{binary}, serviceArgs...)

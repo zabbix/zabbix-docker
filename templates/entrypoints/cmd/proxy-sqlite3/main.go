@@ -46,5 +46,7 @@ func prepareService(env bootstrap.Environment) error {
 
 func main() {
 	entry := bootstrap.Service(proxyBinary, prepareService)
-	bootstrap.Main(bootstrap.StorageInitEntrypoint(entry, nil, storageinit.PrepareTelemetry))
+	entry = bootstrap.StorageInitEntrypoint(entry, nil,
+		bootstrap.WithTelemetryInitSecrets(bootstrap.SecretsProxySQLite, storageinit.PrepareTelemetry))
+	bootstrap.Main(bootstrap.WithResolvedSecrets(bootstrap.SecretsProxySQLite, proxyBinary, entry))
 }

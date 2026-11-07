@@ -39,7 +39,11 @@ func prepareService(env bootstrap.Environment, db *postgresql.DB) error {
 func main() {
 	entry := bootstrap.DBService(serverBinary,
 		func(env bootstrap.Environment) error { return prepareService(env, postgresql.NewForBackend(env)) },
-		func(env bootstrap.Environment) error { return prepareDB(env, postgresql.NewForBackend(env)) },
+		bootstrap.WithInitDBSecrets(bootstrap.SecretsServerPgSQL,
+			func(env bootstrap.Environment) error { return prepareDB(env, postgresql.NewForBackend(env)) }),
 	)
-	bootstrap.Main(bootstrap.StorageInitEntrypoint(entry, storageinit.PrepareHistory, storageinit.PrepareTelemetry))
+	entry = bootstrap.StorageInitEntrypoint(entry,
+		bootstrap.WithHistoryInitSecrets(bootstrap.SecretsServerPgSQL, storageinit.PrepareHistory),
+		bootstrap.WithTelemetryInitSecrets(bootstrap.SecretsServerPgSQL, storageinit.PrepareTelemetry))
+	bootstrap.Main(bootstrap.WithResolvedSecrets(bootstrap.SecretsServerPgSQL, serverBinary, entry))
 }

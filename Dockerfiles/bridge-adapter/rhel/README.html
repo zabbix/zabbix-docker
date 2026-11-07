@@ -85,7 +85,7 @@ ZBX_ZABBIXAPITLSCONNECT=disabled
 <p>Use <code>disabled</code> for an HTTP API URL. The default is <code>required</code> for HTTPS.</p>
 
 <h3 id="zbx-zabbixapitlscafile-zbx-zabbixapitlsca"><code>ZBX_ZABBIXAPITLSCAFILE</code>, <code>ZBX_ZABBIXAPITLSCA</code></h3>
-<p><code>ZBX_ZABBIXAPITLSCAFILE</code> specifies the CA file used to verify the Zabbix API certificate. A relative path is resolved against <code>/var/lib/zabbix/enc</code>. Alternatively, <code>ZBX_ZABBIXAPITLSCA</code> provides the CA certificate content directly. A CA is required when <code>ZBX_ZABBIXAPITLSCONNECT</code> is set to <code>verify_ca</code> or <code>verify_full</code>.</p>
+<p><code>ZBX_ZABBIXAPITLSCAFILE</code> specifies the CA file used to verify the Zabbix API certificate. A relative path is resolved against <code>/run/zabbix/secrets/tls</code>; the previous location remains available during migration with a warning. Alternatively, <code>ZBX_ZABBIXAPITLSCA</code> provides the CA certificate content directly. A CA is required when <code>ZBX_ZABBIXAPITLSCONNECT</code> is set to <code>verify_ca</code> or <code>verify_full</code>.</p>
 
 <h3 id="zbx-listenip"><code>ZBX_LISTENIP</code></h3>
 <p>IP address or hostname on which the Adapter accepts requests from Zabbix server. By default, all available addresses are used.</p>
@@ -129,17 +129,13 @@ ZBX_TLSKEYFILE=
 ZBX_TLSKEY=
 ZBX_TLSALLOWEDCN=
 </code></pre>
-<p>The default <code>none</code> mode accepts unencrypted connections. For production deployments, mutual TLS (<code>mtls</code>) is recommended for the server-facing listener. Set <code>ZBX_TLSMODE</code> to <code>tls</code> for TLS or <code>mtls</code> for mutual TLS. Certificate, private key and CA file names are specified using the <code>ZBX_TLSCERTFILE</code>, <code>ZBX_TLSKEYFILE</code> and <code>ZBX_TLSCAFILE</code> variables. Relative paths are resolved against <code>/var/lib/zabbix/enc</code>. Alternatively, the certificate, private key and CA contents can be passed directly using <code>ZBX_TLSCERT</code>, <code>ZBX_TLSKEY</code> and <code>ZBX_TLSCA</code>. <code>ZBX_TLSALLOWEDCN</code> is a comma-separated list of permitted client certificate Common Names in mTLS mode.</p>
 
 <h2 id="allowed-volumes">Allowed volumes for the Zabbix Bridge Adapter container</h2>
 <h3 id="data-volume"><code>/var/lib/zabbix/bridge-adapter</code></h3>
 <p>The volume stores persistent Adapter data and EULA acceptance. Use the same writable volume for license acceptance and service startup. For a bind mount, create the directory beforehand and grant access to UID <code>1997</code>. Run both containers with the same UID.</p>
 
-<h3 id="tls-files-volume"><code>/var/lib/zabbix/enc</code></h3>
-<p>The volume stores TLS files referenced by the <code>ZBX_TLSCAFILE</code>, <code>ZBX_TLSCERTFILE</code>, <code>ZBX_TLSKEYFILE</code> and <code>ZBX_ZABBIXAPITLSCAFILE</code> variables. Relative paths are resolved against this directory.</p>
-
-<h3 id="tls-volumes"><code>/var/lib/zabbix/ssl/certs</code>, <code>/var/lib/zabbix/ssl/keys</code> and <code>/var/lib/zabbix/ssl/ssl_ca</code></h3>
-<p>These volumes provide listener certificates, private keys and CA certificates. Mount them read-only.</p>
+<h3 id="tls-files-volume"><code>/run/zabbix/secrets/tls</code></h3>
+<p>The volume provides TLS files referenced by the <code>ZBX_TLSCAFILE</code>, <code>ZBX_TLSCERTFILE</code>, <code>ZBX_TLSKEYFILE</code> and <code>ZBX_ZABBIXAPITLSCAFILE</code> variables. Mount it read-only.</p>
 
 <h1 id="user-feedback">User Feedback</h1>
 <h2 id="documentation">Documentation</h2>

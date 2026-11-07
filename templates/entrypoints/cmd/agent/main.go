@@ -11,7 +11,7 @@ import (
 func prepareService(env bootstrap.Environment) error {
 	bootstrap.LogInfo("** Preparing Zabbix agent")
 
-	homeDir, configDir, err := bootstrap.CommonDirs(env)
+	_, configDir, err := bootstrap.CommonDirs(env)
 	if err != nil {
 		return err
 	}
@@ -38,10 +38,6 @@ func prepareService(env bootstrap.Environment) error {
 		return err
 	}
 
-	if err := config.ProcessTLSFiles(env, homeDir); err != nil {
-		return err
-	}
-
 	bootstrap.ConfigureRunUser(env)
 
 	if err := hooks.Run(env); err != nil {
@@ -54,5 +50,6 @@ func prepareService(env bootstrap.Environment) error {
 }
 
 func main() {
-	bootstrap.Main(bootstrap.Service(agentBinary, prepareService))
+	entry := bootstrap.Service(agentBinary, prepareService)
+	bootstrap.Main(bootstrap.WithResolvedSecrets(bootstrap.SecretsAgent, agentBinary, entry))
 }

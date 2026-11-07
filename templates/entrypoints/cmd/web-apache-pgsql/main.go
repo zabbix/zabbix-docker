@@ -7,5 +7,6 @@ import (
 )
 
 func main() {
-	bootstrap.Main(web.Entrypoint(postgresql.NewForFrontend, web.Options{DBType: web.PostgreSQL, Server: web.Apache}))
+	entry := web.Entrypoint(postgresql.NewForFrontend, web.Options{DBType: web.PostgreSQL, Server: web.Apache})
+	bootstrap.Main(bootstrap.WithResolvedSecrets(bootstrap.SecretsWebPgSQL, "", entry))
 }

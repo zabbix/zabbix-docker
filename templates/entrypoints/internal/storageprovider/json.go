@@ -1,7 +1,6 @@
 package storageprovider
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
 	"strconv"
@@ -10,18 +9,19 @@ import (
 	"github.com/zabbix/zabbix-docker/templates/entrypoints/internal/bootstrap"
 )
 
-type secretField struct {
-	Suffix string
-	Field  string
-}
+var providerSecretDefinitions = bootstrap.ProviderSecretDefinitions()
 
-var clickHouseSecretFields = []secretField{
-	{Suffix: "_USERNAME", Field: "username"},
-	{Suffix: "_PASSWORD", Field: "password"},
-	{Suffix: "_SSL_KEY_PASSWORD", Field: "ssl_key_password"},
-}
+var tlsFiles = providerTLSFiles()
 
-var tlsFiles = []string{"ssl_cert_file", "ssl_key_file"}
+func providerTLSFiles() []string {
+	var fields []string
+	for _, secret := range providerSecretDefinitions {
+		if secret.Kind == bootstrap.ProviderFileSecret && !secret.ManagedLocation {
+			fields = append(fields, secret.Field)
+		}
+	}
+	return fields
+}
 
 func looksLikeJSONObject(raw string) bool {
 	return strings.HasPrefix(strings.TrimSpace(raw), "{")
@@ -67,23 +67,32 @@ func decodeList(raw string) ([]map[string]any, error) {
 
 // Single quotes are accepted for compatibility with existing image configuration.
 func decodeJSON(raw string) (any, error) {
-	var value any
-	if err := json.Unmarshal([]byte(raw), &value); err == nil {
-		return value, nil
-	}
-	if err := json.Unmarshal([]byte(strings.ReplaceAll(raw, "'", `"`)), &value); err != nil {
+	value, err := bootstrap.DecodeJSON(raw)
+	if err != nil {
 		return nil, fmt.Errorf("invalid provider JSON: %w", err)
 	}
 	return value, nil
 }
 
 func secretConfigured(env bootstrap.Environment, name string) bool {
-	return env[name] != "" || env[name+"_FILE"] != ""
+	_, configured := env[name]
+	return configured
 }
 
 func hasSecrets(env bootstrap.Environment, name string) bool {
-	for _, secret := range clickHouseSecretFields {
-		if secretConfigured(env, name+secret.Suffix) {
+	for _, secret := range providerSecretDefinitions {
+		variable := name + secret.Suffix
+		if secret.Kind == bootstrap.ProviderValueSecret {
+			if secretConfigured(env, variable) {
+				return true
+			}
+			continue
+		}
+		location := ""
+		if secret.ManagedLocation {
+			location = env[variable+"LOCATION"]
+		}
+		if env[variable] != "" || env[variable+"FILE"] != "" || location != "" {
 			return true
 		}
 	}
@@ -92,23 +101,45 @@ func hasSecrets(env bootstrap.Environment, name string) bool {
 
 // Separate credential variables override credentials in JSON.
 func applySecrets(env bootstrap.Environment, name string, fields map[string]any) error {
-	for _, secret := range clickHouseSecretFields {
+	for _, secret := range providerSecretDefinitions {
 		variable := name + secret.Suffix
-		if !secretConfigured(env, variable) {
+		if secret.Kind == bootstrap.ProviderValueSecret {
+			if secretConfigured(env, variable) {
+				fields[secret.Field] = env[variable]
+			}
 			continue
 		}
-		if err := bootstrap.ResolveSecretEnv(env, variable); err != nil {
-			return err
+		fileVariable := variable + "FILE"
+		path := env[fileVariable]
+		location := ""
+		if secret.ManagedLocation {
+			location = env[variable+"LOCATION"]
 		}
-		fields[secret.Field] = env[variable]
+		if path == "" && location == "" {
+			continue
+		}
+		if _, exists := fields[secret.Field]; exists {
+			return fmt.Errorf("%s: %s cannot be combined with %s", name, secret.Field, fileVariable)
+		}
+		if secret.ManagedLocation {
+			fields[secret.Field] = location
+		} else {
+			fields[secret.Field] = path
+		}
 	}
 	return nil
 }
 
 func deleteSecrets(env bootstrap.Environment, name string) {
-	for _, secret := range clickHouseSecretFields {
-		delete(env, name+secret.Suffix)
-		delete(env, name+secret.Suffix+"_FILE")
+	for _, secret := range providerSecretDefinitions {
+		variable := name + secret.Suffix
+		delete(env, variable)
+		if secret.Kind == bootstrap.ProviderValueSecret {
+			delete(env, variable+"_FILE")
+			continue
+		}
+		delete(env, variable+"FILE")
+		delete(env, variable+"LOCATION")
 	}
 }
 

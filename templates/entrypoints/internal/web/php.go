@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"os"
-	"path/filepath"
 	"strings"
 
 	"github.com/zabbix/zabbix-docker/templates/entrypoints/internal/bootstrap"
@@ -53,28 +52,6 @@ func prepareFrontendAliases(env bootstrap.Environment) error {
 	// Apply this before configuring the bootstrap database connection as well as PHP.
 	env.SetDefaultNonEmpty("ZBX_DB_VERIFY_HOST", "true")
 
-	for _, variable := range []struct {
-		name, legacy string
-	}{
-		{"ZBX_DBTLSCAFILE", "ZBX_DB_CA_FILE"},
-		{"ZBX_DBTLSCERTFILE", "ZBX_DB_CERT_FILE"},
-		{"ZBX_DBTLSKEYFILE", "ZBX_DB_KEY_FILE"},
-		{"ZBX_VAULTTLSCERTFILE", "ZBX_VAULTCERTFILE"},
-		{"ZBX_VAULTTLSKEYFILE", "ZBX_VAULTKEYFILE"},
-	} {
-		if env[variable.name] == "" {
-			env[variable.name] = env[variable.legacy]
-		}
-		delete(env, variable.legacy)
-	}
-	if err := bootstrap.ProcessTLSFilesToEncInternal(
-		env,
-		bootstrap.WebCertsDir,
-		"ZBX_VAULTTLSCERT",
-		"ZBX_VAULTTLSKEY",
-	); err != nil {
-		return err
-	}
 	if env["ZBX_DBTLSCIPHER"] == "" {
 		env["ZBX_DBTLSCIPHER"] = env["ZBX_DB_CIPHER_LIST"]
 	}
@@ -85,30 +62,6 @@ func prepareFrontendAliases(env bootstrap.Environment) error {
 func preparePHP(env bootstrap.Environment, dbType DBType) error {
 	bootstrap.LogInfo("** Preparing PHP configuration")
 
-	homeDir, err := bootstrap.RequiredHomeDir(env)
-	if err != nil {
-		return err
-	}
-	apmCASourceDir := filepath.Join(homeDir, "ssl", "ssl_ca")
-	apmCADir := filepath.Join(homeDir, "ssl", "ssl_ca_internal")
-	if err := bootstrap.PrepareCertDir(apmCASourceDir, apmCADir); err != nil {
-		return err
-	}
-	env["ZBX_APM_CA_LOCATION"] = apmCADir
-	if err := bootstrap.ProcessTLSFiles(env, apmCASourceDir, "ZBX_APM_CA"); err != nil {
-		return err
-	}
-
-	if err := bootstrap.ProcessTLSFiles(
-		env,
-		bootstrap.WebCertsDir,
-		"ZBX_SSO_SP_KEY",
-		"ZBX_SSO_SP_CERT",
-		"ZBX_SSO_IDP_CERT",
-	); err != nil {
-		return err
-	}
-
 	for _, setting := range phpDefaults {
 		env.SetDefaultNonEmpty(setting.name, setting.value)
 	}
@@ -116,7 +69,7 @@ func preparePHP(env bootstrap.Environment, dbType DBType) error {
 	if err := configureWebHistoryProviders(env); err != nil {
 		return err
 	}
-	if err := configureWebTelemetryProviders(env, homeDir); err != nil {
+	if err := configureWebTelemetryProviders(env); err != nil {
 		return err
 	}
 
@@ -161,5 +114,5 @@ func preparePHP(env bootstrap.Environment, dbType DBType) error {
 		env.SetDefault("DB_SERVER_SOCKET", "")
 	}
 
-	return bootstrap.ProcessTLSFiles(env, filepath.Join(homeDir, "enc"), "ZBX_SERVER_TLS_CA", "ZBX_SERVER_TLS_KEY", "ZBX_SERVER_TLS_CERT")
+	return nil
 }

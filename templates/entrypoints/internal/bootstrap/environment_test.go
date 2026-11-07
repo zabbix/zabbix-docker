@@ -3,7 +3,6 @@ package bootstrap
 import (
 	"os"
 	"path/filepath"
-	"strings"
 	"testing"
 )
 
@@ -20,113 +19,6 @@ func TestEnvironmentDefaults(t *testing.T) {
 	}
 }
 
-func TestProcessFileAndClearEnvironment(t *testing.T) {
-	homeDir := t.TempDir()
-	directory := filepath.Join(homeDir, "ssl", "ssl_ca")
-	internalDir := directory + "_internal"
-	if err := os.MkdirAll(internalDir, 0o700); err != nil {
-		t.Fatal(err)
-	}
-	env := Environment{
-		"ZBX_TLSPSK": "secret", "ZABBIX_CONF_DIR": "/etc/zabbix",
-		"MYSQL_PASSWORD": "password", "VALUE": "a=b",
-	}
-	if err := ProcessTLSFiles(env, directory, "ZBX_TLSPSK"); err != nil {
-		t.Fatal(err)
-	}
-
-	data, err := os.ReadFile(filepath.Join(internalDir, "ZBX_TLSPSKFILE"))
-	if err != nil || string(data) != "secret" {
-		t.Fatalf("TLS file: %q, %v", data, err)
-	}
-	if env["ZBX_TLSPSKFILE"] != filepath.Join(internalDir, "ZBX_TLSPSKFILE") {
-		t.Fatalf("unexpected TLS file path: %q", env["ZBX_TLSPSKFILE"])
-	}
-	if _, found := env["ZBX_TLSPSK"]; found {
-		t.Fatal("ZBX_TLSPSK was not removed")
-	}
-
-	ClearPrivateEnv(env)
-	if _, found := env["MYSQL_PASSWORD"]; found {
-		t.Fatal("MYSQL_PASSWORD was not removed")
-	}
-	if !strings.Contains(strings.Join(env.List(), "\n"), "VALUE=a=b") {
-		t.Fatalf("environment list: %q", env.List())
-	}
-}
-
-func TestProcessTLSFilesResolvesRelativePaths(t *testing.T) {
-	homeDir := t.TempDir()
-	for _, directory := range []string{"enc", "enc_internal", "custom"} {
-		if err := os.MkdirAll(filepath.Join(homeDir, directory), 0o700); err != nil {
-			t.Fatal(err)
-		}
-	}
-
-	absoluteCertPath := filepath.Join(homeDir, "custom", "agent.crt")
-	for _, path := range []string{filepath.Join(homeDir, "enc", "ca.crt"), absoluteCertPath} {
-		if err := os.WriteFile(path, []byte("certificate"), 0o600); err != nil {
-			t.Fatal(err)
-		}
-	}
-	env := Environment{
-		"ZBX_TLSCAFILE":   "ca.crt",
-		"ZBX_TLSCERTFILE": absoluteCertPath,
-		"ZBX_TLSPSK":      "secret",
-	}
-
-	if err := ProcessTLSFiles(env, filepath.Join(homeDir, "enc"), "ZBX_TLSCA", "ZBX_TLSCERT", "ZBX_TLSPSK"); err != nil {
-		t.Fatal(err)
-	}
-
-	tests := []struct {
-		name string
-		want string
-	}{
-		{name: "ZBX_TLSCAFILE", want: filepath.Join(homeDir, "enc", "ca.crt")},
-		{name: "ZBX_TLSCERTFILE", want: absoluteCertPath},
-		{name: "ZBX_TLSPSKFILE", want: filepath.Join(homeDir, "enc_internal", "ZBX_TLSPSKFILE")},
-	}
-	for _, test := range tests {
-		if got := env[test.name]; got != test.want {
-			t.Errorf("%s = %q, want %q", test.name, got, test.want)
-		}
-	}
-
-	if _, found := env["ZBX_TLSPSK"]; found {
-		t.Error("plaintext ZBX_TLSPSK was not removed from the environment")
-	}
-
-	data, err := os.ReadFile(env["ZBX_TLSPSKFILE"])
-	if err != nil {
-		t.Fatal(err)
-	}
-	if got := string(data); got != "secret" {
-		t.Errorf("ZBX_TLSPSKFILE content = %q, want %q", got, "secret")
-	}
-}
-
-func TestProcessTLSFilesRejectsInlineAndFileValues(t *testing.T) {
-	directory := t.TempDir()
-	if err := os.Mkdir(directory+"_internal", 0o700); err != nil {
-		t.Fatal(err)
-	}
-	env := Environment{
-		"ZBX_SSO_SP_CERT":    "certificate",
-		"ZBX_SSO_SP_KEY":     "private-key",
-		"ZBX_SSO_SP_KEYFILE": "sp.key",
-	}
-
-	err := ProcessTLSFiles(env, directory, "ZBX_SSO_SP_CERT", "ZBX_SSO_SP_KEY")
-	if err == nil || !strings.Contains(err.Error(), "both variables ZBX_SSO_SP_KEY and ZBX_SSO_SP_KEYFILE are set") {
-		t.Fatalf("ProcessTLSFiles() error = %v", err)
-	}
-	if env["ZBX_SSO_SP_CERT"] != "certificate" || env["ZBX_SSO_SP_CERTFILE"] != "" ||
-		env["ZBX_SSO_SP_KEY"] != "private-key" || env["ZBX_SSO_SP_KEYFILE"] != "sp.key" {
-		t.Fatal("ProcessTLSFiles() modified conflicting variables")
-	}
-}
-
 func TestClearPrivateEnvWithPrefixes(t *testing.T) {
 	env := Environment{
 		"ZABBIX_CONF_DIR": "/etc/zabbix",
@@ -138,24 +30,6 @@ func TestClearPrivateEnvWithPrefixes(t *testing.T) {
 	}
 	if env["MYSQL_PASSWORD"] != "password" {
 		t.Fatal("MYSQL_PASSWORD was unexpectedly removed")
-	}
-}
-
-func TestResolveSecretEnv(t *testing.T) {
-	directory := t.TempDir()
-	path := filepath.Join(directory, "password")
-	if err := os.WriteFile(path, []byte("secret\r\n"), 0o600); err != nil {
-		t.Fatal(err)
-	}
-	env := Environment{"MYSQL_PASSWORD_FILE": "password"}
-	if err := resolveSecretEnv(env, "MYSQL_PASSWORD", directory); err != nil {
-		t.Fatal(err)
-	}
-	if env["MYSQL_PASSWORD"] != "secret" {
-		t.Fatalf("MYSQL_PASSWORD = %q", env["MYSQL_PASSWORD"])
-	}
-	if _, found := env["MYSQL_PASSWORD_FILE"]; found {
-		t.Fatal("MYSQL_PASSWORD_FILE was not removed")
 	}
 }
 

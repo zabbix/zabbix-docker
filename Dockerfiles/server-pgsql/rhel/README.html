@@ -77,23 +77,37 @@ podman run --name some-zabbix-server-pgsql --secret POSTGRES_USER --secret POSTG
 <h3 id="-zbx_telemetryprovider_0-"><code>ZBX_TELEMETRYPROVIDER_0</code></h3>
 <p>ClickHouse telemetry provider configuration in JSON format.</p>
 <p>Credentials and the TLS private key password can be set with the matching <code>_USERNAME</code>, <code>_PASSWORD</code>, and <code>_SSL_KEY_PASSWORD</code> variables or their <code>_FILE</code> alternatives.</p>
-<p>Certificate and key paths may be absolute or relative to <code>/var/lib/zabbix/ssl/certs</code> and <code>/var/lib/zabbix/ssl/keys</code>, respectively. CA certificates are read from <code>/var/lib/zabbix/ssl/ssl_ca</code>.</p>
+<p>TLS material can be supplied using the matching <code>_SSL_CA</code>, <code>_SSL_CERT</code> and <code>_SSL_KEY</code> variables or their <code>*FILE</code> alternatives. Relative <code>*FILE</code> paths are resolved against <code>/run/zabbix/secrets/providers/telemetry-0</code>. The deprecated JSON fields <code>ssl_cert_file</code> and <code>ssl_key_file</code> accept absolute paths or paths relative to <code>/run/zabbix/secrets/ssl/certs</code> and <code>/run/zabbix/secrets/ssl/keys</code>, respectively.</p>
 <h3 id="other-variables">Other variables</h3>
 <p>Additionally the image allows to specify many other environment variables listed below:</p>
-<pre><code><span class="hljs-attr">ZBX_HISTORYPROVIDER_&lt;0-N&gt;</span>=
-<span class="hljs-attr">ZBX_HISTORYPROVIDER_&lt;0-N&gt;_USERNAME</span>=
-<span class="hljs-attr">ZBX_HISTORYPROVIDER_&lt;0-N&gt;_USERNAME_FILE</span>=
-<span class="hljs-attr">ZBX_HISTORYPROVIDER_&lt;0-N&gt;_PASSWORD</span>=
-<span class="hljs-attr">ZBX_HISTORYPROVIDER_&lt;0-N&gt;_PASSWORD_FILE</span>=
-<span class="hljs-attr">ZBX_HISTORYPROVIDER_&lt;0-N&gt;_SSL_KEY_PASSWORD</span>=
-<span class="hljs-attr">ZBX_HISTORYPROVIDER_&lt;0-N&gt;_SSL_KEY_PASSWORD_FILE</span>=
-<span class="hljs-attr">ZBX_TELEMETRYPROVIDER_0</span>=
+<pre><code><span class="hljs-attr">ZBX_HISTORYPROVIDER_&lt;N&gt;</span>={"provider":"clickhouse","url":"http://clickhouse:8123","db":"zabbix","types":["uint","dbl","str","log","text","json"],"log_slow_queries":1000,"source_ip":"","precache":1,"ssl_verify_peer":false,"ssl_verify_host":false}
+<span class="hljs-attr">ZBX_HISTORYPROVIDER_&lt;N&gt;_SCHEMA</span>={"create":true,"cluster":"","replicated":false,"ttl":2678400,"partition":"toDate"}
+<span class="hljs-attr">ZBX_HISTORYPROVIDER_&lt;N&gt;_USERNAME</span>=
+<span class="hljs-attr">ZBX_HISTORYPROVIDER_&lt;N&gt;_USERNAME_FILE</span>=
+<span class="hljs-attr">ZBX_HISTORYPROVIDER_&lt;N&gt;_PASSWORD</span>=
+<span class="hljs-attr">ZBX_HISTORYPROVIDER_&lt;N&gt;_PASSWORD_FILE</span>=
+<span class="hljs-attr">ZBX_HISTORYPROVIDER_&lt;N&gt;_SSL_KEY_PASSWORD</span>=
+<span class="hljs-attr">ZBX_HISTORYPROVIDER_&lt;N&gt;_SSL_KEY_PASSWORD_FILE</span>=
+<span class="hljs-attr">ZBX_HISTORYPROVIDER_&lt;N&gt;_SSL_CAFILE</span>=
+<span class="hljs-attr">ZBX_HISTORYPROVIDER_&lt;N&gt;_SSL_CA</span>=
+<span class="hljs-attr">ZBX_HISTORYPROVIDER_&lt;N&gt;_SSL_CERTFILE</span>=
+<span class="hljs-attr">ZBX_HISTORYPROVIDER_&lt;N&gt;_SSL_CERT</span>=
+<span class="hljs-attr">ZBX_HISTORYPROVIDER_&lt;N&gt;_SSL_KEYFILE</span>=
+<span class="hljs-attr">ZBX_HISTORYPROVIDER_&lt;N&gt;_SSL_KEY</span>=
+<span class="hljs-attr">ZBX_TELEMETRYPROVIDER_0</span>={"provider":"clickhouse","url":"http://clickhouse:8123","db":"zabbix","vault_path":"","source_ip":"","ssl_verify_peer":false,"ssl_verify_host":false}
+<span class="hljs-attr">ZBX_TELEMETRYPROVIDER_0_SCHEMA</span>={"create":true,"cluster":"","replicated":false,"ttl":2678400,"partition":"toDate"}
 <span class="hljs-attr">ZBX_TELEMETRYPROVIDER_0_USERNAME</span>=
 <span class="hljs-attr">ZBX_TELEMETRYPROVIDER_0_USERNAME_FILE</span>=
 <span class="hljs-attr">ZBX_TELEMETRYPROVIDER_0_PASSWORD</span>=
 <span class="hljs-attr">ZBX_TELEMETRYPROVIDER_0_PASSWORD_FILE</span>=
 <span class="hljs-attr">ZBX_TELEMETRYPROVIDER_0_SSL_KEY_PASSWORD</span>=
 <span class="hljs-attr">ZBX_TELEMETRYPROVIDER_0_SSL_KEY_PASSWORD_FILE</span>=
+<span class="hljs-attr">ZBX_TELEMETRYPROVIDER_0_SSL_CAFILE</span>=
+<span class="hljs-attr">ZBX_TELEMETRYPROVIDER_0_SSL_CA</span>=
+<span class="hljs-attr">ZBX_TELEMETRYPROVIDER_0_SSL_CERTFILE</span>=
+<span class="hljs-attr">ZBX_TELEMETRYPROVIDER_0_SSL_CERT</span>=
+<span class="hljs-attr">ZBX_TELEMETRYPROVIDER_0_SSL_KEYFILE</span>=
+<span class="hljs-attr">ZBX_TELEMETRYPROVIDER_0_SSL_KEY</span>=
 <span class="hljs-attr">ZBX_ALLOWUNSUPPORTEDDBVERSIONS</span>=<span class="hljs-number">0</span> # Available since <span class="hljs-number">6.0</span>.<span class="hljs-number">0</span>
 <span class="hljs-attr">ZBX_DBTLSCONNECT</span>= # Available since <span class="hljs-number">5.0</span>.<span class="hljs-number">0</span>
 <span class="hljs-attr">ZBX_DBTLSCAFILE</span>= # Available since <span class="hljs-number">5.0</span>.<span class="hljs-number">0</span>
@@ -107,10 +121,14 @@ podman run --name some-zabbix-server-pgsql --secret POSTGRES_USER --secret POSTG
 <span class="hljs-attr">ZBX_VAULTPREFIX</span>= # Available since <span class="hljs-number">7.0</span>.<span class="hljs-number">0</span>
 <span class="hljs-attr">ZBX_VAULT</span>=HashiCorp # Allowed values: HashiCorp, CyberArk. Required when Vault is used. Available since <span class="hljs-number">6.2</span>.<span class="hljs-number">0</span>
 <span class="hljs-attr">ZBX_VAULTAPPROLEID</span>= # Available since <span class="hljs-number">8.0</span>.<span class="hljs-number">0</span>
+<span class="hljs-attr">ZBX_VAULTAPPROLEID_FILE</span>= # Available since <span class="hljs-number">8.0</span>.<span class="hljs-number">0</span>
 <span class="hljs-attr">ZBX_VAULTAPPSECRETID</span>= # Available since <span class="hljs-number">8.0</span>.<span class="hljs-number">0</span>
+<span class="hljs-attr">ZBX_VAULTAPPSECRETID_FILE</span>= # Available since <span class="hljs-number">8.0</span>.<span class="hljs-number">0</span>
 <span class="hljs-attr">ZBX_VAULTDBPATH</span>= # Available since <span class="hljs-number">5.2</span>.<span class="hljs-number">0</span>
 <span class="hljs-attr">ZBX_VAULTURL</span>=https://<span class="hljs-number">127.0</span>.<span class="hljs-number">0.1</span>:<span class="hljs-number">8200</span> # Available since <span class="hljs-number">5.2</span>.<span class="hljs-number">0</span>
+<span class="hljs-attr">ZBX_VAULT_SSL_VERIFY</span>=<span class="hljs-literal">true</span>
 <span class="hljs-attr">VAULT_TOKEN</span>= # Available since <span class="hljs-number">5.2</span>.<span class="hljs-number">0</span>
+<span class="hljs-attr">VAULT_TOKEN_FILE</span>= # Available since <span class="hljs-number">8.0</span>.<span class="hljs-number">0</span>
 <span class="hljs-attr">ZBX_VAULTTLSCERTFILE</span>= # Available since <span class="hljs-number">6.2</span>.<span class="hljs-number">0</span>
 <span class="hljs-attr">ZBX_VAULTTLSCERT</span>=
 <span class="hljs-attr">ZBX_VAULTTLSKEYFILE</span>= # Available since <span class="hljs-number">6.2</span>.<span class="hljs-number">0</span>
@@ -214,16 +232,22 @@ podman run --name some-zabbix-server-pgsql --secret POSTGRES_USER --secret POSTG
 <p>The volume is used by External checks (type of items). It is <code>ExternalScripts</code> parameter in <code>zabbix_server.conf</code>.</p>
 <h3 id="-var-lib-zabbix-modules-"><code>/var/lib/zabbix/modules</code></h3>
 <p>The volume allows load additional modules and extend Zabbix server using <code>LoadModule</code> feature.</p>
-<h3 id="-var-lib-zabbix-enc-"><code>/var/lib/zabbix/enc</code></h3>
+<h3 id="-run-zabbix-secrets-database-"><code>/run/zabbix/secrets/database</code></h3>
+<p>The volume provides file-backed database credentials and database TLS files.</p>
+<h3 id="-run-zabbix-secrets-providers-"><code>/run/zabbix/secrets/providers</code></h3>
+<p>The volume provides file-backed history and telemetry provider secrets.</p>
+<h3 id="-run-zabbix-secrets-ssl-ca-"><code>/run/zabbix/secrets/ssl/ca</code></h3>
+<p>The volume is used to provide certificate authority (CA) files for SSL server certificate verification.</p>
+<h3 id="-run-zabbix-secrets-ssl-certs-"><code>/run/zabbix/secrets/ssl/certs</code></h3>
+<p>The volume is used as location of of SSL client certificate files for client authentication. It is <code>SSLCertLocation</code> parameter in <code>zabbix_server.conf</code>.</p>
+<h3 id="-run-zabbix-secrets-ssl-keys-"><code>/run/zabbix/secrets/ssl/keys</code></h3>
+<p>The volume is used as location of SSL private key files for client authentication. It is <code>SSLKeyLocation</code> parameter in <code>zabbix_server.conf</code>.</p>
+<h3 id="-run-zabbix-secrets-tls-"><code>/run/zabbix/secrets/tls</code></h3>
 <p>The volume is used to store TLS related files. These file names are specified using <code>ZBX_TLSCAFILE</code>, <code>ZBX_TLSCRLFILE</code>, <code>ZBX_TLSCERTFILE</code> and <code>ZBX_TLSKEYFILE</code> variables. Additionally it is possible to use environment variables <code>ZBX_TLSCA</code>, <code>ZBX_TLSCRL</code>, <code>ZBX_TLSCERT</code> and <code>ZBX_TLSKEY</code> with plaintext values.</p>
+<h3 id="-run-zabbix-secrets-vault-"><code>/run/zabbix/secrets/vault</code></h3>
+<p>The volume provides file-backed Vault credentials and files referenced by <code>ZBX_VAULTTLSCERTFILE</code> and <code>ZBX_VAULTTLSKEYFILE</code>.</p>
 <h3 id="-var-lib-zabbix-ssh_keys-"><code>/var/lib/zabbix/ssh_keys</code></h3>
 <p>The volume is used as location of public and private keys for SSH checks and actions. It is <code>SSHKeyLocation</code> parameter in <code>zabbix_server.conf</code>.</p>
-<h3 id="-var-lib-zabbix-ssl-certs-"><code>/var/lib/zabbix/ssl/certs</code></h3>
-<p>The volume is used as location of of SSL client certificate files for client authentication. It is <code>SSLCertLocation</code> parameter in <code>zabbix_server.conf</code>.</p>
-<h3 id="-var-lib-zabbix-ssl-keys-"><code>/var/lib/zabbix/ssl/keys</code></h3>
-<p>The volume is used as location of SSL private key files for client authentication. It is <code>SSLKeyLocation</code> parameter in <code>zabbix_server.conf</code>.</p>
-<h3 id="-var-lib-zabbix-ssl-ssl_ca-"><code>/var/lib/zabbix/ssl/ssl_ca</code></h3>
-<p>The volume is used as location of certificate authority (CA) files for SSL server certificate verification. It is <code>SSLCALocation</code> parameter in <code>zabbix_server.conf</code>.</p>
 <h3 id="-var-lib-zabbix-snmptraps-"><code>/var/lib/zabbix/snmptraps</code></h3>
 <p>The volume is used as location of <code>snmptraps.log</code> file. It could be shared by <code>zabbix-snmptraps</code> container and inherited using <code>volumes_from</code> Podman option while creating new instance of Zabbix server.
 SNMP traps processing feature could be enabled using shared volume and switched <code>ZBX_ENABLE_SNMP_TRAPS</code> environment variable to <code>true</code>.</p>

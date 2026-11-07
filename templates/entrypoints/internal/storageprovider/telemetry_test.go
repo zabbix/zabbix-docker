@@ -41,10 +41,29 @@ func TestTelemetryNativeConfiguration(t *testing.T) {
 			t.Errorf("provider contains managed option %s: %q", forbidden, value)
 		}
 	}
-	for _, secret := range clickHouseSecretFields {
+	for _, secret := range providerSecretDefinitions {
+		if secret.Kind != bootstrap.ProviderValueSecret {
+			continue
+		}
 		if _, exists := env["ZBX_TELEMETRYPROVIDER_0"+secret.Suffix]; exists {
 			t.Errorf("%s remains in the environment", secret.Suffix)
 		}
+	}
+}
+
+func TestTelemetryNativeVaultPath(t *testing.T) {
+	env := bootstrap.Environment{
+		"ZBX_TELEMETRYPROVIDER_0": `{"provider":"clickhouse","url":"https://clickhouse:8443","db":"zabbix","vault_path":"secret/telemetry"}`,
+	}
+	configuration, err := NewConfiguration(env, Telemetry)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := configuration.ConfigureNative(); err != nil {
+		t.Fatal(err)
+	}
+	if value := env["ZBX_TELEMETRYPROVIDER_0"]; !strings.Contains(value, `vault_path="secret/telemetry"`) {
+		t.Fatalf("provider %q does not contain vault_path", value)
 	}
 }
 

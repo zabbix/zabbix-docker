@@ -40,9 +40,8 @@ ENV ZBX_FPINGLOCATION=/usr/sbin/fping \
     ZBX_LOADMODULEPATH=${ZABBIX_USER_HOME_DIR}/modules \
     ZBX_SNMPTRAPPERFILE=${ZABBIX_USER_HOME_DIR}/snmptraps/snmptraps.log \
     ZBX_SSHKEYLOCATION=${ZABBIX_USER_HOME_DIR}/ssh_keys/ \
-    ZBX_SSLCERTLOCATION=${ZABBIX_USER_HOME_DIR}/ssl/certs/ \
-    ZBX_SSLKEYLOCATION=${ZABBIX_USER_HOME_DIR}/ssl/keys/ \
-    ZBX_SSLCALOCATION=${ZABBIX_USER_HOME_DIR}/ssl/ssl_ca_internal/
+    ZBX_SSLCERTLOCATION=/run/zabbix/secrets/ssl/certs/ \
+    ZBX_SSLKEYLOCATION=/run/zabbix/secrets/ssl/keys/
 
 LABEL org.opencontainers.image.authors="Alexey Pustovalov <alexey.pustovalov@zabbix.com>" \
       org.opencontainers.image.description="Zabbix proxy with SQLite3 database support" \
@@ -131,7 +130,14 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
         ${ZABBIX_USER_HOME_DIR} \
         ${ZABBIX_USER_HOME_DIR}/db_data \
         ${ZABBIX_USER_HOME_DIR}/enc \
-        ${ZABBIX_USER_HOME_DIR}/enc_internal \
+        /run/zabbix/secrets/apm \
+        /run/zabbix/secrets/providers \
+        /run/zabbix/secrets/ssl/ca \
+        /run/zabbix/secrets/ssl/certs \
+        /run/zabbix/secrets/ssl/keys \
+        /run/zabbix/secrets/tls \
+        /run/zabbix/secrets/vault \
+        /run/zabbix/secrets_internal \
         ${ZABBIX_USER_HOME_DIR}/mibs \
         ${ZABBIX_USER_HOME_DIR}/modules \
         ${ZABBIX_USER_HOME_DIR}/snmptraps \
@@ -140,9 +146,9 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
         ${ZABBIX_USER_HOME_DIR}/ssl/certs \
         ${ZABBIX_USER_HOME_DIR}/ssl/keys \
         ${ZABBIX_USER_HOME_DIR}/ssl/ssl_ca \
-        ${ZABBIX_USER_HOME_DIR}/ssl/ssl_ca_internal \
         /usr/lib/zabbix/externalscripts && \
     FIX_PERM_LIST="\
+        /run/zabbix/secrets_internal/ \
         ${ZABBIX_CONF_DIR}/zabbix_proxy_modules.conf \
         ${ZABBIX_USER_HOME_DIR}/" && \
     chown --quiet -R zabbix:0 ${FIX_PERM_LIST} && \

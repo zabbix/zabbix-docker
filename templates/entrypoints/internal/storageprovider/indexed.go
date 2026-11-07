@@ -3,23 +3,13 @@ package storageprovider
 
 import (
 	"fmt"
-	"sort"
 	"strings"
 
 	"github.com/zabbix/zabbix-docker/templates/entrypoints/internal/bootstrap"
 )
 
 // Match the longest suffix first: _PASSWORD also matches _SSL_KEY_PASSWORD.
-var secretSuffixes = credentialSuffixes()
-
-func credentialSuffixes() []string {
-	suffixes := make([]string, 0, len(clickHouseSecretFields)*2)
-	for _, secret := range clickHouseSecretFields {
-		suffixes = append(suffixes, secret.Suffix, secret.Suffix+"_FILE")
-	}
-	sort.Slice(suffixes, func(i, j int) bool { return len(suffixes[i]) > len(suffixes[j]) })
-	return suffixes
-}
+var secretSuffixes = bootstrap.ProviderSecretSuffixes()
 
 // indexedNames returns consecutive provider names and checks that credentials
 // are attached to a provider.

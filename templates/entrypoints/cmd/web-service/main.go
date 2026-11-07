@@ -1,26 +1,13 @@
 package main
 
-import (
-	"path/filepath"
-
-	"github.com/zabbix/zabbix-docker/templates/entrypoints/internal/bootstrap"
-)
+import "github.com/zabbix/zabbix-docker/templates/entrypoints/internal/bootstrap"
 
 const webServiceBinary = "/usr/sbin/zabbix_web_service"
 
 func prepareService(env bootstrap.Environment) error {
 	bootstrap.LogInfo("** Preparing Zabbix web service")
 
-	homeDir, err := bootstrap.RequiredHomeDir(env)
-	if err != nil {
-		return err
-	}
-
 	env.SetDefaultNonEmpty("ZBX_ALLOWEDIP", "zabbix-server")
-
-	if err := bootstrap.ProcessTLSFiles(env, filepath.Join(homeDir, "enc"), "ZBX_TLSCA", "ZBX_TLSCERT", "ZBX_TLSKEY"); err != nil {
-		return err
-	}
 
 	bootstrap.ClearPrivateEnv(env)
 
@@ -28,5 +15,6 @@ func prepareService(env bootstrap.Environment) error {
 }
 
 func main() {
-	bootstrap.Main(bootstrap.Service(webServiceBinary, prepareService))
+	entry := bootstrap.Service(webServiceBinary, prepareService)
+	bootstrap.Main(bootstrap.WithResolvedSecrets(bootstrap.SecretsWebService, webServiceBinary, entry))
 }

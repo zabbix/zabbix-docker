@@ -36,10 +36,6 @@ func prepareService(env bootstrap.Environment) error {
 		return err
 	}
 
-	if err := config.ProcessTLSFiles(env, homeDir); err != nil {
-		return err
-	}
-
 	if err := updatePluginConfig(homeDir, configDir); err != nil {
 		return err
 	}
@@ -105,5 +101,6 @@ func updatePluginConfig(homeDir, configDir string) error {
 }
 
 func main() {
-	bootstrap.Main(bootstrap.Service(agent2Binary, prepareService))
+	entry := bootstrap.Service(agent2Binary, prepareService)
+	bootstrap.Main(bootstrap.WithResolvedSecrets(bootstrap.SecretsAgent2, agent2Binary, entry))
 }

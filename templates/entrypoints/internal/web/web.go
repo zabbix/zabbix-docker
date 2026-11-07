@@ -74,6 +74,9 @@ func Run(env bootstrap.Environment, db DB, opts Options, args []string) error {
 		env.SetDefaultNonEmpty("DAEMON_USER", "nginx")
 		env.SetDefaultNonEmpty("DAEMON_GROUP", "nginx")
 	}
+	if err := bootstrap.ChownGeneratedSecrets(env["DAEMON_USER"]); err != nil {
+		return err
+	}
 
 	if err := prepareFrontendAliases(env); err != nil {
 		return err
@@ -132,7 +135,7 @@ func setDBEnv(env bootstrap.Environment, db DB) {
 func clearWebEnv(env bootstrap.Environment) {
 	prefixes := []string{"MYSQL_", "POSTGRES_"}
 
-	if env["ZBX_VAULT"] != "" {
+	if env["ZBX_VAULTDBPATH"] != "" {
 		prefixes = append(prefixes, "DB_SERVER_USER", "DB_SERVER_PASS")
 	}
 

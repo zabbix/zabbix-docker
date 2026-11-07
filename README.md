@@ -33,6 +33,15 @@ This repository contains **Dockerfile** of [Zabbix](https://zabbix.com/) for [Do
 > [!IMPORTANT]
 > Starting with Zabbix 8.0, `ZBX_SSO_SP_KEY`, `ZBX_SSO_SP_CERT` and `ZBX_SSO_IDP_CERT` contain inline key or certificate data instead of file paths. Use `ZBX_SSO_SP_KEYFILE`, `ZBX_SSO_SP_CERTFILE` and `ZBX_SSO_IDP_CERTFILE` to specify file paths. Files with the previously recognized fixed names (`sp.key`, `sp.crt`, `idp.crt`, `vault.crt` and `vault.key`) are no longer detected automatically; specify them explicitly using the corresponding `*FILE` variables.
 
+> [!IMPORTANT]
+> Starting with Zabbix 8.0, mounted secret files have a common layout under `/run/zabbix/secrets`: `tls`, `apm`, `database`, `vault`, `sso`, `ssl` and `providers`. Mount only the required subdirectories. The bundled Compose configuration maps them from the matching `${DATA_DIRECTORY}/run/zabbix/secrets` subdirectories and keeps the deprecated mounts as commented examples for temporary migration. An absolute `ZBX_*FILE` path is used unchanged; a relative path is resolved in its component-specific subdirectory. Where a previous relative-location contract existed, it remains supported with a warning. Database secrets and all `*_FILE` value secrets also support the standard `/run/secrets` directory, which takes precedence when the same relative name exists in both locations.
+
+> A `ZBX_<NAME>` file-secret variable contains inline data, while `ZBX_<NAME>FILE` identifies a mounted file. For raw credentials, `<NAME>` contains the value and `<NAME>_FILE` identifies a file whose contents are read by the entrypoint. The two sources in each pair are mutually exclusive. A zero-length mounted file is accepted as an explicitly empty value.
+
+> The entrypoint writes generated files to `/run/zabbix/secrets_internal`. When an image is run with a read-only root filesystem, mount a writable tmpfs there. The bundled Compose configuration already provides this mount.
+
+ClickHouse TLS files can be supplied separately from provider JSON through `ZBX_HISTORYPROVIDER_<N>_SSL_{CA,CERT,KEY}` and `ZBX_TELEMETRYPROVIDER_0_SSL_{CA,CERT,KEY}`, or their corresponding `*FILE` variables. The older `ssl_cert_file` and `ssl_key_file` JSON fields are deprecated and cannot be combined with the new variables.
+
 ### Usage
 
 There is some documentation and examples in the [official Zabbix Documentation](https://www.zabbix.com/documentation/current/manual/installation/containers)!
