@@ -18,12 +18,12 @@ The tools used are [cosign](https://github.com/sigstore/cosign), [GitHub CLI](ht
 
 ## Signature
 
-Images are signed with [Sigstore](https://www.sigstore.dev/) keyless signing by the workflows of this repository. Scheduled trunk builds run from the current default release branch while checking out the `trunk` branch. The current published image was signed by the workflow from the `7.4` branch:
+Images are signed with [Sigstore](https://www.sigstore.dev/) keyless signing by the workflows of this repository. Scheduled trunk builds run from the current default release branch while checking out the `trunk` branch. The current published image was signed by the workflow from the `trunk` branch:
 
 ```bash
 cosign verify \
     --certificate-oidc-issuer https://token.actions.githubusercontent.com \
-    --certificate-identity 'https://github.com/zabbix/zabbix-docker/.github/workflows/images_build.yml@refs/heads/7.4' \
+    --certificate-identity 'https://github.com/zabbix/zabbix-docker/.github/workflows/images_build.yml@refs/heads/trunk' \
     zabbix/zabbix-server-pgsql:alpine-trunk
 ```
 
@@ -35,7 +35,7 @@ The [SLSA provenance](https://slsa.dev/) attestation records the repository, com
 gh attestation verify oci://docker.io/zabbix/zabbix-server-pgsql:alpine-trunk \
     --repo zabbix/zabbix-docker \
     --signer-workflow zabbix/zabbix-docker/.github/workflows/images_build.yml \
-    --source-ref refs/heads/7.4
+    --source-ref refs/heads/trunk
 ```
 
 Linux images additionally carry provenance recorded by BuildKit. It can be inspected with:
@@ -63,7 +63,7 @@ The image SBOM attestation is recommended for vulnerability scanning and tools s
 gh attestation verify oci://docker.io/zabbix/zabbix-server-pgsql:alpine-trunk \
     --repo zabbix/zabbix-docker \
     --signer-workflow zabbix/zabbix-docker/.github/workflows/images_build.yml \
-    --source-ref refs/heads/7.4 \
+    --source-ref refs/heads/trunk \
     --predicate-type https://cyclonedx.org/bom \
     --bundle-from-oci \
     --format json \
@@ -76,7 +76,7 @@ To list only the vulnerabilities that already have a fixed version available, ad
 gh attestation verify oci://docker.io/zabbix/zabbix-server-pgsql:alpine-trunk \
     --repo zabbix/zabbix-docker \
     --signer-workflow zabbix/zabbix-docker/.github/workflows/images_build.yml \
-    --source-ref refs/heads/7.4 \
+    --source-ref refs/heads/trunk \
     --predicate-type https://cyclonedx.org/bom \
     --bundle-from-oci \
     --format json \
