@@ -29,8 +29,8 @@ var providerSecretDefinitions = []ProviderSecretDefinition{
 }
 
 var (
-	providerSecretSuffixes     = buildProviderSecretSuffixes(true)
-	providerFileSecretSuffixes = buildProviderSecretSuffixes(true, ProviderFileSecret)
+	providerSecretSuffixes     = buildProviderSecretSuffixes()
+	providerFileSecretSuffixes = buildProviderFileSecretSuffixes()
 	providerLocationSuffixes   = buildProviderLocationSuffixes()
 )
 
@@ -64,25 +64,31 @@ func configuredProviderSecretSource(env Environment, base string, includeFiles b
 	return ""
 }
 
-func buildProviderSecretSuffixes(includeLocations bool, kinds ...ProviderSecretKind) []string {
+func buildProviderSecretSuffixes() []string {
 	suffixes := make([]string, 0, len(providerSecretDefinitions)*3)
 	for _, secret := range providerSecretDefinitions {
-		if len(kinds) != 0 {
-			included := false
-			for _, kind := range kinds {
-				included = included || secret.Kind == kind
-			}
-			if !included {
-				continue
-			}
-		}
 		suffixes = append(suffixes, secret.Suffix)
 		if secret.Kind == ProviderValueSecret {
 			suffixes = append(suffixes, secret.Suffix+"_FILE")
 			continue
 		}
 		suffixes = append(suffixes, secret.Suffix+"FILE")
-		if includeLocations && secret.ManagedLocation {
+		if secret.ManagedLocation {
+			suffixes = append(suffixes, secret.Suffix+"LOCATION")
+		}
+	}
+	sort.SliceStable(suffixes, func(i, j int) bool { return len(suffixes[i]) > len(suffixes[j]) })
+	return suffixes
+}
+
+func buildProviderFileSecretSuffixes() []string {
+	var suffixes []string
+	for _, secret := range providerSecretDefinitions {
+		if secret.Kind != ProviderFileSecret {
+			continue
+		}
+		suffixes = append(suffixes, secret.Suffix, secret.Suffix+"FILE")
+		if secret.ManagedLocation {
 			suffixes = append(suffixes, secret.Suffix+"LOCATION")
 		}
 	}

@@ -457,11 +457,3 @@ func regularFileWithin(base, relative string) (bool, error) {
 	}
 	return true, nil
 }
-
-// IsGeneratedSecretPath reports whether path belongs to entrypoint-managed
-// secrets_internal output.
-func IsGeneratedSecretPath(path string) bool {
-	clean := filepath.Clean(path)
-	root := filepath.Clean(internalSecretsRoot)
-	return clean == root || strings.HasPrefix(clean, root+string(filepath.Separator))
-}

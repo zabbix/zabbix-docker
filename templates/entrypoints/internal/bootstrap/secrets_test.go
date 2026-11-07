@@ -37,7 +37,7 @@ func writeTestSecret(t *testing.T, path, value string) {
 	}
 }
 
-func TestResolveSecretsMaterializesInlineAtomically(t *testing.T) {
+func TestResolveSecretsMaterializesInline(t *testing.T) {
 	_, internal, _ := useSecretRoots(t)
 	env := Environment{"ZBX_TLSACCEPT": "cert", "ZBX_TLSCERT": "certificate"}
 	if err := ResolveSecrets(env, SecretsMCPServer, SecretsService); err != nil {
