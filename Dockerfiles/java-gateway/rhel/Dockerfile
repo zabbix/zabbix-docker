@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1.6
 ARG OS_BASE_IMAGE=registry.access.redhat.com/ubi10/ubi-minimal:10.2
-ARG MAJOR_VERSION=8.0
+ARG MAJOR_VERSION=8.2
 ARG RELEASE=0
 ARG ZBX_VERSION=${MAJOR_VERSION}
 ARG BUILD_BASE_IMAGE=zabbix-build-common:rhel-${ZBX_VERSION}

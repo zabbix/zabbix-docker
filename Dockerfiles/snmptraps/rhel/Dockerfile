@@ -13,7 +13,7 @@ RUN --mount=from=entrypoints,target=/tmp/entrypoints,ro \
 
 FROM ${OS_BASE_IMAGE}
 
-ARG MAJOR_VERSION=8.0
+ARG MAJOR_VERSION=8.2
 ARG RELEASE=0
 ARG ZBX_VERSION=${MAJOR_VERSION}
 

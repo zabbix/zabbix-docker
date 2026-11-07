@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1.6
 ARG OS_BASE_IMAGE=quay.io/centos/centos:stream10-minimal
-ARG MAJOR_VERSION=8.0
+ARG MAJOR_VERSION=8.2
 ARG ZBX_VERSION=${MAJOR_VERSION}
 ARG BUILD_BASE_IMAGE=zabbix-build-common:centos-${ZBX_VERSION}
 

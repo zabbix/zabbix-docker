@@ -2,7 +2,7 @@
 ARG OS_BASE_IMAGE=container-registry.oracle.com/os/oraclelinux:10-slim
 FROM ${OS_BASE_IMAGE}
 
-ARG MAJOR_VERSION=8.0
+ARG MAJOR_VERSION=8.2
 ARG ZBX_VERSION=${MAJOR_VERSION}
 
 ENV TERM=xterm \

@@ -4,7 +4,7 @@ ARG OS_BASE_IMAGE=registry.access.redhat.com/ubi10/ubi-micro:10.2
 ARG RUNTIME_PREP_BASE_IMAGE=registry.access.redhat.com/ubi10/ubi:10.2
 ARG GO_BASE_IMAGE=registry.access.redhat.com/ubi10/go-toolset:1.26
 
-ARG MAJOR_VERSION=8.0
+ARG MAJOR_VERSION=8.2
 ARG RELEASE=0
 ARG ZBX_VERSION=${MAJOR_VERSION}
 
