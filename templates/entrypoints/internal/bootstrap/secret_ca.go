@@ -42,6 +42,14 @@ func resolveGlobalCA(managed *managedSecrets, env Environment) error {
 		return err
 	}
 	target := filepath.Join(internalSecretsRoot, "ssl", "ca")
+	used, err := directoryHasFiles(source)
+	if err != nil {
+		return err
+	}
+	if !used {
+		delete(env, "ZBX_SSLCALOCATION")
+		return managed.removeTree(target)
+	}
 	if err := prepareManagedCADir(managed, target, []string{source}, nil); err != nil {
 		return err
 	}

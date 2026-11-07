@@ -203,8 +203,45 @@ func TestResolveSecretsUsesNewAPMPaths(t *testing.T) {
 	if want := filepath.Join(external, "apm", "cert.pem"); env["ZBX_APMTLSCERTFILE"] != want {
 		t.Fatalf("ZBX_APMTLSCERTFILE=%q, want %q", env["ZBX_APMTLSCERTFILE"], want)
 	}
-	if _, err := os.Stat(filepath.Join(internal, "ssl", "ca")); err != nil {
-		t.Fatalf("global CA output was not prepared: %v", err)
+	if env["ZBX_SSLCALOCATION"] != "" {
+		t.Fatalf("ZBX_SSLCALOCATION=%q, want empty", env["ZBX_SSLCALOCATION"])
+	}
+	if _, err := os.Stat(filepath.Join(internal, "ssl", "ca")); !os.IsNotExist(err) {
+		t.Fatalf("global CA output exists without CA files: %v", err)
+	}
+}
+
+func TestResolveSecretsRemovesInactiveGlobalCA(t *testing.T) {
+	_, internal, _ := useSecretRoots(t)
+	target := filepath.Join(internal, "ssl", "ca")
+	writeTestSecret(t, filepath.Join(target, "stale.pem"), "stale")
+	env := Environment{"ZABBIX_USER_HOME_DIR": t.TempDir()}
+
+	if err := ResolveSecrets(env, SecretsServerMySQL, SecretsService); err != nil {
+		t.Fatal(err)
+	}
+	if env["ZBX_SSLCALOCATION"] != "" {
+		t.Fatalf("ZBX_SSLCALOCATION=%q, want empty", env["ZBX_SSLCALOCATION"])
+	}
+	if _, err := os.Stat(target); !os.IsNotExist(err) {
+		t.Fatalf("inactive managed global CA directory was not removed: %v", err)
+	}
+}
+
+func TestResolveSecretsPreparesConfiguredGlobalCA(t *testing.T) {
+	external, internal, _ := useSecretRoots(t)
+	writeTestSecret(t, filepath.Join(external, "ssl", "ca", "root.pem"), "certificate")
+	env := Environment{"ZABBIX_USER_HOME_DIR": t.TempDir()}
+
+	if err := ResolveSecrets(env, SecretsServerMySQL, SecretsService); err != nil {
+		t.Fatal(err)
+	}
+	target := filepath.Join(internal, "ssl", "ca")
+	if env["ZBX_SSLCALOCATION"] != target {
+		t.Fatalf("ZBX_SSLCALOCATION=%q, want %q", env["ZBX_SSLCALOCATION"], target)
+	}
+	if data, err := os.ReadFile(filepath.Join(target, "root.pem")); err != nil || string(data) != "certificate" {
+		t.Fatalf("global CA=%q, %v", data, err)
 	}
 }
 
