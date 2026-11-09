@@ -151,12 +151,11 @@ func TestHistoryInvalidOptions(t *testing.T) {
 	}
 }
 
-func TestHistoryTLSVariablesSupportAbsoluteFiles(t *testing.T) {
+func TestHistoryTLSVariablesUseGlobalLocations(t *testing.T) {
 	env := bootstrap.Environment{
-		"ZBX_HISTORYPROVIDER_0":                `{"provider":"clickhouse","url":"https://clickhouse:8443","db":"zabbix","types":["uint"]}`,
-		"ZBX_HISTORYPROVIDER_0_SSL_CERTFILE":   "/run/zabbix/secrets/providers/history-0/client.pem",
-		"ZBX_HISTORYPROVIDER_0_SSL_KEYFILE":    "/run/zabbix/secrets/providers/history-0/client.key",
-		"ZBX_HISTORYPROVIDER_0_SSL_CALOCATION": "/run/zabbix/secrets_internal/providers/history-0/ca",
+		"ZBX_HISTORYPROVIDER_0":              `{"provider":"clickhouse","url":"https://clickhouse:8443","db":"zabbix","types":["uint"]}`,
+		"ZBX_HISTORYPROVIDER_0_SSL_CERTFILE": "ZBX_HISTORYPROVIDER_0_SSL_CERTFILE.pem",
+		"ZBX_HISTORYPROVIDER_0_SSL_KEYFILE":  "ZBX_HISTORYPROVIDER_0_SSL_KEYFILE.key",
 	}
 	configuration, err := NewConfiguration(env, History)
 	if err != nil {
@@ -166,14 +165,16 @@ func TestHistoryTLSVariablesSupportAbsoluteFiles(t *testing.T) {
 		t.Fatal(err)
 	}
 	for _, option := range []string{
-		`ssl_cert_location="/run/zabbix/secrets/providers/history-0"`,
-		`ssl_cert_file="client.pem"`,
-		`ssl_key_location="/run/zabbix/secrets/providers/history-0"`,
-		`ssl_key_file="client.key"`,
-		`ssl_ca_location="/run/zabbix/secrets_internal/providers/history-0/ca"`,
+		`ssl_cert_file="ZBX_HISTORYPROVIDER_0_SSL_CERTFILE.pem"`,
+		`ssl_key_file="ZBX_HISTORYPROVIDER_0_SSL_KEYFILE.key"`,
 	} {
 		if !strings.Contains(env["ZBX_HISTORYPROVIDER_0"], option) {
 			t.Fatalf("native provider %q does not contain %q", env["ZBX_HISTORYPROVIDER_0"], option)
+		}
+	}
+	for _, option := range []string{"ssl_ca_location", "ssl_cert_location", "ssl_key_location"} {
+		if strings.Contains(env["ZBX_HISTORYPROVIDER_0"], option) {
+			t.Fatalf("native provider %q contains unsupported %q", env["ZBX_HISTORYPROVIDER_0"], option)
 		}
 	}
 }

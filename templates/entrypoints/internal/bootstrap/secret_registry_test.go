@@ -1,6 +1,7 @@
 package bootstrap
 
 import (
+	"os"
 	"path/filepath"
 	"strings"
 	"testing"
@@ -206,20 +207,157 @@ func TestResolveSecretsDiscardsProviderLocationInputs(t *testing.T) {
 	}
 }
 
-func TestResolveSecretsGeneratesProviderCALocation(t *testing.T) {
-	external, internal, _ := useSecretRoots(t)
-	writeTestSecret(t, filepath.Join(external, "providers", "history-0", "ca.pem"), "certificate")
+func TestResolveSecretsGeneratesTelemetryProviderCALocation(t *testing.T) {
+	for name, component := range map[string]SecretComponent{
+		"server": SecretsServerMySQL,
+		"proxy":  SecretsProxyMySQL,
+	} {
+		t.Run(name, func(t *testing.T) {
+			external, internal, _ := useSecretRoots(t)
+			writeTestSecret(t, filepath.Join(external, "providers", "telemetry-0", "ca.pem"), "certificate")
+			env := Environment{
+				"ZABBIX_USER_HOME_DIR":                   t.TempDir(),
+				"ZBX_TELEMETRYPROVIDER_0":                `{"provider":"clickhouse","url":"https://clickhouse:8443","db":"zabbix"}`,
+				"ZBX_TELEMETRYPROVIDER_0_SSL_CAFILE":     "ca.pem",
+				"ZBX_TELEMETRYPROVIDER_0_SSL_CALOCATION": "/user/supplied",
+			}
+			if err := ResolveSecrets(env, component, SecretsService); err != nil {
+				t.Fatal(err)
+			}
+			want := filepath.Join(internal, "providers", "telemetry-0", "ca")
+			if env["ZBX_TELEMETRYPROVIDER_0_SSL_CALOCATION"] != want {
+				t.Fatalf("CA location = %q, want %q", env["ZBX_TELEMETRYPROVIDER_0_SSL_CALOCATION"], want)
+			}
+		})
+	}
+}
+
+func TestResolveSecretsNamesInlineTelemetryCAForRehash(t *testing.T) {
+	_, internal, _ := useSecretRoots(t)
 	env := Environment{
-		"ZABBIX_USER_HOME_DIR":                 t.TempDir(),
-		"ZBX_HISTORYPROVIDER_0":                `{"provider":"clickhouse","url":"https://clickhouse:8443","db":"zabbix"}`,
-		"ZBX_HISTORYPROVIDER_0_SSL_CAFILE":     "ca.pem",
-		"ZBX_HISTORYPROVIDER_0_SSL_CALOCATION": "/user/supplied",
+		"ZABBIX_USER_HOME_DIR":           t.TempDir(),
+		"ZBX_TELEMETRYPROVIDER_0":        `{"provider":"clickhouse","url":"https://clickhouse:8443","db":"zabbix"}`,
+		"ZBX_TELEMETRYPROVIDER_0_SSL_CA": "certificate",
+	}
+	if err := ResolveSecrets(env, SecretsProxyMySQL, SecretsService); err != nil {
+		t.Fatal(err)
+	}
+	path := filepath.Join(internal, "providers", "telemetry-0", "ca", "ZBX_TELEMETRYPROVIDER_0_SSL_CAFILE.pem")
+	if data, err := os.ReadFile(path); err != nil || string(data) != "certificate" {
+		t.Fatalf("generated CA=%q, err=%v", data, err)
+	}
+}
+
+func TestResolveSecretsKeepsWebTelemetryCAAsFile(t *testing.T) {
+	external, internal, _ := useSecretRoots(t)
+	path := filepath.Join(external, "providers", "telemetry-0", "ca.pem")
+	writeTestSecret(t, path, "certificate")
+	env := Environment{
+		"ZABBIX_USER_HOME_DIR":               t.TempDir(),
+		"ZBX_TELEMETRYPROVIDER_0":            `{"provider":"clickhouse","url":"https://clickhouse:8443","db":"zabbix"}`,
+		"ZBX_TELEMETRYPROVIDER_0_SSL_CAFILE": "ca.pem",
+	}
+	if err := ResolveSecrets(env, SecretsWebMySQL, SecretsService); err != nil {
+		t.Fatal(err)
+	}
+	if env["ZBX_TELEMETRYPROVIDER_0_SSL_CAFILE"] != path {
+		t.Fatalf("CA file=%q, want %q", env["ZBX_TELEMETRYPROVIDER_0_SSL_CAFILE"], path)
+	}
+	if env["ZBX_TELEMETRYPROVIDER_0_SSL_CALOCATION"] != "" {
+		t.Fatalf("CA location=%q, want empty", env["ZBX_TELEMETRYPROVIDER_0_SSL_CALOCATION"])
+	}
+	if _, err := os.Stat(filepath.Join(internal, "providers", "telemetry-0", "ca")); !os.IsNotExist(err) {
+		t.Fatalf("web telemetry CA was copied into a managed directory: %v", err)
+	}
+}
+
+func TestResolveSecretsUsesGlobalLocationsForHistoryProviderTLS(t *testing.T) {
+	external, internal, _ := useSecretRoots(t)
+	providerDir := filepath.Join(external, "providers", "history-0")
+	writeTestSecret(t, filepath.Join(providerDir, "ca.pem"), "ca")
+	writeTestSecret(t, filepath.Join(providerDir, "client.pem"), "certificate")
+	writeTestSecret(t, filepath.Join(providerDir, "client.key"), "key")
+	env := Environment{
+		"ZABBIX_USER_HOME_DIR":                   t.TempDir(),
+		"ZBX_HISTORYPROVIDER_0":                  `{"provider":"clickhouse","url":"https://clickhouse:8443","db":"zabbix"}`,
+		"ZBX_HISTORYPROVIDER_0_SSL_CAFILE":       "ca.pem",
+		"ZBX_HISTORYPROVIDER_0_SSL_CERTFILE":     "client.pem",
+		"ZBX_HISTORYPROVIDER_0_SSL_KEYFILE":      "client.key",
+		"ZBX_HISTORYPROVIDER_0_SSL_CALOCATION":   "/user/ca",
+		"ZBX_HISTORYPROVIDER_0_SSL_CERTLOCATION": "/user/certs",
+		"ZBX_HISTORYPROVIDER_0_SSL_KEYLOCATION":  "/user/keys",
 	}
 	if err := ResolveSecrets(env, SecretsServerMySQL, SecretsService); err != nil {
 		t.Fatal(err)
 	}
-	want := filepath.Join(internal, "providers", "history-0", "ca")
-	if env["ZBX_HISTORYPROVIDER_0_SSL_CALOCATION"] != want {
-		t.Fatalf("CA location = %q, want %q", env["ZBX_HISTORYPROVIDER_0_SSL_CALOCATION"], want)
+
+	locations := map[string]string{
+		"ZBX_SSLCALOCATION":   filepath.Join(internal, "ssl", "ca"),
+		"ZBX_SSLCERTLOCATION": filepath.Join(internal, "ssl", "certs"),
+		"ZBX_SSLKEYLOCATION":  filepath.Join(internal, "ssl", "keys"),
+	}
+	for variable, want := range locations {
+		if env[variable] != want {
+			t.Errorf("%s=%q, want %q", variable, env[variable], want)
+		}
+	}
+	for _, variable := range []string{
+		"ZBX_HISTORYPROVIDER_0_SSL_CALOCATION",
+		"ZBX_HISTORYPROVIDER_0_SSL_CERTLOCATION",
+		"ZBX_HISTORYPROVIDER_0_SSL_KEYLOCATION",
+	} {
+		if _, exists := env[variable]; exists {
+			t.Errorf("unsupported provider location %s remains", variable)
+		}
+	}
+	for variable, content := range map[string]string{
+		"ZBX_HISTORYPROVIDER_0_SSL_CERTFILE": "certificate",
+		"ZBX_HISTORYPROVIDER_0_SSL_KEYFILE":  "key",
+	} {
+		name := env[variable]
+		if filepath.IsAbs(name) {
+			t.Errorf("%s=%q, want file name", variable, name)
+			continue
+		}
+		directory := env["ZBX_SSLCERTLOCATION"]
+		if strings.HasSuffix(variable, "KEYFILE") {
+			directory = env["ZBX_SSLKEYLOCATION"]
+		}
+		data, err := os.ReadFile(filepath.Join(directory, name))
+		if err != nil || string(data) != content {
+			t.Errorf("%s content=%q, err=%v", variable, data, err)
+		}
+	}
+	if _, exists := env["ZBX_HISTORYPROVIDER_0_SSL_CAFILE"]; exists {
+		t.Error("history provider CA file remains provider-specific")
+	}
+}
+
+func TestHistoryProviderTLSKeepsVaultFilesInSharedLocations(t *testing.T) {
+	external, internal, _ := useSecretRoots(t)
+	writeTestSecret(t, filepath.Join(external, "ssl", "certs", "vault.pem"), "vault")
+	writeTestSecret(t, filepath.Join(external, "providers", "history-0", "client.pem"), "history")
+	env := Environment{
+		"ZABBIX_USER_HOME_DIR":               t.TempDir(),
+		"ZBX_VAULT":                          "CyberArk",
+		"ZBX_VAULTTLSCERTFILE":               "vault.pem",
+		"ZBX_HISTORYPROVIDER_0":              `{"provider":"clickhouse","url":"https://clickhouse:8443","db":"zabbix"}`,
+		"ZBX_HISTORYPROVIDER_0_SSL_CERTFILE": "client.pem",
+	}
+	if err := ResolveSecrets(env, SecretsServerMySQL, SecretsService); err != nil {
+		t.Fatal(err)
+	}
+	wantLocation := filepath.Join(internal, "ssl", "certs")
+	if env["ZBX_SSLCERTLOCATION"] != wantLocation {
+		t.Fatalf("ZBX_SSLCERTLOCATION=%q, want %q", env["ZBX_SSLCERTLOCATION"], wantLocation)
+	}
+	if env["ZBX_VAULTTLSCERTFILE"] != filepath.Join(wantLocation, "vault.pem") {
+		t.Fatalf("ZBX_VAULTTLSCERTFILE=%q", env["ZBX_VAULTTLSCERTFILE"])
+	}
+	if err := SetVaultTLSFileNames(env); err != nil {
+		t.Fatal(err)
+	}
+	if env["ZBX_VAULTTLSCERTFILE"] != "vault.pem" {
+		t.Fatalf("native Vault certificate=%q, want file name", env["ZBX_VAULTTLSCERTFILE"])
 	}
 }

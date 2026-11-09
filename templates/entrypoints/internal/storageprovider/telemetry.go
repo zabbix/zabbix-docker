@@ -8,7 +8,7 @@ var clickHouseTelemetry = providerDefinition{
 	files: tlsFiles,
 	web: []string{
 		"provider", "url", "db", "vault_path", "ssl_cert_file", "ssl_key_file",
-		"ssl_ca_location",
+		"ssl_ca_file", "ssl_ca_location",
 		"ssl_key_password", "ssl_verify_peer", "ssl_verify_host",
 		"username", "password",
 	},

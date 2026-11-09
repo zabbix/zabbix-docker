@@ -253,6 +253,26 @@ func TestResolveSecretsPreparesConfiguredGlobalCA(t *testing.T) {
 	}
 }
 
+func TestResolveSecretsPreservesExplicitGlobalCA(t *testing.T) {
+	_, internal, _ := useSecretRoots(t)
+	explicit := t.TempDir()
+	writeTestSecret(t, filepath.Join(explicit, "root.pem"), "certificate")
+	env := Environment{
+		"ZABBIX_USER_HOME_DIR": t.TempDir(),
+		"ZBX_SSLCALOCATION":    explicit,
+	}
+
+	if err := ResolveSecrets(env, SecretsServerMySQL, SecretsService); err != nil {
+		t.Fatal(err)
+	}
+	if env["ZBX_SSLCALOCATION"] != explicit {
+		t.Fatalf("ZBX_SSLCALOCATION=%q, want %q", env["ZBX_SSLCALOCATION"], explicit)
+	}
+	if _, err := os.Stat(filepath.Join(internal, "ssl", "ca")); !os.IsNotExist(err) {
+		t.Fatalf("explicit CA directory was copied into managed storage: %v", err)
+	}
+}
+
 func TestResolveSecretsDoesNotUseLegacyAPMCADirectory(t *testing.T) {
 	_, internal, _ := useSecretRoots(t)
 	home := t.TempDir()
@@ -285,6 +305,28 @@ func TestResolveSecretsUsesDedicatedAPMCADirectory(t *testing.T) {
 	}
 	if _, err := os.Stat(filepath.Join(target, "global.pem")); !os.IsNotExist(err) {
 		t.Fatalf("global CA was copied into the APM CA directory: %v", err)
+	}
+}
+
+func TestResolveSecretsKeepsWebAPMCAFileSeparate(t *testing.T) {
+	external, internal, _ := useSecretRoots(t)
+	path := filepath.Join(external, "apm", "ca.pem")
+	writeTestSecret(t, path, "apm")
+	env := Environment{
+		"ZABBIX_USER_HOME_DIR": t.TempDir(),
+		"ZBX_APM_CAFILE":       "ca.pem",
+	}
+	if err := ResolveSecrets(env, SecretsWebMySQL, SecretsService); err != nil {
+		t.Fatal(err)
+	}
+	if env["ZBX_APM_CAFILE"] != path {
+		t.Fatalf("ZBX_APM_CAFILE=%q, want %q", env["ZBX_APM_CAFILE"], path)
+	}
+	if env["ZBX_APM_CA_LOCATION"] != "" {
+		t.Fatalf("ZBX_APM_CA_LOCATION=%q, want empty", env["ZBX_APM_CA_LOCATION"])
+	}
+	if _, err := os.Stat(filepath.Join(internal, "apm", "ca")); !os.IsNotExist(err) {
+		t.Fatalf("APM CA file was copied into a managed CA directory: %v", err)
 	}
 }
 
