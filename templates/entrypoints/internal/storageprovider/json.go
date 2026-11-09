@@ -111,21 +111,23 @@ func applySecrets(env bootstrap.Environment, name string, fields map[string]any)
 		}
 		fileVariable := variable + "FILE"
 		path := env[fileVariable]
+		field := secret.Field
+		value := path
 		location := ""
 		if secret.ManagedLocation {
 			location = env[variable+"LOCATION"]
+			if location != "" {
+				field = secret.LocationField
+				value = location
+			}
 		}
 		if path == "" && location == "" {
 			continue
 		}
-		if _, exists := fields[secret.Field]; exists {
-			return fmt.Errorf("%s: %s cannot be combined with %s", name, secret.Field, fileVariable)
+		if _, exists := fields[field]; exists {
+			return fmt.Errorf("%s: %s cannot be combined with %s", name, field, fileVariable)
 		}
-		if secret.ManagedLocation {
-			fields[secret.Field] = location
-		} else {
-			fields[secret.Field] = path
-		}
+		fields[field] = value
 	}
 	return nil
 }

@@ -165,18 +165,23 @@ func ResolveSecrets(env Environment, component SecretComponent, command SecretCo
 					return err
 				}
 			}
-			if err := resolveGlobalCA(managed, env); err != nil {
+			if isServer(component) && (command == SecretsService || command == SecretsInitHistory) {
+				if err := prepareHistoryProviderTLSFiles(managed, env, files); err != nil {
+					return err
+				}
+			}
+			if err := resolveGlobalCA(managed, env, files); err != nil {
 				return err
 			}
 		case SecretsInitDB:
 			if env["ZBX_VAULTDBPATH"] != "" {
-				if err := resolveGlobalCA(managed, env); err != nil {
+				if err := resolveGlobalCA(managed, env, nil); err != nil {
 					return err
 				}
 			}
 		}
 	} else if isWeb(component) && command == SecretsService && env["ZBX_VAULTDBPATH"] != "" {
-		if err := resolveGlobalCA(managed, env); err != nil {
+		if err := resolveGlobalCA(managed, env, nil); err != nil {
 			return err
 		}
 	}
@@ -185,8 +190,10 @@ func ResolveSecrets(env Environment, component SecretComponent, command SecretCo
 			return err
 		}
 	}
-	if err := resolveProviderCAs(managed, env, files); err != nil {
-		return err
+	if isServerOrProxy(component) {
+		if err := resolveProviderCAs(managed, env, files); err != nil {
+			return err
+		}
 	}
 
 	return nil

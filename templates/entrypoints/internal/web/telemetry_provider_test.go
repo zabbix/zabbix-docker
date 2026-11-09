@@ -49,6 +49,7 @@ func TestConfigureWebTelemetryProviders(t *testing.T) {
 		"ZBX_TELEMETRYPROVIDER_0_USERNAME":         "zabbix",
 		"ZBX_TELEMETRYPROVIDER_0_PASSWORD":         "secret",
 		"ZBX_TELEMETRYPROVIDER_0_SSL_KEY_PASSWORD": "key-secret",
+		"ZBX_TELEMETRYPROVIDER_0_SSL_CAFILE":       "/custom/ca.pem",
 	}
 	if err := configureWebTelemetryProviders(env); err != nil {
 		t.Fatal(err)
@@ -65,6 +66,7 @@ func TestConfigureWebTelemetryProviders(t *testing.T) {
 	want := map[string]any{
 		"ssl_cert_file":    "/custom/client.crt",
 		"ssl_key_file":     "/custom/client.key",
+		"ssl_ca_file":      "/custom/ca.pem",
 		"ssl_ca_location":  "",
 		"ssl_key_password": "key-secret",
 		"ssl_verify_peer":  true,

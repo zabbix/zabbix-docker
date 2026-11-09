@@ -15,6 +15,7 @@ const (
 type ProviderSecretDefinition struct {
 	Suffix          string
 	Field           string
+	LocationField   string
 	Kind            ProviderSecretKind
 	ManagedLocation bool
 }
@@ -25,7 +26,7 @@ var providerSecretDefinitions = []ProviderSecretDefinition{
 	{Suffix: "_SSL_KEY_PASSWORD", Field: "ssl_key_password", Kind: ProviderValueSecret},
 	{Suffix: "_SSL_CERT", Field: "ssl_cert_file", Kind: ProviderFileSecret},
 	{Suffix: "_SSL_KEY", Field: "ssl_key_file", Kind: ProviderFileSecret},
-	{Suffix: "_SSL_CA", Field: "ssl_ca_location", Kind: ProviderFileSecret, ManagedLocation: true},
+	{Suffix: "_SSL_CA", Field: "ssl_ca_file", LocationField: "ssl_ca_location", Kind: ProviderFileSecret, ManagedLocation: true},
 }
 
 var (
