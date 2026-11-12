@@ -15,7 +15,7 @@ import (
 func prepareNginx(env bootstrap.Environment) error {
 	includes := env.ValueOrDefaultNonEmpty("NGINX_INCLUDES_DIR", "/etc/nginx/includes")
 
-	for _, name := range []string{"access-log.conf", "user.conf", "real-ip.conf", "listen-ipv6.conf", "listen-ipv6-ssl.conf"} {
+	for _, name := range []string{"access-log.conf", "user.conf", "real-ip.conf", "listen-ipv6.conf", "listen-ipv6-health.conf", "listen-ipv6-ssl.conf"} {
 		if err := os.WriteFile(filepath.Join(includes, name), nil, 0o644); err != nil {
 			return err
 		}
@@ -38,6 +38,9 @@ func prepareNginx(env bootstrap.Environment) error {
 		bootstrap.LogWarn("**** Impossible to enable HTTP virtual host")
 	} else if ipv6Available() {
 		if err := os.WriteFile(filepath.Join(includes, "listen-ipv6.conf"), []byte("listen [::]:8080;\nallow ::1;\n"), 0o644); err != nil {
+			return err
+		}
+		if err := os.WriteFile(filepath.Join(includes, "listen-ipv6-health.conf"), []byte("listen [::]:8081;\n"), 0o644); err != nil {
 			return err
 		}
 	}
