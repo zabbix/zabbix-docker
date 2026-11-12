@@ -1,8 +1,8 @@
 RemoteIPInternalProxy ${WEB_REAL_IP_FROM}
 RemoteIPHeader ${WEB_REAL_IP_HEADER}
 
-<LocationMatch "^/(ping|status)$">
-    Require all granted
+<LocationMatch "^/ping$">
+    Require local
     SetHandler "proxy:unix:/tmp/php-fpm.sock|fcgi://localhost"
 </LocationMatch>
 
