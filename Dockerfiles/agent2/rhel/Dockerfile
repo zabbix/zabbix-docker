@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1.6
-ARG OS_BASE_IMAGE=registry.access.redhat.com/ubi10/ubi-minimal:10.2
+ARG OS_BASE_IMAGE=registry.access.redhat.com/ubi10/ubi-minimal:10.3
 ARG MAJOR_VERSION=7.4
 ARG RELEASE=16
 ARG ZBX_VERSION=${MAJOR_VERSION}.16
