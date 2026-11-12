@@ -12,6 +12,7 @@ prepare_web_server() {
     : > "${NGINX_INCLUDES_DIR}/user.conf"
     : > "${NGINX_INCLUDES_DIR}/real-ip.conf"
     : > "${NGINX_INCLUDES_DIR}/listen-ipv6.conf"
+    : > "${NGINX_INCLUDES_DIR}/listen-ipv6-health.conf"
     : > "${NGINX_INCLUDES_DIR}/listen-ipv6-ssl.conf"
 
     if [ "$(id -u)" -eq 0 ]; then
@@ -25,6 +26,7 @@ prepare_web_server() {
         if [ -f "/proc/net/if_inet6" ]; then
             printf 'listen [::]:8080;\n' > "${NGINX_INCLUDES_DIR}/listen-ipv6.conf"
             printf 'allow ::1;\n' >> "${NGINX_INCLUDES_DIR}/listen-ipv6.conf"
+            printf 'listen [::]:8081;\n' > "${NGINX_INCLUDES_DIR}/listen-ipv6-health.conf"
         fi
     else
         warn "**** Impossible to enable HTTP virtual host"
