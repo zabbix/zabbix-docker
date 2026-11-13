@@ -23,17 +23,24 @@ ARG MSYSTEM
 
 ARG MINGW_URL=https://github.com/niXman/mingw-builds-binaries/releases/download/12.2.0-rt_v10-rev0/x86_64-12.2.0-release-win32-sjlj-rt_v10-rev0.7z
 ARG GOLANG_URL=https://go.dev/dl/go$GOLANG_VERSION.windows-amd64.zip
-ARG MSYS2_URL=https://github.com/msys2/msys2-installer/releases/download/2026-06-11/msys2-base-x86_64-20260611.sfx.exe
+ARG MSYS2_URL=https://github.com/msys2/msys2-installer/releases/download/2026-09-27/msys2-base-x86_64-20260927.sfx.exe
 
 ARG PCRE2_URL=https://github.com/PCRE2Project/pcre2/releases/download/pcre2-$PCRE2_VERSION/pcre2-$PCRE2_VERSION.zip
 ARG OPENSSL_URL=https://github.com/openssl/openssl/releases/download/openssl-$OPENSSL_VERSION/openssl-$OPENSSL_VERSION.tar.gz
 
 ARG PWSH_URL=https://github.com/PowerShell/PowerShell/releases/download/v$PWSH_VERSION/PowerShell-$PWSH_VERSION-win-x64.zip
 
+<<<<<<< HEAD
 ADD --checksum=sha256:07ddb0d00b660459560ef82a9841da7705b27cd5dcca5a0d7b025a98eca29eca $PWSH_URL build_deps\pwsh.zip
 ADD --checksum=sha256:f0c0a0d33ba94f4d2c5dbc887334ce678b21813504ddb3aafcb06e60a5a667c4 $GOLANG_URL build_deps\go_lang.zip
 ADD --checksum=sha256:baf98a71849ab0b619aee0cf7caa2e63e963c2cc193d241867536960257630e3 $MINGW_URL build_deps\mingw.7z
 ADD --checksum=sha256:c105946e64e08f099ac0e4647461ce762b95333ad211777666476a9a41451d65 $MSYS2_URL build_deps\msys2.sfx.exe
+=======
+ADD --checksum=sha256:7c74e03b20a75b59715847439d046a6214b1863ee79b187872980f139bb4a05f $PWSH_URL build_deps\pwsh.zip
+ADD --checksum=sha256:178ab98950ac69ab25069307dc6ade79f3816e414cce95b4da166a115cde1e7e $GOLANG_URL build_deps\go_lang.zip
+ADD --checksum=sha256:c9ae8e4a3afa667b3301dd28c567109d174a0fa0856a2eeaa85a91b89569a50b $MINGW_URL build_deps\mingw.7z
+ADD --checksum=sha256:ad336cccfda47758b5e15cda993fbba421115cb0b126697daef1ee4dfe37209f $MSYS2_URL build_deps\msys2.sfx.exe
+>>>>>>> 5bed11875 (Updated versions of Windows build dependencies)
 
 ADD --checksum=sha256:d74c183c86c77248ad50017c7f45bae8f88106a6cca5d87ad09917e1c6fb0784 $PCRE2_URL build_src\pcre2.zip
 ADD --checksum=sha256:2db3f3a0d6ea4b59e1f094ace2c8cd536dffb87cdc39084c5afa1e6f7f37dd09 $OPENSSL_URL build_src\openssl.tar.gz
