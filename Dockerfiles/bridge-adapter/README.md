@@ -14,7 +14,7 @@ Zabbix Bridge Adapter connects a Zabbix installation to Zabbix Bridge for use wi
 
 # Zabbix Bridge Adapter images
 
-Zabbix Bridge Adapter Docker images are based on the distroless `static` image (Debian 13). Images are updated when new releases are published.
+Zabbix Bridge Adapter Docker images are based on the distroless `static` image (Debian 13), have no shell or package manager, and run as a non-root user (UID `1997`).
 
 # How to use this image
 
@@ -197,12 +197,6 @@ The volume stores persistent Adapter data and EULA acceptance. Use the same writ
 ### ``/run/zabbix/secrets/tls``
 
 The volume provides TLS files referenced by the `ZBX_TLSCAFILE`, `ZBX_TLSCERTFILE`, `ZBX_TLSKEYFILE` and `ZBX_ZABBIXAPITLSCAFILE` variables. Mount it read-only.
-
-# The image variants
-
-## `zabbix-bridge-adapter:<version>`
-
-This image is based on the [distroless `static` image](https://github.com/GoogleContainerTools/distroless). It has no shell or package manager. The Adapter runs as a non-root user (UID `1997`).
 
 # User Feedback
 

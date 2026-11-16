@@ -24,7 +24,7 @@ These are the only official Zabbix MCP server Docker images. They are based on A
     Zabbix MCP server 8.0.* (tags: alpine-8.0.*, ubuntu-8.0.*, ol-8.0.*)
     Zabbix MCP server 8.2 (tags: alpine-trunk, ubuntu-trunk, ol-trunk)
 
-Images are updated when new releases are published. The image with ``latest`` tag is based on Alpine Linux.
+The image with ``latest`` tag is based on Alpine Linux.
 
 # How to use this image
 
@@ -179,24 +179,6 @@ Set `ZBX_TLSACCEPT=cert` and specify the server certificate and private key usin
 ### ``/run/zabbix/secrets/tls``
 
 The volume is used to store the TLS certificate and private key specified with `ZBX_TLSCERTFILE` and `ZBX_TLSKEYFILE`. Mount the volume read-only.
-
-# The image variants
-
-The `zabbix-mcp-server` images come in many flavors, each designed for a specific use case.
-
-## `zabbix-mcp-server:alpine-<version>`
-
-This image is based on the popular [Alpine Linux project](http://alpinelinux.org), available in the [`alpine` official image](https://hub.docker.com/_/alpine). Alpine Linux is much smaller than most distribution base images and thus leads to much slimmer images in general.
-
-To minimize image size, it is uncommon for additional related tools (such as `git` or `bash`) to be included in Alpine-based images. Using this image as a base, add the tools you need in your own Dockerfile.
-
-## `zabbix-mcp-server:ubuntu-<version>`
-
-This is the defacto image. If you are unsure about what your needs are, you probably want to use this one.
-
-## `zabbix-mcp-server:ol-<version>`
-
-Oracle Linux is an open-source operating system available under the GNU General Public License (GPLv2). It is suitable for general purpose or Oracle workloads.
 
 # User Feedback
 

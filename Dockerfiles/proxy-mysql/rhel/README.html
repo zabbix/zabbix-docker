@@ -6,7 +6,7 @@
 <h1 id="what-is-zabbix-proxy-">What is Zabbix proxy?</h1>
 <p>Zabbix proxy is a process that may collect monitoring data from one or more monitored devices and send the information to the Zabbix server, essentially working on behalf of the server. All collected data is buffered locally and then transferred to the Zabbix server the proxy belongs to.</p>
 <h1 id="zabbix-proxy-images">Zabbix proxy images</h1>
-<p>These are the only official Zabbix proxy Podman images. Images are updated when new releases are published. The image with <code>latest</code> tag is based on Alpine Linux.</p>
+<p>These are the only official Zabbix proxy Podman images. The image with <code>latest</code> tag is based on Alpine Linux.</p>
 <p>The image uses MySQL database to store collected data before sending it to Zabbix server. It uses the next procedure to start:</p>
 <ul>
 <li>Checking database availability</li>

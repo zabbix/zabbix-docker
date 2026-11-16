@@ -14,7 +14,7 @@
 <pre><code>Zabbix MCP server 8.0 (tags: alpine-8.0-latest, ubuntu-8.0-latest, ol-8.0-latest, alpine-latest, ubuntu-latest, ol-latest, latest)
 Zabbix MCP server 8.0.* (tags: alpine-8.0.*, ubuntu-8.0.*, ol-8.0.*)
 Zabbix MCP server 8.2 (tags: alpine-trunk, ubuntu-trunk, ol-trunk)</code></pre>
-<p>Images are updated when new releases are published. The image with <code>latest</code> tag is based on Alpine Linux.</p>
+<p>The image with <code>latest</code> tag is based on Alpine Linux.</p>
 
 <h1 id="how-to-use-this-image">How to use this image</h1>
 <h2 id="start-zabbix-mcp-server">Start <code>zabbix-mcp-server</code></h2>
@@ -116,19 +116,6 @@ ZBX_TLSKEY=</code></pre>
 <h2 id="allowed-volumes-for-the-zabbix-mcp-server-container">Allowed volumes for the Zabbix MCP server container</h2>
 <h3 id="run-zabbix-secrets-tls"><code>/run/zabbix/secrets/tls</code></h3>
 <p>The volume is used to store the TLS certificate and private key specified with <code>ZBX_TLSCERTFILE</code> and <code>ZBX_TLSKEYFILE</code>. Mount the volume read-only.</p>
-
-<h1 id="the-image-variants">The image variants</h1>
-<p>The <code>zabbix-mcp-server</code> images come in many flavors, each designed for a specific use case.</p>
-
-<h2 id="zabbix-mcp-server-alpine-version"><code>zabbix-mcp-server:alpine-&lt;version&gt;</code></h2>
-<p>This image is based on the popular <a href="http://alpinelinux.org">Alpine Linux project</a>, available in the <a href="https://hub.docker.com/_/alpine"><code>alpine</code> official image</a>. Alpine Linux is much smaller than most distribution base images and thus leads to much slimmer images in general.</p>
-<p>To minimize image size, it is uncommon for additional related tools (such as <code>git</code> or <code>bash</code>) to be included in Alpine-based images. Using this image as a base, add the tools you need in your own Dockerfile.</p>
-
-<h2 id="zabbix-mcp-server-ubuntu-version"><code>zabbix-mcp-server:ubuntu-&lt;version&gt;</code></h2>
-<p>This is the defacto image. If you are unsure about what your needs are, you probably want to use this one.</p>
-
-<h2 id="zabbix-mcp-server-ol-version"><code>zabbix-mcp-server:ol-&lt;version&gt;</code></h2>
-<p>Oracle Linux is an open-source operating system available under the GNU General Public License (GPLv2). It is suitable for general purpose or Oracle workloads.</p>
 
 <h1 id="user-feedback">User Feedback</h1>
 <h2 id="documentation">Documentation</h2>
