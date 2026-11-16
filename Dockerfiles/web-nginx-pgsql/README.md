@@ -26,7 +26,7 @@ These are the only official Zabbix web interface Docker images. They are based o
     Zabbix web interface 8.0.* (tags: alpine-8.0.*, ubuntu-8.0.*, ol-8.0.*)
     Zabbix web interface 8.2 (tags: alpine-trunk, ubuntu-trunk, ol-trunk)
 
-Images are updated when new releases are published. The image with ``latest`` tag is based on Alpine Linux.
+The image with ``latest`` tag is based on Alpine Linux.
 
 Zabbix web interface available in four editions:
 - Zabbix web-interface based on Apache2 web server with MySQL database support
@@ -370,26 +370,6 @@ The volume provides TLS files referenced by ``ZBX_SERVER_TLS_CAFILE``, ``ZBX_SER
 ### ``/run/zabbix/secrets/vault``
 
 The volume provides files referenced by ``ZBX_VAULTTLSCERTFILE`` and ``ZBX_VAULTTLSKEYFILE``.
-
-# The image variants
-
-The `zabbix-web-nginx-pgsql` images come in many flavors, each designed for a specific use case.
-
-## `zabbix-web-nginx-pgsql:alpine-<version>`
-
-This image is based on the popular [Alpine Linux project](http://alpinelinux.org), available in [the `alpine` official image](https://hub.docker.com/_/alpine). Alpine Linux is much smaller than most distribution base images (~5MB), and thus leads to much slimmer images in general.
-
-This variant is highly recommended when final image size being as small as possible is desired. The main caveat to note is that it does use [musl libc](http://www.musl-libc.org) instead of [glibc and friends](http://www.etalabs.net/compare_libcs.html), so certain software might run into issues depending on the depth of their libc requirements. However, most software doesn't have an issue with this, so this variant is usually a very safe choice. See [this Hacker News comment thread](https://news.ycombinator.com/item?id=10782897) for more discussion of the issues that might arise and some pro/con comparisons of using Alpine-based images.
-
-To minimize image size, it's uncommon for additional related tools (such as `git` or `bash`) to be included in Alpine-based images. Using this image as a base, add the things you need in your own Dockerfile (see the [`alpine` image description](https://hub.docker.com/_/alpine/) for examples of how to install packages if you are unfamiliar).
-
-## `zabbix-web-nginx-pgsql:ubuntu-<version>`
-
-This is the defacto image. If you are unsure about what your needs are, you probably want to use this one. It is designed to be used both as a throw away container (mount your source code and start the container to start your app), as well as the base to build other images off of.
-
-## `zabbix-web-nginx-pgsql:ol-<version>`
-
-Oracle Linux is an open-source operating system available under the GNU General Public License (GPLv2). Suitable for general purpose or Oracle workloads, it benefits from rigorous testing of more than 128,000 hours per day with real-world workloads and includes unique innovations such as Ksplice for zero-downtime kernel patching, DTrace for real-time diagnostics, the powerful Btrfs file system, and more.
 
 # User Feedback
 
