@@ -5,7 +5,7 @@ read_file_env() {
     local var="$1"
     local file_var="${var}_FILE"
 
-    if [ -n "${!file_var:-}" ]; then
+    if [[ -n "${!file_var:-}" ]]; then
         export "$var"="$(cat "${!file_var}")"
     fi
 }
@@ -19,7 +19,7 @@ default_role_sql() {
     local user="$2"
     local host="$3"
 
-    if [ "$ZBX_MYSQL_FLAVOR" = "mariadb" ]; then
+    if [[ "$ZBX_MYSQL_FLAVOR" = "mariadb" ]]; then
 #        printf "SET DEFAULT ROLE '%s' FOR '%s'@'%s';\n" "$role" "$user" "$host"
         printf "SET DEFAULT ROLE ALL FOR '%s'@'%s';\n" "$user" "$host"
     else
@@ -29,7 +29,7 @@ default_role_sql() {
 }
 
 mysql_only_session_variables_admin_sql() {
-    if [ "$ZBX_MYSQL_FLAVOR" != "mariadb" ]; then
+    if [[ "$ZBX_MYSQL_FLAVOR" != "mariadb" ]]; then
         printf "GRANT SESSION_VARIABLES_ADMIN ON *.* TO '%s';\n" "$ZBX_PARTITION_DB_ROLE"
     fi
 }
@@ -37,7 +37,7 @@ mysql_only_session_variables_admin_sql() {
 identified_by_sql() {
     local password="$1"
 
-    if [ "$ZBX_MYSQL_FLAVOR" = "mariadb" ]; then
+    if [[ "$ZBX_MYSQL_FLAVOR" = "mariadb" ]]; then
         printf "IDENTIFIED BY '%s'" "$password"
     else
         printf "IDENTIFIED WITH caching_sha2_password BY '%s'" "$password"
