@@ -82,6 +82,7 @@ func updatePluginConfig(homeDir, configDir string) error {
 		{"postgresql.conf", "Plugins.PostgreSQL.System.Path", "postgresql"},
 		{"mssql.conf", "Plugins.MSSQL.System.Path", "mssql"},
 		{"ember.conf", "Plugins.EmberPlus.System.Path", "ember-plus"},
+		{"ceph.conf", "Plugins.Ceph.System.Path", "ceph"},
 	}
 
 	if _, err := exec.LookPath(nvidiaCommand); err == nil {

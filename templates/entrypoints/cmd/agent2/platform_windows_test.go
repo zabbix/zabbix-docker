@@ -31,7 +31,7 @@ func TestPrepareServiceWindows(t *testing.T) {
 			t.Fatal(err)
 		}
 	}
-	for _, name := range []string{"mongodb.conf", "postgresql.conf", "mssql.conf", "ember.conf"} {
+	for _, name := range []string{"mongodb.conf", "postgresql.conf", "mssql.conf", "ember.conf", "ceph.conf"} {
 		if err := os.WriteFile(filepath.Join(pluginDirectory, name), []byte("# plugin config\n"), 0o600); err != nil {
 			t.Fatal(err)
 		}
@@ -61,6 +61,14 @@ func TestPrepareServiceWindows(t *testing.T) {
 	want := filepath.Join(homeDir, "zabbix-agent2-plugin", "mongodb.exe")
 	if !strings.Contains(string(data), "Plugins.MongoDB.System.Path="+want) {
 		t.Fatalf("MongoDB plugin path is missing from config: %s", data)
+	}
+	data, err = os.ReadFile(filepath.Join(pluginDirectory, "ceph.conf"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	want = filepath.Join(homeDir, "zabbix-agent2-plugin", "ceph.exe")
+	if !strings.Contains(string(data), "Plugins.Ceph.System.Path="+want) {
+		t.Fatalf("Ceph plugin path is missing from config: %s", data)
 	}
 	aliases, err := os.ReadFile(filepath.Join(configDir, "zabbix_agent2_aliases.conf"))
 	if err != nil || !strings.Contains(string(aliases), "Alias=${ZBX_ALIAS_0}") {

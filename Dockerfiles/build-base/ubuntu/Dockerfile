@@ -54,6 +54,7 @@ RUN --mount=type=cache,target=/var/cache/apt/,sharing=locked \
             libmodbus-dev \
             libmysqlclient-dev \
             libopenipmi-dev \
+            librados-dev \
             libpcre2-dev \
             libpq-dev \
             libprotobuf-dev \

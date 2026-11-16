@@ -39,6 +39,7 @@ ENV ZBX_SOURCES_DIR=/tmp/zabbix-${ZBX_VERSION} ZBX_OUTPUT_DIR=/tmp/zabbix-${ZBX_
     MSSQL_PLUGIN_SOURCES=https://git.zabbix.com/scm/ap/mssql.git MSSQL_PLUGIN_VERSION=${ZBX_PLUGINS_VERSION} \
     EMBER_PLUS_PLUGIN_SOURCES=https://git.zabbix.com/scm/ap/ember-plus.git EMBER_PLUS_PLUGIN_VERSION=${ZBX_PLUGINS_VERSION} \
     NVIDIA_GPU_PLUGIN_SOURCES=https://git.zabbix.com/scm/ap/nvidia-gpu.git NVIDIA_GPU_PLUGIN_VERSION=${ZBX_PLUGINS_VERSION} \
+    CEPH_PLUGIN_SOURCES=https://git.zabbix.com/scm/ap/ceph.git CEPH_PLUGIN_VERSION=${ZBX_PLUGINS_VERSION} \
     MCP_SERVER_SOURCES=https://git.zabbix.com/scm/zt/mcp-server.git MCP_SERVER_VERSION=${MCP_SERVER_VERSION}
 
 RUN --mount=from=sources,target=/tmp/src,ro \
@@ -185,7 +186,9 @@ RUN --mount=type=cache,target=/root/.cache/go-build \
     build_plugin ember "${EMBER_PLUS_PLUGIN_SOURCES}" "${EMBER_PLUS_PLUGIN_VERSION}" \
         zabbix-agent2-plugin-ember-plus ember.conf ember-plus && \
     build_plugin nvidia-gpu "${NVIDIA_GPU_PLUGIN_SOURCES}" "${NVIDIA_GPU_PLUGIN_VERSION}" \
-        zabbix-agent2-plugin-nvidia-gpu nvidia.conf nvidia-gpu
+        zabbix-agent2-plugin-nvidia-gpu nvidia.conf nvidia-gpu && \
+    build_plugin ceph "${CEPH_PLUGIN_SOURCES}" "${CEPH_PLUGIN_VERSION}" \
+        zabbix-agent2-plugin-ceph ceph.conf ceph
 
 RUN --mount=type=cache,target=/root/.cache/go-build \
     --mount=type=cache,target=/root/go/pkg/mod \

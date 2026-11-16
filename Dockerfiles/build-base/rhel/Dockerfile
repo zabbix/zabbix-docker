@@ -58,6 +58,7 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             libcurl-devel \
             libevent-devel \
             libmodbus-devel \
+            librados-devel \
             libssh-devel \
             libxml2-devel \
             mysql8.4-devel \

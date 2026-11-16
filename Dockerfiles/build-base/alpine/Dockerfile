@@ -43,6 +43,7 @@ RUN set -eux && \
             jq \
             patch \
             c-ares-dev \
+            ceph19-dev \
             curl-dev \
             grpc-dev \
             libevent-dev \

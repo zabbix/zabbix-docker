@@ -62,6 +62,7 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             tzdata \
             c-ares \
             libcurl-minimal \
+            librados2 \
             openssl-libs \
             pcre2 \
             iputils \

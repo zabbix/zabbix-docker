@@ -16,6 +16,7 @@ ARG POSTGRESQL_PLUGIN_SOURCES=https://git.zabbix.com/scm/ap/postgresql.git
 ARG MSSQL_PLUGIN_SOURCES=https://git.zabbix.com/scm/ap/mssql.git
 ARG EMBER_PLUS_PLUGIN_SOURCES=https://git.zabbix.com/scm/ap/ember-plus.git
 ARG NVIDIA_GPU_PLUGIN_SOURCES=https://git.zabbix.com/scm/ap/nvidia-gpu.git
+ARG CEPH_PLUGIN_SOURCES=https://git.zabbix.com/scm/ap/ceph.git
 ARG GIT_BRANCH
 ARG ZBX_PRODUCT_REF=${GIT_BRANCH:-$ZBX_VERSION}
 ARG ZBX_PRODUCT_REVISION=unknown
@@ -28,6 +29,7 @@ ENV ZBX_SOURCES=$ZBX_SOURCES MAJOR_VERSION=$MAJOR_VERSION ZBX_VERSION=$ZBX_VERSI
     MSSQL_PLUGIN_SOURCES=$MSSQL_PLUGIN_SOURCES MSSQL_PLUGIN_VERSION=${ZBX_PLUGINS_VERSION} `
     EMBER_PLUS_PLUGIN_SOURCES=$EMBER_PLUS_PLUGIN_SOURCES EMBER_PLUS_PLUGIN_VERSION=${ZBX_PLUGINS_VERSION} `
     NVIDIA_GPU_PLUGIN_SOURCES=$NVIDIA_GPU_PLUGIN_SOURCES NVIDIA_GPU_PLUGIN_VERSION=${ZBX_PLUGINS_VERSION} `
+    CEPH_PLUGIN_SOURCES=$CEPH_PLUGIN_SOURCES CEPH_PLUGIN_VERSION=${ZBX_PLUGINS_VERSION} `
     ZABBIX_VERSION_RC_NUM=$ZABBIX_VERSION_RC_NUM `
     ZBX_SOURCES_DIR=C:\\zabbix-${ZBX_VERSION} ZBX_OUTPUT_DIR=C:\\zabbix-${ZBX_VERSION}-output
 
@@ -121,6 +123,7 @@ RUN function Build-Plugin { `
     Build-Plugin mongodb $env:MONGODB_PLUGIN_SOURCES $env:MONGODB_PLUGIN_VERSION zabbix-agent2-plugin-mongodb mongodb.conf mongodb; `
     Build-Plugin postgresql $env:POSTGRESQL_PLUGIN_SOURCES $env:POSTGRESQL_PLUGIN_VERSION zabbix-agent2-plugin-postgresql postgresql.conf postgresql; `
     Build-Plugin mssql $env:MSSQL_PLUGIN_SOURCES $env:MSSQL_PLUGIN_VERSION zabbix-agent2-plugin-mssql mssql.conf mssql; `
+    Build-Plugin ceph $env:CEPH_PLUGIN_SOURCES $env:CEPH_PLUGIN_VERSION zabbix-agent2-plugin-ceph ceph.conf ceph; `
     $env:PATH = $env:PATH + [string]::Format(';{0}', $env:MSYS_BIN); `
     Build-Plugin ember $env:EMBER_PLUS_PLUGIN_SOURCES $env:EMBER_PLUS_PLUGIN_VERSION zabbix-agent2-plugin-ember-plus ember.conf ember-plus; `
     Build-Plugin nvidia-gpu $env:NVIDIA_GPU_PLUGIN_SOURCES $env:NVIDIA_GPU_PLUGIN_VERSION zabbix-agent2-plugin-nvidia-gpu nvidia.conf nvidia-gpu;
