@@ -5,7 +5,7 @@ read_file_env() {
     local var="$1"
     local file_var="${var}_FILE"
 
-    if [ -n "${!file_var:-}" ]; then
+    if [[ -n "${!file_var:-}" ]]; then
         export "$var"="$(cat "${!file_var}")"
     fi
 }

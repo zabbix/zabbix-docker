@@ -44,13 +44,13 @@ IFS= read -r sender
 #IFS= read -r trapoid
 
 # The remaining lines will contain the payload varbind list. For SNMPv1 traps, the final OID will be SNMPv2-MIB::snmpTrapEnterprise.0.
-while read -r oid val || [ -n "$oid" ]; do
+while read -r oid val || [[ -n "$oid" ]]; do
     # Header in Zabbix format shouldn't exist anywhere in vars, it is injection
     # Must exit with 0
     [[ "$val" =~ $zbx_trap_regex ]] && exit 0
     sanitized_val=${val//ZBXTRAP/\'ZBXTRAP\'}
 
-    if [ -z "$vars" ]; then
+    if [[ -z "$vars" ]]; then
         vars="$oid = $sanitized_val"
     else
         vars="${vars}${ZBX_SNMP_TRAP_FORMAT}${oid} = $sanitized_val"
@@ -71,11 +71,11 @@ if [[ "${sender:-}" =~ $sender_regex ]]; then
     sender_addr="${BASH_REMATCH[1]}"
 fi
 
-if [ -z "${trap_address:-}" ] && [[ "$ZBX_SNMP_TRAP_USE_DNS" == "true" ]] && [ -n "${host:-}" ] && [ "$host" != "<UNKNOWN>" ] && ! [[ "$host" =~ $sender_regex ]]; then
+if [[ -z "${trap_address:-}" ]] && [[ "$ZBX_SNMP_TRAP_USE_DNS" == "true" ]] && [[ -n "${host:-}" ]] && [[ "$host" != "<UNKNOWN>" ]] && ! [[ "$host" =~ $sender_regex ]]; then
     sender_addr="$host"
 fi
 
-if [ -n "${trap_address:-}" ]; then
+if [[ -n "${trap_address:-}" ]]; then
     sender_addr="$trap_address"
 fi
 
