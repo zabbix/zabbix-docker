@@ -33,7 +33,7 @@ func TestPrepareService(t *testing.T) {
 	if err := os.WriteFile(filepath.Join(configDir, "zabbix_agent2_user_parameters.conf"), []byte("# UserParameter=\n"), 0o600); err != nil {
 		t.Fatal(err)
 	}
-	for _, name := range []string{"mongodb.conf", "postgresql.conf", "mssql.conf", "ember.conf"} {
+	for _, name := range []string{"mongodb.conf", "postgresql.conf", "mssql.conf", "ember.conf", "ceph.conf"} {
 		if err := os.WriteFile(filepath.Join(pluginDirectory, name), []byte("# plugin config\n"), 0o600); err != nil {
 			t.Fatal(err)
 		}
@@ -64,6 +64,10 @@ func TestPrepareService(t *testing.T) {
 	data, err := os.ReadFile(filepath.Join(pluginDirectory, "mongodb.conf"))
 	if err != nil || !strings.Contains(string(data), "Plugins.MongoDB.System.Path=/usr/sbin/zabbix-agent2-plugin/mongodb") {
 		t.Fatalf("MongoDB plugin config: %s, %v", data, err)
+	}
+	data, err = os.ReadFile(filepath.Join(pluginDirectory, "ceph.conf"))
+	if err != nil || !strings.Contains(string(data), "Plugins.Ceph.System.Path=/usr/sbin/zabbix-agent2-plugin/ceph") {
+		t.Fatalf("Ceph plugin config: %s, %v", data, err)
 	}
 	itemKeys, err := os.ReadFile(filepath.Join(configDir, "zabbix_agent2_item_keys.conf"))
 	if err != nil || !strings.HasSuffix(string(itemKeys),

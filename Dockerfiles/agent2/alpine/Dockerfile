@@ -60,6 +60,7 @@ RUN set -eux && \
             tzdata \
             c-ares \
             pcre2 \
+            librados19 \
             iputils \
             smartmontools \
             sudo" && \

@@ -63,6 +63,7 @@ RUN --mount=type=cache,target=/var/cache/apt/,sharing=locked \
             libcares2 \
             libcurl4t64 \
             libpcre2-8-0 \
+            librados2 \
             libssl3t64 \
             iputils-ping \
             smartmontools \

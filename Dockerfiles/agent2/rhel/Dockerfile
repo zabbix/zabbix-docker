@@ -77,6 +77,7 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             c-ares \
             tzdata \
             libcurl-minimal \
+            librados2 \
             pcre2 \
             iputils \
             smartmontools \
@@ -85,7 +86,9 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
     microdnf -y install \
             --disablerepo="*" \
             --enablerepo="ubi-10-baseos-rpms" \
+            --enablerepo="ubi-10-appstream-rpms" \
             --enablerepo="rhel-10-for-$ARCH_SUFFIX-baseos-rpms" \
+            --enablerepo="rhel-10-for-$ARCH_SUFFIX-appstream-rpms" \
             --setopt=install_weak_deps=0 \
             --setopt=keepcache=0 \
             --best \
