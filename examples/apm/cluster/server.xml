@@ -1,0 +1,28 @@
+<clickhouse>
+    <logger><level>warning</level></logger>
+    <background_schedule_pool_size>8</background_schedule_pool_size>
+    <remote_servers replace="replace">
+        <apm>
+            <shard>
+                <internal_replication>true</internal_replication>
+                <replica><host>clickhouse</host><port>9000</port><user>zabbix</user><password>zabbix</password></replica>
+                <replica><host>clickhouse-s1r2</host><port>9000</port><user>zabbix</user><password>zabbix</password></replica>
+            </shard>
+            <shard>
+                <internal_replication>true</internal_replication>
+                <replica><host>clickhouse-s2r1</host><port>9000</port><user>zabbix</user><password>zabbix</password></replica>
+                <replica><host>clickhouse-s2r2</host><port>9000</port><user>zabbix</user><password>zabbix</password></replica>
+            </shard>
+        </apm>
+    </remote_servers>
+    <zookeeper>
+        <node><host>clickhouse-keeper</host><port>9181</port></node>
+    </zookeeper>
+    <distributed_ddl><path>/clickhouse/task_queue/ddl</path></distributed_ddl>
+    <macros>
+        <shard from_env="CH_SHARD"/>
+        <replica from_env="CH_REPLICA"/>
+    </macros>
+    <default_replica_path>/clickhouse/tables/{shard}/{database}/{table}</default_replica_path>
+    <default_replica_name>{replica}</default_replica_name>
+</clickhouse>

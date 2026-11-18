@@ -1,0 +1,104 @@
+x-clickhouse-node: &clickhouse-node
+  image: "${CLICKHOUSE_IMAGE}:${CLICKHOUSE_IMAGE_TAG}"
+  environment: &clickhouse-environment
+    CLICKHOUSE_DB: zabbix
+    CLICKHOUSE_USER: zabbix
+    CLICKHOUSE_PASSWORD: zabbix
+    CLICKHOUSE_DEFAULT_ACCESS_MANAGEMENT: "1"
+  ulimits:
+    nofile:
+      soft: 262144
+      hard: 262144
+  depends_on:
+    clickhouse-keeper:
+      condition: service_started
+  healthcheck:
+    test:
+      - CMD-SHELL
+      - clickhouse-client --host "$$HOSTNAME" --user "$$CLICKHOUSE_USER" --password "$$CLICKHOUSE_PASSWORD" --query "SELECT count() FROM system.zookeeper WHERE path = '/'"
+    interval: 5s
+    timeout: 5s
+    retries: 30
+    start_period: 20s
+  networks:
+    - database
+  restart: unless-stopped
+
+services:
+  clickhouse-keeper:
+    image: "${CLICKHOUSE_IMAGE}:${CLICKHOUSE_IMAGE_TAG}"
+    user: "0:0"
+    entrypoint: ["/usr/bin/clickhouse", "docker-init"]
+    command: ["--keeper"]
+    environment:
+      KEEPER_CONFIG: /etc/clickhouse-keeper/keeper.xml
+      LOG_DIR: /var/log/clickhouse-server
+    volumes:
+      - ./examples/apm/cluster/keeper.xml:/etc/clickhouse-keeper/keeper.xml:ro
+      - ${DATA_DIRECTORY}/var/lib/clickhouse-apm-cluster/keeper:/var/lib/clickhouse/coordination
+    networks:
+      - database
+    restart: unless-stopped
+
+  clickhouse:
+    <<: *clickhouse-node
+    environment:
+      <<: *clickhouse-environment
+      CH_SHARD: "1"
+      CH_REPLICA: "1"
+    volumes:
+      - ${DATA_DIRECTORY}/var/lib/clickhouse-apm-cluster/s1r1:/var/lib/clickhouse
+      - ${DATA_DIRECTORY}/var/log/clickhouse-server-apm-cluster/s1r1:/var/log/clickhouse-server
+      - ./examples/apm/cluster/server.xml:/etc/clickhouse-server/config.d/apm-cluster.xml:ro
+
+  clickhouse-s1r2:
+    <<: *clickhouse-node
+    environment:
+      <<: *clickhouse-environment
+      CH_SHARD: "1"
+      CH_REPLICA: "2"
+    volumes:
+      - ${DATA_DIRECTORY}/var/lib/clickhouse-apm-cluster/s1r2:/var/lib/clickhouse
+      - ${DATA_DIRECTORY}/var/log/clickhouse-server-apm-cluster/s1r2:/var/log/clickhouse-server
+      - ./examples/apm/cluster/server.xml:/etc/clickhouse-server/config.d/apm-cluster.xml:ro
+
+  clickhouse-s2r1:
+    <<: *clickhouse-node
+    environment:
+      <<: *clickhouse-environment
+      CH_SHARD: "2"
+      CH_REPLICA: "1"
+    volumes:
+      - ${DATA_DIRECTORY}/var/lib/clickhouse-apm-cluster/s2r1:/var/lib/clickhouse
+      - ${DATA_DIRECTORY}/var/log/clickhouse-server-apm-cluster/s2r1:/var/log/clickhouse-server
+      - ./examples/apm/cluster/server.xml:/etc/clickhouse-server/config.d/apm-cluster.xml:ro
+
+  clickhouse-s2r2:
+    <<: *clickhouse-node
+    environment:
+      <<: *clickhouse-environment
+      CH_SHARD: "2"
+      CH_REPLICA: "2"
+    volumes:
+      - ${DATA_DIRECTORY}/var/lib/clickhouse-apm-cluster/s2r2:/var/lib/clickhouse
+      - ${DATA_DIRECTORY}/var/log/clickhouse-server-apm-cluster/s2r2:/var/log/clickhouse-server
+      - ./examples/apm/cluster/server.xml:/etc/clickhouse-server/config.d/apm-cluster.xml:ro
+
+  server-telemetry-init:
+    environment:
+      ZBX_TELEMETRYPROVIDER_0_SCHEMA: '{"create":true,"cluster":"apm","replicated":true,"ttl":86400}'
+    depends_on:
+      clickhouse-s1r2:
+        condition: service_healthy
+      clickhouse-s2r1:
+        condition: service_healthy
+      clickhouse-s2r2:
+        condition: service_healthy
+
+  zabbix-server:
+    environment:
+      ZBX_TELEMETRYPROVIDER_0: '{"provider":"clickhouse","url":"http://clickhouse-s2r2:8123","db":"zabbix"}'
+
+  zabbix-web-nginx-mysql:
+    environment:
+      ZBX_TELEMETRYPROVIDER_0: '{"provider":"clickhouse","url":"http://clickhouse-s2r2:8123","db":"zabbix"}'

@@ -1,0 +1,25 @@
+x-history-providers: &history-providers
+  ZBX_HISTORYPROVIDER_0: '{"provider":"clickhouse","url":"http://clickhouse:8123","db":"zabbix","types":["uint","dbl","str"]}'
+  ZBX_HISTORYPROVIDER_0_USERNAME: zabbix
+  ZBX_HISTORYPROVIDER_0_PASSWORD: zabbix
+  ZBX_HISTORYPROVIDER_1: '{"provider":"elasticsearch","url":"http://elasticsearch:9200","types":["log","text","json"]}'
+
+services:
+  server-history-init:
+    environment:
+      <<: *history-providers
+      ZBX_HISTORYPROVIDER_0_SCHEMA: '{"create":true,"ttl":2678400}'
+      ZBX_HISTORYPROVIDER_1_SCHEMA: '{"create":true,"shards":1,"replicas":0}'
+
+  zabbix-server:
+    environment:
+      <<: *history-providers
+
+  zabbix-web-nginx-mysql:
+    environment:
+      <<: *history-providers
+    depends_on:
+      clickhouse:
+        condition: service_healthy
+      elasticsearch:
+        condition: service_healthy

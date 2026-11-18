@@ -30,7 +30,7 @@ ENV TERM=xterm \
     ZABBIX_CONF_DIR=/etc/zabbix
 
 LABEL org.opencontainers.image.authors="Alexey Pustovalov <alexey.pustovalov@zabbix.com>" \
-      org.opencontainers.image.description="Zabbix MCP server speaks the Model Context Protocol (MCP) on one side and the Zabbix API on the other, so that an AI agent can work incidents in Zabbix." \
+      org.opencontainers.image.description="Zabbix MCP server speaks the Model Context Protocol (MCP) on one side and the Zabbix API on the other, so that an AI agent can work incidents in Zabbix" \
       org.opencontainers.image.documentation="https://www.zabbix.com/documentation/${MAJOR_VERSION}/manual/installation/containers" \
       org.opencontainers.image.licenses="AGPL-3.0-only" \
       com.zabbix.product.source="${ZBX_SOURCES}" \

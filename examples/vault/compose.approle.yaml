@@ -1,0 +1,23 @@
+x-vault-approle: &vault-approle
+  ZBX_VAULTAPPROLEID: zabbix-role-id
+  ZBX_VAULTAPPSECRETID: zabbix-secret-id
+
+services:
+  vault-init:
+    entrypoint: /tools/init-approle.sh
+    environment:
+      <<: *vault-approle
+    volumes:
+      - ./examples/vault/init-approle.sh:/tools/init-approle.sh:ro
+
+  server-db-init:
+    environment:
+      <<: *vault-approle
+
+  zabbix-server:
+    environment:
+      <<: *vault-approle
+
+  zabbix-web-nginx-mysql:
+    environment:
+      <<: *vault-approle

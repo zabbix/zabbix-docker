@@ -1,0 +1,57 @@
+x-vault-client: &vault-client
+  ZBX_VAULT: HashiCorp
+  ZBX_VAULTURL: http://vault:8200
+  ZBX_VAULTDBPATH: zabbix/database
+
+services:
+  vault:
+    image: hashicorp/vault:2.2.2
+    command: server -dev
+    cap_add:
+      - IPC_LOCK
+    environment:
+      VAULT_ADDR: http://127.0.0.1:8200
+      VAULT_DEV_LISTEN_ADDRESS: 0.0.0.0:8200
+      VAULT_DEV_ROOT_TOKEN_ID: zabbix-root-token
+#    ports:
+#      - "127.0.0.1:8200:8200"
+    networks:
+      - database
+      - frontend
+    healthcheck:
+      test: ["CMD", "vault", "status"]
+      interval: 2s
+      timeout: 2s
+      retries: 30
+    restart: unless-stopped
+
+  vault-init:
+    image: hashicorp/vault:2.2.2
+    environment:
+      VAULT_ADDR: http://vault:8200
+      VAULT_TOKEN: zabbix-root-token
+    volumes:
+      - ./examples/vault/policy.hcl:/tools/policy.hcl:ro
+    secrets:
+      - MYSQL_USER
+      - MYSQL_PASSWORD
+    networks:
+      - database
+    depends_on:
+      vault:
+        condition: service_healthy
+
+  server-db-init:
+    environment:
+      <<: *vault-client
+    depends_on:
+      vault-init:
+        condition: service_completed_successfully
+
+  zabbix-server:
+    environment:
+      <<: *vault-client
+
+  zabbix-web-nginx-mysql:
+    environment:
+      <<: *vault-client

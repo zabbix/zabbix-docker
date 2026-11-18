@@ -1,0 +1,11 @@
+services:
+  zabbix-mcp-server:
+    profiles: !reset []
+    ports: !override
+      - "127.0.0.1:${ZABBIX_MCP_SERVER_PORT}:8443"
+    environment:
+      ZBX_ALLOWTOOL_0: host_get
+      ZBX_DENYTOOL_1: "*"
+    depends_on:
+      zabbix-web-nginx-mysql:
+        condition: service_healthy
