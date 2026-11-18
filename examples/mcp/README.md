@@ -9,7 +9,7 @@ docker compose -p zabbix-mcp \
     zabbix-server zabbix-web-nginx-mysql zabbix-mcp-server
 ```
 
-Create an expiring [Zabbix API token](https://www.zabbix.com/documentation/devel/en/manual/web_interface/frontend_sections/users/api_tokens) for a user with API access limited to `host.get` and **Read** permission on the **Zabbix servers** host group.
+Create an expiring [Zabbix API token](https://www.zabbix.com/documentation/8.0/en/manual/web_interface/frontend_sections/users/api_tokens) for a user with API access limited to `host.get` and **Read** permission on the **Zabbix servers** host group.
 
 Replace `<token>` with your API token to call `host_get` over MCP Streamable HTTP.
 
