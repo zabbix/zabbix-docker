@@ -1,0 +1,34 @@
+services:
+  zabbix-server-1:
+    extends:
+      file: ./compose.yaml
+      service: zabbix-server
+    environment:
+      ZBX_HANODENAME: zabbix-server-1
+      ZBX_NODEADDRESS: zabbix-server-1:10051
+    networks: !override
+      database:
+      backend:
+      frontend:
+
+  zabbix-server-2:
+    extends:
+      file: ./compose.yaml
+      service: zabbix-server
+    ports: !reset []
+    environment:
+      ZBX_HANODENAME: zabbix-server-2
+      ZBX_NODEADDRESS: zabbix-server-2:10051
+    networks: !override
+      database:
+      backend:
+      frontend:
+
+  zabbix-web-nginx-mysql:
+    environment:
+      ZBX_SERVER_HOST: ""
+    depends_on:
+      zabbix-server-1:
+        condition: service_started
+      zabbix-server-2:
+        condition: service_started

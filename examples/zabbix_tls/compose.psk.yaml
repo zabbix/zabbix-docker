@@ -1,0 +1,40 @@
+services:
+  zabbix-proxy-sqlite3:
+    depends_on:
+      zabbix-server:
+        condition: service_started
+      zabbix-tls-api:
+        condition: service_completed_successfully
+    environment:
+      ZBX_SERVER_HOST: zabbix-server
+      ZBX_HOSTNAME: zabbix-proxy-tls
+      ZBX_TLSCONNECT: psk
+      ZBX_TLSACCEPT: psk
+      ZBX_TLSPSKIDENTITY: zabbix-proxy-tls
+      ZBX_TLSPSKFILE: proxy.psk
+
+  zabbix-agent:
+    depends_on:
+      zabbix-proxy-sqlite3:
+        condition: service_started
+    environment:
+      ZBX_SERVER_HOST: zabbix-proxy-sqlite3
+      ZBX_HOSTNAME: Zabbix server
+      ZBX_TLSCONNECT: psk
+      ZBX_TLSACCEPT: psk
+      ZBX_TLSPSKIDENTITY: zabbix-agent-tls
+      ZBX_TLSPSKFILE: agent.psk
+
+  zabbix-tls-api:
+    image: python:3.14-alpine
+    entrypoint: ["python", "/tools/zabbix_api.py"]
+    depends_on:
+      zabbix-web-nginx-mysql:
+        condition: service_healthy
+    environment:
+      EXAMPLE_TLS_MODE: psk
+    volumes:
+      - ./examples/zabbix_tls/zabbix_api.py:/tools/zabbix_api.py:ro
+      - ${DATA_DIRECTORY}/run/zabbix/secrets/tls:/run/zabbix/secrets/tls:ro
+    networks:
+      - backend

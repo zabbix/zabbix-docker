@@ -1,0 +1,63 @@
+services:
+  zabbix-server:
+    environment:
+      ZBX_TLSCAFILE: ca.crt
+      ZBX_TLSCERTFILE: server.crt
+      ZBX_TLSKEYFILE: server.key
+      ZBX_TLS_FRONTENDACCEPT: cert
+      ZBX_TLSFRONTENDCERTISSUER: CN=Zabbix TLS example CA
+      ZBX_TLSFRONTENDCERTSUBJECT: CN=zabbix-frontend
+
+  zabbix-web-nginx-mysql:
+    environment:
+      ZBX_SERVER_TLS_ACTIVE: "true"
+      ZBX_SERVER_TLS_CAFILE: ca.crt
+      ZBX_SERVER_TLS_CERTFILE: frontend.crt
+      ZBX_SERVER_TLS_KEYFILE: frontend.key
+      ZBX_SERVER_TLS_CERT_ISSUER: CN=Zabbix TLS example CA
+      ZBX_SERVER_TLS_CERT_SUBJECT: CN=zabbix-server
+
+  zabbix-proxy-sqlite3:
+    depends_on:
+      zabbix-server:
+        condition: service_started
+      zabbix-tls-api:
+        condition: service_completed_successfully
+    environment:
+      ZBX_SERVER_HOST: zabbix-server
+      ZBX_HOSTNAME: zabbix-proxy-tls
+      ZBX_TLSCONNECT: cert
+      ZBX_TLSACCEPT: cert
+      ZBX_TLSCAFILE: ca.crt
+      ZBX_TLSCERTFILE: proxy.crt
+      ZBX_TLSKEYFILE: proxy.key
+      ZBX_TLSSERVERCERTISSUER: CN=Zabbix TLS example CA
+      ZBX_TLSSERVERCERTSUBJECT: CN=zabbix-server
+
+  zabbix-agent:
+    depends_on:
+      zabbix-proxy-sqlite3:
+        condition: service_started
+    environment:
+      ZBX_SERVER_HOST: zabbix-proxy-sqlite3
+      ZBX_HOSTNAME: Zabbix server
+      ZBX_TLSCONNECT: cert
+      ZBX_TLSACCEPT: cert
+      ZBX_TLSCAFILE: ca.crt
+      ZBX_TLSCERTFILE: agent.crt
+      ZBX_TLSKEYFILE: agent.key
+      ZBX_TLSSERVERCERTISSUER: CN=Zabbix TLS example CA
+      ZBX_TLSSERVERCERTSUBJECT: CN=zabbix-proxy
+
+  zabbix-tls-api:
+    image: python:3.14-alpine
+    entrypoint: ["python", "/tools/zabbix_api.py"]
+    depends_on:
+      zabbix-web-nginx-mysql:
+        condition: service_healthy
+    environment:
+      EXAMPLE_TLS_MODE: cert
+    volumes:
+      - ./examples/zabbix_tls/zabbix_api.py:/tools/zabbix_api.py:ro
+    networks:
+      - backend

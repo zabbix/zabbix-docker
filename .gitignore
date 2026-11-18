@@ -1,9 +1,14 @@
 **.DS_Store
+__pycache__/
+*.py[cod]
 zbx_env/
 zbx_env*/
 .*CERT_FILE
 .*KEY_FILE
 .*CA_FILE
+.*CERTFILE
+.*KEYFILE
+.*CAFILE
 Dockerfiles/*/rhel/secrets/*
 env_vars/.env_*_override
 sources/*

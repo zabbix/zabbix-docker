@@ -1,0 +1,21 @@
+x-vault-token: &vault-token zabbix-token
+
+services:
+  vault-init:
+    entrypoint: /tools/init-token.sh
+    environment:
+      ZBX_VAULT_TOKEN: *vault-token
+    volumes:
+      - ./examples/vault/init-token.sh:/tools/init-token.sh:ro
+
+  server-db-init:
+    environment:
+      ZBX_VAULTDBPATH: ""
+
+  zabbix-server:
+    environment:
+      VAULT_TOKEN: *vault-token
+
+  zabbix-web-nginx-mysql:
+    environment:
+      VAULT_TOKEN: *vault-token

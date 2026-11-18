@@ -1,0 +1,30 @@
+x-clickhouse-tls: &clickhouse-tls
+  ZBX_HISTORYPROVIDER_0: '{"provider":"clickhouse","url":"https://clickhouse:8443","db":"zabbix","types":["uint","dbl","str"],"ssl_verify_peer":true,"ssl_verify_host":true}'
+  ZBX_HISTORYPROVIDER_0_SSL_CAFILE: ca.crt
+  ZBX_HISTORYPROVIDER_0_SSL_CERTFILE: client.crt
+  ZBX_HISTORYPROVIDER_0_SSL_KEYFILE: client.key
+
+services:
+  clickhouse:
+    volumes:
+      - ./examples/history_providers/clickhouse-tls.xml:/etc/clickhouse-server/config.d/history-provider-tls.xml:ro
+    secrets:
+      - history-provider-ca
+      - history-provider-clickhouse-cert
+      - history-provider-clickhouse-key
+
+  server-history-init:
+    environment:
+      <<: *clickhouse-tls
+
+  zabbix-server:
+    environment:
+      <<: *clickhouse-tls
+
+secrets:
+  history-provider-ca:
+    file: ${DATA_DIRECTORY}/run/zabbix/secrets/providers/history-0/ca.crt
+  history-provider-clickhouse-cert:
+    file: ${DATA_DIRECTORY}/etc/history_providers/clickhouse.crt
+  history-provider-clickhouse-key:
+    file: ${DATA_DIRECTORY}/etc/history_providers/clickhouse.key

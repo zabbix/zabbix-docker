@@ -1,0 +1,12 @@
+<clickhouse>
+    <https_port>8443</https_port>
+    <openSSL>
+        <server>
+            <certificateFile>/run/secrets/history-provider-clickhouse-cert</certificateFile>
+            <privateKeyFile>/run/secrets/history-provider-clickhouse-key</privateKeyFile>
+            <caConfig>/run/secrets/history-provider-ca</caConfig>
+            <verificationMode>strict</verificationMode>
+            <loadDefaultCAFile>false</loadDefaultCAFile>
+        </server>
+    </openSSL>
+</clickhouse>

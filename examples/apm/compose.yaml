@@ -1,0 +1,96 @@
+x-telemetry-provider: &telemetry-provider
+  ZBX_TELEMETRYPROVIDER_0: '{"provider":"clickhouse","url":"http://clickhouse:8123","db":"zabbix"}'
+  ZBX_TELEMETRYPROVIDER_0_USERNAME: zabbix
+  ZBX_TELEMETRYPROVIDER_0_PASSWORD: zabbix
+
+x-apm-demo-service: &apm-demo-service
+  image: zabbix-apm-demo:local
+  build:
+    context: ./examples/apm/demo
+  init: true
+  networks:
+    - backend
+  healthcheck:
+    test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8080/health', timeout=2)"]
+    interval: 3s
+    timeout: 3s
+    retries: 20
+    start_period: 5s
+  restart: unless-stopped
+
+services:
+  server-telemetry-init:
+    environment:
+      <<: *telemetry-provider
+      ZBX_TELEMETRYPROVIDER_0_SCHEMA: '{"create":true,"ttl":86400}'
+    depends_on:
+      clickhouse:
+        condition: service_healthy
+
+  zabbix-server:
+    environment:
+      <<: *telemetry-provider
+
+  zabbix-proxy-sqlite3:
+    profiles: !reset []
+    environment:
+      <<: *telemetry-provider
+      ZBX_HOSTNAME: zabbix-proxy-apm
+      ZBX_SERVER_HOST: zabbix-server
+      ZBX_STARTAPMCOLLECTOR: "1"
+    depends_on: !override
+      zabbix-apm-init:
+        condition: service_completed_successfully
+
+  zabbix-web-nginx-mysql:
+    environment:
+      <<: *telemetry-provider
+    depends_on:
+      zabbix-server:
+        condition: service_started
+      clickhouse:
+        condition: service_healthy
+
+  zabbix-apm-init:
+    image: python:3.14-alpine
+    entrypoint: ["python", "/tools/zabbix_api.py"]
+    depends_on:
+      zabbix-web-nginx-mysql:
+        condition: service_healthy
+    volumes:
+      - ./examples/apm/zabbix_api.py:/tools/zabbix_api.py:ro
+    networks:
+      - backend
+
+  demo-inventory:
+    <<: *apm-demo-service
+    environment:
+      SERVICE_NAME: apm-demo-inventory
+      SERVICE_ROLE: inventory
+    depends_on:
+      zabbix-proxy-sqlite3:
+        condition: service_started
+
+  demo-checkout:
+    <<: *apm-demo-service
+    environment:
+      SERVICE_NAME: apm-demo-checkout
+      SERVICE_ROLE: checkout
+    ports:
+      - "${ZABBIX_APM_DEMO_PORT:-8090}:8080"
+    depends_on:
+      demo-inventory:
+        condition: service_healthy
+
+  demo-loadgen:
+    image: zabbix-apm-demo:local
+    build:
+      context: ./examples/apm/demo
+    command: ["load"]
+    init: true
+    restart: unless-stopped
+    networks:
+      - backend
+    depends_on:
+      demo-checkout:
+        condition: service_healthy
