@@ -54,6 +54,18 @@ jobs:
           # Disabling shallow clone is recommended for improving relevancy of reporting
           fetch-depth: 0
 
+      - name: Set up Go
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: templates/entrypoints/go.mod
+          cache-dependency-path: templates/entrypoints/go.sum
+
+      - name: Generate Go coverage report
+        working-directory: templates/entrypoints
+        env:
+          CGO_ENABLED: "0"
+        run: go test -count=1 -coverprofile=coverage.out ./...
+
       - name: Analyze with SonarCloud
         uses: SonarSource/sonarqube-scan-action@d209202bc7d53ff1cc128f7f907dac145c9d6ae9 # v8.3.0
         env:
