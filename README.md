@@ -94,6 +94,7 @@ The [`examples`](examples/) directory contains overlays for the common Compose s
 - [Zabbix server HA](examples/zabbix_ha/)
 - [Web TLS](examples/web_tls/)
 - [Database TLS](examples/db_tls/)
+- [Database granular permissions](examples/db_permissions/)
 - [MCP server](examples/mcp/)
 
 ## Issues and Wiki
