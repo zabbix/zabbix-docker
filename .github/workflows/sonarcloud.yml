@@ -39,8 +39,41 @@ permissions:
   pull-requests: read # allows SonarCloud to decorate PRs with analysis results
 
 jobs:
+  test_entrypoints:
+    name: Test Windows entrypoints
+    runs-on: windows-2022
+    timeout-minutes: 15
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          sparse-checkout: templates/entrypoints
+
+      - name: Set up Go
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: templates/entrypoints/go.mod
+          cache: false
+
+      - name: Generate Go coverage report
+        working-directory: templates/entrypoints
+        env:
+          CGO_ENABLED: "0"
+        run: go test -count=1 -coverprofile=coverage.out ./...
+
+      - name: Upload Go coverage report
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: go-coverage
+          path: templates/entrypoints/coverage.out
+          if-no-files-found: error
+
   Analysis:
     runs-on: ubuntu-26.04
+    needs: test_entrypoints
 
     steps:
       - name: Block egress traffic
@@ -53,6 +86,12 @@ jobs:
         with:
           # Disabling shallow clone is recommended for improving relevancy of reporting
           fetch-depth: 0
+
+      - name: Download Go coverage report
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: go-coverage
+          path: templates/entrypoints
 
       - name: Analyze with SonarCloud
         uses: SonarSource/sonarqube-scan-action@d209202bc7d53ff1cc128f7f907dac145c9d6ae9 # v8.3.0
