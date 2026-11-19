@@ -1,0 +1,46 @@
+x-server-db-env: &server-db-env
+  POSTGRES_USER: &server-db-user zabbix
+  POSTGRES_USER_FILE: ""
+
+services:
+  postgres-server:
+    volumes:
+      - ${ENV_VARS_DIRECTORY}/postgresql_init:/docker-entrypoint-initdb.d:ro
+    environment:
+      POSTGRES_DB: postgres
+      POSTGRES_USER: postgres
+      POSTGRES_USER_FILE: ""
+      POSTGRES_PASSWORD: zabbix-bootstrap-example
+      POSTGRES_PASSWORD_FILE: ""
+      ZBX_SERVER_DB_USER: *server-db-user
+      ZBX_SERVER_DB_PASSWORD_FILE: /run/secrets/POSTGRES_PASSWORD
+      ZBX_WEB_DB_USER: &web-db-user zabbix_web
+      ZBX_WEB_DB_PASSWORD: &web-db-password zabbix-web-example
+    secrets: !override
+      - POSTGRES_PASSWORD
+    healthcheck:
+      test:
+        - CMD
+        - pg_isready
+        - -h
+        - 127.0.0.1
+        - -U
+        - postgres
+
+  server-db-init:
+    environment: *server-db-env
+    secrets: !override
+      - POSTGRES_PASSWORD
+
+  zabbix-server:
+    environment: *server-db-env
+    secrets: !override
+      - POSTGRES_PASSWORD
+
+  zabbix-web-nginx-pgsql:
+    environment:
+      POSTGRES_USER: *web-db-user
+      POSTGRES_USER_FILE: ""
+      POSTGRES_PASSWORD: *web-db-password
+      POSTGRES_PASSWORD_FILE: ""
+    secrets: !reset []

@@ -1,0 +1,40 @@
+x-server-db-env: &server-db-env
+  MYSQL_USER: &server-db-user zabbix_server
+  MYSQL_USER_FILE: ""
+
+services:
+  mysql-server:
+    volumes:
+      - ${ENV_VARS_DIRECTORY}/mysql_init:/docker-entrypoint-initdb.d:ro
+    environment:
+      MYSQL_DATABASE: ""
+      MYSQL_USER_FILE: ""
+      MYSQL_PASSWORD_FILE: ""
+      ZBX_SERVER_DB_USER: *server-db-user
+      ZBX_SERVER_DB_PASSWORD_FILE: /run/secrets/MYSQL_PASSWORD
+      ZBX_WEB_DB_USER: &web-db-user zabbix_web
+      ZBX_WEB_DB_PASSWORD: &web-db-password zabbix-web-example
+    secrets: !override
+      - MYSQL_ROOT_PASSWORD
+      - MYSQL_PASSWORD
+
+  server-db-init:
+    environment:
+      <<: *server-db-env
+      MYSQL_ROOT_PASSWORD: ""
+      MYSQL_ROOT_PASSWORD_FILE: ""
+    secrets: !override
+      - MYSQL_PASSWORD
+
+  zabbix-server:
+    environment: *server-db-env
+    secrets: !override
+      - MYSQL_PASSWORD
+
+  zabbix-web-nginx-mysql:
+    environment:
+      MYSQL_USER: *web-db-user
+      MYSQL_USER_FILE: ""
+      MYSQL_PASSWORD: *web-db-password
+      MYSQL_PASSWORD_FILE: ""
+    secrets: !reset []
