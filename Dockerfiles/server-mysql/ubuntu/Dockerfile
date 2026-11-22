@@ -13,6 +13,7 @@ ARG ZBX_VERSION
 ARG ZBX_SOURCES=https://git.zabbix.com/scm/zbx/zabbix.git
 ARG ZBX_PRODUCT_REF=${ZBX_VERSION}
 ARG ZBX_PRODUCT_REVISION=unknown
+ARG TARGETARCH
 
 ENV TERM=xterm \
     ZBX_VERSION=${ZBX_VERSION} \
@@ -44,8 +45,8 @@ COPY --from=builder /tmp/zabbix-${ZBX_VERSION}-output/server/conf/ ${ZABBIX_CONF
 COPY --from=builder /tmp/zabbix-${ZBX_VERSION}-output/server/sbom/ /usr/share/doc/zabbix/sbom/
 COPY --from=builder /tmp/zabbix-${ZBX_VERSION}-output/server/database/mysql/create.sql.gz /usr/share/doc/zabbix-server-mysql/create.sql.gz
 
-RUN --mount=type=cache,target=/var/cache/apt/,sharing=locked \
-    --mount=type=cache,target=/var/lib/apt/,sharing=locked \
+RUN --mount=type=cache,id=apt-cache-${TARGETARCH},target=/var/cache/apt/,sharing=locked \
+    --mount=type=cache,id=apt-lib-${TARGETARCH},target=/var/lib/apt/,sharing=locked \
     set -eux && \
     INSTALL_PKGS="bash \
             ca-certificates \

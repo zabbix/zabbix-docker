@@ -13,6 +13,7 @@ ARG ZBX_VERSION
 ARG ZBX_SOURCES=https://git.zabbix.com/scm/zbx/zabbix.git
 ARG ZBX_PRODUCT_REF=${ZBX_VERSION}
 ARG ZBX_PRODUCT_REVISION=unknown
+ARG TARGETARCH
 
 ENV TERM=xterm \
     CHROME_CONFIG_HOME=/tmp/chromium-config \
@@ -38,8 +39,8 @@ COPY --from=builder /tmp/zabbix-${ZBX_VERSION}-output/web_service/sbin/zabbix_we
 COPY --from=builder /tmp/zabbix-${ZBX_VERSION}-output/web_service/conf/ ${ZABBIX_CONF_DIR}/
 COPY --from=builder /tmp/zabbix-${ZBX_VERSION}-output/web_service/sbom/ /usr/share/doc/zabbix/sbom/
 
-RUN --mount=type=cache,target=/var/cache/apt/,sharing=locked \
-    --mount=type=cache,target=/var/lib/apt/,sharing=locked \
+RUN --mount=type=cache,id=apt-cache-${TARGETARCH},target=/var/cache/apt/,sharing=locked \
+    --mount=type=cache,id=apt-lib-${TARGETARCH},target=/var/lib/apt/,sharing=locked \
     set -eux && \
     INSTALL_SYSTEM_PKGS="ca-certificates \
             debian-archive-keyring" && \
@@ -50,8 +51,8 @@ RUN --mount=type=cache,target=/var/cache/apt/,sharing=locked \
 
 COPY conf/etc/ /etc/
 
-RUN --mount=type=cache,target=/var/cache/apt/,sharing=locked \
-    --mount=type=cache,target=/var/lib/apt/,sharing=locked \
+RUN --mount=type=cache,id=apt-cache-${TARGETARCH},target=/var/cache/apt/,sharing=locked \
+    --mount=type=cache,id=apt-lib-${TARGETARCH},target=/var/lib/apt/,sharing=locked \
     set -eux && \
     INSTALL_PKGS="chromium \
             chromium-sandbox" && \

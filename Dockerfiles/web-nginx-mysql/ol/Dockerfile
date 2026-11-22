@@ -109,9 +109,8 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
     ln -sf /dev/stderr /var/log/nginx/error.log && \
     ln -sf "${ZABBIX_CONF_DIR}/web/zabbix.conf.php" "${ZABBIX_WWW_ROOT}/conf/zabbix.conf.php" && \
     ln -sf "${ZABBIX_CONF_DIR}/web/maintenance.inc.php" "${ZABBIX_WWW_ROOT}/conf/maintenance.inc.php" && \
-    awk "/display/ && /true/ {gsub(/^[ \t]+|[ \t]+$/, \"\", \$0); print \$0}" "${ZABBIX_WWW_ROOT}/include/locales.inc.php" | \
-        cut -d"'" -f 2 | sort -u | \
-        xargs -r -I '{}' bash -c 'echo "{}" && localedef -c -i {} -f UTF-8 {}.UTF-8 2>/dev/null' && \
+    awk -F"'" '/display/ && /true/ {print $2}' "${ZABBIX_WWW_ROOT}/include/locales.inc.php" | \
+        xargs -r -I '{}' localedef -c -i '{}' -f UTF-8 '{}.UTF-8' && \
     FIX_PERM_LIST="\
         ${ZABBIX_CONF_DIR}/ \
         ${ZABBIX_WWW_ROOT}/modules/ \
