@@ -22,6 +22,7 @@ ARG ZBX_VERSION
 ARG ZBX_SOURCES=https://git.zabbix.com/scm/zt/mcp-server.git
 ARG ZBX_PRODUCT_REF=${ZBX_VERSION}
 ARG ZBX_PRODUCT_REVISION=unknown
+ARG TARGETARCH
 
 ENV TERM=xterm \
     ZBX_VERSION=${ZBX_VERSION} \
@@ -50,8 +51,8 @@ COPY --from=builder /tmp/zabbix-${ZBX_VERSION}-output/mcp_server/sbom/ /usr/shar
 COPY --chmod=0755 --from=entrypoint-builder /tmp/docker-entrypoint /usr/bin/docker-entrypoint
 COPY --from=entrypoints /licenses/go-THIRD-PARTY-NOTICES.txt /licenses/
 
-RUN --mount=type=cache,target=/var/cache/apt/,sharing=locked \
-    --mount=type=cache,target=/var/lib/apt/,sharing=locked \
+RUN --mount=type=cache,id=apt-cache-${TARGETARCH},target=/var/cache/apt/,sharing=locked \
+    --mount=type=cache,id=apt-lib-${TARGETARCH},target=/var/lib/apt/,sharing=locked \
     set -eux && \
     INSTALL_PKGS="ca-certificates" && \
     apt-get update && \
