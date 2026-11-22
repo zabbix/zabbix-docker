@@ -7,6 +7,7 @@ ARG ZBX_VERSION=${MAJOR_VERSION}.32
 ARG ZBX_SOURCES=https://git.zabbix.com/scm/zbx/zabbix.git
 ARG ZBX_PRODUCT_REF=${ZBX_VERSION}
 ARG ZBX_PRODUCT_REVISION=unknown
+ARG TARGETARCH
 
 ENV TERM=xterm \
     ZBX_VERSION=${ZBX_VERSION} \
@@ -31,8 +32,8 @@ LABEL org.opencontainers.image.authors="Alexey Pustovalov <alexey.pustovalov@zab
       org.opencontainers.image.vendor="Zabbix SIA" \
       org.opencontainers.image.version="${ZBX_VERSION}"
 
-RUN --mount=type=cache,target=/var/cache/apt/,sharing=locked \
-    --mount=type=cache,target=/var/lib/apt/,sharing=locked \
+RUN --mount=type=cache,id=apt-cache-${TARGETARCH},target=/var/cache/apt/,sharing=locked \
+    --mount=type=cache,id=apt-lib-${TARGETARCH},target=/var/lib/apt/,sharing=locked \
     --mount=from=config_templates,target=/tmp/conf,ro \
     --mount=from=scripts,target=/tmp/scripts,ro \
     set -eux && \
