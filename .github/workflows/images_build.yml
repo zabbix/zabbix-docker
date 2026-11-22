@@ -357,7 +357,6 @@ jobs:
           current_branch: ${{ needs.init_build.outputs.current_branch }}
           is_default_branch: ${{ needs.init_build.outputs.is_default_branch }}
           trunk_only_event: ${{ env.TRUNK_ONLY_EVENT }}
-          event_name: ${{ github.event_name }}
           release_version: ${{ needs.init_build.outputs.release_version }}
 
       - name: Set up Docker tooling
@@ -472,7 +471,6 @@ jobs:
           current_branch: ${{ needs.init_build.outputs.current_branch }}
           is_default_branch: ${{ needs.init_build.outputs.is_default_branch }}
           trunk_only_event: ${{ env.TRUNK_ONLY_EVENT }}
-          event_name: ${{ github.event_name }}
           release_version: ${{ needs.init_build.outputs.release_version }}
 
       - name: Download artifact metadata of ${{ env.BASE_BUILD_NAME }}:${{ matrix.os }}
@@ -765,7 +763,6 @@ jobs:
           current_branch: ${{ needs.init_build.outputs.current_branch }}
           is_default_branch: ${{ needs.init_build.outputs.is_default_branch }}
           trunk_only_event: ${{ env.TRUNK_ONLY_EVENT }}
-          event_name: ${{ github.event_name }}
           release_version: ${{ needs.init_build.outputs.release_version }}
 
       - name: Download artifact metadata of ${{ steps.build_base_image.outputs.build_base }}:${{ matrix.os }}
