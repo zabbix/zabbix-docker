@@ -25,6 +25,7 @@ ARG ZBX_VERSION
 ARG ZBX_SOURCES=https://git.zabbix.com/scm/zbx/zabbix.git
 ARG ZBX_PRODUCT_REF=${ZBX_VERSION}
 ARG ZBX_PRODUCT_REVISION=unknown
+ARG TARGETARCH
 
 ENV TERM=xterm \
     ZBX_VERSION=${ZBX_VERSION} \
@@ -62,8 +63,8 @@ COPY --from=clean_builder /tmp/zabbix-${ZBX_VERSION}-output/web/conf ${ZABBIX_CO
 COPY --from=clean_builder /tmp/zabbix-${ZBX_VERSION}-output/web/sbom/ /usr/share/doc/zabbix/sbom/
 COPY conf/etc/ /etc/
 
-RUN --mount=type=cache,target=/var/cache/apt/,sharing=locked \
-    --mount=type=cache,target=/var/lib/apt/,sharing=locked \
+RUN --mount=type=cache,id=apt-cache-${TARGETARCH},target=/var/cache/apt/,sharing=locked \
+    --mount=type=cache,id=apt-lib-${TARGETARCH},target=/var/lib/apt/,sharing=locked \
     set -eux && \
     INSTALL_PKGS="bash \
             ca-certificates \
@@ -119,10 +120,9 @@ RUN --mount=type=cache,target=/var/cache/apt/,sharing=locked \
     ln -sf /dev/stderr /var/log/nginx/error.log && \
     ln -sf "${ZABBIX_CONF_DIR}/web/zabbix.conf.php" "${ZABBIX_WWW_ROOT}/conf/zabbix.conf.php" && \
     ln -sf "${ZABBIX_CONF_DIR}/web/maintenance.inc.php" "${ZABBIX_WWW_ROOT}/conf/maintenance.inc.php" && \
-    awk "/display/ && /true/ {gsub(/^[ \t]+|[ \t]+$/, \"\", \$0); print \$0}" "${ZABBIX_WWW_ROOT}/include/locales.inc.php" | \
-        cut -d"'" -f 2 | sort -u | \
-        xargs -r -I '{}' bash -c 'echo "{}.UTF-8 UTF-8" >> /var/lib/locales/supported.d/local' && \
-    dpkg-reconfigure locales && \
+    awk -F"'" '/display/ && /true/ {print $2 ".UTF-8 UTF-8"}' "${ZABBIX_WWW_ROOT}/include/locales.inc.php" \
+        >> /var/lib/locales/supported.d/local && \
+    locale-gen && \
     FIX_PERM_LIST="\
         ${ZABBIX_CONF_DIR}/ \
         ${ZABBIX_WWW_ROOT}/modules/ \
