@@ -161,6 +161,14 @@ services:
   labels:
    com.zabbix.os: "${OS}"
 
+ zabbix-agent2:
+  extends:
+   file: compose_zabbix_components.yaml
+   service: agent2
+  image: "${ZABBIX_AGENT2_IMAGE}:${ZBX_IMAGE_TAG}"
+  labels:
+   com.zabbix.os: "${OS}"
+
  zabbix-java-gateway:
   extends:
    file: compose_zabbix_components.yaml
