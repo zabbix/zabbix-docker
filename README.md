@@ -99,6 +99,12 @@ The [`examples`](examples/) directory contains overlays for the common Compose s
 - [Database granular permissions](examples/db_permissions/)
 - [MCP server](examples/mcp/)
 
+### Kubernetes
+
+The [`kubernetes.yaml`](kubernetes.yaml) example deploys Zabbix server with MySQL, Nginx-based web-interface, proxies for MySQL and SQLite, Java gateway, Web-service, SNMP traps and Zabbix agent. Zabbix agent runs as a privileged DaemonSet and requires the cluster to allow privileged pods.
+
+Zabbix Agent 2, MCP Server, Bridge Adapter, external history and telemetry storage, and Selenium require separate manifests.
+
 ## Issues and Wiki
 
 Be sure to check [the Wiki-page](https://github.com/zabbix/zabbix-docker/wiki) on common problems and questions. If you still have problems with or questions about the images, please contact us through a [GitHub issue](https://github.com/zabbix/zabbix-docker/issues).
