@@ -3,10 +3,10 @@ package config
 import (
 	"os"
 	"path/filepath"
-	"strings"
 	"testing"
 
 	"github.com/zabbix/zabbix-docker/templates/entrypoints/internal/bootstrap"
+	"github.com/zabbix/zabbix-docker/templates/entrypoints/internal/testutil"
 )
 
 func TestConfigureToolAccessRulesRestoresDefaults(t *testing.T) {
@@ -85,23 +85,12 @@ func TestConfigureToolAccessRulesRejectsInvalidVariables(t *testing.T) {
 			runtimePath := filepath.Join(dir, "runtime.conf")
 			original := "DenyTool=*\n"
 			for _, path := range []string{templatePath, runtimePath} {
-				if err := os.WriteFile(path, []byte(original), 0o644); err != nil {
-					t.Fatal(err)
-				}
+				testutil.WriteFile(t, path, original)
 			}
 			err := ConfigureToolAccessRules(test.env, templatePath, runtimePath)
-			if err == nil {
-				t.Fatal("invalid rule variable was accepted")
-			}
-			if !strings.Contains(err.Error(), "ZBX_") {
-				t.Fatalf("error does not identify the invalid variables: %v", err)
-			}
+			testutil.CheckError(t, err, "ZBX_")
 			for _, path := range []string{templatePath, runtimePath} {
-				data, err := os.ReadFile(path)
-				if err != nil {
-					t.Fatal(err)
-				}
-				if string(data) != original {
+				if data := testutil.ReadFile(t, path); data != original {
 					t.Fatalf("%s was changed after invalid input: %q", path, data)
 				}
 			}

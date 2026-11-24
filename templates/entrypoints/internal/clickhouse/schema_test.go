@@ -8,6 +8,8 @@ import (
 	"net/http/httptest"
 	"strings"
 	"testing"
+
+	"github.com/zabbix/zabbix-docker/templates/entrypoints/internal/testutil"
 )
 
 func testClient(t *testing.T, handler http.HandlerFunc) *Client {
@@ -63,30 +65,34 @@ func TestEnsureChecksDDLCompletion(t *testing.T) {
 	for _, replicas := range []int{1, 2} {
 		t.Run(fmt.Sprintf("replicas=%d", replicas), func(t *testing.T) {
 			created := false
-			c := testClient(t, func(w http.ResponseWriter, r *http.Request) {
-				body, _ := io.ReadAll(r.Body)
-				if strings.HasPrefix(string(body), "CREATE") {
-					created = true
-					return
-				}
-				count := 1
-				if created {
-					count = replicas
-				}
-				fmt.Fprintln(w, count)
-			})
+			c := testClient(t, ddlHandler(replicas, &created))
 			err := c.ensure(context.Background(), "database data", "SELECT count() FROM system.databases", 2,
 				"CREATE DATABASE IF NOT EXISTS data ON CLUSTER 'cluster'", true, true)
 			if !created {
 				t.Fatal("missing database was not created")
 			}
-			if replicas == 2 && err != nil {
-				t.Fatal(err)
+			want := ""
+			if replicas == 1 {
+				want = "still missing"
 			}
-			if replicas == 1 && (err == nil || !strings.Contains(err.Error(), "still missing")) {
-				t.Fatalf("expected an error for incomplete DDL, got %v", err)
-			}
+			testutil.CheckError(t, err, want)
 		})
+	}
+}
+
+// ddlHandler reports one replica before CREATE and the given number after it.
+func ddlHandler(replicas int, created *bool) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		body, _ := io.ReadAll(r.Body)
+		if strings.HasPrefix(string(body), "CREATE") {
+			*created = true
+			return
+		}
+		count := 1
+		if *created {
+			count = replicas
+		}
+		fmt.Fprintln(w, count)
 	}
 }
 
@@ -142,28 +148,33 @@ func TestClusterRejectsNonDistributedTableBeforeDDL(t *testing.T) {
 					name = "history_log"
 				}
 				calls := 0
-				c := testClient(t, func(w http.ResponseWriter, r *http.Request) {
-					calls++
-					body, _ := io.ReadAll(r.Body)
-					q := string(body)
-					switch {
-					case strings.Contains(q, "system.one"):
-						fmt.Fprintln(w, "4")
-					case strings.HasPrefix(q, "SELECT name, engine"):
-						if !strings.Contains(q, "clusterAllReplicas('cluster', system.tables)") ||
-							!strings.Contains(q, literal(name)) || !strings.Contains(q, "engine != 'Distributed'") {
-							t.Errorf("engine check must cover the requested tables on all replicas: %s", q)
-						}
-						fmt.Fprintf(w, "%s\tMergeTree\n", name)
-					default:
-						t.Errorf("unexpected query while checking table engines: %s", q)
-					}
-				})
+				c := testClient(t, engineCheckHandler(t, name, &calls))
 				err := c.Prepare(context.Background(), s, create)
 				if err == nil || !strings.Contains(err.Error(), name) || !strings.Contains(err.Error(), "expected Distributed") || calls != 2 {
 					t.Fatalf("calls=%d error=%v", calls, err)
 				}
 			})
+		}
+	}
+}
+
+// engineCheckHandler reports name as a non-distributed table.
+func engineCheckHandler(t *testing.T, name string, calls *int) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		*calls++
+		body, _ := io.ReadAll(r.Body)
+		q := string(body)
+		switch {
+		case strings.Contains(q, "system.one"):
+			fmt.Fprintln(w, "4")
+		case strings.HasPrefix(q, "SELECT name, engine"):
+			if !strings.Contains(q, "clusterAllReplicas('cluster', system.tables)") ||
+				!strings.Contains(q, literal(name)) || !strings.Contains(q, "engine != 'Distributed'") {
+				t.Errorf("engine check must cover the requested tables on all replicas: %s", q)
+			}
+			fmt.Fprintf(w, "%s\tMergeTree\n", name)
+		default:
+			t.Errorf("unexpected query while checking table engines: %s", q)
 		}
 	}
 }

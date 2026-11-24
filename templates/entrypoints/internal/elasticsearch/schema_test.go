@@ -8,6 +8,8 @@ import (
 	"net/http/httptest"
 	"strings"
 	"testing"
+
+	"github.com/zabbix/zabbix-docker/templates/entrypoints/internal/testutil"
 )
 
 func testClient(t *testing.T, handler http.HandlerFunc) *Client {
@@ -39,44 +41,46 @@ func TestPrepareRechecksAfterCreateError(t *testing.T) {
 				path, errorKind = "/_index_template/uint_template", "illegal_argument_exception"
 			}
 			put := false
-			client := testClient(t, func(w http.ResponseWriter, r *http.Request) {
-				switch r.URL.Path {
-				case "/_ingest/pipeline/uint-pipeline":
-				case "/_template/uint_template":
-					w.WriteHeader(http.StatusNotFound)
-				case path:
-					if r.Method == http.MethodPut {
-						put = true
-						if test.dated && r.URL.Query().Get("create") != "true" {
-							t.Error("template creation must use create=true")
-						}
-						w.WriteHeader(http.StatusBadRequest)
-						fmt.Fprintf(w, `{"error":{"type":%q}}`, errorKind)
-					} else if put {
-						w.WriteHeader(test.status)
-					} else {
-						w.WriteHeader(http.StatusNotFound)
-					}
-				default:
-					t.Errorf("unexpected request: %s %s", r.Method, r.URL.Path)
-					w.WriteHeader(http.StatusNotFound)
-				}
-			})
+			client := testClient(t, conflictHandler(t, path, errorKind, test.dated, test.status, &put))
 			err := client.Prepare(context.Background(), Schema{ValueTypes: []string{"uint"}, DateIndex: test.dated, Shards: 1}, true)
 			if !put {
 				t.Fatal("creation was not attempted")
 			}
 			if test.status == http.StatusOK {
-				if err != nil {
-					t.Fatal(err)
-				}
-			} else if err == nil || !strings.Contains(err.Error(), errorKind) {
-				t.Fatalf("expected creation error, got %v", err)
+				errorKind = ""
 			}
+			testutil.CheckError(t, err, errorKind)
 			if test.status == http.StatusServiceUnavailable && !strings.Contains(err.Error(), "HTTP 503") {
 				t.Fatalf("expected recheck error, got %v", err)
 			}
 		})
+	}
+}
+
+// conflictHandler rejects creation with errorKind and answers later checks with status.
+func conflictHandler(t *testing.T, path, errorKind string, dated bool, status int, put *bool) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		switch r.URL.Path {
+		case "/_ingest/pipeline/uint-pipeline":
+		case "/_template/uint_template":
+			w.WriteHeader(http.StatusNotFound)
+		case path:
+			if r.Method == http.MethodPut {
+				*put = true
+				if dated && r.URL.Query().Get("create") != "true" {
+					t.Error("template creation must use create=true")
+				}
+				w.WriteHeader(http.StatusBadRequest)
+				fmt.Fprintf(w, `{"error":{"type":%q}}`, errorKind)
+			} else if *put {
+				w.WriteHeader(status)
+			} else {
+				w.WriteHeader(http.StatusNotFound)
+			}
+		default:
+			t.Errorf("unexpected request: %s %s", r.Method, r.URL.Path)
+			w.WriteHeader(http.StatusNotFound)
+		}
 	}
 }
 
@@ -104,13 +108,7 @@ func TestCreatedObjectVerification(t *testing.T) {
 				w.WriteHeader(test.status)
 			})
 			err := client.Prepare(context.Background(), Schema{ValueTypes: []string{"uint"}, Shards: 1}, true)
-			if test.wantErr == "" {
-				if err != nil {
-					t.Fatal(err)
-				}
-			} else if err == nil || !strings.Contains(err.Error(), test.wantErr) {
-				t.Fatalf("error = %v, want %q", err, test.wantErr)
-			}
+			testutil.CheckError(t, err, test.wantErr)
 		})
 	}
 }
@@ -119,29 +117,34 @@ func TestPrepareExistingObjectsDoesNotWrite(t *testing.T) {
 	for _, dated := range []bool{false, true} {
 		for _, create := range []bool{false, true} {
 			t.Run(fmt.Sprintf("date=%t/create=%t", dated, create), func(t *testing.T) {
-				calls := 0
-				client := testClient(t, func(w http.ResponseWriter, r *http.Request) {
-					calls++
-					if r.Method != http.MethodHead && r.Method != http.MethodGet {
-						t.Errorf("unexpected mutation: %s %s", r.Method, r.URL.Path)
-					}
-					if strings.Contains(r.URL.Path, "uint") {
-						t.Error("queried a history type not included in types")
-					}
-					fmt.Fprint(w, `{}`)
-				})
-				if err := client.Prepare(context.Background(), Schema{ValueTypes: []string{"str", "json"}, DateIndex: dated, Shards: 5, Replicas: 1}, create); err != nil {
-					t.Fatal(err)
-				}
-				want := 3
-				if dated {
-					want = 4
-				}
-				if calls != want {
-					t.Fatalf("requests=%d, want %d", calls, want)
-				}
+				checkExistingObjectsDoNotWrite(t, dated, create)
 			})
 		}
+	}
+}
+
+func checkExistingObjectsDoNotWrite(t *testing.T, dated, create bool) {
+	t.Helper()
+	calls := 0
+	client := testClient(t, func(w http.ResponseWriter, r *http.Request) {
+		calls++
+		if r.Method != http.MethodHead && r.Method != http.MethodGet {
+			t.Errorf("unexpected mutation: %s %s", r.Method, r.URL.Path)
+		}
+		if strings.Contains(r.URL.Path, "uint") {
+			t.Error("queried a history type not included in types")
+		}
+		fmt.Fprint(w, `{}`)
+	})
+	if err := client.Prepare(context.Background(), Schema{ValueTypes: []string{"str", "json"}, DateIndex: dated, Shards: 5, Replicas: 1}, create); err != nil {
+		t.Fatal(err)
+	}
+	want := 3
+	if dated {
+		want = 4
+	}
+	if calls != want {
+		t.Fatalf("requests=%d, want %d", calls, want)
 	}
 }
 
@@ -248,23 +251,7 @@ func TestClientCredentialsAndRedirects(t *testing.T) {
 
 func TestCreateIndicesAndJSONPipeline(t *testing.T) {
 	created := make(map[string]map[string]any)
-	client := testClient(t, func(w http.ResponseWriter, r *http.Request) {
-		if r.Method == http.MethodPut {
-			if _, exists := created[r.URL.Path]; exists {
-				t.Errorf("existing object overwritten: %s", r.URL.Path)
-			}
-			var body map[string]any
-			if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
-				t.Error(err)
-			}
-			created[r.URL.Path] = body
-			fmt.Fprint(w, `{"acknowledged":true}`)
-			return
-		}
-		if _, exists := created[r.URL.Path]; !exists {
-			w.WriteHeader(http.StatusNotFound)
-		}
-	})
+	client := testClient(t, recordingHandler(t, created))
 	schema := Schema{ValueTypes: []string{"uint", "json", "uint"}, Shards: 2, Replicas: 0}
 	for _, create := range []bool{true, true, false} {
 		if err := client.Prepare(context.Background(), schema, create); err != nil {
@@ -282,6 +269,27 @@ func TestCreateIndicesAndJSONPipeline(t *testing.T) {
 		pipeline, assigned := settings["default_pipeline"]
 		if (path == "/json" && pipeline != "json") || (path == "/uint" && assigned) {
 			t.Errorf("%s pipeline: %v", path, pipeline)
+		}
+	}
+}
+
+// recordingHandler stores created objects by path and reports missing ones.
+func recordingHandler(t *testing.T, created map[string]map[string]any) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == http.MethodPut {
+			if _, exists := created[r.URL.Path]; exists {
+				t.Errorf("existing object overwritten: %s", r.URL.Path)
+			}
+			var body map[string]any
+			if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+				t.Error(err)
+			}
+			created[r.URL.Path] = body
+			fmt.Fprint(w, `{"acknowledged":true}`)
+			return
+		}
+		if _, exists := created[r.URL.Path]; !exists {
+			w.WriteHeader(http.StatusNotFound)
 		}
 	}
 }

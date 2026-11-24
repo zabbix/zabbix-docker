@@ -22,6 +22,7 @@ import (
 	"github.com/zabbix/zabbix-docker/templates/entrypoints/internal/proxy"
 	"github.com/zabbix/zabbix-docker/templates/entrypoints/internal/server"
 	"github.com/zabbix/zabbix-docker/templates/entrypoints/internal/storageinit"
+	"github.com/zabbix/zabbix-docker/templates/entrypoints/internal/testutil"
 )
 
 func TestStorageInitSelection(t *testing.T) {
@@ -83,25 +84,7 @@ func TestSchemaTLS(t *testing.T) {
 			calls = 0
 			env := bootstrap.Environment{}
 			prepareEnvironment(t, env)
-			home := env["ZABBIX_USER_HOME_DIR"]
-			cert := pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: endpoint.Certificate().Raw})
-			key, err := x509.MarshalPKCS8PrivateKey(endpoint.TLS.Certificates[0].PrivateKey)
-			if err != nil {
-				t.Fatal(err)
-			}
-			for path, data := range map[string][]byte{
-				"ssl/ssl_ca_internal/ca.pem": cert,
-				"ssl/certs/client.pem":       cert,
-				"ssl/keys/client.key":        pem.EncodeToMemory(&pem.Block{Type: "PRIVATE KEY", Bytes: key}),
-			} {
-				path = filepath.Join(home, path)
-				if err := os.MkdirAll(filepath.Dir(path), 0o700); err != nil {
-					t.Fatal(err)
-				}
-				if err := os.WriteFile(path, data, 0o600); err != nil {
-					t.Fatal(err)
-				}
-			}
+			cert := writeClientTLS(t, env["ZABBIX_USER_HOME_DIR"], endpoint)
 			prefix := "ZBX_TELEMETRYPROVIDER_0"
 			types := ""
 			if mode == "init_db_history_providers" {
@@ -110,26 +93,42 @@ func TestSchemaTLS(t *testing.T) {
 			}
 			env[prefix] = fmt.Sprintf(`{"provider":"clickhouse","url":%q,"db":"telemetry"%s,"ssl_cert_file":"client.pem","ssl_key_file":"client.key"}`, endpoint.URL, types)
 			env[prefix+"_SCHEMA"] = `{"create":false}`
-			switch mode {
-			case "server":
-				err = server.Prepare(env)
-			case "proxy":
-				err = proxy.Prepare(env, "test-proxy")
-			default:
-				entry := bootstrap.StorageInitEntrypoint(nil, storageinit.PrepareHistory, storageinit.PrepareTelemetry)
-				err = entry(env, []string{mode})
-			}
-			if err != nil {
+			if err := prepareMode(env, mode); err != nil {
 				t.Fatal(err)
 			}
 			if calls == 0 {
 				t.Fatal("schema was not checked")
 			}
-			data, err := os.ReadFile(filepath.Join(env["ZBX_SSLCALOCATION"], "ca.pem"))
-			if err != nil || string(data) != string(cert) {
-				t.Fatalf("CA certificate was not copied: %v", err)
+			if testutil.ReadFile(t, filepath.Join(env["ZBX_SSLCALOCATION"], "ca.pem")) != cert {
+				t.Fatal("CA certificate was not copied")
 			}
 		})
+	}
+}
+
+// writeClientTLS stores the endpoint certificate as CA and client certificate, returning it as PEM.
+func writeClientTLS(t *testing.T, home string, endpoint *httptest.Server) string {
+	t.Helper()
+	cert := string(pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: endpoint.Certificate().Raw}))
+	key, err := x509.MarshalPKCS8PrivateKey(endpoint.TLS.Certificates[0].PrivateKey)
+	if err != nil {
+		t.Fatal(err)
+	}
+	testutil.WriteFile(t, filepath.Join(home, "ssl/ssl_ca_internal/ca.pem"), cert)
+	testutil.WriteFile(t, filepath.Join(home, "ssl/certs/client.pem"), cert)
+	testutil.WriteFile(t, filepath.Join(home, "ssl/keys/client.key"), string(pem.EncodeToMemory(&pem.Block{Type: "PRIVATE KEY", Bytes: key})))
+	return cert
+}
+
+func prepareMode(env bootstrap.Environment, mode string) error {
+	switch mode {
+	case "server":
+		return server.Prepare(env)
+	case "proxy":
+		return proxy.Prepare(env, "test-proxy")
+	default:
+		entry := bootstrap.StorageInitEntrypoint(nil, storageinit.PrepareHistory, storageinit.PrepareTelemetry)
+		return entry(env, []string{mode})
 	}
 }
 

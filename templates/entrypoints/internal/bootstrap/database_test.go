@@ -4,8 +4,9 @@ package bootstrap
 
 import (
 	"reflect"
-	"strings"
 	"testing"
+
+	"github.com/zabbix/zabbix-docker/templates/entrypoints/internal/testutil"
 )
 
 func TestResolveDBTLS(t *testing.T) {
@@ -103,24 +104,12 @@ func TestFrontendDBTLS(t *testing.T) {
 func TestFrontendDBTLSBooleanValues(t *testing.T) {
 	for _, value := range []string{"true", "TRUE", "1", "yes", "on"} {
 		t.Run("encryption enabled "+value, func(t *testing.T) {
-			settings, err := ResolveFrontendDBTLS(Environment{"ZBX_DB_ENCRYPTION": value})
-			if err != nil {
-				t.Fatal(err)
-			}
-			if settings.ConnectMode != "required" {
-				t.Fatalf("connection mode = %q, want required", settings.ConnectMode)
-			}
+			checkFrontendDBTLSMode(t, Environment{"ZBX_DB_ENCRYPTION": value}, "required")
 		})
 		t.Run("host verification enabled "+value, func(t *testing.T) {
-			settings, err := ResolveFrontendDBTLS(Environment{
+			checkFrontendDBTLSMode(t, Environment{
 				"ZBX_DB_ENCRYPTION": "true", "ZBX_DB_VERIFY_HOST": value, "ZBX_DBTLSCAFILE": "/ca.pem",
-			})
-			if err != nil {
-				t.Fatal(err)
-			}
-			if settings.ConnectMode != "verify_full" {
-				t.Fatalf("connection mode = %q, want verify_full", settings.ConnectMode)
-			}
+			}, "verify_full")
 		})
 	}
 
@@ -130,40 +119,39 @@ func TestFrontendDBTLSBooleanValues(t *testing.T) {
 			name = "empty"
 		}
 		t.Run("encryption disabled "+name, func(t *testing.T) {
-			settings, err := ResolveFrontendDBTLS(Environment{"ZBX_DB_ENCRYPTION": value})
-			if err != nil {
-				t.Fatal(err)
-			}
-			if settings.ConnectMode != "" {
-				t.Fatalf("connection mode = %q, want disabled", settings.ConnectMode)
-			}
+			checkFrontendDBTLSMode(t, Environment{"ZBX_DB_ENCRYPTION": value}, "")
 		})
 		t.Run("host verification disabled "+name, func(t *testing.T) {
-			settings, err := ResolveFrontendDBTLS(Environment{
+			checkFrontendDBTLSMode(t, Environment{
 				"ZBX_DB_ENCRYPTION": "true", "ZBX_DB_VERIFY_HOST": value, "ZBX_DBTLSCAFILE": "/ca.pem",
-			})
-			if err != nil {
-				t.Fatal(err)
-			}
-			if settings.ConnectMode != "verify_ca" {
-				t.Fatalf("connection mode = %q, want verify_ca", settings.ConnectMode)
-			}
+			}, "verify_ca")
 		})
+	}
+}
+
+func checkFrontendDBTLSMode(t *testing.T, env Environment, want string) {
+	t.Helper()
+	settings, err := ResolveFrontendDBTLS(env)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if settings.ConnectMode != want {
+		t.Fatalf("connection mode = %q, want %q", settings.ConnectMode, want)
 	}
 }
 
 func TestResolveDBPort(t *testing.T) {
 	tests := []struct {
-		name      string
-		value     string
-		want      string
-		wantError bool
+		name    string
+		value   string
+		want    string
+		wantErr string
 	}{
 		{name: "default", want: "5432"},
 		{name: "configured", value: "15432", want: "15432"},
 		{name: "maximum", value: "65535", want: "65535"},
-		{name: "not numeric", value: "postgresql", wantError: true},
-		{name: "out of range", value: "65536", wantError: true},
+		{name: "not numeric", value: "postgresql", wantErr: "DB_SERVER_PORT"},
+		{name: "out of range", value: "65536", wantErr: "DB_SERVER_PORT"},
 	}
 
 	for _, test := range tests {
@@ -174,13 +162,8 @@ func TestResolveDBPort(t *testing.T) {
 			}
 
 			got, err := ResolveDBPort(env, "5432")
-			if (err != nil) != test.wantError {
-				t.Fatalf("ResolveDBPort() error = %v, wantError = %t", err, test.wantError)
-			}
-			if test.wantError {
-				if !strings.Contains(err.Error(), "DB_SERVER_PORT") {
-					t.Fatalf("ResolveDBPort() error = %v, want DB_SERVER_PORT context", err)
-				}
+			testutil.CheckError(t, err, test.wantErr)
+			if test.wantErr != "" {
 				return
 			}
 			if got != test.want || env["DB_SERVER_PORT"] != test.want {

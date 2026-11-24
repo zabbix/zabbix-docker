@@ -5,6 +5,8 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+
+	"github.com/zabbix/zabbix-docker/templates/entrypoints/internal/testutil"
 )
 
 func TestSecretPlanDoesNotModifyEnvironment(t *testing.T) {
@@ -93,19 +95,22 @@ func TestSecretPlanDisablesLocalDatabaseCredentialsWithVault(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
-			got := make(map[string]bool)
-			for _, secret := range values {
-				if _, expected := test.want[secret.name]; expected {
-					got[secret.name] = secret.active
-				}
-			}
-			for name, want := range test.want {
-				active, found := got[name]
-				if !found || active != want {
-					t.Errorf("%s active = %t, found = %t; want %t", name, active, found, want)
-				}
-			}
+			checkActiveSecrets(t, values, test.want)
 		})
+	}
+}
+
+func checkActiveSecrets(t *testing.T, values []valueSecretSpec, want map[string]bool) {
+	t.Helper()
+	got := make(map[string]bool)
+	for _, secret := range values {
+		got[secret.name] = secret.active
+	}
+	for name, wantActive := range want {
+		active, found := got[name]
+		if !found || active != wantActive {
+			t.Errorf("%s active = %t, found = %t; want %t", name, active, found, wantActive)
+		}
 	}
 }
 
@@ -323,9 +328,8 @@ func TestResolveSecretsUsesGlobalLocationsForHistoryProviderTLS(t *testing.T) {
 		if strings.HasSuffix(variable, "KEYFILE") {
 			directory = env["ZBX_SSLKEYLOCATION"]
 		}
-		data, err := os.ReadFile(filepath.Join(directory, name))
-		if err != nil || string(data) != content {
-			t.Errorf("%s content=%q, err=%v", variable, data, err)
+		if data := testutil.ReadFile(t, filepath.Join(directory, name)); data != content {
+			t.Errorf("%s content=%q", variable, data)
 		}
 	}
 	if _, exists := env["ZBX_HISTORYPROVIDER_0_SSL_CAFILE"]; exists {

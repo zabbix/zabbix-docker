@@ -101,18 +101,11 @@ func TestConfigureRejectsInvalidPort(t *testing.T) {
 func TestPrepareDatabase(t *testing.T) {
 	root := t.TempDir()
 	scriptsDirectory := filepath.Join(root, "dbscripts")
-	if err := os.Mkdir(scriptsDirectory, 0o700); err != nil {
-		t.Fatal(err)
-	}
-	if err := os.WriteFile(filepath.Join(scriptsDirectory, "10-extra.sql"), []byte("SELECT 'extra';"), 0o600); err != nil {
-		t.Fatal(err)
-	}
+	testutil.WriteFile(t, filepath.Join(scriptsDirectory, "10-extra.sql"), "SELECT 'extra';")
 	schemaFile := filepath.Join(root, "create.sql.gz")
 	testutil.WriteGzipFile(t, schemaFile, "CREATE TABLE dbversion (mandatory integer);")
 	timescaleFile := filepath.Join(root, "timescaledb.sql")
-	if err := os.WriteFile(timescaleFile, []byte("SELECT 'timescale';"), 0o600); err != nil {
-		t.Fatal(err)
-	}
+	testutil.WriteFile(t, timescaleFile, "SELECT 'timescale';")
 
 	env := bootstrap.Environment{
 		"DB_SERVER_HOST":       "database",
@@ -139,37 +132,18 @@ func TestPrepareDatabase(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	adminStatements := strings.Join(f.admin.Statements, "\n")
-	if !strings.Contains(adminStatements, `CREATE DATABASE "zabbix_test" OWNER "zabbix"`) {
-		t.Fatalf("database was not created with the expected owner:\n%s", adminStatements)
-	}
-	schemaStatements := strings.Join(f.schema.Statements, "\n")
-	for _, expected := range []string{
+	testutil.CheckStatements(t, "admin", strings.Join(f.admin.Statements, "\n"),
+		`CREATE DATABASE "zabbix_test" OWNER "zabbix"`)
+	testutil.CheckStatements(t, "schema", strings.Join(f.schema.Statements, "\n"),
 		`CREATE SCHEMA "monitoring" AUTHORIZATION "zabbix"`,
 		"CREATE EXTENSION IF NOT EXISTS timescaledb CASCADE",
-	} {
-		if !strings.Contains(schemaStatements, expected) {
-			t.Fatalf("schema statements do not contain %q:\n%s", expected, schemaStatements)
-		}
-	}
-	imports := testutil.ImportedStatements(f.imports)
-	for _, expected := range []string{
+	)
+	testutil.CheckStatements(t, "import", testutil.ImportedStatements(f.imports),
 		"CREATE TABLE dbversion (mandatory integer);",
 		"SELECT 'timescale';",
 		"SELECT 'extra';",
-	} {
-		if !strings.Contains(imports, expected) {
-			t.Fatalf("import statements do not contain %q:\n%s", expected, imports)
-		}
-	}
-	if !f.admin.Closed || !f.schema.Closed {
-		t.Fatal("administrative PostgreSQL connections were not closed")
-	}
-	for _, s := range f.imports {
-		if !s.Closed {
-			t.Fatal("SQL import connection was not closed")
-		}
-	}
+	)
+	checkSessionsClosed(t, f)
 	logs := testutil.CaptureStdout(t, func() {
 		if err := db.createSchema(schemaFile, timescaleFile); err != nil {
 			t.Fatal(err)
@@ -190,6 +164,18 @@ func TestPrepareDatabase(t *testing.T) {
 	})
 	if strings.Contains(logs, message) {
 		t.Fatal("creation success was logged after a script failure")
+	}
+}
+
+func checkSessionsClosed(t *testing.T, f *fakeSessionFactory) {
+	t.Helper()
+	if !f.admin.Closed || !f.schema.Closed {
+		t.Fatal("administrative PostgreSQL connections were not closed")
+	}
+	for _, s := range f.imports {
+		if !s.Closed {
+			t.Fatal("SQL import connection was not closed")
+		}
 	}
 }
 

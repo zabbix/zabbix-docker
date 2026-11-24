@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	"github.com/zabbix/zabbix-docker/templates/entrypoints/internal/bootstrap"
+	"github.com/zabbix/zabbix-docker/templates/entrypoints/internal/testutil"
 )
 
 func TestPrepareService(t *testing.T) {
@@ -18,30 +19,16 @@ func TestPrepareService(t *testing.T) {
 	if err := os.MkdirAll(filepath.Join(homeDir, "enc_internal"), 0o700); err != nil {
 		t.Fatal(err)
 	}
-	if err := os.MkdirAll(configDir, 0o700); err != nil {
-		t.Fatal(err)
-	}
-	hooksDirectory := filepath.Join(configDir, "entrypoint.d")
-	if err := os.Mkdir(hooksDirectory, 0o700); err != nil {
-		t.Fatal(err)
-	}
 	hookOutput := filepath.Join(root, "hook-output")
-	if err := os.WriteFile(
-		filepath.Join(hooksDirectory, "10-environment.sh"),
-		[]byte("printf '%s' \"$ZABBIX_CONF_DIR\" > \"$HOOK_OUTPUT\"\n"),
-		0o600,
-	); err != nil {
-		t.Fatal(err)
-	}
+	testutil.WriteFile(t, filepath.Join(configDir, "entrypoint.d", "10-environment.sh"),
+		"printf '%s' \"$ZABBIX_CONF_DIR\" > \"$HOOK_OUTPUT\"\n")
 	for name, content := range map[string]string{
 		"zabbix_agentd_aliases.conf":         "# Alias=\n",
 		"zabbix_agentd_item_keys.conf":       "# DenyKey=system.run[*]\n",
 		"zabbix_agentd_modules.conf":         "# LoadModule=\n",
 		"zabbix_agentd_user_parameters.conf": "# UserParameter=\n",
 	} {
-		if err := os.WriteFile(filepath.Join(configDir, name), []byte(content), 0o600); err != nil {
-			t.Fatal(err)
-		}
+		testutil.WriteFile(t, filepath.Join(configDir, name), content)
 	}
 
 	env := bootstrap.Environment{
@@ -66,22 +53,20 @@ func TestPrepareService(t *testing.T) {
 	if _, found := env["ZABBIX_CONF_DIR"]; found {
 		t.Fatal("ZABBIX_CONF_DIR was not removed")
 	}
-	hookData, err := os.ReadFile(hookOutput)
-	if err != nil || string(hookData) != configDir {
-		t.Fatalf("hook environment: %q, %v", hookData, err)
+	if hook := testutil.ReadFile(t, hookOutput); hook != configDir {
+		t.Fatalf("hook environment: %q", hook)
 	}
-	itemKeys, err := os.ReadFile(filepath.Join(configDir, "zabbix_agentd_item_keys.conf"))
-	if err != nil || !strings.HasSuffix(string(itemKeys),
-		"AllowKey=${ZBX_ALLOWKEY_0}\nDenyKey=${ZBX_DENYKEY_1}\n") {
-		t.Fatalf("item key config: %s, %v", itemKeys, err)
+	itemKeys := testutil.ReadFile(t, filepath.Join(configDir, "zabbix_agentd_item_keys.conf"))
+	if !strings.HasSuffix(itemKeys, "AllowKey=${ZBX_ALLOWKEY_0}\nDenyKey=${ZBX_DENYKEY_1}\n") {
+		t.Fatalf("item key config: %s", itemKeys)
 	}
-	aliases, err := os.ReadFile(filepath.Join(configDir, "zabbix_agentd_aliases.conf"))
-	if err != nil || !strings.Contains(string(aliases), "Alias=${ZBX_ALIAS_0}") {
-		t.Fatalf("alias config: %s, %v", aliases, err)
+	aliases := testutil.ReadFile(t, filepath.Join(configDir, "zabbix_agentd_aliases.conf"))
+	if !strings.Contains(aliases, "Alias=${ZBX_ALIAS_0}") {
+		t.Fatalf("alias config: %s", aliases)
 	}
-	userParameters, err := os.ReadFile(filepath.Join(configDir, "zabbix_agentd_user_parameters.conf"))
-	if err != nil || !strings.Contains(string(userParameters), "UserParameter=${ZBX_USERPARAMETER_0}") {
-		t.Fatalf("user parameter config: %s, %v", userParameters, err)
+	userParameters := testutil.ReadFile(t, filepath.Join(configDir, "zabbix_agentd_user_parameters.conf"))
+	if !strings.Contains(userParameters, "UserParameter=${ZBX_USERPARAMETER_0}") {
+		t.Fatalf("user parameter config: %s", userParameters)
 	}
 	if env["ZBX_ALIAS_0"] == "" || env["ZBX_USERPARAMETER_0"] == "" {
 		t.Fatal("indexed configuration environment variable was removed")

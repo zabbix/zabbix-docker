@@ -39,18 +39,7 @@ func TestClientChecksHTTPAndClickHouseErrors(t *testing.T) {
 	for _, status := range []int{http.StatusUnauthorized, http.StatusInternalServerError, http.StatusOK} {
 		t.Run(fmt.Sprint(status), func(t *testing.T) {
 			calls := 0
-			c := testClient(t, func(w http.ResponseWriter, r *http.Request) {
-				calls++
-				if r.URL.Query().Get("wait_end_of_query") != "1" {
-					t.Error("response must be buffered")
-				}
-				user, password, ok := r.BasicAuth()
-				if !ok || user != "user" || password != "secret-value" {
-					t.Error("missing credentials")
-				}
-				w.WriteHeader(status)
-				fmt.Fprint(w, "Code: 170. Test failure secret-value")
-			})
+			c := testClient(t, failingQueryHandler(t, status, &calls))
 			c.connection.Username, c.connection.Password = "user", "secret-value"
 			_, err := c.query(context.Background(), "SELECT count() FROM system.databases")
 			if err == nil || !strings.Contains(err.Error(), "Code: 170") || strings.Contains(err.Error(), "secret-value") {
@@ -181,7 +170,42 @@ func TestCASecretMount(t *testing.T) {
 	}
 }
 
+// failingQueryHandler checks the request and answers with a ClickHouse error containing the password.
+func failingQueryHandler(t *testing.T, status int, calls *int) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		*calls++
+		if r.URL.Query().Get("wait_end_of_query") != "1" {
+			t.Error("response must be buffered")
+		}
+		user, password, ok := r.BasicAuth()
+		if !ok || user != "user" || password != "secret-value" {
+			t.Error("missing credentials")
+		}
+		w.WriteHeader(status)
+		fmt.Fprint(w, "Code: 170. Test failure secret-value")
+	}
+}
+
 func TestReadEncryptedPrivateKey(t *testing.T) {
+	const password = "test-key-password"
+	key, encryptedPath := encryptedPrivateKey(t, password)
+	for _, test := range []struct {
+		name, path, password string
+		wantErr              bool
+	}{
+		{"correct password", encryptedPath, password, false},
+		{"wrong password", encryptedPath, "wrong-password", true},
+		{"missing file", filepath.Join(filepath.Dir(encryptedPath), "missing.pem"), password, true},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			checkReadPrivateKey(t, key, test.path, test.password, test.wantErr)
+		})
+	}
+}
+
+// encryptedPrivateKey returns a generated key and its OpenSSL-encrypted PKCS#8 file.
+func encryptedPrivateKey(t *testing.T, password string) (*ecdsa.PrivateKey, string) {
+	t.Helper()
 	openssl, err := exec.LookPath("openssl")
 	if err != nil {
 		t.Skip("openssl is required to test encrypted private keys")
@@ -197,47 +221,38 @@ func TestReadEncryptedPrivateKey(t *testing.T) {
 	dir := t.TempDir()
 	plainPath := filepath.Join(dir, "plain.pem")
 	encryptedPath := filepath.Join(dir, "encrypted.pem")
-	if err := os.WriteFile(plainPath, pem.EncodeToMemory(&pem.Block{Type: "PRIVATE KEY", Bytes: der}), 0o600); err != nil {
-		t.Fatal(err)
-	}
-	const password = "test-key-password"
+	testutil.WriteFile(t, plainPath, string(pem.EncodeToMemory(&pem.Block{Type: "PRIVATE KEY", Bytes: der})))
 	command := exec.Command(openssl, "pkcs8", "-topk8", "-in", plainPath, "-out", encryptedPath, "-v2", "aes-256-cbc", "-passout", "stdin")
 	command.Stdin = strings.NewReader(password + "\n")
 	if output, err := command.CombinedOutput(); err != nil {
 		t.Fatalf("encrypt test key: %v: %s", err, output)
 	}
-	for _, test := range []struct {
-		name, path, password string
-		wantErr              bool
-	}{
-		{"correct password", encryptedPath, password, false},
-		{"wrong password", encryptedPath, "wrong-password", true},
-		{"missing file", filepath.Join(dir, "missing.pem"), password, true},
-	} {
-		t.Run(test.name, func(t *testing.T) {
-			data, err := readPrivateKey(context.Background(), test.path, test.password)
-			if test.wantErr {
-				var exitErr *exec.ExitError
-				if !errors.As(err, &exitErr) {
-					t.Fatalf("expected an OpenSSL exit error, got %v", err)
-				}
-				if !strings.HasPrefix(err.Error(), "openssl pkey: "+exitErr.Error()+": ") {
-					t.Fatalf("OpenSSL diagnostic missing from error: %v", err)
-				}
-				return
-			}
-			if err != nil {
-				t.Fatal(err)
-			}
-			block, _ := pem.Decode(data)
-			if block == nil {
-				t.Fatal("decrypted key is not PEM")
-			}
-			decoded, err := x509.ParsePKCS8PrivateKey(block.Bytes)
-			if err != nil || !key.Equal(decoded) {
-				t.Fatalf("decrypted key differs from the original: %v", err)
-			}
-		})
+	return key, encryptedPath
+}
+
+func checkReadPrivateKey(t *testing.T, key *ecdsa.PrivateKey, path, password string, wantErr bool) {
+	t.Helper()
+	data, err := readPrivateKey(context.Background(), path, password)
+	if wantErr {
+		var exitErr *exec.ExitError
+		if !errors.As(err, &exitErr) {
+			t.Fatalf("expected an OpenSSL exit error, got %v", err)
+		}
+		if !strings.HasPrefix(err.Error(), "openssl pkey: "+exitErr.Error()+": ") {
+			t.Fatalf("OpenSSL diagnostic missing from error: %v", err)
+		}
+		return
+	}
+	if err != nil {
+		t.Fatal(err)
+	}
+	block, _ := pem.Decode(data)
+	if block == nil {
+		t.Fatal("decrypted key is not PEM")
+	}
+	decoded, err := x509.ParsePKCS8PrivateKey(block.Bytes)
+	if err != nil || !key.Equal(decoded) {
+		t.Fatalf("decrypted key differs from the original: %v", err)
 	}
 }
 
@@ -255,30 +270,35 @@ func TestRequestTimeouts(t *testing.T) {
 			defer c.Close()
 			calls := 0
 			networkErr := errors.New("connection refused")
-			c.http.Transport = roundTripFunc(func(r *http.Request) (*http.Response, error) {
-				calls++
-				deadline, ok := r.Context().Deadline()
-				if !ok || time.Until(deadline) <= 0 {
-					t.Error("request needs a deadline")
-				}
-				setting := r.URL.Query().Get("distributed_ddl_task_timeout")
-				if clusterDDL {
-					seconds, err := strconv.Atoi(setting)
-					if err != nil || seconds <= 0 || time.Until(deadline) <= time.Duration(seconds)*time.Second {
-						t.Errorf("client deadline must exceed server DDL timeout %q", setting)
-					}
-				} else if setting != "" {
-					t.Error("ordinary request has a cluster DDL timeout")
-				}
-				if r.URL.Query().Get("skip_unavailable_shards") != "0" || r.URL.Query().Get("wait_end_of_query") != "1" {
-					t.Error("request must set wait_end_of_query=1 and skip_unavailable_shards=0")
-				}
-				return nil, networkErr
-			})
+			c.http.Transport = timeoutCheckingTransport(t, clusterDDL, &calls, networkErr)
 			_, err = c.request(context.Background(), "CREATE DATABASE `test`", clusterDDL)
 			if !errors.Is(err, networkErr) || calls != 1 {
 				t.Fatalf("calls=%d error=%v", calls, err)
 			}
 		})
+	}
+}
+
+// timeoutCheckingTransport checks request deadlines and settings, then fails with err.
+func timeoutCheckingTransport(t *testing.T, clusterDDL bool, calls *int, err error) roundTripFunc {
+	return func(r *http.Request) (*http.Response, error) {
+		*calls++
+		deadline, ok := r.Context().Deadline()
+		if !ok || time.Until(deadline) <= 0 {
+			t.Error("request needs a deadline")
+		}
+		setting := r.URL.Query().Get("distributed_ddl_task_timeout")
+		if clusterDDL {
+			seconds, err := strconv.Atoi(setting)
+			if err != nil || seconds <= 0 || time.Until(deadline) <= time.Duration(seconds)*time.Second {
+				t.Errorf("client deadline must exceed server DDL timeout %q", setting)
+			}
+		} else if setting != "" {
+			t.Error("ordinary request has a cluster DDL timeout")
+		}
+		if r.URL.Query().Get("skip_unavailable_shards") != "0" || r.URL.Query().Get("wait_end_of_query") != "1" {
+			t.Error("request must set wait_end_of_query=1 and skip_unavailable_shards=0")
+		}
+		return nil, err
 	}
 }
