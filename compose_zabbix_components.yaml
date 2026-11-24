@@ -744,12 +744,12 @@ services:
    - full
    - all
   ports:
-   - name: zabbix-agent
+   - name: zabbix-agent2
      target: 10050
      published: "${ZABBIX_AGENT2_PORT}"
      protocol: tcp
      app_protocol: zabbix-agent
-   - name: zabbix-agent-status
+   - name: zabbix-agent2-status
      target: 31999
      published: "${ZABBIX_AGENT2_STATUS_PORT}"
      protocol: tcp
@@ -757,9 +757,8 @@ services:
   attach: false
   volumes:
    - /etc/localtime:/etc/localtime:ro
-   - ${DATA_DIRECTORY}/etc/zabbix/zabbix_agentd.d:/etc/zabbix/zabbix_agentd.d:ro
+   - ${DATA_DIRECTORY}/etc/zabbix/zabbix_agent2.d:/etc/zabbix/zabbix_agentd.d:ro
    - ${DATA_DIRECTORY}/var/lib/zabbix/profiler:/var/lib/zabbix/profiler:rw
-   - ${DATA_DIRECTORY}/var/lib/zabbix/modules:/var/lib/zabbix/modules:ro
    - ${DATA_DIRECTORY}/run/zabbix/secrets/tls:/run/zabbix/secrets/tls:ro
 # Deprecated secret locations. Uncomment temporarily while migrating.
 #   - ${DATA_DIRECTORY}/var/lib/zabbix/enc:/var/lib/zabbix/enc:ro
@@ -778,17 +777,17 @@ services:
       memory: 64M
    mode: global
   env_file:
-   - path: ${ENV_VARS_DIRECTORY}/.env_agent
+   - path: ${ENV_VARS_DIRECTORY}/.env_agent2
      required: true
-   - path: ${ENV_VARS_DIRECTORY}/.env_agent_override
+   - path: ${ENV_VARS_DIRECTORY}/.env_agent2_override
      required: false
   privileged: true
   pid: "host"
   networks:
    backend:
     aliases:
-     - zabbix-agent
-     - zabbix-agent-passive
+     - zabbix-agent2
+     - zabbix-agent2-passive
   stop_grace_period: 5s
   labels:
    com.zabbix.description: "Zabbix agent 2"

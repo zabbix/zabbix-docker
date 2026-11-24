@@ -83,7 +83,9 @@ Then to clean up run:
 make down DB=pgsql
 ```
 
-Provided compose files support several [Compose  profiles](https://docs.docker.com/compose/profiles/). Minimal set of services is brought up by default, to start additional components e.g. Zabbix Agent use profile 'full' or 'all'. Additionally, it is possible to start only required components.
+The `full` and `all` [Compose profiles](https://docs.docker.com/compose/profiles/) include both `zabbix-agent` and `zabbix-agent2`. To start just one agent, specify its service name, for example `docker compose up -d zabbix-agent2`.
+
+Configure the agents separately in [`env_vars/.env_agent`](env_vars/.env_agent) and [`env_vars/.env_agent2`](env_vars/.env_agent2).
 
 The [`examples`](examples/) directory contains overlays for the common Compose stack:
 

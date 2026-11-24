@@ -148,10 +148,10 @@ Additionally the image allows to specify many other environment variables listed
 ```
 ZBX_ENABLEPERSISTENTBUFFER=false # Available since 5.0.0
 ZBX_PERSISTENTBUFFERPERIOD=1h # Available since 5.0.0
-ZBX_ENABLESTATUSPORT=
+ZBX_PERSISTENTBUFFERFILE=
+ZBX_ENABLESTATUSPORT=false
 ZBX_SOURCEIP=
 ZBX_HEARTBEAT_FREQUENCY=60 # Available since 6.2.0
-ZBX_ENABLEREMOTECOMMANDS=0 # Deprecated since 5.0.0
 ZBX_LOGREMOTECOMMANDS=0
 ZBX_FORCEACTIVECHECKSONSTART=0 # Available since 6.0.2
 ZBX_HOSTINTERFACE= # Available since 4.4.0
