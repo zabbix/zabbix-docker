@@ -16,6 +16,7 @@ import (
 	"time"
 
 	"github.com/zabbix/zabbix-docker/templates/entrypoints/internal/bootstrap"
+	"github.com/zabbix/zabbix-docker/templates/entrypoints/internal/testutil"
 )
 
 type roundTripFunc func(*http.Request) (*http.Response, error)
@@ -157,14 +158,9 @@ func TestDecodeHashiCorp(t *testing.T) {
 	} {
 		t.Run(test.name, func(t *testing.T) {
 			creds, err := decodeHashiCorp([]byte(test.response))
+			testutil.CheckError(t, err, test.wantError)
 			if test.wantError != "" {
-				if err == nil || !strings.Contains(err.Error(), test.wantError) {
-					t.Fatalf("decodeHashiCorp() error = %v, want error containing %q", err, test.wantError)
-				}
 				return
-			}
-			if err != nil {
-				t.Fatal(err)
 			}
 			if creds.Username != "zabbix" || creds.Password != test.wantPass {
 				t.Fatalf("unexpected credentials: %#v", creds)
@@ -232,14 +228,9 @@ func TestDecodeCyberArk(t *testing.T) {
 	} {
 		t.Run(test.name, func(t *testing.T) {
 			creds, err := decodeCyberArk([]byte(test.response))
+			testutil.CheckError(t, err, test.wantError)
 			if test.wantError != "" {
-				if err == nil || !strings.Contains(err.Error(), test.wantError) {
-					t.Fatalf("decodeCyberArk() error = %v, want error containing %q", err, test.wantError)
-				}
 				return
-			}
-			if err != nil {
-				t.Fatal(err)
 			}
 			if creds.Username != "zabbix" || creds.Password != test.wantPass {
 				t.Fatalf("unexpected credentials: %#v", creds)
@@ -251,27 +242,7 @@ func TestDecodeCyberArk(t *testing.T) {
 func TestDBCredentialsResolvedSecrets(t *testing.T) {
 	for _, mode := range []string{"token", "approle"} {
 		t.Run(mode, func(t *testing.T) {
-			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-				switch r.URL.Path {
-				case "/v1/auth/approle/login":
-					var payload map[string]string
-					if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
-						t.Error(err)
-					}
-					if mode != "approle" || payload["role_id"] != "role" || payload["secret_id"] != "secret" {
-						t.Errorf("unexpected AppRole login: %v", payload)
-					}
-					io.WriteString(w, `{"auth":{"client_token":"token"}}`)
-				case "/v1/secret/data/database":
-					if r.Header.Get("X-Vault-Token") != "token" {
-						t.Error("Vault token was not supplied")
-					}
-					io.WriteString(w, `{"data":{"data":{"username":"zabbix","password":"password"}}}`)
-				default:
-					t.Errorf("unexpected request: %s", r.URL.Path)
-					http.NotFound(w, r)
-				}
-			}))
+			server := httptest.NewServer(vaultHandler(t, mode))
 			defer server.Close()
 			env := bootstrap.Environment{
 				"ZBX_VAULT": "HashiCorp", "ZBX_VAULTURL": server.URL, "ZBX_VAULTDBPATH": "secret/database",
@@ -291,6 +262,31 @@ func TestDBCredentialsResolvedSecrets(t *testing.T) {
 				t.Fatalf("unexpected credentials: %v", creds)
 			}
 		})
+	}
+}
+
+// vaultHandler serves database credentials and checks token or AppRole authentication.
+func vaultHandler(t *testing.T, mode string) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		switch r.URL.Path {
+		case "/v1/auth/approle/login":
+			var payload map[string]string
+			if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
+				t.Error(err)
+			}
+			if mode != "approle" || payload["role_id"] != "role" || payload["secret_id"] != "secret" {
+				t.Errorf("unexpected AppRole login: %v", payload)
+			}
+			io.WriteString(w, `{"auth":{"client_token":"token"}}`)
+		case "/v1/secret/data/database":
+			if r.Header.Get("X-Vault-Token") != "token" {
+				t.Error("Vault token was not supplied")
+			}
+			io.WriteString(w, `{"data":{"data":{"username":"zabbix","password":"password"}}}`)
+		default:
+			t.Errorf("unexpected request: %s", r.URL.Path)
+			http.NotFound(w, r)
+		}
 	}
 }
 

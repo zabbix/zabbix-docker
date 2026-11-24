@@ -5,6 +5,7 @@ import (
 	"os"
 	"path/filepath"
 	"reflect"
+	"slices"
 	"strings"
 	"testing"
 
@@ -239,55 +240,40 @@ func TestNativeLicenseCommandsWithoutAllowedMethods(t *testing.T) {
 	for _, test := range []struct {
 		name string
 		args []string
-		want []string
 	}{
-		{
-			name: "native non-interactive accept is unchanged",
-			args: []string{bridgeAdapterBinary, "-c", "/etc/zabbix/zabbix_bridge_adapter.conf", "license", "accept", "--non-interactive"},
-			want: []string{bridgeAdapterBinary, "-c", "/etc/zabbix/zabbix_bridge_adapter.conf", "license", "accept", "--non-interactive"},
-		},
-		{
-			name: "native explicit version is unchanged",
-			args: []string{bridgeAdapterBinary, "license", "accept", "--non-interactive", "--version", "explicit-version"},
-			want: []string{bridgeAdapterBinary, "license", "accept", "--non-interactive", "--version", "explicit-version"},
-		},
-		{
-			name: "interactive accept",
-			args: []string{bridgeAdapterBinary, "license", "accept"},
-			want: []string{bridgeAdapterBinary, "license", "accept"},
-		},
-		{
-			name: "show",
-			args: []string{bridgeAdapterBinary, "license", "show"},
-			want: []string{bridgeAdapterBinary, "license", "show"},
-		},
-		{
-			name: "status",
-			args: []string{bridgeAdapterBinary, "license", "status"},
-			want: []string{bridgeAdapterBinary, "license", "status"},
-		},
+		{"native non-interactive accept", []string{bridgeAdapterBinary, "-c", "/etc/zabbix/zabbix_bridge_adapter.conf", "license", "accept", "--non-interactive"}},
+		{"native explicit version", []string{bridgeAdapterBinary, "license", "accept", "--non-interactive", "--version", "explicit-version"}},
+		{"interactive accept", []string{bridgeAdapterBinary, "license", "accept"}},
+		{"show", []string{bridgeAdapterBinary, "license", "show"}},
+		{"status", []string{bridgeAdapterBinary, "license", "status"}},
 	} {
 		t.Run(test.name, func(t *testing.T) {
-			env, runtimePath := newPrepareServiceFixture(t)
-			env["ZBX_EULAVERSION"] = "2026-09-29"
-
-			command, err := prepareCommand(env, test.args)
-			if err != nil {
-				t.Fatal(err)
-			}
-			if !reflect.DeepEqual(command, test.want) {
-				t.Errorf("command = %q, want %q", command, test.want)
-			}
-			if _, err := os.Stat(runtimePath); !os.IsNotExist(err) {
-				t.Errorf("license command created runtime configuration: %v", err)
-			}
-			if _, exists := env["ZABBIX_CONF_DIR"]; exists {
-				t.Error("private environment was not cleared")
-			}
-			if env["ZBX_EULAVERSION"] == "" {
-				t.Error("EULA version was removed from the environment")
-			}
+			checkLicenseCommandUnchanged(t, test.args)
 		})
+	}
+}
+
+func checkLicenseCommandUnchanged(t *testing.T, args []string) {
+	t.Helper()
+	env, runtimePath := newPrepareServiceFixture(t)
+	env["ZBX_EULAVERSION"] = "2026-09-29"
+
+	want := slices.Clone(args)
+	command, err := prepareCommand(env, args)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !reflect.DeepEqual(command, want) {
+		t.Errorf("command = %q, want %q", command, want)
+	}
+	if _, err := os.Stat(runtimePath); !os.IsNotExist(err) {
+		t.Errorf("license command created runtime configuration: %v", err)
+	}
+	if _, exists := env["ZABBIX_CONF_DIR"]; exists {
+		t.Error("private environment was not cleared")
+	}
+	if env["ZBX_EULAVERSION"] == "" {
+		t.Error("EULA version was removed from the environment")
 	}
 }
 

@@ -8,14 +8,13 @@ import (
 	"testing"
 
 	"github.com/zabbix/zabbix-docker/templates/entrypoints/internal/bootstrap"
+	"github.com/zabbix/zabbix-docker/templates/entrypoints/internal/testutil"
 )
 
 func TestPreparePHPUsesFrontendSettings(t *testing.T) {
 	root := t.TempDir()
 	phpConfig := filepath.Join(root, "php-fpm.conf")
-	if err := os.WriteFile(phpConfig, nil, 0o600); err != nil {
-		t.Fatal(err)
-	}
+	testutil.WriteFile(t, phpConfig, "")
 	env := bootstrap.Environment{
 		"ZABBIX_USER_HOME_DIR": root,
 		"PHP_ZBX_CONFIG_FILE":  phpConfig,
@@ -56,21 +55,24 @@ func TestPreparePHPUsesFrontendSettings(t *testing.T) {
 	if value, found := env["DB_SERVER_SOCKET"]; !found || value != "" {
 		t.Fatalf("DB_SERVER_SOCKET = %q, found = %t", value, found)
 	}
-	for _, optional := range []string{"ZBX_VAULT", "ZBX_SSO_SETTINGS", "ZBX_SERVER_TLS_CERT_ISSUER"} {
-		if _, found := env[optional]; found {
-			t.Fatalf("unset optional variable %s was exported", optional)
+	for _, name := range []string{
+		// Unset optional settings.
+		"ZBX_VAULT", "ZBX_SSO_SETTINGS", "ZBX_SERVER_TLS_CERT_ISSUER",
+		// Obsolete frontend settings.
+		"ZBX_HISTORYSTORAGEURL", "ZBX_HISTORYSTORAGETYPES", "ZBX_ALLOW_HTTP_AUTH",
+		// Legacy aliases.
+		"ZBX_DB_CIPHER_LIST",
+	} {
+		if _, found := env[name]; found {
+			t.Fatalf("%s was exported", name)
 		}
 	}
-	for _, obsolete := range []string{"ZBX_HISTORYSTORAGEURL", "ZBX_HISTORYSTORAGETYPES", "ZBX_ALLOW_HTTP_AUTH"} {
-		if _, found := env[obsolete]; found {
-			t.Fatalf("obsolete frontend setting %s was exported", obsolete)
-		}
-	}
-	for _, legacy := range []string{"ZBX_DB_CIPHER_LIST"} {
-		if _, found := env[legacy]; found {
-			t.Fatalf("legacy variable %s was exported", legacy)
-		}
-	}
+}
+
+func TestPreparePHPKeepsDisabledDBHostVerification(t *testing.T) {
+	root := t.TempDir()
+	phpConfig := filepath.Join(root, "php-fpm.conf")
+	testutil.WriteFile(t, phpConfig, "")
 	explicitEnv := bootstrap.Environment{
 		"ZABBIX_USER_HOME_DIR": root,
 		"PHP_ZBX_CONFIG_FILE":  phpConfig,
@@ -283,76 +285,87 @@ func TestPrepareWebDisablesHTTPSWhenTLSFileIsRemoved(t *testing.T) {
 		{"apache", "zabbix", "ssl.key", prepareApache},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
-			root := t.TempDir()
-			configDir := filepath.Join(root, "zabbix")
-			sitesDir := filepath.Join(root, "sites")
-			sslDir := filepath.Join(root, "ssl")
-			includesDir := filepath.Join(root, "includes")
-			for _, dir := range []string{configDir, sitesDir, sslDir, includesDir} {
-				if err := os.Mkdir(dir, 0o700); err != nil {
-					t.Fatal(err)
-				}
-			}
-
-			httpsSource := filepath.Join(configDir, tc.name+"_ssl.conf")
-			httpsLink := filepath.Join(sitesDir, tc.enabledVHost+"_ssl.conf")
-			for _, path := range []string{
-				filepath.Join(configDir, tc.name+".conf"), httpsSource,
-				filepath.Join(sslDir, "ssl.crt"), filepath.Join(sslDir, "ssl.key"), filepath.Join(sslDir, "dhparam.pem"),
-			} {
-				if err := os.WriteFile(path, nil, 0o600); err != nil {
-					t.Fatal(err)
-				}
-			}
-			env := bootstrap.Environment{
-				"ZABBIX_CONF_DIR": configDir, "ZBX_MAXEXECUTIONTIME": "600",
-				"NGINX_CONF_FILE": filepath.Join(root, "nginx.conf"), "NGINX_INCLUDES_DIR": includesDir,
-				"NGINX_CONFD_DIR": sitesDir, "NGINX_SSL_CONFIG_DIR": sslDir,
-				"APACHE_SITES_DIR": sitesDir, "APACHE_SSL_CONFIG_DIR": sslDir, "APACHE_RUN_DIR": filepath.Join(root, "run"),
-			}
-
-			prepare := func() {
-				t.Helper()
-				if err := tc.prepare(env); err != nil {
-					t.Fatal(err)
-				}
-			}
-			prepare()
-			if got, err := os.Readlink(httpsLink); err != nil || got != httpsSource {
-				t.Fatalf("HTTPS link = %q, error = %v", got, err)
-			}
-
-			if err := os.Remove(filepath.Join(sslDir, tc.removedFile)); err != nil {
-				t.Fatal(err)
-			}
-			prepare()
-			if _, err := os.Lstat(httpsLink); !os.IsNotExist(err) {
-				t.Fatalf("HTTPS link was not removed: %v", err)
-			}
-			if _, err := os.Readlink(filepath.Join(sitesDir, tc.enabledVHost+".conf")); err != nil {
-				t.Fatalf("HTTP link is missing: %v", err)
-			}
-
-			const customTarget = "custom-https.conf"
-			if err := os.Symlink(customTarget, httpsLink); err != nil {
-				t.Fatal(err)
-			}
-			prepare()
-			if got, err := os.Readlink(httpsLink); err != nil || got != customTarget {
-				t.Fatalf("custom HTTPS link = %q, error = %v", got, err)
-			}
-
-			if err := os.Remove(httpsLink); err != nil {
-				t.Fatal(err)
-			}
-			if err := os.WriteFile(httpsLink, []byte("custom vhost"), 0o600); err != nil {
-				t.Fatal(err)
-			}
-			prepare()
-			if got, err := os.ReadFile(httpsLink); err != nil || string(got) != "custom vhost" {
-				t.Fatalf("custom HTTPS file = %q, error = %v", got, err)
-			}
+			checkHTTPSLinkLifecycle(t, tc.name, tc.enabledVHost, tc.removedFile, tc.prepare)
 		})
+	}
+}
+
+// checkHTTPSLinkLifecycle checks that HTTPS is disabled without TLS files and custom vhosts are kept.
+func checkHTTPSLinkLifecycle(t *testing.T, name, enabledVHost, removedFile string, prepare func(bootstrap.Environment) error) {
+	t.Helper()
+	env, sitesDir, sslDir, httpsSource := webTLSFixture(t, name)
+	httpsLink := filepath.Join(sitesDir, enabledVHost+"_ssl.conf")
+	mustPrepare(t, prepare, env)
+	checkLink(t, httpsLink, httpsSource)
+
+	if err := os.Remove(filepath.Join(sslDir, removedFile)); err != nil {
+		t.Fatal(err)
+	}
+	mustPrepare(t, prepare, env)
+	if _, err := os.Lstat(httpsLink); !os.IsNotExist(err) {
+		t.Fatalf("HTTPS link was not removed: %v", err)
+	}
+	if _, err := os.Readlink(filepath.Join(sitesDir, enabledVHost+".conf")); err != nil {
+		t.Fatalf("HTTP link is missing: %v", err)
+	}
+
+	const customTarget = "custom-https.conf"
+	if err := os.Symlink(customTarget, httpsLink); err != nil {
+		t.Fatal(err)
+	}
+	mustPrepare(t, prepare, env)
+	checkLink(t, httpsLink, customTarget)
+
+	if err := os.Remove(httpsLink); err != nil {
+		t.Fatal(err)
+	}
+	testutil.WriteFile(t, httpsLink, "custom vhost")
+	mustPrepare(t, prepare, env)
+	if got := testutil.ReadFile(t, httpsLink); got != "custom vhost" {
+		t.Fatalf("custom HTTPS file = %q", got)
+	}
+}
+
+// webTLSFixture creates web server configuration with HTTP and HTTPS virtual hosts.
+func webTLSFixture(t *testing.T, name string) (env bootstrap.Environment, sitesDir, sslDir, httpsSource string) {
+	t.Helper()
+	root := t.TempDir()
+	configDir := filepath.Join(root, "zabbix")
+	sitesDir = filepath.Join(root, "sites")
+	sslDir = filepath.Join(root, "ssl")
+	includesDir := filepath.Join(root, "includes")
+	for _, dir := range []string{sitesDir, includesDir} {
+		if err := os.Mkdir(dir, 0o700); err != nil {
+			t.Fatal(err)
+		}
+	}
+	httpsSource = filepath.Join(configDir, name+"_ssl.conf")
+	for _, path := range []string{
+		filepath.Join(configDir, name+".conf"), httpsSource,
+		filepath.Join(sslDir, "ssl.crt"), filepath.Join(sslDir, "ssl.key"), filepath.Join(sslDir, "dhparam.pem"),
+	} {
+		testutil.WriteFile(t, path, "")
+	}
+	env = bootstrap.Environment{
+		"ZABBIX_CONF_DIR": configDir, "ZBX_MAXEXECUTIONTIME": "600",
+		"NGINX_CONF_FILE": filepath.Join(root, "nginx.conf"), "NGINX_INCLUDES_DIR": includesDir,
+		"NGINX_CONFD_DIR": sitesDir, "NGINX_SSL_CONFIG_DIR": sslDir,
+		"APACHE_SITES_DIR": sitesDir, "APACHE_SSL_CONFIG_DIR": sslDir, "APACHE_RUN_DIR": filepath.Join(root, "run"),
+	}
+	return env, sitesDir, sslDir, httpsSource
+}
+
+func mustPrepare(t *testing.T, prepare func(bootstrap.Environment) error, env bootstrap.Environment) {
+	t.Helper()
+	if err := prepare(env); err != nil {
+		t.Fatal(err)
+	}
+}
+
+func checkLink(t *testing.T, link, want string) {
+	t.Helper()
+	if got, err := os.Readlink(link); err != nil || got != want {
+		t.Fatalf("%s link = %q, error = %v, want %q", link, got, err, want)
 	}
 }
 

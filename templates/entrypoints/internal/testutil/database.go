@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"strings"
+	"testing"
 )
 
 // FakeDBSession records SQL statements and returns configured query results.
@@ -44,4 +45,14 @@ func ImportedStatements(sessions []*FakeDBSession) string {
 		statements = append(statements, s.Statements...)
 	}
 	return strings.Join(statements, "\n")
+}
+
+// CheckStatements fails the test unless statements contain every expected statement.
+func CheckStatements(t *testing.T, kind, statements string, expected ...string) {
+	t.Helper()
+	for _, statement := range expected {
+		if !strings.Contains(statements, statement) {
+			t.Fatalf("%s statements do not contain %q:\n%s", kind, statement, statements)
+		}
+	}
 }

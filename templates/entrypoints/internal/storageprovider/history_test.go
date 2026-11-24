@@ -17,56 +17,62 @@ func TestProviderTLSPaths(t *testing.T) {
 		}
 		for _, path := range paths {
 			t.Run(param.Prefix+"/"+path, func(t *testing.T) {
-				fields := map[string]any{
+				env, name, err := configureProvider(t, param, map[string]any{
 					"provider": "clickhouse", "url": "https://clickhouse:8443", "db": "zabbix",
 					"ssl_cert_file": path, "ssl_key_file": path,
-				}
-				raw, err := json.Marshal(fields)
+				})
 				if err != nil {
 					t.Fatal(err)
 				}
-				name := bootstrap.IndexedName(param.Prefix, 0)
-				env := bootstrap.Environment{name: string(raw)}
-				configuration, err := NewConfiguration(env, param)
-				if err != nil {
-					t.Fatal(err)
-				}
-				if err := configuration.ConfigureNative(); err != nil {
-					t.Fatal(err)
-				}
-				for _, kind := range []string{"cert", "key"} {
-					file := path
-					location := "ssl_" + kind + "_location="
-					if filepath.IsAbs(path) {
-						file = filepath.Base(path)
-						if !strings.Contains(env[name], location+`"/custom/team"`) {
-							t.Errorf("absolute TLS path has no matching directory: %s", env[name])
-						}
-					} else if strings.Contains(env[name], location) {
-						t.Errorf("relative TLS path overrides the standard directory: %s", env[name])
-					}
-					if !strings.Contains(env[name], "ssl_"+kind+"_file="+quoteOption(file)) {
-						t.Errorf("unexpected TLS file in %s", env[name])
-					}
-				}
+				checkTLSOptions(t, env[name], path)
 			})
 		}
+	}
+}
+
+func TestProviderInvalidTLSPaths(t *testing.T) {
+	for _, param := range []*Parameter{History, Telemetry} {
 		for _, key := range tlsFiles {
 			for _, invalid := range []any{"../client.pem", "team/../../client.pem", "", "client\n.pem", nil, 42} {
-				fields := map[string]any{"provider": "clickhouse", key: invalid}
-				raw, err := json.Marshal(fields)
-				if err != nil {
-					t.Fatal(err)
-				}
-				name := bootstrap.IndexedName(param.Prefix, 0)
-				configuration, err := NewConfiguration(bootstrap.Environment{name: string(raw)}, param)
-				if err != nil {
-					t.Fatal(err)
-				}
-				if err := configuration.ConfigureNative(); err == nil {
+				if _, name, err := configureProvider(t, param, map[string]any{"provider": "clickhouse", key: invalid}); err == nil {
 					t.Errorf("%s accepted %s=%v", name, key, invalid)
 				}
 			}
+		}
+	}
+}
+
+// configureProvider returns the environment, provider variable and native configuration error.
+func configureProvider(t *testing.T, param *Parameter, fields map[string]any) (bootstrap.Environment, string, error) {
+	t.Helper()
+	raw, err := json.Marshal(fields)
+	if err != nil {
+		t.Fatal(err)
+	}
+	name := bootstrap.IndexedName(param.Prefix, 0)
+	env := bootstrap.Environment{name: string(raw)}
+	configuration, err := NewConfiguration(env, param)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return env, name, configuration.ConfigureNative()
+}
+
+func checkTLSOptions(t *testing.T, option, path string) {
+	t.Helper()
+	for _, kind := range []string{"cert", "key"} {
+		file := path
+		location := "ssl_" + kind + "_location="
+		if filepath.IsAbs(path) {
+			file = filepath.Base(path)
+			if !strings.Contains(option, location+`"/custom/team"`) {
+				t.Errorf("absolute TLS path has no matching directory: %s", option)
+			}
+		} else if strings.Contains(option, location) {
+			t.Errorf("relative TLS path overrides the standard directory: %s", option)
+		}
+		if !strings.Contains(option, "ssl_"+kind+"_file="+quoteOption(file)) {
+			t.Errorf("unexpected TLS file in %s", option)
 		}
 	}
 }

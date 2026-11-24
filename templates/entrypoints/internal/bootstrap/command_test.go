@@ -4,11 +4,15 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"maps"
 	"os"
 	"os/exec"
 	"reflect"
+	"slices"
 	"strings"
 	"testing"
+
+	"github.com/zabbix/zabbix-docker/templates/entrypoints/internal/testutil"
 )
 
 func TestResolveCommand(t *testing.T) {
@@ -204,38 +208,40 @@ func TestStorageInitEntrypointRouting(t *testing.T) {
 		{[]string{initTelemetryCommand, "extra"}, "", "takes no arguments"},
 	} {
 		t.Run(fmt.Sprint(test.args), func(t *testing.T) {
-			env := Environment{"test": "value"}
-			selected := ""
-			record := func(name string, got Environment) {
-				if selected != "" {
-					t.Fatal("multiple handlers ran")
-				}
-				selected = name
-				if !reflect.DeepEqual(got, env) {
-					t.Fatal("environment changed")
-				}
-			}
-			entry := StorageInitEntrypoint(func(got Environment, args []string) error {
-				record("next", got)
-				if !reflect.DeepEqual(args, test.args) {
-					t.Fatal("command arguments changed")
-				}
-				return errors.New("startup failed")
-			}, func(got Environment) (int, error) {
-				record("history", got)
-				return 1, nil
-			}, func(got Environment) (int, error) {
-				record("telemetry", got)
-				return 1, nil
-			})
-			err := entry(env, test.args)
-			if (err == nil) != (test.wantErr == "") || (err != nil && !strings.Contains(err.Error(), test.wantErr)) {
-				t.Fatalf("error = %v, want %q", err, test.wantErr)
-			}
-			if selected != test.handler {
-				t.Fatalf("handler = %q, want %q", selected, test.handler)
-			}
+			checkStorageInitRoute(t, test.args, test.handler, test.wantErr)
 		})
+	}
+}
+
+func checkStorageInitRoute(t *testing.T, args []string, wantHandler, wantErr string) {
+	t.Helper()
+	env := Environment{"test": "value"}
+	selected := ""
+	record := func(name string, got Environment) {
+		if selected != "" {
+			t.Fatal("multiple handlers ran")
+		}
+		selected = name
+		if !reflect.DeepEqual(got, env) {
+			t.Fatal("environment changed")
+		}
+	}
+	entry := StorageInitEntrypoint(func(got Environment, gotArgs []string) error {
+		record("next", got)
+		if !reflect.DeepEqual(gotArgs, args) {
+			t.Fatal("command arguments changed")
+		}
+		return errors.New("startup failed")
+	}, func(got Environment) (int, error) {
+		record("history", got)
+		return 1, nil
+	}, func(got Environment) (int, error) {
+		record("telemetry", got)
+		return 1, nil
+	})
+	testutil.CheckError(t, entry(maps.Clone(env), slices.Clone(args)), wantErr)
+	if selected != wantHandler {
+		t.Fatalf("handler = %q, want %q", selected, wantHandler)
 	}
 }
 

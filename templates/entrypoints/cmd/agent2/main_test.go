@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	"github.com/zabbix/zabbix-docker/templates/entrypoints/internal/bootstrap"
+	"github.com/zabbix/zabbix-docker/templates/entrypoints/internal/testutil"
 )
 
 func TestPrepareService(t *testing.T) {
@@ -18,25 +19,18 @@ func TestPrepareService(t *testing.T) {
 	configDir := filepath.Join(root, "etc")
 	homeDir := filepath.Join(root, "home")
 	pluginDirectory := filepath.Join(configDir, "zabbix_agent2.d", "plugins.d")
-	if err := os.MkdirAll(pluginDirectory, 0o700); err != nil {
-		t.Fatal(err)
-	}
 	if err := os.MkdirAll(filepath.Join(homeDir, "enc_internal"), 0o700); err != nil {
 		t.Fatal(err)
 	}
-	if err := os.WriteFile(filepath.Join(configDir, "zabbix_agent2_item_keys.conf"), []byte("# DenyKey=system.run[*]\n"), 0o600); err != nil {
-		t.Fatal(err)
-	}
-	if err := os.WriteFile(filepath.Join(configDir, "zabbix_agent2_aliases.conf"), []byte("# Alias=\n"), 0o600); err != nil {
-		t.Fatal(err)
-	}
-	if err := os.WriteFile(filepath.Join(configDir, "zabbix_agent2_user_parameters.conf"), []byte("# UserParameter=\n"), 0o600); err != nil {
-		t.Fatal(err)
+	for name, content := range map[string]string{
+		"zabbix_agent2_item_keys.conf":       "# DenyKey=system.run[*]\n",
+		"zabbix_agent2_aliases.conf":         "# Alias=\n",
+		"zabbix_agent2_user_parameters.conf": "# UserParameter=\n",
+	} {
+		testutil.WriteFile(t, filepath.Join(configDir, name), content)
 	}
 	for _, name := range []string{"mongodb.conf", "postgresql.conf", "mssql.conf", "ember.conf", "ceph.conf"} {
-		if err := os.WriteFile(filepath.Join(pluginDirectory, name), []byte("# plugin config\n"), 0o600); err != nil {
-			t.Fatal(err)
-		}
+		testutil.WriteFile(t, filepath.Join(pluginDirectory, name), "# plugin config\n")
 	}
 
 	env := bootstrap.Environment{
@@ -61,26 +55,25 @@ func TestPrepareService(t *testing.T) {
 	if _, found := env["ZABBIX_CONF_DIR"]; found {
 		t.Fatal("ZABBIX_CONF_DIR was not removed")
 	}
-	data, err := os.ReadFile(filepath.Join(pluginDirectory, "mongodb.conf"))
-	if err != nil || !strings.Contains(string(data), "Plugins.MongoDB.System.Path=/usr/sbin/zabbix-agent2-plugin/mongodb") {
-		t.Fatalf("MongoDB plugin config: %s, %v", data, err)
+	mongodb := testutil.ReadFile(t, filepath.Join(pluginDirectory, "mongodb.conf"))
+	if !strings.Contains(mongodb, "Plugins.MongoDB.System.Path=/usr/sbin/zabbix-agent2-plugin/mongodb") {
+		t.Fatalf("MongoDB plugin config: %s", mongodb)
 	}
-	data, err = os.ReadFile(filepath.Join(pluginDirectory, "ceph.conf"))
-	if err != nil || !strings.Contains(string(data), "Plugins.Ceph.System.Path=/usr/sbin/zabbix-agent2-plugin/ceph") {
-		t.Fatalf("Ceph plugin config: %s, %v", data, err)
+	ceph := testutil.ReadFile(t, filepath.Join(pluginDirectory, "ceph.conf"))
+	if !strings.Contains(ceph, "Plugins.Ceph.System.Path=/usr/sbin/zabbix-agent2-plugin/ceph") {
+		t.Fatalf("Ceph plugin config: %s", ceph)
 	}
-	itemKeys, err := os.ReadFile(filepath.Join(configDir, "zabbix_agent2_item_keys.conf"))
-	if err != nil || !strings.HasSuffix(string(itemKeys),
-		"AllowKey=${ZBX_ALLOWKEY_0}\nDenyKeyRegexp=${ZBX_DENYKEY_REGEXP_1}\n") {
-		t.Fatalf("item key config: %s, %v", itemKeys, err)
+	itemKeys := testutil.ReadFile(t, filepath.Join(configDir, "zabbix_agent2_item_keys.conf"))
+	if !strings.HasSuffix(itemKeys, "AllowKey=${ZBX_ALLOWKEY_0}\nDenyKeyRegexp=${ZBX_DENYKEY_REGEXP_1}\n") {
+		t.Fatalf("item key config: %s", itemKeys)
 	}
-	aliases, err := os.ReadFile(filepath.Join(configDir, "zabbix_agent2_aliases.conf"))
-	if err != nil || !strings.Contains(string(aliases), "Alias=${ZBX_ALIAS_0}") {
-		t.Fatalf("alias config: %s, %v", aliases, err)
+	aliases := testutil.ReadFile(t, filepath.Join(configDir, "zabbix_agent2_aliases.conf"))
+	if !strings.Contains(aliases, "Alias=${ZBX_ALIAS_0}") {
+		t.Fatalf("alias config: %s", aliases)
 	}
-	userParameters, err := os.ReadFile(filepath.Join(configDir, "zabbix_agent2_user_parameters.conf"))
-	if err != nil || !strings.Contains(string(userParameters), "UserParameter=${ZBX_USERPARAMETER_0}") {
-		t.Fatalf("user parameter config: %s, %v", userParameters, err)
+	userParameters := testutil.ReadFile(t, filepath.Join(configDir, "zabbix_agent2_user_parameters.conf"))
+	if !strings.Contains(userParameters, "UserParameter=${ZBX_USERPARAMETER_0}") {
+		t.Fatalf("user parameter config: %s", userParameters)
 	}
 	if env["ZBX_ALIAS_0"] == "" || env["ZBX_USERPARAMETER_0"] == "" {
 		t.Fatal("indexed configuration environment variable was removed")

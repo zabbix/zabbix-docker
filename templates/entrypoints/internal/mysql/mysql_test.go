@@ -32,12 +32,7 @@ func (f *fakeSessionFactory) open(_ context.Context, config *mysql.Config) (dbSe
 func TestPrepareDatabase(t *testing.T) {
 	root := t.TempDir()
 	scriptsDirectory := filepath.Join(root, "dbscripts")
-	if err := os.Mkdir(scriptsDirectory, 0o700); err != nil {
-		t.Fatal(err)
-	}
-	if err := os.WriteFile(filepath.Join(scriptsDirectory, "10-extra.sql"), []byte("SELECT 'extra';"), 0o600); err != nil {
-		t.Fatal(err)
-	}
+	testutil.WriteFile(t, filepath.Join(scriptsDirectory, "10-extra.sql"), "SELECT 'extra';")
 	schemaFile := filepath.Join(root, "create.sql.gz")
 	testutil.WriteGzipFile(t, schemaFile, "CREATE TABLE dbversion (mandatory integer);")
 
@@ -57,24 +52,16 @@ func TestPrepareDatabase(t *testing.T) {
 	}
 
 	adminStatements := strings.Join(f.admin.Statements, "\n")
-	for _, expected := range []string{
+	testutil.CheckStatements(t, "admin", adminStatements,
 		"CREATE USER ?@'%' IDENTIFIED BY ? [zabbix zabbix-password]",
 		"CREATE DATABASE `zabbix_test` CHARACTER SET `utf8mb4` COLLATE `utf8mb4_bin`",
-		"GRANT " + zabbixDBPrivileges + " ON `zabbix_test`.* TO ?@'%' [zabbix]",
-	} {
-		if !strings.Contains(adminStatements, expected) {
-			t.Fatalf("admin statements do not contain %q:\n%s", expected, adminStatements)
-		}
-	}
+		"GRANT "+zabbixDBPrivileges+" ON `zabbix_test`.* TO ?@'%' [zabbix]",
+	)
 	if strings.Contains(adminStatements, "GRANT ALL PRIVILEGES") {
 		t.Fatalf("admin statements contain an unrestricted grant:\n%s", adminStatements)
 	}
-	imports := testutil.ImportedStatements(f.imports)
-	for _, expected := range []string{"CREATE TABLE dbversion (mandatory integer)", "SELECT 'extra'"} {
-		if !strings.Contains(imports, expected) {
-			t.Fatalf("import statements do not contain %q:\n%s", expected, imports)
-		}
-	}
+	testutil.CheckStatements(t, "import", testutil.ImportedStatements(f.imports),
+		"CREATE TABLE dbversion (mandatory integer)", "SELECT 'extra'")
 	if len(f.configs) == 0 || f.configs[0].Passwd != "root-password" {
 		t.Fatalf("root password was not configured: %#v", f.configs)
 	}
@@ -317,11 +304,11 @@ func TestVerifiedTLSConfigurations(t *testing.T) {
 		mode             string
 		wantServerName   string
 		wantCustomVerify bool
-		wantErr          bool
+		wantErr          string
 	}{
 		{mode: "verify_ca", wantCustomVerify: true},
 		{mode: "verify_full", wantServerName: "db.example.test"},
-		{mode: "unsupported", wantErr: true},
+		{mode: "unsupported", wantErr: "unsupported database TLS connection mode"},
 	} {
 		t.Run(test.mode, func(t *testing.T) {
 			env := bootstrap.Environment{
@@ -334,14 +321,9 @@ func TestVerifiedTLSConfigurations(t *testing.T) {
 				t.Fatal(err)
 			}
 			config, err := db.tlsConfig()
-			if test.wantErr {
-				if err == nil || !strings.Contains(err.Error(), "unsupported database TLS connection mode") {
-					t.Fatalf("expected unsupported TLS mode error, got %v", err)
-				}
+			testutil.CheckError(t, err, test.wantErr)
+			if test.wantErr != "" {
 				return
-			}
-			if err != nil {
-				t.Fatal(err)
 			}
 			if config.ServerName != test.wantServerName {
 				t.Fatalf("ServerName = %q, want %q", config.ServerName, test.wantServerName)

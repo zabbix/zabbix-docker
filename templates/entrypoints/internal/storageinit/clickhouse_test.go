@@ -19,26 +19,13 @@ import (
 
 func TestProviderCredentials(t *testing.T) {
 	queries := make(map[string][]string)
-	newEndpoint := func(label string) string {
-		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			body, _ := io.ReadAll(r.Body)
-			queries[label] = append(queries[label], string(body))
-			user, pass, _ := r.BasicAuth()
-			if user != label || pass != "file-secret" {
-				t.Errorf("incorrect credentials for %s", label)
-			}
-			fmt.Fprintln(w, "1")
-		}))
-		t.Cleanup(server.Close)
-		return server.URL
-	}
 	env := bootstrap.Environment{}
 	for _, spec := range []struct{ name, db, types string }{
 		{"ZBX_HISTORYPROVIDER_0", "numbers", `,"types":["uint","dbl"]`},
 		{"ZBX_HISTORYPROVIDER_1", "logs", `,"types":["log"]`},
 		{"ZBX_TELEMETRYPROVIDER_0", "telemetry", ""},
 	} {
-		env[spec.name] = fmt.Sprintf(`{"provider":"clickhouse","url":%q,"db":%q%s}`, newEndpoint(spec.db), spec.db, spec.types)
+		env[spec.name] = fmt.Sprintf(`{"provider":"clickhouse","url":%q,"db":%q%s}`, credentialEndpoint(t, queries, spec.db), spec.db, spec.types)
 		env[spec.name+"_USERNAME"] = spec.db
 		env[spec.name+"_PASSWORD"] = "file-secret"
 		env[spec.name+"_SCHEMA"] = `{"create":false}`
@@ -51,7 +38,36 @@ func TestProviderCredentials(t *testing.T) {
 			t.Fatal(err)
 		}
 	})
-	for label, count := range map[string]int{"numbers": 3, "logs": 2, "telemetry": 7} {
+	checkCheckOnlyQueries(t, queries, map[string]int{"numbers": 3, "logs": 2, "telemetry": 7})
+	for _, name := range []string{"ZBX_HISTORYPROVIDER_0", "ZBX_HISTORYPROVIDER_1", "ZBX_TELEMETRYPROVIDER_0"} {
+		if !strings.Contains(env[name], `password="file-secret"`) {
+			t.Errorf("%s does not contain the resolved password", name)
+		}
+	}
+	if strings.Contains(logs, "file-secret") {
+		t.Error("logs contain the password")
+	}
+	checkNoSchemaOptions(t, env)
+}
+
+// credentialEndpoint records queries by label and expects label/file-secret credentials.
+func credentialEndpoint(t *testing.T, queries map[string][]string, label string) string {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		body, _ := io.ReadAll(r.Body)
+		queries[label] = append(queries[label], string(body))
+		user, pass, _ := r.BasicAuth()
+		if user != label || pass != "file-secret" {
+			t.Errorf("incorrect credentials for %s", label)
+		}
+		fmt.Fprintln(w, "1")
+	}))
+	t.Cleanup(server.Close)
+	return server.URL
+}
+
+func checkCheckOnlyQueries(t *testing.T, queries map[string][]string, counts map[string]int) {
+	t.Helper()
+	for label, count := range counts {
 		if len(queries[label]) != count {
 			t.Fatalf("%s requests: %v", label, queries[label])
 		}
@@ -64,15 +80,10 @@ func TestProviderCredentials(t *testing.T) {
 			}
 		}
 	}
-	for _, name := range []string{"ZBX_HISTORYPROVIDER_0", "ZBX_HISTORYPROVIDER_1", "ZBX_TELEMETRYPROVIDER_0"} {
-		if !strings.Contains(env[name], `password="file-secret"`) {
-			t.Errorf("%s does not contain the resolved password", name)
-		}
-	}
-	if strings.Contains(logs, "file-secret") {
-		t.Error("logs contain the password")
-	}
+}
 
+func checkNoSchemaOptions(t *testing.T, env bootstrap.Environment) {
+	t.Helper()
 	for name, value := range env {
 		if strings.HasSuffix(name, "_SCHEMA") {
 			t.Errorf("variable was not removed: %s", name)
