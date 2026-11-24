@@ -14,7 +14,7 @@ Create an expiring [Zabbix API token](https://www.zabbix.com/documentation/devel
 Replace `<token>` with your API token to call `host_get` over MCP Streamable HTTP.
 
 ```console
-curl -fsS http://127.0.0.1:8443/mcp \
+curl -fsS http://127.0.0.1:9443/mcp \
   -H 'Authorization: Bearer <token>' \
   -H 'Content-Type: application/json' \
   -H 'Accept: application/json, text/event-stream' \
