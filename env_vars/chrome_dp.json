@@ -192,6 +192,11 @@
       "args": null
     },
     {
+      "name": "faccessat2",
+      "action": "SCMP_ACT_ALLOW",
+      "args": null
+    },
+    {
       "name": "fadvise64",
       "action": "SCMP_ACT_ALLOW",
       "args": null
@@ -883,6 +888,11 @@
     },
     {
       "name": "pwritev",
+      "action": "SCMP_ACT_ALLOW",
+      "args": null
+    },
+    {
+      "name": "pwritev2",
       "action": "SCMP_ACT_ALLOW",
       "args": null
     },
