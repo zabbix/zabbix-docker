@@ -19,24 +19,24 @@ Zabbix MCP server 8.2 (tags: alpine-trunk, ubuntu-trunk, ol-trunk)</code></pre>
 <h1 id="how-to-use-this-image">How to use this image</h1>
 <h2 id="start-zabbix-mcp-server">Start <code>zabbix-mcp-server</code></h2>
 <p>Start a Zabbix MCP server container as follows:</p>
-<pre><code>$ docker run --name some-zabbix-mcp-server -e ZBX_FRONTEND_URL="https://zabbix.example.com/api_jsonrpc.php" -e ZBX_ALLOWEDIP="192.0.2.0/24" -p 8443:8443 -d zabbix/zabbix-mcp-server:tag</code></pre>
+<pre><code>$ docker run --name some-zabbix-mcp-server -e ZBX_FRONTEND_URL="https://zabbix.example.com/api_jsonrpc.php" -e ZBX_ALLOWEDIP="192.0.2.0/24" -p 9443:8443 -d zabbix/zabbix-mcp-server:tag</code></pre>
 <p>Where <code>some-zabbix-mcp-server</code> is the name you want to assign to your container, <code>zabbix.example.com</code> is the Zabbix frontend, <code>192.0.2.0/24</code> is the network from which MCP clients may connect and <code>tag</code> is the tag specifying the version you want. See the list above for relevant tags, or look at the <a href="https://hub.docker.com/r/zabbix/zabbix-mcp-server/tags/">full list of tags</a>.</p>
 
 <h2 id="connect-an-mcp-client">Connect an MCP client</h2>
 <p>Configure the client to use the MCP Streamable HTTP transport and connect to:</p>
-<pre><code>http://host:8443/mcp</code></pre>
+<pre><code>http://host:9443/mcp</code></pre>
 <p>Every request must include the following header:</p>
 <pre><code>Authorization: Bearer &lt;Zabbix API token&gt;</code></pre>
 <p>The token must belong to the user on whose behalf the agent operates. The server is stateless and can run behind a load balancer without session affinity.</p>
 <p>The endpoint can be checked with a single request:</p>
-<pre><code>$ curl -sS http://host:8443/mcp \
+<pre><code>$ curl -sS http://host:9443/mcp \
     -H "Authorization: Bearer $ZABBIX_API_TOKEN" \
     -H "Content-Type: application/json" \
     -H "Accept: application/json, text/event-stream" \
     -d '{"jsonrpc":"2.0","id":1,"method":"tools/list"}'</code></pre>
 <p>or</p>
 <pre><code>$ npx @modelcontextprotocol/inspector \
-    --cli http://host:8443/mcp \
+    --cli http://host:9443/mcp \
     --transport http \
     --header "Authorization: Bearer $ZABBIX_API_TOKEN" \
     --method tools/list</code></pre>
@@ -99,7 +99,7 @@ ZBX_DENYTOOL_REGEXP_&lt;0-N&gt;=</code></pre>
     -e ZBX_ALLOWEDIP="192.0.2.0/24" \
     -e ZBX_ALLOWTOOL_REGEXP_0='^(host|hostgroup|trigger|problem)_get$' \
     -e ZBX_DENYTOOL_1='*' \
-    -p 8443:8443 \
+    -p 9443:8443 \
     -d zabbix/zabbix-mcp-server:tag</code></pre>
 <p>By default, the image denies <code>item_get</code>, <code>lld_get</code>, <code>interface_get</code>, <code>macro_get</code> and <code>history_get</code>. Indexed environment rules replace this default policy entirely. Removing these variables restores the default policy on the next container start.</p>
 <p>Write tools (<code>problem_*</code> and <code>maintenance_*</code>) are enabled by default; if the MCP client does not support form elicitation, changes are applied without user approval.</p>

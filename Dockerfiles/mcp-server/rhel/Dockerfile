@@ -35,7 +35,7 @@ LABEL description="Zabbix MCP server speaks the Model Context Protocol (MCP) on 
       maintainer="alexey.pustovalov@zabbix.com" \
       name="zabbix/zabbix-mcp-server-80" \
       release="${RELEASE}" \
-      run="podman run --name zabbix-mcp-server -e ZBX_FRONTEND_URL=https://zabbix.example.com/api_jsonrpc.php -e ZBX_ALLOWEDIP=0.0.0.0/0 -p 8443:8443 -d registry.connect.redhat.com/zabbix/zabbix-mcp-server-80:${ZBX_VERSION}" \
+      run="podman run --name zabbix-mcp-server -e ZBX_FRONTEND_URL=https://zabbix.example.com/api_jsonrpc.php -e ZBX_ALLOWEDIP=0.0.0.0/0 -p 9443:8443 -d registry.connect.redhat.com/zabbix/zabbix-mcp-server-80:${ZBX_VERSION}" \
       summary="Zabbix MCP server" \
       url="https://www.zabbix.com/" \
       vendor="Zabbix SIA" \

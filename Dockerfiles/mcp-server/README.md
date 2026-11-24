@@ -33,7 +33,7 @@ The image with ``latest`` tag is based on Alpine Linux.
 Start a Zabbix MCP server container as follows:
 
 ```console
-$ docker run --name some-zabbix-mcp-server -e ZBX_FRONTEND_URL="https://zabbix.example.com/api_jsonrpc.php" -e ZBX_ALLOWEDIP="192.0.2.0/24" -p 8443:8443 -d zabbix/zabbix-mcp-server:tag
+$ docker run --name some-zabbix-mcp-server -e ZBX_FRONTEND_URL="https://zabbix.example.com/api_jsonrpc.php" -e ZBX_ALLOWEDIP="192.0.2.0/24" -p 9443:8443 -d zabbix/zabbix-mcp-server:tag
 ```
 
 Where `some-zabbix-mcp-server` is the name you want to assign to your container, `zabbix.example.com` is the Zabbix frontend, `192.0.2.0/24` is the network from which MCP clients may connect and `tag` is the tag specifying the version you want. See the list above for relevant tags, or look at the [full list of tags](https://hub.docker.com/r/zabbix/zabbix-mcp-server/tags/).
@@ -42,7 +42,7 @@ Where `some-zabbix-mcp-server` is the name you want to assign to your container,
 
 Configure the client to use the MCP Streamable HTTP transport and connect to:
 
-    http://host:8443/mcp
+    http://host:9443/mcp
 
 Every request must include the following header:
 
@@ -53,7 +53,7 @@ The token must belong to the user on whose behalf the agent operates. The server
 The endpoint can be checked with a single request:
 
 ```console
-$ curl -sS http://host:8443/mcp \
+$ curl -sS http://host:9443/mcp \
     -H "Authorization: Bearer $ZABBIX_API_TOKEN" \
     -H "Content-Type: application/json" \
     -H "Accept: application/json, text/event-stream" \
@@ -62,7 +62,7 @@ $ curl -sS http://host:8443/mcp \
 or
 ```console
 $ npx @modelcontextprotocol/inspector \
-    --cli http://host:8443/mcp \
+    --cli http://host:9443/mcp \
     --transport http \
     --header "Authorization: Bearer $ZABBIX_API_TOKEN" \
     --method tools/list
@@ -152,7 +152,7 @@ $ docker run --name some-zabbix-mcp-server \
     -e ZBX_ALLOWEDIP="192.0.2.0/24" \
     -e ZBX_ALLOWTOOL_REGEXP_0='^(host|hostgroup|trigger|problem)_get$' \
     -e ZBX_DENYTOOL_1='*' \
-    -p 8443:8443 \
+    -p 9443:8443 \
     -d zabbix/zabbix-mcp-server:tag
 ```
 
