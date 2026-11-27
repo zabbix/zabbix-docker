@@ -11,7 +11,22 @@
     },
     "rhel": {
       "imagePlatforms": ["linux/amd64", "linux/arm64"],
-      "runnerLabels": {"amd64": "X64", "arm64": "ARM64"}
+      "runnerLabels": {"amd64": "X64", "arm64": "ARM64"},
+      "certificationProjects": {
+        "agent": "6a8c3ea99123c8fcde20ea43",
+        "agent2": "6a8c3ad03d1f7b205e05f26a",
+        "bridge-adapter": "6abb117fa562317e95be72b4",
+        "java-gateway": "6a86da88d91fd14ea635588e",
+        "mcp-server": "6ab72d66ca428466851cf462",
+        "proxy-mysql": "6a8c353376a027ea0ae61abb",
+        "proxy-sqlite3": "6a8c398229a101ca45369f9d",
+        "server-mysql": "6a8c3c602e3a46d205fb0e1e",
+        "server-pgsql": "6a8c3027defd463fd34a075c",
+        "snmptraps": "6a8c08b12cc2f7ab31bf806d",
+        "web-nginx-mysql": "6a8c376d9123c8fcde20bd2f",
+        "web-nginx-pgsql": "6a8835733e39a4d3aa228fa0",
+        "web-service": "6a8bf7691342c8c2b5ff6ff4"
+      }
     },
     "ubuntu": {
       "imagePlatforms": ["linux/amd64", "linux/arm64", "linux/ppc64le"]
