@@ -38,7 +38,7 @@ jobs:
       contents: read
     outputs:
       components: ${{ steps.components.outputs.list }}
-      zabbix_release: ${{ steps.branch_info.outputs.zabbix_release }}
+      rhel_projects: ${{ steps.rhel_projects.outputs.list }}
 
     steps:
       - name: Block egress traffic
@@ -67,18 +67,20 @@ jobs:
             exit 1
           fi
 
-      - name: Get branch info
-        id: branch_info
+      - name: Prepare Red Hat certification projects
+        id: rhel_projects
         env:
-          GITHUB_REF_NAME: ${{ github.ref_name }}
+          MATRIX_FILE: ${{ env.MATRIX_FILE }}
         run: |
           set -Eeuo pipefail
 
-          echo "::group::Branch metadata"
-          echo "zabbix_release=${GITHUB_REF_NAME//.}"
+          projects="$(jq -c '.platforms.rhel.certificationProjects // {}' "$MATRIX_FILE")"
+
+          echo "::group::Red Hat certification projects"
+          echo "$projects"
           echo "::endgroup::"
 
-          echo "zabbix_release=${GITHUB_REF_NAME//.}" >> "$GITHUB_OUTPUT"
+          echo "list=$projects" >> "$GITHUB_OUTPUT"
 
       - name: Prepare Zabbix component list
         id: components
@@ -128,22 +130,6 @@ jobs:
         with:
           fetch-depth: 1
 
-      - name: Format matrix variables
-        id: var_format
-        env:
-          MATRIX_BUILD: ${{ matrix.component }}
-        run: |
-          set -Eeuo pipefail
-
-          MATRIX_BUILD="${MATRIX_BUILD^^}"
-          MATRIX_BUILD="${MATRIX_BUILD//-/_}"
-
-          echo "::group::Result"
-          echo "matrix_build=${MATRIX_BUILD}"
-          echo "::endgroup::"
-
-          echo "matrix_build=${MATRIX_BUILD}" >> "$GITHUB_OUTPUT"
-
       - name: Check Python requirements file
         env:
           PYTHON_REQUIREMENTS_FILE: ${{ env.PYTHON_REQUIREMENTS_FILE }}
@@ -184,7 +170,7 @@ jobs:
       - name: Update Red Hat project description
         env:
           DESCRIPTION_FILE: ${{ format('{0}/{1}/rhel/README', env.DOCKERFILES_DIRECTORY, matrix.component) }}
-          PROJECT_ID: ${{ secrets[format('RHEL_{0}_{1}_PROJECT', needs.init.outputs.zabbix_release, steps.var_format.outputs.matrix_build)] }}
+          PROJECT_ID: ${{ fromJSON(needs.init.outputs.rhel_projects)[matrix.component] }}
           PYXIS_API_TOKEN: ${{ secrets.REDHAT_API_TOKEN }}
           API_URL: ${{ env.API_URL }}
         run: |
@@ -193,7 +179,7 @@ jobs:
 
       - name: Print Red Hat Catalog URL
         env:
-          PROJECT_ID: ${{ secrets[format('RHEL_{0}_{1}_PROJECT', needs.init.outputs.zabbix_release, steps.var_format.outputs.matrix_build)] }}
+          PROJECT_ID: ${{ fromJSON(needs.init.outputs.rhel_projects)[matrix.component] }}
         run: |
           set -Eeuo pipefail
 
