@@ -149,7 +149,6 @@ jobs:
         id: branch_info
         uses: ./.github/actions/get-branch-info
         with:
-          trunk_version: ${{ inputs.trunk_version }}
           trunk_git_branch: ${{ env.TRUNK_GIT_BRANCH }}
 
       - name: Check upstream changes
