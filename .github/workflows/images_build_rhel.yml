@@ -25,9 +25,6 @@ on:
         required: true
         default: false
         type: boolean
-      trunk_version:
-        description: 'Specify trunk major version'
-        type: string
 
 concurrency:
   group: rhel-build-${{ github.workflow }}-${{ github.ref }}
@@ -200,7 +197,6 @@ jobs:
         id: branch_info
         uses: ./.github/actions/get-branch-info
         with:
-          trunk_version: ${{ inputs.trunk_version }}
           trunk_git_branch: ${{ env.TRUNK_GIT_BRANCH }}
 
   build_base:
