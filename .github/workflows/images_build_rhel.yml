@@ -14,6 +14,7 @@ on:
       - '!**/README.md'
       - '!**/README.html'
       - '.github/workflows/images_build_rhel.yml'
+      - '.github/actions/get-rhel-registry-password/**'
       - 'templates/entrypoints/**'
       - '!templates/entrypoints/web-apache-*.sh'
       - '!templates/entrypoints/lib/apache.sh'
@@ -24,9 +25,6 @@ on:
         required: true
         default: false
         type: boolean
-      trunk_version:
-        description: 'Specify trunk major version'
-        type: string
 
 concurrency:
   group: rhel-build-${{ github.workflow }}-${{ github.ref }}
@@ -100,7 +98,7 @@ jobs:
       is_default_branch: ${{ steps.branch_info.outputs.is_default_branch }}
       current_branch: ${{ steps.branch_info.outputs.current_branch }}
       sha_short: ${{ steps.branch_info.outputs.sha_short }}
-      secret_prefix: ${{ steps.branch_info.outputs.secret_prefix }}
+      rhel_projects: ${{ steps.rhel_projects.outputs.list }}
 
     steps:
       - name: Block egress traffic
@@ -182,11 +180,23 @@ jobs:
 
           echo "list=$component_list" >> "$GITHUB_OUTPUT"
 
+      - name: Prepare Red Hat certification projects
+        id: rhel_projects
+        env:
+          MATRIX_FILE: ${{ env.MATRIX_FILE }}
+        run: |
+          projects="$(jq -c '.platforms.rhel.certificationProjects // {}' "$MATRIX_FILE")"
+
+          echo "::group::Red Hat certification projects"
+          echo "$projects"
+          echo "::endgroup::"
+
+          echo "list=$projects" >> "$GITHUB_OUTPUT"
+
       - name: Get branch info
         id: branch_info
         uses: ./.github/actions/get-branch-info
         with:
-          trunk_version: ${{ inputs.trunk_version }}
           trunk_git_branch: ${{ env.TRUNK_GIT_BRANCH }}
 
   build_base:
@@ -505,26 +515,14 @@ jobs:
     runs-on: [self-hosted, linux, "${{ matrix.arch }}"]
     permissions:
       contents: read
+    env:
+      RHEL_PROJECT: ${{ fromJSON(needs.init_build.outputs.rhel_projects)[matrix.build] || matrix.build }}
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 1
-
-      - name: Format variables
-        id: var_format
-        env:
-          MATRIX_BUILD: ${{ matrix.build }}
-        run: |
-          matrix_build="${MATRIX_BUILD^^}"
-          matrix_build="${matrix_build//-/_}"
-
-          echo "::group::Result"
-          echo "matrix_build=${matrix_build}"
-          echo "::endgroup::"
-
-          echo "matrix_build=${matrix_build}" >> "$GITHUB_OUTPUT"
 
       - name: Normalize architecture
         id: platform
@@ -611,7 +609,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@dc802804100637a589fabce1cb79ff13a1411302 # v6.2.0
         with:
-          images: ${{ env.REGISTRY }}/${{ env.REGISTRY_NAMESPACE }}/${{ secrets[format('{0}_{1}_PROJECT', needs.init_build.outputs.secret_prefix, steps.var_format.outputs.matrix_build)] || matrix.build }}
+          images: ${{ env.REGISTRY }}/${{ env.REGISTRY_NAMESPACE }}/${{ env.RHEL_PROJECT }}
           tags: |
             type=sha,format=long
           flavor: |
@@ -656,21 +654,20 @@ jobs:
             --build-context entrypoints=./templates/entrypoints
             --build-context scripts=./templates/scripts/snmptraps
 
-      - name: Validate registry secrets
+      - name: Get registry credentials
+        id: registry_credentials
         if: ${{ env.AUTO_PUSH_IMAGES == 'true' }}
-        env:
-          PROJECT_NAME: ${{ secrets[format('{0}_{1}_PROJECT', needs.init_build.outputs.secret_prefix, steps.var_format.outputs.matrix_build)] }}
-          PROJECT_SECRET: ${{ secrets[format('{0}_{1}_SECRET', needs.init_build.outputs.secret_prefix, steps.var_format.outputs.matrix_build)] }}
-        run: |
-          [[ -n "${PROJECT_NAME:-}" ]] || { echo "::error::Registry project secret is missing"; exit 1; }
-          [[ -n "${PROJECT_SECRET:-}" ]] || { echo "::error::Registry robot secret is missing"; exit 1; }
+        uses: ./.github/actions/get-rhel-registry-password
+        with:
+          project: ${{ env.RHEL_PROJECT }}
+          api_token: ${{ secrets.REDHAT_API_TOKEN }}
 
       - name: Log in to ${{ env.REGISTRY }}
         uses: redhat-actions/podman-login@50c2d9a331bb67c8fdab99b86455fad05e2e3252 # v2.0
         if: ${{ env.AUTO_PUSH_IMAGES == 'true' }}
         with:
-          username: ${{ format('redhat-isv-containers+{0}-robot', secrets[format('{0}_{1}_PROJECT', needs.init_build.outputs.secret_prefix, steps.var_format.outputs.matrix_build)]) }}
-          password: ${{ secrets[format('{0}_{1}_SECRET', needs.init_build.outputs.secret_prefix, steps.var_format.outputs.matrix_build)] }}
+          username: ${{ format('redhat-isv-containers+{0}-robot', env.RHEL_PROJECT) }}
+          password: ${{ steps.registry_credentials.outputs.password }}
           registry: ${{ env.REGISTRY }}
           auth_file_path: /tmp/.docker_${{ matrix.build }}_${{ matrix.arch }}_${{ needs.init_build.outputs.sha_short }}
 
@@ -741,6 +738,8 @@ jobs:
     runs-on: ubuntu-26.04
     permissions:
       contents: read
+    env:
+      RHEL_PROJECT: ${{ fromJSON(needs.init_build.outputs.rhel_projects)[matrix.build] }}
 
     steps:
       - name: Block egress traffic
@@ -752,40 +751,30 @@ jobs:
             api.github.com:443
             auth.docker.io:443
             catalog.redhat.com:443
+            github.com:443
             cdn01.quay.io:443
             production.cloudfront.docker.com:443
             quay.io:443
             registry-1.docker.io:443
 
-      - name: Format variables
-        id: var_format
-        env:
-          MATRIX_BUILD: ${{ matrix.build }}
-        run: |
-          matrix_build="${MATRIX_BUILD^^}"
-          matrix_build="${matrix_build//-/_}"
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 1
+          sparse-checkout: .github/actions
 
-          echo "::group::Result"
-          echo "matrix_build=${matrix_build}"
-          echo "::endgroup::"
-
-          echo "matrix_build=${matrix_build}" >> "$GITHUB_OUTPUT"
-
-      - name: Validate registry and certification secrets
-        env:
-          PROJECT_NAME: ${{ secrets[format('{0}_{1}_PROJECT', needs.init_build.outputs.secret_prefix, steps.var_format.outputs.matrix_build)] }}
-          PROJECT_SECRET: ${{ secrets[format('{0}_{1}_SECRET', needs.init_build.outputs.secret_prefix, steps.var_format.outputs.matrix_build)] }}
-          PYXIS_API_TOKEN: ${{ secrets.REDHAT_API_TOKEN }}
-        run: |
-          [[ -n "${PROJECT_NAME:-}" ]] || { echo "::error::Registry project secret is missing"; exit 1; }
-          [[ -n "${PROJECT_SECRET:-}" ]] || { echo "::error::Registry robot secret is missing"; exit 1; }
-          [[ -n "${PYXIS_API_TOKEN:-}" ]] || { echo "::error::Red Hat API token is missing"; exit 1; }
+      - name: Get registry credentials
+        id: registry_credentials
+        uses: ./.github/actions/get-rhel-registry-password
+        with:
+          project: ${{ env.RHEL_PROJECT }}
+          api_token: ${{ secrets.REDHAT_API_TOKEN }}
 
       - name: Generate public tags
         id: meta
         uses: docker/metadata-action@dc802804100637a589fabce1cb79ff13a1411302 # v6.2.0
         with:
-          images: ${{ env.REGISTRY }}/${{ env.REGISTRY_NAMESPACE }}/${{ secrets[format('{0}_{1}_PROJECT', needs.init_build.outputs.secret_prefix, steps.var_format.outputs.matrix_build)] }}
+          images: ${{ env.REGISTRY }}/${{ env.REGISTRY_NAMESPACE }}/${{ env.RHEL_PROJECT }}
           tags: |
             type=semver,pattern={{version}}
             type=sha
@@ -796,7 +785,7 @@ jobs:
         id: meta_amd64
         uses: docker/metadata-action@dc802804100637a589fabce1cb79ff13a1411302 # v6.2.0
         with:
-          images: ${{ env.REGISTRY }}/${{ env.REGISTRY_NAMESPACE }}/${{ secrets[format('{0}_{1}_PROJECT', needs.init_build.outputs.secret_prefix, steps.var_format.outputs.matrix_build)] }}
+          images: ${{ env.REGISTRY }}/${{ env.REGISTRY_NAMESPACE }}/${{ env.RHEL_PROJECT }}
           tags: |
             type=sha,format=long
           flavor: |
@@ -807,7 +796,7 @@ jobs:
         id: meta_arm64
         uses: docker/metadata-action@dc802804100637a589fabce1cb79ff13a1411302 # v6.2.0
         with:
-          images: ${{ env.REGISTRY }}/${{ env.REGISTRY_NAMESPACE }}/${{ secrets[format('{0}_{1}_PROJECT', needs.init_build.outputs.secret_prefix, steps.var_format.outputs.matrix_build)] }}
+          images: ${{ env.REGISTRY }}/${{ env.REGISTRY_NAMESPACE }}/${{ env.RHEL_PROJECT }}
           tags: |
             type=sha,format=long
           flavor: |
@@ -822,8 +811,8 @@ jobs:
         env:
           DOCKER_CONFIG: ${{ runner.temp }}/docker-config
         with:
-          username: ${{ format('redhat-isv-containers+{0}-robot', secrets[format('{0}_{1}_PROJECT', needs.init_build.outputs.secret_prefix, steps.var_format.outputs.matrix_build)]) }}
-          password: ${{ secrets[format('{0}_{1}_SECRET', needs.init_build.outputs.secret_prefix, steps.var_format.outputs.matrix_build)] }}
+          username: ${{ format('redhat-isv-containers+{0}-robot', env.RHEL_PROJECT) }}
+          password: ${{ steps.registry_credentials.outputs.password }}
           registry: ${{ env.REGISTRY }}
 
       - name: Create and push multiarch manifest
@@ -840,7 +829,7 @@ jobs:
       - name: Preflight certification
         env:
           DOCKER_CONFIG: ${{ runner.temp }}/docker-config
-          PFLT_CERTIFICATION_COMPONENT_ID: ${{ secrets[format('{0}_{1}_PROJECT', needs.init_build.outputs.secret_prefix, steps.var_format.outputs.matrix_build)] }}
+          PFLT_CERTIFICATION_COMPONENT_ID: ${{ env.RHEL_PROJECT }}
           PFLT_PYXIS_API_TOKEN: ${{ secrets.REDHAT_API_TOKEN }}
           PFLT_ARTIFACTS: ${{ runner.temp }}/preflight-artifacts
           PFLT_LOGLEVEL: ${{ env.PFLT_LOGLEVEL }}

@@ -11,7 +11,8 @@
     },
     "rhel": {
       "imagePlatforms": ["linux/amd64", "linux/arm64"],
-      "runnerLabels": {"amd64": "X64", "arm64": "ARM64"}
+      "runnerLabels": {"amd64": "X64", "arm64": "ARM64"},
+      "certificationProjects": {}
     },
     "ubuntu": {
       "imagePlatforms": ["linux/amd64", "linux/arm64", "linux/ppc64le"]
