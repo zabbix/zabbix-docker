@@ -1,5 +1,5 @@
 name: Get Red Hat registry password
-description: Get the registry robot password of a Red Hat certification project and export it as REGISTRY_PASSWORD
+description: Get the registry robot password of a Red Hat certification project
 
 inputs:
   project:
@@ -9,10 +9,16 @@ inputs:
     required: true
     description: Red Hat Pyxis API token
 
+outputs:
+  password:
+    description: Red Hat registry robot password
+    value: ${{ steps.credentials.outputs.password }}
+
 runs:
   using: composite
   steps:
     - name: Get registry password
+      id: credentials
       shell: bash
       env:
         PROJECT: ${{ inputs.project }}
@@ -32,4 +38,4 @@ runs:
         [[ -n "$registry_password" ]] || { echo "::error::Registry password for project ${PROJECT} is empty"; exit 1; }
 
         echo "::add-mask::${registry_password}"
-        echo "REGISTRY_PASSWORD=${registry_password}" >> "$GITHUB_ENV"
+        echo "password=${registry_password}" >> "$GITHUB_OUTPUT"
