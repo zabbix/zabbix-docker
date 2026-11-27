@@ -14,7 +14,13 @@ Zabbix Bridge Adapter connects a Zabbix installation to Zabbix Bridge for use wi
 
 # Zabbix Bridge Adapter images
 
-Zabbix Bridge Adapter Docker images are based on the distroless `static` image (Debian 13), have no shell or package manager, and run as a non-root user (UID `1997`).
+These are the only official Zabbix Bridge Adapter Docker images. They are based on distroless `static` (Debian 13) and Red Hat UBI Micro 10 images. The available versions of Zabbix Bridge Adapter are:
+
+    Zabbix Bridge Adapter 8.0 (tags: distroless-8.0-latest, rhel-8.0-latest, distroless-latest, rhel-latest, latest)
+    Zabbix Bridge Adapter 8.0.* (tags: distroless-8.0.*, rhel-8.0.*)
+    Zabbix Bridge Adapter 8.2 (tags: distroless-trunk, rhel-trunk)
+
+The image with ``latest`` tag is based on the distroless `static` image.
 
 # How to use this image
 

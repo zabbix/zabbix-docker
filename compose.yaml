@@ -205,13 +205,13 @@ services:
   extends:
    file: compose_zabbix_components.yaml
    service: bridge-adapter-init
-  image: "${ZABBIX_BRIDGE_ADAPTER_IMAGE}:${ZBX_VERSION}"
+  image: "${ZABBIX_BRIDGE_ADAPTER_IMAGE}:distroless-${ZBX_VERSION}-latest"
 
  zabbix-bridge-adapter:
   extends:
    file: compose_zabbix_components.yaml
    service: bridge-adapter
-  image: "${ZABBIX_BRIDGE_ADAPTER_IMAGE}:${ZBX_VERSION}"
+  image: "${ZABBIX_BRIDGE_ADAPTER_IMAGE}:distroless-${ZBX_VERSION}-latest"
   depends_on:
    bridge-adapter-init:
     condition: service_completed_successfully
