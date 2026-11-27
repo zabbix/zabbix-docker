@@ -49,6 +49,7 @@ Accept the EULA using a persistent data volume:
 
 ```console
 $ docker run --rm --network none --read-only \
+    --tmpfs /run/zabbix/secrets_internal:mode=770,uid=1997,gid=0 \
     --env-file bridge-adapter.env \
     --volume zabbix-bridge-adapter-data:/var/lib/zabbix/bridge-adapter \
     zabbix/zabbix-bridge-adapter:tag accept-license
@@ -64,6 +65,7 @@ Start a Zabbix Bridge Adapter container using the same environment file and data
 $ docker run --name some-zabbix-bridge-adapter \
     --network zabbix-backend \
     --read-only --tmpfs /tmp \
+    --tmpfs /run/zabbix/secrets_internal:mode=770,uid=1997,gid=0 \
     --env-file bridge-adapter.env \
     --volume zabbix-bridge-adapter-data:/var/lib/zabbix/bridge-adapter \
     -d zabbix/zabbix-bridge-adapter:tag
@@ -122,7 +124,7 @@ Use `disabled` for an HTTP API URL. The default is `required` for HTTPS.
 
 ### `ZBX_ZABBIXAPITLSCAFILE`, `ZBX_ZABBIXAPITLSCA`
 
-`ZBX_ZABBIXAPITLSCAFILE` specifies the CA file used to verify the Zabbix API certificate. A relative path is resolved against `/run/zabbix/secrets/tls`; the previous location remains available during migration with a warning. Alternatively, `ZBX_ZABBIXAPITLSCA` provides the CA certificate content directly. A CA is required when `ZBX_ZABBIXAPITLSCONNECT` is set to `verify_ca` or `verify_full`.
+`ZBX_ZABBIXAPITLSCAFILE` specifies the CA file used to verify the Zabbix API certificate. A relative path is resolved against `/run/zabbix/secrets/tls`. Alternatively, `ZBX_ZABBIXAPITLSCA` provides the CA certificate content directly. A CA is required when `ZBX_ZABBIXAPITLSCONNECT` is set to `verify_ca` or `verify_full`.
 
 ### `ZBX_LISTENIP`
 
