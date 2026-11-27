@@ -24,6 +24,11 @@ func prepareLicenseAcceptance(env bootstrap.Environment) ([]string, error) {
 		return nil, fmt.Errorf("accept-license: set ZBX_EULAVERSION to the reviewed bundled EULA version; no license has been accepted")
 	}
 
+	// The Adapter validates its configuration before accepting the EULA.
+	if err := bootstrap.ResolveSecrets(env, bootstrap.SecretsBridge, bootstrap.SecretsService); err != nil {
+		return nil, err
+	}
+
 	configDir := env.ValueOrDefaultNonEmpty("ZABBIX_CONF_DIR", "/etc/zabbix")
 	command := []string{
 		bridgeAdapterBinary, "-c", filepath.Join(configDir, "zabbix_bridge_adapter.conf"),

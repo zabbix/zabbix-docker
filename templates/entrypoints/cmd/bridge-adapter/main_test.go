@@ -236,6 +236,19 @@ func TestAcceptLicenseRejectsExtraArguments(t *testing.T) {
 	}
 }
 
+func TestAcceptLicenseValidatesTLSInputs(t *testing.T) {
+	env := bootstrap.Environment{
+		"ZBX_EULAVERSION": "2026-09-29",
+		"ZBX_TLSMODE":     "mtls",
+		"ZBX_TLSCA":       "inline CA",
+		"ZBX_TLSCAFILE":   "/etc/zabbix/ca.pem",
+	}
+	_, err := prepareCommand(env, []string{acceptLicenseCommand})
+	if err == nil || !strings.Contains(err.Error(), "both variables ZBX_TLSCA and ZBX_TLSCAFILE are set") {
+		t.Fatalf("prepareCommand() error = %v, want a conflicting TLS inputs error", err)
+	}
+}
+
 func TestNativeLicenseCommandsWithoutAllowedMethods(t *testing.T) {
 	for _, test := range []struct {
 		name string

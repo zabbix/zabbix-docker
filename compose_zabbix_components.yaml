@@ -976,13 +976,15 @@ services:
   volumes:
    - /etc/localtime:/etc/localtime:ro
    - ${DATA_DIRECTORY}/var/lib/zabbix/bridge-adapter:/var/lib/zabbix/bridge-adapter:rw
+   - ${DATA_DIRECTORY}/run/zabbix/secrets/tls:/run/zabbix/secrets/tls:ro
+  tmpfs:
+   - /run/zabbix/secrets_internal:mode=770,uid=1997,gid=0
   env_file:
    - path: ${ENV_VARS_DIRECTORY}/.env_bridge_adapter
      required: true
    - path: ${ENV_VARS_DIRECTORY}/.env_bridge_adapter_override
      required: false
-  networks:
-   backend:
+  network_mode: none
   labels:
    com.zabbix.description: "Zabbix Bridge Adapter EULA acceptance"
    com.zabbix.company: "Zabbix SIA"
@@ -1000,7 +1002,6 @@ services:
    - ${DATA_DIRECTORY}/var/lib/zabbix/bridge-adapter:/var/lib/zabbix/bridge-adapter:rw
    - ${DATA_DIRECTORY}/run/zabbix/secrets/tls:/run/zabbix/secrets/tls:ro
 # Deprecated secret locations. Uncomment temporarily while migrating.
-#   - ${DATA_DIRECTORY}/var/lib/zabbix/enc:/var/lib/zabbix/enc:ro
 #   - ${DATA_DIRECTORY}/var/lib/zabbix/ssl/certs:/var/lib/zabbix/ssl/certs:ro
 #   - ${DATA_DIRECTORY}/var/lib/zabbix/ssl/keys:/var/lib/zabbix/ssl/keys:ro
 #   - ${DATA_DIRECTORY}/var/lib/zabbix/ssl/ssl_ca:/var/lib/zabbix/ssl/ssl_ca:ro
