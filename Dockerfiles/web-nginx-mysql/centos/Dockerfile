@@ -149,7 +149,6 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
     chown --quiet -R zabbix:0 ${FIX_PERM_LIST} && \
     chmod -R g=u ${FIX_PERM_LIST} && \
     microdnf -y remove \
-            findutils \
             glibc-locale-source \
             shadow-utils
 
