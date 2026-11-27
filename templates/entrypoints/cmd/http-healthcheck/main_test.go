@@ -16,6 +16,7 @@ func TestHealthcheckURL(t *testing.T) {
 	for _, test := range []struct {
 		name    string
 		args    []string
+		listen  string
 		port    string
 		want    string
 		wantErr bool
@@ -26,6 +27,11 @@ func TestHealthcheckURL(t *testing.T) {
 		{name: "empty after trimming", port: " ", want: "http://127.0.0.1:8081/health"},
 		{name: "readiness default port", args: []string{"/ready"}, want: "http://127.0.0.1:8081/ready"},
 		{name: "readiness custom port", args: []string{"/ready"}, port: "9091", want: "http://127.0.0.1:9091/ready"},
+		{name: "IPv4 wildcard", args: []string{"/ready"}, listen: "0.0.0.0", want: "http://127.0.0.1:8081/ready"},
+		{name: "IPv4 address", args: []string{"/ready"}, listen: "192.0.2.10", port: "9091", want: "http://192.0.2.10:9091/ready"},
+		{name: "IPv6 wildcard", args: []string{"/ready"}, listen: "::", want: "http://[::1]:8081/ready"},
+		{name: "IPv6 address", args: []string{"/ready"}, listen: "2001:db8::10", want: "http://[2001:db8::10]:8081/ready"},
+		{name: "hostname", args: []string{"/ready"}, listen: "adapter.example", want: "http://adapter.example:8081/ready"},
 		{name: "readiness invalid port", args: []string{"/ready"}, port: "invalid", wantErr: true},
 		{name: "explicit URL", args: []string{"http://localhost:9000/ready"}, port: "invalid", want: "http://localhost:9000/ready"},
 		{name: "invalid port", port: "invalid", wantErr: true},
@@ -39,10 +45,15 @@ func TestHealthcheckURL(t *testing.T) {
 			t.Parallel()
 
 			url, err := healthcheckURL(test.args, func(name string) string {
-				if name != "ZBX_LISTENHEALTHPORT" {
+				switch name {
+				case "ZBX_LISTENIP":
+					return test.listen
+				case "ZBX_LISTENHEALTHPORT":
+					return test.port
+				default:
 					t.Errorf("unexpected environment variable: %s", name)
+					return ""
 				}
-				return test.port
 			})
 			if (err != nil) != test.wantErr {
 				t.Fatalf("healthcheckURL() error = %v, wantErr = %v", err, test.wantErr)
@@ -72,7 +83,12 @@ func TestCheckHealth(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
-			url, err := healthcheckURL(nil, func(string) string { return port })
+			url, err := healthcheckURL(nil, func(name string) string {
+				if name == "ZBX_LISTENHEALTHPORT" {
+					return port
+				}
+				return ""
+			})
 			if err != nil {
 				t.Fatal(err)
 			}
