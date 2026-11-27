@@ -182,6 +182,22 @@ func TestResolveSecretsDoesNotUseLegacyPathsForEightZeroSecrets(t *testing.T) {
 			func(home string) string { return filepath.Join(home, "enc", "cert.pem") },
 			"providers/telemetry-0/cert.pem",
 		},
+		{
+			"bridge adapter listener TLS",
+			SecretsBridge,
+			SecretsService,
+			Environment{"ZBX_TLSMODE": "tls", "ZBX_TLSCERTFILE": "cert.pem"},
+			func(home string) string { return filepath.Join(home, "enc", "cert.pem") },
+			"tls/cert.pem",
+		},
+		{
+			"bridge adapter API TLS",
+			SecretsBridge,
+			SecretsService,
+			Environment{"ZBX_ZABBIXAPITLSCONNECT": "verify_full", "ZBX_ZABBIXAPITLSCAFILE": "ca.pem"},
+			func(home string) string { return filepath.Join(home, "enc", "ca.pem") },
+			"tls/ca.pem",
+		},
 	} {
 		t.Run(test.name, func(t *testing.T) {
 			external, _, _ := useSecretRoots(t)

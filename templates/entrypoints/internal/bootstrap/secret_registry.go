@@ -71,9 +71,9 @@ func secretPlan(env Environment, component SecretComponent, command SecretComman
 			listenerMTLS := strings.EqualFold(env["ZBX_TLSMODE"], "mtls")
 			apiTLS := strings.EqualFold(env["ZBX_ZABBIXAPITLSCONNECT"], "verify_ca") ||
 				strings.EqualFold(env["ZBX_ZABBIXAPITLSCONNECT"], "verify_full")
-			addFiles("tls", enc, false, listenerMTLS, "ZBX_TLSCA")
-			addFiles("tls", enc, false, listenerTLS, "ZBX_TLSCERT", "ZBX_TLSKEY")
-			addFiles("tls", enc, false, apiTLS, "ZBX_ZABBIXAPITLSCA")
+			addFiles("tls", "", false, listenerMTLS, "ZBX_TLSCA")
+			addFiles("tls", "", false, listenerTLS, "ZBX_TLSCERT", "ZBX_TLSKEY")
+			addFiles("tls", "", false, apiTLS, "ZBX_ZABBIXAPITLSCA")
 		}
 		if server {
 			addFiles("tls", enc, false, true, "ZBX_TLSCA", "ZBX_TLSCRL", "ZBX_TLSCERT", "ZBX_TLSKEY")

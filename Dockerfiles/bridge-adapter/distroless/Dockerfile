@@ -36,12 +36,8 @@ RUN --mount=from=bridge_adapter_sources,target=/tmp/bridge_adapter_sources,ro \
         ${ZBX_ROOTFS_DIR}${ZABBIX_CONF_DIR} \
         ${ZBX_ROOTFS_DIR}${ZABBIX_USER_HOME_DIR} \
         ${ZBX_ROOTFS_DIR}${ZABBIX_USER_HOME_DIR}/bridge-adapter \
-        ${ZBX_ROOTFS_DIR}${ZABBIX_USER_HOME_DIR}/enc \
         ${ZBX_ROOTFS_DIR}/run/zabbix/secrets/tls \
-        ${ZBX_ROOTFS_DIR}/run/zabbix/secrets_internal \
-        ${ZBX_ROOTFS_DIR}${ZABBIX_USER_HOME_DIR}/ssl/certs \
-        ${ZBX_ROOTFS_DIR}${ZABBIX_USER_HOME_DIR}/ssl/keys \
-        ${ZBX_ROOTFS_DIR}${ZABBIX_USER_HOME_DIR}/ssl/ssl_ca && \
+        ${ZBX_ROOTFS_DIR}/run/zabbix/secrets_internal && \
     chown -R 1997:0 \
         ${ZBX_ROOTFS_DIR}${ZABBIX_USER_HOME_DIR} \
         ${ZBX_ROOTFS_DIR}/run/zabbix/secrets_internal && \
