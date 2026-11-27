@@ -1,0 +1,35 @@
+name: Get Red Hat registry password
+description: Get the registry robot password of a Red Hat certification project and export it as REGISTRY_PASSWORD
+
+inputs:
+  project:
+    required: true
+    description: Red Hat certification project ID
+  api_token:
+    required: true
+    description: Red Hat Pyxis API token
+
+runs:
+  using: composite
+  steps:
+    - name: Get registry password
+      shell: bash
+      env:
+        PROJECT: ${{ inputs.project }}
+        PYXIS_API_TOKEN: ${{ inputs.api_token }}
+        PYXIS_API_URL: "https://catalog.redhat.com/api/containers/v1"
+      run: |
+        set -euo pipefail
+
+        [[ -n "$PYXIS_API_TOKEN" ]] || { echo "::error::Red Hat API token is missing"; exit 1; }
+
+        credentials="$(curl --fail --silent --show-error --retry 3 \
+          --header "X-API-KEY: ${PYXIS_API_TOKEN}" \
+          "${PYXIS_API_URL}/projects/certification/id/${PROJECT}/secrets")" \
+          || { echo "::error::Cannot get registry credentials for project ${PROJECT}"; exit 1; }
+
+        registry_password="$(jq -r '.registry_credentials.password // empty' <<<"$credentials")"
+        [[ -n "$registry_password" ]] || { echo "::error::Registry password for project ${PROJECT} is empty"; exit 1; }
+
+        echo "::add-mask::${registry_password}"
+        echo "REGISTRY_PASSWORD=${registry_password}" >> "$GITHUB_ENV"
