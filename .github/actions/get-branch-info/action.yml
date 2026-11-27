@@ -6,10 +6,6 @@ inputs:
     required: false
     default: ""
     description: Full release version supplied explicitly for a manual build
-  trunk_version:
-    required: false
-    default: ""
-    description: Major version to use when the branch resolves to trunk
   trunk_git_branch:
     required: false
     default: ""
@@ -22,9 +18,6 @@ outputs:
   current_branch:
     description: Normalized current branch or tag name
     value: ${{ steps.branch_info.outputs.current_branch }}
-  secret_prefix:
-    description: Derived secret prefix for the current branch
-    value: ${{ steps.branch_info.outputs.secret_prefix }}
   sha_short:
     description: Short Git commit SHA
     value: ${{ steps.branch_info.outputs.sha_short }}
@@ -43,7 +36,6 @@ runs:
         GITHUB_REF_RAW: ${{ github.ref }}
         GITHUB_EVENT_NAME: ${{ github.event_name }}
         RELEASE_VERSION_INPUT: ${{ inputs.release_version }}
-        TRUNK_MAJOR_VERSION: ${{ inputs.trunk_version }}
         TRUNK_GIT_BRANCH: ${{ inputs.trunk_git_branch }}
       run: |
         set -euo pipefail
@@ -91,18 +83,11 @@ runs:
           fi
         fi
 
-        if [[ "${current_branch//.}" == "trunk" && -n "$TRUNK_MAJOR_VERSION" ]]; then
-          secret_prefix="RHEL_${TRUNK_MAJOR_VERSION//.}"
-        else
-          secret_prefix="RHEL_${current_branch//.}"
-        fi
-
         echo "::group::Branch metadata"
         echo "event_name=$GITHUB_EVENT_NAME"
         echo "ref=$ref"
         echo "is_default_branch=$is_default_branch"
         echo "current_branch=$current_branch"
-        echo "secret_prefix=$secret_prefix"
         echo "sha_short=$sha_short"
         echo "release_version=$release_version"
         echo "::endgroup::"
@@ -110,7 +95,6 @@ runs:
         {
           echo "is_default_branch=$is_default_branch"
           echo "current_branch=$current_branch"
-          echo "secret_prefix=$secret_prefix"
           echo "sha_short=$sha_short"
           echo "release_version=$release_version"
         } >> "$GITHUB_OUTPUT"
