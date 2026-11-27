@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"net"
 	"net/http"
 	"net/url"
 	"os"
@@ -46,11 +47,24 @@ func healthcheckURL(args []string, getenv func(string) string) (string, error) {
 		return "", fmt.Errorf("invalid ZBX_LISTENHEALTHPORT %q: expected a port between 1 and 65535", port)
 	}
 
+	host := strings.TrimSpace(getenv("ZBX_LISTENIP"))
+	switch host {
+	case "", "0.0.0.0":
+		host = "127.0.0.1"
+	case "::":
+		host = "::1"
+	}
+
 	path := "/health"
 	if len(args) == 1 {
 		path = args[0]
 	}
-	return fmt.Sprintf("http://127.0.0.1:%d%s", portNumber, path), nil
+	target := url.URL{
+		Scheme: "http",
+		Host:   net.JoinHostPort(host, strconv.Itoa(portNumber)),
+		Path:   path,
+	}
+	return target.String(), nil
 }
 
 func checkHealth(client *http.Client, targetURL string) error {
